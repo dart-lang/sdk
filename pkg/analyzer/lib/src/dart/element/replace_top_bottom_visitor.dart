@@ -53,8 +53,9 @@ class ReplaceTopBottomVisitor {
       }
     }
 
-    if (type.aliasElement != null) {
-      return _typeAliasInstantiation(type, variance);
+    var alias = type.alias;
+    if (alias != null) {
+      return _instantiatedTypeAlias(type, alias, variance);
     } else if (type is InterfaceType) {
       return _interfaceType(type, variance);
     } else if (type is FunctionType) {
@@ -83,6 +84,34 @@ class ReplaceTopBottomVisitor {
     );
   }
 
+  DartType _instantiatedTypeAlias(
+    DartType type,
+    InstantiatedTypeAliasElement alias,
+    Variance variance,
+  ) {
+    var aliasElement = alias.element;
+    var aliasArguments = alias.typeArguments;
+
+    var typeParameters = aliasElement.typeParameters;
+    assert(typeParameters.length == aliasArguments.length);
+
+    var newTypeArguments = <DartType>[];
+    for (var i = 0; i < typeParameters.length; i++) {
+      var typeParameter = typeParameters[i] as TypeParameterElementImpl;
+      newTypeArguments.add(
+        process(
+          aliasArguments[i],
+          typeParameter.variance.combine(variance),
+        ),
+      );
+    }
+
+    return aliasElement.instantiate(
+      typeArguments: newTypeArguments,
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
+  }
+
   DartType _interfaceType(InterfaceType type, Variance variance) {
     var typeParameters = type.element.typeParameters;
     if (typeParameters.isEmpty) {
@@ -102,30 +131,6 @@ class ReplaceTopBottomVisitor {
       element: type.element,
       nullabilitySuffix: type.nullabilitySuffix,
       typeArguments: newTypeArguments,
-    );
-  }
-
-  DartType _typeAliasInstantiation(DartType type, Variance variance) {
-    var aliasElement = type.aliasElement!;
-    var aliasArguments = type.aliasArguments!;
-
-    var typeParameters = aliasElement.typeParameters;
-    assert(typeParameters.length == aliasArguments.length);
-
-    var newTypeArguments = <DartType>[];
-    for (var i = 0; i < typeParameters.length; i++) {
-      var typeParameter = typeParameters[i] as TypeParameterElementImpl;
-      newTypeArguments.add(
-        process(
-          aliasArguments[i],
-          typeParameter.variance.combine(variance),
-        ),
-      );
-    }
-
-    return aliasElement.instantiate(
-      typeArguments: newTypeArguments,
-      nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 

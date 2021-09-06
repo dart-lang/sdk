@@ -4,7 +4,7 @@
 
 // Verify deferred library status is per-isolate, not per-isolate-group.
 
-// VMOptions=--enable_isolate_groups --experimental_enable_isolate_groups_jit
+// VMOptions=--enable-isolate-groups
 
 import 'dart:async';
 import 'dart:isolate';

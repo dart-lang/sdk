@@ -31,6 +31,9 @@ regress/regress29784_test/02: SkipByDesign # Requires checked mode.
 stack_trace/demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type/checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
+[ $runtime != vm ]
+unsorted/disassemble_test: Skip # VM only test
+
 [ $compiler != dart2analyzer && $compiler != fasta ]
 identifier/built_in_type_annotation_test/*: SkipByDesign # Analyzer/CFE only tests.
 
@@ -42,6 +45,4 @@ identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM
 
 [ $hot_reload || $hot_reload_rollback ]
 regress/regress22780_test/01: Crash # Issue 29094
-regress/regress23244_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-vm/optimized_guarded_field_isolates_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 vm/optimized_stacktrace_test: Slow, Pass

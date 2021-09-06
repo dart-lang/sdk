@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 import 'dart:async';
 import 'dart:io';
 
@@ -14,19 +12,18 @@ import 'package:vm_service/vm_service_io.dart';
 import 'common/test_helper.dart';
 
 void main() {
-  Process process;
-  DartDevelopmentService dds;
+  late Process process;
+  late DartDevelopmentService dds;
 
   setUp(() async {
-    process = await spawnDartProcess('on_event_with_history_script.dart',
-        pauseOnStart: false);
+    process = await spawnDartProcess(
+      'on_event_with_history_script.dart',
+    );
   });
 
   tearDown(() async {
-    await dds?.shutdown();
-    process?.kill();
-    dds = null;
-    process = null;
+    await dds.shutdown();
+    process.kill();
   });
 
   test('onEventWithHistory returns stream including log history', () async {
@@ -36,6 +33,9 @@ void main() {
     expect(dds.isRunning, true);
     final service = await vmServiceConnectUri(dds.wsUri.toString());
 
+    // Wait until the test script has finished writing its initial logs.
+    await executeUntilNextPause(service);
+
     await service.streamListen('Logging');
     final stream = service.onLoggingEventWithHistory;
 
@@ -43,16 +43,15 @@ void main() {
     int count = 0;
     stream.listen((event) {
       count++;
-      expect(event.logRecord.message.valueAsString, count.toString());
+      expect(event.logRecord!.message!.valueAsString, count.toString());
       if (count % 10 == 0) {
         completer.complete();
       }
     });
-
     await completer.future;
 
     completer = Completer<void>();
-    final isolateId = (await service.getVM()).isolates.first.id;
+    final isolateId = (await service.getVM()).isolates!.first.id!;
     await service.resume(isolateId);
 
     await completer.future;

@@ -1339,7 +1339,7 @@ a:focus, a:hover {
       An enumeration of the kinds of folding regions.
     </p>
     
-  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">COMMENT</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
+  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">COMMENT</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt><dt class="value">PARAMETERS</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
     <p>
       A description of a region that can be folded.
     </p>
@@ -1579,13 +1579,13 @@ a:focus, a:hover {
           The one-based index of the column containing the first character of
           the range.
         </p>
-      </dd><dt class="field"><b>endLine: int</b></dt><dd>
+      </dd><dt class="field"><b>endLine: int<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The one-based index of the line containing the character immediately
           following the range.
         </p>
-      </dd><dt class="field"><b>endColumn: int</b></dt><dd>
+      </dd><dt class="field"><b>endColumn: int<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The one-based index of the column containing the character immediately

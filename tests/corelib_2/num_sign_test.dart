@@ -5,6 +5,8 @@
 // VMOptions=--no-use-field-guards
 // VMOptions=
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Pedestrian implementation of sign, following its specification directly.

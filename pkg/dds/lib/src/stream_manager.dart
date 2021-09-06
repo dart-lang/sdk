@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -27,10 +25,10 @@ class StreamManager {
   void streamNotify(
     String streamId,
     data, {
-    DartDevelopmentServiceClient excludedClient,
+    DartDevelopmentServiceClient? excludedClient,
   }) {
     if (streamListeners.containsKey(streamId)) {
-      final listeners = streamListeners[streamId];
+      final listeners = streamListeners[streamId]!;
       final isBinaryData = data is Uint8List;
       for (final listener in listeners) {
         if (listener == excludedClient) {
@@ -64,7 +62,7 @@ class StreamManager {
     String service,
     String alias,
   ) {
-    final namespace = dds.getNamespace(client);
+    final namespace = dds.getNamespace(client)!;
     streamNotify(
       kServiceStream,
       _buildStreamRegisteredEvent(namespace, service, alias),
@@ -86,7 +84,7 @@ class StreamManager {
             'kind': 'ServiceUnregistered',
             'timestamp': DateTime.now().millisecondsSinceEpoch,
             'service': service,
-            'method': namespace + '.' + service,
+            'method': namespace! + '.' + service,
           },
         },
         excludedClient: client,
@@ -120,7 +118,7 @@ class StreamManager {
         // Keep a history of messages to send to clients when they first
         // subscribe to a stream with an event history.
         if (loggingRepositories.containsKey(streamId)) {
-          loggingRepositories[streamId].add(parameters.asMap);
+          loggingRepositories[streamId]!.add(parameters.asMap);
         }
         streamNotify(streamId, parameters.value);
       },
@@ -132,11 +130,16 @@ class StreamManager {
   /// If `client` is the first client to listen to `stream`, DDS will send a
   /// `streamListen` request for `stream` to the VM service.
   Future<void> streamListen(
-    DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient? client,
     String stream,
   ) async {
-    assert(stream != null && stream.isNotEmpty);
+    assert(stream.isNotEmpty);
     if (!streamListeners.containsKey(stream)) {
+      // Initialize the list of clients for the new stream before we do
+      // anything else to ensure multiple clients registering for the same
+      // stream in quick succession doesn't result in multiple streamListen
+      // requests being sent to the VM service.
+      streamListeners[stream] = <DartDevelopmentServiceClient>[];
       if ((stream == kDebugStream && client == null) ||
           stream != kDebugStream) {
         // This will return an RPC exception if the stream doesn't exist. This
@@ -146,15 +149,14 @@ class StreamManager {
         });
         assert(result['type'] == 'Success');
       }
-      streamListeners[stream] = <DartDevelopmentServiceClient>[];
     }
-    if (streamListeners[stream].contains(client)) {
+    if (streamListeners[stream]!.contains(client)) {
       throw kStreamAlreadySubscribedException;
     }
     if (client != null) {
-      streamListeners[stream].add(client);
+      streamListeners[stream]!.add(client);
       if (loggingRepositories.containsKey(stream)) {
-        loggingRepositories[stream].sendHistoricalLogs(client);
+        loggingRepositories[stream]!.sendHistoricalLogs(client);
       } else if (stream == kServiceStream) {
         // Send all previously registered service extensions when a client
         // subscribes to the Service stream.
@@ -167,9 +169,9 @@ class StreamManager {
             client.sendNotification(
               'streamNotify',
               _buildStreamRegisteredEvent(
-                namespace,
+                namespace!,
                 service,
-                c.services[service],
+                c.services[service]!,
               ),
             );
           }
@@ -178,12 +180,12 @@ class StreamManager {
     }
   }
 
-  List<Map<String, dynamic>> getStreamHistory(String stream) {
+  List<Map<String, dynamic>>? getStreamHistory(String stream) {
     if (!loggingRepositories.containsKey(stream)) {
       return null;
     }
     return [
-      for (final event in loggingRepositories[stream]()) event['event'],
+      for (final event in loggingRepositories[stream]!()) event['event'],
     ];
   }
 
@@ -192,13 +194,13 @@ class StreamManager {
   /// If `client` is the last client to unsubscribe from `stream`, DDS will
   /// send a `streamCancel` request for `stream` to the VM service.
   Future<void> streamCancel(
-    DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient? client,
     String stream, {
     bool cancelCoreStream = false,
   }) async {
-    assert(stream != null && stream.isNotEmpty);
+    assert(stream.isNotEmpty);
     final listeners = streamListeners[stream];
-    if (client != null && (listeners == null || !listeners.contains(client))) {
+    if (listeners == null || client != null && !listeners.contains(client)) {
       throw kStreamNotSubscribedException;
     }
     listeners.remove(client);

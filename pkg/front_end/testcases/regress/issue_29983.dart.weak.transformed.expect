@@ -57,7 +57,7 @@ static method h() → dynamic /* originally sync* */ {
     dynamic :await_ctx_var;
     function :sync_op(core::_SyncIterator<dynamic>* :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
       {
-        (() → core::String* => "return").call();
+        (() → core::String* => "return")(){() →* core::String*};
       }
       return false;
     }

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedObjects=ffi_test_functions
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --disable-heap-verification --disable-thread-pool-limit
+// VMOptions=--enable-isolate-groups --disable-heap-verification --disable-thread-pool-limit
 
 import 'dart:async';
 import 'dart:math' as math;

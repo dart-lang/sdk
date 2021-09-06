@@ -28,5 +28,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///redirecting_factory_metadata.dart:13:4 -> IntConstant(2)
+Evaluated: StaticGet @ org-dartlang-testcase:///redirecting_factory_metadata.dart:15:4 -> IntConstant(2)
 Extra constant evaluation: evaluated: 5, effectively constant: 1

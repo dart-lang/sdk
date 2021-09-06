@@ -92,6 +92,9 @@ abstract class CommonElements {
   /// The dart:_js_helper library.
   LibraryEntity get jsHelperLibrary;
 
+  /// The dart:_late_helper library
+  LibraryEntity get lateHelperLibrary;
+
   /// The dart:_interceptors library.
   LibraryEntity get interceptorsLibrary;
 
@@ -214,7 +217,7 @@ abstract class CommonElements {
   InterfaceType getConstantListTypeFor(InterfaceType sourceType);
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
-      {bool hasProtoKey: false, bool onlyStringKeys: false});
+      {bool onlyStringKeys: false});
 
   InterfaceType getConstantSetTypeFor(InterfaceType sourceType);
 
@@ -332,6 +335,8 @@ abstract class CommonElements {
   FunctionEntity findHelperFunction(String name);
 
   ClassEntity get closureClass;
+  ClassEntity get closureClass0Args;
+  ClassEntity get closureClass2Args;
 
   ClassEntity get boundClosureClass;
 
@@ -357,7 +362,6 @@ abstract class CommonElements {
 
   ClassEntity get constantMapClass;
   ClassEntity get constantStringMapClass;
-  ClassEntity get constantProtoMapClass;
   ClassEntity get generalConstantMapClass;
 
   ClassEntity get annotationCreatesClass;
@@ -440,7 +444,7 @@ abstract class CommonElements {
 
   FunctionEntity get defineProperty;
 
-  FunctionEntity get throwLateInitializationError;
+  FunctionEntity get throwLateFieldADI;
 
   bool isExtractTypeArguments(FunctionEntity member);
 
@@ -452,7 +456,7 @@ abstract class CommonElements {
 
   // From dart:_rti
 
-  FunctionEntity get setRuntimeTypeInfo;
+  FunctionEntity get setArrayType;
 
   FunctionEntity get findType;
   FunctionEntity get instanceType;
@@ -513,8 +517,6 @@ abstract class CommonElements {
 
   InterfaceType get externalNameType;
 
-  ConstructorEntity get symbolValidatedConstructor;
-
   // From dart:_js_embedded_names
 
   /// Holds the class for the [JsGetName] enum.
@@ -565,8 +567,6 @@ abstract class KCommonElements implements CommonElements {
   FieldEntity get pragmaClassOptionsField;
 
   bool isCreateInvocationMirrorHelper(MemberEntity member);
-
-  bool isSymbolValidatedConstructor(ConstructorEntity element);
 
   ClassEntity get metaNoInlineClass;
 
@@ -644,6 +644,10 @@ abstract class JCommonElements implements CommonElements {
   ClassEntity get jsBuiltinEnum;
 
   bool isForeign(MemberEntity element);
+
+  /// Returns `true` if [member] is the `createSentinel` function defined in
+  /// dart:_internal.
+  bool isCreateSentinel(MemberEntity element);
 
   /// Returns `true` if the implementation of the 'operator ==' [function] is
   /// known to handle `null` as argument.
@@ -772,6 +776,11 @@ class CommonElementsImpl
   @override
   LibraryEntity get jsHelperLibrary =>
       _jsHelperLibrary ??= _env.lookupLibrary(Uris.dart__js_helper);
+
+  LibraryEntity _lateHelperLibrary;
+  @override
+  LibraryEntity get lateHelperLibrary =>
+      _lateHelperLibrary ??= _env.lookupLibrary(Uris.dart__late_helper);
 
   LibraryEntity _interceptorsLibrary;
   @override
@@ -1027,10 +1036,9 @@ class CommonElementsImpl
 
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
-      {bool hasProtoKey: false, bool onlyStringKeys: false}) {
-    ClassEntity classElement = onlyStringKeys
-        ? (hasProtoKey ? constantProtoMapClass : constantStringMapClass)
-        : generalConstantMapClass;
+      {bool onlyStringKeys: false}) {
+    ClassEntity classElement =
+        onlyStringKeys ? constantStringMapClass : generalConstantMapClass;
     if (dartTypes.treatAsRawType(sourceType)) {
       return _env.getRawType(classElement);
     } else {
@@ -1521,9 +1529,22 @@ class CommonElementsImpl
   ClassEntity _findHelperClass(String name) =>
       _findClass(jsHelperLibrary, name);
 
+  FunctionEntity _findLateHelperFunction(String name) =>
+      _findLibraryMember(lateHelperLibrary, name);
+
   ClassEntity _closureClass;
   @override
   ClassEntity get closureClass => _closureClass ??= _findHelperClass('Closure');
+
+  ClassEntity _closureClass0Args;
+  @override
+  ClassEntity get closureClass0Args =>
+      _closureClass0Args ??= _findHelperClass('Closure0Args');
+
+  ClassEntity _closureClass2Args;
+  @override
+  ClassEntity get closureClass2Args =>
+      _closureClass2Args ??= _findHelperClass('Closure2Args');
 
   ClassEntity _boundClosureClass;
   @override
@@ -1595,9 +1616,6 @@ class CommonElementsImpl
   @override
   ClassEntity get constantStringMapClass =>
       _findHelperClass(constant_system.JavaScriptMapConstant.DART_STRING_CLASS);
-  @override
-  ClassEntity get constantProtoMapClass =>
-      _findHelperClass(constant_system.JavaScriptMapConstant.DART_PROTO_CLASS);
   @override
   ClassEntity get generalConstantMapClass => _findHelperClass(
       constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS);
@@ -1787,8 +1805,8 @@ class CommonElementsImpl
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
 
   @override
-  FunctionEntity get throwLateInitializationError =>
-      _findHelperFunction('throwLateInitializationError');
+  FunctionEntity get throwLateFieldADI =>
+      _findLateHelperFunction('throwLateFieldADI');
 
   @override
   bool isExtractTypeArguments(FunctionEntity member) {
@@ -1837,10 +1855,10 @@ class CommonElementsImpl
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name);
 
-  FunctionEntity _setRuntimeTypeInfo;
+  FunctionEntity _setArrayType;
   @override
-  FunctionEntity get setRuntimeTypeInfo =>
-      _setRuntimeTypeInfo ??= _findRtiFunction('setRuntimeTypeInfo');
+  FunctionEntity get setArrayType =>
+      _setArrayType ??= _findRtiFunction('_setArrayType');
 
   FunctionEntity _findType;
   @override
@@ -2050,26 +2068,12 @@ class CommonElementsImpl
   @override
   InterfaceType get externalNameType => _getRawType(externalNameClass);
 
-  @override
-  ConstructorEntity get symbolValidatedConstructor =>
-      _symbolValidatedConstructor ??=
-          _findConstructor(symbolImplementationClass, 'validated');
-
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.
   FieldEntity _symbolImplementationField;
   FieldEntity get symbolImplementationField => _symbolImplementationField ??=
       _env.lookupLocalClassMember(symbolImplementationClass, '_name',
           required: true);
-
-  ConstructorEntity _symbolValidatedConstructor;
-  @override
-  bool isSymbolValidatedConstructor(ConstructorEntity element) {
-    if (_symbolValidatedConstructor != null) {
-      return element == _symbolValidatedConstructor;
-    }
-    return false;
-  }
 
   // From dart:_native_typed_data
 
@@ -2139,6 +2143,14 @@ class CommonElementsImpl
   bool isForeignHelper(MemberEntity member) {
     return member.library == foreignLibrary ||
         isCreateInvocationMirrorHelper(member);
+  }
+
+  @override
+  bool isCreateSentinel(MemberEntity member) {
+    return member.isTopLevel &&
+        member.isFunction &&
+        member.library == internalLibrary &&
+        member.name == 'createSentinel';
   }
 
   @override

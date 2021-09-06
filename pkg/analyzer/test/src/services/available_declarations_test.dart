@@ -102,7 +102,7 @@ class AbstractContextTest with ResourceProviderMixin {
     MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
-    newFile('/home/test/.packages', content: '''
+    newDotPackagesFile('/home/test', content: '''
 test:${toUri('/home/test/lib')}
 ''');
 
@@ -1178,7 +1178,7 @@ class A {}
 /// Before macro.
 /// {@macro foo}
 /// After macro.''');
-    expect(result, '''
+    expect(result.full, '''
 Before macro.
 Body of the template.
 After macro.''');

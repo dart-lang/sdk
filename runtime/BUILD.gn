@@ -71,22 +71,22 @@ config("dart_os_config") {
   defines = []
 
   if (target_os == "android") {
-    defines += [ "TARGET_OS_ANDROID" ]
+    defines += [ "DART_TARGET_OS_ANDROID" ]
   } else if (target_os == "fuchsia") {
-    defines += [ "TARGET_OS_FUCHSIA" ]
+    defines += [ "DART_TARGET_OS_FUCHSIA" ]
   } else if (target_os == "ios") {
-    defines += [ "TARGET_OS_MACOS" ]
-    defines += [ "TARGET_OS_MACOS_IOS" ]
+    defines += [ "DART_TARGET_OS_MACOS" ]
+    defines += [ "DART_TARGET_OS_MACOS_IOS" ]
   } else if (target_os == "linux") {
-    defines += [ "TARGET_OS_LINUX" ]
+    defines += [ "DART_TARGET_OS_LINUX" ]
   } else if (target_os == "mac") {
-    defines += [ "TARGET_OS_MACOS" ]
+    defines += [ "DART_TARGET_OS_MACOS" ]
   } else if (target_os == "win") {
-    defines += [ "TARGET_OS_WINDOWS" ]
+    defines += [ "DART_TARGET_OS_WINDOWS" ]
   } else if (target_os == "winuwp") {
     defines += [
-      "TARGET_OS_WINDOWS",
-      "TARGET_OS_WINDOWS_UWP",
+      "DART_TARGET_OS_WINDOWS",
+      "DART_TARGET_OS_WINDOWS_UWP",
     ]
   } else {
     print("Unknown target_os: $target_os")
@@ -98,7 +98,7 @@ config("dart_os_config") {
 # targeting Mac and Linux. This configuration is used to unconditionally target
 # Fuchsia. It should not be combined with dart_os_config.
 config("dart_os_fuchsia_config") {
-  defines = [ "TARGET_OS_FUCHSIA" ]
+  defines = [ "DART_TARGET_OS_FUCHSIA" ]
 }
 
 config("dart_arch_config") {
@@ -153,7 +153,28 @@ config("dart_config") {
     }
   }
 
-  if (!is_win) {
+  # Below are flags copied from ../build/config/compiler/BUILD.gn that should
+  # be preserved even when the Dart VM and runtime are compiled out-of-tree,
+  # for example in the Flutter Engine build. They ensure that the Dart VM
+  # and runtime are compiled with optimizations unless explicitly requested
+  # otherwise with the `dart_debug` and `dart_debug_optimization_level`
+  # flags.
+  if (is_win) {
+    if (dart_debug) {
+      cflags = [
+        "/O${dart_debug_optimization_level}",
+        "/Oy-",
+      ]
+    } else {
+      cflags = [
+        "/O2",
+        "/Ob2",
+        "/Oy-",
+        "/Oi",
+        "/Gw",
+      ]
+    }
+  } else {
     cflags = [
       "-Werror",
       "-Wall",

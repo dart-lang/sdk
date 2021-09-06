@@ -7,6 +7,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// A builder used to build a [SourceChange].
@@ -48,6 +49,15 @@ abstract class ChangeBuilder {
   /// for any particular kind of file.
   Future<void> addGenericFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit);
+
+  /// Use the [buildFileEdit] function to create a collection of edits to the
+  /// file with the given [path]. The edits will be added to the source change
+  /// that is being built.
+  ///
+  /// The builder passed to the [buildFileEdit] function has additional support
+  /// for working with YAML source files.
+  Future<void> addYamlFileEdit(
+      String path, void Function(YamlFileEditBuilder builder) buildFileEdit);
 
   /// Return a copy of this change builder that is constructed in such as was
   /// that changes to the copy will not effect this change builder.

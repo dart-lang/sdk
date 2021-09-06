@@ -15,7 +15,7 @@
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
 #if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) &&   \
-    !defined(HOST_OS_IOS) && !defined(HOST_OS_MACOS)
+    !defined(DART_HOST_OS_IOS) && !defined(DART_HOST_OS_MACOS)
 #error ARM cross-compile only supported on Linux, Android, iOS, and Mac
 #endif
 
@@ -25,9 +25,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
-DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
-DECLARE_FLAG(bool, use_slow_path);
 
 namespace compiler {
 
@@ -505,8 +503,8 @@ void Assembler::ldrex(Register rt, Register rn, Condition cond) {
   ASSERT(rt != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
-                     B23 | L | (static_cast<int32_t>(rn) << kLdExRnShift) |
-                     (static_cast<int32_t>(rt) << kLdExRtShift) | B11 | B10 |
+                     B23 | L | (static_cast<int32_t>(rn) << kLdrExRnShift) |
+                     (static_cast<int32_t>(rt) << kLdrExRtShift) | B11 | B10 |
                      B9 | B8 | B7 | B4 | B3 | B2 | B1 | B0;
   Emit(encoding);
 }
@@ -529,7 +527,47 @@ void Assembler::dmb() {
   Emit(kDataMemoryBarrier);
 }
 
-void Assembler::EnterSafepoint(Register addr, Register state) {
+static int32_t BitFieldExtractEncoding(bool sign_extend,
+                                       Register rd,
+                                       Register rn,
+                                       int32_t lsb,
+                                       int32_t width,
+                                       Condition cond) {
+  ASSERT(rn != kNoRegister && rn != PC);
+  ASSERT(rd != kNoRegister && rd != PC);
+  ASSERT(cond != kNoCondition);
+  ASSERT(Utils::IsUint(kBitFieldExtractLSBBits, lsb));
+  ASSERT(width >= 1);
+  ASSERT(lsb + width <= kBitsPerInt32);
+  const int32_t widthm1 = width - 1;
+  ASSERT(Utils::IsUint(kBitFieldExtractWidthBits, widthm1));
+  return (static_cast<int32_t>(cond) << kConditionShift) | B26 | B25 | B24 |
+         B23 | (sign_extend ? 0 : B22) | B21 |
+         (widthm1 << kBitFieldExtractWidthShift) |
+         (static_cast<int32_t>(rd) << kRdShift) |
+         (lsb << kBitFieldExtractLSBShift) | B6 | B4 |
+         (static_cast<int32_t>(rn) << kBitFieldExtractRnShift);
+}
+
+void Assembler::sbfx(Register rd,
+                     Register rn,
+                     int32_t lsb,
+                     int32_t width,
+                     Condition cond) {
+  const bool sign_extend = true;
+  Emit(BitFieldExtractEncoding(sign_extend, rd, rn, lsb, width, cond));
+}
+
+void Assembler::ubfx(Register rd,
+                     Register rn,
+                     int32_t lsb,
+                     int32_t width,
+                     Condition cond) {
+  const bool sign_extend = false;
+  Emit(BitFieldExtractEncoding(sign_extend, rd, rn, lsb, width, cond));
+}
+
+void Assembler::EnterFullSafepoint(Register addr, Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
   Label slow_path, done, retry;
@@ -541,10 +579,10 @@ void Assembler::EnterSafepoint(Register addr, Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_unacquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::safepoint_state_acquired()));
+  mov(state, Operand(target::Thread::full_safepoint_state_acquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -580,16 +618,16 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   StoreToOffset(tmp1, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
-    EnterSafepoint(tmp1, tmp2);
+    EnterFullSafepoint(tmp1, tmp2);
   }
 }
 
-void Assembler::ExitSafepoint(Register tmp1, Register tmp2) {
+void Assembler::ExitFullSafepoint(Register tmp1, Register tmp2) {
   Register addr = tmp1;
   Register state = tmp2;
 
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
   Label slow_path, done, retry;
   if (FLAG_use_slow_path) {
     b(&slow_path);
@@ -599,10 +637,10 @@ void Assembler::ExitSafepoint(Register tmp1, Register tmp2) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_acquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::safepoint_state_unacquired()));
+  mov(state, Operand(target::Thread::full_safepoint_state_unacquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -623,13 +661,14 @@ void Assembler::TransitionNativeToGenerated(Register addr,
                                             Register state,
                                             bool exit_safepoint) {
   if (exit_safepoint) {
-    ExitSafepoint(addr, state);
+    ExitFullSafepoint(addr, state);
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
-    LoadImmediate(state, 1 << target::Thread::safepoint_state_inside_bit());
+    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
+    LoadImmediate(state, target::Thread::full_safepoint_state_acquired());
     ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
-    ands(TMP, TMP, Operand(state));  // Is-at-safepoint is the LSB.
+    ands(TMP, TMP, Operand(state));
     Label ok;
     b(&ok, ZERO);
     Breakpoint();
@@ -2049,6 +2088,25 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   SmiTag(result);
 }
 
+void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
+                                        Register src,
+                                        Register scratch,
+                                        bool can_be_null) {
+#if defined(DEBUG)
+  Comment("Check that object in register has cid %" Pd "", cid);
+  Label matches;
+  LoadClassIdMayBeSmi(scratch, src);
+  CompareImmediate(scratch, cid);
+  BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  if (can_be_null) {
+    CompareImmediate(scratch, kNullCid);
+    BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  }
+  Breakpoint();
+  Bind(&matches);
+#endif
+}
+
 void Assembler::BailoutIfInvalidBranchOffset(int32_t offset) {
   if (!CanEncodeBranchDistance(offset)) {
     ASSERT(!use_far_branches());
@@ -2278,19 +2336,20 @@ bool Address::CanHoldLoadOffset(OperandSize size,
     case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+      return Utils::MagnitudeIsUint(8, offset);  // Addressing mode 3.
     }
     case kUnsignedByte:
     case kFourBytes:
     case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+      return Utils::MagnitudeIsUint(12, offset);  // Addressing mode 2.
     }
     case kSWord:
     case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+      return (Utils::MagnitudeIsUint(10, offset) &&
+              Utils::IsAligned(offset, 4));
     }
     case kRegList: {
       *offset_mask = 0x0;
@@ -2311,20 +2370,21 @@ bool Address::CanHoldStoreOffset(OperandSize size,
     case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+      return Utils::MagnitudeIsUint(8, offset);  // Addressing mode 3.
     }
     case kByte:
     case kUnsignedByte:
     case kFourBytes:
     case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+      return Utils::MagnitudeIsUint(12, offset);  // Addressing mode 2.
     }
     case kSWord:
     case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+      return (Utils::MagnitudeIsUint(10, offset) &&
+              Utils::IsAligned(offset, 4));
     }
     case kRegList: {
       *offset_mask = 0x0;
@@ -2455,9 +2515,26 @@ void Assembler::PopNativeCalleeSavedRegisters() {
   PopList(kAbiPreservedCpuRegs);
 }
 
-void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
-  if (rd != rm) {
-    mov(rd, Operand(rm), cond);
+void Assembler::ExtendValue(Register rd,
+                            Register rm,
+                            OperandSize sz,
+                            Condition cond) {
+  switch (sz) {
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      if (rd == rm) return;
+      return mov(rd, Operand(rm), cond);
+    case kUnsignedTwoBytes:
+      return ubfx(rd, rm, 0, kBitsPerInt16, cond);
+    case kTwoBytes:
+      return sbfx(rd, rm, 0, kBitsPerInt16, cond);
+    case kUnsignedByte:
+      return ubfx(rd, rm, 0, kBitsPerInt8, cond);
+    case kByte:
+      return sbfx(rd, rm, 0, kBitsPerInt8, cond);
+    default:
+      UNIMPLEMENTED();
+      break;
   }
 }
 
@@ -2716,6 +2793,32 @@ void Assembler::LoadDImmediate(DRegister dd,
 }
 
 void Assembler::LoadFromOffset(Register reg,
+                               const Address& address,
+                               OperandSize size,
+                               Condition cond) {
+  switch (size) {
+    case kByte:
+      ldrsb(reg, address, cond);
+      break;
+    case kUnsignedByte:
+      ldrb(reg, address, cond);
+      break;
+    case kTwoBytes:
+      ldrsh(reg, address, cond);
+      break;
+    case kUnsignedTwoBytes:
+      ldrh(reg, address, cond);
+      break;
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      ldr(reg, address, cond);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::LoadFromOffset(Register reg,
                                Register base,
                                int32_t offset,
                                OperandSize size,
@@ -2728,25 +2831,7 @@ void Assembler::LoadFromOffset(Register reg,
     base = IP;
     offset = offset & offset_mask;
   }
-  switch (size) {
-    case kByte:
-      ldrsb(reg, Address(base, offset), cond);
-      break;
-    case kUnsignedByte:
-      ldrb(reg, Address(base, offset), cond);
-      break;
-    case kTwoBytes:
-      ldrsh(reg, Address(base, offset), cond);
-      break;
-    case kUnsignedTwoBytes:
-      ldrh(reg, Address(base, offset), cond);
-      break;
-    case kFourBytes:
-      ldr(reg, Address(base, offset), cond);
-      break;
-    default:
-      UNREACHABLE();
-  }
+  LoadFromOffset(reg, Address(base, offset), size, cond);
 }
 
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
@@ -2765,6 +2850,28 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
 }
 
 void Assembler::StoreToOffset(Register reg,
+                              const Address& address,
+                              OperandSize size,
+                              Condition cond) {
+  switch (size) {
+    case kUnsignedByte:
+    case kByte:
+      strb(reg, address, cond);
+      break;
+    case kUnsignedTwoBytes:
+    case kTwoBytes:
+      strh(reg, address, cond);
+      break;
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      str(reg, address, cond);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::StoreToOffset(Register reg,
                               Register base,
                               int32_t offset,
                               OperandSize size,
@@ -2778,19 +2885,7 @@ void Assembler::StoreToOffset(Register reg,
     base = IP;
     offset = offset & offset_mask;
   }
-  switch (size) {
-    case kByte:
-      strb(reg, Address(base, offset), cond);
-      break;
-    case kTwoBytes:
-      strh(reg, Address(base, offset), cond);
-      break;
-    case kFourBytes:
-      str(reg, Address(base, offset), cond);
-      break;
-    default:
-      UNREACHABLE();
-  }
+  StoreToOffset(reg, Address(base, offset), size, cond);
 }
 
 void Assembler::LoadSFromOffset(SRegister reg,
@@ -3404,27 +3499,31 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
 }
 #endif  // !PRODUCT
 
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            Register instance_reg,
-                            Register temp_reg) {
+void Assembler::TryAllocateObject(intptr_t cid,
+                                  intptr_t instance_size,
+                                  Label* failure,
+                                  JumpDistance distance,
+                                  Register instance_reg,
+                                  Register temp_reg) {
   ASSERT(failure != NULL);
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_reg != kNoRegister);
+  ASSERT(instance_reg != temp_reg);
+  ASSERT(instance_reg != IP);
+  ASSERT(temp_reg != kNoRegister);
+  ASSERT(temp_reg != IP);
+  ASSERT(instance_size != 0);
+  ASSERT(Utils::IsAligned(instance_size,
+                          target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    const classid_t cid = target::Class::GetId(cls);
-    ASSERT(instance_reg != temp_reg);
-    ASSERT(temp_reg != IP);
-    ASSERT(instance_size != 0);
     NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cid));
     ldr(instance_reg, Address(THR, target::Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
-    AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
-
-    // instance_reg: potential next object start.
+    AddImmediate(instance_reg, instance_size);
+    // instance_reg: potential top (next object start).
     ldr(IP, Address(THR, target::Thread::end_offset()));
     cmp(IP, Operand(instance_reg));
-    // fail if heap end unsigned less than or equal to instance_reg.
+    // fail if heap end unsigned less than or equal to new heap top.
     b(failure, LS);
 
     // If this allocation is traced, program will jump to failure path
@@ -3435,13 +3534,12 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(THR, target::Thread::top_offset()));
-
-    ASSERT(instance_size >= kHeapObjectTag);
+    // Move instance_reg back to the start of the object and tag it.
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
 
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    LoadImmediate(IP, tags);
-    str(IP, FieldAddress(instance_reg, target::Object::tags_offset()));
+    LoadImmediate(temp_reg, tags);
+    str(temp_reg, FieldAddress(instance_reg, target::Object::tags_offset()));
   } else {
     b(failure);
   }

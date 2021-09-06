@@ -128,7 +128,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    _resolver.extensionResolver.resolveOverride(node);
+    assert(false,
+        'Resolver should call extensionResolver.resolveOverride directly');
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a function literal of the
@@ -161,6 +162,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// specified as dynamic.</blockquote>
   @override
   void visitFunctionExpression(FunctionExpression node) {}
+
+  @override
+  void visitFunctionReference(covariant FunctionReferenceImpl node) {
+    // TODO(paulberry): implement
+    node.staticType = _dynamicType;
+  }
 
   /// The Dart Language Specification, 12.11.1: <blockquote>The static type of a new expression of
   /// either the form <i>new T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> or the form <i>new

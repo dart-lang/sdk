@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,12 +26,12 @@ class ExchangeOperandsTest extends AssistProcessorTest {
       var initialOperator = initialOperators[i];
       var resultOperator = resultOperators[i];
       await resolveTestCode('''
-bool main(int a, int b) {
+bool f(int a, int b) {
   return a $initialOperator b;
 }
 ''');
       await assertHasAssistAt(initialOperator, '''
-bool main(int a, int b) {
+bool f(int a, int b) {
   return b $resultOperator a;
 }
 ''');
@@ -42,12 +40,12 @@ bool main(int a, int b) {
 
   Future<void> test_extended_mixOperator_1() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 * 2 * 3 + 4;
 }
 ''');
     await assertHasAssistAt('* 2', '''
-main() {
+void f() {
   2 * 3 * 1 + 4;
 }
 ''');
@@ -55,12 +53,12 @@ main() {
 
   Future<void> test_extended_mixOperator_2() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 - 3 + 4;
 }
 ''');
     await assertHasAssistAt('+ 2', '''
-main() {
+void f() {
   2 + 1 - 3 + 4;
 }
 ''');
@@ -68,12 +66,12 @@ main() {
 
   Future<void> test_extended_sameOperator_afterFirst() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 + 3;
 }
 ''');
     await assertHasAssistAt('+ 2', '''
-main() {
+void f() {
   2 + 3 + 1;
 }
 ''');
@@ -81,12 +79,12 @@ main() {
 
   Future<void> test_extended_sameOperator_afterSecond() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 + 3;
 }
 ''');
     await assertHasAssistAt('+ 3', '''
-main() {
+void f() {
   3 + 1 + 2;
 }
 ''');
@@ -94,7 +92,7 @@ main() {
 
   Future<void> test_extraLength() async {
     await resolveTestCode('''
-main() {
+void f() {
   111 + 222;
 }
 ''');
@@ -103,7 +101,7 @@ main() {
 
   Future<void> test_onOperand() async {
     await resolveTestCode('''
-main() {
+void f() {
   111 + 222;
 }
 ''');
@@ -112,7 +110,7 @@ main() {
 
   Future<void> test_selectionWithBinary() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 + 3;
 }
 ''');
@@ -121,12 +119,12 @@ main() {
 
   Future<void> test_simple_afterOperator() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt(' 2', '''
-main() {
+void f() {
   2 + 1;
 }
 ''');
@@ -134,12 +132,12 @@ main() {
 
   Future<void> test_simple_beforeOperator() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt('+ 2', '''
-main() {
+void f() {
   2 + 1;
 }
 ''');
@@ -147,14 +145,14 @@ main() {
 
   Future<void> test_simple_fullSelection() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt(
         '1 + 2',
         '''
-main() {
+void f() {
   2 + 1;
 }
 ''',
@@ -163,14 +161,14 @@ main() {
 
   Future<void> test_simple_withLength() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt(
         '+ 2',
         '''
-main() {
+void f() {
   2 + 1;
 }
 ''',

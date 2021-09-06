@@ -36,6 +36,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// If `true`, types should be printed with nullability suffixes.
   final bool _withNullability;
 
+  /// If `true`, selected tokens and nodes should be printed with offsets.
+  final bool _withOffsets;
+
   String _indent = '';
 
   ResolvedAstPrinter({
@@ -44,10 +47,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required String indent,
     CodeLinesProvider? codeLinesProvider,
     bool withNullability = false,
+    bool withOffsets = false,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
         _codeLinesProvider = codeLinesProvider,
         _withNullability = withNullability,
+        _withOffsets = withOffsets,
         _indent = indent;
 
   @override
@@ -68,6 +73,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('Annotation');
     _withIndent(() {
       _writeNode('arguments', node.arguments);
+      _writeToken('atSign', node.atSign);
       _writeNode('constructorName', node.constructorName);
       _writeElement('element', node.element);
       _writeNode('name', node.name);
@@ -80,7 +86,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ArgumentList');
     _withIndent(() {
-      _writeNodeList('arguments', node.arguments);
+      var properties = _Properties();
+      properties.addToken('leftParenthesis', node.leftParenthesis);
+      properties.addNodeList('arguments', node.arguments);
+      properties.addToken('rightParenthesis', node.rightParenthesis);
+      _writeProperties(properties);
     });
   }
 
@@ -91,6 +101,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addNode('expression', node.expression);
+      properties.addToken('asOperator', node.asOperator);
       properties.addNode('type', node.type);
       _addExpression(properties, node);
       _writeProperties(properties);
@@ -176,6 +187,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('Block');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftBracket', node.leftBracket);
+      properties.addToken('rightBracket', node.rightBracket);
       properties.addNodeList('statements', node.statements);
       _addStatement(properties, node);
       _writeProperties(properties);
@@ -344,9 +357,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ConstructorName');
     _withIndent(() {
-      _writeNode('name', node.name);
-      _writeElement('staticElement', node.staticElement);
-      _writeNode('type', node.type);
+      var properties = _Properties();
+      properties.addNode('name', node.name);
+      properties.addToken('period', node.period);
+      properties.addElement('staticElement', node.staticElement);
+      properties.addNode('type', node.type);
+      _writeProperties(properties);
     });
   }
 
@@ -564,6 +580,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FormalParameterList');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftParenthesis', node.leftParenthesis);
+      properties.addToken('rightParenthesis', node.rightParenthesis);
       properties.addNodeList('parameters', node.parameters);
       _addAstNode(properties, node);
       _writeProperties(properties);
@@ -694,11 +712,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     _writeNextCodeLine(node);
     _writeln('GenericFunctionType');
     _withIndent(() {
       var properties = _Properties();
+      properties.addGenericFunctionTypeElement(
+        'declaredElement',
+        node.declaredElement,
+      );
       properties.addToken('functionKeyword', node.functionKeyword);
       properties.addNode('parameters', node.parameters);
       properties.addNode('returnType', node.returnType);
@@ -730,6 +752,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNodeList('hiddenNames', node.hiddenNames);
       _addCombinator(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    _writeln('IfElement');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('condition', node.condition);
+      properties.addNode('elseStatement', node.elseElement);
+      properties.addNode('thenStatement', node.thenElement);
+      _addAstNode(properties, node);
       _writeProperties(properties);
     });
   }
@@ -779,8 +814,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IndexExpression');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftBracket', node.leftBracket);
       properties.addNode('index', node.index);
       properties.addToken('period', node.period);
+      properties.addToken('rightBracket', node.rightBracket);
       properties.addNode('target', node.target);
       _addExpression(properties, node);
       _addMethodReferenceExpression(properties, node);
@@ -821,6 +858,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addNode('expression', node.expression);
+      properties.addToken('leftBracket', node.leftBracket);
+      properties.addToken('rightBracket', node.rightBracket);
       _addInterpolationElement(properties, node);
       _writeProperties(properties);
     });
@@ -845,6 +884,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addNode('expression', node.expression);
+      properties.addToken('isOperator', node.isOperator);
       properties.addNode('type', node.type);
       _addExpression(properties, node);
       _writeProperties(properties);
@@ -890,7 +930,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ListLiteral');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftBracket', node.leftBracket);
       properties.addNodeList('elements', node.elements);
+      properties.addToken('rightBracket', node.rightBracket);
       _addTypedLiteral(properties, node);
       _writeProperties(properties);
     });
@@ -999,7 +1041,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ParenthesizedExpression');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftParenthesis', node.leftParenthesis);
       properties.addNode('expression', node.expression);
+      properties.addToken('rightParenthesis', node.rightParenthesis);
       _addExpression(properties, node);
       _writeProperties(properties);
     });
@@ -1108,7 +1152,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNode('argumentList', node.argumentList);
       _writeNode('constructorName', node.constructorName);
+      _writeToken('period', node.period);
       _writeElement('staticElement', node.staticElement);
+      _writeToken('thisKeyword', node.thisKeyword);
     });
   }
 
@@ -1134,6 +1180,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNodeList('elements', node.elements);
       properties.addRaw('isMap', node.isMap);
+      properties.addToken('leftBracket', node.leftBracket);
+      properties.addToken('rightBracket', node.rightBracket);
       _addTypedLiteral(properties, node);
       _writeProperties(properties);
     });
@@ -1185,6 +1233,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSpreadElement(SpreadElement node) {
+    _writeln('SpreadElement');
+    _withIndent(() {
+      _writeNode('expression', node.expression);
+      _writeToken('spreadOperator', node.spreadOperator);
+    });
+  }
+
+  @override
   void visitStringInterpolation(StringInterpolation node) {
     _writeNextCodeLine(node);
     _writeln('StringInterpolation');
@@ -1203,7 +1260,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNode('argumentList', node.argumentList);
       _writeNode('constructorName', node.constructorName);
+      _writeToken('period', node.period);
       _writeElement('staticElement', node.staticElement);
+      _writeToken('superKeyword', node.superKeyword);
     });
   }
 
@@ -1251,6 +1310,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       properties.addNode('expression', node.expression);
       properties.addNodeList('members', node.members);
       _addStatement(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) {
+    _writeln('SymbolLiteral');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addToken('poundSign', node.poundSign);
+      properties.addTokenList('components', node.components);
+      _addAstNode(properties, node);
       _writeProperties(properties);
     });
   }
@@ -1313,7 +1384,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeArgumentList');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftBracket', node.leftBracket);
       properties.addNodeList('arguments', node.arguments);
+      properties.addToken('rightBracket', node.rightBracket);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1354,7 +1427,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeParameterList');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftBracket', node.leftBracket);
       properties.addNodeList('typeParameters', node.typeParameters);
+      properties.addToken('rightBracket', node.rightBracket);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1441,6 +1516,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     });
   }
 
+  void writeElement(String name, Element? element) {
+    _writeElement(name, element);
+  }
+
   void _addAnnotatedNode(_Properties properties, AnnotatedNode node) {
     properties.addNode('documentationComment', node.documentationComment);
     properties.addNodeList('metadata', node.metadata);
@@ -1448,8 +1527,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   void _addAssertion(_Properties properties, Assertion node) {
+    properties.addToken('assertKeyword', node.assertKeyword);
     properties.addNode('condition', node.condition);
+    properties.addToken('leftParenthesis', node.leftParenthesis);
     properties.addNode('message', node.message);
+    properties.addToken('rightParenthesis', node.rightParenthesis);
     _addAstNode(properties, node);
   }
 
@@ -1664,6 +1746,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (libraryUriStr == _selfUriStr) {
         return 'self';
       }
+
+      // TODO(scheglov) Make it precise again, after Windows.
+      if (libraryUriStr.startsWith('file:')) {
+        return libraryUriStr.substring(libraryUriStr.lastIndexOf('/') + 1);
+      }
+
       return libraryUriStr;
     }
 
@@ -1715,6 +1803,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         var mapStr = _substitutionMapStr(map);
         _writelnWithIndent('substitution: $mapStr');
       });
+    } else if (element is MultiplyDefinedElement) {
+      _sink.writeln('<null>');
     } else {
       var reference = (element as ElementImpl).reference;
       if (reference != null) {
@@ -1723,6 +1813,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       } else {
         _sink.writeln('${element.name}@${element.nameOffset}');
       }
+    }
+  }
+
+  void _writeGenericFunctionTypeElement(
+    String name,
+    GenericFunctionTypeElement? element,
+  ) {
+    _sink.write(_indent);
+    _sink.write('$name: ');
+    if (element == null) {
+      _sink.writeln('<null>');
+    } else {
+      _withIndent(() {
+        _sink.writeln('GenericFunctionTypeElement');
+        _writeParameterElements(element.parameters);
+        _writeType('returnType', element.returnType);
+        _writeType('type', element.type);
+      });
     }
   }
 
@@ -1764,6 +1872,37 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  void _writeOffset(String name, int offset) {
+    _writelnWithIndent('$name: $offset');
+  }
+
+  void _writeParameterElements(List<ParameterElement> parameters) {
+    _writelnWithIndent('parameters');
+    _withIndent(() {
+      for (var parameter in parameters) {
+        _writelnWithIndent(parameter.name);
+        _withIndent(() {
+          _writeParameterKind(parameter);
+          _writeType('type', parameter.type);
+        });
+      }
+    });
+  }
+
+  void _writeParameterKind(ParameterElement parameter) {
+    if (parameter.isOptionalNamed) {
+      _writelnWithIndent('kind: optional named');
+    } else if (parameter.isOptionalPositional) {
+      _writelnWithIndent('kind: optional positional');
+    } else if (parameter.isRequiredNamed) {
+      _writelnWithIndent('kind: required named');
+    } else if (parameter.isRequiredPositional) {
+      _writelnWithIndent('kind: required positional');
+    } else {
+      throw StateError('Unknown kind: $parameter');
+    }
+  }
+
   void _writeProperties(_Properties container) {
     var properties = container.properties;
     properties.sort((a, b) => a.name.compareTo(b.name));
@@ -1782,8 +1921,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _writeToken(String name, Token? token) {
     if (token != null) {
-      _sink.write(_indent);
-      _sink.writeln('$name: $token');
+      if (_withOffsets) {
+        _writelnWithIndent('$name: $token @${token.offset}');
+      } else {
+        _writelnWithIndent('$name: $token');
+      }
+    }
+  }
+
+  /// TODO(scheglov) maybe inline?
+  void _writeTokenList(String name, List<Token> tokens) {
+    if (tokens.isNotEmpty) {
+      _writelnWithIndent(name);
+      _withIndent(() {
+        for (var token in tokens) {
+          _writelnWithIndent('$name: $token');
+          _withIndent(() {
+            _writeOffset('offset', token.offset);
+          });
+        }
+      });
     }
   }
 
@@ -1797,8 +1954,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var type in types) {
-          _sink.write(_indent);
-          _sink.writeln('$type');
+          _writelnWithIndent('$type');
         }
       });
     }
@@ -1817,6 +1973,17 @@ class _ElementProperty extends _Property {
   @override
   void write(ResolvedAstPrinter printer) {
     printer._writeElement(name, element);
+  }
+}
+
+class _GenericFunctionTypeElementProperty extends _Property {
+  final GenericFunctionTypeElement? element;
+
+  _GenericFunctionTypeElementProperty(String name, this.element) : super(name);
+
+  @override
+  void write(ResolvedAstPrinter printer) {
+    printer._writeGenericFunctionTypeElement(name, element);
   }
 }
 
@@ -1851,6 +2018,15 @@ class _Properties {
     );
   }
 
+  void addGenericFunctionTypeElement(
+    String name,
+    GenericFunctionTypeElement? element,
+  ) {
+    properties.add(
+      _GenericFunctionTypeElementProperty(name, element),
+    );
+  }
+
   void addNode(String name, AstNode? node) {
     properties.add(
       _NodeProperty(name, node),
@@ -1878,6 +2054,12 @@ class _Properties {
   void addToken(String name, Token? token) {
     properties.add(
       _TokenProperty(name, token),
+    );
+  }
+
+  void addTokenList(String name, List<Token> tokens) {
+    properties.add(
+      _TokenListProperty(name, tokens),
     );
   }
 
@@ -1921,6 +2103,17 @@ class _SourceProperty extends _Property {
   @override
   void write(ResolvedAstPrinter printer) {
     printer._writeSource(name, source);
+  }
+}
+
+class _TokenListProperty extends _Property {
+  final List<Token> tokens;
+
+  _TokenListProperty(String name, this.tokens) : super(name);
+
+  @override
+  void write(ResolvedAstPrinter printer) {
+    printer._writeTokenList(name, tokens);
   }
 }
 

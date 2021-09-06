@@ -15,7 +15,8 @@ namespace ffi {
 
 // TODO(dartbug.com/36607): Cache the trampolines.
 FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
-                               const FunctionType& c_signature) {
+                               const FunctionType& c_signature,
+                               bool is_leaf) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   String& name = String::Handle(zone, Symbols::New(thread, "FfiTrampoline"));
@@ -31,28 +32,29 @@ FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
                           /*is_native=*/false, owner_class,
                           TokenPosition::kMinSource));
   function.set_is_debuggable(false);
-  function.set_num_fixed_parameters(dart_signature.num_fixed_parameters());
+  // Trampolines have no optional arguments.
+  const intptr_t num_fixed = dart_signature.num_fixed_parameters();
+  signature.set_num_fixed_parameters(num_fixed);
   signature.set_result_type(
       AbstractType::Handle(zone, dart_signature.result_type()));
   signature.set_parameter_types(
       Array::Handle(zone, dart_signature.parameter_types()));
 
-  // The signature function won't have any names for the parameters. We need to
-  // assign unique names for scope building and error messages.
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
-  const intptr_t num_params = dart_signature.num_fixed_parameters();
-  for (intptr_t i = 0; i < num_params; ++i) {
-    if (i == 0) {
-      name = Symbols::ClosureParameter().ptr();
-    } else {
+  // Create unique names for the parameters, as they are used in scope building
+  // and error messages.
+  if (num_fixed > 0) {
+    function.CreateNameArray();
+    function.SetParameterNameAt(0, Symbols::ClosureParameter());
+    for (intptr_t i = 1; i < num_fixed; i++) {
       name = Symbols::NewFormatted(thread, ":ffi_param%" Pd, i);
+      function.SetParameterNameAt(i, name);
     }
-    signature.SetParameterNameAt(i, name);
   }
-  signature.FinalizeNameArrays(function);
   function.SetFfiCSignature(c_signature);
   signature ^= ClassFinalizer::FinalizeType(signature);
-  function.set_signature(signature);
+  function.SetSignature(signature);
+
+  function.SetFfiIsLeaf(is_leaf);
 
   return function.ptr();
 }

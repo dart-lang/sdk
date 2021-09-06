@@ -18,12 +18,11 @@ import '../../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
-runTestCase(
-    Uri source, List<String> experimentalFlags, bool enableNullSafety) async {
+runTestCase(Uri source, bool enableNullSafety) async {
   final target =
       new TestingVmTarget(new TargetFlags(enableNullSafety: enableNullSafety));
-  Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: experimentalFlags);
+  Component component =
+      await compileTestCaseToKernelProgram(source, target: target);
 
   final coreTypes = new CoreTypes(component);
 
@@ -31,7 +30,7 @@ runTestCase(
       matcher: new ConstantPragmaAnnotationParser(coreTypes),
       treeShakeProtobufs: true);
 
-  String actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  String actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
   // Tests in /protobuf_handler consist of multiple libraries.
   // Include libraries with protobuf generated messages into the result.
@@ -53,7 +52,16 @@ runTestCase(
   ensureKernelCanBeSerializedToBinary(component);
 }
 
-main() {
+String? argsTestName(List<String> args) {
+  if (args.length > 0) {
+    return args.last;
+  }
+  return null;
+}
+
+main(List<String> args) {
+  final testNameFilter = argsTestName(args);
+
   group('transform-component', () {
     final testCasesDir = new Directory(
         pkgVmDir + '/testcases/transformations/type_flow/transformer');
@@ -61,14 +69,11 @@ main() {
     for (var entry
         in testCasesDir.listSync(recursive: true, followLinks: false)) {
       final path = entry.path;
-      if (path.endsWith('.dart') && !path.endsWith('.pb.dart')) {
+      if (path.endsWith('.dart') &&
+          !path.endsWith('.pb.dart') &&
+          (testNameFilter == null || path.contains(testNameFilter))) {
         final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
-        final bool enableNNBD = enableNullSafety || path.endsWith('_nnbd.dart');
-        final List<String> experimentalFlags = [
-          if (enableNNBD) 'non-nullable',
-        ];
-        test(path,
-            () => runTestCase(entry.uri, experimentalFlags, enableNullSafety));
+        test(path, () => runTestCase(entry.uri, enableNullSafety));
       }
     }
   }, timeout: Timeout.none);

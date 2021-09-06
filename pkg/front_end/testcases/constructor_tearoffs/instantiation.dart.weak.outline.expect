@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num> extends core::Object {
+  constructor foo(self::A::X x) → self::A<self::A::X>
+    ;
+  constructor •(self::A::X x) → self::A<self::A::X>
+    ;
+  static factory bar<X extends core::num>(self::A::bar::X x) → self::A<self::A::bar::X>
+    ;
+}
+static method test1() → (core::num) → self::A<core::num>
+  ;
+static method test2() → (core::int) → self::A<core::int>
+  ;
+static method test3() → (core::num) → self::A<core::num>
+  ;
+static method test4() → (core::int) → self::A<core::int>
+  ;
+static method test5() → (core::String) → self::A<dynamic>
+  ;
+static method test6() → (core::String) → self::A<dynamic>
+  ;
+static method test7() → (core::num) → self::A<dynamic>
+  ;
+static method test8() → (core::num) → self::A<dynamic>
+  ;
+static method test9() → (core::num) → self::A<core::num>
+  ;
+static method test10() → (core::int) → self::A<core::int>
+  ;
+static method test11() → (core::String) → self::A<dynamic>
+  ;
+static method test12() → (core::num) → self::A<dynamic>
+  ;
+static method main() → dynamic
+  ;

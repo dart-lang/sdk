@@ -4,6 +4,8 @@
 // Test location summary for Uint32 multiplication.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 const MASK = 0xFFFFFFFF;
 
 uint32Mul(x, y) => (x * y) & MASK;

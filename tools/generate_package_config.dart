@@ -57,7 +57,9 @@ void main(List<String> args) {
     packageDirectory(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
+    packageDirectory('third_party/devtools/devtools_shared'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
+    packageDirectory('third_party/pkg/webdev/frontend_server_client'),
     packageDirectory('tools/package_deps'),
   ];
 
@@ -90,21 +92,20 @@ void main(List<String> args) {
   packages.sort((a, b) => a["name"].compareTo(b["name"]));
 
   var configFile = File(p.join(repoRoot, '.dart_tool', 'package_config.json'));
+  var json =
+      jsonDecode(configFile.readAsStringSync()) as Map<dynamic, dynamic>;
+  var oldPackages = json['packages'] as List<dynamic>;
 
   // Validate the packages entry only, to avoid spurious failures from changes
   // in the dates embedded in the other entries.
-  if (checkOnly) {
-    var json =
-        jsonDecode(configFile.readAsStringSync()) as Map<dynamic, dynamic>;
-    var oldPackages = json['packages'] as List<dynamic>;
-    if (jsonEncode(packages) == jsonEncode(oldPackages)) {
-      print("Package config up to date");
-      exit(0);
-    } else {
-      print("Package config out of date");
-      print("Run `dart tools/generate_package_config.dart` to update");
-      exit(1);
-    }
+  if (jsonEncode(packages) == jsonEncode(oldPackages)) {
+    print("Package config up to date");
+    exit(0);
+  } else if (checkOnly) {
+    print("Package config out of date");
+    print("Run `gclient sync -D && dart tools/generate_package_config.dart` "
+        "to update.");
+    exit(1);
   }
 
   var year = DateTime.now().year;
@@ -127,8 +128,8 @@ void main(List<String> args) {
   };
 
   // TODO(rnystrom): Consider using package_config_v2 to generate this instead.
-  var json = JsonEncoder.withIndent('  ').convert(config);
-  configFile.writeAsStringSync('$json\n');
+  var jsonString = JsonEncoder.withIndent('  ').convert(config);
+  configFile.writeAsStringSync('$jsonString\n');
   print('Generated .dart_tool/package_config.dart containing '
       '${packages.length} packages.');
 }

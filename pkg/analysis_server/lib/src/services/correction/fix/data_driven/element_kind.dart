@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// An indication of the kind of an element.
 enum ElementKind {
   classKind,
@@ -23,7 +21,7 @@ enum ElementKind {
 
 extension ElementKindUtilities on ElementKind {
   /// Return the element kind corresponding to the given [name].
-  static ElementKind fromName(String name) {
+  static ElementKind? fromName(String name) {
     for (var kind in ElementKind.values) {
       if (kind.toString() == 'ElementKind.${name}Kind') {
         return kind;

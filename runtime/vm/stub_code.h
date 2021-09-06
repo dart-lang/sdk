@@ -21,8 +21,6 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
-class SnapshotReader;
-class SnapshotWriter;
 
 DECLARE_FLAG(bool, disassemble_stubs);
 
@@ -42,7 +40,12 @@ class StubCode : public AllStatic {
   static void Cleanup();
 
   // Returns true if stub code has been initialized.
-  static bool HasBeenInitialized();
+  static bool HasBeenInitialized() {
+    return initialized_.load(std::memory_order_acquire);
+  }
+  static void InitializationDone() {
+    initialized_.store(true, std::memory_order_release);
+  }
 
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
@@ -61,11 +64,20 @@ class StubCode : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static CodePtr GetAllocationStubForClass(const Class& cls);
   static CodePtr GetAllocationStubForTypedData(classid_t class_id);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(TARGET_ARCH_IA32)
-  static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool);
+  static CodePtr GetBuildGenericMethodExtractorStub(
+      compiler::ObjectPoolBuilder* pool) {
+    return GetBuildMethodExtractorStub(pool, /*generic=*/true);
+  }
+  static CodePtr GetBuildNonGenericMethodExtractorStub(
+      compiler::ObjectPoolBuilder* pool) {
+    return GetBuildMethodExtractorStub(pool, /*generic=*/false);
+  }
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -103,6 +115,9 @@ class StubCode : public AllStatic {
  private:
   friend class MegamorphicCacheTable;
 
+  static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool,
+                                             bool generic);
+
   enum {
 #define STUB_CODE_ENTRY(name) k##name##Index,
     VM_STUB_CODE_LIST(STUB_CODE_ENTRY)
@@ -118,6 +133,7 @@ class StubCode : public AllStatic {
 #endif
   };
   static StubCodeEntry entries_[kNumStubEntries];
+  static AcqRelAtomic<bool> initialized_;
 };
 
 }  // namespace dart

@@ -20,8 +20,9 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Ithird_party/zlib',
     '-DTARGET_ARCH_X64',
     '-DDEBUG',
-    '-DTARGET_OS_LINUX',
+    '-DDART_TARGET_OS_LINUX',
     '-DTESTING',
+    '-std=c++17',
     '-x',
     'c++',
   ];

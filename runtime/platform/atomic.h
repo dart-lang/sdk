@@ -21,7 +21,14 @@ class RelaxedAtomic {
   T load(std::memory_order order = std::memory_order_relaxed) const {
     return value_.load(order);
   }
+  T load(std::memory_order order = std::memory_order_relaxed) const volatile {
+    return value_.load(order);
+  }
   void store(T arg, std::memory_order order = std::memory_order_relaxed) {
+    value_.store(arg, order);
+  }
+  void store(T arg,
+             std::memory_order order = std::memory_order_relaxed) volatile {
     value_.store(arg, order);
   }
 
@@ -38,10 +45,20 @@ class RelaxedAtomic {
     return value_.fetch_and(arg, order);
   }
 
+  T exchange(T arg, std::memory_order order = std::memory_order_relaxed) {
+    return value_.exchange(arg, order);
+  }
+
   bool compare_exchange_weak(
       T& expected,  // NOLINT
       T desired,
       std::memory_order order = std::memory_order_relaxed) {
+    return value_.compare_exchange_weak(expected, desired, order, order);
+  }
+  bool compare_exchange_weak(
+      T& expected,  // NOLINT
+      T desired,
+      std::memory_order order = std::memory_order_relaxed) volatile {
     return value_.compare_exchange_weak(expected, desired, order, order);
   }
   bool compare_exchange_strong(
@@ -63,6 +80,10 @@ class RelaxedAtomic {
   }
   T operator+=(T arg) { return fetch_add(arg) + arg; }
   T operator-=(T arg) { return fetch_sub(arg) - arg; }
+  T& operator++() { return fetch_add(1) + 1; }
+  T& operator--() { return fetch_sub(1) - 1; }
+  T operator++(int) { return fetch_add(1); }
+  T operator--(int) { return fetch_sub(1); }
 
  private:
   std::atomic<T> value_;

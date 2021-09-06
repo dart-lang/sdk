@@ -4,6 +4,8 @@
 // Test deoptimization on an optimistically hoisted smi check.
 // VMOptions=--optimization-counter-threshold=10  --no-background-compilation
 
+// @dart = 2.9
+
 // Test that lazy deoptimization works if the program returns to a function
 // that is scheduled for lazy deoptimization via an exception.
 

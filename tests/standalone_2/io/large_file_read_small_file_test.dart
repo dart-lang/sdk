@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:expect/expect.dart';
@@ -30,6 +32,9 @@ main() async {
     try {
       final buffers = [];
       for (int i = 0; i < 100 * 1000; ++i) {
+        if (i % 1000 == 0) {
+          print(i);
+        }
         // We issue a 1 MB read but get only a small typed data back. We hang on
         // to those buffers. If the implementation actually malloc()ed 1 MB then
         // we would hang on to 100 GB and this test would OOM.

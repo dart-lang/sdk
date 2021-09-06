@@ -38,10 +38,6 @@ library /*isNonNullableByDefault*/;
 //   Constraints get constraints {}
 //   ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/crashes/crash_01/main_lib.dart:2:19: Error: A non-null value must be returned since the return type 'invalid-type' doesn't allow null.
-//   Constraints get constraints {}
-//                   ^
-//
 import self as mai;
 import "dart:core" as core;
 
@@ -49,11 +45,7 @@ abstract class RenderObject extends core::Object {
   synthetic constructor •() → mai::RenderObject
     : super core::Object::•()
     ;
-  get constraints() → invalid-type {
-    return let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/crashes/crash_01/main_lib.dart:2:19: Error: A non-null value must be returned since the return type 'invalid-type' doesn't allow null.
-  Constraints get constraints {}
-                  ^" in null;
-  }
+  get constraints() → invalid-type {}
 }
 abstract class RenderObjectWithChildMixin extends mai::RenderObject /*isMixinDeclaration*/  {
 }

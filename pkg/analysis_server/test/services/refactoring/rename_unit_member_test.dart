@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -56,7 +54,7 @@ class A {
   NewName() {}
 }
 class B extends A {
-  main() {
+  void f() {
     super.NewName(); // super-ref
   }
 }
@@ -77,7 +75,7 @@ class Test {}
 library my.lib;
 import 'test.dart';
 
-main() {
+void f() {
   new Test();
 }
 ''');
@@ -95,7 +93,7 @@ main() {
 class Test {}
 class A {
   void NewName() {}
-  main() {
+  void f() {
     new Test();
   }
 }
@@ -121,7 +119,7 @@ class A {
   NewName() {}
 }
 class B extends A {
-  main() {
+  void f() {
     NewName(); // super-ref
   }",
 }
@@ -146,7 +144,7 @@ class A {
   NewName() {}
 }
 class B extends A {
-  main() {
+  void f() {
     NewName(); // super-ref
   }",
 }
@@ -166,7 +164,7 @@ class A {
   NewName() {}
 }
 class B extends A {
-  main() {
+  void f() {
     NewName(); // super-ref
   }
 }
@@ -188,7 +186,7 @@ class A {
   NewName() {}
 }
 class B extends A {
-  main() {
+  void f() {
     NewName(); // super-ref
   }",
 }
@@ -210,7 +208,7 @@ class A {
   NewName() {}
 }
 class B {
-  main(A a) {
+  void f(A a) {
     a.NewName();
   }
 }
@@ -224,7 +222,7 @@ class B {
 
   Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
-main() {
+void f() {
   String s;
 }
 ''');
@@ -249,7 +247,7 @@ class A {}
 
     await indexTestUnit('''
 import "package:aaa/a.dart";
-main() {
+void f() {
   A a;
 }
 ''');
@@ -267,11 +265,6 @@ main() {
 class Test {}
 ''');
     createRenameRefactoringAtString('Test {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Class name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -293,11 +286,6 @@ class Test {}
 test() {}
 ''');
     createRenameRefactoringAtString('test() {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -313,11 +301,6 @@ test() {}
 var test;
 ''');
     createRenameRefactoringAtString('test;');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -333,11 +316,11 @@ var test;
 typedef Test = void Function();
 ''');
     createRenameRefactoringAtString('Test =');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Type alias name must not be null.');
+        expectedMessage: 'Type alias name must not be empty.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -348,11 +331,11 @@ typedef Test = void Function();
 typedef Test = List<int>;
 ''');
     createRenameRefactoringAtString('Test =');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Type alias name must not be null.');
+        expectedMessage: 'Type alias name must not be empty.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -363,11 +346,11 @@ typedef Test = List<int>;
 typedef Test();
 ''');
     createRenameRefactoringAtString('Test();');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Type alias name must not be null.');
+        expectedMessage: 'Type alias name must not be empty.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -383,7 +366,7 @@ class Other {
   factory Other.a() = Test;
   factory Other.b() = Test.named;
 }
-main() {
+void f() {
   Test t1 = new Test();
   Test t2 = new Test.named();
 }
@@ -404,7 +387,7 @@ class Other {
   factory Other.a() = NewName;
   factory Other.b() = NewName.named;
 }
-main() {
+void f() {
   NewName t1 = new NewName();
   NewName t2 = new NewName.named();
 }
@@ -420,7 +403,7 @@ class TestPage extends StatefulWidget {
   const TestPage();
 
   @override
-  TestPageState createState() => new TestPageState();
+  State<TestPage> createState() => new TestPageState();
 }
 
 class TestPageState extends State<TestPage> {
@@ -442,7 +425,7 @@ class NewPage extends StatefulWidget {
   const NewPage();
 
   @override
-  NewPageState createState() => new NewPageState();
+  State<NewPage> createState() => new NewPageState();
 }
 
 class NewPageState extends State<NewPage> {
@@ -462,7 +445,7 @@ class _TestPage extends StatefulWidget {
   const _TestPage();
 
   @override
-  _TestPageState createState() => new _TestPageState();
+  State<_TestPage> createState() => new _TestPageState();
 }
 
 class _TestPageState extends State<_TestPage> {
@@ -484,7 +467,7 @@ class _NewPage extends StatefulWidget {
   const _NewPage();
 
   @override
-  _NewPageState createState() => new _NewPageState();
+  State<_NewPage> createState() => new _NewPageState();
 }
 
 class _NewPageState extends State<_NewPage> {
@@ -504,7 +487,7 @@ class TestPage extends StatefulWidget {
   const TestPage();
 
   @override
-  _TestPageState createState() => new _TestPageState();
+  State<TestPage> createState() => new _TestPageState();
 }
 
 class _TestPageState extends State<TestPage> {
@@ -526,7 +509,7 @@ class NewPage extends StatefulWidget {
   const NewPage();
 
   @override
-  _NewPageState createState() => new _NewPageState();
+  State<NewPage> createState() => new _NewPageState();
 }
 
 class _NewPageState extends State<NewPage> {
@@ -541,7 +524,7 @@ class _NewPageState extends State<NewPage> {
     await indexTestUnit('''
 class Test {
 }
-main() {
+void f() {
   Test(); // invalid code, but still a reference
 }
 ''');
@@ -555,7 +538,7 @@ main() {
     return assertSuccessfulRefactoring('''
 class NewName {
 }
-main() {
+void f() {
   NewName(); // invalid code, but still a reference
 }
 ''');
@@ -602,7 +585,7 @@ void f(NewName t) {}
     await indexTestUnit('''
 test() {}
 foo() {}
-main() {
+void f() {
   print(test);
   print(test());
   foo();
@@ -618,7 +601,7 @@ main() {
     return assertSuccessfulRefactoring('''
 newName() {}
 foo() {}
-main() {
+void f() {
   print(newName);
   print(newName());
   foo();
@@ -633,7 +616,7 @@ foo() {}
 ''');
     await indexTestUnit('''
 import 'foo.dart';
-main() {
+void f() {
   print(test);
   print(test());
   foo();
@@ -648,7 +631,7 @@ main() {
     // validate change
     await assertSuccessfulRefactoring('''
 import 'foo.dart';
-main() {
+void f() {
   print(newName);
   print(newName());
   foo();
@@ -792,7 +775,7 @@ void f(G a) {}
     await indexTestUnit('''
 get test {}
 set test(x) {}
-main() {
+void f() {
   print(test);
   test = 1;
   test += 2;
@@ -807,7 +790,7 @@ main() {
     return assertSuccessfulRefactoring('''
 get newName {}
 set newName(x) {}
-main() {
+void f() {
   print(newName);
   newName = 1;
   newName += 2;
@@ -818,7 +801,7 @@ main() {
   Future<void> _test_createChange_TopLevelVariableElement(String search) async {
     await indexTestUnit('''
 int test = 0;
-main() {
+void f() {
   print(test);
   test = 1;
   test += 2;
@@ -833,7 +816,7 @@ main() {
     // validate change
     return assertSuccessfulRefactoring('''
 int newName = 0;
-main() {
+void f() {
   print(newName);
   newName = 1;
   newName += 2;

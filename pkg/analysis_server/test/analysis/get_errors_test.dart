@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -128,7 +126,7 @@ main() {
     var request = _createGetErrorsRequest(file);
     var response = await serverChannel.sendRequest(request);
     expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
+    expect(response.error!.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
   }
 
   Request _createGetErrorsRequest(String file) {

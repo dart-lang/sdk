@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -25,9 +24,6 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   /// The URI converter used to convert between URI's and file paths.
   UriConverter? _uriConverter;
-
-  /// The cache of libraries for URIs.
-  final Map<String, LibraryElement> _uriToLibraryCache = {};
 
   ClassHierarchy classHierarchy = ClassHierarchy();
   InheritanceManager3 inheritanceManager = InheritanceManager3();
@@ -59,83 +55,139 @@ class AnalysisSessionImpl implements AnalysisSession {
   driver.AnalysisDriver getDriver() => _driver;
 
   @override
-  Future<ErrorsResult> getErrors(String path) {
+  Future<SomeErrorsResult> getErrors(String path) {
     _checkConsistency();
-    return _driver.getErrors(path);
+    return _driver.getErrors2(path);
+  }
+
+  @Deprecated('Use getErrors() instead')
+  @override
+  Future<SomeErrorsResult> getErrors2(String path) {
+    return getErrors(path);
   }
 
   @override
-  FileResult getFile(String path) {
+  SomeFileResult getFile(String path) {
     _checkConsistency();
-    return _driver.getFileSync(path);
+    return _driver.getFileSync2(path);
+  }
+
+  @Deprecated('Use getFile() instead')
+  @override
+  SomeFileResult getFile2(String path) {
+    return getFile(path);
   }
 
   @override
-  Future<LibraryElement> getLibraryByUri(String uri) async {
+  Future<SomeLibraryElementResult> getLibraryByUri(String uri) {
     _checkConsistency();
-    var libraryElement = _uriToLibraryCache[uri];
-    if (libraryElement == null) {
-      libraryElement = await _driver.getLibraryByUri(uri);
-      _uriToLibraryCache[uri] = libraryElement;
+    return _driver.getLibraryByUri2(uri);
+  }
+
+  @Deprecated('Use getLibraryByUri() instead')
+  @override
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
+    return getLibraryByUri(uri);
+  }
+
+  @override
+  SomeParsedLibraryResult getParsedLibrary(String path) {
+    _checkConsistency();
+    return _driver.getParsedLibrary2(path);
+  }
+
+  @Deprecated('Use getParsedLibrary() instead')
+  @override
+  SomeParsedLibraryResult getParsedLibrary2(String path) {
+    return getParsedLibrary(path);
+  }
+
+  @override
+  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
+    _checkConsistency();
+
+    if (element.session != this) {
+      return NotElementOfThisSessionResult();
     }
-    return libraryElement;
+
+    return _driver.getParsedLibraryByUri2(element.source.uri);
+  }
+
+  @Deprecated('Use getParsedLibraryByElement() instead')
+  @override
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+    return getParsedLibraryByElement(element);
   }
 
   @override
-  ParsedLibraryResult getParsedLibrary(String path) {
+  SomeParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
-    return _driver.getParsedLibrary(path);
+    return _driver.parseFileSync2(path);
+  }
+
+  @Deprecated('Use getParsedUnit() instead')
+  @override
+  SomeParsedUnitResult getParsedUnit2(String path) {
+    return getParsedUnit(path);
   }
 
   @override
-  ParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
     _checkConsistency();
-    _checkElementOfThisSession(element);
-    return _driver.getParsedLibraryByUri(element.source.uri);
+    return _driver.getResolvedLibrary2(path);
+  }
+
+  @Deprecated('Use getResolvedLibrary() instead')
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
+    return getResolvedLibrary(path);
   }
 
   @override
-  ParsedUnitResult getParsedUnit(String path) {
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
+    LibraryElement element,
+  ) {
     _checkConsistency();
-    return _driver.parseFileSync(path);
+
+    if (element.session != this) {
+      return Future.value(
+        NotElementOfThisSessionResult(),
+      );
+    }
+
+    return _driver.getResolvedLibraryByUri2(element.source.uri);
+  }
+
+  @Deprecated('Use getResolvedLibraryByElement() instead')
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+    LibraryElement element,
+  ) {
+    return getResolvedLibraryByElement(element);
   }
 
   @override
-  Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
-    return _driver.getResolvedLibrary(path);
+    return _driver.getResult2(path);
+  }
+
+  @Deprecated('Use getResolvedUnit() instead')
+  @override
+  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
+    return getResolvedUnit(path);
   }
 
   @override
-  Future<ResolvedLibraryResult> getResolvedLibraryByElement(
-      LibraryElement element) {
+  Future<SomeUnitElementResult> getUnitElement(String path) {
     _checkConsistency();
-    _checkElementOfThisSession(element);
-    return _driver.getResolvedLibraryByUri(element.source.uri);
+    return _driver.getUnitElement2(path);
   }
 
+  @Deprecated('Use getUnitElement() instead')
   @override
-  Future<ResolvedUnitResult> getResolvedUnit(String path) {
-    _checkConsistency();
-    return _driver.getResult(path);
-  }
-
-  @override
-  Future<SourceKind?> getSourceKind(String path) {
-    _checkConsistency();
-    return _driver.getSourceKind(path);
-  }
-
-  @override
-  Future<UnitElementResult> getUnitElement(String path) {
-    _checkConsistency();
-    return _driver.getUnitElement(path);
-  }
-
-  @override
-  Future<String> getUnitElementSignature(String path) {
-    _checkConsistency();
-    return _driver.getUnitElementSignature(path);
+  Future<SomeUnitElementResult> getUnitElement2(String path) {
+    return getUnitElement(path);
   }
 
   /// Check to see that results from this session will be consistent, and throw
@@ -143,15 +195,6 @@ class AnalysisSessionImpl implements AnalysisSession {
   void _checkConsistency() {
     if (_driver.currentSession != this) {
       throw InconsistentAnalysisException();
-    }
-  }
-
-  void _checkElementOfThisSession(Element element) {
-    if (element.session != this) {
-      var elementStr = element.getDisplayString(withNullability: true);
-      throw ArgumentError(
-          '(${element.runtimeType}) $elementStr was not produced by '
-          'this session.');
     }
   }
 }
@@ -222,9 +265,6 @@ class SynchronousSession {
       throw StateError('TypeProvider(s) can be set only once.');
     }
 
-    _typeProviderLegacy = legacy;
-    _typeProviderNonNullableByDefault = nonNullableByDefault;
-
     _typeSystemLegacy = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
@@ -238,5 +278,8 @@ class SynchronousSession {
       strictInference: _analysisOptions.strictInference,
       typeProvider: nonNullableByDefault,
     );
+
+    _typeProviderLegacy = legacy;
+    _typeProviderNonNullableByDefault = nonNullableByDefault;
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
@@ -38,26 +36,24 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     var optionsFile = getFile('/analysis_options.yaml');
     var sourceFactory = SourceFactory([]);
     var errors = analyzeAnalysisOptions(
-        optionsFile.createSource(), content, sourceFactory);
+      optionsFile.createSource(),
+      content,
+      sourceFactory,
+      '/',
+    );
     expect(errors, hasLength(1));
     var error = errors[0];
     var options = _parseYaml(content);
-    var generator = AnalysisOptionsFixGenerator(error, content, options);
+    var generator =
+        AnalysisOptionsFixGenerator(resourceProvider, error, content, options);
     return generator.computeFixes();
   }
 
   YamlMap _parseYaml(String content) {
-    if (content == null) {
-      return YamlMap();
+    var doc = loadYamlNode(content);
+    if (doc is YamlMap) {
+      return doc;
     }
-    try {
-      var doc = loadYamlNode(content);
-      if (doc is YamlMap) {
-        return doc;
-      }
-      return YamlMap();
-    } catch (exception) {
-      return null;
-    }
+    return YamlMap();
   }
 }

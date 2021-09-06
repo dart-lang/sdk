@@ -73,8 +73,6 @@ static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = NULL;
 
-static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size);
-
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = Utils::StrDup(Dart_GetError(result));                               \
   if (Dart_IsCompilationError(result)) {                                       \
@@ -109,10 +107,10 @@ static void WriteDepsFile(Dart_Isolate isolate) {
               Options::depfile());
   }
   bool success = true;
-  if (Options::snapshot_filename() != NULL) {
-    success &= file->Print("%s: ", Options::snapshot_filename());
-  } else {
+  if (Options::depfile_output_filename() != NULL) {
     success &= file->Print("%s: ", Options::depfile_output_filename());
+  } else {
+    success &= file->Print("%s: ", Options::snapshot_filename());
   }
   if (kernel_isolate_is_running) {
     Dart_KernelCompilationResult result = Dart_KernelListDependencies();
@@ -553,13 +551,12 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     vm_service_server_port = 0;
   }
 
-  // We do not want to wait for DDS to advertise availability of VM service in the
-  // following scenarios:
-  // - When the VM service is disabled (can be started at a later time via SIGQUIT).
-  // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is enabled.
-  bool wait_for_dds_to_advertise_service =
-    !Options::disable_dart_dev() && Options::enable_vm_service();
-
+  // We do not want to wait for DDS to advertise availability of VM service in
+  // the following scenarios:
+  // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is
+  //   enabled.
+  // TODO(bkonyi): do we want to tie DevTools / DDS to the CLI in the long run?
+  bool wait_for_dds_to_advertise_service = !Options::disable_dart_dev();
   // Load embedder specific bits and return.
   if (!VmService::Setup(
           Options::disable_dart_dev() ? Options::vm_service_server_ip()
@@ -765,6 +762,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
   Dart_Isolate isolate = NULL;
 
+  IsolateData* isolate_data = nullptr;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) {
     const uint8_t* platform_kernel_buffer = NULL;
@@ -786,18 +784,18 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.
     // Isolate should be created only if it is a self contained kernel binary.
-    auto isolate_data = new IsolateData(isolate_group_data);
+    isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroupFromKernel(
         script_uri, name, platform_kernel_buffer, platform_kernel_buffer_size,
         flags, isolate_group_data, isolate_data, error);
   } else {
-    auto isolate_data = new IsolateData(isolate_group_data);
+    isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
                                       isolate_snapshot_instructions, flags,
                                       isolate_group_data, isolate_data, error);
   }
 #else
-  auto isolate_data = new IsolateData(isolate_group_data);
+  isolate_data = new IsolateData(isolate_group_data);
   isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
                                     isolate_snapshot_instructions, flags,
                                     isolate_group_data, isolate_data, error);
@@ -805,6 +803,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
   Dart_Isolate created_isolate = NULL;
   if (isolate == NULL) {
+    delete isolate_data;
     delete isolate_group_data;
   } else {
     created_isolate = IsolateSetupHelper(
@@ -926,32 +925,6 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
 
-static void WriteFile(const char* filename,
-                      const uint8_t* buffer,
-                      const intptr_t size) {
-  File* file = File::Open(NULL, filename, File::kWriteTruncate);
-  if (file == NULL) {
-    ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
-  }
-  if (!file->WriteFully(buffer, size)) {
-    ErrorExit(kErrorExitCode, "Unable to write file %s\n", filename);
-  }
-  file->Release();
-}
-
-static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
-  File* file = File::Open(NULL, filename, File::kRead);
-  if (file == NULL) {
-    ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
-  }
-  *size = file->Length();
-  *buffer = reinterpret_cast<uint8_t*>(malloc(*size));
-  if (!file->ReadFully(*buffer, *size)) {
-    ErrorExit(kErrorExitCode, "Unable to read file %s\n", filename);
-  }
-  file->Release();
-}
-
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
@@ -961,6 +934,7 @@ void RunMainIsolate(const char* script_name,
   int exit_code = 0;
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
+  flags.is_system_isolate = Options::mark_main_isolate_as_system_isolate();
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, "main",
@@ -1018,23 +992,6 @@ void RunMainIsolate(const char* script_name,
                 script_name);
     }
 
-    if (Options::load_compilation_trace_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
-      result = Dart_LoadCompilationTrace(buffer, size);
-      free(buffer);
-      CHECK_RESULT(result);
-    }
-    if (Options::load_type_feedback_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      ReadFile(Options::load_type_feedback_filename(), &buffer, &size);
-      result = Dart_LoadTypeFeedback(buffer, size);
-      free(buffer);
-      CHECK_RESULT(result);
-    }
-
     // Create a closure for the main entry point which is in the exported
     // namespace of the root library or invoke a getter of the same name
     // in the exported namespace and return the resulting closure.
@@ -1069,21 +1026,6 @@ void RunMainIsolate(const char* script_name,
       }
     }
     CHECK_RESULT(result);
-
-    if (Options::save_compilation_trace_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      result = Dart_SaveCompilationTrace(&buffer, &size);
-      CHECK_RESULT(result);
-      WriteFile(Options::save_compilation_trace_filename(), buffer, size);
-    }
-    if (Options::save_type_feedback_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      result = Dart_SaveTypeFeedback(&buffer, &size);
-      CHECK_RESULT(result);
-      WriteFile(Options::save_type_feedback_filename(), buffer, size);
-    }
   }
 
   WriteDepsFile(isolate);

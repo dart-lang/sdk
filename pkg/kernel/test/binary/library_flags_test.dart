@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'utils.dart';
 
 /// Test that library flags are serialized and read correctly.
@@ -58,7 +56,8 @@ main() {
             "isNonNullableByDefault: $isNonNullableByDefault; "
             "nonNullableByDefaultCompiledMode:"
             " $nonNullableByDefaultCompiledMode");
-        Library lib = new Library(Uri.parse("foo://bar.dart"));
+        Uri uri = Uri.parse("foo://bar.dart");
+        Library lib = new Library(uri, fileUri: uri);
         setSynthetic(lib, isSynthetic);
         setNonNullableByDefault(lib, isNonNullableByDefault);
         setNonNullableByDefaultCompiledMode(

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Using the same prefix name while importing two different libraries is
 // not an error but both library1.dart and library2.dart define 'foo' which
 // results in a duplicate definition error.

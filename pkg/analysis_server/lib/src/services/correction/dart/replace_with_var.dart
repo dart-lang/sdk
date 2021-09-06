@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -16,6 +15,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceWithVar extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.REPLACE_WITH_VAR;
+
+  @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;
@@ -44,25 +49,28 @@ class ReplaceWithVar extends CorrectionProducer {
         return;
       }
       var initializer = variables[0].initializer;
-      String typeArgumentsText;
-      int typeArgumentsOffset;
-      if (type is NamedType && type.typeArguments != null) {
-        if (initializer is CascadeExpression) {
-          initializer = (initializer as CascadeExpression).target;
-        }
-        if (initializer is TypedLiteral) {
-          if (initializer.typeArguments == null) {
-            typeArgumentsText = utils.getNodeText(type.typeArguments);
-            if (initializer is ListLiteral) {
-              typeArgumentsOffset = initializer.leftBracket.offset;
-            } else if (initializer is SetOrMapLiteral) {
-              typeArgumentsOffset = initializer.leftBracket.offset;
-            }
+      String? typeArgumentsText;
+      int? typeArgumentsOffset;
+      if (type is NamedType) {
+        var typeArguments = type.typeArguments;
+        if (typeArguments != null) {
+          if (initializer is CascadeExpression) {
+            initializer = initializer.target;
           }
-        } else if (initializer is InstanceCreationExpression) {
-          if (initializer.constructorName.type.typeArguments == null) {
-            typeArgumentsText = utils.getNodeText(type.typeArguments);
-            typeArgumentsOffset = initializer.constructorName.type.end;
+          if (initializer is TypedLiteral) {
+            if (initializer.typeArguments == null) {
+              typeArgumentsText = utils.getNodeText(typeArguments);
+              if (initializer is ListLiteral) {
+                typeArgumentsOffset = initializer.leftBracket.offset;
+              } else if (initializer is SetOrMapLiteral) {
+                typeArgumentsOffset = initializer.leftBracket.offset;
+              }
+            }
+          } else if (initializer is InstanceCreationExpression) {
+            if (initializer.constructorName.type.typeArguments == null) {
+              typeArgumentsText = utils.getNodeText(typeArguments);
+              typeArgumentsOffset = initializer.constructorName.type.end;
+            }
           }
         }
       }
@@ -80,19 +88,22 @@ class ReplaceWithVar extends CorrectionProducer {
         } else {
           builder.addSimpleReplacement(range.node(type), 'var');
         }
-        if (typeArgumentsText != null) {
+        if (typeArgumentsText != null && typeArgumentsOffset != null) {
           builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
         }
       });
     } else if (parent is DeclaredIdentifier &&
         grandparent is ForEachPartsWithDeclaration) {
-      String typeArgumentsText;
-      int typeArgumentsOffset;
-      if (type is NamedType && type.typeArguments != null) {
-        var iterable = grandparent.iterable;
-        if (iterable is TypedLiteral && iterable.typeArguments == null) {
-          typeArgumentsText = utils.getNodeText(type.typeArguments);
-          typeArgumentsOffset = iterable.offset;
+      String? typeArgumentsText;
+      int? typeArgumentsOffset;
+      if (type is NamedType) {
+        var typeArguments = type.typeArguments;
+        if (typeArguments != null) {
+          var iterable = grandparent.iterable;
+          if (iterable is TypedLiteral && iterable.typeArguments == null) {
+            typeArgumentsText = utils.getNodeText(typeArguments);
+            typeArgumentsOffset = iterable.offset;
+          }
         }
       }
       await builder.addDartFileEdit(file, (builder) {
@@ -101,7 +112,7 @@ class ReplaceWithVar extends CorrectionProducer {
         } else {
           builder.addSimpleReplacement(range.node(type), 'var');
         }
-        if (typeArgumentsText != null) {
+        if (typeArgumentsText != null && typeArgumentsOffset != null) {
           builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
         }
       });
@@ -110,7 +121,7 @@ class ReplaceWithVar extends CorrectionProducer {
 
   /// Return `true` if the type in the [node] can be replaced with `var`.
   bool _canConvertVariableDeclarationList(VariableDeclarationList node) {
-    final staticType = node?.type?.type;
+    final staticType = node.type?.type;
     if (staticType == null || staticType.isDynamic) {
       return false;
     }
@@ -137,10 +148,10 @@ class ReplaceWithVar extends CorrectionProducer {
         if (staticType == null || staticType.isDynamic) {
           return false;
         }
-        final iterableType = parent.iterable.staticType;
+        final iterableType = parent.iterable.typeOrThrow;
         var instantiatedType =
             iterableType.asInstanceOf(typeProvider.iterableElement);
-        if (instantiatedType?.typeArguments?.first == staticType) {
+        if (instantiatedType?.typeArguments.first == staticType) {
           return true;
         }
         return false;
@@ -152,7 +163,7 @@ class ReplaceWithVar extends CorrectionProducer {
 
   /// Using the [node] as a starting point, return the type annotation that is
   /// to be replaced, or `null` if there is no type annotation.
-  TypeAnnotation _findType(AstNode node) {
+  TypeAnnotation? _findType(AstNode node) {
     if (node is VariableDeclarationList) {
       return node.type;
     }

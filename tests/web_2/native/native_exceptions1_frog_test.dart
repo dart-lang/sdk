@@ -46,8 +46,8 @@ void setup1() {
   JS('', r"""
 (function(){
   // Ensure we are not relying on global names 'A' and 'E'.
-  A = null;
-  E = null;
+  self.A = null;
+  self.E = null;
 })()""");
   applyTestExtensions(['E', 'A']);
 }
@@ -55,6 +55,10 @@ void setup1() {
 void setup2() {
   JS('', r"""
 (function(){
+// Confirm A and B are null.
+console.assert(self.A == null);
+console.assert(self.B == null);
+
 // This code is all inside 'setup2' and so not accessible from the global scope.
 function E(x){ this.code = x; }
 

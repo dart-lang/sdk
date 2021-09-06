@@ -1,0 +1,3 @@
+part 'constructor_tear_off_uri_part.dart';
+
+main() {}

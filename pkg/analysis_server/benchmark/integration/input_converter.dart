@@ -253,50 +253,61 @@ class InputConverter extends Converter<String, Operation?> {
 
   /// The number of lines read before the underlying converter was determined
   /// or the end of file was reached.
-  int headerLineCount = 0;
+  int _headerLineCount = 0;
 
   /// The underlying converter used to translate lines into operations
   /// or `null` if it has not yet been determined.
-  Converter<String, Operation?>? converter;
+  Converter<String, Operation?>? _converter;
 
-  /// [active] is `true` if converting lines to operations
+  /// [_active] is `true` if converting lines to operations
   /// or `false` if an exception has occurred.
-  bool active = true;
+  bool _active = true;
 
   InputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   @override
   Operation? convert(String line) {
-    if (!active) {
+    if (!_active) {
       return null;
     }
-    var converter = this.converter;
-    if (converter != null) {
-      try {
-        return converter.convert(line);
-      } catch (e) {
-        active = false;
-        rethrow;
+    try {
+      var converter = _getConverter(line);
+      if (converter == null) {
+        logger.log(Level.INFO, 'skipped input line: $line');
+        return null;
       }
-    }
-    if (headerLineCount == 20) {
-      throw 'Failed to determine input file format';
-    }
-    if (InstrumentationInputConverter.isFormat(line)) {
-      converter = InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
-    } else if (LogFileInputConverter.isFormat(line)) {
-      converter = LogFileInputConverter(tmpSrcDirPath, srcPathMap);
-    }
-    if (converter != null) {
       return converter.convert(line);
+    } catch (_) {
+      _active = false;
+      rethrow;
     }
-    logger.log(Level.INFO, 'skipped input line: $line');
-    return null;
   }
 
   @override
   _InputSink startChunkedConversion(outSink) {
     return _InputSink(this, outSink);
+  }
+
+  /// Return the previously determined converter, or determine it from the
+  /// given [line]. Return `null` if cannot be determined yet. Throw an
+  /// exception if could not be determined after some number of tries.
+  Converter<String, Operation?>? _getConverter(String line) {
+    var converter = _converter;
+    if (converter != null) {
+      return converter;
+    }
+
+    if (_headerLineCount++ == 20) {
+      throw 'Failed to determine input file format';
+    }
+
+    if (InstrumentationInputConverter.isFormat(line)) {
+      _converter = InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
+    } else if (LogFileInputConverter.isFormat(line)) {
+      _converter = LogFileInputConverter(tmpSrcDirPath, srcPathMap);
+    }
+
+    return _converter;
   }
 }
 

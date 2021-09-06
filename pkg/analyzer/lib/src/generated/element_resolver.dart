@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -83,29 +82,23 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement _definingLibrary;
 
-  /// Whether constant evaluation errors should be reported during resolution.
-  @Deprecated('This field is no longer used')
-  final bool reportConstEvaluationErrors;
-
   /// Helper for resolving properties on types.
   final TypePropertyResolver _typePropertyResolver;
 
-  late final MethodInvocationResolver _methodInvocationResolver;
+  final MethodInvocationResolver _methodInvocationResolver;
 
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
   ElementResolver(this._resolver,
-      {this.reportConstEvaluationErrors = true,
-      MigratableAstInfoProvider migratableAstInfoProvider =
+      {MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
-        _typePropertyResolver = _resolver.typePropertyResolver {
-    _methodInvocationResolver = MethodInvocationResolver(
-      _resolver,
-      migratableAstInfoProvider,
-      inferenceHelper: _resolver.inferenceHelper,
-    );
-  }
+        _typePropertyResolver = _resolver.typePropertyResolver,
+        _methodInvocationResolver = MethodInvocationResolver(
+          _resolver,
+          migratableAstInfoProvider,
+          inferenceHelper: _resolver.inferenceHelper,
+        );
 
   /// Return `true` iff the current enclosing function is a constant constructor
   /// declaration.
@@ -197,6 +190,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
               prefixElement.getGetter(name.name) ??
               prefixElement.getSetter(name.name) ??
               prefixElement.getNamedConstructor(name.name);
+        } else if (prefixElement is ExtensionElement) {
+          name.staticElement = prefixElement.getMethod(name.name) ??
+              prefixElement.getGetter(name.name) ??
+              prefixElement.getSetter(name.name);
         } else {
           // TODO(brianwilkerson) Report this error.
         }
@@ -396,8 +393,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node,
-      {List<Map<DartType, NonPromotionReason> Function()>?
-          whyNotPromotedList}) {
+      {List<WhyNotPromotedGetter>? whyNotPromotedList}) {
     whyNotPromotedList ??= [];
     _methodInvocationResolver.resolve(
         node as MethodInvocationImpl, whyNotPromotedList);
@@ -410,6 +406,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  @override
+  void visitPartOfDirective(PartOfDirective node) {
     _resolveAnnotations(node.metadata);
   }
 
@@ -497,7 +498,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     var superclassName = declaration?.extendsClause?.superclass.name;
     if (superclassName != null &&
-        _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
+        _resolver.definingLibrary
+            .shouldIgnoreUndefinedIdentifier(superclassName)) {
       return;
     }
     var argumentList = node.argumentList;

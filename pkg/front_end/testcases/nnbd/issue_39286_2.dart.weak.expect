@@ -36,8 +36,8 @@ class D extends core::Object {
 }
 static method test(self::C x) → void {
   let final self::C #t1 = x in block {
-    #t1.{self::C::f}()!.{self::D::g}().{self::D::[]}("Hi!")!;
-    #t1.{self::C::h}()!.{self::C::y} = 2;
+    #t1.{self::C::f}(){() → self::D?}!.{self::D::g}(){() → self::D}.{self::D::[]}("Hi!"){(core::String) → core::String}!;
+    #t1.{self::C::h}(){() → self::C}!.{self::C::y} = 2;
   } =>#t1;
 }
 static method main() → dynamic {

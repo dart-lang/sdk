@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 
 #include <errno.h>        // NOLINT
 #include <sys/syscall.h>  // NOLINT
@@ -75,4 +75,4 @@ void ThreadInterrupter::RemoveSignalHandler() {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_ANDROID)

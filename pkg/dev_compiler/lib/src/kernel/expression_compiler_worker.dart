@@ -21,9 +21,9 @@ import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:meta/meta.dart';
-import 'package:vm/http_filesystem.dart';
 
 import '../compiler/js_names.dart';
+import 'asset_file_system.dart';
 import 'command.dart';
 
 /// The service that handles expression compilation requests from
@@ -113,24 +113,30 @@ class ExpressionCompilerWorker {
   /// receive port corresponding to [sendPort].
   static Future<void> createAndStart(List<String> args,
       {SendPort sendPort}) async {
+    ExpressionCompilerWorker worker;
     if (sendPort != null) {
       var receivePort = ReceivePort();
       sendPort.send(receivePort.sendPort);
       try {
-        var worker = await createFromArgs(args,
+        worker = await createFromArgs(args,
             requestStream: receivePort.cast<Map<String, dynamic>>(),
             sendResponse: sendPort.send);
-        await worker.start();
+        await worker.run();
       } catch (e, s) {
         sendPort
             .send({'exception': '$e', 'stackTrace': '$s', 'succeeded': false});
         rethrow;
       } finally {
         receivePort.close();
+        worker?.close();
       }
     } else {
-      var worker = await createFromArgs(args);
-      await worker.start();
+      try {
+        worker = await createFromArgs(args);
+        await worker.run();
+      } finally {
+        worker?.close();
+      }
     }
   }
 
@@ -243,7 +249,7 @@ class ExpressionCompilerWorker {
   ///
   /// Completes when the [requestStream] closes and we finish handling the
   /// requests.
-  Future<void> start() async {
+  Future<void> run() async {
     await for (var request in requestStream) {
       try {
         var command = request['command'] as String;
@@ -262,6 +268,9 @@ class ExpressionCompilerWorker {
                 'Unrecognized command `$command`, full request was `$request`');
         }
       } catch (e, s) {
+        var command = request['command'] as String;
+        _processedOptions.ticker
+            .logMs('Expression compiler worker request $command failed: $e:$s');
         sendResponse({
           'exception': '$e',
           'stackTrace': '$s',
@@ -270,6 +279,11 @@ class ExpressionCompilerWorker {
       }
     }
     _processedOptions.ticker.logMs('Stopped expression compiler worker.');
+  }
+
+  void close() {
+    var fileSystem = _processedOptions?.fileSystem;
+    if (fileSystem != null && fileSystem is AssetFileSystem) fileSystem.close();
   }
 
   /// Handles a `CompileExpression` request.
@@ -301,7 +315,8 @@ class ExpressionCompilerWorker {
     // Note that this doesn't actually re-load it if it's already fully loaded.
     if (!await _loadAndUpdateComponent(
         _fullModules[moduleName], moduleName, false)) {
-      throw ArgumentError('Failed to load full dill for module $moduleName');
+      throw ArgumentError('Failed to load full dill for module $moduleName: '
+          '${_fullModules[moduleName]}');
     }
 
     var originalComponent = _moduleCache.componentForModuleName[moduleName];
@@ -562,29 +577,6 @@ class ExpressionCompilerWorker {
     var printer = BinaryPrinter(byteSink);
     printer.writeComponentFile(component);
     return true;
-  }
-}
-
-/// A wrapper around asset server that redirects file read requests
-/// to http get requests to the asset server.
-class AssetFileSystem extends HttpAwareFileSystem {
-  final String server;
-  final String port;
-
-  AssetFileSystem(FileSystem original, this.server, this.port)
-      : super(original);
-
-  Uri resourceUri(Uri uri) =>
-      Uri.parse('http://$server:$port/getResource?uri=${uri.toString()}');
-
-  @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file') {
-      return super.entityForUri(uri);
-    }
-
-    // Pass the uri to the asset server in the debugger.
-    return HttpFileSystemEntity(this, resourceUri(uri));
   }
 }
 

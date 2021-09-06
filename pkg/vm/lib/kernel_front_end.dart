@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Defines the VM-specific translation of Dart source code to kernel binaries.
-library vm.kernel_front_end;
 
 import 'dart:async';
 import 'dart:io' show File, IOSink;
@@ -65,6 +64,7 @@ import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
 import 'transformations/deferred_loading.dart' as deferred_loading;
+import 'transformations/to_string_transformer.dart' as to_string_transformer;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -129,6 +129,13 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false);
+  args.addMultiOption(
+    'delete-tostring-package-uri',
+    help: 'Replaces implementations of `toString` with `super.toString()` for '
+        'specified package',
+    valueHelp: 'dart:ui',
+    defaultsTo: const <String>[],
+  );
   args.addOption('invocation-modes',
       help: 'Provides information to the front end about how it is invoked.',
       defaultsTo: '');
@@ -152,7 +159,7 @@ const int compileTimeErrorExitCode = 254;
 /// Run kernel compiler tool with given [options] and [usage]
 /// and return exit code.
 Future<int> runCompiler(ArgResults options, String usage) async {
-  final String platformKernel = options['platform'];
+  final String? platformKernel = options['platform'];
 
   if (options['help']) {
     print(usage);
@@ -166,26 +173,26 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final String input = options.rest.single;
   final String outputFileName = options['output'] ?? "$input.dill";
-  final String packages = options['packages'];
+  final String? packages = options['packages'];
   final String targetName = options['target'];
-  final String fileSystemScheme = options['filesystem-scheme'];
-  final String depfile = options['depfile'];
-  final String fromDillFile = options['from-dill'];
-  final List<String> fileSystemRoots = options['filesystem-root'];
+  final String? fileSystemScheme = options['filesystem-scheme'];
+  final String? depfile = options['depfile'];
+  final String? fromDillFile = options['from-dill'];
+  final List<String>? fileSystemRoots = options['filesystem-root'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool nullSafety = options['sound-null-safety'];
+  final bool? nullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
-  final String manifestFilename = options['manifest'];
-  final String dataDir = options['component-name'] ?? options['data-dir'];
+  final String? manifestFilename = options['manifest'];
+  final String? dataDir = options['component-name'] ?? options['data-dir'];
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
-  final List<String> experimentalFlags = options['enable-experiment'];
+  final List<String>? experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
@@ -207,7 +214,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
-  final Uri packagesUri = packages != null ? resolveInputUri(packages) : null;
+  final Uri? packagesUri = packages != null ? resolveInputUri(packages) : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
   final List<Uri> additionalDills = <Uri>[];
@@ -222,7 +229,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final verbosity = Verbosity.parseArgument(options['verbosity']);
   final errorPrinter = new ErrorPrinter(verbosity);
-  final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
+  final errorDetector =
+      new ErrorDetector(previousErrorHandler: errorPrinter.call);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkSummary = platformKernelUri
@@ -258,6 +266,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final results = await compileToKernel(mainUri, compilerOptions,
       includePlatform: additionalDills.isNotEmpty,
+      deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
@@ -269,19 +278,20 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   errorPrinter.printCompilationMessages();
 
-  if (errorDetector.hasCompilationErrors || (results.component == null)) {
+  final Component? component = results.component;
+  if (errorDetector.hasCompilationErrors || (component == null)) {
     return compileTimeErrorExitCode;
   }
 
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink,
       libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
-  printer.writeComponentFile(results.component);
+  printer.writeComponentFile(component);
   await sink.close();
 
   if (depfile != null) {
     await writeDepfile(
-        fileSystem, results.compiledSources, outputFileName, depfile);
+        fileSystem, results.compiledSources!, outputFileName, depfile);
   }
 
   if (splitOutputByPackages) {
@@ -303,14 +313,14 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 /// Results of [compileToKernel]: generated kernel [Component] and
 /// collection of compiled sources.
 class KernelCompilationResults {
-  final Component component;
+  final Component? component;
 
   /// Set of libraries loaded from .dill, with or without the SDK depending on
   /// the compilation settings.
   final Set<Library> loadedLibraries;
-  final ClassHierarchy classHierarchy;
-  final CoreTypes coreTypes;
-  final Iterable<Uri> compiledSources;
+  final ClassHierarchy? classHierarchy;
+  final CoreTypes? coreTypes;
+  final Iterable<Uri>? compiledSources;
 
   KernelCompilationResults(this.component, this.loadedLibraries,
       this.classHierarchy, this.coreTypes, this.compiledSources);
@@ -324,45 +334,47 @@ class KernelCompilationResults {
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
     {bool includePlatform: false,
+    List<String> deleteToStringPackageUris: const <String>[],
     bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
-    Map<String, String> environmentDefines,
+    required Map<String, String> environmentDefines,
     bool enableAsserts: true,
     bool useProtobufTreeShakerV2: false,
     bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false,
-    String fromDillFile: null}) async {
+    String? fromDillFile: null}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
-  options.onDiagnostic = errorDetector;
+  options.onDiagnostic = errorDetector.call;
 
+  final target = options.target!;
   options.environmentDefines =
-      options.target.updateEnvironmentDefines(environmentDefines);
+      target.updateEnvironmentDefines(environmentDefines);
 
-  CompilerResult compilerResult;
+  CompilerResult? compilerResult;
   if (fromDillFile != null) {
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
     compilerResult = await kernelForProgram(source, options);
   }
-  Component component = compilerResult?.component;
-  Iterable<Uri> compiledSources = component?.uriToSource?.keys;
+  final Component? component = compilerResult?.component;
+  Iterable<Uri>? compiledSources = component?.uriToSource.keys;
 
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
       includePlatform: includePlatform);
 
+  if (deleteToStringPackageUris.isNotEmpty && component != null) {
+    to_string_transformer.transformComponent(
+        component, deleteToStringPackageUris);
+  }
+
   // Run global transformations only if component is correct.
   if ((aot || minimalKernel) && component != null) {
-    await runGlobalTransformations(
-        options.target,
-        component,
-        useGlobalTypeFlowAnalysis,
-        enableAsserts,
-        useProtobufTreeShakerV2,
-        errorDetector,
+    await runGlobalTransformations(target, component, useGlobalTypeFlowAnalysis,
+        enableAsserts, useProtobufTreeShakerV2, errorDetector,
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
 
@@ -370,7 +382,7 @@ Future<KernelCompilationResults> compileToKernel(
       // compiledSources is component.uriToSource.keys.
       // Make a copy of compiledSources to detach it from
       // component.uriToSource which is cleared below.
-      compiledSources = compiledSources.toList();
+      compiledSources = compiledSources!.toList();
 
       component.metadata.clear();
       component.uriToSource.clear();
@@ -389,7 +401,7 @@ Future<KernelCompilationResults> compileToKernel(
 }
 
 Set<Library> createLoadedLibrariesSet(
-    List<Component> loadedComponents, Component sdkComponent,
+    List<Component>? loadedComponents, Component? sdkComponent,
     {bool includePlatform: false}) {
   final Set<Library> loadedLibraries = {};
   if (loadedComponents != null) {
@@ -464,8 +476,11 @@ Future runGlobalTransformations(
 
 /// Runs given [action] with [CompilerContext]. This is needed to
 /// be able to report compile-time errors.
-Future<T> runWithFrontEndCompilerContext<T>(Uri source,
-    CompilerOptions compilerOptions, Component component, T action()) async {
+Future<T> runWithFrontEndCompilerContext<T>(
+    Uri source,
+    CompilerOptions compilerOptions,
+    Component component,
+    Future<T> action()) async {
   final processedOptions =
       new ProcessedOptions(options: compilerOptions, inputs: [source]);
 
@@ -481,7 +496,7 @@ Future<T> runWithFrontEndCompilerContext<T>(Uri source,
 }
 
 class ErrorDetector {
-  final DiagnosticMessageHandler previousErrorHandler;
+  final DiagnosticMessageHandler? previousErrorHandler;
   bool hasCompilationErrors = false;
 
   ErrorDetector({this.previousErrorHandler});
@@ -497,8 +512,9 @@ class ErrorDetector {
 
 class ErrorPrinter {
   final Verbosity verbosity;
-  final DiagnosticMessageHandler previousErrorHandler;
-  final compilationMessages = <Uri, List<DiagnosticMessage>>{};
+  final DiagnosticMessageHandler? previousErrorHandler;
+  final Map<Uri?, List<DiagnosticMessage>> compilationMessages =
+      <Uri?, List<DiagnosticMessage>>{};
 
   ErrorPrinter(this.verbosity, {this.previousErrorHandler});
 
@@ -522,8 +538,8 @@ class ErrorPrinter {
         }
         return 0;
       });
-    for (final Uri sourceUri in sortedUris) {
-      for (final DiagnosticMessage message in compilationMessages[sourceUri]) {
+    for (final Uri? sourceUri in sortedUris) {
+      for (final DiagnosticMessage message in compilationMessages[sourceUri]!) {
         if (Verbosity.shouldPrint(verbosity, message)) {
           printDiagnosticMessage(message, print);
         }
@@ -559,7 +575,7 @@ Future<void> autoDetectNullSafetyMode(
 }
 
 /// Create front-end target with given name.
-Target createFrontEndTarget(String targetName,
+Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false, bool nullSafety = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
@@ -574,9 +590,8 @@ Target createFrontEndTarget(String targetName,
 /// If requested, create a virtual mutli-root file system and/or an http aware
 /// file system.
 FileSystem createFrontEndFileSystem(
-    String multiRootFileSystemScheme, List<String> multiRootFileSystemRoots,
-    {bool allowHttp}) {
-  allowHttp ??= false;
+    String? multiRootFileSystemScheme, List<String>? multiRootFileSystemRoots,
+    {bool allowHttp = false}) {
   FileSystem fileSystem = StandardFileSystem.instance;
   if (allowHttp) {
     fileSystem = HttpAwareFileSystem(fileSystem);
@@ -598,7 +613,7 @@ FileSystem createFrontEndFileSystem(
 Future<Uri> asFileUri(FileSystem fileSystem, Uri uri) async {
   FileSystemEntity fse = fileSystem.entityForUri(uri);
   if (fse is MultiRootFileSystemEntity) {
-    fse = await (fse as MultiRootFileSystemEntity).delegate;
+    fse = await fse.delegate;
   }
   return fse.uri;
 }
@@ -628,8 +643,9 @@ Future<Uri> convertToPackageUri(
 Future writeOutputSplitByPackages(Uri source, CompilerOptions compilerOptions,
     KernelCompilationResults compilationResults, String outputFileName) async {
   final packages = <String>[];
-  await runWithFrontEndCompilerContext(
-      source, compilerOptions, compilationResults.component, () async {
+  final Component component = compilationResults.component!;
+  await runWithFrontEndCompilerContext(source, compilerOptions, component,
+      () async {
     // When loading a kernel file list, flutter_runner and dart_runner expect
     // 'main' to be last.
     await forEachPackage(compilationResults,
@@ -638,12 +654,10 @@ Future writeOutputSplitByPackages(Uri source, CompilerOptions compilerOptions,
       final String filename = '$outputFileName-$package.dilp';
       final IOSink sink = new File(filename).openWrite();
 
-      Component partComponent = compilationResults.component;
-
       final BinaryPrinter printer = new BinaryPrinter(sink,
           libraryFilter: (lib) =>
               packageFor(lib, compilationResults.loadedLibraries) == package);
-      printer.writeComponentFile(partComponent);
+      printer.writeComponentFile(component);
 
       await sink.close();
     }, mainFirst: false);
@@ -656,7 +670,7 @@ Future writeOutputSplitByPackages(Uri source, CompilerOptions compilerOptions,
   await packagesList.close();
 }
 
-String packageFor(Library lib, Set<Library> loadedLibraries) {
+String? packageFor(Library lib, Set<Library> loadedLibraries) {
   // Core libraries are not written into any package kernel binaries.
   if (loadedLibraries.contains(lib)) return null;
 
@@ -684,23 +698,25 @@ void sortComponent(Component component) {
   }
 }
 
-Future<Null> forEachPackage<T>(KernelCompilationResults results,
-    T action(String package, List<Library> libraries),
-    {bool mainFirst}) async {
-  final Component component = results.component;
+Future<void> forEachPackage(KernelCompilationResults results,
+    Future<void> action(String package, List<Library> libraries),
+    {required bool mainFirst}) async {
+  final Component component = results.component!;
   final Set<Library> loadedLibraries = results.loadedLibraries;
   sortComponent(component);
 
-  final packages = new Map<String, List<Library>>();
+  final Map<String, List<Library>> packages = <String, List<Library>>{};
   packages['main'] = <Library>[]; // Always create 'main'.
   for (Library lib in component.libraries) {
-    packages
-        .putIfAbsent(packageFor(lib, loadedLibraries), () => <Library>[])
-        .add(lib);
+    final String? package = packageFor(lib, loadedLibraries);
+    // Ignore external libraries.
+    if (package == null) {
+      continue;
+    }
+    packages.putIfAbsent(package, () => <Library>[]).add(lib);
   }
-  packages.remove(null); // Ignore external libraries.
 
-  final mainLibraries = packages.remove('main');
+  final mainLibraries = packages.remove('main')!;
   if (mainFirst) {
     await action('main', mainLibraries);
   }
@@ -711,7 +727,7 @@ Future<Null> forEachPackage<T>(KernelCompilationResults results,
   component.setMainMethodAndMode(null, true, compilationMode);
   component.problemsAsJson = null;
   for (String package in packages.keys) {
-    await action(package, packages[package]);
+    await action(package, packages[package]!);
   }
   component.setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
   component.problemsAsJson = problemsAsJson;
@@ -733,8 +749,8 @@ Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
   file.write(_escapePath(output));
   file.write(':');
   for (Uri dep in compiledSources) {
-    // Skip empty or corelib dependencies.
-    if (dep == null || dep.scheme == 'org-dartlang-sdk') continue;
+    // Skip corelib dependencies.
+    if (dep.scheme == 'org-dartlang-sdk') continue;
     Uri uri = await asFileUri(fileSystem, dep);
     file.write(' ');
     file.write(_escapePath(uri.toFilePath()));
@@ -744,7 +760,7 @@ Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
 }
 
 Future<void> createFarManifest(
-    String output, String dataDir, String packageManifestFilename) async {
+    String output, String? dataDir, String packageManifestFilename) async {
   List<String> packages = await File('$output-packages').readAsLines();
 
   // Make sure the 'main' package is the last (convention with package loader).
@@ -774,7 +790,7 @@ Future<void> createFarManifest(
     'typed_data',
     'vector_math'
   ]) {
-    Digest digest;
+    Digest? digest;
     if (packages.contains(package)) {
       final filenameInBuild = '$output-$package.dilp';
       final bytes = await File(filenameInBuild).readAsBytes();
@@ -796,11 +812,20 @@ class CompilerResultLoadedFromKernel implements CompilerResult {
 
   CompilerResultLoadedFromKernel(this.component);
 
-  List<int> get summary => null;
+  @override
+  List<int>? get summary => null;
+
+  @override
   List<Component> get loadedComponents => const <Component>[];
+
+  @override
   List<Uri> get deps => const <Uri>[];
-  CoreTypes get coreTypes => null;
-  ClassHierarchy get classHierarchy => null;
+
+  @override
+  CoreTypes? get coreTypes => null;
+
+  @override
+  ClassHierarchy? get classHierarchy => null;
 }
 
 Future<CompilerResult> loadKernel(

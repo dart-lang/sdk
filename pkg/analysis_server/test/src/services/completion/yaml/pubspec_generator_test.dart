@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+import 'dart:io';
 
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:http/http.dart';
@@ -23,9 +24,11 @@ void main() {
 
 @reflectiveTest
 class PubspecGeneratorTest extends YamlGeneratorTest {
-  MockHttpClient httpClient;
+  late MockHttpClient httpClient;
+  late MockProcessRunner processRunner;
 
-  PubPackageService pubPackageService;
+  late PubPackageService pubPackageService;
+
   @override
   String get fileName => 'pubspec.yaml';
 
@@ -35,10 +38,12 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
 
   void setUp() {
     httpClient = MockHttpClient();
+    processRunner = MockProcessRunner();
     pubPackageService = PubPackageService(
         InstrumentationService.NULL_SERVICE,
         resourceProvider,
-        PubApi(InstrumentationService.NULL_SERVICE, httpClient, null));
+        PubApi(InstrumentationService.NULL_SERVICE, httpClient, null),
+        PubCommand(InstrumentationService.NULL_SERVICE, processRunner));
   }
 
   void tearDown() {
@@ -49,6 +54,17 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     getCompletions('^');
     assertSuggestion('flutter: ');
     assertSuggestion('name: ');
+  }
+
+  void test_emptyPreviousSibling() {
+    // Ensure handling of nulls does not pick up nulls from previous siblings
+    getCompletions('''
+flutter:
+  assets:
+  fonts:
+    ^
+''');
+    assertSuggestion('family: ');
   }
 
   void test_environment() {
@@ -280,6 +296,8 @@ flutter:
   }
 
   void test_packageName() async {
+    /// Sample package name list JSON in the same format as the API:
+    /// https://pub.dev/api/package-name-completion-data
     const samplePackageList = '''
   { "packages": ["one", "two", "three"] }
   ''';
@@ -326,5 +344,47 @@ dependencies:
   three:
 ''');
     assertSuggestion('two: ');
+  }
+
+  void test_packageVersion() async {
+    final json = r'''
+    {
+      "packages": [
+        {
+          "package":    "one",
+          "latest":     { "version": "3.2.1" },
+          "resolvable": { "version": "1.2.4" }
+        }
+      ]
+    }
+    ''';
+    processRunner.runHandler =
+        (executable, args, {dir, env}) => ProcessResult(1, 0, json, '');
+
+    pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
+    await pumpEventQueue(times: 500);
+
+    getCompletions('''
+dependencies:
+  one: ^
+''');
+    assertSuggestion('^1.2.4');
+    assertSuggestion('^3.2.1');
+  }
+
+  /// Ensure in a repo with a DEPS file like the SDK, we do not run pub
+  /// processes to cache the version numbers.
+  void test_packageVersion_withDEPSfile() async {
+    var didRun = false;
+    processRunner.runHandler = (executable, args, {dir, env}) {
+      didRun = true;
+      return ProcessResult(1, 0, '', '');
+    };
+
+    newFile('/home/DEPS');
+    pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
+    await pumpEventQueue(times: 500);
+
+    expect(didRun, isFalse);
   }
 }

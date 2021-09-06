@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:test/test.dart';
@@ -35,7 +33,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     await server.onAnalysisComplete;
 
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
 
     expect(result.contexts, hasLength(1));
@@ -51,7 +49,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_getDiagnostics_noRoot() async {
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }

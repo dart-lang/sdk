@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'utils.dart';
 
@@ -42,12 +43,16 @@ class ProtobufHandler {
   final Field _tagNumberField;
   final Class _builderInfoClass;
   final Procedure _builderInfoAddMethod;
+
+  // Type of BuilderInfo.add<Null>().
+  late FunctionType _typeOfBuilderInfoAddOfNull;
+
   final _messageClasses = <Class, _MessageClass>{};
   final _invalidatedClasses = <_MessageClass>{};
 
   /// Creates [ProtobufHandler] instance for [component].
   /// Returns null if protobuf library is not used.
-  static ProtobufHandler forComponent(
+  static ProtobufHandler? forComponent(
       Component component, CoreTypes coreTypes) {
     final libraryIndex = LibraryIndex(component, [protobufLibraryUri]);
     if (!libraryIndex.containsLibrary(protobufLibraryUri)) {
@@ -61,12 +66,19 @@ class ProtobufHandler {
             libraryIndex.getClass(protobufLibraryUri, 'GeneratedMessage'),
         _tagNumberClass =
             libraryIndex.getClass(protobufLibraryUri, 'TagNumber'),
-        _tagNumberField = libraryIndex.getMember(
-            protobufLibraryUri, 'TagNumber', 'tagNumber'),
+        _tagNumberField =
+            libraryIndex.getField(protobufLibraryUri, 'TagNumber', 'tagNumber'),
         _builderInfoClass =
             libraryIndex.getClass(protobufLibraryUri, 'BuilderInfo'),
-        _builderInfoAddMethod =
-            libraryIndex.getMember(protobufLibraryUri, 'BuilderInfo', 'add');
+        _builderInfoAddMethod = libraryIndex.getProcedure(
+            protobufLibraryUri, 'BuilderInfo', 'add') {
+    final functionType = _builderInfoAddMethod.getterType as FunctionType;
+    _typeOfBuilderInfoAddOfNull = Substitution.fromPairs(
+            functionType.typeParameters, const <DartType>[NullType()])
+        .substituteType(functionType.withoutTypeParameters) as FunctionType;
+  }
+
+  bool usesAnnotationClass(Class cls) => cls == _tagNumberClass;
 
   /// This method is called from summary collector when analysis discovered
   /// that [member] is called and needs to construct a summary for its body.
@@ -116,8 +128,9 @@ class ProtobufHandler {
   List<Field> getInvalidatedFields() {
     final fields = <Field>[];
     for (var cls in _invalidatedClasses) {
-      if (cls._metadataField != null) {
-        fields.add(cls._metadataField);
+      final field = cls._metadataField;
+      if (field != null) {
+        fields.add(field);
       }
     }
     _invalidatedClasses.clear();
@@ -129,23 +142,23 @@ class ProtobufHandler {
     ++Statistics.protobufMetadataInitializersUpdated;
     Statistics.protobufMetadataFieldsPruned -= cls.numberOfFieldsPruned;
 
-    final field = cls._metadataField;
-    if (cls._originalInitializer == null) {
-      cls._originalInitializer = field.initializer;
+    final field = cls._metadataField!;
+    Expression? originalInitializer = cls._originalInitializer;
+    if (originalInitializer == null) {
+      cls._originalInitializer = originalInitializer = field.initializer!;
     }
     final cloner = CloneVisitorNotMembers();
-    field.initializer = cloner.clone(cls._originalInitializer)..parent = field;
+    field.initializer = cloner.clone(originalInitializer)..parent = field;
     final transformer = _MetadataTransformer(this, cls);
-    field.initializer.accept(transformer);
+    field.initializer!.accept(transformer);
     _invalidatedClasses.remove(cls);
 
     cls.numberOfFieldsPruned = transformer.numberOfFieldsPruned;
     Statistics.protobufMetadataFieldsPruned += cls.numberOfFieldsPruned;
   }
 
-  bool _isUnusedMetadata(_MessageClass cls, MethodInvocation node) {
-    if (node.interfaceTarget != null &&
-        node.interfaceTarget.enclosingClass == _builderInfoClass &&
+  bool _isUnusedMetadata(_MessageClass cls, InstanceInvocation node) {
+    if (node.interfaceTarget.enclosingClass == _builderInfoClass &&
         fieldAddingMethods.contains(node.name.text)) {
       final tagNumber = (node.arguments.positional[0] as IntLiteral).value;
       return !cls._usedTags.contains(tagNumber);
@@ -155,8 +168,8 @@ class ProtobufHandler {
 }
 
 class _MessageClass {
-  Field _metadataField;
-  Expression _originalInitializer;
+  Field? _metadataField;
+  Expression? _originalInitializer;
   final _usedTags = <int>{};
   int numberOfFieldsPruned = 0;
 }
@@ -169,9 +182,9 @@ class _MetadataTransformer extends Transformer {
   _MetadataTransformer(this.ph, this.cls);
 
   @override
-  TreeNode visitMethodInvocation(MethodInvocation node) {
+  TreeNode visitInstanceInvocation(InstanceInvocation node) {
     if (!ph._isUnusedMetadata(cls, node)) {
-      super.visitMethodInvocation(node);
+      super.visitInstanceInvocation(node);
       return node;
     }
     // Replace the field metadata method with a dummy call to
@@ -179,7 +192,8 @@ class _MetadataTransformer extends Transformer {
     // removing a field.
     // Change the tag-number to 0. Otherwise the decoder will get confused.
     ++numberOfFieldsPruned;
-    return MethodInvocation(
+    return InstanceInvocation(
+        InstanceAccessKind.Instance,
         node.receiver,
         ph._builderInfoAddMethod.name,
         Arguments(
@@ -194,7 +208,8 @@ class _MetadataTransformer extends Transformer {
           ],
           types: <DartType>[const NullType()],
         ),
-        ph._builderInfoAddMethod)
+        interfaceTarget: ph._builderInfoAddMethod,
+        functionType: ph._typeOfBuilderInfoAddOfNull)
       ..fileOffset = node.fileOffset;
   }
 }

@@ -20,8 +20,8 @@ async_helper:pkg/async_helper/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
 benchmark_harness:third_party/pkg/benchmark_harness/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
-browser_launcher:third_party/pkg/browser_launcher/lib
 build_integration:pkg/build_integration/lib
+browser_launcher:third_party/pkg/browser_launcher/lib
 charcode:third_party/pkg/charcode/lib
 cli_util:third_party/pkg/cli_util/lib
 collection:third_party/pkg/collection/lib
@@ -38,6 +38,7 @@ dartdev:pkg/dartdev/lib
 dartdoc:third_party/pkg/dartdoc/lib
 dds:pkg/dds/lib
 dev_compiler:pkg/dev_compiler/lib
+devtools_shared:third_party/devtools/devtools_shared/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
 ffi:third_party/pkg/ffi/lib
@@ -59,6 +60,7 @@ js_runtime:pkg/js_runtime/lib
 json_rpc_2:third_party/pkg/json_rpc_2/lib
 kernel:pkg/kernel/lib
 linter:third_party/pkg/linter/lib
+lints:third_party/pkg/lints/lib
 logging:third_party/pkg/logging/lib
 markdown:third_party/pkg/markdown/lib
 matcher:third_party/pkg/matcher/lib
@@ -66,7 +68,6 @@ meta:pkg/meta/lib
 mime:third_party/pkg/mime/lib
 mockito:third_party/pkg/mockito/lib
 modular_test:pkg/modular_test/lib
-mustache:third_party/pkg/mustache/lib
 native_stack_traces:pkg/native_stack_traces/lib
 nnbd_migration:pkg/nnbd_migration/lib
 oauth2:third_party/pkg/oauth2/lib
@@ -115,7 +116,6 @@ vector_math:third_party/pkg/vector_math/lib
 vm:pkg/vm/lib
 vm_service:pkg/vm_service/lib
 vm_snapshot_analysis:pkg/vm_snapshot_analysis/lib
-wasm:pkg/wasm/lib
 watcher:third_party/pkg/watcher/lib
 webdriver:third_party/pkg/webdriver/lib
 webkit_inspection_protocol:third_party/pkg/webkit_inspection_protocol/lib

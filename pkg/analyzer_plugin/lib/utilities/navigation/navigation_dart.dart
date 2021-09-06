@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -51,6 +52,7 @@ class _DartNavigationCollector {
       this.collector, this.requestedOffset, this.requestedLength);
 
   void _addRegion(int offset, int length, Element? element) {
+    element = element?.nonSynthetic;
     if (element is FieldFormalParameterElement) {
       element = element.field;
     }
@@ -61,9 +63,7 @@ class _DartNavigationCollector {
       return;
     }
     // Discard elements that don't span the offset/range given (if provided).
-    if (requestedOffset != null &&
-        (offset > requestedOffset! + (requestedLength ?? 0) ||
-            offset + length < requestedOffset!)) {
+    if (!_isWithinRequestedRange(offset, length)) {
       return;
     }
     var converter = AnalyzerConverter();
@@ -130,13 +130,7 @@ class _DartNavigationCollector {
     // Read the declaration so we can get the offset after the doc comments.
     // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
     // a better solution.
-    var session = codeElement.session;
-    final declaration =
-        session != null && !session.getFile(location.file).isPart
-            ? session
-                .getParsedLibrary(location.file)
-                .getElementDeclaration(codeElement)
-            : null;
+    final declaration = _parsedDeclaration(codeElement);
     var node = declaration?.node;
     if (node is VariableDeclaration) {
       node = node.parent;
@@ -151,6 +145,45 @@ class _DartNavigationCollector {
 
     return converter.locationFromElement(element,
         offset: codeOffset, length: codeLength);
+  }
+
+  /// Checks if offset/length intersect with the range the user requested
+  /// navigation regions for.
+  ///
+  /// If the request did not specify a range, always returns true.
+  bool _isWithinRequestedRange(int offset, int length) {
+    final requestedOffset = this.requestedOffset;
+    if (requestedOffset == null) {
+      return true;
+    }
+    if (offset > requestedOffset + (requestedLength ?? 0)) {
+      // Starts after the requested range.
+      return false;
+    }
+    if (offset + length < requestedOffset) {
+      // Ends before the requested range.
+      return false;
+    }
+    return true;
+  }
+
+  static ElementDeclarationResult? _parsedDeclaration(Element element) {
+    var session = element.session;
+    if (session == null) {
+      return null;
+    }
+
+    var libraryPath = element.library?.source.fullName;
+    if (libraryPath == null) {
+      return null;
+    }
+
+    var parsedLibrary = session.getParsedLibrary(libraryPath);
+    if (parsedLibrary is! ParsedLibraryResult) {
+      return null;
+    }
+
+    return parsedLibrary.getElementDeclaration(element);
   }
 }
 
@@ -223,11 +256,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         // TODO(brianwilkerson) If the analyzer ever resolves the URI to a
         //  library, use that library element to create the region.
         var uriNode = node.uri;
-        computer.collector.addRegion(
-            uriNode.offset,
-            uriNode.length,
-            protocol.ElementKind.LIBRARY,
-            protocol.Location(source.fullName, 0, 0, 0, 0, 0, 0));
+        if (computer._isWithinRequestedRange(uriNode.offset, uriNode.length)) {
+          computer.collector.addRegion(
+              uriNode.offset,
+              uriNode.length,
+              protocol.ElementKind.LIBRARY,
+              protocol.Location(source.fullName, 0, 0, 0, 0,
+                  endLine: 0, endColumn: 0));
+        }
       }
     }
     super.visitConfiguration(node);
@@ -401,10 +437,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     Element? element = node.staticElement;
     if (element == null) {
       return;
-    }
-    // if a synthetic constructor, navigate to the class
-    if (element.isSynthetic) {
-      element = element.enclosingElement;
     }
     // add regions
     var typeName = node.type;

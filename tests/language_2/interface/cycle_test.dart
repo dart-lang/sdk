@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check fail because of cycles in super interface relationship.
 
+// @dart = 2.9
+
 class C implements B {}
 
 class A implements B {}

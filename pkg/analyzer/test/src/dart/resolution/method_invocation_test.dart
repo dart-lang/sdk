@@ -652,7 +652,7 @@ typedef MyFunction = double Function(int _);
 class C<T extends MyFunction> {
   T foo;
   C(this.foo);
-  
+
   main() {
     foo(0);
   }
@@ -733,13 +733,13 @@ main() {
     await assertErrorsInCode(r'''
 class C {
   static int foo = 0;
-  
+
   main() {
     foo();
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 50, 3),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 48, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -1410,6 +1410,21 @@ main() {
     assertType(findNode.binary('1 + 2'), 'int');
   }
 
+  test_hasReceiver_dynamic_hash() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  a.hash(0, 1);
+}
+''');
+    assertMethodInvocation2(
+      findNode.methodInvocation('hash('),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
   test_hasReceiver_functionTyped() async {
     await assertNoErrorsInCode(r'''
 void foo(int _) {}
@@ -1654,7 +1669,7 @@ class A {
 class C<T extends A> {
   T a;
   C(this.a);
-  
+
   main() {
     a.foo(0);
   }

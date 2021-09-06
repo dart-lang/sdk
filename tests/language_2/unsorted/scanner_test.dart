@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test dart scanner.
 
+// @dart = 2.9
+
 class ScannerTest {
   static testMain() {
     var s = "Hello\tmy\tfriend\n";

@@ -4,6 +4,8 @@
 // Dart test program for testing setting/getting of fields when
 // only getter/setter methods are specified.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class First {

@@ -59,7 +59,7 @@ class Bar extends core::Object /*hasConstConstructor*/  {
     : con::Bar::baz = const con2::Baz::named1(), super core::Object::•()
     ;
   const constructor named4(core::int* i) → con::Bar*
-    : con::Bar::baz = i.{core::num::>}(0) ?{con2::Baz*} const con2::Baz::named5() : const con2::Baz::named6(), super core::Object::•()
+    : con::Bar::baz = i.{core::num::>}(0){(core::num*) →* core::bool*} ?{con2::Baz*} const con2::Baz::named5() : const con2::Baz::named6(), super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

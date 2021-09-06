@@ -9,7 +9,7 @@ import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../deferred_load.dart';
+import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../inferrer/abstract_value_domain.dart';
@@ -18,6 +18,8 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart';
 import '../js_backend/namer.dart';
+import '../js_backend/deferred_holder_expression.dart'
+    show DeferredHolderExpression;
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
@@ -531,9 +533,6 @@ class CodegenResult {
         case ModularNameKind.rtiField:
           name.value = namer.rtiFieldJsName;
           break;
-        case ModularNameKind.runtimeTypeName:
-          name.value = namer.runtimeTypeName(name.data);
-          break;
         case ModularNameKind.className:
           name.value = namer.className(name.data);
           break;
@@ -549,12 +548,6 @@ class CodegenResult {
         case ModularNameKind.operatorIs:
           name.value = namer.operatorIs(name.data);
           break;
-        case ModularNameKind.operatorIsType:
-          name.value = namer.operatorIsType(name.data);
-          break;
-        case ModularNameKind.substitution:
-          name.value = namer.substitutionName(name.data);
-          break;
         case ModularNameKind.instanceMethod:
           name.value = namer.instanceMethodName(name.data);
           break;
@@ -569,9 +562,6 @@ class CodegenResult {
           break;
         case ModularNameKind.globalPropertyNameForClass:
           name.value = namer.globalPropertyNameForClass(name.data);
-          break;
-        case ModularNameKind.globalPropertyNameForType:
-          name.value = namer.globalPropertyNameForType(name.data);
           break;
         case ModularNameKind.globalPropertyNameForMember:
           name.value = namer.globalPropertyNameForMember(name.data);
@@ -592,26 +582,6 @@ class CodegenResult {
     }
     for (ModularExpression expression in modularExpressions) {
       switch (expression.kind) {
-        case ModularExpressionKind.globalObjectForLibrary:
-          expression.value = namer
-              .readGlobalObjectForLibrary(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
-        case ModularExpressionKind.globalObjectForClass:
-          expression.value = namer
-              .readGlobalObjectForClass(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
-        case ModularExpressionKind.globalObjectForType:
-          expression.value = namer
-              .readGlobalObjectForType(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
-        case ModularExpressionKind.globalObjectForMember:
-          expression.value = namer
-              .readGlobalObjectForMember(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
         case ModularExpressionKind.constant:
           expression.value = emitter
               .constantReference(expression.data)
@@ -641,20 +611,16 @@ class CodegenResult {
 
 enum ModularNameKind {
   rtiField,
-  runtimeTypeName,
   className,
   aliasedSuperMember,
   staticClosure,
   methodProperty,
   operatorIs,
-  operatorIsType,
-  substitution,
   instanceMethod,
   instanceField,
   invocation,
   lazyInitializer,
   globalPropertyNameForClass,
-  globalPropertyNameForType,
   globalPropertyNameForMember,
   globalNameForInterfaceTypeVariable,
   nameForGetInterceptor,
@@ -680,11 +646,8 @@ class ModularName extends js.Name implements js.AstContainer {
     switch (kind) {
       case ModularNameKind.rtiField:
         break;
-      case ModularNameKind.globalPropertyNameForType:
-      case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
-      case ModularNameKind.substitution:
       case ModularNameKind.globalPropertyNameForClass:
         data = source.readClass();
         break;
@@ -696,9 +659,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.lazyInitializer:
       case ModularNameKind.globalPropertyNameForMember:
         data = source.readMember();
-        break;
-      case ModularNameKind.operatorIsType:
-        data = source.readDartType();
         break;
       case ModularNameKind.invocation:
         data = Selector.readFromDataSource(source);
@@ -727,11 +687,8 @@ class ModularName extends js.Name implements js.AstContainer {
     switch (kind) {
       case ModularNameKind.rtiField:
         break;
-      case ModularNameKind.globalPropertyNameForType:
-      case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
-      case ModularNameKind.substitution:
       case ModularNameKind.globalPropertyNameForClass:
         sink.writeClass(data);
         break;
@@ -743,9 +700,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.lazyInitializer:
       case ModularNameKind.globalPropertyNameForMember:
         sink.writeMember(data);
-        break;
-      case ModularNameKind.operatorIsType:
-        sink.writeDartType(data);
         break;
       case ModularNameKind.invocation:
         Selector selector = data;
@@ -800,12 +754,6 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   @override
-  int compareTo(js.Name other) {
-    assert(_value != null, 'value not set for $this');
-    return _value.compareTo(other);
-  }
-
-  @override
   Iterable<js.Node> get containedNodes {
     return _value != null ? [_value] : const [];
   }
@@ -830,10 +778,6 @@ class ModularName extends js.Name implements js.AstContainer {
 }
 
 enum ModularExpressionKind {
-  globalObjectForLibrary,
-  globalObjectForClass,
-  globalObjectForType,
-  globalObjectForMember,
   constant,
   embeddedGlobalAccess,
 }
@@ -853,18 +797,6 @@ class ModularExpression extends js.DeferredExpression
     ModularExpressionKind kind = source.readEnum(ModularExpressionKind.values);
     Object data;
     switch (kind) {
-      case ModularExpressionKind.globalObjectForLibrary:
-        data = source.readLibrary();
-        break;
-      case ModularExpressionKind.globalObjectForClass:
-        data = source.readClass();
-        break;
-      case ModularExpressionKind.globalObjectForType:
-        data = source.readClass();
-        break;
-      case ModularExpressionKind.globalObjectForMember:
-        data = source.readMember();
-        break;
       case ModularExpressionKind.constant:
         data = source.readConstant();
         break;
@@ -880,18 +812,6 @@ class ModularExpression extends js.DeferredExpression
     sink.begin(tag);
     sink.writeEnum(kind);
     switch (kind) {
-      case ModularExpressionKind.globalObjectForLibrary:
-        sink.writeLibrary(data);
-        break;
-      case ModularExpressionKind.globalObjectForClass:
-        sink.writeClass(data);
-        break;
-      case ModularExpressionKind.globalObjectForType:
-        sink.writeClass(data);
-        break;
-      case ModularExpressionKind.globalObjectForMember:
-        sink.writeMember(data);
-        break;
       case ModularExpressionKind.constant:
         sink.writeConstant(data);
         break;
@@ -954,6 +874,7 @@ enum JsNodeKind {
   await,
   regExpLiteral,
   property,
+  methodDefinition,
   objectInitializer,
   arrayHole,
   arrayInitializer,
@@ -969,6 +890,7 @@ enum JsNodeKind {
   literalBool,
   modularExpression,
   function,
+  arrowFunction,
   namedFunction,
   access,
   parameter,
@@ -1009,6 +931,7 @@ enum JsNodeKind {
   program,
   stringReference,
   typeReference,
+  deferredHolderExpression,
 }
 
 /// Tags used for debugging serialization/deserialization boundary mismatches.
@@ -1018,6 +941,7 @@ class JsNodeTags {
   static const String await = 'js-await';
   static const String regExpLiteral = 'js-regExpLiteral';
   static const String property = 'js-property';
+  static const String methodDefinition = 'js-methodDefinition';
   static const String objectInitializer = 'js-objectInitializer';
   static const String arrayHole = 'js-arrayHole';
   static const String arrayInitializer = 'js-arrayInitializer';
@@ -1033,6 +957,7 @@ class JsNodeTags {
   static const String literalBool = 'js-literalBool';
   static const String modularExpression = 'js-modularExpression';
   static const String function = 'js-function';
+  static const String arrowFunction = 'js-arrowFunction';
   static const String namedFunction = 'js-namedFunction';
   static const String access = 'js-access';
   static const String parameter = 'js-parameter';
@@ -1073,6 +998,7 @@ class JsNodeTags {
   static const String program = 'js-program';
   static const String stringReference = 'js-stringReference';
   static const String typeReference = 'js-typeReference';
+  static const String deferredHolderExpression = 'js-deferredHolderExpression';
 }
 
 /// Visitor that serializes a [js.Node] into a [DataSink].
@@ -1174,6 +1100,16 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     visit(node.name);
     visit(node.value);
     sink.end(JsNodeTags.property);
+    _writeInfo(node);
+  }
+
+  @override
+  void visitMethodDefinition(js.MethodDefinition node) {
+    sink.writeEnum(JsNodeKind.methodDefinition);
+    sink.begin(JsNodeTags.methodDefinition);
+    visit(node.name);
+    visit(node.function);
+    sink.end(JsNodeTags.methodDefinition);
     _writeInfo(node);
   }
 
@@ -1297,6 +1233,11 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 
   @override
+  void visitDeferredStatement(js.DeferredStatement node) {
+    throw new UnsupportedError('JsNodeSerializer.visitDeferredStatement');
+  }
+
+  @override
   void visitDeferredNumber(js.DeferredNumber node) {
     throw new UnsupportedError('JsNodeSerializer.visitDeferredNumber');
   }
@@ -1321,6 +1262,12 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       node.writeToDataSink(sink);
       sink.end(JsNodeTags.stringReference);
       _writeInfo(node);
+    } else if (node is DeferredHolderExpression) {
+      sink.writeEnum(JsNodeKind.deferredHolderExpression);
+      sink.begin(JsNodeTags.deferredHolderExpression);
+      node.writeToDataSink(sink);
+      sink.end(JsNodeTags.deferredHolderExpression);
+      _writeInfo(node);
     } else {
       throw new UnsupportedError(
           'Unexpected deferred expression: ${node.runtimeType}.');
@@ -1335,6 +1282,17 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     visit(node.body);
     sink.writeEnum(node.asyncModifier);
     sink.end(JsNodeTags.function);
+    _writeInfo(node);
+  }
+
+  @override
+  void visitArrowFunction(js.ArrowFunction node) {
+    sink.writeEnum(JsNodeKind.arrowFunction);
+    sink.begin(JsNodeTags.function);
+    visitList(node.params);
+    visit(node.body);
+    sink.writeEnum(node.asyncModifier);
+    sink.end(JsNodeTags.arrowFunction);
     _writeInfo(node);
   }
 
@@ -1764,6 +1722,13 @@ class JsNodeDeserializer {
         node = new js.Property(name, value);
         source.end(JsNodeTags.property);
         break;
+      case JsNodeKind.methodDefinition:
+        source.begin(JsNodeTags.methodDefinition);
+        js.Expression name = read();
+        js.Expression function = read();
+        node = new js.MethodDefinition(name, function);
+        source.end(JsNodeTags.methodDefinition);
+        break;
       case JsNodeKind.objectInitializer:
         source.begin(JsNodeTags.objectInitializer);
         List<js.Property> properties = readList();
@@ -1854,6 +1819,15 @@ class JsNodeDeserializer {
             source.readEnum(js.AsyncModifier.values);
         node = new js.Fun(params, body, asyncModifier: asyncModifier);
         source.end(JsNodeTags.function);
+        break;
+      case JsNodeKind.arrowFunction:
+        source.begin(JsNodeTags.arrowFunction);
+        List<js.Parameter> params = readList();
+        js.Block body = read();
+        js.AsyncModifier asyncModifier =
+            source.readEnum(js.AsyncModifier.values);
+        node = new js.ArrowFunction(params, body, asyncModifier: asyncModifier);
+        source.end(JsNodeTags.arrowFunction);
         break;
       case JsNodeKind.namedFunction:
         source.begin(JsNodeTags.namedFunction);
@@ -2118,6 +2092,11 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.typeReference);
         node = TypeReference.readFromDataSource(source);
         source.end(JsNodeTags.typeReference);
+        break;
+      case JsNodeKind.deferredHolderExpression:
+        source.begin(JsNodeTags.deferredHolderExpression);
+        node = DeferredHolderExpression.readFromDataSource(source);
+        source.end(JsNodeTags.deferredHolderExpression);
         break;
     }
     SourceInformation sourceInformation =

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // [NNBD non-migrated] This test has no NNBD equivalent.
 // In NNBD, you are not allowed to await `void` and the corresponding test
 // is await_void_error_test.dart

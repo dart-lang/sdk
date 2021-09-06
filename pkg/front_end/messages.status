@@ -5,6 +5,7 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
+AbstractClassConstructorTearOff/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractExtensionField/analyzerCode: Fail
 AbstractExtensionField/example: Fail
@@ -102,10 +103,16 @@ ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalElementImplementsEqual/example: Fail
 ConstEvalExtension/example: Fail
+ConstEvalExternalConstructor/analyzerCode: Fail
+ConstEvalExternalConstructor/example: Fail
+ConstEvalExternalFactory/analyzerCode: Fail
+ConstEvalExternalFactory/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail
 ConstEvalFreeTypeParameter/example: Fail
+ConstEvalGetterNotFound/analyzerCode: Fail
+ConstEvalGetterNotFound/example: Fail
 ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
 ConstEvalInvalidBinaryOperandType/example: Fail
 ConstEvalInvalidEqualsOperandType/analyzerCode: Fail
@@ -135,6 +142,10 @@ ConstEvalTruncateError/analyzerCode: Fail
 ConstEvalTruncateError/example: Fail
 ConstEvalUnevaluated/analyzerCode: Fail
 ConstEvalUnevaluated/example: Fail
+ConstEvalUnhandledCoreException/analyzerCode: Fail
+ConstEvalUnhandledCoreException/example: Fail
+ConstEvalUnhandledException/analyzerCode: Fail
+ConstEvalUnhandledException/example: Fail
 ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/example: Fail
@@ -168,6 +179,8 @@ DeferredExtensionImport/analyzerCode: Fail
 DeferredExtensionImport/part_wrapped_script: Fail
 DeferredPrefixDuplicated/example: Fail
 DeferredTypeAnnotation/example: Fail
+DeprecateDartExt/analyzerCode: Fail
+DeprecateDartExt/part_wrapped_script: Fail # Example uses import declaration.
 DillOutlineSummary/analyzerCode: Fail
 DillOutlineSummary/example: Fail
 DirectiveAfterDeclaration/part_wrapped_script1: Fail
@@ -320,6 +333,7 @@ FfiDartTypeMismatch/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail
+FfiExpectedConstantArg/analyzerCode: Fail
 FfiExpectedExceptionalReturn/analyzerCode: Fail
 FfiExpectedNoExceptionalReturn/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
@@ -328,6 +342,9 @@ FfiFieldCyclic/analyzerCode: Fail
 FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldNull/analyzerCode: Fail
+FfiLeafCallMustNotReturnHandle/analyzerCode: Fail
+FfiLeafCallMustNotTakeHandle/analyzerCode: Fail
+FfiNativeAnnotationMustAnnotateStatic/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail
@@ -363,9 +380,11 @@ ForInLoopNotAssignable/part_wrapped_statement: Fail
 ForInLoopNotAssignable/statement: Fail
 ForInLoopTypeNotIterablePartNullability/example: Fail # Cannot occur but needed for symmetry with ForInLoopTypeNotIterableNullability
 ForInLoopWithConstVariable/example: Fail
+FunctionAsTypeParameter/analyzerCode: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/part_wrapped_script1: Fail
 FunctionTypedParameterVar/script1: Fail
+FunctionUsedAsDec/analyzerCode: Fail
 GeneratorReturnsValue/example: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
@@ -421,6 +440,9 @@ InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
+InstantiationNonGenericFunctionType/analyzerCode: Fail
+InstantiationTooFewArguments/analyzerCode: Fail
+InstantiationTooManyArguments/analyzerCode: Fail
 IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail
@@ -492,6 +514,8 @@ JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
+JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
+JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
@@ -598,6 +622,7 @@ NonNullableOptOutImplicit/analyzerCode: Fail
 NonNullableOptOutImplicit/example: Fail
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
+NonPositiveArrayDimensions/analyzerCode: Fail
 NotAConstantExpression/example: Fail
 NotAType/example: Fail
 NotAnLvalue/example: Fail
@@ -744,13 +769,8 @@ SuperclassMethodArgumentMismatch/analyzerCode: Fail
 SuperclassMethodArgumentMismatch/example: Fail
 SupertypeIsFunction/analyzerCode: Fail
 SupertypeIsFunction/example: Fail
-SupertypeIsIllegal/example: Fail
-SupertypeIsIllegalAliased/example: Fail
-SupertypeIsNullableAliased/example: Fail
-SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
 SwitchExpressionNotSubtype/analyzerCode: Fail
-SwitchExpressionNotSubtype/example: Fail
 SwitchExpressionUserDefinedEquals/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
@@ -786,7 +806,6 @@ UndefinedExtensionOperator/analyzerCode: Fail
 UndefinedExtensionOperator/example: Fail
 UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
-UnexpectedModifierInNonNnbd/part_wrapped_script: Fail # Test requires @dart= annotation
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

@@ -27,11 +27,12 @@ const String HOOKS_API_USAGE = """
 //    directly. Instead, a closure that will invoke [main], and its arguments
 //    [args] is passed to [dartMainRunner].
 //
-// dartDeferredLibraryLoader(uri, successCallback, errorCallback):
+// dartDeferredLibraryLoader(uri, successCallback, errorCallback, loadId):
 //    if this function is defined, it will be called when a deferred library
 //    is loaded. It should load and eval the javascript of `uri`, and call
 //    successCallback. If it fails to do so, it should call errorCallback with
-//    an error.
+//    an error. The loadId argument is the deferred import that resulted in 
+//    this uri being loaded.
 //
 // dartCallInstrumentation(id, qualifiedName):
 //    if this function is defined, it will be called at each entry of a

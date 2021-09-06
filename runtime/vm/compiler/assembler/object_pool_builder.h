@@ -95,7 +95,7 @@ class ObjIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.value_; }
 
-  static intptr_t Hashcode(Key key);
+  static uword Hash(Key key);
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
     if (kv.key_.entry_bits_ != key.entry_bits_) return false;

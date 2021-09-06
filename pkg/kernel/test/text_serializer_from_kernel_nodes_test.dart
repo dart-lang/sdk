@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.text_serializer_from_kernel_nodes_test;
 
 import 'package:kernel/ast.dart';
@@ -25,14 +23,17 @@ class TestCase<T extends Node> {
   final TextSerializer<T> serializer;
 
   TestCase(
-      {this.name,
-      this.node,
-      this.expectation,
-      this.serializer,
-      SerializationState Function() makeSerializationState,
-      DeserializationState Function() makeDeserializationState})
+      {required this.name,
+      required this.node,
+      required this.expectation,
+      required this.serializer,
+      SerializationState Function()? makeSerializationState,
+      DeserializationState Function()? makeDeserializationState})
+      // ignore: unnecessary_null_comparison
       : assert(node != null),
+        // ignore: unnecessary_null_comparison
         assert(expectation != null),
+        // ignore: unnecessary_null_comparison
         assert(serializer != null),
         this.makeSerializationState = makeSerializationState ??
             (() => new SerializationState(new SerializationEnvironment(null))),
@@ -75,12 +76,12 @@ void test() {
     new TestCase<Statement>(
         name: 'let dynamic x = 42 in let Null x^0 = null in x;',
         node: () {
-          VariableDeclaration outterLetVar = new VariableDeclaration('x',
+          VariableDeclaration outerLetVar = new VariableDeclaration('x',
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
               type: const NullType(), initializer: new NullLiteral());
-          return new ExpressionStatement(new Let(outterLetVar,
-              new Let(innerLetVar, new VariableGet(outterLetVar))));
+          return new ExpressionStatement(new Let(
+              outerLetVar, new Let(innerLetVar, new VariableGet(outerLetVar))));
         }(),
         expectation: ''
             '(expr (let "x^0" () (dynamic) (int 42) ()'
@@ -90,12 +91,12 @@ void test() {
     new TestCase<Statement>(
         name: 'let dynamic x = 42 in let Null x^0 = null in x^0;',
         node: () {
-          VariableDeclaration outterLetVar = new VariableDeclaration('x',
+          VariableDeclaration outerLetVar = new VariableDeclaration('x',
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
               type: const NullType(), initializer: new NullLiteral());
-          return new ExpressionStatement(new Let(outterLetVar,
-              new Let(innerLetVar, new VariableGet(innerLetVar))));
+          return new ExpressionStatement(new Let(
+              outerLetVar, new Let(innerLetVar, new VariableGet(innerLetVar))));
         }(),
         expectation: ''
             '(expr (let "x^0" () (dynamic) (int 42) ()'
@@ -122,11 +123,10 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.immutable(new Name('field'), type: const DynamicType());
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          fields: <Field>[field]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.immutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, fields: <Field>[field]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -134,17 +134,17 @@ void test() {
           node: new ExpressionStatement(new StaticGet(field)),
           expectation: ''
               '(expr (get-static "package:foo/bar.dart::@getters::field"))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          fields: <Field>[field]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, fields: <Field>[field]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -152,17 +152,17 @@ void test() {
           node: new ExpressionStatement(new StaticGet(field)),
           expectation: ''
               '(expr (get-static "package:foo/bar.dart::@getters::field"))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          fields: <Field>[field]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, fields: <Field>[field]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -172,22 +172,24 @@ void test() {
           expectation: ''
               '(expr'
               ' (set-static "package:foo/bar.dart::@setters::field" (int 1)))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Procedure topLevelProcedure = new Procedure(
           new Name('foo'),
           ProcedureKind.Method,
           new FunctionNode(null, positionalParameters: <VariableDeclaration>[
             new VariableDeclaration('x', type: const DynamicType())
           ]),
-          isStatic: true);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          procedures: <Procedure>[topLevelProcedure]);
+          isStatic: true,
+          fileUri: uri);
+      Library library = new Library(uri,
+          fileUri: uri, procedures: <Procedure>[topLevelProcedure]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -199,20 +201,20 @@ void test() {
           expectation: ''
               '(expr (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((int 42)) ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Procedure factoryConstructor = new Procedure(
           new Name('foo'), ProcedureKind.Factory, new FunctionNode(null),
-          isStatic: true, isConst: true);
-      Class klass =
-          new Class(name: 'A', procedures: <Procedure>[factoryConstructor]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+          isStatic: true, isConst: true, fileUri: uri);
+      Class klass = new Class(
+          name: 'A', procedures: <Procedure>[factoryConstructor], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -225,18 +227,18 @@ void test() {
               '(expr (invoke-const-static'
               ' "package:foo/bar.dart::A::@factories::foo"'
               ' () () ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.immutable(new Name('field'), type: const DynamicType());
-      Class klass = new Class(name: 'A', fields: <Field>[field]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.immutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Class klass = new Class(name: 'A', fields: <Field>[field], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -244,10 +246,14 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
-          node: new ExpressionStatement(new PropertyGet.byReference(
-              new VariableGet(x), field.name, field.getterReference)),
+          node: new ExpressionStatement(new InstanceGet.byReference(
+              InstanceAccessKind.Instance, new VariableGet(x), field.name,
+              interfaceTargetReference: field.getterReference,
+              resultType: field.getterType)),
           expectation: ''
-              '(expr (get-prop (get-var "x^0" _) (public "field")))',
+              '(expr (get-instance (instance) (get-var "x^0" _) '
+              '(public "field") "package:foo/bar.dart::A::@getters::field" '
+              '(dynamic)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -260,12 +266,11 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Class klass = new Class(name: 'A', fields: <Field>[field]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Class klass = new Class(name: 'A', fields: <Field>[field], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -273,10 +278,14 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
-          node: new ExpressionStatement(new PropertyGet.byReference(
-              new VariableGet(x), field.name, field.getterReference)),
+          node: new ExpressionStatement(new InstanceGet.byReference(
+              InstanceAccessKind.Instance, new VariableGet(x), field.name,
+              interfaceTargetReference: field.getterReference,
+              resultType: field.getterType)),
           expectation: ''
-              '(expr (get-prop (get-var "x^0" _) (public "field")))',
+              '(expr (get-instance (instance) (get-var "x^0" _) '
+              '(public "field") "package:foo/bar.dart::A::@getters::field" '
+              '(dynamic)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -289,12 +298,11 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Class klass = new Class(name: 'A', fields: <Field>[field]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Class klass = new Class(name: 'A', fields: <Field>[field], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -302,13 +310,16 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field} = 42;',
-          node: new ExpressionStatement(PropertySet.byReference(
+          node: new ExpressionStatement(InstanceSet.byReference(
+              InstanceAccessKind.Instance,
               new VariableGet(x),
               field.name,
               new IntLiteral(42),
-              field.setterReference)),
+              interfaceTargetReference: field.setterReference!)),
           expectation: ''
-              '(expr (set-prop (get-var "x^0" _) (public "field") (int 42)))',
+              '(expr (set-instance (instance) (get-var "x^0" _) '
+              '(public "field") (int 42) '
+              '"package:foo/bar.dart::A::@setters::field"))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -321,13 +332,13 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Procedure method = new Procedure(
           new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
-          isStatic: true, isConst: true);
-      Class klass = new Class(name: 'A', procedures: <Procedure>[method]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+          isStatic: true, isConst: true, fileUri: uri);
+      Class klass =
+          new Class(name: 'A', procedures: <Procedure>[method], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -335,14 +346,18 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {foo() {...}} A x; */ x.{A::foo}();',
-          node: new ExpressionStatement(new MethodInvocation.byReference(
+          node: new ExpressionStatement(new InstanceInvocation.byReference(
+              InstanceAccessKind.Instance,
               new VariableGet(x),
               method.name,
               new Arguments([]),
-              method.reference)),
+              interfaceTargetReference: method.reference,
+              functionType: method.getterType as FunctionType)),
           expectation: ''
-              '(expr (invoke-method (get-var "x^0" _) (public "foo")'
-              ' () () ()))',
+              '(expr (invoke-instance (instance) (get-var "x^0" _) '
+              '(public "foo") () () () '
+              '"package:foo/bar.dart::A::@methods::foo" '
+              '(-> () () () () () () (dynamic))))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -355,13 +370,12 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Constructor constructor =
-          new Constructor(new FunctionNode(null), name: new Name('foo'));
-      Class klass =
-          new Class(name: 'A', constructors: <Constructor>[constructor]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Constructor constructor = new Constructor(new FunctionNode(null),
+          name: new Name('foo'), fileUri: uri);
+      Class klass = new Class(
+          name: 'A', constructors: <Constructor>[constructor], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -372,19 +386,19 @@ void test() {
               '(expr (invoke-constructor'
               ' "package:foo/bar.dart::A::@constructors::foo"'
               ' () () ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Constructor constructor = new Constructor(new FunctionNode(null),
-          name: new Name('foo'), isConst: true);
-      Class klass =
-          new Class(name: 'A', constructors: <Constructor>[constructor]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+          name: new Name('foo'), isConst: true, fileUri: uri);
+      Class klass = new Class(
+          name: 'A', constructors: <Constructor>[constructor], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -395,13 +409,14 @@ void test() {
               '(expr (invoke-const-constructor'
               ' "package:foo/bar.dart::A::@constructors::foo"'
               ' () () ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
-      TypeParameter outterParam =
+      TypeParameter outerParam =
           new TypeParameter('T', const DynamicType(), const DynamicType());
       TypeParameter innerParam =
           new TypeParameter('T', const DynamicType(), const DynamicType());
@@ -415,9 +430,9 @@ void test() {
                     Nullability.legacy,
                     typeParameters: [innerParam])
               ],
-              new TypeParameterType(outterParam, Nullability.legacy),
+              new TypeParameterType(outerParam, Nullability.legacy),
               Nullability.legacy,
-              typeParameters: [outterParam]))),
+              typeParameters: [outerParam]))),
           expectation: ''
               '(expr (type (-> ("T^0") ((dynamic)) ((dynamic)) '
               '((-> ("T^1") ((dynamic)) ((dynamic)) () () () '
@@ -425,7 +440,7 @@ void test() {
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
-              new DeserializationEnvironment(null), null),
+              new DeserializationEnvironment(null), new CanonicalName.root()),
           serializer: statementSerializer);
     }(),
     () {
@@ -452,19 +467,20 @@ void test() {
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
-              new DeserializationEnvironment(null), null),
+              new DeserializationEnvironment(null), new CanonicalName.root()),
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = Uri(scheme: 'package', path: 'foo/bar.dart');
       VariableDeclaration x = VariableDeclaration('x', type: DynamicType());
       Procedure foo = Procedure(
           Name('foo'),
           ProcedureKind.Method,
           FunctionNode(ReturnStatement(VariableGet(x)),
               positionalParameters: [x]),
-          isStatic: true);
-      Library library = Library(Uri(scheme: 'package', path: 'foo/bar.dart'),
-          procedures: [foo]);
+          isStatic: true,
+          fileUri: uri);
+      Library library = Library(uri, fileUri: uri, procedures: [foo]);
       Component component = Component(libraries: [library]);
       component.computeCanonicalNames();
       return new TestCase<Member>(
@@ -473,14 +489,16 @@ void test() {
           expectation: ''
               '(method (public "foo") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () ()'
-              ' (dynamic) _ (ret (get-var "x^0" _)))',
+              ' (dynamic) _ (ret (get-var "x^0" _))'
+              ' "package:foo/bar.dart")',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
-              new DeserializationEnvironment(null), null),
+              new DeserializationEnvironment(null), component.root),
           serializer: memberSerializer);
     }(),
     () {
+      Uri uri = Uri(scheme: 'package', path: 'foo/bar.dart');
       VariableDeclaration x1 = VariableDeclaration('x', type: DynamicType());
       VariableDeclaration x2 = VariableDeclaration('x', type: DynamicType());
       Procedure foo = Procedure(
@@ -488,7 +506,8 @@ void test() {
           ProcedureKind.Method,
           FunctionNode(ReturnStatement(VariableGet(x1)),
               positionalParameters: [x1]),
-          isStatic: true);
+          isStatic: true,
+          fileUri: uri);
       Procedure bar = Procedure(
           Name('bar'),
           ProcedureKind.Method,
@@ -496,9 +515,9 @@ void test() {
               ReturnStatement(
                   StaticInvocation(foo, Arguments([VariableGet(x2)]))),
               positionalParameters: [x2]),
-          isStatic: true);
-      Library library = Library(Uri(scheme: 'package', path: 'foo/bar.dart'),
-          procedures: [foo, bar]);
+          isStatic: true,
+          fileUri: uri);
+      Library library = Library(uri, fileUri: uri, procedures: [foo, bar]);
       Component component = Component(libraries: [library]);
       component.computeCanonicalNames();
       return new TestCase<Library>(
@@ -509,19 +528,23 @@ void test() {
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
-              ' _ (ret (get-var "x^0" _)))'
+              ' _ (ret (get-var "x^0" _))'
+              ' "package:foo/bar.dart")'
               ''
               ' (method (public "bar") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
               ' _ (ret'
               ' (invoke-static "package:foo/bar.dart::@methods::foo"'
-              ' () ((get-var "x^0" _)) ()))))'
+              ' () ((get-var "x^0" _)) ()))'
+              ' "package:foo/bar.dart"))'
               ''
               ' ()'
               ''
               ' ()'
               ''
-              ' ()',
+              ' ()'
+              ''
+              ' "package:foo/bar.dart"',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -529,15 +552,17 @@ void test() {
           serializer: librarySerializer);
     }(),
     () {
-      Class a = Class(name: "A");
+      Uri uri = Uri(scheme: "package", path: "foo/bar.dart");
+      Class a = Class(name: "A", fileUri: uri);
       Procedure foo = Procedure(
           Name("foo"),
           ProcedureKind.Method,
           FunctionNode(ReturnStatement(NullLiteral()),
               returnType: InterfaceType(a, Nullability.legacy)),
-          isStatic: true);
-      Library library = Library(Uri(scheme: "package", path: "foo/bar.dart"),
-          classes: [a], procedures: [foo]);
+          isStatic: true,
+          fileUri: uri);
+      Library library =
+          Library(uri, fileUri: uri, classes: [a], procedures: [foo]);
       Component component = Component(libraries: [library]);
       component.computeCanonicalNames();
       return new TestCase<Library>(
@@ -548,13 +573,16 @@ void test() {
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () () () () (interface "package:foo/bar.dart::A" ())'
-              ' _ (ret (null))))'
+              ' _ (ret (null))'
+              ' "package:foo/bar.dart"))'
               ''
-              ' ("A" () () () () _ _ () ())'
+              ' ("A" () "package:foo/bar.dart" () () () _ _ () ())'
               ''
               ' ()'
               ''
-              ' ()',
+              ' ()'
+              ''
+              ' "package:foo/bar.dart"',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -579,11 +607,11 @@ void test() {
     if (roundTripInput != testCase.expectation) {
       failures.add(''
           "* initial serialization for test '${testCase.name}'"
-          " gave output '${roundTripInput}'"
-          " but expected '${testCase.expectation}'");
+          " gave output:\n    ${roundTripInput}\n"
+          "  but expected:\n    ${testCase.expectation}");
     }
 
-    TreeNode deserialized =
+    Node deserialized =
         testCase.readNode(roundTripInput, testCase.makeDeserializationState());
     String roundTripOutput =
         testCase.writeNode(deserialized, testCase.makeSerializationState());

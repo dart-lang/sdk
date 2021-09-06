@@ -10,6 +10,8 @@
 // This file tests subtyping relationships (at compile time and at runtime) of
 // parameters and return types of ffi trampolines and ffi callback trampolines.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";

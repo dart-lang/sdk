@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -23,7 +23,6 @@ HOST_OS = utils.GuessOS()
 
 def GenerateIdeFiles(options):
     GenerateCompileCommands(options)
-    GenerateAnalysisOptions(options)
 
 
 def GenerateCompileCommands(options):
@@ -42,7 +41,7 @@ def GenerateCompileCommands(options):
     fname = os.path.join(options.dir, "compile_commands.json")
 
     if os.path.isfile(fname) and not options.force:
-        print fname + " already exists, use --force to override"
+        print(fname + " already exists, use --force to override")
         return
 
     gn_result = generate_buildfiles.RunGn(options)
@@ -79,64 +78,6 @@ def GenerateCompileCommands(options):
         json.dump(commands, f, indent=4)
 
     return 0
-
-
-def GenerateAnalysisOptions(options):
-    """Generate analysis_optioms.yaml for the Dart analyzer.
-
-  To prevent dartanalyzer from tripping on the non-Dart files when it is
-  started from the root dart-sdk directory.
-  https://github.com/dart-lang/sdk/issues/35562
-
-  Args:
-    options: supported options include: force, dir
-  """
-    contents = """analyzer:
-  exclude:
-    - benchmarks/**
-    - benchmarks-internal/**
-    - docs/newsletter/20171103/**
-    - pkg/**
-    - out/**
-    - runtime/**
-    - samples-dev/swarm/**
-    - sdk/lib/**
-    - tests/co19/**
-    - tests/co19_2/**
-    - tests/corelib/**
-    - tests/corelib_2/**
-    - tests/web/**
-    - tests/web_2/**
-    - tests/dartdevc/**
-    - tests/dartdevc_2/**
-    - tests/ffi/**
-    - tests/ffi_2/**
-    - tests/language/**
-    - tests/language_2/**
-    - tests/lib/**
-    - tests/lib_2/**
-    - tests/modular/**
-    - tests/standalone/**
-    - tests/standalone_2/**
-    - third_party/observatory_pub_packages/**
-    - third_party/pkg/**
-    - third_party/pkg_tested/dart_style/**
-    - third_party/tcmalloc/**
-    - tools/apps/update_homebrew/**
-    - tools/dart2js/**
-    - tools/dom/**
-    - tools/sdks/dart-sdk/lib/**
-    - tools/status_clean.dart
-    - xcodebuild/**"""
-
-    fname = os.path.join(options.dir, "analysis_options.yaml")
-
-    if os.path.isfile(fname) and not options.force:
-        print fname + " already exists, use --force to override"
-        return
-
-    with open(fname, "w") as f:
-        f.write(contents)
 
 
 def main(argv):

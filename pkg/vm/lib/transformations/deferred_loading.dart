@@ -9,15 +9,15 @@ import '../dominators.dart';
 import '../metadata/loading_units.dart';
 
 class _LoadingUnitBuilder {
-  int id;
+  late int id;
   final _LibraryVertex root;
   final List<Library> members = <Library>[];
   final List<_LoadingUnitBuilder> children = <_LoadingUnitBuilder>[];
 
   _LoadingUnitBuilder(this.root);
 
-  _LoadingUnitBuilder get parent => root.dominator?.loadingUnit;
-  int get parentId => parent == null ? 0 : parent.id;
+  _LoadingUnitBuilder? get parent => root.dominator?.loadingUnit;
+  int get parentId => parent == null ? 0 : parent!.id;
 
   LoadingUnit asLoadingUnit() {
     return new LoadingUnit(
@@ -31,7 +31,7 @@ class _LoadingUnitBuilder {
 class _LibraryVertex extends Vertex<_LibraryVertex> {
   final Library library;
   bool isLoadingRoot = true;
-  _LoadingUnitBuilder loadingUnit;
+  _LoadingUnitBuilder? loadingUnit;
   _LibraryVertex(this.library);
 
   String toString() => "_LibraryVertex(${library.importUri})";
@@ -45,11 +45,11 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
   }
   for (final vertex in map.values) {
     for (final dep in vertex.library.dependencies) {
-      final target = map[dep.targetLibrary];
+      final target = map[dep.targetLibrary]!;
       vertex.successors.add(target);
     }
   }
-  final root = map[component.mainMethod.parent as Library];
+  final root = map[component.mainMethod!.enclosingLibrary]!;
 
   // Fake imports from root library to every core library so they end up in
   // the same loading unit attributed to the user's root library.
@@ -71,7 +71,7 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
       if (dep.isDeferred) {
         continue;
       }
-      var importee = map[dep.targetLibrary];
+      var importee = map[dep.targetLibrary]!;
       if (importer.isDominatedBy(importee)) {
         continue;
       }
@@ -80,7 +80,7 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
   }
   assert(root.isLoadingRoot);
 
-  var loadingUnits = <_LoadingUnitBuilder>[];
+  final List<_LoadingUnitBuilder> loadingUnits = <_LoadingUnitBuilder>[];
   for (var vertex in map.values) {
     if (vertex.isLoadingRoot) {
       var unit = new _LoadingUnitBuilder(vertex);
@@ -99,11 +99,11 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
     if (dom == null) {
       continue; // Unreachable library.
     }
-    while (dom.loadingUnit == null) {
+    while (dom!.loadingUnit == null) {
       dom = dom.dominator;
     }
     vertex.loadingUnit = dom.loadingUnit;
-    vertex.loadingUnit.members.add(vertex.library);
+    vertex.loadingUnit!.members.add(vertex.library);
   }
 
   // 4. Sort loading units so parents are before children. Normally this order
@@ -117,7 +117,7 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
   }
   var index = 0;
   loadingUnits.clear();
-  loadingUnits.add(root.loadingUnit);
+  loadingUnits.add(root.loadingUnit!);
   while (index < loadingUnits.length) {
     var unit = loadingUnits[index];
     unit.id = ++index;

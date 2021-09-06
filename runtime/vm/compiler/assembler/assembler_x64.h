@@ -318,8 +318,8 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
-  void EnterSafepoint();
-  void LeaveSafepoint();
+  void EnterFullSafepoint();
+  void ExitFullSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
@@ -562,7 +562,9 @@ class Assembler : public AssemblerBase {
     return CompareImmediate(reg, Immediate(immediate), width);
   }
 
-  void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
+  void testl(Register reg, const Immediate& imm) {
+    testq(reg, Immediate(imm.value() & 0xFFFFFFFF));
+  }
   void testb(const Address& address, const Immediate& imm);
   void testb(const Address& address, Register reg);
 
@@ -705,8 +707,7 @@ class Assembler : public AssemblerBase {
     j(ZERO, label, distance);
   }
 
-  // Issues a move instruction if 'to' is not the same as 'from'.
-  void MoveRegister(Register to, Register from);
+  void ExtendValue(Register dst, Register src, OperandSize sz) override;
   void PushRegister(Register r);
   void PopRegister(Register r);
 
@@ -777,11 +778,6 @@ class Assembler : public AssemblerBase {
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
 
-  enum CanBeSmi {
-    kValueIsNotSmi,
-    kValueCanBeSmi,
-  };
-
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedSmi(Register dest, const Address& slot);
 
@@ -793,12 +789,12 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_be_smi = kValueCanBeSmi) override;
   void StoreCompressedIntoObject(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
       Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi);
+      CanBeSmi can_be_smi = kValueCanBeSmi) override;
   void StoreBarrier(Register object,  // Object we are storing into.
                     Register value,   // Value we are storing.
                     CanBeSmi can_be_smi);
@@ -806,13 +802,17 @@ class Assembler : public AssemblerBase {
                       Register slot,    // Where we are storing into.
                       Register value,   // Value we are storing.
                       CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoArray(Register object,  // Object we are storing into.
+                                Register slot,    // Where we are storing into.
+                                Register value,   // Value we are storing.
+                                CanBeSmi can_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value);
+                                Register value) override;
   void StoreCompressedIntoObjectNoBarrier(Register object,
                                           const Address& dest,
-                                          Register value);
+                                          Register value) override;
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
@@ -830,7 +830,7 @@ class Assembler : public AssemblerBase {
   void ZeroInitSmiField(const Address& dest);
   void ZeroInitCompressedSmiField(const Address& dest);
   // Increments a Smi field. Leaves flags in same state as an 'addq'.
-  void IncrementSmiField(const Address& dest, int64_t increment);
+  void IncrementCompressedSmiField(const Address& dest, int64_t increment);
 
   void DoubleNegate(XmmRegister dst, XmmRegister src);
   void DoubleAbs(XmmRegister dst, XmmRegister src);
@@ -888,14 +888,25 @@ class Assembler : public AssemblerBase {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
+  void EnsureHasClassIdInDEBUG(intptr_t cid,
+                               Register src,
+                               Register scratch,
+                               bool can_be_null = false) override;
+
   // CheckClassIs fused with optimistic SmiUntag.
   // Value in the register object is untagged optimistically.
   void SmiUntagOrCheckClass(Register object, intptr_t class_id, Label* smi);
 
   // Misc. functionality.
-  void SmiTag(Register reg) { OBJ(add)(reg, reg); }
+  void SmiTag(Register reg) override { OBJ(add)(reg, reg); }
 
   void SmiUntag(Register reg) { OBJ(sar)(reg, Immediate(kSmiTagSize)); }
+  void SmiUntag(Register dst, Register src) {
+    if (dst != src) {
+      OBJ(mov)(dst, src);
+    }
+    OBJ(sar)(dst, Immediate(kSmiTagSize));
+  }
 
   void SmiUntagAndSignExtend(Register reg) {
 #if !defined(DART_COMPRESSED_POINTERS)
@@ -904,8 +915,20 @@ class Assembler : public AssemblerBase {
     // This is shorter than
     // shlq reg, 32
     // sraq reg, 33
-    sarl(reg, Immediate(1));
+    sarl(reg, Immediate(kSmiTagSize));
     movsxd(reg, reg);
+#endif
+  }
+
+  void SmiUntagAndSignExtend(Register dst, Register src) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    if (dst != src) {
+      movq(dst, src);
+    }
+    sarq(dst, Immediate(kSmiTagSize));
+#else
+    movsxd(dst, src);
+    sarq(dst, Immediate(kSmiTagSize));
 #endif
   }
 
@@ -935,30 +958,31 @@ class Assembler : public AssemblerBase {
   // Arch-specific LoadFromOffset to choose the right operation for [sz].
   void LoadFromOffset(Register dst,
                       const Address& address,
-                      OperandSize sz = kEightBytes);
+                      OperandSize sz = kEightBytes) override;
   void LoadFromOffset(Register dst,
                       Register base,
                       int32_t offset,
                       OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, Address(base, offset), sz);
   }
-  void LoadField(Register dst,
-                 FieldAddress address,
-                 OperandSize sz = kEightBytes) {
+  void LoadField(Register dst, const FieldAddress& address) override {
+    LoadField(dst, address, kEightBytes);
+  }
+  void LoadField(Register dst, const FieldAddress& address, OperandSize sz) {
     LoadFromOffset(dst, address, sz);
   }
-  void LoadCompressedField(Register dst, FieldAddress address) {
+  void LoadCompressedField(Register dst, const FieldAddress& address) override {
     LoadCompressed(dst, address);
   }
   void LoadFieldFromOffset(Register dst,
                            Register base,
                            int32_t offset,
-                           OperandSize sz = kEightBytes) {
+                           OperandSize sz = kEightBytes) override {
     LoadFromOffset(dst, FieldAddress(base, offset), sz);
   }
   void LoadCompressedFieldFromOffset(Register dst,
                                      Register base,
-                                     int32_t offset) {
+                                     int32_t offset) override {
     LoadCompressed(dst, FieldAddress(base, offset));
   }
   void LoadIndexedPayload(Register dst,
@@ -969,14 +993,27 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
   }
+  void LoadIndexedCompressed(Register dst,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    LoadCompressed(
+        dst, FieldAddress(base, index, TIMES_COMPRESSED_WORD_SIZE, offset));
+  }
+  void StoreToOffset(Register src,
+                     const Address& address,
+                     OperandSize sz = kEightBytes) override;
+  void StoreToOffset(Register src,
+                     Register base,
+                     int32_t offset,
+                     OperandSize sz = kEightBytes) {
+    StoreToOffset(src, Address(base, offset), sz);
+  }
   void StoreFieldToOffset(Register src,
                           Register base,
                           int32_t offset,
                           OperandSize sz = kEightBytes) {
-    if (sz != kEightBytes) {
-      UNIMPLEMENTED();
-    }
-    StoreMemoryValue(src, base, offset - kHeapObjectTag);
+    StoreToOffset(src, FieldAddress(base, offset), sz);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
@@ -984,22 +1021,52 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movq(dst, Address(base, offset));
   }
+  void LoadCompressedMemoryValue(Register dst, Register base, int32_t offset) {
+    OBJ(mov)(dst, Address(base, offset));
+  }
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     movq(Address(base, offset), src);
   }
+
+#if defined(USING_THREAD_SANITIZER)
+  void TsanLoadAcquire(Address addr);
+  void TsanStoreRelease(Address addr);
+#endif
+
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     movq(dst, Address(address, offset));
+#if defined(USING_THREAD_SANITIZER)
+    TsanLoadAcquire(Address(address, offset));
+#endif
+  }
+  void LoadAcquireCompressed(Register dst,
+                             Register address,
+                             int32_t offset = 0) {
+    // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
+    // with other loads).
+    LoadCompressed(dst, Address(address, offset));
+#if defined(USING_THREAD_SANITIZER)
+    TsanLoadAcquire(Address(address, offset));
+#endif
   }
   void StoreRelease(Register src, Register address, int32_t offset = 0) {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     movq(Address(address, offset), src);
+#if defined(USING_THREAD_SANITIZER)
+    TsanStoreRelease(Address(address, offset));
+#endif
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
-    OBJ(cmp)(value, address);
+    cmpq(value, address);
+  }
+  void CompareWithCompressedFieldFromOffset(Register value,
+                                            Register base,
+                                            int32_t offset) {
+    OBJ(cmp)(value, FieldAddress(base, offset));
   }
 
   void CompareTypeNullabilityWith(Register type, int8_t value) {
@@ -1068,15 +1135,12 @@ class Assembler : public AssemblerBase {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid, Label* trace, JumpDistance distance);
 
-  // Inlined allocation of an instance of class 'cls', code has no runtime
-  // calls. Jump to 'failure' if the instance cannot be allocated here.
-  // Allocated instance is returned in 'instance_reg'.
-  // Only the tags field of the object is initialized.
-  void TryAllocate(const Class& cls,
-                   Label* failure,
-                   JumpDistance distance,
-                   Register instance_reg,
-                   Register temp);
+  void TryAllocateObject(intptr_t cid,
+                         intptr_t instance_size,
+                         Label* failure,
+                         JumpDistance distance,
+                         Register instance_reg,
+                         Register temp) override;
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
@@ -1128,6 +1192,14 @@ class Assembler : public AssemblerBase {
                                     Register offset_in_words_as_smi) {
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leaq(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_4, 0));
+  }
+
+  void LoadCompressedFieldAddressForRegOffset(Register address,
+                                              Register instance,
+                                              Register offset_in_words_as_smi) {
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leaq(address, FieldAddress(instance, offset_in_words_as_smi,
+                               TIMES_COMPRESSED_HALF_WORD_SIZE, 0));
   }
 
   static Address VMTagAddress();
@@ -1230,6 +1302,10 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
+  void StoreIntoArrayBarrier(Register object,
+                             Register slot,
+                             Register value,
+                             CanBeSmi can_be_smi = kValueCanBeSmi);
 
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   void MoveImmediate(const Address& dst, const Immediate& imm);

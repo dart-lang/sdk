@@ -117,6 +117,33 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     expect(metadata.name.name, 'Foo.bar');
   }
 
+  void test_classDeclaration_invalid_super() {
+    parseCompilationUnit('''
+class C {
+  C() : super.const();
+}
+''', errors: [
+      expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 18, 5),
+      expectedError(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 24, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 24, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
+    ]);
+  }
+
+  void test_classDeclaration_invalid_this() {
+    parseCompilationUnit('''
+class C {
+  C() : this.const();
+}
+''', errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 4),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 23, 5),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 23, 5),
+      expectedError(ParserErrorCode.CONST_METHOD, 23, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 28, 1),
+    ]);
+  }
+
   void test_method_name_notNull_37733() {
     // https://github.com/dart-lang/sdk/issues/37733
     var unit = parseCompilationUnit(r'class C { f(<T>()); }', errors: [
@@ -1419,15 +1446,14 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     expect(unit, isNotNull);
     var f = unit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;
-    expect(body.expression, isInstanceCreationExpression);
-    var creation = body.expression as InstanceCreationExpressionImpl;
-    expect(creation.keyword, isNull);
-    ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'C<E>');
-    expect(constructorName.period, isNotNull);
-    expect(constructorName.name, isNotNull);
-    expect(creation.argumentList, isNotNull);
-    expect(creation.typeArguments!.arguments, hasLength(1));
+    expect(body.expression, isMethodInvocation);
+    var methodInvocation = body.expression as MethodInvocationImpl;
+    var target = methodInvocation.target!;
+    expect(target, isFunctionReference);
+    expect(target.toSource(), 'C<E>');
+    expect(methodInvocation.methodName.name, 'n');
+    expect(methodInvocation.argumentList, isNotNull);
+    expect(methodInvocation.typeArguments!.arguments, hasLength(1));
   }
 
   void test_parseInstanceCreation_noKeyword_prefix() {

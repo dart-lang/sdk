@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // The program crashed with segfault because we when we first compile foo
 // and bar we allocate all four variables (a, b, c and d) to the context.
 // When we compile foo the second time (with optimizations) we allocate

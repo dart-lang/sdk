@@ -33,7 +33,7 @@ baz(a) {
 main() {
   runTest() async {
     String generated = await compileAll(TEST);
-    RegExp regexp = new RegExp('foo\\\$1\\\$a: function');
+    RegExp regexp = new RegExp(r'foo\$1\$a\(\w+\) {');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
   }

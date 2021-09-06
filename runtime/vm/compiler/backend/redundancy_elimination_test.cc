@@ -695,7 +695,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   EXPECT(entry != nullptr);
 
   AllocateTypedDataInstr* alloc_typed_data = nullptr;
-  UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
   LoadIndexedInstr* final_load = nullptr;
@@ -705,7 +704,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   RELEASE_ASSERT(cursor.TryMatch(
       {
           {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
-          {kMatchAndMoveUnboxedConstant, &double_one},
           {kMatchAndMoveStoreIndexed, &first_store},
           {kMatchAndMoveStoreIndexed, &second_store},
           {kMatchAndMoveLoadIndexed, &final_load},
@@ -716,7 +714,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
 
   EXPECT(first_store->array()->definition() == alloc_typed_data);
   EXPECT(second_store->array()->definition() == alloc_typed_data);
-  EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }
 
@@ -818,7 +815,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   EXPECT(entry != nullptr);
 
   AllocateTypedDataInstr* alloc_typed_data = nullptr;
-  UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
   LoadIndexedInstr* final_load = nullptr;
@@ -832,7 +828,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchFalse,
           kMatchAndMoveBranchFalse,
-          {kMatchAndMoveUnboxedConstant, &double_one},
           {kMatchAndMoveStoreIndexed, &first_store},
           kMatchAndMoveBranchFalse,
           {kMatchAndMoveStoreIndexed, &second_store},
@@ -844,7 +839,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
 
   EXPECT(first_store->array()->definition() == alloc_typed_data);
   EXPECT(second_store->array()->definition() == alloc_typed_data);
-  EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }
 
@@ -1156,69 +1150,59 @@ main() {
   /* Flow graph to match:
 
   4:     CheckStackOverflow:8(stack=0, loop=0)
-  6:     v590 <- UnboxedConstant(#1.0) T{_Double}
-  7:     ParallelMove DS-8 <- xmm0
-  8:     v592 <- UnboxedConstant(#2.0) T{_Double}
-  9:     ParallelMove rax <- S+2, DS-7 <- xmm1
- 10:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 54])
- 12:     v526 <- Unbox:14(v2 T{_Double}) T{_Double}
- 14:     ParallelMove xmm3 <- xmm0
- 14:     v352 <- BinaryDoubleOp:22(+, v590, v526) T{_Double}
- 15:     ParallelMove DS-6 <- xmm3
- 16:     ParallelMove xmm4 <- xmm1
- 16:     v363 <- BinaryDoubleOp:34(+, v592, v526) T{_Double}
- 17:     ParallelMove DS-5 <- xmm4
- 18:     ParallelMove xmm2 <- xmm3
- 18:     v21 <- BinaryDoubleOp:28(+, v352, v363) T{_Double}
- 19:     ParallelMove rbx <- C, r10 <- C, DS-4 <- xmm2
- 20:     v24 <- CreateArray:30(v0, v23) T{_List}
- 21:     ParallelMove rcx <- rax
- 22:     ParallelMove S-3 <- rcx
- 22:     StoreIndexed(v24, v6, v26, NoStoreBarrier)
- 24:     StoreIndexed(v24, v7, v7, NoStoreBarrier)
- 26:     StoreIndexed(v24, v3, v29, NoStoreBarrier)
- 28:     StoreIndexed(v24, v30, v8, NoStoreBarrier)
- 30:     StoreIndexed(v24, v33, v34, NoStoreBarrier)
- 31:     ParallelMove xmm0 <- DS-8
- 32:     v582 <- Box(v590) T{_Double}
- 33:     ParallelMove rdx <- rcx, rax <- rax
- 34:     StoreIndexed(v24, v35, v582)
- 36:     StoreIndexed(v24, v38, v29, NoStoreBarrier)
- 37:     ParallelMove xmm0 <- DS-7
- 38:     v584 <- Box(v592) T{_Double}
- 39:     ParallelMove rdx <- rcx, rax <- rax
- 40:     StoreIndexed(v24, v39, v584)
- 42:     StoreIndexed(v24, v42, v43, NoStoreBarrier)
- 43:     ParallelMove xmm0 <- DS-6
- 44:     v586 <- Box(v352) T{_Double}
- 45:     ParallelMove rdx <- rcx, rax <- rax
- 46:     StoreIndexed(v24, v44, v586)
- 48:     StoreIndexed(v24, v47, v29, NoStoreBarrier)
- 49:     ParallelMove xmm0 <- DS-5
- 50:     v588 <- Box(v363) T{_Double}
- 51:     ParallelMove rdx <- rcx, rax <- rax
- 52:     StoreIndexed(v24, v48, v588)
- 54:     StoreIndexed(v24, v51, v52, NoStoreBarrier)
- 55:     ParallelMove xmm0 <- DS-4
- 56:     v580 <- Box(v21) T{_Double}
- 57:     ParallelMove rdx <- rcx, rax <- rax
- 58:     StoreIndexed(v24, v53, v580)
- 59:     ParallelMove rax <- rcx
- 60:     v54 <- StringInterpolate:44(v24) T{String}
- 61:     ParallelMove rax <- rax
- 62:     Return:48(v54)
+  5:     ParallelMove rax <- S+2
+  6:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 52])
+  8:     v526 <- Unbox:14(v2 T{_Double}) T{_Double}
+ 10:     ParallelMove xmm1 <- C
+ 10:     v352 <- BinaryDoubleOp:22(+, v590, v526) T{_Double}
+ 11:     ParallelMove DS-6 <- xmm1
+ 12:     ParallelMove xmm2 <- C
+ 12:     v363 <- BinaryDoubleOp:34(+, v591, v526) T{_Double}
+ 13:     ParallelMove DS-5 <- xmm2
+ 14:     ParallelMove xmm0 <- xmm1
+ 14:     v21 <- BinaryDoubleOp:28(+, v352, v363) T{_Double}
+ 15:     ParallelMove rbx <- C, r10 <- C, DS-4 <- xmm0
+ 16:     v24 <- CreateArray:30(v0, v23) T{_List}
+ 17:     ParallelMove rcx <- rax
+ 18:     ParallelMove S-3 <- rcx
+ 18:     StoreIndexed(v24, v6, v26, NoStoreBarrier)
+ 20:     StoreIndexed(v24, v7, v7, NoStoreBarrier)
+ 22:     StoreIndexed(v24, v3, v29, NoStoreBarrier)
+ 24:     StoreIndexed(v24, v30, v8, NoStoreBarrier)
+ 26:     StoreIndexed(v24, v33, v34, NoStoreBarrier)
+ 28:     StoreIndexed(v24, v35, v9, NoStoreBarrier)
+ 30:     StoreIndexed(v24, v38, v29, NoStoreBarrier)
+ 32:     StoreIndexed(v24, v39, v10, NoStoreBarrier)
+ 34:     StoreIndexed(v24, v42, v43, NoStoreBarrier)
+ 35:     ParallelMove xmm0 <- DS-6
+ 36:     v586 <- Box(v352) T{_Double}
+ 37:     ParallelMove rdx <- rcx, rax <- rax
+ 38:     StoreIndexed(v24, v44, v586)
+ 40:     StoreIndexed(v24, v47, v29, NoStoreBarrier)
+ 41:     ParallelMove xmm0 <- DS-5
+ 42:     v588 <- Box(v363) T{_Double}
+ 43:     ParallelMove rdx <- rcx, rax <- rax
+ 44:     StoreIndexed(v24, v48, v588)
+ 46:     StoreIndexed(v24, v51, v52, NoStoreBarrier)
+ 47:     ParallelMove xmm0 <- DS-4
+ 48:     v580 <- Box(v21) T{_Double}
+ 49:     ParallelMove rdx <- rcx, rax <- rax
+ 50:     StoreIndexed(v24, v53, v580)
+ 51:     ParallelMove rax <- rcx
+         PushArgument(v24)
+ 52:     v54 <- StaticCall:44(_StringBase._interpolate, v24) T{String}
+ 53:     ParallelMove rax <- rax
+ 54:     Return:48(v54)
 */
 
   CreateArrayInstr* create_array = nullptr;
-  StringInterpolateInstr* string_interpolate = nullptr;
+  StaticCallInstr* string_interpolate = nullptr;
 
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,
                    ParallelMovesHandling::kSkip);
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
-      kMatchAndMoveUnboxedConstant,
-      kMatchAndMoveUnboxedConstant,
       kMatchAndMoveCheckClass,
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,
@@ -1230,7 +1214,8 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
-      kMatchAndMoveBox,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveBox,
@@ -1241,14 +1226,12 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveBox,
       kMatchAndMoveStoreIndexed,
-      kMatchAndMoveStoreIndexed,
-      kMatchAndMoveBox,
-      kMatchAndMoveStoreIndexed,
-      {kMatchAndMoveStringInterpolate, &string_interpolate},
+      kMatchAndMovePushArgument,
+      {kMatchAndMoveStaticCall, &string_interpolate},
       kMatchReturn,
   }));
 
-  EXPECT(string_interpolate->value()->definition() == create_array);
+  EXPECT(string_interpolate->ArgumentAt(0) == create_array);
 }
 
 #if !defined(TARGET_ARCH_IA32)

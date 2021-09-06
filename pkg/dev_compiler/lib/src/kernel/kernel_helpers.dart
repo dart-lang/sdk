@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
+import 'package:collection/collection.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 
-Constructor unnamedConstructor(Class c) =>
-    c.constructors.firstWhere((c) => c.name.text == '', orElse: () => null);
+Constructor? unnamedConstructor(Class c) =>
+    c.constructors.firstWhereOrNull((c) => c.name.text == '');
 
 /// Returns the enclosing library for reference [node].
-Library getLibrary(NamedNode node) {
-  for (TreeNode n = node; n != null; n = n.parent) {
+Library? getLibrary(NamedNode node) {
+  for (TreeNode? n = node; n != null; n = n.parent) {
     if (n is Library) return n;
   }
   return null;
@@ -22,14 +21,14 @@ Library getLibrary(NamedNode node) {
 
 final Pattern _syntheticTypeCharacters = RegExp('[&^#.|]');
 
-String escapeIdentifier(String identifier) {
+String? escapeIdentifier(String? identifier) {
   // Remove the special characters used to encode mixin application class names
   // and extension method / parameter names which are legal in Kernel, but not
   // in JavaScript.
   //
   // Note, there is an implicit assumption here that we won't have
   // collisions since everything is mapped to \$.  That may work out fine given
-  // how these are sythesized, but may need to revisit.
+  // how these are synthesized, but may need to revisit.
   return identifier?.replaceAll(_syntheticTypeCharacters, r'$');
 }
 
@@ -40,15 +39,15 @@ String escapeIdentifier(String identifier) {
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped class name.
-String getLocalClassName(Class node) => escapeIdentifier(node.name);
+String getLocalClassName(Class node) => escapeIdentifier(node.name)!;
 
 /// Returns the escaped name for the type parameter [node].
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped parameter name.
-String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
+String? getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
 
-String getTopLevelName(NamedNode n) {
+String? getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.text;
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
@@ -69,7 +68,7 @@ String getTopLevelName(NamedNode n) {
 ///
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
-Expression findAnnotation(TreeNode node, bool Function(Expression) test) {
+Expression? findAnnotation(TreeNode node, bool Function(Expression) test) {
   List<Expression> annotations;
   if (node is Class) {
     annotations = node.annotations;
@@ -84,7 +83,7 @@ Expression findAnnotation(TreeNode node, bool Function(Expression) test) {
   } else {
     return null;
   }
-  return annotations.firstWhere(test, orElse: () => null);
+  return annotations.firstWhereOrNull(test);
 }
 
 /// Returns true if [value] represents an annotation for class [className] in
@@ -108,7 +107,7 @@ bool isBuiltinAnnotation(
 ///
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).
-Class getAnnotationClass(Expression node) {
+Class? getAnnotationClass(Expression node) {
   if (node is ConstantExpression) {
     var constant = node.constant;
     if (constant is InstanceConstant) return constant.classNode;
@@ -165,9 +164,9 @@ bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
 /// A mixin alias class is a mixin application, that can also be itself used as
 /// a mixin.
 bool isMixinAliasClass(Class c) =>
-    c.isMixinApplication && c.superclass.superclass == null;
+    c.isMixinApplication && c.superclass!.superclass == null;
 
-List<Class> getSuperclasses(Class c) {
+List<Class> getSuperclasses(Class? c) {
   var result = <Class>[];
   var visited = HashSet<Class>();
   while (c != null && visited.add(c)) {
@@ -191,10 +190,8 @@ List<Class> getImmediateSuperclasses(Class c) {
   return result;
 }
 
-Expression getInvocationReceiver(InvocationExpression node) {
-  if (node is MethodInvocation) {
-    return node.receiver;
-  } else if (node is InstanceInvocation) {
+Expression? getInvocationReceiver(InvocationExpression node) {
+  if (node is InstanceInvocation) {
     return node.receiver;
   } else if (node is DynamicInvocation) {
     return node.receiver;
@@ -251,7 +248,7 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
 
 /// Returns the redirecting factory constructors for the enclosing class,
 /// if the field [f] is storing that information, otherwise returns `null`.
-Iterable<Member> getRedirectingFactories(Field f) {
+Iterable<Member>? getRedirectingFactories(Field f) {
   // TODO(jmesserly): this relies on implementation details in Kernel
   if (isRedirectingFactoryField(f)) {
     assert(f.isStatic);
@@ -269,14 +266,15 @@ Iterable<Member> getRedirectingFactories(Field f) {
 // TODO(jmesserly): consider replacing this with Kernel's mixin unrolling
 Class getSuperclassAndMixins(Class c, List<Class> mixins) {
   assert(mixins.isEmpty);
+  assert(c.superclass != null);
 
   var mixedInClass = c.mixedInClass;
   if (mixedInClass != null) mixins.add(mixedInClass);
 
-  var sc = c.superclass;
-  for (; sc.isAnonymousMixin; sc = sc.superclass) {
+  var sc = c.superclass!;
+  for (; sc.isAnonymousMixin; sc = sc.superclass!) {
     mixedInClass = sc.mixedInClass;
-    if (mixedInClass != null) mixins.add(sc.mixedInClass);
+    if (mixedInClass != null) mixins.add(sc.mixedInClass!);
   }
   return sc;
 }
@@ -291,7 +289,7 @@ bool hasLabeledContinue(SwitchStatement node) {
 class LabelContinueFinder extends StatementVisitor<void> {
   var found = false;
 
-  void visit(Statement s) {
+  void visit(Statement? s) {
     if (!found && s != null) s.accept(this);
   }
 

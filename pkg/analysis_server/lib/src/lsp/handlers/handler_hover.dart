@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -15,7 +13,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
-class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
+class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
   HoverHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_hover;
@@ -25,7 +23,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Hover>> handle(
+  Future<ErrorOr<Hover?>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
@@ -38,7 +36,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
     return offset.mapResult((offset) => _getHover(unit.result, offset));
   }
 
-  Hover toHover(LineInfo lineInfo, HoverInformation hover) {
+  Hover? toHover(LineInfo lineInfo, HoverInformation? hover) {
     if (hover == null) {
       return null;
     }
@@ -55,16 +53,16 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
     // Description.
     if (hover.elementDescription != null) {
       content.writeln('```dart');
-      if (hover.isDeprecated) {
+      if (hover.isDeprecated ?? false) {
         content.write('(deprecated) ');
       }
       content..writeln(hover.elementDescription)..writeln('```');
     }
 
     // Source library.
-    if (hover.containingLibraryName != null &&
-        hover.containingLibraryName.isNotEmpty) {
-      content..writeln('*${hover.containingLibraryName}*')..writeln();
+    final containingLibraryName = hover.containingLibraryName;
+    if (containingLibraryName != null && containingLibraryName.isNotEmpty) {
+      content..writeln('*$containingLibraryName*')..writeln();
     }
 
     // Doc comments.
@@ -75,7 +73,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       content.writeln(cleanDartdoc(hover.dartdoc));
     }
 
-    final formats = server.clientCapabilities.hoverContentFormats;
+    final formats = server.clientCapabilities?.hoverContentFormats;
     return Hover(
       contents:
           asStringOrMarkupContent(formats, content.toString().trimRight()),
@@ -83,10 +81,11 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
     );
   }
 
-  ErrorOr<Hover> _getHover(ResolvedUnitResult unit, int offset) {
-    final hover = DartUnitHoverComputer(
-            server.getDartdocDirectiveInfoFor(unit), unit.unit, offset)
-        .compute();
+  ErrorOr<Hover?> _getHover(ResolvedUnitResult unit, int offset) {
+    final compilationUnit = unit.unit;
+    final computer = DartUnitHoverComputer(
+        server.getDartdocDirectiveInfoFor(unit), compilationUnit, offset);
+    final hover = computer.compute();
     return success(toHover(unit.lineInfo, hover));
   }
 }

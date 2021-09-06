@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.constructor_reference_builder;
 
 import '../messages.dart' show noLength, templateConstructorNotFound;
@@ -26,16 +24,16 @@ class ConstructorReferenceBuilder {
 
   final Object name;
 
-  final List<TypeBuilder> typeArguments;
+  final List<TypeBuilder>? typeArguments;
 
   /// This is the name of a named constructor. As `bar` in `new Foo<T>.bar()`.
-  final String suffix;
+  final String? suffix;
 
-  Builder target;
+  Builder? target;
 
   ConstructorReferenceBuilder(this.name, this.typeArguments, this.suffix,
       Builder parent, this.charOffset)
-      : fileUri = parent.fileUri;
+      : fileUri = parent.fileUri!;
 
   String get fullNameForErrors {
     return "${flattenName(name, charOffset, fileUri)}"
@@ -44,9 +42,9 @@ class ConstructorReferenceBuilder {
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
     final Object name = this.name;
-    Builder declaration;
+    Builder? declaration;
     if (name is QualifiedName) {
-      String prefix = name.qualifier;
+      String prefix = name.qualifier as String;
       String middle = name.name;
       declaration = scope.lookup(prefix, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
@@ -66,7 +64,7 @@ class ConstructorReferenceBuilder {
         }
       }
     } else {
-      declaration = scope.lookup(name, charOffset, fileUri);
+      declaration = scope.lookup(name as String, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);

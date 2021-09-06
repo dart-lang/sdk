@@ -37,18 +37,18 @@ static method test() → void {
     return x;
   (core::int*) →* core::int* func;
   func = #C1<core::int*>;
-  func = new self::C::•().{self::C::f}<core::int*>;
+  func = new self::C::•().{self::C::f}{<T extends core::Object* = dynamic>(T*) →* T*}<core::int*>;
   func = #C2<core::int*>;
   func = h<core::int*>;
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::f
-  #C2 = tearoff self::C::g
+  #C1 = static-tearoff self::f
+  #C2 = static-tearoff self::C::g
 }
 
 Extra constant evaluation status:
-Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:25:10 -> PartialInstantiationConstant(f<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:27:12 -> PartialInstantiationConstant(C.g<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:25:10 -> InstantiationConstant(f<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:27:12 -> InstantiationConstant(C.g<int*>)
 Extra constant evaluation: evaluated: 18, effectively constant: 2

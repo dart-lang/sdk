@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,8 +11,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveInterpolationBracesBulkTest);
     defineReflectiveTests(RemoveInterpolationBracesTest);
   });
+}
+
+@reflectiveTest
+class RemoveInterpolationBracesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_brace_in_string_interps;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+main() {
+  var v = 42;
+  print('v: ${ v}, ${ v}');
+}
+''');
+    await assertHasFix(r'''
+main() {
+  var v = 42;
+  print('v: $v, $v');
+}
+''');
+  }
 }
 
 @reflectiveTest

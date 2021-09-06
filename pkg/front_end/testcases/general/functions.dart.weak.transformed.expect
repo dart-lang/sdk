@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   function local(({a: dynamic}) →* void f) → void {
-    f.call(a: "Hello, World");
-    f.call();
+    f(a: "Hello, World"){({a: dynamic}) →* void};
+    f(){({a: dynamic}) →* void};
   }
-  local.call(({dynamic a = #C1}) → Null {
+  local(({dynamic a = #C1}) → Null {
     core::print(a);
-  });
+  }){(({a: dynamic}) →* void) →* void};
 }
 
 constants  {

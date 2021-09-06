@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,9 +11,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(InlineTypedefBulkTest);
     defineReflectiveTests(InlineTypedefTest);
     defineReflectiveTests(InlineTypedefWithNullSafetyTest);
   });
+}
+
+@reflectiveTest
+class InlineTypedefBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_private_typedef_functions;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+typedef _F1 = void Function(int);
+typedef _F2<T> = void Function(T);
+void g(_F2<_F1> f) {}
+''');
+    // Eventually both fixes will be applied but for now we're satisfied that
+    // the results are clean.
+    await assertHasFix('''
+typedef _F2<T> = void Function(T);
+void g(_F2<void Function(int)> f) {}
+''');
+  }
 }
 
 @reflectiveTest

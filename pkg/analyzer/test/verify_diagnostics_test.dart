@@ -40,6 +40,10 @@ class DocumentationValidator {
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
+    // The mock SDK doesn't define any internal libraries.
+    'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Has code in the example section that needs to be skipped (because it's
     // part of the explanitory text not part of the example), but there's
     // currently no way to do that.
@@ -55,6 +59,8 @@ class DocumentationValidator {
     // No example, by design.
     'CompileTimeErrorCode.MISSING_DART_LIBRARY',
     // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
+    // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.NON_SYNC_FACTORY',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
@@ -63,8 +69,20 @@ class DocumentationValidator {
     'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
+    // https://github.com/dart-lang/sdk/issues/45960
+    'CompileTimeErrorCode.RETURN_IN_GENERATOR',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
     // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
+    // Produces multiple diagnostic because of poor recovery.
+    'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
     // Produces two diagnostics when it should only produce one (see
@@ -73,6 +91,24 @@ class DocumentationValidator {
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43263)
     'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
+    //
+    // The following can't currently be verified because the examples aren't
+    // Dart code.
+    //
+    'PubspecWarningCode.ASSET_DOES_NOT_EXIST',
+    'PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST',
+    'PubspecWarningCode.ASSET_FIELD_NOT_LIST',
+    'PubspecWarningCode.ASSET_NOT_STRING',
+    'PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP',
+    'PubspecWarningCode.DEPRECATED_FIELD',
+    'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
+    'PubspecWarningCode.INVALID_DEPENDENCY',
+    'PubspecWarningCode.MISSING_NAME',
+    'PubspecWarningCode.NAME_NOT_STRING',
+    'PubspecWarningCode.PATH_DOES_NOT_EXIST',
+    'PubspecWarningCode.PATH_NOT_POSIX',
+    'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
+    'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should
@@ -251,8 +287,8 @@ class DocumentationValidator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    ParsedUnitResult result = session.getParsedUnit(path);
-    if (result.state != ResultState.VALID) {
+    var result = session.getParsedUnit(path);
+    if (result is! ParsedUnitResult) {
       throw StateError('Unable to parse "$path"');
     }
     return result;
@@ -285,7 +321,7 @@ class DocumentationValidator {
   /// Extract documentation from the file that was parsed to produce the given
   /// [result].
   Future<void> _validateFile(ParsedUnitResult result) async {
-    filePath = result.path!;
+    filePath = result.path;
     hasWrittenFilePath = false;
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
@@ -384,6 +420,7 @@ class DocumentationValidator {
 /// codes.
 @reflectiveTest
 class VerifyDiagnosticsTest {
+  @TestTimeout(Timeout.factor(4))
   test_diagnostics() async {
     Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     List<CodePath> codePaths = computeCodePaths();
@@ -409,6 +446,40 @@ class VerifyDiagnosticsTest {
         fail('The diagnostic documentation needs to be regenerated.\n'
             'Please run tool/diagnostics/generate.dart.');
       }
+    }
+  }
+
+  test_published() {
+    // Verify that if _any_ error code is marked as having published docs then
+    // _all_ codes with the same name are also marked that way.
+    var nameToCodeMap = <String, List<ErrorCode>>{};
+    var nameToPublishedMap = <String, bool>{};
+    for (var code in errorCodeValues) {
+      var name = code.name;
+      nameToCodeMap.putIfAbsent(name, () => []).add(code);
+      nameToPublishedMap[name] =
+          (nameToPublishedMap[name] ?? false) || code.hasPublishedDocs;
+    }
+    var unpublished = <ErrorCode>[];
+    for (var entry in nameToCodeMap.entries) {
+      var name = entry.key;
+      if (nameToPublishedMap[name]!) {
+        for (var code in entry.value) {
+          if (!code.hasPublishedDocs) {
+            unpublished.add(code);
+          }
+        }
+      }
+    }
+    if (unpublished.isNotEmpty) {
+      var buffer = StringBuffer();
+      buffer.write("The following error codes have published docs but aren't "
+          "marked as such:");
+      for (var code in unpublished) {
+        buffer.writeln();
+        buffer.write('- ${code.runtimeType}.${code.uniqueName}');
+      }
+      fail(buffer.toString());
     }
   }
 }

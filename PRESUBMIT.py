@@ -109,14 +109,14 @@ def _CheckDartFormat(input_api, output_api):
     utils = imp.load_source('utils',
                             os.path.join(local_root, 'tools', 'utils.py'))
 
-    prebuilt_dartfmt = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dartfmt')
+    dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
 
     windows = utils.GuessOS() == 'win32'
     if windows:
-        prebuilt_dartfmt += '.bat'
+        dart += '.exe'
 
-    if not os.path.isfile(prebuilt_dartfmt):
-        print('WARNING: dartfmt not found: %s' % (prebuilt_dartfmt))
+    if not os.path.isfile(dart):
+        print('WARNING: dart not found: %s' % (dart))
         return []
 
     def HasFormatErrors(filename=None, contents=None):
@@ -129,13 +129,17 @@ def _CheckDartFormat(input_api, output_api):
                 if '//#' in contents:
                     return False
 
-        args = [prebuilt_dartfmt, '--set-exit-if-changed']
-        if not contents:
-            args += [filename, '-n']
+        args = [
+            dart,
+            'format',
+            '--set-exit-if-changed',
+            '--output=none',
+            '--summary=none',
+            filename,
+        ]
 
         process = subprocess.Popen(
             args, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        process.communicate(input=contents)
 
         # Check for exit code 1 explicitly to distinguish it from a syntax error
         # in the file (exit code 65). The repo contains many Dart files that are
@@ -143,7 +147,7 @@ def _CheckDartFormat(input_api, output_api):
         # parsed and formatted. Don't treat those as errors.
         return process.returncode == 1
 
-    unformatted_files = _CheckFormat(input_api, "dartfmt", ".dart", windows,
+    unformatted_files = _CheckFormat(input_api, "dart format", ".dart", windows,
                                      HasFormatErrors)
 
     if unformatted_files:

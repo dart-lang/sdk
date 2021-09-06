@@ -30,7 +30,7 @@ void defineTest(List<Experiment> experiments) {
     expect(result.stdout, startsWith('''
 Runs tests in this package.
 
-Usage: pub run test [files or directories...]
+Usage: dart test [files or directories...]
 '''));
     expect(result.stderr, isEmpty);
   });

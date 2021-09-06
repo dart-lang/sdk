@@ -7,7 +7,7 @@ library kernel.transformations.track_widget_constructor_locations;
 import '../ast.dart';
 import '../target/changed_structure_notifier.dart';
 
-// Parameter name used to track were widget constructor calls were made from.
+// Parameter name used to track where widget constructor calls were made from.
 //
 // The parameter name contains a randomly generated hex string to avoid
 // collision with user generated parameters.
@@ -155,24 +155,14 @@ class _WidgetCallSiteTransformer extends Transformer {
   ConstructorInvocation _constructLocation(
     Location location, {
     String? name,
-    ListLiteral? parameterLocations,
-    bool showFile: true,
   }) {
     final List<NamedExpression> arguments = <NamedExpression>[
+      new NamedExpression('file', new StringLiteral(location.file.toString())),
       new NamedExpression('line', new IntLiteral(location.line)),
       new NamedExpression('column', new IntLiteral(location.column)),
+      if (name != null) new NamedExpression('name', new StringLiteral(name))
     ];
-    if (showFile) {
-      arguments.add(new NamedExpression(
-          'file', new StringLiteral(location.file.toString())));
-    }
-    if (name != null) {
-      arguments.add(new NamedExpression('name', new StringLiteral(name)));
-    }
-    if (parameterLocations != null) {
-      arguments
-          .add(new NamedExpression('parameterLocations', parameterLocations));
-    }
+
     return new ConstructorInvocation(
       _locationClass.constructors.first,
       new Arguments(<Expression>[], named: arguments),
@@ -208,7 +198,7 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
 
-    _addLocationArgument(node, target.function!, constructedClass,
+    _addLocationArgument(node, target.function, constructedClass,
         isConst: node.isConst);
     return node;
   }
@@ -234,14 +224,17 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
 
-    _addLocationArgument(node, constructor.function!, constructedClass,
+    _addLocationArgument(node, constructor.function, constructedClass,
         isConst: node.isConst);
     return node;
   }
 
   Expression _computeLocation(
-      InvocationExpression node, FunctionNode function, Class constructedClass,
-      {bool isConst: false}) {
+    InvocationExpression node,
+    FunctionNode function,
+    Class constructedClass, {
+    bool isConst: false,
+  }) {
     // For factory constructors we need to use the location specified as an
     // argument to the factory constructor rather than the location
     if (_currentFactory != null &&
@@ -252,7 +245,7 @@ class _WidgetCallSiteTransformer extends Transformer {
         // constant expression.
         !isConst) {
       final VariableDeclaration? creationLocationParameter = _getNamedParameter(
-        _currentFactory!.function!,
+        _currentFactory!.function,
         _creationLocationParameterName,
       );
       if (creationLocationParameter != null) {
@@ -260,35 +253,9 @@ class _WidgetCallSiteTransformer extends Transformer {
       }
     }
 
-    final Arguments arguments = node.arguments;
-    final Location location = node.location!;
-    final List<ConstructorInvocation> parameterLocations =
-        <ConstructorInvocation>[];
-    final List<VariableDeclaration> parameters = function.positionalParameters;
-    for (int i = 0; i < arguments.positional.length; ++i) {
-      final Expression expression = arguments.positional[i];
-      final VariableDeclaration parameter = parameters[i];
-      parameterLocations.add(_constructLocation(
-        expression.location!,
-        name: parameter.name,
-        showFile: false,
-      ));
-    }
-    for (NamedExpression expression in arguments.named) {
-      parameterLocations.add(_constructLocation(
-        expression.location!,
-        name: expression.name,
-        showFile: false,
-      ));
-    }
     return _constructLocation(
-      location,
-      parameterLocations: new ListLiteral(
-        parameterLocations,
-        typeArgument:
-            new InterfaceType(_locationClass, _currentLibrary!.nonNullable),
-        isConst: true,
-      ),
+      node.location!,
+      name: constructedClass.name,
     );
   }
 
@@ -332,8 +299,7 @@ class WidgetCreatorTracker {
       final Uri importUri = library.importUri;
       // ignore: unnecessary_null_comparison
       if (importUri != null && importUri.scheme == 'package') {
-        if (importUri.path == 'flutter/src/widgets/framework.dart' ||
-            importUri.path == 'flutter_web/src/widgets/framework.dart') {
+        if (importUri.path == 'flutter/src/widgets/framework.dart') {
           for (Class class_ in library.classes) {
             if (class_.name == 'Widget') {
               _widgetClass = class_;
@@ -341,9 +307,7 @@ class WidgetCreatorTracker {
             }
           }
         } else {
-          if (importUri.path == 'flutter/src/widgets/widget_inspector.dart' ||
-              importUri.path ==
-                  'flutter_web/src/widgets/widget_inspector.dart') {
+          if (importUri.path == 'flutter/src/widgets/widget_inspector.dart') {
             for (Class class_ in library.classes) {
               if (class_.name == '_HasCreationLocation') {
                 _hasCreationLocationClass = class_;
@@ -369,7 +333,7 @@ class WidgetCreatorTracker {
   void _transformClassImplementingWidget(
       Class clazz, ChangedStructureNotifier? changedStructureNotifier) {
     if (clazz.fields
-        .any((Field field) => field.name!.text == _locationFieldName)) {
+        .any((Field field) => field.name.text == _locationFieldName)) {
       // This class has already been transformed. Skip
       return;
     }
@@ -390,7 +354,8 @@ class WidgetCreatorTracker {
         isFinal: true,
         getterReference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
-            .reference);
+            .reference,
+        fileUri: clazz.fileUri);
     clazz.addField(locationField);
 
     final Set<Constructor> _handledConstructors =
@@ -401,7 +366,7 @@ class WidgetCreatorTracker {
         return;
       }
       assert(!_hasNamedParameter(
-        constructor.function!,
+        constructor.function,
         _creationLocationParameterName,
       ));
       final VariableDeclaration variable = new VariableDeclaration(
@@ -409,7 +374,7 @@ class WidgetCreatorTracker {
           type: new InterfaceType(
               _locationClass, clazz.enclosingLibrary.nullable),
           initializer: new NullLiteral());
-      if (!_maybeAddNamedParameter(constructor.function!, variable)) {
+      if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
       }
 
@@ -424,7 +389,7 @@ class WidgetCreatorTracker {
           }
           _maybeAddCreationLocationArgument(
             initializer.arguments,
-            initializer.target.function!,
+            initializer.target.function,
             new VariableGet(variable),
             _locationClass,
           );
@@ -548,7 +513,7 @@ class WidgetCreatorTracker {
     for (Procedure procedure in clazz.procedures) {
       if (procedure.isFactory) {
         _maybeAddNamedParameter(
-          procedure.function!,
+          procedure.function,
           new VariableDeclaration(_creationLocationParameterName,
               type: new InterfaceType(
                   _locationClass, clazz.enclosingLibrary.nullable),
@@ -578,12 +543,12 @@ class WidgetCreatorTracker {
               _locationClass, clazz.enclosingLibrary.nullable),
           initializer: new NullLiteral());
       if (_hasNamedParameter(
-          constructor.function!, _creationLocationParameterName)) {
+          constructor.function, _creationLocationParameterName)) {
         // Constructor was already rewritten.
         // TODO(jacobr): is this case actually hit?
         return;
       }
-      if (!_maybeAddNamedParameter(constructor.function!, variable)) {
+      if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
       }
       for (Initializer initializer in constructor.initializers) {
@@ -597,7 +562,7 @@ class WidgetCreatorTracker {
 
           _maybeAddCreationLocationArgument(
             initializer.arguments,
-            initializer.target.function!,
+            initializer.target.function,
             new VariableGet(variable),
             _locationClass,
           );
@@ -605,7 +570,7 @@ class WidgetCreatorTracker {
             _isSubclassOfWidget(initializer.target.enclosingClass)) {
           _maybeAddCreationLocationArgument(
             initializer.arguments,
-            initializer.target.function!,
+            initializer.target.function,
             new VariableGet(variable),
             _locationClass,
           );

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -11,7 +9,7 @@ import 'dart:io';
 
 import 'standard_deviation.dart';
 
-const String bRootPath =
+const String? bRootPath =
     bool.hasEnvironment("bRoot") ? String.fromEnvironment("bRoot") : null;
 const int abIterations = int.fromEnvironment("abIterations", defaultValue: 15);
 const int iterations = int.fromEnvironment("iterations", defaultValue: 15);
@@ -31,7 +29,7 @@ main(List<String> args) async {
   Uri aRoot = Platform.script.resolve('../../../..');
 
   // The root of the other Dart SDK repo "B"
-  Uri bRoot = new Uri.directory(bRootPath);
+  Uri bRoot = new Uri.directory(bRootPath!);
 
   // Sanity check
   String relPath = 'pkg/front_end/tool/_fasta/compile.dart';
@@ -183,15 +181,15 @@ Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
       workingDirectory: workingDirPath);
   // ignore: unawaited_futures
   stderr.addStream(process.stderr);
-  StreamSubscription<String> stdOutSubscription;
+  StreamSubscription<String>? stdOutSubscription;
   stdOutSubscription = process.stdout
       .transform(utf8.decoder)
       .transform(new LineSplitter())
       .listen(processLine, onDone: () {
-    stdOutSubscription.cancel();
+    stdOutSubscription!.cancel();
   }, onError: (e) {
     print('Error: $e');
-    stdOutSubscription.cancel();
+    stdOutSubscription!.cancel();
   });
   int code = await process.exitCode;
   if (code != 0) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,7 +22,7 @@ class ImportAddShowTest extends AssistProcessorTest {
   Future<void> test_hasShow() async {
     await resolveTestCode('''
 import 'dart:math' show pi;
-main() {
+void f() {
   pi;
 }
 ''');
@@ -34,14 +32,14 @@ main() {
   Future<void> test_hasUnresolvedIdentifier() async {
     await resolveTestCode('''
 import 'dart:math';
-main(x) {
+void f(x) {
   pi;
   return x.foo();
 }
 ''');
     await assertHasAssistAt('import ', '''
 import 'dart:math' show pi;
-main(x) {
+void f(x) {
   pi;
   return x.foo();
 }
@@ -51,7 +49,7 @@ main(x) {
   Future<void> test_onDirective() async {
     await resolveTestCode('''
 import 'dart:math';
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -59,7 +57,7 @@ main() {
 ''');
     await assertHasAssistAt('import ', '''
 import 'dart:math' show e, max, pi;
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -70,7 +68,7 @@ main() {
   Future<void> test_onUri() async {
     await resolveTestCode('''
 import 'dart:math';
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -78,7 +76,7 @@ main() {
 ''');
     await assertHasAssistAt('art:math', '''
 import 'dart:math' show e, max, pi;
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -93,14 +91,14 @@ void set setter(int i) {}
     await resolveTestCode('''
 import 'a.dart';
 
-main() {
+void f() {
   setter = 42;
 }
 ''');
     await assertHasAssistAt('import ', '''
 import 'a.dart' show setter;
 
-main() {
+void f() {
   setter = 42;
 }
 ''');

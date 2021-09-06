@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test requires non-nullable experiment.
-// @dart = 2.10
-
 nonConstant() => int.parse('1') == 1;
 
 class A {

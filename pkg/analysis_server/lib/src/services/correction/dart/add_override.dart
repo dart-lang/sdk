@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -14,6 +12,12 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddOverride extends CorrectionProducer {
+  @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
   @override
   FixKind get fixKind => DartFixKind.ADD_OVERRIDE;
 
@@ -32,7 +36,7 @@ class AddOverride extends CorrectionProducer {
     // Handle doc comments.
     var token = member.beginToken;
     if (token is CommentToken) {
-      token = (token as CommentToken).parent;
+      token = token.parent!;
     }
 
     var exitPosition = Position(file, token.offset - 1);

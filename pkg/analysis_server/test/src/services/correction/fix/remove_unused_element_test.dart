@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -39,7 +37,7 @@ class _A {
   Future<void> test_class_notUsed_isExpression() async {
     await resolveTestCode(r'''
 class _A {}
-main(p) {
+void f(p) {
   if (p is _A) {
   }
 }
@@ -69,12 +67,12 @@ enum _MyEnum {A, B, C}
 
   Future<void> test_functionLocal_notUsed_noReference() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   f() {}
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
 }
 ''');
   }
@@ -82,11 +80,11 @@ main() {
   Future<void> test_functionTop_notUsed_noReference() async {
     await resolveTestCode(r'''
 _f() {}
-main() {
+void f() {
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
 }
 ''');
   }
@@ -94,11 +92,11 @@ main() {
   Future<void> test_functionTypeAlias_notUsed_noReference() async {
     await resolveTestCode(r'''
 typedef _F(a, b);
-main() {
+void f() {
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
 }
 ''');
   }
@@ -188,7 +186,7 @@ void f(_A a) {}
   Future<void> test_topLevelVariable_notUsed() async {
     await resolveTestCode(r'''
 int _a = 1;
-main() {
+void f() {
   _a = 2;
 }
 ''');
@@ -217,10 +215,10 @@ int a = 1;
   Future<void> test_topLevelVariable_notUsed_noReference_only() async {
     await resolveTestCode(r'''
 int _a = 1;
-main() {}
+void f() {}
 ''');
     await assertHasFix(r'''
-main() {}
+void f() {}
 ''');
   }
 }

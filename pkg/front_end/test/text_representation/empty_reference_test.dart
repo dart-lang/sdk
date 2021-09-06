@@ -83,15 +83,15 @@ void testTypes() {
 }
 
 void testMembers() {
-  testExpression(new PropertyGet(new IntLiteral(0), new Name('foo')), '''
-0.foo''');
   testExpression(new StaticGet.byReference(null), '''
 <missing-member-reference>''');
 
   Reference unlinkedMemberName = new Reference();
   testExpression(
-      new PropertyGet.byReference(
-          new IntLiteral(0), new Name('foo'), unlinkedMemberName),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new IntLiteral(0), new Name('foo'),
+          interfaceTargetReference: unlinkedMemberName,
+          resultType: const DynamicType()),
       '''
 0.foo''');
   testExpression(new StaticGet.byReference(unlinkedMemberName), '''
@@ -100,8 +100,10 @@ void testMembers() {
   CanonicalName root = new CanonicalName.root();
   Reference rootReference = new Reference()..canonicalName = root;
   testExpression(
-      new PropertyGet.byReference(
-          new IntLiteral(0), new Name('foo'), rootReference),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new IntLiteral(0), new Name('foo'),
+          interfaceTargetReference: rootReference,
+          resultType: const DynamicType()),
       '''
 0.foo''');
   testExpression(new StaticGet.byReference(rootReference), '''
@@ -110,8 +112,10 @@ void testMembers() {
   CanonicalName library = root.getChild('library');
   Reference libraryReference = new Reference()..canonicalName = library;
   testExpression(
-      new PropertyGet.byReference(
-          new IntLiteral(0), new Name('foo'), libraryReference),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new IntLiteral(0), new Name('foo'),
+          interfaceTargetReference: libraryReference,
+          resultType: const DynamicType()),
       '''
 0.foo''');
   testExpression(new StaticGet.byReference(libraryReference), '''
@@ -121,8 +125,10 @@ library''');
   Reference topLevelMemberNameReference = new Reference()
     ..canonicalName = topLevelMemberName;
   testExpression(
-      new PropertyGet.byReference(
-          new IntLiteral(0), new Name('foo'), topLevelMemberNameReference),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new IntLiteral(0), new Name('foo'),
+          interfaceTargetReference: topLevelMemberNameReference,
+          resultType: const DynamicType()),
       '''
 0.foo''');
   testExpression(new StaticGet.byReference(topLevelMemberNameReference), '''
@@ -132,8 +138,10 @@ library::member''');
   CanonicalName className = library.getChild('Class');
   Reference classNameReference = new Reference()..canonicalName = className;
   testExpression(
-      new PropertyGet.byReference(
-          new IntLiteral(0), new Name('foo'), classNameReference),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new IntLiteral(0), new Name('foo'),
+          interfaceTargetReference: classNameReference,
+          resultType: const DynamicType()),
       '''
 0.foo''');
   testExpression(new StaticGet.byReference(classNameReference), '''
@@ -144,8 +152,10 @@ library::Class''');
   Reference classMemberNameReference = new Reference()
     ..canonicalName = classMemberName;
   testExpression(
-      new PropertyGet.byReference(
-          new IntLiteral(0), new Name('foo'), classMemberNameReference),
+      new InstanceGet.byReference(
+          InstanceAccessKind.Instance, new IntLiteral(0), new Name('foo'),
+          interfaceTargetReference: classMemberNameReference,
+          resultType: const DynamicType()),
       '''
 0.foo''');
   testExpression(new StaticGet.byReference(classMemberNameReference), '''

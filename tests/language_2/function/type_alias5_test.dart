@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for illegally self referencing function type alias.
 
+// @dart = 2.9
+
 typedef Handle Handle(String command); //# 00: compile-time error
 
 typedef F(F x); //# 01: compile-time error

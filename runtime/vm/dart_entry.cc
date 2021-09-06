@@ -144,7 +144,8 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 
   // Now Call the invoke stub which will invoke the dart function.
   const Code& code = Code::Handle(zone, function.CurrentCode());
-  return InvokeCode(code, arguments_descriptor, arguments, thread);
+  return InvokeCode(code, function.entry_point(), arguments_descriptor,
+                    arguments, thread);
 }
 
 extern "C" {
@@ -155,10 +156,16 @@ typedef uword /*ObjectPtr*/ (*invokestub)(const Code& target_code,
                                           const Array& arguments_descriptor,
                                           const Array& arguments,
                                           Thread* thread);
+typedef uword /*ObjectPtr*/ (*invokestub_bare_instructions)(
+    uword entry_point,
+    const Array& arguments_descriptor,
+    const Array& arguments,
+    Thread* thread);
 }
 
 NO_SANITIZE_SAFE_STACK
 ObjectPtr DartEntry::InvokeCode(const Code& code,
+                                uword entry_point,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
@@ -166,19 +173,27 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!IsolateGroup::Current()->null_safety_not_set());
 
-  invokestub entrypoint =
-      reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
+  const uword stub = StubCode::InvokeDartCode().EntryPoint();
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
 #if defined(USING_SIMULATOR)
   return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      reinterpret_cast<intptr_t>(entrypoint), reinterpret_cast<intptr_t>(&code),
+      static_cast<intptr_t>(stub),
+      ((FLAG_precompiled_mode && FLAG_use_bare_instructions)
+           ? static_cast<intptr_t>(entry_point)
+           : reinterpret_cast<intptr_t>(&code)),
       reinterpret_cast<intptr_t>(&arguments_descriptor),
       reinterpret_cast<intptr_t>(&arguments),
       reinterpret_cast<intptr_t>(thread)));
 #else
-  return static_cast<ObjectPtr>(
-      entrypoint(code, arguments_descriptor, arguments, thread));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    return static_cast<ObjectPtr>(
+        (reinterpret_cast<invokestub_bare_instructions>(stub))(
+            entry_point, arguments_descriptor, arguments, thread));
+  } else {
+    return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
+        code, arguments_descriptor, arguments, thread));
+  }
 #endif
 }
 
@@ -207,7 +222,7 @@ ObjectPtr DartEntry::ResolveCallable(Thread* thread,
       if (matches && type_args_len > 0 && function.IsClosureFunction()) {
         // Though the closure function is generic, the closure itself may
         // not be because it closes over delayed function type arguments.
-        matches = Closure::Cast(instance).IsGeneric(thread);
+        matches = Closure::Cast(instance).IsGeneric();
       }
 
       if (matches) {
@@ -314,7 +329,9 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(Thread* thread,
                                         const Array& arguments_descriptor) {
   auto const zone = thread->zone();
   const ArgumentsDescriptor args_desc(arguments_descriptor);
-  ASSERT(receiver.ptr() == arguments.At(args_desc.FirstArgIndex()));
+  ASSERT(
+      CompressedInstancePtr(receiver.ptr()).Decompress(thread->heap_base()) ==
+      arguments.At(args_desc.FirstArgIndex()));
   // Allocate an Invocation object.
   const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
 
@@ -616,17 +633,10 @@ ObjectPtr DartLibraryCalls::InstanceCreate(const Library& lib,
 ObjectPtr DartLibraryCalls::ToString(const Instance& receiver) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& function = Function::Handle(
+  const auto& function = Function::Handle(
       zone,
       thread->isolate_group()->object_store()->_object_to_string_function());
-  if (function.IsNull()) {
-    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-    ASSERT(!core_lib.IsNull());
-    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectToString());
-    ASSERT(!function.IsNull());
-    thread->isolate_group()->object_store()->set__object_to_string_function(
-        function);
-  }
+  ASSERT(!function.IsNull());
   const int kNumArguments = 1;
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, receiver);
@@ -639,17 +649,10 @@ ObjectPtr DartLibraryCalls::ToString(const Instance& receiver) {
 ObjectPtr DartLibraryCalls::HashCode(const Instance& receiver) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& function = Function::Handle(
+  const auto& function = Function::Handle(
       zone,
       thread->isolate_group()->object_store()->_object_hash_code_function());
-  if (function.IsNull()) {
-    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-    ASSERT(!core_lib.IsNull());
-    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectHashCode());
-    ASSERT(!function.IsNull());
-    thread->isolate_group()->object_store()->set__object_hash_code_function(
-        function);
-  }
+  ASSERT(!function.IsNull());
   const int kNumArguments = 1;
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, receiver);
@@ -663,16 +666,9 @@ ObjectPtr DartLibraryCalls::Equals(const Instance& left,
                                    const Instance& right) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& function = Function::Handle(
+  const auto& function = Function::Handle(
       zone, thread->isolate_group()->object_store()->_object_equals_function());
-  if (function.IsNull()) {
-    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-    ASSERT(!core_lib.IsNull());
-    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectEquals());
-    ASSERT(!function.IsNull());
-    thread->isolate_group()->object_store()->set__object_equals_function(
-        function);
-  }
+  ASSERT(!function.IsNull());
   const int kNumArguments = 2;
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, left);
@@ -704,23 +700,10 @@ ObjectPtr DartLibraryCalls::IdentityHashCode(const Instance& object) {
 ObjectPtr DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& function = Function::Handle(
+  const auto& function = Function::Handle(
       zone, thread->isolate_group()->object_store()->lookup_port_handler());
-  const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
-  if (function.IsNull()) {
-    Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
-    ASSERT(!isolate_lib.IsNull());
-    const String& class_name = String::Handle(
-        zone, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-    const String& function_name = String::Handle(
-        zone, isolate_lib.PrivateName(Symbols::_lookupHandler()));
-    function = Resolver::ResolveStatic(isolate_lib, class_name, function_name,
-                                       kTypeArgsLen, kNumArguments,
-                                       Object::empty_array());
-    ASSERT(!function.IsNull());
-    thread->isolate_group()->object_store()->set_lookup_port_handler(function);
-  }
+  ASSERT(!function.IsNull());
   Array& args = Array::Handle(
       zone, thread->isolate()->isolate_object_store()->dart_args_1());
   if (args.IsNull()) {
@@ -738,21 +721,7 @@ ObjectPtr DartLibraryCalls::LookupOpenPorts() {
   Zone* zone = thread->zone();
   Function& function = Function::Handle(
       zone, thread->isolate_group()->object_store()->lookup_open_ports());
-  const int kTypeArgsLen = 0;
-  const int kNumArguments = 0;
-  if (function.IsNull()) {
-    Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
-    ASSERT(!isolate_lib.IsNull());
-    const String& class_name = String::Handle(
-        zone, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-    const String& function_name = String::Handle(
-        zone, isolate_lib.PrivateName(Symbols::_lookupOpenPorts()));
-    function = Resolver::ResolveStatic(isolate_lib, class_name, function_name,
-                                       kTypeArgsLen, kNumArguments,
-                                       Object::empty_array());
-    ASSERT(!function.IsNull());
-    thread->isolate_group()->object_store()->set_lookup_open_ports(function);
-  }
+  ASSERT(!function.IsNull());
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeFunction(function, Object::empty_array()));
   return result.ptr();
@@ -764,23 +733,10 @@ ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
   auto zone = thread->zone();
   auto isolate = thread->isolate();
   auto object_store = thread->isolate_group()->object_store();
-  Function& function =
+  const auto& function =
       Function::Handle(zone, object_store->handle_message_function());
-  const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
-  if (function.IsNull()) {
-    Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
-    ASSERT(!isolate_lib.IsNull());
-    const String& class_name = String::Handle(
-        zone, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-    const String& function_name = String::Handle(
-        zone, isolate_lib.PrivateName(Symbols::_handleMessage()));
-    function = Resolver::ResolveStatic(isolate_lib, class_name, function_name,
-                                       kTypeArgsLen, kNumArguments,
-                                       Object::empty_array());
-    ASSERT(!function.IsNull());
-    object_store->set_handle_message_function(function);
-  }
+  ASSERT(!function.IsNull());
   Array& args =
       Array::Handle(zone, isolate->isolate_object_store()->dart_args_2());
   if (args.IsNull()) {
@@ -828,6 +784,26 @@ ObjectPtr DartLibraryCalls::EnsureScheduleImmediate() {
       zone, DartEntry::InvokeFunction(function, Object::empty_array()));
   ASSERT(result.IsNull() || result.IsError());
   return result.ptr();
+}
+
+ObjectPtr DartLibraryCalls::RehashObjects(
+    Thread* thread,
+    const Object& array_or_growable_array) {
+  ASSERT(array_or_growable_array.IsArray() ||
+         array_or_growable_array.IsGrowableObjectArray());
+
+  auto zone = thread->zone();
+  const Library& collections_lib =
+      Library::Handle(zone, Library::CollectionLibrary());
+  const Function& rehashing_function = Function::Handle(
+      zone,
+      collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
+  ASSERT(!rehashing_function.IsNull());
+
+  const Array& arguments = Array::Handle(zone, Array::New(1));
+  arguments.SetAt(0, array_or_growable_array);
+
+  return DartEntry::InvokeFunction(rehashing_function, arguments);
 }
 
 }  // namespace dart

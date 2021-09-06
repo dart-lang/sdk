@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/process.h"
 
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif
 #include <errno.h>      // NOLINT
@@ -468,7 +468,7 @@ class ProcessStarter {
       ReportChildError();
     }
 
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
     if (program_environment_ != NULL) {
       // On MacOS you have to do a bit of magic to get to the
       // environment strings.
@@ -521,7 +521,7 @@ class ProcessStarter {
               (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
             ReportChildError();
           }
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
           if (program_environment_ != NULL) {
             // On MacOS you have to do a bit of magic to get to the
             // environment strings.
@@ -1037,8 +1037,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
   bool listen = true;
+  sa_handler_t oldact_handler = nullptr;
   while (handler != NULL) {
     if (handler->signal() == signal) {
+      oldact_handler = handler->oldact();
       listen = false;
       break;
     }
@@ -1051,14 +1053,17 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     for (int i = 0; i < kSignalsCount; i++) {
       sigaddset(&act.sa_mask, kSignals[i]);
     }
-    intptr_t status = NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
+    struct sigaction oldact = {};
+    intptr_t status = NO_RETRY_EXPECTED(sigaction(signal, &act, &oldact));
     if (status < 0) {
       close(fds[0]);
       close(fds[1]);
       return -1;
     }
+    oldact_handler = oldact.sa_handler;
   }
-  signal_handlers = new SignalInfo(fds[1], signal, signal_handlers);
+  signal_handlers =
+      new SignalInfo(fds[1], signal, oldact_handler, signal_handlers);
   return fds[0];
 }
 
@@ -1070,7 +1075,9 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
-  bool unlisten = true;
+  sa_handler_t oldact_handler = SIG_DFL;
+  bool any_removed = false;
+  bool any_remaining = false;
   while (handler != NULL) {
     bool remove = false;
     if (handler->signal() == signal) {
@@ -1080,8 +1087,10 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
         }
         handler->Unlink();
         remove = true;
+        oldact_handler = handler->oldact();
+        any_removed = true;
       } else {
-        unlisten = false;
+        any_remaining = true;
       }
     }
     SignalInfo* next = handler->next();
@@ -1090,9 +1099,9 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
     }
     handler = next;
   }
-  if (unlisten) {
+  if (any_removed && !any_remaining) {
     struct sigaction act = {};
-    act.sa_handler = SIG_DFL;
+    act.sa_handler = oldact_handler;
     VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
 }
@@ -1101,7 +1110,8 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
-  bool unlisten = true;
+  sa_handler_t oldact_handler = SIG_DFL;
+  bool any_remaining = false;
   intptr_t signal = -1;
   while (handler != NULL) {
     bool remove = false;
@@ -1114,7 +1124,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
         remove = true;
         signal = handler->signal();
       } else {
-        unlisten = false;
+        any_remaining = true;
       }
     }
     SignalInfo* next = handler->next();
@@ -1123,14 +1133,15 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
     }
     handler = next;
   }
-  if (unlisten && (signal != -1)) {
+  if ((signal != -1) && !any_remaining) {
     struct sigaction act = {};
-    act.sa_handler = SIG_DFL;
+    act.sa_handler = oldact_handler;
     VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
 }
 
 void ProcessInfoList::Init() {
+  active_processes_ = NULL;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }
@@ -1142,6 +1153,9 @@ void ProcessInfoList::Cleanup() {
 }
 
 void ExitCodeHandler::Init() {
+  running_ = false;
+  process_count_ = 0;
+  terminate_done_ = false;
   ASSERT(ExitCodeHandler::monitor_ == nullptr);
   ExitCodeHandler::monitor_ = new Monitor();
 }
@@ -1158,6 +1172,7 @@ void Process::Init() {
 
   ASSERT(signal_mutex == nullptr);
   signal_mutex = new Mutex();
+  signal_handlers = NULL;
 
   ASSERT(Process::global_exit_code_mutex_ == nullptr);
   Process::global_exit_code_mutex_ = new Mutex();
@@ -1181,4 +1196,4 @@ void Process::Cleanup() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)

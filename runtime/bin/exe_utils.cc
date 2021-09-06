@@ -16,11 +16,11 @@ static bool StartsWithPathSeparator(const char* path,
                                     const char* sep,
                                     intptr_t sep_length) {
   return (strncmp(path, sep, sep_length) == 0
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
           // TODO(aam): GetExecutableName doesn't work reliably on Windows,
           || *path == '/'
 #endif
-  );
+  );  // NOLINT
 }
 
 // Returns the directory portion of a given path.

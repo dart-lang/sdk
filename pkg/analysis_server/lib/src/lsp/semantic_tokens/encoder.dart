@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 import 'dart:math' as math;
 
@@ -34,12 +32,10 @@ class SemanticTokenEncoder {
         .where((region) => highlightRegionTokenTypes.containsKey(region.type));
 
     for (final region in translatedRegions) {
-      final tokenType = highlightRegionTokenTypes[region.type];
-
       tokens.add(SemanticTokenInfo(
         region.offset,
         region.length,
-        tokenType,
+        highlightRegionTokenTypes[region.type]!,
         highlightRegionTokenModifiers[region.type],
       ));
     }
@@ -73,7 +69,7 @@ class SemanticTokenEncoder {
         relativeColumn,
         token.length,
         semanticTokenLegend.indexForType(token.type),
-        semanticTokenLegend.bitmaskForModifiers(token.modifiers) ?? 0
+        semanticTokenLegend.bitmaskForModifiers(token.modifiers)
       ]);
 
       lastLine = tokenLine;
@@ -113,44 +109,60 @@ class SemanticTokenEncoder {
   /// Splits overlapping/nested tokens into descrete ranges for the "top-most"
   /// token.
   ///
-  /// Tokens must be pre-sorted by offset, with tokens having the same offset sorted
-  /// with the longest first.
+  /// Tokens must be pre-sorted by offset, with tokens having the same offset
+  /// sorted with the longest first.
   Iterable<SemanticTokenInfo> splitOverlappingTokens(
       Iterable<SemanticTokenInfo> sortedTokens) sync* {
     if (sortedTokens.isEmpty) {
       return;
     }
 
-    final firstToken = sortedTokens.first;
-    final stack = ListQueue<SemanticTokenInfo>()..add(firstToken);
-    var pos = firstToken.offset;
+    final stack = ListQueue<SemanticTokenInfo>();
 
-    for (final current in sortedTokens.skip(1)) {
-      if (stack.last != null) {
+    /// Yields tokens for anything on the stack from between [fromOffset]
+    /// and [toOffset].
+    Iterable<SemanticTokenInfo> processStack(
+        int fromOffset, int toOffset) sync* {
+      // Process each item on the stack to figure out if we need to send
+      // a token for it, and pop it off the stack if we've passed the end of it.
+      while (stack.isNotEmpty) {
         final last = stack.last;
-        final newPos = current.offset;
-        if (newPos - pos > 0) {
-          // The previous region ends at either its original end or
-          // the position of this next region, whichever is shorter.
-          final end = math.min(last.offset + last.length, newPos);
-          final length = end - pos;
-          yield SemanticTokenInfo(pos, length, last.type, last.modifiers);
-          pos = newPos;
+        final lastEnd = last.offset + last.length;
+        final end = math.min(lastEnd, toOffset);
+        final length = end - fromOffset;
+        if (length > 0) {
+          yield SemanticTokenInfo(
+              fromOffset, length, last.type, last.modifiers);
+          fromOffset = end;
+        }
+
+        // If this token is completely done with, remove it and continue
+        // through the stack. Otherwise, if this token remains then we're done
+        // for now.
+        if (lastEnd <= toOffset) {
+          stack.removeLast();
+        } else {
+          return;
         }
       }
+    }
 
+    var lastPos = sortedTokens.first.offset;
+    for (final current in sortedTokens) {
+      // Before processing each token, process the stack as there may be tokens
+      // on it that need filling in the gap up until this point.
+      yield* processStack(lastPos, current.offset);
+
+      // Add this token to the stack but don't process it, it will be done by
+      // the next iteration processing the stack since we don't know where this
+      // one should end until we see the start of the next one.
       stack.addLast(current);
+      lastPos = current.offset;
     }
 
     // Process any remaining stack after the last region.
-    while (stack.isNotEmpty) {
-      final last = stack.removeLast();
-      final newPos = last.offset + last.length;
-      final length = newPos - pos;
-      if (length > 0) {
-        yield SemanticTokenInfo(pos, length, last.type, last.modifiers);
-        pos = newPos;
-      }
+    if (stack.isNotEmpty) {
+      yield* processStack(lastPos, stack.first.offset + stack.first.length);
     }
   }
 }
@@ -159,7 +171,7 @@ class SemanticTokenInfo {
   final int offset;
   final int length;
   final SemanticTokenTypes type;
-  final Set<SemanticTokenModifiers> modifiers;
+  final Set<SemanticTokenModifiers>? modifiers;
 
   SemanticTokenInfo(this.offset, this.length, this.type, this.modifiers);
 

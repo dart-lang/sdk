@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -36,12 +34,25 @@ abstract class SimpleEditCommandHandler
     // If there are no edits to apply, just complete the command without going
     // back to the client.
     if (edits.isEmpty) {
-      return success();
+      return success(null);
+    }
+
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
+    final lineInfo = unit.lineInfo;
+    if (lineInfo == null) {
+      return error(ErrorCodes.InternalError,
+          'Unable to produce edits for $docIdentifier as no LineInfo was found');
     }
 
     final workspaceEdit = toWorkspaceEdit(
-      server.clientCapabilities,
-      [FileEditInformation(docIdentifier, unit.lineInfo, edits)],
+      clientCapabilities,
+      [FileEditInformation(docIdentifier, lineInfo, edits)],
     );
 
     return sendWorkspaceEditToClient(workspaceEdit);
@@ -67,10 +78,10 @@ abstract class SimpleEditCommandHandler
     // sent - and may have failed to apply - was related to this command
     // execution).
     // We need to fromJson to convert the JSON map to the real types.
-    final editResponseResult =
-        ApplyWorkspaceEditResponse.fromJson(editResponse.result);
+    final editResponseResult = ApplyWorkspaceEditResponse.fromJson(
+        editResponse.result as Map<String, Object?>);
     if (editResponseResult.applied) {
-      return success();
+      return success(null);
     } else {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,

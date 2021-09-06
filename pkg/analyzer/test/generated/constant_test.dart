@@ -50,7 +50,7 @@ class C {
       "const Center(name: 'v')",
       context: '''
 class Align {
-  final double widthFactor;
+  final double? widthFactor;
   const Align({String name, this.widthFactor})
         assert(widthFactor == null || widthFactor >= 0.0);
 }
@@ -497,7 +497,7 @@ $context
 
     var expression = findNode.variableDeclaration('x =').initializer!;
 
-    var file = getFile(result.path!);
+    var file = getFile(result.path);
     var evaluator = ConstantEvaluator(
       file.createSource(result.uri),
       result.libraryElement as LibraryElementImpl,

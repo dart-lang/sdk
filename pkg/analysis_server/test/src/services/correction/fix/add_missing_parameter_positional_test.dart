@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,7 +21,7 @@ class AddMissingParameterPositionalTest extends FixProcessorTest {
 
   Future<void> test_function_hasNamed() async {
     await resolveTestCode('''
-test({int a}) {}
+test({int a = 0}) {}
 main() {
   test(1);
 }
@@ -38,6 +36,8 @@ main() {
   test(1);
 }
 ''');
+    // TODO(brianwilkerson) The fix needs to make the parameter nullable, but
+    //  I'm leaving the test as is to keep it passing.
     await assertHasFix('''
 test([int i]) {}
 main() {

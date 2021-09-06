@@ -8,7 +8,7 @@ import 'dart:io' show Platform;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
-const _JSON = JsonEncoder.withIndent('  ');
+const _jsonEncoder = JsonEncoder.withIndent('  ');
 
 final String _osType = () {
   if (Platform.isLinux) {
@@ -38,8 +38,8 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     'showPackageWarnings': options.showPackageWarnings,
     'showPackageWarningsPrefix': options.showPackageWarningsPrefix,
     'showSdkWarnings': options.showSdkWarnings,
-    'definedVariables': options.definedVariables,
-    'packageConfigPath': options.packageConfigPath,
+    'definedVariables': options.declaredVariables,
+    'packageConfigPath': options.defaultPackagesPath,
     'sourceFiles': options.sourceFiles,
   };
 
@@ -53,5 +53,5 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     'reportedDiagnostics': stats.filteredCount,
   };
 
-  return _JSON.convert(reportJson);
+  return _jsonEncoder.convert(reportJson);
 }

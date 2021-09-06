@@ -283,7 +283,7 @@ JavaScript API may have a name that is not legal in Dart, or its name may have
 different visibility, such as names starting with underscore.
 
 Renames are made possible by taking advantage of the static type of the
-reciever. This is similar to static calls and extension methods.
+receiver. This is similar to static calls and extension methods.
 
 ```dart
 UserInfo user = someExpression;
@@ -789,7 +789,7 @@ main() {
 
 The last check is an example of one consequence of the looser checking. 
 Conceptually we have a `JSAny` type. This type only exists in runtime, and does
-not require a representation, since it results from the absense of type
+not require a representation, since it results from the absence of type
 information. This is discussed later when we look at the type system.
 
 Besides JS Arrays, Dart generic functions and methods can also be called from
@@ -1222,7 +1222,7 @@ the direction we need go. Implementing interfaces can be useful however.
 
 ### JS Proxy
 
-One question that comes up occassionally is how to use JS Proxy from Dart.
+One question that comes up occasionally is how to use JS Proxy from Dart.
 We can expose JSProxy from "package:js":
 
 ```dart

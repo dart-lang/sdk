@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -176,6 +175,12 @@ class NullabilityFixDescription {
           'Removed a null-aware assignment, because the target cannot be null',
       kind: NullabilityFixKind.removeDeadCode);
 
+  /// A built_value `@nullable` annotation has been discarded.
+  static const removeNullableAnnotation = NullabilityFixDescription._(
+    appliedMessage: 'Discarded a use of the built_value annotation @nullable',
+    kind: NullabilityFixKind.removeNullableAnnotation,
+  );
+
   /// A message used to indicate a fix has been applied.
   final String appliedMessage;
 
@@ -184,10 +189,10 @@ class NullabilityFixDescription {
 
   /// A formal parameter needs to have a required keyword added.
   factory NullabilityFixDescription.addRequired(
-          String className, String functionName, String paramName) =>
+          String? className, String? functionName, String paramName) =>
       NullabilityFixDescription._(
         appliedMessage: "Add 'required' keyword to parameter '$paramName' in " +
-            (className == null ? functionName : "'$className.$functionName'"),
+            (className == null ? functionName! : "'$className.$functionName'"),
         kind: NullabilityFixKind.addRequired,
       );
 
@@ -246,9 +251,7 @@ class NullabilityFixDescription {
       );
 
   const NullabilityFixDescription._(
-      {@required this.appliedMessage, @required this.kind})
-      : assert(appliedMessage != null),
-        assert(kind != null);
+      {required this.appliedMessage, required this.kind});
 
   @override
   int get hashCode {
@@ -296,6 +299,7 @@ enum NullabilityFixKind {
   removeAs,
   removeDeadCode,
   removeLanguageVersionComment,
+  removeNullableAnnotation,
   replaceVar,
   typeNotMadeNullable,
   typeNotMadeNullableDueToHint,
@@ -321,15 +325,15 @@ abstract class NullabilityMigration {
   /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
-  factory NullabilityMigration(NullabilityMigrationListener listener,
+  factory NullabilityMigration(NullabilityMigrationListener? listener,
       LineInfo Function(String) getLineInfo,
-      {bool permissive,
-      NullabilityMigrationInstrumentation instrumentation,
-      bool removeViaComments,
-      bool warnOnWeakCode}) = NullabilityMigrationImpl;
+      {bool? permissive,
+      NullabilityMigrationInstrumentation? instrumentation,
+      bool? removeViaComments,
+      bool? warnOnWeakCode}) = NullabilityMigrationImpl;
 
   /// Check if this migration is being run permissively.
-  bool get isPermissive;
+  bool? get isPermissive;
 
   /// Use this getter after any calls to [prepareInput] to obtain a list of URIs
   /// of unmigrated dependencies.  Ideally, this list should be empty before the
@@ -367,5 +371,5 @@ abstract class NullabilityMigrationListener {
   /// "permissive mode", reporting the location of the exception and the
   /// exception details.
   void reportException(
-      Source source, AstNode node, Object exception, StackTrace stackTrace);
+      Source? source, AstNode? node, Object exception, StackTrace stackTrace);
 }

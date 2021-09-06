@@ -52,17 +52,20 @@ class ParsedFunction;
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
-  V(Function, UntaggedFunction, signature, FunctionType, FINAL_COMPRESSED)     \
+  V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
+  V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
   V(Context, UntaggedContext, parent, Context, FINAL)                          \
   V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
     FINAL)                                                                     \
   V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
-  V(ClosureData, UntaggedClosureData, default_type_arguments, TypeArguments,   \
-    FINAL_COMPRESSED)                                                          \
-  V(Type, UntaggedType, arguments, TypeArguments, FINAL_COMPRESSED)            \
-  V(FunctionType, UntaggedFunctionType, type_parameters, TypeArguments,        \
-    FINAL_COMPRESSED)                                                          \
+  V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
+    FINAL)                                                                     \
+  V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \
+  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
+  V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
+  V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
+  V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \
   V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
   V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)
 
@@ -84,35 +87,39 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function, Function, FINAL)                       \
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
-  V(Function, UntaggedFunction, data, Dynamic, FINAL_COMPRESSED)               \
-  V(FunctionType, UntaggedFunctionType, parameter_names, Array,                \
-    FINAL_COMPRESSED)                                                          \
-  V(FunctionType, UntaggedFunctionType, parameter_types, Array,                \
-    FINAL_COMPRESSED)                                                          \
+  V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
+  V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
+  V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
-  V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL_COMPRESSED)       \
-  V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi,                \
-    FINAL_COMPRESSED)                                                          \
-  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL_COMPRESSED)     \
-  V(String, UntaggedString, length, Smi, FINAL_COMPRESSED)                     \
-  V(LinkedHashMap, UntaggedLinkedHashMap, index, TypedDataUint32Array, VAR)    \
-  V(LinkedHashMap, UntaggedLinkedHashMap, data, Array, VAR)                    \
-  V(LinkedHashMap, UntaggedLinkedHashMap, hash_mask, Smi, VAR)                 \
-  V(LinkedHashMap, UntaggedLinkedHashMap, used_data, Smi, VAR)                 \
-  V(LinkedHashMap, UntaggedLinkedHashMap, deleted_keys, Smi, VAR)              \
+  V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
+  V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
+  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
+  V(String, UntaggedString, length, Smi, FINAL)                                \
+  V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
+  V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
+  V(LinkedHashBase, UntaggedLinkedHashBase, hash_mask, Smi, VAR)               \
+  V(LinkedHashBase, UntaggedLinkedHashBase, used_data, Smi, VAR)               \
+  V(LinkedHashBase, UntaggedLinkedHashBase, deleted_keys, Smi, VAR)            \
   V(ArgumentsDescriptor, UntaggedArray, type_args_len, Smi, FINAL)             \
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
   V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
-  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL_COMPRESSED)    \
-  V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL_COMPRESSED)     \
-  V(UnhandledException, UntaggedUnhandledException, exception, Dynamic,        \
-    FINAL_COMPRESSED)                                                          \
-  V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic,       \
-    FINAL_COMPRESSED)
+  V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
+  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
+  V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
+  V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
+
+// Only define AOT-only unboxed native slots when in the precompiler. See
+// UNBOXED_NATIVE_SLOTS_LIST for the format.
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+#define AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                  \
+  V(Closure, UntaggedClosure, entry_point, Uword, FINAL)
+#else
+#define AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)
+#endif
 
 // List of slots that correspond to unboxed fields of native objects in the
 // following format:
@@ -129,12 +136,22 @@ class ParsedFunction;
 //   that) or like a non-final field.
 //
 // Note: As the underlying field is unboxed, these slots cannot be nullable.
+//
+// Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
+// unboxed slots represent length loads.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
+  AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
   V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
     FINAL)                                                                     \
+  V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
-  V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \
+  V(FunctionType, UntaggedFunctionType, packed_parameter_counts, Uint32,       \
+    FINAL)                                                                     \
+  V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
+    FINAL)                                                                     \
+  V(Pointer, UntaggedPointer, data_field, FfiIntPtr, FINAL)                    \
+  V(TypedDataBase, UntaggedTypedDataBase, data_field, IntPtr, VAR)             \
   V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
@@ -187,14 +204,12 @@ class Slot : public ZoneAllocated {
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
 
-  // Return a slot that represents type arguments field at the given offset
-  // or for the given class.
+  // Return a slot that represents type arguments field for the given class.
   //
   // We do not distinguish type argument fields within disjoint
   // class hierarchies: type argument fields at the same offset would be
   // represented by the same Slot object. Type argument slots are final
   // so disambiguating type arguments fields does not improve alias analysis.
-  static const Slot& GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset);
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
 
   // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
@@ -227,6 +242,7 @@ class Slot : public ZoneAllocated {
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
   bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
+  bool IsImmutableLengthSlot() const;
 
   const char* Name() const;
 
@@ -249,6 +265,11 @@ class Slot : public ZoneAllocated {
 
   bool is_compressed() const { return IsCompressedBit::decode(flags_); }
 
+  // Returns true if load from this slot can return sentinel value.
+  bool is_sentinel_visible() const {
+    return IsSentinelVisibleBit::decode(flags_);
+  }
+
   // Static type of the slots if any.
   //
   // A value that is read from the slot is guaranteed to be assignable to its
@@ -264,8 +285,8 @@ class Slot : public ZoneAllocated {
     return *DataAs<const Field>();
   }
 
-  bool Equals(const Slot* other) const;
-  intptr_t Hashcode() const;
+  bool Equals(const Slot& other) const;
+  uword Hash() const;
 
   bool IsIdentical(const Slot& other) const { return this == &other; }
 
@@ -304,6 +325,8 @@ class Slot : public ZoneAllocated {
   using IsNullableBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
   using IsGuardedBit = BitField<int8_t, bool, IsNullableBit::kNextBit, 1>;
   using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
+  using IsSentinelVisibleBit =
+      BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {
@@ -316,7 +339,7 @@ class Slot : public ZoneAllocated {
   static const Slot& GetNativeSlot(Kind kind);
 
   const Kind kind_;
-  const int8_t flags_;  // is_immutable, is_nullable
+  const int8_t flags_;        // is_immutable, is_nullable
   const ClassIdTagType cid_;  // Concrete cid of a value or kDynamicCid.
 
   const intptr_t offset_in_bytes_;

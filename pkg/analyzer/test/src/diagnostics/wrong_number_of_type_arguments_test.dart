@@ -93,6 +93,57 @@ dynamic<int> v;
     ]);
   }
 
+  test_functionReference_tooFew() async {
+    await assertErrorsInCode('''
+f() {
+  void foo<T, U>() {}
+  foo<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 33, 5),
+    ]);
+  }
+
+  test_functionReference_tooMany() async {
+    await assertErrorsInCode('''
+f() {
+  void foo<T>() {}
+  foo<int, int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 30, 10),
+    ]);
+  }
+
+  test_functionTypeExpression_tooFew() async {
+    await assertErrorsInCode('''
+f(void Function<T, U>() foo, void Function<T, U>() bar) {
+  (1 == 2 ? foo : bar)<int>;
+}
+''', [
+      error(CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 60,
+          20),
+      error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+          80,
+          5),
+    ]);
+  }
+
+  test_functionTypeExpression_tooMany() async {
+    await assertErrorsInCode('''
+f(void Function<T>() foo, void Function<T, U>() bar) {
+  (1 == 2 ? foo : bar)<int, String>;
+}
+''', [
+      error(CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 57,
+          20),
+    ]);
+  }
+
   test_metadata_1of0() async {
     await assertErrorsInCode(r'''
 class A {

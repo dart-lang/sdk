@@ -1,0 +1,71 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef DA1 = self::A;
+typedef DA2<unrelated X extends core::num> = self::A;
+typedef DB1 = self::B<core::String>;
+typedef DB2<X extends core::num> = self::B<X>;
+typedef DB3<X extends core::num, unrelated Y extends core::String> = self::B<X>;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B<X extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::B<self::B::X%>
+    ;
+  constructor foo() → self::B<self::B::X%>
+    ;
+  static factory bar<X extends core::Object? = dynamic>() → self::B<self::B::bar::X%>
+    ;
+}
+static method test1() → () → self::A
+  ;
+static method test2() → () → self::A
+  ;
+static method test3() → () → self::A
+  ;
+static method test4() → () → self::A
+  ;
+static method test5() → () → self::A
+  ;
+static method test6() → () → self::A
+  ;
+static method test7() → () → self::B<core::String>
+  ;
+static method test8() → () → self::B<core::String>
+  ;
+static method test9() → () → self::B<core::num>
+  ;
+static method test10() → () → self::B<core::String>
+  ;
+static method test11() → () → self::B<core::String>
+  ;
+static method test12() → () → self::B<core::num>
+  ;
+static method test13() → () → self::B<core::num>
+  ;
+static method test14() → () → self::B<core::num>
+  ;
+static method test15() → () → self::B<core::num>
+  ;
+static method test16() → <Y extends core::num = dynamic>() → self::B<Y>
+  ;
+static method test17() → <Y extends core::Object? = dynamic>() → self::B<Y%>
+  ;
+static method test18() → () → self::B<core::num>
+  ;
+static method test19() → () → self::B<core::num>
+  ;
+static method test20() → () → self::B<core::num>
+  ;
+static method test21() → () → self::B<core::num>
+  ;
+static method test22() → <Y extends core::num = dynamic, Z extends core::String = dynamic>() → self::B<Y>
+  ;
+static method test23() → <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>
+  ;
+static method test24() → () → self::B<core::String>
+  ;
+static method main() → dynamic
+  ;

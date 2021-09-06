@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,16 +23,16 @@ class ImportLibraryPrefixTest extends FixProcessorTest {
     await resolveTestCode('''
 import 'dart:collection' as pref;
 main() {
-  pref.HashMap s = null;
-  LinkedHashMap f = null;
+  pref.HashMap? s = null;
+  LinkedHashMap? f = null;
   print('\$s \$f');
 }
 ''');
     await assertHasFix('''
 import 'dart:collection' as pref;
 main() {
-  pref.HashMap s = null;
-  pref.LinkedHashMap f = null;
+  pref.HashMap? s = null;
+  pref.LinkedHashMap? f = null;
   print('\$s \$f');
 }
 ''');

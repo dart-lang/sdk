@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 
 #include "bin/file_system_watcher.h"
 
@@ -108,7 +108,13 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   uint8_t buffer[kBufferSize];
   intptr_t bytes = TEMP_FAILURE_RETRY(read(id, buffer, kBufferSize));
   if (bytes < 0) {
-    return DartUtils::NewDartOSError();
+    ASSERT(EAGAIN == EWOULDBLOCK);
+    if ((bytes == -1) && (errno == EWOULDBLOCK)) {
+      // see also SocketBase::Read
+      bytes = 0;
+    } else {
+      return DartUtils::NewDartOSError();
+    }
   }
   const intptr_t kMaxCount = bytes / kEventSize;
   Dart_Handle events = Dart_NewList(kMaxCount);
@@ -146,4 +152,4 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_ANDROID)

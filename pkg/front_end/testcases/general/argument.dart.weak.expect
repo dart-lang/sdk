@@ -37,7 +37,7 @@ static method bar(dynamic x) → void {}
 static method foo_escaped(dynamic x) → void {}
 static method bar_escaped(dynamic x) → void {}
 static method escape(dynamic fn) → void {
-  fn.call(new self::Baz::•());
+  fn{dynamic}.call(new self::Baz::•());
 }
 static method main() → dynamic {
   self::foo(new self::Foo::•());
@@ -47,6 +47,6 @@ static method main() → dynamic {
 }
 
 constants  {
-  #C1 = tearoff self::foo_escaped
-  #C2 = tearoff self::bar_escaped
+  #C1 = static-tearoff self::foo_escaped
+  #C2 = static-tearoff self::bar_escaped
 }

@@ -5,6 +5,7 @@
 #include "vm/compiler/assembler/assembler_base.h"
 
 #include "platform/utils.h"
+#include "vm/compiler/backend/slot.h"
 #include "vm/cpu.h"
 #include "vm/heap/heap.h"
 #include "vm/memory_region.h"
@@ -25,6 +26,53 @@ DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches for ARM.");
 namespace compiler {
 
 AssemblerBase::~AssemblerBase() {}
+
+void AssemblerBase::LoadFromSlot(Register dst,
+                                 Register base,
+                                 const Slot& slot) {
+  auto const rep = slot.representation();
+  const FieldAddress address(base, slot.offset_in_bytes());
+  if (rep != kTagged) {
+    auto const sz = RepresentationUtils::OperandSize(rep);
+    return LoadFromOffset(dst, address, sz);
+  }
+  if (slot.is_compressed()) {
+    return LoadCompressedField(dst, address);
+  }
+  return LoadField(dst, address);
+}
+
+void AssemblerBase::StoreToSlot(Register src, Register base, const Slot& slot) {
+  auto const rep = slot.representation();
+  const FieldAddress address(base, slot.offset_in_bytes());
+  if (rep != kTagged) {
+    auto const sz = RepresentationUtils::OperandSize(rep);
+    return StoreToOffset(src, address, sz);
+  }
+  if (slot.is_compressed()) {
+    return StoreCompressedIntoObject(
+        base, address, src,
+        slot.ComputeCompileType().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
+  }
+  return StoreIntoObject(
+      base, address, src,
+      slot.ComputeCompileType().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
+}
+
+void AssemblerBase::StoreToSlotNoBarrier(Register src,
+                                         Register base,
+                                         const Slot& slot) {
+  auto const rep = slot.representation();
+  const FieldAddress address(base, slot.offset_in_bytes());
+  if (rep != kTagged) {
+    auto const sz = RepresentationUtils::OperandSize(rep);
+    return StoreToOffset(src, address, sz);
+  }
+  if (slot.is_compressed()) {
+    return StoreCompressedIntoObjectNoBarrier(base, address, src);
+  }
+  return StoreIntoObjectNoBarrier(base, address, src);
+}
 
 intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
   // We cannot put a relocation at the very start (it's not a valid
@@ -259,7 +307,7 @@ void AssemblerBase::Stop(const char* message) {
   Breakpoint();
 }
 
-intptr_t ObjIndexPair::Hashcode(Key key) {
+uword ObjIndexPair::Hash(Key key) {
   if (key.type() != ObjectPoolBuilderEntry::kTaggedObject) {
     return key.raw_value_;
   }

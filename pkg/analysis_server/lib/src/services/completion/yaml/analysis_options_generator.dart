@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
@@ -32,6 +30,7 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
         AnalyzerOptions.chromeOsManifestChecks: EmptyProducer(),
       }),
       AnalyzerOptions.plugins: EmptyProducer(),
+      AnalyzerOptions.propagateLinterExceptions: EmptyProducer(),
       AnalyzerOptions.strong_mode: MapProducer({
         AnalyzerOptions.declarationCasts: EmptyProducer(),
         AnalyzerOptions.implicitCasts: EmptyProducer(),

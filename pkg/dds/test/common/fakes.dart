@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:test/fake.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// [FakePeer] implements the bare minimum of the [Peer] interface needed for
 /// [DartDevelopmentService] to establish a connection with a VM service.
@@ -63,4 +62,19 @@ class FakePeer extends Fake implements json_rpc.Peer {
   }
 
   int _idCount = 0;
+}
+
+class FakeWebSocketSink extends Fake implements WebSocketSink {
+  @override
+  Future close([int? closeCode, String? closeReason]) {
+    // Do nothing.
+    return Future.value();
+  }
+}
+
+/// [FakeWebSocketChannel] implements the bare minimum of the [WebSocket]
+/// interface required to finish DDS initialization.
+class FakeWebSocketChannel extends Fake implements WebSocketChannel {
+  @override
+  WebSocketSink get sink => FakeWebSocketSink();
 }

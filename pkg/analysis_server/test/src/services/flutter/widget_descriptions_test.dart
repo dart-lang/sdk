@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -444,7 +442,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required Widget child});
+  MyWidget({int xxx = 0, required Widget child});
 }
 ''');
     var property = await getWidgetProperty('MyWidget<int>', 'xxx');
@@ -465,7 +463,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required Widget child});
+  MyWidget({int xxx = 0, required Widget child});
 }
 ''');
   }
@@ -481,7 +479,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required List<Widget> children});
+  MyWidget({int xxx = 0, required List<Widget> children});
 }
 ''');
     var property = await getWidgetProperty('MyWidget<int>', 'xxx');
@@ -502,7 +500,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required List<Widget> children});
+  MyWidget({int xxx = 0, required List<Widget> children});
 }
 ''');
   }

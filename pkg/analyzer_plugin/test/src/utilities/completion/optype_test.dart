@@ -50,7 +50,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
     //
     var resolvedUnit = await resolveFile(testPath);
     var completionTarget =
-        CompletionTarget.forOffset(resolvedUnit.unit!, completionOffset);
+        CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
     var opType = OpType.forCompletion(completionTarget, completionOffset);
     //
     // Validate the OpType.
@@ -1012,7 +1012,24 @@ main() {new core.String.from^CharCodes([]);}
         completionLocation: 'ExpressionFunctionBody_expression',
         constructors: true,
         returnValue: true,
-        typeNames: true);
+        typeNames: true,
+        voidReturn: true);
+  }
+
+  Future<void> test_expressionFunctionBody_voidReturnType() async {
+    // SimpleIdentifier  ExpressionFunctionBody  FunctionExpression
+    addTestSource('''
+void f() {
+  g(() => ^);
+}
+void g(void Function() f) {}
+''');
+    await assertOpType(
+        completionLocation: 'ExpressionFunctionBody_expression',
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true);
   }
 
   Future<void> test_expressionStatement_beginning() async {

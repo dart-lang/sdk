@@ -200,7 +200,7 @@ final String _implCode = r'''
       request.completeError(RPCError.parse(request.method, json['error']));
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
-      String type = result['type'];
+      String? type = result['type'];
       if (type == 'Sentinel') {
         request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
@@ -517,7 +517,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 
   if (json is List) {
     return json.map((e) => createServiceObject(e, expectedTypes)).toList();
-  } else if (json is Map) {
+  } else if (json is Map<String, dynamic>) {
     String? type = json['type'];
 
     // Not a Response type.
@@ -526,7 +526,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
       if (expectedTypes.length == 1) {
         type = expectedTypes.first;
       } else {
-        return null;
+        return Response.parse(json);
       }
     } else if (_isNullInstance(json) && (!expectedTypes.contains('InstanceRef'))) {
       // Replace null instances with null when we don't expect an instance to
@@ -1491,6 +1491,8 @@ class Type extends Member {
       gen.writeln('identityHashCode: 0,');
       gen.writeln('kind: InstanceKind.kNull,');
       gen.writeln("classRef: ClassRef(id: 'class/null',");
+      gen.writeln("library: LibraryRef(id: '', name: 'dart:core',");
+      gen.writeln("uri: 'dart:core',),");
       gen.writeln("name: 'Null',),");
       gen.writeln(')');
     }
@@ -1640,10 +1642,9 @@ class Type extends Member {
         }
       } else {
         String typesList = _typeRefListToString(field.type.types);
-        String nullable =
-            field.optional && field.type.name != 'dynamic' ? '?' : '';
+        String nullable = field.type.name != 'dynamic' ? '?' : '';
         gen.writeln("${field.generatableName} = "
-            "createServiceObject(json['${field.name}']${field.optional ? '' : '!'}, "
+            "createServiceObject(json['${field.name}'], "
             "$typesList) as ${field.type.name}$nullable;");
       }
     });
@@ -1730,7 +1731,7 @@ Map<String, dynamic> toJson() {
       gen.writeln();
 
       gen.writeStatement(
-          'operator==(other) => other is ${name} && id == other.id;');
+          'bool operator ==(Object other) => other is ${name} && id == other.id;');
       gen.writeln();
     }
 

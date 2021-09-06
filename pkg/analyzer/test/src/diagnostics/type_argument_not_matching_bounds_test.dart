@@ -300,7 +300,7 @@ void main() {}
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    assertType(result.unit!.declaredElement!.getType('Baz')!.supertype,
+    assertType(result.unit.declaredElement!.getType('Baz')!.supertype,
         'Bar<Foo<dynamic>>');
   }
 
@@ -447,6 +447,35 @@ class B extends A {}
 
 main() {
   foo<B, A>();
+}
+''');
+  }
+
+  test_functionReference() async {
+    await assertErrorsInCode('''
+void foo<T extends num>(T a) {}
+void bar() {
+  foo<String>;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6),
+    ]);
+  }
+
+  test_functionReference_matching() async {
+    await assertNoErrorsInCode('''
+void foo<T extends num>(T a) {}
+void bar() {
+  foo<int>;
+}
+''');
+  }
+
+  test_functionReference_regularBounded() async {
+    await assertNoErrorsInCode('''
+void foo<T>(T a) {}
+void bar() {
+  foo<String>;
 }
 ''');
   }
@@ -662,5 +691,33 @@ class A<X extends A<X>> {}
 
 A get foo => throw 0;
 ''');
+  }
+
+  test_typeLiteral_class() async {
+    await assertErrorsInCode('''
+class C<T extends int> {}
+var t = C<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6),
+    ]);
+  }
+
+  test_typeLiteral_functionTypeAlias() async {
+    await assertErrorsInCode('''
+typedef Cb<T extends int> = void Function();
+var t = Cb<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6),
+    ]);
+  }
+
+  test_typeLiteral_typeAlias() async {
+    await assertErrorsInCode('''
+class C {}
+typedef D<T extends int> = C;
+var t = D<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6),
+    ]);
   }
 }

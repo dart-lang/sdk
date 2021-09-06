@@ -4,6 +4,8 @@
 //
 // Dart test program for testing left shifts of a constant.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 shiftLeft0(c) => 0 << c;

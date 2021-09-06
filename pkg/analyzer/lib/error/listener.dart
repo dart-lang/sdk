@@ -71,8 +71,8 @@ class ErrorReporter {
   /// is used to compute the location of the error.
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object>? arguments]) {
-    reportErrorForOffset(
-        errorCode, element.nameOffset, element.nameLength, arguments);
+    reportErrorForOffset(errorCode, element.nonSynthetic.nameOffset,
+        element.nameLength, arguments);
   }
 
   /// Report a diagnostic with the given [code] and [arguments]. The
@@ -190,9 +190,7 @@ class ErrorReporter {
     for (List<_TypeToConvert> typeGroup in typeGroups.values) {
       if (typeGroup.length == 1) {
         _TypeToConvert typeToConvert = typeGroup[0];
-        if (typeToConvert.type is DartType) {
-          arguments[typeToConvert.index] = typeToConvert.displayName;
-        }
+        arguments[typeToConvert.index] = typeToConvert.displayName;
       } else {
         Map<String, Set<Element>> nameToElementMap = {};
         for (_TypeToConvert typeToConvert in typeGroup) {
@@ -221,7 +219,8 @@ class ErrorReporter {
                 filePath: element.source!.fullName,
                 length: element.nameLength,
                 message: '$name is defined in ${element.source!.fullName}',
-                offset: element.nameOffset));
+                offset: element.nameOffset,
+                url: null));
           }
 
           if (buffer != null) {

@@ -4,13 +4,13 @@ The Dart VM has a generational garbage collector with two generations. The new g
 
 ## Object representation
 
-Object pointers refer either to immediate objects or heap objects, distinguished by a tag in the low bits of the pointer. The Dart VM has only one kind of immediate object, Smis (small integers), whose pointers have a tag of 0. Heap objects have a pointer tag of 1. The upper bits of a Smi pointer are its value, and the upper bits of a heap object pointer are the most signficant bits of its address (the least significant bit is always 0 because heap objects always have greater than 2-byte alignment).
+Object pointers refer either to immediate objects or heap objects, distinguished by a tag in the low bits of the pointer. The Dart VM has only one kind of immediate object, Smis (small integers), whose pointers have a tag of 0. Heap objects have a pointer tag of 1. The upper bits of a Smi pointer are its value, and the upper bits of a heap object pointer are the most significant bits of its address (the least significant bit is always 0 because heap objects always have greater than 2-byte alignment).
 
-A tag of 0 allows many operations to be performed on Smis without untagging and retagging. It also allows hiding aligned addresses to the C heap from the GC.
+A tag of 0 allows many operations to be performed on Smis without untagging and retagging.
 
 A tag of 1 has no penalty on heap object access because removing the tag can be folded into the offset used by load and store instructions.
 
-Heap objects are always allocated in double-word increments. Objects in old-space are kept at double-word alignment (address % double-word == 0), and objects in new-space are kept offset from double-word alignment (address % double-word == word). This allows checking an object's age without comparing to a boundry address, avoiding restrictions on heap placement and avoiding loading the boundry from thread-local storage. Additionally, the scavenger can quickly skip over both immediates and old objects with a single branch.
+Heap objects are always allocated in double-word increments. Objects in old-space are kept at double-word alignment (address % double-word == 0), and objects in new-space are kept offset from double-word alignment (address % double-word == word). This allows checking an object's age without comparing to a boundary address, avoiding restrictions on heap placement and avoiding loading the boundary from thread-local storage. Additionally, the scavenger can quickly skip over both immediates and old objects with a single branch.
 
 | Pointer    | Referent                                |
 | ---        | ---                                     |
@@ -29,7 +29,7 @@ The Dart VM's GC is precise and moving.
 
 A GC is said to be "precise" if when a collection happens it knows exactly what is and is not a pointer into the heap. For example, in compiled Dart code the VM tracks which stack slots contain object pointers and which contain unboxed values. This is opposed to a "conservative" collector that considers any pointer-sized value might be a pointer into the heap, though it might just be an unboxed value.
 
-In a "moving" GC, the address of an object might change, requiring pointers to that object to be updated. In the Dart VM, objects can move during a scavenge or a compaction. A moving GC must be a precise GC: if a conservative GC updates a value that is not guarenteed to be a pointer, it will corrupt execution when the value was not in fact a pointer.
+In a "moving" GC, the address of an object might change, requiring pointers to that object to be updated. In the Dart VM, objects can move during a scavenge or a compaction. A moving GC must be a precise GC: if a conservative GC updates a value that is not guaranteed to be a pointer, it will corrupt execution when the value was not in fact a pointer.
 
 The VM does not know which stack slots, globals or object fields in foreign languages contain pointers into the Dart heap, including the VM's own runtime implemented in C++. For the GC to remain precise, foreign languages reference Dart objects indirectly through "handles". Handles can be thought of as pointers to pointers. They are allocated from the VM, and the GC will visit (and possibly update) the pointers contained in handles during collections.
 
@@ -61,7 +61,13 @@ During the marking phase, the collector visits each of the root pointers. If the
 
 During the sweeping phase, the collector visits each old-space object. If the mark bit is clear, the object's memory is added to a [free list](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/freelist.h) to be used for future allocations. Otherwise the object's mark bit is cleared. If every object on some page is unreachable, the page is released to the OS.
 
-Note that because we do not mark new-space objects, we treat every object in new-space as a root during old-space collections. This property makes new-space and old-space collections more independent, and in particular allows a scavenge to run at the same time as concurrent marking.
+### New-Space as Roots
+
+We do not mark new-space objects, and pointers to new-space objects are ignored; instead all objects in new-space are treated as part of the root set.
+
+This has the advantage of making collections of the two spaces more independent. In particular, the concurrent marker never needs to dereference any memory in new-space, avoiding several data race issues, and avoiding the need to pause or otherwise synchronize with the concurrent marker when starting a scavenge.
+
+It has the disadvantage that no single collection will collect all garbage. An unreachable old-space object that is referenced by an unreachable new-space object will not be collected until a scavenge first collects the new-space object, and unreachable objects that have a generation-crossing cycle will not be collected until the whole subgraph is promoted into old-space. The growth policy must be careful to ensure it doesn't perform old-space collections without interleaving new-space collections, such as when the program performs mostly large allocation that go directly to old-space, or old-space can accumulate such floating garbage and grow without bound.
 
 ## Mark-Compact
 
@@ -154,7 +160,7 @@ For old-space objects created after marking started, the marker may see uninitia
 
 New-space objects and roots are only visited during a safepoint, and safepoints establish synchronization.
 
-When the mutator's mark block becomes full, it transfered to the marker by an acquire-release operation, so the marker will see the stores into the block.
+When the mutator's mark block becomes full, it transferred to the marker by an acquire-release operation, so the marker will see the stores into the block.
 
 ## Write barrier elimination
 

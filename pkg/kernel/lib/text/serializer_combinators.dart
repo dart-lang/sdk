@@ -594,6 +594,69 @@ class Tuple7<T1, T2, T3, T4, T5, T6, T7> {
       this.sixth, this.seventh);
 }
 
+class Tuple8Serializer<T1, T2, T3, T4, T5, T6, T7, T8>
+    extends TextSerializer<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+  final TextSerializer<T4> fourth;
+  final TextSerializer<T5> fifth;
+  final TextSerializer<T6> sixth;
+  final TextSerializer<T7> seventh;
+  final TextSerializer<T8> eighth;
+
+  const Tuple8Serializer(this.first, this.second, this.third, this.fourth,
+      this.fifth, this.sixth, this.seventh, this.eighth);
+
+  Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> readFrom(
+      Iterator<Object?> stream, DeserializationState? state) {
+    return new Tuple8(
+        first.readFrom(stream, state),
+        second.readFrom(stream, state),
+        third.readFrom(stream, state),
+        fourth.readFrom(stream, state),
+        fifth.readFrom(stream, state),
+        sixth.readFrom(stream, state),
+        seventh.readFrom(stream, state),
+        eighth.readFrom(stream, state));
+  }
+
+  void writeTo(
+      StringBuffer buffer,
+      Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> object,
+      SerializationState? state) {
+    first.writeTo(buffer, object.first, state);
+    if (!second.isEmpty) buffer.write(' ');
+    second.writeTo(buffer, object.second, state);
+    if (!third.isEmpty) buffer.write(' ');
+    third.writeTo(buffer, object.third, state);
+    if (!fourth.isEmpty) buffer.write(' ');
+    fourth.writeTo(buffer, object.fourth, state);
+    if (!fifth.isEmpty) buffer.write(' ');
+    fifth.writeTo(buffer, object.fifth, state);
+    if (!sixth.isEmpty) buffer.write(' ');
+    sixth.writeTo(buffer, object.sixth, state);
+    if (!seventh.isEmpty) buffer.write(' ');
+    seventh.writeTo(buffer, object.seventh, state);
+    if (!eighth.isEmpty) buffer.write(' ');
+    eighth.writeTo(buffer, object.eighth, state);
+  }
+}
+
+class Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+  final T4 fourth;
+  final T5 fifth;
+  final T6 sixth;
+  final T7 seventh;
+  final T8 eighth;
+
+  const Tuple8(this.first, this.second, this.third, this.fourth, this.fifth,
+      this.sixth, this.seventh, this.eighth);
+}
+
 // A serializer/deserializer for lists.
 class ListSerializer<T> extends TextSerializer<List<T>> {
   final TextSerializer<T> elements;
@@ -651,7 +714,7 @@ class Optional<T> extends TextSerializer<T?> {
 /// Serializes an object and uses it as a binder for the name that is retrieved
 /// from the object using [nameGetter] and (temporarily) modified using
 /// [nameSetter].  The binder is added to the enclosing environment.
-class Binder<T extends Node> extends TextSerializer<Tuple2<String, T>> {
+class Binder<T extends Node> extends TextSerializer<Tuple2<String?, T>> {
   final Tuple2Serializer<String, T> namedContents;
 
   Binder(TextSerializer<T> contents)
@@ -670,13 +733,13 @@ class Binder<T extends Node> extends TextSerializer<Tuple2<String, T>> {
     return new Tuple2(name, object);
   }
 
-  void writeTo(StringBuffer buffer, Tuple2<String, T> namedObject,
+  void writeTo(StringBuffer buffer, Tuple2<String?, T> namedObject,
       SerializationState? state) {
     if (state == null) {
       throw StateError(
           "No serialization state provided for ${runtimeType}.writeTo.");
     }
-    String nameClue = namedObject.first;
+    String? nameClue = namedObject.first;
     T object = namedObject.second;
     String distinctName =
         state.environment.addBinder(object, nameClue: nameClue);

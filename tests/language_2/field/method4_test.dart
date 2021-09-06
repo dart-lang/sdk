@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to catch error reporting bugs when using a field like a method.
 
+// @dart = 2.9
+
 class A {
   var foo;
   A() {

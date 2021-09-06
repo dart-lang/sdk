@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 
 import '../../../tool/lsp_spec/typescript_parser.dart' as ast;
@@ -13,8 +11,8 @@ void main() {
     test('handles basic types', () {
       expect(_simple('string').dartType, equals('String'));
       expect(_simple('boolean').dartType, equals('bool'));
-      expect(_simple('any').dartType, equals('dynamic'));
-      expect(_simple('object').dartType, equals('dynamic'));
+      expect(_simple('any').dartType, equals('Object?'));
+      expect(_simple('object').dartType, equals('Object?'));
       expect(_simple('int').dartType, equals('int'));
       expect(_simple('num').dartType, equals('num'));
     });

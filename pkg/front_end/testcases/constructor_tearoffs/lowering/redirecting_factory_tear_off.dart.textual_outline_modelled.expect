@@ -1,0 +1,60 @@
+class Class1 {
+  Class1._();
+  factory Class1() = Class1._;
+}
+
+class Class2 {
+  Class2.__();
+  factory Class2._() => Class2.__();
+  factory Class2.named() = Class2._;
+}
+
+class Class3 {
+  Class3._(this.field);
+  factory Class3(int field) = Class3._;
+  final int field;
+}
+
+class Class4 {
+  Class4._([this.field]);
+  factory Class4([int? field]) = Class4._;
+  final int? field;
+}
+
+class Class5 {
+  Class5._(this.field1, [this.field2]);
+  factory Class5(int field1, [int? field2]) = Class5._;
+  final int? field2;
+  final int field1;
+}
+
+class Class6 {
+  Class6._(this.field1, {this.field2, required this.field3});
+  factory Class6(int field1, {int? field2, required int field3}) = Class6._;
+  final int? field2;
+  final int field1;
+  final int field3;
+}
+
+class Class7a implements Class7b {
+  Class7a();
+}
+
+class Class7b {
+  factory Class7b() = Class7a;
+}
+
+class Class8a<T> implements Class8b<T> {
+  Class8a();
+}
+
+class Class8b<T> {
+  factory Class8b() = Class8a<T>;
+}
+
+expect(expected, actual) {}
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+testArgs() {}
+testNoArgs() {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}

@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Ensures a context type of [T] for the operand.
-void context<T>(T x) {}
+/// Helper to create [Type] values.
+Type typeOf<T>() => T;
+
+/// Ensures a context type of [T] for the operand.
+Object? context<T>(T x) => x;
 
 /// Captures the context type of the call and returns the same type.
 ///
@@ -34,6 +37,23 @@ extension StaticType<T> on T {
   T expectStaticType<R extends Exactly<T>>() {
     return this;
   }
+
+  /// Invokes [callback] with the static type of `this`.
+  ///
+  /// Allows any operation on the type.
+  T captureStaticType(void Function<X>() callback) {
+    callback<T>();
+    return this;
+  }
+}
+
+/// Invokes [callback] with the static type of [value].
+///
+/// Similar to [StaticType.captureStaticType], but works
+/// for types like `void` and `dynamic` which do not allow
+/// extension methods.
+void captureStaticType<T>(T value, void Function<X>(X value) callback) {
+  callback<T>(value);
 }
 
 /// Use with [StaticType.expectStaticType] to expect precisely the type [T].

@@ -65,7 +65,6 @@
 library kernel.ast;
 
 import 'dart:core';
-import 'dart:core' as core show MapEntry;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
@@ -93,6 +92,7 @@ abstract class Node {
   const Node();
 
   R accept<R>(Visitor<R> v);
+  R accept1<R, A>(Visitor1<R, A> v, A arg);
   void visitChildren(Visitor v);
 
   /// Returns the textual representation of this node for use in debugging.
@@ -230,8 +230,7 @@ abstract class NamedNode extends TreeNode {
 
 abstract class FileUriNode extends TreeNode {
   /// The URI of the source file this node was loaded from.
-  // TODO(johnniwinther): Make this non-nullable.
-  Uri? get fileUri;
+  Uri get fileUri;
 }
 
 abstract class Annotatable extends TreeNode {
@@ -256,7 +255,7 @@ class Library extends NamedNode
 
   /// The URI of the source file this library was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   Version? _languageVersion;
   Version get languageVersion => _languageVersion ?? defaultLanguageVersion;
@@ -331,9 +330,9 @@ class Library extends NamedNode
   List<String>? problemsAsJson;
 
   @override
-  final List<Expression> annotations;
+  List<Expression> annotations;
 
-  final List<LibraryDependency> dependencies;
+  List<LibraryDependency> dependencies;
 
   /// References to nodes exported by `export` declarations that:
   /// - aren't ambiguous, or
@@ -341,13 +340,13 @@ class Library extends NamedNode
   final List<Reference> additionalExports = <Reference>[];
 
   @informative
-  final List<LibraryPart> parts;
+  List<LibraryPart> parts;
 
-  final List<Typedef> typedefs;
-  final List<Class> classes;
-  final List<Extension> extensions;
-  final List<Procedure> procedures;
-  final List<Field> fields;
+  List<Typedef> _typedefs;
+  List<Class> _classes;
+  List<Extension> _extensions;
+  List<Procedure> _procedures;
+  List<Field> _fields;
 
   Library(this.importUri,
       {this.name,
@@ -359,24 +358,71 @@ class Library extends NamedNode
       List<Extension>? extensions,
       List<Procedure>? procedures,
       List<Field>? fields,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
-      : this.annotations = annotations ?? <Expression>[],
+      // ignore: unnecessary_null_comparison
+      : assert(fileUri != null),
+        this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
         this.parts = parts ?? <LibraryPart>[],
-        this.typedefs = typedefs ?? <Typedef>[],
-        this.classes = classes ?? <Class>[],
-        this.extensions = extensions ?? <Extension>[],
-        this.procedures = procedures ?? <Procedure>[],
-        this.fields = fields ?? <Field>[],
+        this._typedefs = typedefs ?? <Typedef>[],
+        this._classes = classes ?? <Class>[],
+        this._extensions = extensions ?? <Extension>[],
+        this._procedures = procedures ?? <Procedure>[],
+        this._fields = fields ?? <Field>[],
         super(reference) {
     setParents(this.dependencies, this);
     setParents(this.parts, this);
-    setParents(this.typedefs, this);
-    setParents(this.classes, this);
-    setParents(this.extensions, this);
-    setParents(this.procedures, this);
-    setParents(this.fields, this);
+    setParents(this._typedefs, this);
+    setParents(this._classes, this);
+    setParents(this._extensions, this);
+    setParents(this._procedures, this);
+    setParents(this._fields, this);
+  }
+
+  List<Typedef> get typedefs => _typedefs;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding typedefs when reading the dill file.
+  void set typedefsInternal(List<Typedef> typedefs) {
+    _typedefs = typedefs;
+  }
+
+  List<Class> get classes => _classes;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding classes when reading the dill file.
+  void set classesInternal(List<Class> classes) {
+    _classes = classes;
+  }
+
+  List<Extension> get extensions => _extensions;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding extensions when reading the dill file.
+  void set extensionsInternal(List<Extension> extensions) {
+    _extensions = extensions;
+  }
+
+  List<Procedure> get procedures => _procedures;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  void set proceduresInternal(List<Procedure> procedures) {
+    _procedures = procedures;
+  }
+
+  List<Field> get fields => _fields;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding fields when reading the dill file.
+  void set fieldsInternal(List<Field> fields) {
+    _fields = fields;
   }
 
   Nullability get nullable {
@@ -547,6 +593,7 @@ class Library extends NamedNode
 
   static int _libraryIdCounter = 0;
   int _libraryId = ++_libraryIdCounter;
+  int get libraryIdForTesting => _libraryId;
 
   @override
   int compareTo(Library other) => _libraryId - other._libraryId;
@@ -769,7 +816,7 @@ class Combinator extends TreeNode {
 class Typedef extends NamedNode implements FileUriNode, Annotatable {
   /// The URI of the source file that contains the declaration of this typedef.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -779,7 +826,7 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
-  // The following two fields describe parameters of the underlying type when
+  // The following fields describe parameters of the underlying type when
   // that is a function type.  They are needed to keep such attributes as names
   // and annotations. When the underlying type is not a function type, they are
   // empty.
@@ -789,12 +836,14 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
 
   Typedef(this.name, this.type,
       {Reference? reference,
-      this.fileUri,
+      required this.fileUri,
       List<TypeParameter>? typeParameters,
       List<TypeParameter>? typeParametersOfFunctionType,
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
+      // ignore: unnecessary_null_comparison
+      : assert(fileUri != null),
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.typeParametersOfFunctionType =
             typeParametersOfFunctionType ?? <TypeParameter>[],
         this.positionalParameters =
@@ -802,6 +851,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         super(reference) {
     setParents(this.typeParameters, this);
+    setParents(this.typeParametersOfFunctionType, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -817,6 +869,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     visitList(annotations, v);
     visitList(typeParameters, v);
     type?.accept(v);
+    visitList(typeParametersOfFunctionType, v);
+    visitList(positionalParameters, v);
+    visitList(namedParameters, v);
   }
 
   @override
@@ -826,6 +881,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     if (type != null) {
       type = v.visitDartType(type!);
     }
+    v.transformList(typeParametersOfFunctionType, this);
+    v.transformList(positionalParameters, this);
+    v.transformList(namedParameters, this);
   }
 
   @override
@@ -840,6 +898,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         type = newType;
       }
     }
+    v.transformTypeParameterList(typeParametersOfFunctionType, this);
+    v.transformVariableDeclarationList(positionalParameters, this);
+    v.transformVariableDeclarationList(namedParameters, this);
   }
 
   @override
@@ -853,7 +914,7 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -1037,7 +1098,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   /// The URI of the source file this class was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   final List<TypeParameter> typeParameters;
 
@@ -1048,7 +1109,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   Supertype? mixedInType;
 
   /// The types from the `implements` clause.
-  final List<Supertype> implementedTypes;
+  List<Supertype> implementedTypes;
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
@@ -1068,10 +1129,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     }
   }
 
-  /// Internal. Should *ONLY* be used from within kernel.
-  ///
-  /// Used for adding fields when reading the dill file.
-  final List<Field> fieldsInternal;
+  List<Field> _fieldsInternal;
   DirtifyingList<Field>? _fieldsView;
 
   /// Fields declared in the class.
@@ -1080,28 +1138,39 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<Field> get fields {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return fieldsInternal;
-    return _fieldsView ??= new DirtifyingList(this, fieldsInternal);
+    if (dirty) return _fieldsInternal;
+    return _fieldsView ??= new DirtifyingList(this, _fieldsInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding constructors when reading the dill file.
-  final List<Constructor> constructorsInternal;
+  /// Used for adding fields when reading the dill file.
+  void set fieldsInternal(List<Field> fields) {
+    _fieldsInternal = fields;
+    _fieldsView = null;
+  }
+
+  List<Constructor> _constructorsInternal;
   DirtifyingList<Constructor>? _constructorsView;
 
   /// Constructors declared in the class.
   List<Constructor> get constructors {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return constructorsInternal;
-    return _constructorsView ??= new DirtifyingList(this, constructorsInternal);
+    if (dirty) return _constructorsInternal;
+    return _constructorsView ??=
+        new DirtifyingList(this, _constructorsInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding procedures when reading the dill file.
-  final List<Procedure> proceduresInternal;
+  /// Used for adding constructors when reading the dill file.
+  void set constructorsInternal(List<Constructor> constructors) {
+    _constructorsInternal = constructors;
+    _constructorsView = null;
+  }
+
+  List<Procedure> _proceduresInternal;
   DirtifyingList<Procedure>? _proceduresView;
 
   /// Procedures declared in the class.
@@ -1110,28 +1179,40 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<Procedure> get procedures {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return proceduresInternal;
-    return _proceduresView ??= new DirtifyingList(this, proceduresInternal);
+    if (dirty) return _proceduresInternal;
+    return _proceduresView ??= new DirtifyingList(this, _proceduresInternal);
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  void set proceduresInternal(List<Procedure> procedures) {
+    _proceduresInternal = procedures;
+    _proceduresView = null;
+  }
+
+  List<RedirectingFactory> _redirectingFactoriesInternal;
+  DirtifyingList<RedirectingFactory>? _redirectingFactoriesView;
+
+  /// Redirecting factory constructors declared in the class.
+  ///
+  /// For mixin applications this should be empty.
+  List<RedirectingFactory> get redirectingFactories {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return _redirectingFactoriesInternal;
+    return _redirectingFactoriesView ??=
+        new DirtifyingList(this, _redirectingFactoriesInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
   /// Used for adding redirecting factory constructor when reading the dill
   /// file.
-  final List<RedirectingFactoryConstructor>
-      redirectingFactoryConstructorsInternal;
-  DirtifyingList<RedirectingFactoryConstructor>?
-      _redirectingFactoryConstructorsView;
-
-  /// Redirecting factory constructors declared in the class.
-  ///
-  /// For mixin applications this should be empty.
-  List<RedirectingFactoryConstructor> get redirectingFactoryConstructors {
-    ensureLoaded();
-    // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return redirectingFactoryConstructorsInternal;
-    return _redirectingFactoryConstructorsView ??=
-        new DirtifyingList(this, redirectingFactoryConstructorsInternal);
+  void set redirectingFactoryConstructorsInternal(
+      List<RedirectingFactory> redirectingFactoryConstructors) {
+    _redirectingFactoriesInternal = redirectingFactoryConstructors;
+    _redirectingFactoriesView = null;
   }
 
   Class(
@@ -1145,24 +1226,26 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       List<Constructor>? constructors,
       List<Procedure>? procedures,
       List<Field>? fields,
-      List<RedirectingFactoryConstructor>? redirectingFactoryConstructors,
-      this.fileUri,
+      List<RedirectingFactory>? redirectingFactoryConstructors,
+      required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
-        this.fieldsInternal = fields ?? <Field>[],
-        this.constructorsInternal = constructors ?? <Constructor>[],
-        this.proceduresInternal = procedures ?? <Procedure>[],
-        this.redirectingFactoryConstructorsInternal =
-            redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
+        this._fieldsInternal = fields ?? <Field>[],
+        this._constructorsInternal = constructors ?? <Constructor>[],
+        this._proceduresInternal = procedures ?? <Procedure>[],
+        this._redirectingFactoriesInternal =
+            redirectingFactoryConstructors ?? <RedirectingFactory>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    setParents(this.constructorsInternal, this);
-    setParents(this.proceduresInternal, this);
-    setParents(this.fieldsInternal, this);
-    setParents(this.redirectingFactoryConstructorsInternal, this);
+    setParents(this._constructorsInternal, this);
+    setParents(this._proceduresInternal, this);
+    setParents(this._fieldsInternal, this);
+    setParents(this._redirectingFactoriesInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
@@ -1187,10 +1270,10 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       Constructor member = constructors[i];
       canonicalName.getChildFromConstructor(member).bindTo(member.reference);
     }
-    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
-      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
+    for (int i = 0; i < redirectingFactories.length; ++i) {
+      RedirectingFactory member = redirectingFactories[i];
       canonicalName
-          .getChildFromRedirectingFactoryConstructor(member)
+          .getChildFromRedirectingFactory(member)
           .bindTo(member.reference);
     }
     dirty = false;
@@ -1217,8 +1300,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       Constructor member = constructors[i];
       member._relinkNode();
     }
-    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
-      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
+    for (int i = 0; i < redirectingFactories.length; ++i) {
+      RedirectingFactory member = redirectingFactories[i];
       member._relinkNode();
     }
     dirty = false;
@@ -1262,7 +1345,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         fields,
         constructors,
         procedures,
-        redirectingFactoryConstructors
+        redirectingFactories
       ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
@@ -1288,29 +1371,28 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   void addConstructor(Constructor constructor) {
     dirty = true;
     constructor.parent = this;
-    constructorsInternal.add(constructor);
+    _constructorsInternal.add(constructor);
   }
 
   /// Adds a procedure to this class.
   void addProcedure(Procedure procedure) {
     dirty = true;
     procedure.parent = this;
-    proceduresInternal.add(procedure);
+    _proceduresInternal.add(procedure);
   }
 
   /// Adds a field to this class.
   void addField(Field field) {
     dirty = true;
     field.parent = this;
-    fieldsInternal.add(field);
+    _fieldsInternal.add(field);
   }
 
   /// Adds a field to this class.
-  void addRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor redirectingFactoryConstructor) {
+  void addRedirectingFactory(RedirectingFactory redirectingFactory) {
     dirty = true;
-    redirectingFactoryConstructor.parent = this;
-    redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
+    redirectingFactory.parent = this;
+    _redirectingFactoriesInternal.add(redirectingFactory);
   }
 
   @override
@@ -1363,7 +1445,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
-    visitList(redirectingFactoryConstructors, v);
+    visitList(redirectingFactories, v);
   }
 
   @override
@@ -1380,7 +1462,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformList(constructors, this);
     v.transformList(procedures, this);
     v.transformList(fields, this);
-    v.transformList(redirectingFactoryConstructors, this);
+    v.transformList(redirectingFactories, this);
   }
 
   @override
@@ -1407,13 +1489,12 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformConstructorList(constructors, this);
     v.transformProcedureList(procedures, this);
     v.transformFieldList(fields, this);
-    v.transformRedirectingFactoryConstructorList(
-        redirectingFactoryConstructors, this);
+    v.transformRedirectingFactoryList(redirectingFactories, this);
   }
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1429,7 +1510,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   String name;
 
   /// The URI of the source file this class was loaded from.
-  Uri? fileUri;
+  Uri fileUri;
 
   /// Type parameters declared on the extension.
   final List<TypeParameter> typeParameters;
@@ -1447,10 +1528,15 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   ///
   /// The members are converted into top-level members and only accessible
   /// by reference through [ExtensionMemberDescriptor].
-  final List<ExtensionMemberDescriptor> members;
+  List<ExtensionMemberDescriptor> members;
 
   @override
   List<Expression> annotations = const <Expression>[];
+
+  // Must match serialized bit positions.
+  static const int FlagExtensionTypeDeclaration = 1 << 0;
+
+  int flags = 0;
 
   @override
   void addAnnotation(Expression node) {
@@ -1466,10 +1552,12 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
       List<TypeParameter>? typeParameters,
       DartType? onType,
       List<ExtensionMemberDescriptor>? members,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionMemberDescriptor>[],
         super(reference) {
@@ -1480,6 +1568,16 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   }
 
   Library get enclosingLibrary => parent as Library;
+
+  bool get isExtensionTypeDeclaration {
+    return flags & FlagExtensionTypeDeclaration != 0;
+  }
+
+  void set isExtensionTypeDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagExtensionTypeDeclaration)
+        : (flags & ~FlagExtensionTypeDeclaration);
+  }
 
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitExtension(this);
@@ -1515,7 +1613,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -1617,12 +1715,11 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  // TODO(johnniwinther): Make this non-nullable.
-  Name? name;
+  Name name;
 
   /// The URI of the source file this member was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   /// Flags summarizing the kinds of AST nodes contained in this member, for
   /// speeding up transformations that only affect certain types of nodes.
@@ -1641,7 +1738,12 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name, this.fileUri, Reference? reference) : super(reference);
+  Member(this.name, this.fileUri, Reference? reference)
+      // ignore: unnecessary_null_comparison
+      : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
+        super(reference);
 
   Class? get enclosingClass => parent is Class ? parent as Class : null;
   Library get enclosingLibrary =>
@@ -1751,7 +1853,7 @@ class Field extends Member {
 
   Reference get getterReference => super.reference;
 
-  Field.mutable(Name? name,
+  Field.mutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -1759,7 +1861,7 @@ class Field extends Member {
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? getterReference,
       Reference? setterReference})
       : this.setterReference = setterReference ?? new Reference(),
@@ -1775,7 +1877,7 @@ class Field extends Member {
     this.transformerFlags = transformerFlags;
   }
 
-  Field.immutable(Name? name,
+  Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -1784,7 +1886,7 @@ class Field extends Member {
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? getterReference})
       : this.setterReference = null,
         super(name, fileUri, getterReference) {
@@ -1925,7 +2027,7 @@ class Field extends Member {
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     type.accept(v);
-    name?.accept(v);
+    name.accept(v);
     initializer?.accept(v);
   }
 
@@ -1957,7 +2059,7 @@ class Field extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -1986,24 +2088,25 @@ class Constructor extends Member {
 
   int flags = 0;
 
-  // TODO(johnniwinther): Make this non-nullable.
   @override
-  FunctionNode? function;
+  FunctionNode function;
 
   List<Initializer> initializers;
 
   Constructor(this.function,
-      {Name? name,
+      {required Name name,
       bool isConst: false,
       bool isExternal: false,
       bool isSynthetic: false,
       List<Initializer>? initializers,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference})
       : this.initializers = initializers ?? <Initializer>[],
+        // ignore: unnecessary_null_comparison
+        assert(function != null),
         super(name, fileUri, reference) {
-    function?.parent = this;
+    function.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
@@ -2078,18 +2181,19 @@ class Constructor extends Member {
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
-    name?.accept(v);
+    name.accept(v);
     visitList(initializers, v);
-    function?.accept(v);
+    function.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     v.transformList(initializers, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transform(function!);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -2097,9 +2201,10 @@ class Constructor extends Member {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformInitializerList(initializers, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transformOrRemove(function!, dummyFunctionNode);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -2111,7 +2216,7 @@ class Constructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2130,64 +2235,45 @@ class Constructor extends Member {
 /// be removed from the class.  However, it is needed during the linking phase,
 /// because other modules can refer to that constructor.
 ///
-/// [RedirectingFactoryConstructor]s contain the necessary information for
+/// [RedirectingFactory]s contain the necessary information for
 /// linking and are treated as non-runnable members of classes that merely serve
 /// as containers for that information.
 ///
 /// Redirecting factory constructors can be unnamed.  In this case, the name is
 /// an empty string (in a [Name]).
-class RedirectingFactoryConstructor extends Member {
+class RedirectingFactory extends Member {
   int flags = 0;
 
-  /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
+  /// [RedirectingFactory]s may redirect to constructors or factories
   /// of instantiated generic types, that is, generic types with supplied type
   /// arguments.  The supplied type arguments are stored in this field.
   final List<DartType> typeArguments;
 
   /// Reference to the constructor or the factory that this
-  /// [RedirectingFactoryConstructor] redirects to.
+  /// [RedirectingFactory] redirects to.
   // TODO(johnniwinther): Make this non-nullable.
   Reference? targetReference;
 
-  /// [typeParameters] are duplicates of the type parameters of the enclosing
-  /// class.  Because [RedirectingFactoryConstructor]s aren't instance members,
-  /// references to the type parameters of the enclosing class in the
-  /// redirection target description are encoded with references to the elements
-  /// of [typeParameters].
-  List<TypeParameter> typeParameters;
+  /// [FunctionNode] that holds the type parameters, copied from the enclosing
+  /// class, and the parameters defined on the redirecting factory.
+  ///
+  /// The `FunctionNode.body` is `null` or a synthesized [ConstructorInvocation]
+  /// of the [targetReference] constructor using the [typeArguments] and
+  /// [VariableGet] of the parameters.
+  FunctionNode function;
 
-  /// Positional parameters of [RedirectingFactoryConstructor]s should be
-  /// compatible with that of the target constructor.
-  List<VariableDeclaration> positionalParameters;
-  int requiredParameterCount;
-
-  /// Named parameters of [RedirectingFactoryConstructor]s should be compatible
-  /// with that of the target constructor.
-  List<VariableDeclaration> namedParameters;
-
-  RedirectingFactoryConstructor(this.targetReference,
-      {Name? name,
+  RedirectingFactory(this.targetReference,
+      {required Name name,
       bool isConst: false,
       bool isExternal: false,
       int transformerFlags: 0,
       List<DartType>? typeArguments,
-      List<TypeParameter>? typeParameters,
-      List<VariableDeclaration>? positionalParameters,
-      List<VariableDeclaration>? namedParameters,
-      int? requiredParameterCount,
-      Uri? fileUri,
+      required this.function,
+      required Uri fileUri,
       Reference? reference})
       : this.typeArguments = typeArguments ?? <DartType>[],
-        this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.positionalParameters =
-            positionalParameters ?? <VariableDeclaration>[],
-        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
-        this.requiredParameterCount =
-            requiredParameterCount ?? positionalParameters?.length ?? 0,
         super(name, fileUri, reference) {
-    setParents(this.typeParameters, this);
-    setParents(this.positionalParameters, this);
-    setParents(this.namedParameters, this);
+    function.parent = this;
     this.isConst = isConst;
     this.isExternal = isExternal;
     this.transformerFlags = transformerFlags;
@@ -2248,34 +2334,37 @@ class RedirectingFactoryConstructor extends Member {
   }
 
   @override
-  R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactoryConstructor(this);
+  R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactory(this);
 
   @override
   R accept1<R, A>(MemberVisitor1<R, A> v, A arg) =>
-      v.visitRedirectingFactoryConstructor(this, arg);
+      v.visitRedirectingFactory(this, arg);
 
   @override
   R acceptReference<R>(MemberReferenceVisitor<R> v) =>
-      v.visitRedirectingFactoryConstructorReference(this);
+      v.visitRedirectingFactoryReference(this);
 
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     target?.acceptReference(v);
     visitList(typeArguments, v);
-    name?.accept(v);
+    name.accept(v);
+    function.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     v.transformDartTypeList(typeArguments);
+    function = v.transform(function)..parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformDartTypeList(typeArguments);
+    function = v.transform(function)..parent = this;
   }
 
   @override
@@ -2286,7 +2375,7 @@ class RedirectingFactoryConstructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2502,16 +2591,15 @@ class Procedure extends Member {
   final ProcedureKind kind;
   int flags = 0;
 
-  // TODO(johnniwinther): Make this non-nullable.
   @override
-  FunctionNode? function;
+  FunctionNode function;
 
   // The function node's body might be lazily loaded, meaning that this value
   // might not be set correctly yet. Make sure the body is loaded before
   // returning anything.
   @override
   int get transformerFlags {
-    function?.body;
+    function.body;
     return super.transformerFlags;
   }
 
@@ -2520,7 +2608,7 @@ class Procedure extends Member {
   // body now and only set the value afterwards.
   @override
   void set transformerFlags(int newValue) {
-    function?.body;
+    function.body;
     super.transformerFlags = newValue;
   }
 
@@ -2534,7 +2622,7 @@ class Procedure extends Member {
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
 
-  Procedure(Name? name, ProcedureKind kind, FunctionNode? function,
+  Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -2542,7 +2630,7 @@ class Procedure extends Member {
       bool isExtensionMember: false,
       bool isSynthetic: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference,
       ProcedureStubKind stubKind: ProcedureStubKind.Regular,
       Member? stubTarget})
@@ -2560,7 +2648,7 @@ class Procedure extends Member {
             stubTargetReference:
                 getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
-  Procedure._byReferenceRenamed(Name? name, this.kind, this.function,
+  Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -2568,21 +2656,23 @@ class Procedure extends Member {
       bool isExtensionMember: false,
       bool isSynthetic: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference,
       this.stubKind: ProcedureStubKind.Regular,
       this.stubTargetReference})
       // ignore: unnecessary_null_comparison
       : assert(kind != null),
+        // ignore: unnecessary_null_comparison
+        assert(function != null),
         super(name, fileUri, reference) {
-    function?.parent = this;
+    function.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
     this.isSynthetic = isSynthetic;
-    this.transformerFlags = transformerFlags;
+    setTransformerFlagsWithoutLazyLoading(transformerFlags);
     assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
     assert(
@@ -2597,7 +2687,7 @@ class Procedure extends Member {
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
   // TODO(29841): Remove this flag after the issue is resolved.
-  static const int FlagRedirectingFactoryConstructor = 1 << 4;
+  static const int FlagRedirectingFactory = 1 << 4;
   static const int FlagExtensionMember = 1 << 5;
   static const int FlagNonNullableByDefault = 1 << 6;
   static const int FlagSynthetic = 1 << 7;
@@ -2642,8 +2732,8 @@ class Procedure extends Member {
 
   // Indicates if this [Procedure] represents a redirecting factory constructor
   // and doesn't have a runnable body.
-  bool get isRedirectingFactoryConstructor {
-    return flags & FlagRedirectingFactoryConstructor != 0;
+  bool get isRedirectingFactory {
+    return flags & FlagRedirectingFactory != 0;
   }
 
   /// If set, this flag indicates that this function was not present in the
@@ -2675,10 +2765,10 @@ class Procedure extends Member {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  void set isRedirectingFactoryConstructor(bool value) {
+  void set isRedirectingFactory(bool value) {
     flags = value
-        ? (flags | FlagRedirectingFactoryConstructor)
-        : (flags & ~FlagRedirectingFactoryConstructor);
+        ? (flags | FlagRedirectingFactory)
+        : (flags & ~FlagRedirectingFactory);
   }
 
   void set isExtensionMember(bool value) {
@@ -2750,45 +2840,47 @@ class Procedure extends Member {
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
-    name?.accept(v);
-    function?.accept(v);
+    name.accept(v);
+    function.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transform(function!);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transformOrRemove(function!, dummyFunctionNode);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
   @override
   DartType get getterType {
     return isGetter
-        ? function!.returnType
-        : function!.computeFunctionType(enclosingLibrary.nonNullable);
+        ? function.returnType
+        : function.computeFunctionType(enclosingLibrary.nonNullable);
   }
 
   @override
   DartType get setterType {
     return isSetter
-        ? function!.positionalParameters[0].type
+        ? function.positionalParameters[0].type
         : const NeverType.nonNullable();
   }
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2991,7 +3083,12 @@ class SuperInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    printer.write('super');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
   }
 }
 
@@ -3295,6 +3392,14 @@ class FunctionNode extends TreeNode {
   /// resulting function type is generic, a fresh set of type parameters is used
   /// in it.
   FunctionType computeFunctionType(Nullability nullability) {
+    TreeNode? parent = this.parent;
+    List<TypeParameter> typeParameters;
+    if (parent is Constructor) {
+      assert(this.typeParameters.isEmpty);
+      typeParameters = parent.enclosingClass.typeParameters;
+    } else {
+      typeParameters = this.typeParameters;
+    }
     return typeParameters.isEmpty
         ? computeThisFunctionType(nullability)
         : getFreshTypeParameters(typeParameters)
@@ -3924,6 +4029,7 @@ class InstanceGet extends Expression {
     receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
+    resultType.accept(v);
   }
 
   @override
@@ -3933,6 +4039,10 @@ class InstanceGet extends Expression {
       receiver = v.transform(receiver);
       receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType);
+    }
   }
 
   @override
@@ -3941,6 +4051,10 @@ class InstanceGet extends Expression {
     if (receiver != null) {
       receiver = v.transform(receiver);
       receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType, cannotRemoveSentinel);
     }
   }
 
@@ -4071,6 +4185,7 @@ class InstanceTearOff extends Expression {
     receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
+    resultType.accept(v);
   }
 
   @override
@@ -4080,6 +4195,10 @@ class InstanceTearOff extends Expression {
       receiver = v.transform(receiver);
       receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType);
+    }
   }
 
   @override
@@ -4088,102 +4207,16 @@ class InstanceTearOff extends Expression {
     if (receiver != null) {
       receiver = v.transform(receiver);
       receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType, cannotRemoveSentinel);
     }
   }
 
   @override
   String toString() {
     return "InstanceTearOff($kind, ${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
-    printer.write('.');
-    printer.writeInterfaceMemberName(interfaceTargetReference, name);
-  }
-}
-
-/// Expression of form `x.field`.
-///
-/// This may invoke a getter, read a field, or tear off a method.
-class PropertyGet extends Expression {
-  Expression receiver;
-  Name name;
-
-  Reference? interfaceTargetReference;
-
-  PropertyGet(Expression receiver, Name name, [Member? interfaceTarget])
-      : this.byReference(
-            receiver, name, getMemberReferenceGetter(interfaceTarget));
-
-  PropertyGet.byReference(
-      this.receiver, this.name, this.interfaceTargetReference) {
-    receiver.parent = this;
-  }
-
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
-
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceGetter(member);
-  }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) {
-    Member? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget != null) {
-      Class superclass = interfaceTarget.enclosingClass!;
-      InterfaceType receiverType =
-          receiver.getStaticTypeAsInstanceOf(superclass, context);
-      return Substitution.fromInterfaceType(receiverType)
-          .substituteType(interfaceTarget.getterType);
-    }
-    // Treat the properties of Object specially.
-    String nameString = name.text;
-    if (nameString == 'hashCode') {
-      return context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
-    } else if (nameString == 'runtimeType') {
-      return context.typeEnvironment.coreTypes.typeRawType(context.nonNullable);
-    }
-    return const DynamicType();
-  }
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) => v.visitPropertyGet(this);
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
-      v.visitPropertyGet(this, arg);
-
-  @override
-  void visitChildren(Visitor v) {
-    receiver.accept(v);
-    interfaceTarget?.acceptReference(v);
-    name.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-  }
-
-  @override
-  String toString() {
-    return "PropertyGet(${toStringInternal()})";
   }
 
   @override
@@ -4349,98 +4382,6 @@ class InstanceSet extends Expression {
   @override
   String toString() {
     return "InstanceSet(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
-    printer.write('.');
-    printer.writeInterfaceMemberName(interfaceTargetReference, name);
-    printer.write(' = ');
-    printer.writeExpression(value);
-  }
-}
-
-/// Expression of form `x.field = value`.
-///
-/// This may invoke a setter or assign a field.
-///
-/// Evaluates to the value of [value].
-class PropertySet extends Expression {
-  Expression receiver;
-  Name name;
-  Expression value;
-
-  Reference? interfaceTargetReference;
-
-  PropertySet(Expression receiver, Name name, Expression value,
-      [Member? interfaceTarget])
-      : this.byReference(
-            receiver, name, value, getMemberReferenceSetter(interfaceTarget));
-
-  PropertySet.byReference(
-      this.receiver, this.name, this.value, this.interfaceTargetReference) {
-    receiver.parent = this;
-    value.parent = this;
-  }
-
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
-
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceSetter(member);
-  }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) =>
-      value.getStaticType(context);
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) => v.visitPropertySet(this);
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
-      v.visitPropertySet(this, arg);
-
-  @override
-  void visitChildren(Visitor v) {
-    receiver.accept(v);
-    interfaceTarget?.acceptReference(v);
-    name.accept(v);
-    value.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
-  }
-
-  @override
-  String toString() {
-    return "PropertySet(${toStringInternal()})";
   }
 
   @override
@@ -4935,8 +4876,14 @@ abstract class InvocationExpression extends Expression {
   Name get name;
 }
 
-class DynamicInvocation extends InvocationExpression {
+abstract class InstanceInvocationExpression extends InvocationExpression {
+  Expression get receiver;
+}
+
+class DynamicInvocation extends InstanceInvocationExpression {
   final DynamicAccessKind kind;
+
+  @override
   Expression receiver;
 
   @override
@@ -5075,7 +5022,7 @@ enum InstanceAccessKind {
 
 /// An invocation of an instance method with a statically known interface
 /// target.
-class InstanceInvocation extends InvocationExpression {
+class InstanceInvocation extends InstanceInvocationExpression {
   // Must match serialized bit positions.
   static const int FlagInvariant = 1 << 0;
   static const int FlagBoundsSafe = 1 << 1;
@@ -5187,6 +5134,7 @@ class InstanceInvocation extends InvocationExpression {
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
+    functionType.accept(v);
   }
 
   @override
@@ -5201,6 +5149,10 @@ class InstanceInvocation extends InvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType) as FunctionType;
+    }
   }
 
   @override
@@ -5214,6 +5166,11 @@ class InstanceInvocation extends InvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -5238,7 +5195,7 @@ class InstanceInvocation extends InvocationExpression {
 /// This is used only for web backend in order to support invocation of
 /// native properties as functions. This node will be removed when this
 /// invocation style is no longer supported.
-class InstanceGetterInvocation extends InvocationExpression {
+class InstanceGetterInvocation extends InstanceInvocationExpression {
   // Must match serialized bit positions.
   static const int FlagInvariant = 1 << 0;
   static const int FlagBoundsSafe = 1 << 1;
@@ -5442,9 +5399,10 @@ enum FunctionAccessKind {
 
 /// An invocation of the 'call' method on an expression whose static type is
 /// a function type or the type 'Function'.
-class FunctionInvocation extends InvocationExpression {
+class FunctionInvocation extends InstanceInvocationExpression {
   final FunctionAccessKind kind;
 
+  @override
   Expression receiver;
 
   @override
@@ -5492,6 +5450,7 @@ class FunctionInvocation extends InvocationExpression {
     receiver.accept(v);
     name.accept(v);
     arguments.accept(v);
+    functionType?.accept(v);
   }
 
   @override
@@ -5506,6 +5465,10 @@ class FunctionInvocation extends InvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    FunctionType? type = functionType;
+    if (type != null) {
+      functionType = v.visitDartType(type) as FunctionType;
+    }
   }
 
   @override
@@ -5519,6 +5482,11 @@ class FunctionInvocation extends InvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    FunctionType? type = functionType;
+    if (type != null) {
+      functionType =
+          v.visitDartType(type, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -5585,6 +5553,7 @@ class LocalFunctionInvocation extends InvocationExpression {
   @override
   void visitChildren(Visitor v) {
     arguments.accept(v);
+    functionType.accept(v);
   }
 
   @override
@@ -5594,6 +5563,10 @@ class LocalFunctionInvocation extends InvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType) as FunctionType;
+    }
   }
 
   @override
@@ -5602,6 +5575,11 @@ class LocalFunctionInvocation extends InvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -5735,6 +5713,7 @@ class EqualsCall extends Expression {
     left.accept(v);
     interfaceTarget.acceptReference(v);
     right.accept(v);
+    functionType.accept(v);
   }
 
   @override
@@ -5749,6 +5728,10 @@ class EqualsCall extends Expression {
       right = v.transform(right);
       right.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType) as FunctionType;
+    }
   }
 
   @override
@@ -5762,6 +5745,11 @@ class EqualsCall extends Expression {
     if (right != null) {
       right = v.transform(right);
       right.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -5776,209 +5764,6 @@ class EqualsCall extends Expression {
     printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
     printer.write(' == ');
     printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
-  }
-}
-
-/// Expression of form `x.foo(y)`.
-class MethodInvocation extends InvocationExpression {
-  // Must match serialized bit positions.
-  static const int FlagInvariant = 1 << 0;
-  static const int FlagBoundsSafe = 1 << 1;
-
-  Expression receiver;
-
-  @override
-  Name name;
-
-  @override
-  Arguments arguments;
-
-  int flags = 0;
-
-  Reference? interfaceTargetReference;
-
-  MethodInvocation(Expression receiver, Name name, Arguments arguments,
-      [Member? interfaceTarget])
-      : this.byReference(
-            receiver,
-            name,
-            arguments,
-            // An invocation doesn't refer to the setter.
-            getMemberReferenceGetter(interfaceTarget));
-
-  MethodInvocation.byReference(
-      this.receiver, this.name, this.arguments, this.interfaceTargetReference) {
-    receiver.parent = this;
-    arguments.parent = this;
-  }
-
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
-
-  void set interfaceTarget(Member? target) {
-    // An invocation doesn't refer to the setter.
-    interfaceTargetReference = getMemberReferenceGetter(target);
-  }
-
-  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
-  ///
-  /// This is for instance the case in code patterns like this
-  ///
-  ///     List<int> list = <int>[];
-  ///     list.add(0);
-  ///
-  /// where the `list` variable is known to hold a value of the same type as
-  /// the static type. In contrast the would not be the case in code patterns
-  /// like this
-  ///
-  ///     List<num> list = <double>[];
-  ///     list.add(0); // Runtime error `int` is not a subtype of `double`.
-  ///
-  bool get isInvariant => flags & FlagInvariant != 0;
-
-  void set isInvariant(bool value) {
-    flags = value ? (flags | FlagInvariant) : (flags & ~FlagInvariant);
-  }
-
-  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
-  ///
-  /// This is for instance the case in code patterns like this
-  ///
-  ///     List list = new List.filled(2, 0);
-  ///     list[1] = 42;
-  ///
-  /// where the `list` is known to have a sufficient length for the update
-  /// in `list[1] = 42`.
-  bool get isBoundsSafe => flags & FlagBoundsSafe != 0;
-
-  void set isBoundsSafe(bool value) {
-    flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
-  }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) {
-    Member? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget != null) {
-      if (interfaceTarget is Procedure &&
-          context.typeEnvironment
-              .isSpecialCasedBinaryOperator(interfaceTarget)) {
-        return context.typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
-            receiver.getStaticType(context),
-            arguments.positional[0].getStaticType(context));
-      }
-      Class superclass = interfaceTarget.enclosingClass!;
-      InterfaceType receiverType =
-          receiver.getStaticTypeAsInstanceOf(superclass, context);
-      DartType getterType = Substitution.fromInterfaceType(receiverType)
-          .substituteType(interfaceTarget.getterType);
-      if (getterType is FunctionType) {
-        Substitution substitution;
-        if (getterType.typeParameters.length == arguments.types.length) {
-          substitution = Substitution.fromPairs(
-              getterType.typeParameters, arguments.types);
-        } else {
-          // TODO(johnniwinther): The front end should normalize the type
-          //  argument count or create an invalid expression in case of method
-          //  invocations with invalid type argument count.
-          substitution = Substitution.fromPairs(
-              getterType.typeParameters,
-              getterType.typeParameters
-                  .map((TypeParameter typeParameter) =>
-                      typeParameter.defaultType!)
-                  .toList());
-        }
-        return substitution.substituteType(getterType.returnType);
-      }
-      // The front end currently do not replace a property call `o.foo()`, where
-      // `foo` is a field or getter, with a function call on the property,
-      // `o.foo.call()`, so we look up the call method explicitly here.
-      // TODO(johnniwinther): Remove this when the front end performs the
-      // correct replacement.
-      if (getterType is InterfaceType) {
-        Member? member = context.typeEnvironment
-            .getInterfaceMember(getterType.classNode, new Name('call'));
-        if (member != null) {
-          DartType callType = member.getterType;
-          if (callType is FunctionType) {
-            return Substitution.fromInterfaceType(getterType)
-                .substituteType(callType.returnType);
-          }
-        }
-      }
-      return const DynamicType();
-    }
-    if (name.text == 'call') {
-      DartType receiverType = receiver.getStaticType(context);
-      if (receiverType is FunctionType) {
-        if (receiverType.typeParameters.length != arguments.types.length) {
-          return const NeverType.nonNullable();
-        }
-        return Substitution.fromPairs(
-                receiverType.typeParameters, arguments.types)
-            .substituteType(receiverType.returnType);
-      }
-    }
-    if (name.text == '==') {
-      // We use this special case to simplify generation of '==' checks.
-      return context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
-    }
-    return const DynamicType();
-  }
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) => v.visitMethodInvocation(this);
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
-      v.visitMethodInvocation(this, arg);
-
-  @override
-  void visitChildren(Visitor v) {
-    receiver.accept(v);
-    interfaceTarget?.acceptReference(v);
-    name.accept(v);
-    arguments.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-  }
-
-  @override
-  String toString() {
-    return "MethodInvocation(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver,
-        minimumPrecedence: astToText.Precedence.PRIMARY);
-    printer.write('.');
-    printer.writeInterfaceMemberName(interfaceTargetReference, name);
-    printer.writeArguments(arguments);
   }
 }
 
@@ -6023,9 +5808,9 @@ class SuperMethodInvocation extends InvocationExpression {
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
             superclass.typeParameters, receiverTypeArguments!)
-        .substituteType(interfaceTarget.function!.returnType);
+        .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
-            interfaceTarget.function!.typeParameters, arguments.types)
+            interfaceTarget.function.typeParameters, arguments.types)
         .substituteType(returnType);
   }
 
@@ -6088,7 +5873,7 @@ class StaticInvocation extends InvocationExpression {
   bool isConst;
 
   @override
-  Name get name => target.name!;
+  Name get name => target.name;
 
   StaticInvocation(Procedure target, Arguments arguments, {bool isConst: false})
       : this.byReference(
@@ -6112,8 +5897,8 @@ class StaticInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     return Substitution.fromPairs(
-            target.function!.typeParameters, arguments.types)
-        .substituteType(target.function!.returnType);
+            target.function.typeParameters, arguments.types)
+        .substituteType(target.function.returnType);
   }
 
   @override
@@ -6175,7 +5960,7 @@ class ConstructorInvocation extends InvocationExpression {
   bool isConst;
 
   @override
-  Name get name => target.name!;
+  Name get name => target.name;
 
   ConstructorInvocation(Constructor target, Arguments arguments,
       {bool isConst: false})
@@ -6263,9 +6048,9 @@ class ConstructorInvocation extends InvocationExpression {
     }
     printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
-    if (target.name!.text.isNotEmpty) {
+    if (target.name.text.isNotEmpty) {
       printer.write('.');
-      printer.write(target.name!.text);
+      printer.write(target.name.text);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
   }
@@ -7875,7 +7660,7 @@ class MapLiteral extends Expression {
   bool isConst;
   DartType keyType; // Not null, defaults to DynamicType.
   DartType valueType; // Not null, defaults to DynamicType.
-  final List<MapEntry> entries;
+  final List<MapLiteralEntry> entries;
 
   MapLiteral(this.entries,
       {this.keyType: const DynamicType(),
@@ -7951,20 +7736,21 @@ class MapLiteral extends Expression {
   }
 }
 
-class MapEntry extends TreeNode {
+class MapLiteralEntry extends TreeNode {
   Expression key;
   Expression value;
 
-  MapEntry(this.key, this.value) {
+  MapLiteralEntry(this.key, this.value) {
     key.parent = this;
     value.parent = this;
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitMapEntry(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitMapLiteralEntry(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitMapEntry(this, arg);
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitMapLiteralEntry(this, arg);
 
   @override
   void visitChildren(Visitor v) {
@@ -8075,8 +7861,7 @@ class AwaitExpression extends Expression {
 
 /// Common super-interface for [FunctionExpression] and [FunctionDeclaration].
 abstract class LocalFunction implements TreeNode {
-  // TODO(johnniwinther): Make this non-nullable.
-  FunctionNode? get function;
+  FunctionNode get function;
 }
 
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
@@ -8429,6 +8214,192 @@ class CheckLibraryIsLoaded extends Expression {
   void toTextInternal(AstPrinter printer) {
     printer.write(import.name!);
     printer.write('.checkLibraryIsLoaded()');
+  }
+}
+
+/// Tearing off a constructor of a class.
+class ConstructorTearOff extends Expression {
+  /// The reference to the constructor being torn off.
+  Reference targetReference;
+
+  ConstructorTearOff(Member target)
+      : assert(target is Constructor ||
+            (target is Procedure && target.kind == ProcedureKind.Factory)),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
+
+  ConstructorTearOff.byReference(this.targetReference);
+
+  Member get target => targetReference.asMember;
+
+  FunctionNode get function => target.function!;
+
+  void set target(Member member) {
+    assert(member is Constructor ||
+        (member is Procedure && member.kind == ProcedureKind.Factory));
+    targetReference = getNonNullableMemberReferenceGetter(member);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return target.function!.computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitConstructorTearOff(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitConstructorTearOff(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "ConstructorTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
+  }
+}
+
+/// Tearing off a redirecting factory constructor of a class.
+class RedirectingFactoryTearOff extends Expression {
+  /// The reference to the redirecting factory constructor being torn off.
+  Reference targetReference;
+
+  RedirectingFactoryTearOff(Procedure target)
+      : assert(target.isRedirectingFactory),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
+
+  RedirectingFactoryTearOff.byReference(this.targetReference);
+
+  Procedure get target => targetReference.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getNonNullableMemberReferenceGetter(target);
+  }
+
+  FunctionNode get function => target.function;
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return target.function.computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRedirectingFactoryTearOff(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryTearOff(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "RedirectingFactoryTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
+  }
+}
+
+class TypedefTearOff extends Expression {
+  final List<TypeParameter> typeParameters;
+  Expression expression;
+  final List<DartType> typeArguments;
+
+  TypedefTearOff(this.typeParameters, this.expression, this.typeArguments) {
+    expression.parent = this;
+    setParents(typeParameters, this);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(typeParameters);
+    FunctionType type = expression.getStaticType(context) as FunctionType;
+    type = freshTypeParameters.substitute(
+        Substitution.fromPairs(type.typeParameters, typeArguments)
+            .substituteType(type.withoutTypeParameters)) as FunctionType;
+    return new FunctionType(
+        type.positionalParameters, type.returnType, type.declaredNullability,
+        namedParameters: type.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: type.requiredParameterCount,
+        typedefType: null);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitTypedefTearOff(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitTypedefTearOff(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    expression.accept(v);
+    visitList(typeParameters, v);
+    visitList(typeArguments, v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (expression != null) {
+      expression = v.transform(expression);
+      expression.parent = this;
+    }
+    v.transformList(typeParameters, this);
+    v.transformDartTypeList(typeArguments);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (expression != null) {
+      expression = v.transform(expression);
+      expression.parent = this;
+    }
+    v.transformList(typeParameters, this, dummyTypeParameter);
+    v.transformDartTypeList(typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "TypedefTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameters(typeParameters);
+    printer.write(".(");
+    printer.writeExpression(expression);
+    printer.writeTypeArguments(typeArguments);
+    printer.write(")");
   }
 }
 
@@ -10116,11 +10087,13 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   VariableDeclaration variable; // Is final and has no initializer.
 
   @override
-  FunctionNode? function;
+  FunctionNode function;
 
-  FunctionDeclaration(this.variable, this.function) {
+  FunctionDeclaration(this.variable, this.function)
+      // ignore: unnecessary_null_comparison
+      : assert(function != null) {
     variable.parent = this;
-    function?.parent = this;
+    function.parent = this;
   }
 
   @override
@@ -10133,7 +10106,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   @override
   void visitChildren(Visitor v) {
     variable.accept(v);
-    function?.accept(v);
+    function.accept(v);
   }
 
   @override
@@ -10143,9 +10116,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
       variable = v.transform(variable);
       variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transform(function!);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -10156,9 +10130,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
       variable = v.transform(variable);
       variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transformOrRemove(function!, dummyFunctionNode);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -10169,9 +10144,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   void toTextInternal(AstPrinter printer) {
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      printer.writeFunctionNode(function!, printer.getVariableName(variable));
-      if (function!.body is ReturnStatement) {
+      printer.writeFunctionNode(function, printer.getVariableName(variable));
+      if (function.body is ReturnStatement) {
         printer.write(';');
       }
     }
@@ -10217,10 +10193,6 @@ abstract class Name extends Node {
     }
   }
 
-  // TODO(johnniwinther): Remove this when dependent code has been updated to
-  // use [text].
-  String get name => text;
-
   @override
   bool operator ==(other) {
     return other is Name && text == other.text && library == other.library;
@@ -10228,6 +10200,9 @@ abstract class Name extends Node {
 
   @override
   R accept<R>(Visitor<R> v) => v.visitName(this);
+
+  @override
+  R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitName(this, arg);
 
   @override
   void visitChildren(Visitor v) {
@@ -10864,8 +10839,8 @@ class FunctionType extends DartType {
         }
         for (int index = 0; index < typeParameters.length; index++) {
           if (!typeParameters[index]
-              .bound!
-              .equals(other.typeParameters[index].bound!, assumptions)) {
+              .bound
+              .equals(other.typeParameters[index].bound, assumptions)) {
             return false;
           }
         }
@@ -11333,6 +11308,9 @@ class NamedType extends Node implements Comparable<NamedType> {
   R accept<R>(Visitor<R> v) => v.visitNamedType(this);
 
   @override
+  R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitNamedType(this, arg);
+
+  @override
   void visitChildren(Visitor v) {
     type.accept(v);
   }
@@ -11549,7 +11527,7 @@ class TypeParameterType extends DartType {
   }
 
   /// Returns the bound of the type parameter, accounting for promotions.
-  DartType get bound => (promotedBound ?? parameter.bound)!;
+  DartType get bound => promotedBound ?? parameter.bound;
 
   /// Nullability of the type, calculated from its parts.
   ///
@@ -11599,8 +11577,8 @@ class TypeParameterType extends DartType {
     // non-nullable types can be passed in for the type parameter, making the
     // corresponding type parameter types 'undetermined.'  Otherwise, the
     // nullability matches that of the bound.
-    DartType? bound = typeParameter.bound;
-    if (bound == null) {
+    DartType bound = typeParameter.bound;
+    if (identical(bound, TypeParameter.unsetBoundSentinel)) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
 
@@ -11610,7 +11588,7 @@ class TypeParameterType extends DartType {
     // other ways for such a dependency to exist, they should be checked here.
     bool nullabilityDependsOnItself = false;
     {
-      DartType? type = typeParameter.bound;
+      DartType type = typeParameter.bound;
       while (type is FutureOrType) {
         type = type.typeArgument;
       }
@@ -11949,20 +11927,30 @@ class TypeParameter extends TreeNode implements Annotatable {
 
   String? name; // Cosmetic name.
 
+  /// Sentinel value used for the [bound] that has not yet been computed. This
+  /// is needed to make the [bound] field non-nullable while supporting
+  /// recursive bounds.
+  static final DartType unsetBoundSentinel = new InvalidType();
+
   /// The bound on the type variable.
   ///
-  /// Should not be null except temporarily during IR construction.  Should
-  /// be set to the root class for type parameters without an explicit bound.
-  // TODO(johnniwinther): Can we make this late non-nullable?
-  DartType? bound;
+  /// This is set to [unsetBoundSentinel] temporarily during IR construction.
+  /// This is set to the `Object?` for type parameters without an explicit
+  /// bound.
+  DartType bound;
+
+  /// Sentinel value used for the [defaultType] that has not yet been computed.
+  /// This is needed to make the [defaultType] field non-nullable while
+  /// supporting recursive bounds for which the default type need to be set
+  /// late.
+  static final DartType unsetDefaultTypeSentinel = new InvalidType();
 
   /// The default value of the type variable. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference at compile time. At run time,
   /// [defaultType] is used by the backends in place of the missing type
   /// argument of a dynamic invocation of a generic function.
-  // TODO(johnniwinther): Can we make this late non-nullable?
-  DartType? defaultType;
+  DartType defaultType;
 
   /// Describes variance of the type parameter w.r.t. declaration on which it is
   /// defined. For classes, if variance is not explicitly set, the type
@@ -11980,7 +11968,9 @@ class TypeParameter extends TreeNode implements Annotatable {
 
   static const int legacyCovariantSerializationMarker = 4;
 
-  TypeParameter([this.name, this.bound, this.defaultType]);
+  TypeParameter([this.name, DartType? bound, DartType? defaultType])
+      : bound = bound ?? unsetBoundSentinel,
+        defaultType = defaultType ?? unsetDefaultTypeSentinel;
 
   // Must match serialized bit positions.
   static const int FlagGenericCovariantImpl = 1 << 0;
@@ -12017,39 +12007,33 @@ class TypeParameter extends TreeNode implements Annotatable {
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
-    bound?.accept(v);
-    defaultType?.accept(v);
+    bound.accept(v);
+    defaultType.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (bound != null) {
-      bound = v.visitDartType(bound!);
+      bound = v.visitDartType(bound);
     }
+    // ignore: unnecessary_null_comparison
     if (defaultType != null) {
-      defaultType = v.visitDartType(defaultType!);
+      defaultType = v.visitDartType(defaultType);
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (bound != null) {
-      DartType newBound = v.visitDartType(bound!, dummyDartType);
-      if (identical(newBound, dummyDartType)) {
-        bound = null;
-      } else {
-        bound = newBound;
-      }
+      bound = v.visitDartType(bound, cannotRemoveSentinel);
     }
+    // ignore: unnecessary_null_comparison
     if (defaultType != null) {
-      DartType newDefaultType = v.visitDartType(defaultType!, dummyDartType);
-      if (identical(newDefaultType, dummyDartType)) {
-        defaultType = null;
-      } else {
-        defaultType = newDefaultType;
-      }
+      defaultType = v.visitDartType(defaultType, cannotRemoveSentinel);
     }
   }
 
@@ -12081,6 +12065,9 @@ class Supertype extends Node {
   Class get classNode => className.asClass;
 
   R accept<R>(Visitor<R> v) => v.visitSupertype(this);
+
+  @override
+  R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitSupertype(this, arg);
 
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
@@ -12135,31 +12122,46 @@ abstract class Constant extends Node {
   ///
   /// (Note that a constant can be seen as a DAG (directed acyclic graph) and
   ///  not a tree!)
-  visitChildren(Visitor v);
+  @override
+  void visitChildren(Visitor v);
 
   /// Calls the `visit*Constant()` method on the visitor [v].
+  @override
   R accept<R>(ConstantVisitor<R> v);
+
+  /// Calls the `visit*Constant()` method on the visitor [v].
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg);
 
   /// Calls the `visit*ConstantReference()` method on the visitor [v].
   R acceptReference<R>(Visitor<R> v);
 
+  /// Calls the `visit*ConstantReference()` method on the visitor [v].
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg);
+
   /// The Kernel AST will reference [Constant]s via [ConstantExpression]s.  The
   /// constants are not required to be canonicalized, but they have to be deeply
   /// comparable via hashCode/==!
+  @override
   int get hashCode;
+
+  @override
   bool operator ==(Object other);
 
+  @override
   String toString() => throw '$runtimeType';
 
   /// Returns a textual representation of the this constant.
   ///
   /// If [verbose] is `true`, qualified names will include the library name/uri.
+  @override
   String toText(AstTextStrategy strategy) {
     AstPrinter printer = new AstPrinter(strategy);
     printer.writeConstant(this);
     return printer.getText();
   }
 
+  @override
   void toTextInternal(AstPrinter printer);
 
   /// Gets the type of this constant.
@@ -12175,8 +12177,10 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   PrimitiveConstant(this.value);
 
+  @override
   int get hashCode => value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is PrimitiveConstant<T> && other.value == value;
 
@@ -12189,10 +12193,24 @@ abstract class PrimitiveConstant<T> extends Constant {
 class NullConstant extends PrimitiveConstant<Null> {
   NullConstant() : super(null);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitNullConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitNullConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitNullConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitNullConstantReference(this, arg);
+
+  @override
   DartType getType(StaticTypeContext context) => const NullType();
 
   @override
@@ -12202,10 +12220,24 @@ class NullConstant extends PrimitiveConstant<Null> {
 class BoolConstant extends PrimitiveConstant<bool> {
   BoolConstant(bool value) : super(value);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitBoolConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitBoolConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitBoolConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitBoolConstantReference(this, arg);
+
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
@@ -12217,10 +12249,24 @@ class BoolConstant extends PrimitiveConstant<bool> {
 class IntConstant extends PrimitiveConstant<int> {
   IntConstant(int value) : super(value);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitIntConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitIntConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitIntConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitIntConstantReference(this, arg);
+
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
 
@@ -12232,14 +12278,31 @@ class IntConstant extends PrimitiveConstant<int> {
 class DoubleConstant extends PrimitiveConstant<double> {
   DoubleConstant(double value) : super(value);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitDoubleConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitDoubleConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitDoubleConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitDoubleConstantReference(this, arg);
+
+  @override
   int get hashCode => value.isNaN ? 199 : super.hashCode;
+
+  @override
   bool operator ==(Object other) =>
       other is DoubleConstant && identical(value, other.value);
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.doubleRawType(context.nonNullable);
 
@@ -12253,9 +12316,22 @@ class StringConstant extends PrimitiveConstant<String> {
     assert(value != null);
   }
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitStringConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitStringConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitStringConstantReference(this, arg);
 
   @override
   DartType getType(StaticTypeContext context) =>
@@ -12268,6 +12344,7 @@ class StringConstant extends PrimitiveConstant<String> {
     printer.write('"');
   }
 
+  @override
   String toString() => 'StringConstant(${toStringInternal()})';
 }
 
@@ -12277,22 +12354,37 @@ class SymbolConstant extends Constant {
 
   SymbolConstant(this.name, this.libraryReference);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitSymbolConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitSymbolConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitSymbolConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitSymbolConstantReference(this, arg);
 
   @override
   String toString() => 'SymbolConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => _Hash.hash2(name, libraryReference);
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SymbolConstant &&
           other.name == name &&
           other.libraryReference == libraryReference);
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.symbolRawType(context.nonNullable);
 
@@ -12314,7 +12406,8 @@ class MapConstant extends Constant {
 
   MapConstant(this.keyType, this.valueType, this.entries);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     keyType.accept(v);
     valueType.accept(v);
     for (final ConstantMapEntry entry in entries) {
@@ -12323,8 +12416,19 @@ class MapConstant extends Constant {
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitMapConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitMapConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitMapConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12349,6 +12453,7 @@ class MapConstant extends Constant {
   late final int hashCode = _Hash.combine2Finish(
       keyType.hashCode, valueType.hashCode, _Hash.combineListHash(entries));
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MapConstant &&
@@ -12356,6 +12461,7 @@ class MapConstant extends Constant {
           other.valueType == valueType &&
           listEquals(other.entries, entries));
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.mapType(keyType, valueType, context.nonNullable);
 }
@@ -12396,15 +12502,27 @@ class ListConstant extends Constant {
 
   ListConstant(this.typeArgument, this.entries);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     typeArgument.accept(v);
     for (final Constant constant in entries) {
       constant.acceptReference(v);
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitListConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitListConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitListConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12427,12 +12545,14 @@ class ListConstant extends Constant {
   late final int hashCode = _Hash.combineFinish(
       typeArgument.hashCode, _Hash.combineListHash(entries));
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ListConstant &&
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.listType(typeArgument, context.nonNullable);
 }
@@ -12443,15 +12563,27 @@ class SetConstant extends Constant {
 
   SetConstant(this.typeArgument, this.entries);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     typeArgument.accept(v);
     for (final Constant constant in entries) {
       constant.acceptReference(v);
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitSetConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitSetConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitSetConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12474,12 +12606,14 @@ class SetConstant extends Constant {
   late final int hashCode = _Hash.combineFinish(
       typeArgument.hashCode, _Hash.combineListHash(entries));
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SetConstant &&
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.setType(typeArgument, context.nonNullable);
 }
@@ -12505,7 +12639,17 @@ class InstanceConstant extends Constant {
   }
 
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitInstanceConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitInstanceConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12531,6 +12675,7 @@ class InstanceConstant extends Constant {
   late final int hashCode = _Hash.combine2Finish(classReference.hashCode,
       listHashCode(typeArguments), _Hash.combineMapHashUnordered(fieldValues));
 
+  @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other is InstanceConstant &&
@@ -12539,25 +12684,37 @@ class InstanceConstant extends Constant {
             mapEquals(other.fieldValues, fieldValues));
   }
 
+  @override
   DartType getType(StaticTypeContext context) =>
       new InterfaceType(classNode, context.nonNullable, typeArguments);
 }
 
-class PartialInstantiationConstant extends Constant {
-  final TearOffConstant tearOffConstant;
+class InstantiationConstant extends Constant {
+  final Constant tearOffConstant;
   final List<DartType> types;
 
-  PartialInstantiationConstant(this.tearOffConstant, this.types);
+  InstantiationConstant(this.tearOffConstant, this.types);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     tearOffConstant.acceptReference(v);
     visitList(types, v);
   }
 
-  R accept<R>(ConstantVisitor<R> v) =>
-      v.visitPartialInstantiationConstant(this);
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitInstantiationConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitInstantiationConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
-      v.visitPartialInstantiationConstantReference(this);
+      v.visitInstantiationConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitInstantiationConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12566,19 +12723,22 @@ class PartialInstantiationConstant extends Constant {
   }
 
   @override
-  String toString() => 'PartialInstantiationConstant(${toStringInternal()})';
+  String toString() => 'InstantiationConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => _Hash.combineFinish(
       tearOffConstant.hashCode, _Hash.combineListHash(types));
 
+  @override
   bool operator ==(Object other) {
-    return other is PartialInstantiationConstant &&
+    return other is InstantiationConstant &&
         other.tearOffConstant == tearOffConstant &&
         listEquals(other.types, types);
   }
 
+  @override
   DartType getType(StaticTypeContext context) {
-    final FunctionType type = tearOffConstant.getType(context);
+    final FunctionType type = tearOffConstant.getType(context) as FunctionType;
     final Map<TypeParameter, DartType> mapping = <TypeParameter, DartType>{};
     for (final TypeParameter parameter in type.typeParameters) {
       mapping[parameter] = types[mapping.length];
@@ -12587,42 +12747,280 @@ class PartialInstantiationConstant extends Constant {
   }
 }
 
-class TearOffConstant extends Constant {
-  final Reference procedureReference;
+abstract class TearOffConstant implements Constant {
+  Reference get targetReference;
+  Member get target;
+  FunctionNode get function;
+}
 
-  TearOffConstant(Procedure procedure)
-      : procedureReference = procedure.reference {
+class StaticTearOffConstant extends Constant implements TearOffConstant {
+  @override
+  final Reference targetReference;
+
+  StaticTearOffConstant(Procedure procedure)
+      : targetReference = procedure.reference {
     assert(procedure.isStatic);
   }
 
-  TearOffConstant.byReference(this.procedureReference);
+  StaticTearOffConstant.byReference(this.targetReference);
 
-  Procedure get procedure => procedureReference.asProcedure;
+  @override
+  Procedure get target => targetReference.asProcedure;
 
-  visitChildren(Visitor v) {
-    procedureReference.asProcedure.acceptReference(v);
+  @override
+  FunctionNode get function => target.function;
+
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
   }
 
-  R accept<R>(ConstantVisitor<R> v) => v.visitTearOffConstant(this);
-  R acceptReference<R>(Visitor<R> v) => v.visitTearOffConstantReference(this);
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitStaticTearOffConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitStaticTearOffConstant(this, arg);
+
+  @override
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitStaticTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitStaticTearOffConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(procedureReference);
+    printer.writeMemberName(targetReference);
   }
 
   @override
-  String toString() => 'TearOffConstant(${toStringInternal()})';
+  String toString() => 'StaticTearOffConstant(${toStringInternal()})';
 
-  int get hashCode => procedureReference.hashCode;
+  @override
+  int get hashCode => targetReference.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is StaticTearOffConstant &&
+        other.targetReference == targetReference;
+  }
+
+  @override
+  FunctionType getType(StaticTypeContext context) {
+    return target.function.computeFunctionType(context.nonNullable);
+  }
+}
+
+class ConstructorTearOffConstant extends Constant implements TearOffConstant {
+  @override
+  final Reference targetReference;
+
+  ConstructorTearOffConstant(Member target)
+      : assert(target is Constructor ||
+            (target is Procedure && target.kind == ProcedureKind.Factory)),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
+
+  ConstructorTearOffConstant.byReference(this.targetReference);
+
+  @override
+  Member get target => targetReference.asMember;
+
+  @override
+  FunctionNode get function => target.function!;
+
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
+  }
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitConstructorTearOffConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitConstructorTearOffConstant(this, arg);
+
+  @override
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitConstructorTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitConstructorTearOffConstantReference(this, arg);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
+  }
+
+  @override
+  String toString() => 'ConstructorTearOffConstant(${toStringInternal()})';
+
+  int get hashCode => targetReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is TearOffConstant &&
-        other.procedureReference == procedureReference;
+    return other is ConstructorTearOffConstant &&
+        other.targetReference == targetReference;
   }
 
   FunctionType getType(StaticTypeContext context) {
-    return procedure.function!.computeFunctionType(context.nonNullable);
+    return function.computeFunctionType(context.nonNullable);
+  }
+}
+
+class RedirectingFactoryTearOffConstant extends Constant
+    implements TearOffConstant {
+  @override
+  final Reference targetReference;
+
+  RedirectingFactoryTearOffConstant(Procedure target)
+      : assert(target.isRedirectingFactory),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
+
+  RedirectingFactoryTearOffConstant.byReference(this.targetReference);
+
+  @override
+  Procedure get target => targetReference.asProcedure;
+
+  @override
+  FunctionNode get function => target.function;
+
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
+  }
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) =>
+      v.visitRedirectingFactoryTearOffConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryTearOffConstant(this, arg);
+
+  @override
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitRedirectingFactoryTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryTearOffConstantReference(this, arg);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
+  }
+
+  @override
+  String toString() =>
+      'RedirectingFactoryTearOffConstant(${toStringInternal()})';
+
+  int get hashCode => targetReference.hashCode;
+
+  bool operator ==(Object other) {
+    return other is RedirectingFactoryTearOffConstant &&
+        other.targetReference == targetReference;
+  }
+
+  FunctionType getType(StaticTypeContext context) {
+    return function.computeFunctionType(context.nonNullable);
+  }
+}
+
+class TypedefTearOffConstant extends Constant {
+  final List<TypeParameter> parameters;
+  final TearOffConstant tearOffConstant;
+  final List<DartType> types;
+
+  late final int hashCode = _computeHashCode();
+
+  TypedefTearOffConstant(this.parameters, this.tearOffConstant, this.types);
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(parameters, v);
+    tearOffConstant.acceptReference(v);
+    visitList(types, v);
+  }
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitTypedefTearOffConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitTypedefTearOffConstant(this, arg);
+
+  @override
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitTypedefTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitTypedefTearOffConstantReference(this, arg);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeTypeParameters(parameters);
+    printer.writeConstant(tearOffConstant);
+    printer.writeTypeArguments(types);
+  }
+
+  @override
+  String toString() => 'TypedefTearOffConstant(${toStringInternal()})';
+
+  bool operator ==(Object other) {
+    if (other is! TypedefTearOffConstant) return false;
+    if (other.tearOffConstant != tearOffConstant) return false;
+    if (other.parameters.length != parameters.length) return false;
+    if (parameters.isNotEmpty) {
+      Assumptions assumptions = new Assumptions();
+      for (int index = 0; index < parameters.length; index++) {
+        assumptions.assume(parameters[index], other.parameters[index]);
+      }
+      for (int index = 0; index < parameters.length; index++) {
+        if (!parameters[index]
+            .bound
+            .equals(other.parameters[index].bound, assumptions)) {
+          return false;
+        }
+      }
+      for (int i = 0; i < types.length; ++i) {
+        if (!types[i].equals(other.types[i], assumptions)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  int _computeHashCode() {
+    int hash = 1237;
+    for (int i = 0; i < parameters.length; ++i) {
+      TypeParameter parameter = parameters[i];
+      hash = 0x3fffffff & (hash * 31 + parameter.bound.hashCode);
+    }
+    for (int i = 0; i < types.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + types[i].hashCode);
+    }
+    hash = 0x3fffffff & (hash * 31 + tearOffConstant.hashCode);
+    return hash;
+  }
+
+  DartType getType(StaticTypeContext context) {
+    FunctionType type = tearOffConstant.getType(context) as FunctionType;
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(parameters);
+    type = freshTypeParameters.substitute(
+        Substitution.fromPairs(type.typeParameters, types)
+            .substituteType(type.withoutTypeParameters)) as FunctionType;
+    return new FunctionType(
+        type.positionalParameters, type.returnType, type.declaredNullability,
+        namedParameters: type.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: type.requiredParameterCount,
+        typedefType: null);
   }
 }
 
@@ -12631,13 +13029,25 @@ class TypeLiteralConstant extends Constant {
 
   TypeLiteralConstant(this.type);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     type.accept(v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitTypeLiteralConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitTypeLiteralConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitTypeLiteralConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitTypeLiteralConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12647,8 +13057,10 @@ class TypeLiteralConstant extends Constant {
   @override
   String toString() => 'TypeLiteralConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => type.hashCode;
 
+  @override
   bool operator ==(Object other) {
     return other is TypeLiteralConstant && other.type == type;
   }
@@ -12664,13 +13076,25 @@ class UnevaluatedConstant extends Constant {
     expression.parent = null;
   }
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     expression.accept(v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitUnevaluatedConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitUnevaluatedConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitUnevaluatedConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitUnevaluatedConstantReference(this, arg);
 
   DartType getType(StaticTypeContext context) =>
       expression.getStaticType(context);
@@ -12852,7 +13276,7 @@ class Component extends TreeNode {
   Component get enclosingComponent => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location? getLocation(Uri? file, int offset) {
+  Location? getLocation(Uri file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
 
@@ -12885,8 +13309,7 @@ class Component extends TreeNode {
 /// A tuple with file, line, and column number, for displaying human-readable
 /// locations.
 class Location {
-  // TODO(johnniwinther): Make this non-nullable.
-  final Uri? file;
+  final Uri file;
   final int line; // 1-based.
   final int column; // 1-based.
 
@@ -12932,7 +13355,7 @@ abstract class MetadataRepository<T> {
   /// can't have metadata attached to them. Also, metadata is not saved on
   /// Block nodes inside BlockExpressions.
   static bool isSupported(Node node) {
-    return !(node is MapEntry ||
+    return !(node is MapLiteralEntry ||
         node is Catch ||
         (node is Block && node.parent is BlockExpression));
   }
@@ -12949,7 +13372,7 @@ abstract class BinarySink {
   /// Write List<Byte> into the sink.
   void writeByteList(List<int> bytes);
 
-  void writeNullAllowedCanonicalNameReference(CanonicalName name);
+  void writeNullAllowedCanonicalNameReference(CanonicalName? name);
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
@@ -13074,7 +13497,7 @@ class Source {
   }
 
   /// Translates an offset to 1-based line and column numbers in the given file.
-  Location getLocation(Uri? file, int offset) {
+  Location getLocation(Uri file, int offset) {
     List<int>? lineStarts = this.lineStarts;
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
@@ -13302,7 +13725,7 @@ class _Hash {
         // `-1` is used as a dummy default value.
         -1);
     int i = 0;
-    for (core.MapEntry entry in map.entries) {
+    for (MapEntry entry in map.entries) {
       entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
     }
     entryHashes.sort();
@@ -13370,7 +13793,7 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 const Null informative = null;
 
 Location? _getLocationInComponent(
-    Component? component, Uri? fileUri, int offset) {
+    Component? component, Uri fileUri, int offset) {
   if (component != null) {
     return component.getLocation(fileUri, offset);
   } else {
@@ -13544,6 +13967,76 @@ final List<NamedType> emptyListOfNamedType =
 final List<TypeParameter> emptyListOfTypeParameter =
     List.filled(0, dummyTypeParameter, growable: false);
 
+/// Almost const <Constant>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Constant> emptyListOfConstant =
+    List.filled(0, dummyConstant, growable: false);
+
+/// Almost const <String>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<String> emptyListOfString = List.filled(0, '', growable: false);
+
+/// Almost const <Typedef>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Typedef> emptyListOfTypedef =
+    List.filled(0, dummyTypedef, growable: false);
+
+/// Almost const <Extension>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Extension> emptyListOfExtension =
+    List.filled(0, dummyExtension, growable: false);
+
+/// Almost const <Field>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Field> emptyListOfField =
+    List.filled(0, dummyField, growable: false);
+
+/// Almost const <LibraryPart>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<LibraryPart> emptyListOfLibraryPart =
+    List.filled(0, dummyLibraryPart, growable: false);
+
+/// Almost const <LibraryDependency>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<LibraryDependency> emptyListOfLibraryDependency =
+    List.filled(0, dummyLibraryDependency, growable: false);
+
+/// Almost const <Procedure>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Procedure> emptyListOfProcedure =
+    List.filled(0, dummyProcedure, growable: false);
+
+/// Almost const <MapLiteralEntry>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<MapLiteralEntry> emptyListOfMapLiteralEntry =
+    List.filled(0, dummyMapLiteralEntry, growable: false);
+
+/// Almost const <Class>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Class> emptyListOfClass =
+    List.filled(0, dummyClass, growable: false);
+
+/// Almost const <ExtensionMemberDescriptor>[], but not const in an attempt to
+/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
+    List.filled(0, dummyExtensionMemberDescriptor, growable: false);
+
+/// Almost const <Constructor>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Constructor> emptyListOfConstructor =
+    List.filled(0, dummyConstructor, growable: false);
+
+/// Almost const <RedirectingFactory>[], but not const in an attempt to avoid
+/// polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<RedirectingFactory> emptyListOfRedirectingFactory =
+    List.filled(0, dummyRedirectingFactory, growable: false);
+
+/// Almost const <Initializer>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Initializer> emptyListOfInitializer =
+    List.filled(0, dummyInitializer, growable: false);
+
 /// Non-nullable [DartType] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
@@ -13572,12 +14065,21 @@ final Uri dummyUri = new Uri(scheme: 'dummy');
 /// Non-nullable [Name] dummy value.
 final Name dummyName = new _PublicName('');
 
+/// Non-nullable [Reference] dummy value.
+final Reference dummyReference = new Reference();
+
+/// Non-nullable [Component] dummy value.
+///
+/// This can be used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final Component dummyComponent = new Component();
+
 /// Non-nullable [Library] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Library dummyLibrary = new Library(dummyUri);
+final Library dummyLibrary = new Library(dummyUri, fileUri: dummyUri);
 
 /// Non-nullable [LibraryDependency] dummy value.
 ///
@@ -13606,57 +14108,70 @@ final LibraryPart dummyLibraryPart = new LibraryPart(const [], '');
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Class dummyClass = new Class(name: '');
+final Class dummyClass = new Class(name: '', fileUri: dummyUri);
 
 /// Non-nullable [Constructor] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Constructor dummyConstructor = new Constructor(dummyFunctionNode);
+final Constructor dummyConstructor =
+    new Constructor(dummyFunctionNode, name: dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Extension] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Extension dummyExtension = new Extension(name: '');
+final Extension dummyExtension = new Extension(name: '', fileUri: dummyUri);
+
+/// Non-nullable [ExtensionMemberDescriptor] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
+    new ExtensionMemberDescriptor(
+        name: dummyName,
+        kind: ExtensionMemberKind.Getter,
+        member: dummyReference);
 
 /// Non-nullable [Member] dummy value.
 ///
 /// This can be used for instance as a dummy initial value for the
 /// `List.filled` constructor.
-final Member dummyMember = new Field.mutable(new _PublicName(''));
+final Member dummyMember = new Field.mutable(dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Procedure] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Procedure dummyProcedure =
-    new Procedure(dummyName, ProcedureKind.Method, dummyFunctionNode);
+final Procedure dummyProcedure = new Procedure(
+    dummyName, ProcedureKind.Method, dummyFunctionNode,
+    fileUri: dummyUri);
 
 /// Non-nullable [Field] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Field dummyField = new Field.mutable(dummyName);
+final Field dummyField = new Field.mutable(dummyName, fileUri: dummyUri);
 
-/// Non-nullable [RedirectingFactoryConstructor] dummy value.
+/// Non-nullable [RedirectingFactory] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final RedirectingFactoryConstructor dummyRedirectingFactoryConstructor =
-    new RedirectingFactoryConstructor(null);
+final RedirectingFactory dummyRedirectingFactory = new RedirectingFactory(null,
+    name: dummyName, fileUri: dummyUri, function: dummyFunctionNode);
 
 /// Non-nullable [Typedef] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Typedef dummyTypedef = new Typedef('', null);
+final Typedef dummyTypedef = new Typedef('', null, fileUri: dummyUri);
 
 /// Non-nullable [Initializer] dummy value.
 ///
@@ -13709,12 +14224,13 @@ final VariableDeclaration dummyVariableDeclaration =
 /// constructor.
 final TypeParameter dummyTypeParameter = new TypeParameter();
 
-/// Non-nullable [MapEntry] dummy value.
+/// Non-nullable [MapLiteralEntry] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final MapEntry dummyMapEntry = new MapEntry(dummyExpression, dummyExpression);
+final MapLiteralEntry dummyMapLiteralEntry =
+    new MapLiteralEntry(dummyExpression, dummyExpression);
 
 /// Non-nullable [Arguments] dummy value.
 ///
@@ -13746,6 +14262,55 @@ final SwitchCase dummySwitchCase = new SwitchCase.defaultCase(dummyStatement);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final Catch dummyCatch = new Catch(null, dummyStatement);
+
+/// Non-nullable [Constant] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final Constant dummyConstant = new NullConstant();
+
+/// Non-nullable [LabeledStatement] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final LabeledStatement dummyLabeledStatement = new LabeledStatement(null);
+
+/// Of the dummy nodes, some are tree nodes. `TreeNode`s has a parent pointer
+/// and that can be set when the dummy is used. This means that we can leak
+/// through them. This list will (at least as a stopgap) allow us to null-out
+/// the parent pointer when/if needed.
+///
+/// This should manually be kept up to date.
+final List<TreeNode> dummyTreeNodes = [
+  dummyComponent,
+  dummyLibrary,
+  dummyLibraryDependency,
+  dummyCombinator,
+  dummyLibraryPart,
+  dummyClass,
+  dummyConstructor,
+  dummyExtension,
+  dummyMember,
+  dummyProcedure,
+  dummyField,
+  dummyRedirectingFactory,
+  dummyTypedef,
+  dummyInitializer,
+  dummyFunctionNode,
+  dummyStatement,
+  dummyExpression,
+  dummyNamedExpression,
+  dummyVariableDeclaration,
+  dummyTypeParameter,
+  dummyMapLiteralEntry,
+  dummyArguments,
+  dummyAssertStatement,
+  dummySwitchCase,
+  dummyCatch,
+  dummyLabeledStatement,
+];
 
 /// Sentinel value used to signal that a node cannot be removed through the
 /// [RemovingTransformer].

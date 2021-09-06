@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing params.
 
+// @dart = 2.9
+
 class Param1Test {
   // TODO(asiva): Should we try to interpret 1 above as an int? In order to
   // avoid a type error with --enable_type_checks, the type of i below is

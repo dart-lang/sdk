@@ -89,7 +89,6 @@ var tests = <IsolateTest>[
       'Root',
       '[Unoptimized] test',
       '[Unoptimized] test',
-      '[Unoptimized] _Closure.call',
       '[Unoptimized] _ServiceTesteeRunner.run',
     ];
     for (var i = 0; i < expected.length; i++) {

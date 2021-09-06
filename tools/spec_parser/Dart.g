@@ -360,23 +360,6 @@ methodSignature
     |    constructorSignature
     ;
 
-// https://github.com/dart-lang/sdk/issues/29501 reports on the problem which
-// was solved by adding a case for redirectingFactoryConstructorSignature.
-// TODO(eernst): Close that issue when this is integrated into the spec.
-
-// https://github.com/dart-lang/sdk/issues/29502 reports on the problem that
-// than external const factory constructor declaration cannot be derived by
-// the spec grammar (and also not by this grammar). The following fixes were
-// introduced for that: Added the 'factoryConstructorSignature' case below in
-// 'declaration'; also added 'CONST?' in the 'factoryConstructorSignature'
-// rule, such that const factories in general are allowed.
-// TODO(eernst): Close that issue when this is integrated into the spec.
-
-// TODO(eernst): Note that `EXTERNAL? STATIC? functionSignature` includes
-// `STATIC functionSignature`, but a static function cannot be abstract.
-// We might want to make that a syntax error rather than a static semantic
-// check.
-
 declaration
     :    EXTERNAL factoryConstructorSignature
     |    EXTERNAL constantConstructorSignature
@@ -389,7 +372,9 @@ declaration
     |    EXTERNAL? operatorSignature
     |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
     |    STATIC LATE FINAL type? initializedIdentifierList
-    |    (STATIC | COVARIANT) LATE? varOrType initializedIdentifierList
+    |    STATIC LATE? varOrType initializedIdentifierList
+    |    COVARIANT LATE FINAL type? identifierList
+    |    COVARIANT LATE? varOrType initializedIdentifierList
     |    LATE? (FINAL type? | varOrType) initializedIdentifierList
     |    redirectingFactoryConstructorSignature
     |    constantConstructorSignature (redirection | initializers)?
@@ -437,11 +422,11 @@ constructorSignature
     ;
 
 constructorName
-    :    typeIdentifier ('.' identifier)?
+    :    typeIdentifier ('.' (identifier | NEW))?
     ;
 
 redirection
-    :    ':' THIS ('.' identifier)? arguments
+    :    ':' THIS ('.' (identifier | NEW))? arguments
     ;
 
 initializers
@@ -450,7 +435,7 @@ initializers
 
 initializerListEntry
     :    SUPER arguments
-    |    SUPER '.' identifier arguments
+    |    SUPER '.' (identifier | NEW) arguments
     |    fieldInitializer
     |    assertion
     ;
@@ -536,10 +521,12 @@ primary
     |    '(' expression ')'
     |    literal
     |    identifier
+    |    constructorTearoff
     ;
 
 constructorInvocation
-    :    typeName typeArguments '.' identifier arguments
+    :    typeName typeArguments '.' NEW arguments
+    |    typeName '.' NEW arguments
     ;
 
 literal
@@ -613,6 +600,10 @@ ifElement
 
 forElement
     : AWAIT? FOR '(' forLoopParts ')' element
+    ;
+
+constructorTearoff
+    :    typeName typeArguments? '.' NEW
     ;
 
 throwExpression
@@ -867,6 +858,7 @@ selector
     :    '!'
     |    assignableSelector
     |    argumentPart
+    |    typeArguments
     ;
 
 argumentPart
@@ -901,27 +893,7 @@ assignableSelector
 
 identifierNotFUNCTION
     :    IDENTIFIER
-    |    ABSTRACT // Built-in identifier.
-    |    AS // Built-in identifier.
-    |    COVARIANT // Built-in identifier.
-    |    DEFERRED // Built-in identifier.
-    |    DYNAMIC // Built-in identifier.
-    |    EXPORT // Built-in identifier.
-    |    EXTERNAL // Built-in identifier.
-    |    FACTORY // Built-in identifier.
-    |    GET // Built-in identifier.
-    |    IMPLEMENTS // Built-in identifier.
-    |    IMPORT // Built-in identifier.
-    |    INTERFACE // Built-in identifier.
-    |    LATE // Built-in identifier.
-    |    LIBRARY // Built-in identifier.
-    |    MIXIN // Built-in identifier.
-    |    OPERATOR // Built-in identifier.
-    |    PART // Built-in identifier.
-    |    REQUIRED // Built-in identifier.
-    |    SET // Built-in identifier.
-    |    STATIC // Built-in identifier.
-    |    TYPEDEF // Built-in identifier.
+    |    builtInIdentifier
     |    ASYNC // Not a built-in identifier.
     |    HIDE // Not a built-in identifier.
     |    OF // Not a built-in identifier.
@@ -937,8 +909,8 @@ identifier
     ;
 
 qualifiedName
-    :    typeIdentifier '.' identifier
-    |    typeIdentifier '.' typeIdentifier '.' identifier
+    :    typeIdentifier '.' (identifier | NEW)
+    |    typeIdentifier '.' typeIdentifier '.' (identifier | NEW)
     ;
 
 typeIdentifier
@@ -1157,7 +1129,7 @@ partDirective
     ;
 
 partHeader
-    :    metadata PART OF identifier ('.' identifier)* ';'
+    :    metadata PART OF (dottedIdentifierList | uri)';'
     ;
 
 partDeclaration
@@ -1219,7 +1191,7 @@ typeNotVoidNotFunctionList
     ;
 
 typeAlias
-    :    TYPEDEF typeIdentifier typeParameters? '=' functionType ';'
+    :    TYPEDEF typeIdentifier typeParameters? '=' type ';'
     |    TYPEDEF functionTypeAlias
     ;
 
@@ -1258,8 +1230,8 @@ normalParameterTypes
     ;
 
 normalParameterType
-    :    typedIdentifier
-    |    type
+    :    metadata typedIdentifier
+    |    metadata type
     ;
 
 optionalParameterTypes
@@ -1276,7 +1248,7 @@ namedParameterTypes
     ;
 
 namedParameterType
-    :    REQUIRED? typedIdentifier
+    :    metadata REQUIRED? typedIdentifier
     ;
 
 typedIdentifier
@@ -1286,11 +1258,11 @@ typedIdentifier
 constructorDesignation
     :    typeIdentifier
     |    qualifiedName
-    |    typeName typeArguments ('.' identifier)?
+    |    typeName typeArguments ('.' (identifier | NEW))?
     ;
 
 symbolLiteral
-    :    '#' (operator | (identifier ('.' identifier)*))
+    :    '#' (operator | (identifier ('.' identifier)*) | VOID)
     ;
 
 // Not used in the specification (needed here for <uri>).
@@ -1322,6 +1294,68 @@ multiLineString
     |    MULTI_LINE_STRING_DQ_BEGIN_MID expression
          (MULTI_LINE_STRING_DQ_MID_MID expression)*
          MULTI_LINE_STRING_DQ_MID_END
+    ;
+
+reservedWord
+    :    ASSERT
+    |    BREAK
+    |    CASE
+    |    CATCH
+    |    CLASS
+    |    CONST
+    |    CONTINUE
+    |    DEFAULT
+    |    DO
+    |    ELSE
+    |    ENUM
+    |    EXTENDS
+    |    FALSE
+    |    FINAL
+    |    FINALLY
+    |    FOR
+    |    IF
+    |    IN
+    |    IS
+    |    NEW
+    |    NULL
+    |    RETHROW
+    |    RETURN
+    |    SUPER
+    |    SWITCH
+    |    THIS
+    |    THROW
+    |    TRUE
+    |    TRY
+    |    VAR
+    |    VOID
+    |    WHILE
+    |    WITH
+    ;
+
+builtInIdentifier
+    :    ABSTRACT
+    |    AS
+    |    COVARIANT
+    |    DEFERRED
+    |    DYNAMIC
+    |    EXPORT
+    |    EXTENSION
+    |    EXTERNAL
+    |    FACTORY
+    |    FUNCTION
+    |    GET
+    |    IMPLEMENTS
+    |    IMPORT
+    |    INTERFACE
+    |    LATE
+    |    LIBRARY
+    |    OPERATOR
+    |    MIXIN
+    |    PART
+    |    REQUIRED
+    |    SET
+    |    STATIC
+    |    TYPEDEF
     ;
 
 // ---------------------------------------- Lexer rules.

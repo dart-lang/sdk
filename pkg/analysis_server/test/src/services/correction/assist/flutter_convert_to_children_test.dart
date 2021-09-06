@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -52,7 +50,7 @@ build() {
         width: 200.0,
         height: 300.0,
       ),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -68,7 +66,7 @@ build() {
           height: 300.0,
         ),
       ],
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -88,7 +86,7 @@ build() {
         width: 200.0,
         height: 300.0,
       ),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -104,7 +102,7 @@ build() {
           height: 300.0,
         ),
       ],
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -132,7 +130,7 @@ build() {
   return Scaffold(
     body: Center(
       /*caret*/child: GestureDetector(),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -143,7 +141,7 @@ build() {
   return Scaffold(
     body: Center(
       children: [GestureDetector()],
-      key: null,
+      key: Key('x'),
     ),
   );
 }

@@ -36,7 +36,7 @@ class AnalyzeCommand extends DartdevCommand {
   static final int _return = '\r'.codeUnitAt(0);
 
   AnalyzeCommand({bool verbose = false})
-      : super(cmdName, 'Analyze Dart code in a directory.') {
+      : super(cmdName, 'Analyze Dart code in a directory.', verbose) {
     argParser
       ..addFlag('fatal-infos',
           help: 'Treat info level issues as fatal.', negatable: false)
@@ -69,26 +69,19 @@ class AnalyzeCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    if (argResults.rest.length > 1) {
-      usageException('Only one directory or file is expected.');
-    }
-
-    // find target from argResults.rest
-    io.FileSystemEntity target;
-    io.Directory relativeToDir;
+    // Find targets from the 'rest' params.
+    final List<io.FileSystemEntity> targets = [];
     if (argResults.rest.isEmpty) {
-      target = io.Directory.current;
-      relativeToDir = target;
+      targets.add(io.Directory.current);
     } else {
-      var targetPath = argResults.rest.single;
-      if (io.Directory(targetPath).existsSync()) {
-        target = io.Directory(targetPath);
-        relativeToDir = target;
-      } else if (io.File(targetPath).existsSync()) {
-        target = io.File(targetPath);
-        relativeToDir = target.parent;
-      } else {
-        usageException("Directory or file doesn't exist: $targetPath");
+      for (String targetPath in argResults.rest) {
+        if (io.Directory(targetPath).existsSync()) {
+          targets.add(io.Directory(targetPath));
+        } else if (io.File(targetPath).existsSync()) {
+          targets.add(io.File(targetPath));
+        } else {
+          usageException("Directory or file doesn't exist: $targetPath");
+        }
       }
     }
 
@@ -97,13 +90,17 @@ class AnalyzeCommand extends DartdevCommand {
     final machineFormat = argResults['format'] == 'machine';
     final jsonFormat = argResults['format'] == 'json';
 
-    var progress = machineFormat
-        ? null
-        : log.progress('Analyzing ${path.basename(target.path)}');
+    final targetsNames =
+        targets.map((entity) => path.basename(entity.path)).join(', ');
+
+    var progress =
+        machineFormat ? null : log.progress('Analyzing $targetsNames');
 
     final AnalysisServer server = AnalysisServer(
       io.Directory(sdk.sdkPath),
-      target,
+      targets,
+      commandName: 'analyze',
+      argResults: argResults,
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
@@ -130,8 +127,6 @@ class AnalyzeCommand extends DartdevCommand {
 
     progress?.finish(showTiming: true);
 
-    errors.sort();
-
     if (errors.isEmpty) {
       if (!machineFormat) {
         log.stdout('No issues found!');
@@ -139,13 +134,21 @@ class AnalyzeCommand extends DartdevCommand {
       return 0;
     }
 
+    errors.sort();
+
     if (machineFormat) {
       emitMachineFormat(log, errors);
     } else if (jsonFormat) {
       emitJsonFormat(log, errors);
     } else {
-      emitDefaultFormat(log, errors,
-          relativeToDir: relativeToDir, verbose: verbose);
+      var relativeTo = targets.length == 1 ? targets.single : null;
+
+      emitDefaultFormat(
+        log,
+        errors,
+        relativeToDir: relativeTo is io.File ? relativeTo.parent : relativeTo,
+        verbose: verbose,
+      );
     }
 
     bool hasErrors = false;
@@ -205,7 +208,7 @@ class AnalyzeCommand extends DartdevCommand {
       }
 
       // Emit "file:line:col * Error message. Correction (code)."
-      var message = ansi.emphasized('${error.message}');
+      var message = ansi.emphasized(error.message);
       if (error.correction != null) {
         message += ' ${error.correction}';
       }

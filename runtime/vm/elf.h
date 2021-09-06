@@ -13,11 +13,12 @@
 
 namespace dart {
 
+#if defined(DART_PRECOMPILER)
+
 class Dwarf;
-class ElfWriteStream;
+class ProgramTable;
 class Section;
-class Segment;
-class StringTable;
+class SectionTable;
 class SymbolTable;
 
 class Elf : public ZoneAllocated {
@@ -32,85 +33,72 @@ class Elf : public ZoneAllocated {
 
   Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
-  static constexpr intptr_t kPageSize = 4096;
-  static constexpr uword kNoSectionStart = 0;
+  // The max page size on all supported architectures. Used to determine
+  // the alignment of load segments, so that they are guaranteed page-aligned,
+  // and no ELF section or segment should have a larger alignment.
+  static constexpr intptr_t kPageSize = 16 * KB;
 
   bool IsStripped() const { return dwarf_ == nullptr; }
 
-  Zone* zone() { return zone_; }
+  Zone* zone() const { return zone_; }
   const Dwarf* dwarf() const { return dwarf_; }
   Dwarf* dwarf() { return dwarf_; }
+  const SymbolTable& symtab() const {
+    ASSERT(symtab_ != nullptr);
+    return *symtab_;
+  }
+  const SectionTable& section_table() const { return *section_table_; }
 
-  // Returns the relocated address for the symbol with the given name or
-  // kNoSectionStart if the symbol was not found.
-  uword SymbolAddress(const char* name) const;
+  // Stores the information needed to appropriately generate a
+  // relocation from the target to the source at the given section offset.
+  // If a given symbol name is nullptr, then the corresponding offset is
+  // relative from the location of the relocation itself.
+  // If a given symbol name is "", then the corresponding offset is relative to
+  // the start of the snapshot.
+  struct Relocation {
+    size_t size_in_bytes;
+    intptr_t section_offset;
+    const char* source_symbol;
+    intptr_t source_offset;
+    const char* target_symbol;
+    intptr_t target_offset;
+  };
 
-  // What the next memory offset for an appropriately aligned section would be.
-  //
-  // Only used by AssemblyImageWriter and BlobImageWriter methods.
-  intptr_t NextMemoryOffset(intptr_t alignment) const;
-  intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
-  intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
-  void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
+  // Stores the information needed to appropriately generate a symbol
+  // during finalization.
+  struct SymbolData {
+    const char* name;
+    intptr_t type;
+    intptr_t offset;
+    size_t size;
+  };
 
-  // Adds a local symbol for the given offset and size in the "current" section,
-  // that is, the section index for the symbol is for the next added section.
-  void AddLocalSymbol(const char* name,
-                      intptr_t type,
-                      intptr_t offset,
-                      intptr_t size);
+  void AddText(const char* name,
+               const uint8_t* bytes,
+               intptr_t size,
+               const ZoneGrowableArray<Relocation>* relocations,
+               const ZoneGrowableArray<SymbolData>* symbol);
+  void AddROData(const char* name,
+                 const uint8_t* bytes,
+                 intptr_t size,
+                 const ZoneGrowableArray<Relocation>* relocations,
+                 const ZoneGrowableArray<SymbolData>* symbols);
 
   void Finalize();
 
  private:
-  static constexpr const char* kBuildIdNoteName = ".note.gnu.build-id";
+  static constexpr const char kBuildIdNoteName[] = ".note.gnu.build-id";
+  static constexpr const char kTextName[] = ".text";
+  static constexpr const char kDataName[] = ".rodata";
+  static constexpr const char kBssName[] = ".bss";
+  static constexpr const char kDynamicTableName[] = ".dynamic";
 
-  static Section* CreateBSS(Zone* zone, Type type, intptr_t size);
-
-  // Adds the section and also creates a PT_LOAD segment for the section if it
-  // is an allocated section.
-  //
-  // For allocated sections, if symbol_name is provided, a symbol for the
-  // section will be added to the dynamic table (if allocated) and static
-  // table (if not stripped) during finalization.
-  //
-  // Returns the memory offset if the section is allocated.
-  intptr_t AddSection(Section* section,
-                      const char* name,
-                      const char* symbol_name = nullptr);
-  // Replaces [old_section] with [new_section] in all appropriate places. If the
-  // section is allocated, the memory size of the section must be the same as
-  // the original to ensure any already-calculated memory offsets are unchanged.
-  void ReplaceSection(Section* old_section, Section* new_section);
-
-  void AddStaticSymbol(const char* name,
-                       intptr_t binding,
-                       intptr_t type,
-                       intptr_t section_index,
-                       intptr_t address,
-                       intptr_t size);
-  void AddDynamicSymbol(const char* name,
-                        intptr_t binding,
-                        intptr_t type,
-                        intptr_t section_index,
-                        intptr_t address,
-                        intptr_t size);
-
-  Segment* LastLoadSegment() const;
-  const Section* FindSectionForAddress(intptr_t address) const;
-  Section* CreateBuildIdNote(const void* description_bytes,
-                             intptr_t description_length);
-  Section* GenerateFinalBuildId();
-
-  void AddSectionSymbols();
+  void CreateBSS();
+  void GenerateBuildId();
+  void InitializeSymbolTables();
   void FinalizeDwarfSections();
-  void FinalizeProgramTable();
-  void ComputeFileOffsets();
-
-  void WriteHeader(ElfWriteStream* stream);
-  void WriteSectionTable(ElfWriteStream* stream);
-  void WriteProgramTable(ElfWriteStream* stream);
-  void WriteSections(ElfWriteStream* stream);
+  void FinalizeEhFrame();
+  void ComputeOffsets();
 
   Zone* const zone_;
   BaseWriteStream* const unwrapped_stream_;
@@ -120,34 +108,21 @@ class Elf : public ZoneAllocated {
   // the static symbol table (and its corresponding string table).
   Dwarf* const dwarf_;
 
-  // We always create a BSS section for all Elf files, though it may be NOBITS
-  // if this is separate debugging information.
-  Section* const bss_;
+  // Contains all sections that will have entries in the section header table.
+  SectionTable* const section_table_;
 
-  // All our strings would fit in a single page. However, we use separate
-  // .shstrtab and .dynstr to work around a bug in Android's strip utility.
-  StringTable* const shstrtab_;
-  StringTable* const dynstrtab_;
-  SymbolTable* const dynsym_;
+  // Contains all segments in the program header table. Set after finalizing
+  // the section table.
+  ProgramTable* program_table_ = nullptr;
 
-  // The static tables are lazily created when static symbols are added.
-  StringTable* strtab_ = nullptr;
+  // The static tables are always created for use in relocation calculations,
+  // even though they may not end up in the final ELF file.
   SymbolTable* symtab_ = nullptr;
 
-  // We always create a GNU build ID for all Elf files. In order to create
-  // the appropriate offset to it in an InstructionsSection object, we create an
-  // initial build ID section as a placeholder and then replace that section
-  // during finalization once we have the information to calculate the real one.
-  Section* build_id_;
-
-  GrowableArray<Section*> sections_;
-  GrowableArray<Segment*> segments_;
-  intptr_t memory_offset_;
-  intptr_t section_table_file_offset_ = -1;
-  intptr_t section_table_file_size_ = -1;
-  intptr_t program_table_file_offset_ = -1;
-  intptr_t program_table_file_size_ = -1;
+  friend class SectionTable;  // For section name static fields.
 };
+
+#endif  // DART_PRECOMPILER
 
 }  // namespace dart
 

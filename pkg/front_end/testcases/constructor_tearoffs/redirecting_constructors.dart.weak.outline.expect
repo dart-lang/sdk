@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::A::redirectingFactory, self::A::redirectingFactoryChild, self::A::redirectingTwice]/*isLegacy*/;
+  constructor •() → self::A
+    ;
+  static factory redirectingFactory() → self::A
+    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+  static factory redirectingFactoryChild() → self::A
+    let dynamic #redirecting_factory = self::B::• in invalid-expression;
+  static factory redirectingTwice() → self::A
+    let dynamic #redirecting_factory = self::A::redirectingFactory in invalid-expression;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

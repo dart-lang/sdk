@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -18,6 +16,12 @@ class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_IF_ELEMENT;
 
   @override
@@ -25,18 +29,19 @@ class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
-    if (node == null) {
+    var conditional = node.thisOrAncestorOfType<ConditionalExpression>();
+    if (conditional == null) {
       return null;
     }
-    var nodeToReplace = node;
-    var parent = node.parent;
+
+    AstNode nodeToReplace = conditional;
+    var parent = conditional.parent;
     while (parent is ParenthesizedExpression) {
       nodeToReplace = parent;
       parent = parent.parent;
     }
-    if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
-      ConditionalExpression conditional = node;
+
+    if (parent is ListLiteral || parent is SetOrMapLiteral && parent.isSet) {
       var condition = conditional.condition.unParenthesized;
       var thenExpression = conditional.thenExpression.unParenthesized;
       var elseExpression = conditional.elseExpression.unParenthesized;

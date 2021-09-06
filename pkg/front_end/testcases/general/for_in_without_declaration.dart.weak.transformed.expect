@@ -98,90 +98,90 @@ class C extends self::Super {
     core::String* local;
     dynamic untypedLocal;
     {
-      core::Iterator<core::String*>* :sync-for-iterator = core::_GrowableList::•<core::String*>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::String* #t1 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::String*>* :sync-for-iterator = core::_GrowableList::•<core::String*>(0).{core::Iterable::iterator}{core::Iterator<core::String*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::String* #t1 = :sync-for-iterator.{core::Iterator::current}{core::String*};
         {
           local = #t1;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           untypedLocal = #t2;
         }
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::int* #t3 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int* #t3 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
           this.{self::C::instanceField} = #t3;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           this.{self::C::untypedInstanceField} = #t4;
         }
       }
     }
     {
-      core::Iterator<core::double*>* :sync-for-iterator = core::_GrowableList::•<core::double*>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::double* #t5 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::double*>* :sync-for-iterator = core::_GrowableList::•<core::double*>(0).{core::Iterable::iterator}{core::Iterator<core::double*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::double* #t5 = :sync-for-iterator.{core::Iterator::current}{core::double*};
         {
           self::C::staticField = #t5;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           self::C::untypedStaticField = #t6;
         }
       }
     }
     {
-      core::Iterator<core::bool*>* :sync-for-iterator = core::_GrowableList::•<core::bool*>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::bool* #t7 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::bool*>* :sync-for-iterator = core::_GrowableList::•<core::bool*>(0).{core::Iterable::iterator}{core::Iterator<core::bool*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::bool* #t7 = :sync-for-iterator.{core::Iterator::current}{core::bool*};
         {
           self::topLevelField = #t7;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t8 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           self::untypedTopLevelField = #t8;
         }
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::int* #t9 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int* #t9 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
           super.{self::Super::superInstanceField} = #t9;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           super.{self::Super::untypedSuperInstanceField} = #t10;
         }
@@ -189,27 +189,27 @@ class C extends self::Super {
     }
     self::C* c = new self::C::•();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::int* #t11 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int* #t11 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
           c.{self::C::instanceField} = #t11;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t12 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           c.{self::Super::untypedSuperInstanceField} = #t12;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:37:10: Error: The setter 'unresolved' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/for_in_without_declaration.dart'.
@@ -220,22 +220,22 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t14 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t14 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:38:10: Error: The getter 'unresolved' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/for_in_without_declaration.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
     for (unresolved.foo in []) {}
-         ^^^^^^^^^^".foo = #t14;
+         ^^^^^^^^^^"{dynamic}.foo = #t14;
         }
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t15 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:39:12: Error: The setter 'unresolved' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/for_in_without_declaration.dart'.
@@ -250,9 +250,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     for (main() in []) {}
          ^^^^";
       {
-        core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-          final dynamic #t16 = :sync-for-iterator.{core::Iterator::current};
+        core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{dynamic};
           {
             invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:40:10: Error: Can't assign to this, so it can't be used in a for-in loop.
     for (main() in []) {}
@@ -267,9 +267,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     for (var x, y in <int>[]) {
          ^^^";
       {
-        core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-          final core::int* #t17 = :sync-for-iterator.{core::Iterator::current};
+        core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          final core::int* #t17 = :sync-for-iterator.{core::Iterator::current}{core::int*};
           {
             invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
     for (var x, y in <int>[]) {
@@ -283,9 +283,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t18 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t18 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:46:10: Error: Can't assign to the const variable 'constant'.
     for (constant in []) {}

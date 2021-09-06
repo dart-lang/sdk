@@ -56,7 +56,7 @@ mixin ErrorDetectionHelpers {
       {bool promoteParameterToNullable = false,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     _checkForArgumentTypeNotAssignableForArgument2(
-      argument: argument,
+      argument: argument is NamedExpression ? argument.expression : argument,
       parameter: argument.staticParameterElement,
       promoteParameterToNullable: promoteParameterToNullable,
       whyNotPromoted: whyNotPromoted,
@@ -85,8 +85,8 @@ mixin ErrorDetectionHelpers {
       }
       return;
     }
-    var messages = computeWhyNotPromotedMessages(
-        expression, expression, whyNotPromoted?.call());
+    var messages =
+        computeWhyNotPromotedMessages(expression, whyNotPromoted?.call());
     // report problem
     if (isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
@@ -229,7 +229,6 @@ mixin ErrorDetectionHelpers {
   /// [whyNotPromoted] should be the non-promotion details returned by the flow
   /// analysis engine.
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
-      Expression? expression,
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted);
 
@@ -313,8 +312,7 @@ mixin ErrorDetectionHelpers {
         errorCode,
         getErrorNode(expression),
         [actualStaticType, expectedStaticType],
-        computeWhyNotPromotedMessages(
-            expression, expression, whyNotPromoted?.call()),
+        computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
       );
       return false;
     }

@@ -288,8 +288,6 @@ void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
-void ConstantPropagator::VisitStoreUntagged(StoreUntaggedInstr* instr) {}
-
 void ConstantPropagator::VisitStoreIndexedUnsafe(
     StoreIndexedUnsafeInstr* instr) {}
 
@@ -604,11 +602,7 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       const intptr_t right_cid = instr->right()->Type()->ToCid();
       // If exact classes (cids) are known and they differ, the result
       // of strict compare can be computed.
-      // The only exception is comparison with special sentinel value
-      // (used for lazy initialization) which can be compared to a
-      // value of any type. Sentinel value has kNeverCid.
       if ((left_cid != kDynamicCid) && (right_cid != kDynamicCid) &&
-          (left_cid != kNeverCid) && (right_cid != kNeverCid) &&
           (left_cid != right_cid)) {
         const bool result = (instr->kind() != Token::kEQ_STRICT);
         SetValue(instr, Bool::Get(result));
@@ -797,10 +791,6 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
   }
 }
 
-void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
 void ConstantPropagator::VisitUtf8Scan(Utf8ScanInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -854,7 +844,7 @@ void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   if (!FLAG_fields_may_be_reset) {
     const Field& field = instr->field();
     ASSERT(field.is_static());
-    auto& obj = Instance::Handle(Z);
+    auto& obj = Object::Handle(Z);
     if (field.is_final() && instr->IsFieldInitialized(&obj)) {
       if (obj.IsSmi() || (obj.IsOld() && obj.IsCanonical())) {
         SetValue(instr, obj);
@@ -932,6 +922,10 @@ void ConstantPropagator::VisitAllocateTypedData(AllocateTypedDataInstr* instr) {
 }
 
 void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitAllocateClosure(AllocateClosureInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -1190,13 +1184,11 @@ void ConstantPropagator::VisitSpeculativeShiftUint32Op(
 }
 
 void ConstantPropagator::VisitBoxInt64(BoxInt64Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitUnboxInt64(UnboxInt64Instr* instr) {
-  // TODO(kmillikin): Handle unbox operation.
-  SetValue(instr, non_constant_);
+  VisitUnbox(instr);
 }
 
 void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
@@ -1408,38 +1400,46 @@ void ConstantPropagator::VisitCaseInsensitiveCompare(
 }
 
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsUnknown(value)) {
+    return;
+  }
+
+  SetValue(instr, value);
 }
 
 void ConstantPropagator::VisitBox(BoxInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsUnknown(value)) {
+    return;
+  }
+
+  if (instr->value()->definition()->representation() ==
+      instr->from_representation()) {
+    SetValue(instr, value);
+  } else {
+    SetValue(instr, non_constant_);
+  }
 }
 
-void ConstantPropagator::VisitBoxUint8(BoxUint8Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+void ConstantPropagator::VisitBoxSmallInt(BoxSmallIntInstr* instr) {
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitBoxUint32(BoxUint32Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitUnboxUint32(UnboxUint32Instr* instr) {
-  // TODO(kmillikin): Handle unbox operation.
-  SetValue(instr, non_constant_);
+  VisitUnbox(instr);
 }
 
 void ConstantPropagator::VisitBoxInt32(BoxInt32Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitUnboxInt32(UnboxInt32Instr* instr) {
-  // TODO(kmillikin): Handle unbox operation.
-  SetValue(instr, non_constant_);
+  VisitUnbox(instr);
 }
 
 void ConstantPropagator::VisitIntConverter(IntConverterInstr* instr) {

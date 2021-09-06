@@ -290,6 +290,7 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
 }
 
 static Token::Kind RecognizeTokenKindHelper(const String& name) {
@@ -356,7 +357,7 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name) {
 #define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \
   {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
 
-static struct {
+static const struct {
   const intptr_t symbol_id;
   const intptr_t cid;
   const uint32_t finger_print;

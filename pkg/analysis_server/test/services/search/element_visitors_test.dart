@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
@@ -53,17 +51,16 @@ class BBB {}
 
   Future<void> test_topLevelVariable() async {
     await resolveTestCode(r'''
-int aaa, bbb;
-int ccc;
+int? aaa, bbb;
+int? ccc;
 ''');
-    _assertElement(4, ElementKind.TOP_LEVEL_VARIABLE, 'aaa');
-    _assertElement(9, ElementKind.TOP_LEVEL_VARIABLE, 'bbb');
-    _assertElement(18, ElementKind.TOP_LEVEL_VARIABLE, 'ccc');
+    _assertElement(5, ElementKind.TOP_LEVEL_VARIABLE, 'aaa');
+    _assertElement(10, ElementKind.TOP_LEVEL_VARIABLE, 'bbb');
+    _assertElement(20, ElementKind.TOP_LEVEL_VARIABLE, 'ccc');
   }
 
   void _assertElement(int nameOffset, ElementKind kind, String name) {
-    var element = findElementByNameOffset(testUnitElement, nameOffset);
-    expect(element, isNotNull);
+    var element = findElementByNameOffset(testUnitElement, nameOffset)!;
     expect(element.kind, kind);
     expect(element.name, name);
   }

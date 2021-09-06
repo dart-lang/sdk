@@ -6,9 +6,9 @@ static method f<S extends core::Object* = dynamic, T extends core::Object* = dyn
   return null;
 static method main() → dynamic {
   core::String* x = self::f<core::int*, core::String*>(42);
-  core::String* y = (#C1).call<core::int*, core::String*>(42);
+  core::String* y = (#C1)<core::int*, core::String*>(42){(core::int*) →* core::String*};
 }
 
 constants  {
-  #C1 = tearoff self::f
+  #C1 = static-tearoff self::f
 }

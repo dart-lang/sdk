@@ -20,10 +20,18 @@ jmp_buf* LongJumpScope::Set() {
 }
 
 void LongJumpScope::Jump(int value, const Error& error) {
+  ASSERT(!error.IsNull());
+
+  // Remember the error in the sticky error of this isolate.
+  Thread::Current()->set_sticky_error(error);
+
+  Jump(value);
+}
+
+void LongJumpScope::Jump(int value) {
   // A zero is the default return value from setting up a LongJumpScope
   // using Set.
   ASSERT(value != 0);
-  ASSERT(!error.IsNull());
 
   Thread* thread = Thread::Current();
   DEBUG_ASSERT(thread->TopErrorHandlerIsSetJump());
@@ -34,9 +42,6 @@ void LongJumpScope::Jump(int value, const Error& error) {
   REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
 #undef CHECK_REUSABLE_HANDLE
 #endif  // defined(DEBUG)
-
-  // Remember the error in the sticky error of this isolate.
-  thread->set_sticky_error(error);
 
   // Destruct all the active StackResource objects.
   StackResource::UnwindAbove(thread, top_);

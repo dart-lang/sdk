@@ -75,7 +75,8 @@ class HintCode extends AnalyzerErrorCode {
       HintCode(
           'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
           "The argument type '{0}' can't be assigned to the parameter type "
-              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.");
+              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.",
+          hasPublishedDocs: true);
 
   /**
    * Users should not assign values marked `@doNotStore`.
@@ -93,6 +94,37 @@ class HintCode extends AnalyzerErrorCode {
       'CAN_BE_NULL_AFTER_NULL_AWARE',
       "The receiver uses '?.', so its value can be null.",
       correction: "Replace the '.' with a '?.' in the invocation.");
+
+  /**
+   * Generate a hint for method, property or function annotated with
+   * `@useResult` whose invocation is unchecked.
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   */
+  static const HintCode UNUSED_RESULT = HintCode(
+      'UNUSED_RESULT', "'{0}' should be used.",
+      correction:
+          "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+      hasPublishedDocs: false);
+
+  /**
+   * Generate a hint for method, property or function annotated with
+   * `@useResult` whose invocation is unchecked.
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   * 1: message details
+   */
+  static const HintCode UNUSED_RESULT_WITH_MESSAGE = HintCode(
+    'UNUSED_RESULT',
+    "'{0}' should be used. {1}.",
+    // todo(pq): consider passing in correction details: https://github.com/dart-lang/sdk/issues/46066
+    correction:
+        "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+    hasPublishedDocs: false,
+    uniqueName: 'HintCode.UNUSED_RESULT_WITH_MESSAGE',
+  );
 
   /**
    * Dead code is code that is never reached, this can happen for instance if a
@@ -275,11 +307,37 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * `Function` should not be extended anymore.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the class `Function` is used in
+  // either the `extends`, `implements`, or `with` clause of a class or mixin.
+  // Using the class `Function` in this way has no semantic value, so it's
+  // effectively dead code.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `Function` is used as
+  // the superclass of `F`:
+  //
+  // ```dart
+  // class F extends [!Function!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the class `Function` from whichever clause it's in, and remove the
+  // whole clause if `Function` is the only type in the clause:
+  //
+  // ```dart
+  // class F {}
+  // ```
   static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
-      'DEPRECATED_EXTENDS_FUNCTION', "Extending 'Function' is deprecated.",
-      correction: "Try removing 'Function' from the 'extends' clause.");
+      'DEPRECATED_SUBTYPE_OF_FUNCTION', "Extending 'Function' is deprecated.",
+      correction: "Try removing 'Function' from the 'extends' clause.",
+      hasPublishedDocs: true,
+      uniqueName: 'DEPRECATED_EXTENDS_FUNCTION');
 
   /**
    * Users should not create a class named `Function` anymore.
@@ -288,6 +346,16 @@ class HintCode extends AnalyzerErrorCode {
       'DEPRECATED_FUNCTION_CLASS_DECLARATION',
       "Declaring a class named 'Function' is deprecated.",
       correction: "Try renaming the class.");
+
+  /**
+   * No parameters.
+   */
+  static const HintCode DEPRECATED_IMPLEMENTS_FUNCTION = HintCode(
+      'DEPRECATED_SUBTYPE_OF_FUNCTION',
+      "Implementing 'Function' has no effect.",
+      correction: "Try removing 'Function' from the 'implements' clause.",
+      hasPublishedDocs: true,
+      uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION');
 
   /**
    * Parameters:
@@ -380,11 +448,13 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * `Function` should not be mixed in anymore.
+   * No parameters.
    */
   static const HintCode DEPRECATED_MIXIN_FUNCTION = HintCode(
-      'DEPRECATED_MIXIN_FUNCTION', "Mixing in 'Function' is deprecated.",
-      correction: "Try removing 'Function' from the 'with' clause.");
+      'DEPRECATED_SUBTYPE_OF_FUNCTION', "Mixing in 'Function' is deprecated.",
+      correction: "Try removing 'Function' from the 'with' clause.",
+      hasPublishedDocs: true,
+      uniqueName: 'DEPRECATED_MIXIN_FUNCTION');
 
   /**
    * Hint to use the ~/ operator.
@@ -699,14 +769,85 @@ class HintCode extends AnalyzerErrorCode {
           correction: "Try using a package: URI instead.");
 
   /**
-   * Deferred libraries shouldn't define a top level function 'loadLibrary'.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a library that declares a
+  // function named `loadLibrary` is imported using a deferred import. A
+  // deferred import introduces an implicit function named `loadLibrary`. This
+  // function is used to load the contents of the deferred library, and the
+  // implicit function hides the explicit declaration in the deferred library.
+  //
+  // For more information, see the language tour's coverage of
+  // [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+  //
+  // #### Example
+  //
+  // Given a file (`a.dart`) that defines a function named `loadLibrary`:
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // void loadLibrary(Library library) {}
+  //
+  // class Library {}
+  // ```
+  //
+  // The following code produces this diagnostic because the implicit
+  // declaration of `a.loadLibrary` is hiding the explicit declaration of
+  // `loadLibrary` in `a.dart`:
+  //
+  // ```dart
+  // [!import 'a.dart' deferred as a;!]
+  //
+  // void f() {
+  //   a.Library();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the imported library isn't required to be deferred, then remove the
+  // keyword `deferred`:
+  //
+  // ```dart
+  // import 'a.dart' as a;
+  //
+  // void f() {
+  //   a.Library();
+  // }
+  // ```
+  //
+  // If the imported library is required to be deferred and you need to
+  // reference the imported function, then rename the function in the imported
+  // library:
+  //
+  // ```dart
+  // void populateLibrary(Library library) {}
+  //
+  // class Library {}
+  // ```
+  //
+  // If the imported library is required to be deferred and you don't need to
+  // reference the imported function, then add a `hide` clause:
+  //
+  // ```dart
+  // import 'a.dart' deferred as a hide loadLibrary;
+  //
+  // void f() {
+  //   a.Library();
+  // }
+  // ```
+  //
+  // If type arguments shouldn't be required for the class, then mark the class
+  // with the `@optionalTypeArgs` annotation (from `package:meta`):
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
       'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
-      "The library '{0}' defines a top-level function named 'loadLibrary' "
-          "which is hidden by deferring this library.",
+      "The imported library defines a top-level function named 'loadLibrary' "
+          "that is hidden by deferring this library.",
       correction: "Try changing the import to not be deferred, or "
-          "rename the function in the imported library.");
+          "rename the function in the imported library.",
+      hasPublishedDocs: true);
 
   /**
    * https://github.com/dart-lang/sdk/issues/44063
@@ -728,6 +869,15 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
+   * When "strict-inference" is enabled, types in function invocations must be
+   * inferred via the context type, or have type arguments.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION = HintCode(
+      'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+      "The type argument(s) of the function '{0}' can't be inferred.",
+      correction: "Use explicit type argument(s) for '{0}'.");
+
+  /**
    * When "strict-inference" is enabled, recursive local functions, top-level
    * functions, methods, and function-typed function parameters must all
    * specify a return type. See the strict-inference resource:
@@ -738,6 +888,16 @@ class HintCode extends AnalyzerErrorCode {
       'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
       "The return type of '{0}' cannot be inferred.",
       correction: "Declare the return type of '{0}'.");
+
+  /**
+   * When "strict-inference" is enabled, types in function invocations must be
+   * inferred via the context type, or have type arguments.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION = HintCode(
+      'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+      "The type argument(s) of the generic function type '{0}' can't be "
+          "inferred.",
+      correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
    * When "strict-inference" is enabled, types in instance creation
@@ -1183,6 +1343,17 @@ class HintCode extends AnalyzerErrorCode {
 
   /**
    * This hint is generated anywhere where a member annotated with
+   * `@visibleForOverriding` is used for another purpose than overriding it.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER = HintCode(
+      'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+      "The member '{0}' can only be used for overriding.");
+
+  /**
+   * This hint is generated anywhere where a member annotated with
    * `@visibleForTemplate` is used outside of a "template" Dart file.
    *
    * Parameters:
@@ -1258,6 +1429,15 @@ class HintCode extends AnalyzerErrorCode {
       "The member '{0}' is annotated with '{1}', but this annotation is only "
           "meaningful on declarations of public members.",
       hasPublishedDocs: true);
+
+  /// Hint when an `@visibleForOverriding` annotation is used on something that
+  /// isn't an interface member.
+  static const HintCode INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION = HintCode(
+    'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
+    "The declaration '{0}' is annotated with 'visibleForOverriding'. As '{0}' "
+        "is not an interface member that could be overriden, the annotation is "
+        'meaningless.',
+  );
 
   /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
@@ -1601,6 +1781,16 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Users should not use `Future.value` or `Completer.complete` with a null
+   * argument if the type argument is non-nullable.
+   */
+  static const HintCode NULL_ARGUMENT_TO_NON_NULL_TYPE = HintCode(
+      'NULL_ARGUMENT_TO_NON_NULL_TYPE',
+      "'{0}' should not be called with a null argument for the non-nullable "
+          "type argument '{1}'",
+      correction: 'Try adding a non-null argument.');
+
+  /**
    * When the left operand of a binary expression uses '?.' operator, it can be
    * `null`.
    */
@@ -1869,6 +2059,7 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
       "A value of type '{0}' can't be returned by the 'onError' handler "
           "because it must be assignable to '{1}'.",
+      hasPublishedDocs: true,
       uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR');
 
   /**
@@ -1880,6 +2071,7 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
       "The return type '{0}' isn't assignable to '{1}', as required by "
           "'Future.catchError'.",
+      hasPublishedDocs: true,
       uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR');
 
   /**
@@ -2258,7 +2450,7 @@ class HintCode extends AnalyzerErrorCode {
   // this diagnostic:
   //
   // ```dart
-  // const x = 4;
+  // const Object x = 4;
   // const y = [!x is int!] ? 0 : 1;
   // ```
   //
@@ -2278,7 +2470,7 @@ class HintCode extends AnalyzerErrorCode {
   // [constant context][]:
   //
   // ```dart
-  // const x = 4;
+  // const Object x = 4;
   // var y = x is int ? 0 : 1;
   // ```
   static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT = HintCode(
@@ -2336,8 +2528,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_NEVER = HintCode(
       'SDK_VERSION_NEVER',
-      "The type 'Never' wasn't supported until version 2.X.0, but this code is "
-          "required to be able to run on earlier versions.",
+      "The type 'Never' wasn't supported until version 2.12.0, but this code "
+          "is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.",
       hasPublishedDocs: true);
 
@@ -2516,39 +2708,137 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * When "strict-raw-types" is enabled, raw types must be inferred via the
-   * context type, or have type arguments.
+   * When "strict-raw-types" is enabled, "raw types" must have type arguments.
+   *
+   * A "raw type" is a type name that does not use inference to fill in missing
+   * type arguments; instead, each type argument is instantiated to its bound.
    */
   static const HintCode STRICT_RAW_TYPE = HintCode('STRICT_RAW_TYPE',
       "The generic type '{0}' should have explicit type arguments but doesn't.",
       correction: "Use explicit type arguments for '{0}'.");
 
   /**
-   * This hint is generated anywhere where a `@sealed` class or mixin is used as
-   * a super-type of a class.
+   * Parameters:
+   * 0: the name of the sealed class
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a sealed class (one that either
+  // has the `@sealed` annotation or inherits or mixes in a sealed class) is
+  // referenced in either the `extends`, `implements`, or `with` clause of a
+  // class or mixin declaration if the declaration isn't in the same package as
+  // the sealed class.
+  //
+  // #### Example
+  //
+  // Given a library in a package other than the package being analyzed that
+  // contains the following:
+  //
+  // ```dart
+  // %uri="package:a/a.dart"
+  // import 'package:meta/meta.dart';
+  //
+  // class A {}
+  //
+  // @sealed
+  // class B {}
+  // ```
+  //
+  // The following code produces this diagnostic because `C`, which isn't in the
+  // same package as `B`, is extending the sealed class `B`:
+  //
+  // ```dart
+  // import 'package:a/a.dart';
+  //
+  // [!class C extends B {}!]
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the class doesn't need to be a subtype of the sealed class, then change
+  // the declaration so that it isn't:
+  //
+  // ```dart
+  // import 'package:a/a.dart';
+  //
+  // class B extends A {}
+  // ```
+  //
+  // If the class needs to be a subtype of the sealed class, then either change
+  // the sealed class so that it's no longer sealed or move the subclass into
+  // the same package as the sealed class.
   static const HintCode SUBTYPE_OF_SEALED_CLASS = HintCode(
       'SUBTYPE_OF_SEALED_CLASS',
       "The class '{0}' shouldn't be extended, mixed in, or implemented because "
-          "it is sealed.",
+          "it's sealed.",
       correction:
-          "Try composing instead of inheriting, or refer to its documentation "
-          "for more information.");
+          "Try composing instead of inheriting, or refer to the documentation "
+          "of '{0}' for more information.",
+      hasPublishedDocs: true);
 
   /**
-   * Type checks of the type `x is! Null` should be done with `x != null`.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when there's a type check (using the
+  // `as` operator) where the type is `Null`. There's only one value whose type
+  // is `Null`, so the code is both more readable and more performant when it
+  // tests for `null` explicitly.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the code is testing to
+  // see whether the value of `s` is `null` by using a type check:
+  //
+  // ```dart
+  // void f(String? s) {
+  //   if ([!s is Null!]) {
+  //     return;
+  //   }
+  //   print(s);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the code is testing to
+  // see whether the value of `s` is something other than `null` by using a type
+  // check:
+  //
+  // ```dart
+  // void f(String? s) {
+  //   if ([!s is! Null!]) {
+  //     print(s);
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the type check with the equivalent comparison with `null`:
+  //
+  // ```dart
+  // void f(String? s) {
+  //   if (s == null) {
+  //     return;
+  //   }
+  //   print(s);
+  // }
+  // ```
   static const HintCode TYPE_CHECK_IS_NOT_NULL = HintCode(
-      'TYPE_CHECK_IS_NOT_NULL',
+      'TYPE_CHECK_WITH_NULL',
       "Tests for non-null should be done with '!= null'.",
-      correction: "Try replacing the 'is! Null' check with '!= null'.");
+      correction: "Try replacing the 'is! Null' check with '!= null'.",
+      hasPublishedDocs: true,
+      uniqueName: 'TYPE_CHECK_IS_NOT_NULL');
 
   /**
-   * Type checks of the type `x is Null` should be done with `x == null`.
+   * No parameters.
    */
   static const HintCode TYPE_CHECK_IS_NULL = HintCode(
-      'TYPE_CHECK_IS_NULL', "Tests for null should be done with '== null'.",
-      correction: "Try replacing the 'is Null' check with '== null'.");
+      'TYPE_CHECK_WITH_NULL', "Tests for null should be done with '== null'.",
+      correction: "Try replacing the 'is Null' check with '== null'.",
+      hasPublishedDocs: true,
+      uniqueName: 'TYPE_CHECK_IS_NULL');
 
   /**
    * Parameters:
@@ -2681,12 +2971,62 @@ class HintCode extends AnalyzerErrorCode {
           "Try removing the name from the list, or removing the whole comment "
           "if this is the only name in the list.");
 
+  static const HintCode UNNECESSARY_IMPORT = HintCode(
+      'UNNECESSARY_IMPORT',
+      "The import of '{0}' is unnecessary as all of the used elements are also "
+          "provided by the import of '{1}'.",
+      correction: 'Try removing the import directive.');
+
   /**
-   * Unnecessary `noSuchMethod` declaration.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when there's a declaration of
+  // `noSuchMethod`, the only thing the declaration does is invoke the
+  // overridden declaration, and the overridden declaration isn't the
+  // declaration in `Object`.
+  //
+  // Overriding the implementation of `Object`'s `noSuchMethod` (no matter what
+  // the implementation does) signals to the analyzer that it shouldn't flag any
+  // inherited abstract methods that aren't implemented in that class. This
+  // works even if the overriding implementation is inherited from a superclass,
+  // so there's no value to declare it again in a subclass.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the declaration of
+  // `noSuchMethod` in `A` makes the declaration of `noSuchMethod` in `B`
+  // unnecessary:
+  //
+  // ```dart
+  // class A {
+  //   @override
+  //   dynamic noSuchMethod(x) => super.noSuchMethod(x);
+  // }
+  // class B extends A {
+  //   @override
+  //   dynamic [!noSuchMethod!](y) {
+  //     return super.noSuchMethod(y);
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the unnecessary declaration:
+  //
+  // ```dart
+  // class A {
+  //   @override
+  //   dynamic noSuchMethod(x) => super.noSuchMethod(x);
+  // }
+  // class B extends A {}
+  // ```
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = HintCode(
       'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration.",
-      correction: "Try removing the declaration of 'noSuchMethod'.");
+      correction: "Try removing the declaration of 'noSuchMethod'.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -3155,6 +3495,15 @@ class HintCode extends AnalyzerErrorCode {
       'UNUSED_SHOWN_NAME', "The name {0} is shown, but isn’t used.",
       correction: "Try removing the name from the list of shown members.",
       hasPublishedDocs: true);
+
+  /**
+   * Users should not import or export Dart native extensions via 'dart-ext:'.
+   */
+  static const HintCode USE_OF_NATIVE_EXTENSION = HintCode(
+      'USE_OF_NATIVE_EXTENSION',
+      "Dart native extensions are deprecated and will not be available in Dart "
+          "2.15",
+      correction: "Try using dart:ffi for C interop.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

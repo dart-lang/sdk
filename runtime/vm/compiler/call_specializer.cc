@@ -140,8 +140,13 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   if (all_cids_known) {
+    const intptr_t receiver_cid = class_ids[0];
+    if (receiver_cid == kSentinelCid) {
+      // Unreachable call.
+      return false;
+    }
     const Class& receiver_class =
-        Class::Handle(Z, IG->class_table()->At(class_ids[0]));
+        Class::Handle(Z, IG->class_table()->At(receiver_cid));
     if (!receiver_class.is_finalized()) {
       // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
       // cause class finalization, since callee's receiver class may not be
@@ -832,15 +837,15 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   if (IG->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
-      InsertBefore(instr,
-                   new (Z)
-                       GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
-                                            field, instr->deopt_id()),
-                   instr->env(), FlowGraph::kEffect);
+      InsertSpeculativeBefore(
+          instr,
+          new (Z) GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                       field, instr->deopt_id()),
+          instr->env(), FlowGraph::kEffect);
     }
 
     if (field.needs_length_check()) {
-      InsertBefore(
+      InsertSpeculativeBefore(
           instr,
           new (Z) GuardFieldLengthInstr(new (Z) Value(instr->ArgumentAt(1)),
                                         field, instr->deopt_id()),
@@ -848,11 +853,11 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     }
 
     if (field.static_type_exactness_state().NeedsFieldGuard()) {
-      InsertBefore(instr,
-                   new (Z)
-                       GuardFieldTypeInstr(new (Z) Value(instr->ArgumentAt(1)),
-                                           field, instr->deopt_id()),
-                   instr->env(), FlowGraph::kEffect);
+      InsertSpeculativeBefore(
+          instr,
+          new (Z) GuardFieldTypeInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                      field, instr->deopt_id()),
+          instr->env(), FlowGraph::kEffect);
     }
   }
 
@@ -891,20 +896,19 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
           instantiator_type_args = new (Z) LoadFieldInstr(
               new (Z) Value(instr->ArgumentAt(0)),
               Slot::GetTypeArgumentsSlotFor(thread(), owner), instr->source());
-          InsertBefore(instr, instantiator_type_args, instr->env(),
-                       FlowGraph::kValue);
+          InsertSpeculativeBefore(instr, instantiator_type_args, instr->env(),
+                                  FlowGraph::kValue);
         }
       }
 
-      InsertBefore(
-          instr,
-          new (Z) AssertAssignableInstr(
-              instr->source(), new (Z) Value(instr->ArgumentAt(1)),
-              new (Z) Value(flow_graph_->GetConstant(dst_type)),
-              new (Z) Value(instantiator_type_args),
-              new (Z) Value(function_type_args),
-              String::ZoneHandle(zone(), field.name()), instr->deopt_id()),
-          instr->env(), FlowGraph::kEffect);
+      auto assert_assignable = new (Z) AssertAssignableInstr(
+          instr->source(), new (Z) Value(instr->ArgumentAt(1)),
+          new (Z) Value(flow_graph_->GetConstant(dst_type)),
+          new (Z) Value(instantiator_type_args),
+          new (Z) Value(function_type_args),
+          String::ZoneHandle(zone(), field.name()), instr->deopt_id());
+      InsertSpeculativeBefore(instr, assert_assignable, instr->env(),
+                              FlowGraph::kEffect);
     }
   }
 

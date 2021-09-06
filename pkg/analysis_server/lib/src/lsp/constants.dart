@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
@@ -26,25 +24,17 @@ const dartCompletionCommitCharacters = ['('];
 
 /// Set the characters that will cause the editor to automatically
 /// trigger completion.
-/// TODO(dantup): There are several characters that we want to conditionally
-/// allow to trigger completion, but they can only be added when the completion
-/// provider is able to handle them in context:
-///
-///    {   trigger if being typed in a string immediately after a $
-///    '   trigger if the opening quote for an import/export
-///    "   trigger if the opening quote for an import/export
-///    /   trigger if as part of a path in an import/export
-///    \   trigger if as part of a path in an import/export
-///    :   don't trigger when typing case expressions (`case x:`)
-///
-/// Additionally, we need to prefix `filterText` on completion items
-/// with spaces for those that can follow whitespace (eg. `foo` in
-/// `myArg: foo`) to ensure they're not filtered away when the user
-/// types space.
-///
-/// See https://github.com/Dart-Code/Dart-Code/blob/68d1cd271e88a785570257d487adbdec17abd6a3/src/providers/dart_completion_item_provider.ts#L36-L64
-/// for the VS Code implementation of this.
-const dartCompletionTriggerCharacters = ['.', '=', '(', r'$'];
+const dartCompletionTriggerCharacters = [
+  '.',
+  '=',
+  '(',
+  r'$',
+  '"',
+  "'",
+  '{',
+  '/',
+  ':'
+];
 
 /// Characters that refresh signature help only if it's already open on the client.
 const dartSignatureHelpRetriggerCharacters = <String>[','];
@@ -56,7 +46,7 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 const dartTypeFormattingCharacters = ['}', ';'];
 
 /// A [ProgressToken] used for reporting progress when the server is analyzing.
-final analyzingProgressToken = Either2<num, String>.t2('ANALYZING');
+final analyzingProgressToken = Either2<int, String>.t2('ANALYZING');
 
 final emptyWorkspaceEdit = WorkspaceEdit();
 
@@ -68,11 +58,13 @@ abstract class Commands {
   static const serverSupportedCommands = [
     sortMembers,
     organizeImports,
+    fixAll,
     sendWorkspaceEdit,
     performRefactor,
   ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
+  static const fixAll = 'edit.fixAll';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
   static const performRefactor = 'refactor.perform';
 }
@@ -101,7 +93,7 @@ abstract class CustomMethods {
 
 abstract class CustomSemanticTokenModifiers {
   /// A modifier applied to control keywords like if/for/etc. so they can be
-  /// coloured differently to other keywords (void, import, etc), matching the
+  /// colored differently to other keywords (void, import, etc), matching the
   /// original Dart textmate grammar.
   /// https://github.com/dart-lang/dart-syntax-highlight/blob/84a8e84f79bc917ebd959a4587349c865dc945e0/grammars/dart.json#L244-L261
   static const control = SemanticTokenModifiers('control');
@@ -114,18 +106,63 @@ abstract class CustomSemanticTokenModifiers {
   /// - parameter
   static const label = SemanticTokenModifiers('label');
 
-  /// All custom semantic token modifiers, used to populate the LSP Legend which must
-  /// include all used modifiers.
-  static const values = [control, label];
+  /// A modifier applied to constructors to allow coloring them differently
+  /// to class names that are not constructors.
+  static const constructor = SemanticTokenModifiers('constructor');
+
+  /// A modifier applied to escape characters within a string to allow coloring
+  /// them differently.
+  static const escape = SemanticTokenModifiers('escape');
+
+  /// A modifier applied to an interpolation expression in a string to allow
+  /// coloring it differently to the literal parts of the string.
+  ///
+  /// Many tokens within interpolation expressions will get their own semantic
+  /// tokens so this is mainly to account for the the surrounding `${}` and
+  /// tokens like parens and operators that may not get their own.
+  ///
+  /// This is useful for editors that supply their own basic coloring initially
+  /// (for faster coloring) and then layer semantic tokens over the top. Without
+  /// some marker for interpolation expressions, all otherwise-uncolored parts
+  /// of the expression would show through the simple-colorings "string" colors.
+  static const interpolation = SemanticTokenModifiers('interpolation');
+
+  /// A modifier applied to the void keyword to users to color it differently
+  /// (for example as a type).
+  static const void_ = SemanticTokenModifiers('void');
+
+  /// All custom semantic token modifiers, used to populate the LSP Legend.
+  ///
+  /// The legend must include all used modifiers. Modifiers used in the
+  /// HighlightRegion mappings will be automatically included, but should still
+  /// be listed here in case they are removed from mappings in the future.
+  static const values = [
+    control,
+    label,
+    constructor,
+    escape,
+    interpolation,
+    void_,
+  ];
 }
 
 abstract class CustomSemanticTokenTypes {
   static const annotation = SemanticTokenTypes('annotation');
   static const boolean = SemanticTokenTypes('boolean');
 
+  /// A placeholder token type for basic source code that is not usually colored.
+  ///
+  /// This is used only where clients might otherwise provide their own coloring
+  /// (for example coloring whole strings that may include interpolated code).
+  ///
+  /// Tokens using this type should generally also provide a custom
+  /// [CustomSemanticTokenModifiers] to give the client more information about
+  /// the reason for this token and allow specific coloring if desired.
+  static const source = SemanticTokenTypes('source');
+
   /// All custom semantic token types, used to populate the LSP Legend which must
   /// include all used types.
-  static const values = [annotation, boolean];
+  static const values = [annotation, boolean, source];
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.
@@ -136,11 +173,16 @@ abstract class DartCodeActionKind {
     CodeActionKind.Source,
     // We have to explicitly list this for the client to enable built-in command.
     CodeActionKind.SourceOrganizeImports,
+    FixAll,
     SortMembers,
     CodeActionKind.QuickFix,
     CodeActionKind.Refactor,
   ];
   static const SortMembers = CodeActionKind('source.sortMembers');
+  // TODO(dantup): Once this PR is merged into LSP and released, regenerated the
+  //   LSP protocol code and swap this code CodeActionKind.SourceFixAll
+  //   https://github.com/microsoft/language-server-protocol/pull/1308
+  static const FixAll = CodeActionKind('source.fixAll');
 }
 
 abstract class ServerErrorCodes {

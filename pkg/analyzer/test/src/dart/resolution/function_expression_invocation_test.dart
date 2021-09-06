@@ -146,6 +146,7 @@ void f(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 26, 8),
     ]);
 
     assertFunctionExpressionInvocation(

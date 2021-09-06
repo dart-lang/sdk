@@ -3,11 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $arch == ia32 ]
+check_for_aot_snapshot_jit_test: SkipByDesign # No AOT mode on IA32.
 link_natives_lazily_test: SkipByDesign # Not supported.
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
-
-[ $runtime == vm ]
-typed_data_isolate_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
 
 [ $system == android ]
 io/file_stat_test: Skip # Issue 26376
@@ -77,19 +75,3 @@ io/process_sync_test: Timeout, Pass
 io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass
-
-[ $hot_reload || $hot_reload_rollback ]
-io/file_system_watcher_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-io/platform_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-io/raw_synchronous_socket_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-io/shared_socket_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-io/socket_finalizer_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-io/socket_many_connections_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-io/stdio_socket_finalizer_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-io/wait_for_event_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-regress_26031_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-regress_28854_1_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-regress_28854_2_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-typed_array_int64_uint64_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-typed_array_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-typed_data_isolate_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.

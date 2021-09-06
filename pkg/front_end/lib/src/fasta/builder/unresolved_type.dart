@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.unresolved_type;
 
 import '../scope.dart';
@@ -19,8 +17,9 @@ class UnresolvedType {
 
   UnresolvedType(this.builder, this.charOffset, this.fileUri);
 
-  void resolveIn(Scope scope, LibraryBuilder library) =>
-      builder.resolveIn(scope, charOffset, fileUri, library);
+  void resolveIn(Scope scope, LibraryBuilder library) {
+    builder.resolveIn(scope, charOffset, fileUri, library);
+  }
 
   /// Performs checks on the type after it's resolved.
   void checkType(LibraryBuilder library) {

@@ -9,7 +9,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load.dart';
+import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
@@ -417,7 +417,8 @@ class JsClosedWorldBuilder {
       Map<ir.VariableDeclaration, JRecordField> boxedVariables,
       KernelScopeInfo info,
       {bool createSignatureMethod}) {
-    ClassEntity superclass = _commonElements.closureClass;
+    ClassEntity superclass =
+        _chooseClosureSuperclass(originalClosureFunctionNode);
 
     JsClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
         member,
@@ -438,6 +439,21 @@ class JsClosedWorldBuilder {
     node.isDirectlyInstantiated = true;
 
     return closureClassInfo;
+  }
+
+  ClassEntity _chooseClosureSuperclass(ir.FunctionNode node) {
+    // Choose a superclass so that similar closures can share the metadata used
+    // by `Function.apply`.
+    int requiredParameterCount = node.requiredParameterCount;
+    if (node.typeParameters.isEmpty &&
+        node.namedParameters.isEmpty &&
+        requiredParameterCount == node.positionalParameters.length) {
+      if (requiredParameterCount == 0) return _commonElements.closureClass0Args;
+      if (requiredParameterCount == 2) return _commonElements.closureClass2Args;
+    }
+    // Note that the base closure class has specialized metadata for the common
+    // case of single-argument functions.
+    return _commonElements.closureClass;
   }
 
   OutputUnitData _convertOutputUnitData(JsToFrontendMapImpl map,
@@ -928,15 +944,13 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     ListConstantValue keys = constant.keyList.accept(this, null);
     List<ConstantValue> values = _handleValues(constant.values);
-    ConstantValue protoValue = constant.protoValue?.accept(this, null);
     if (identical(keys, constant.keys) &&
         identical(values, constant.values) &&
-        type == constant.type &&
-        protoValue == constant.protoValue) {
+        type == constant.type) {
       return constant;
     }
     return new constant_system.JavaScriptMapConstant(
-        type, keys, values, protoValue, constant.onlyStringKeys);
+        type, keys, values, constant.onlyStringKeys);
   }
 
   @override

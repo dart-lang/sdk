@@ -71,7 +71,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   AnalysisSession get session => contextFor('/home/test').currentSession;
 
-  String? get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => latestLanguageVersion;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -171,7 +171,8 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
     path = convertPath(path);
-    return contextFor(path).currentSession.getResolvedUnit(path);
+    var session = contextFor(path).currentSession;
+    return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
 
   @mustCallSuper

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -27,9 +25,9 @@ class ConvertToNullAwareTest extends AssistProcessorTest {
 abstract class A {
   int m();
 }
-int f(A a1, A a2) => a1 == null ? null : a2.m();
+int? f(A? a1, A a2) => a1 == null ? null : a2.m();
 ''');
-    await assertNoAssistAt('?');
+    await assertNoAssistAt('? n');
   }
 
   Future<void> test_equal_notComparedToNull() async {
@@ -45,9 +43,9 @@ int f(A a1, A a2) => a1 == a2 ? a2.m() : a1.m();
   Future<void> test_equal_notIdentifier() async {
     await resolveTestCode('''
 abstract class A {
-  int m();
+  int? m();
 }
-int f(A a) => a.m() == null ? 0 : a.m();
+int? f(A a) => a.m() == null ? 0 : a.m();
 ''');
     await assertNoAssistAt('?');
   }
@@ -55,10 +53,9 @@ int f(A a) => a.m() == null ? 0 : a.m();
   Future<void> test_equal_notInvocation() async {
     await resolveTestCode('''
 abstract class A {
-  int m();
   int operator +(A a);
 }
-int f(A a1) => a1 == null ? null : a1 + a1;
+int? f(A? a1) => a1 == null ? null : a1 + a1;
 ''');
     await assertNoAssistAt('?');
   }
@@ -68,19 +65,20 @@ int f(A a1) => a1 == null ? null : a1 + a1;
 abstract class A {
   int m();
 }
-int f(A a1, A a2) => a1 == null ? a2.m() : a1.m();
+int f(A? a1, A a2) => a1 == null ? a2.m() : a1.m();
 ''');
     await assertNoAssistAt('?');
   }
 
   Future<void> test_equal_notPeriod() async {
+    verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 abstract class A {
   int m();
 }
-int f(A a1) => a1 == null ? null : a1?.m();
+int? f(A? a1) => a1 == null ? null : a1?.m();
 ''');
-    await assertNoAssistAt('? ');
+    await assertNoAssistAt('? n');
   }
 
   Future<void> test_equal_nullOnLeft() async {
@@ -88,13 +86,13 @@ int f(A a1) => a1 == null ? null : a1?.m();
 abstract class A {
   int m();
 }
-int f(A a) => null == a ? null : a.m();
+int? f(A? a) => null == a ? null : a.m();
 ''');
-    await assertHasAssistAt('?', '''
+    await assertHasAssistAt('? n', '''
 abstract class A {
   int m();
 }
-int f(A a) => a?.m();
+int? f(A? a) => a?.m();
 ''');
   }
 
@@ -105,7 +103,7 @@ int f(A a) => a?.m();
 abstract class A {
   int m();
 }
-int f(A a) => null == a ? null : a.m();
+int? f(A? a) => null == a ? null : a.m();
 ''');
     await assertNoAssist();
   }
@@ -115,28 +113,28 @@ int f(A a) => null == a ? null : a.m();
 abstract class A {
   int m();
 }
-int f(A a) => a == null ? null : a.m();
+int? f(A? a) => a == null ? null : a.m();
 ''');
-    await assertHasAssistAt('?', '''
+    await assertHasAssistAt('? n', '''
 abstract class A {
   int m();
 }
-int f(A a) => a?.m();
+int? f(A? a) => a?.m();
 ''');
   }
 
   Future<void> test_equal_prefixedIdentifier() async {
     await resolveTestCode('''
 class A {
-  int p;
+  int p = 0;
 }
-int f(A a) => null == a ? null : a.p;
+int? f(A? a) => null == a ? null : a.p;
 ''');
-    await assertHasAssistAt('?', '''
+    await assertHasAssistAt('? n', '''
 class A {
-  int p;
+  int p = 0;
 }
-int f(A a) => a?.p;
+int? f(A? a) => a?.p;
 ''');
   }
 
@@ -157,7 +155,7 @@ foo() {
 abstract class A {
   int m();
 }
-int f(A a1, A a2) => a1 != null ? a1.m() : a2.m();
+int f(A? a1, A a2) => a1 != null ? a1.m() : a2.m();
 ''');
     await assertNoAssistAt('?');
   }
@@ -167,13 +165,13 @@ int f(A a1, A a2) => a1 != null ? a1.m() : a2.m();
 abstract class A {
   int m();
 }
-int f(A a) => null != a ? a.m() : null;
+int? f(A? a) => null != a ? a.m() : null;
 ''');
-    await assertHasAssistAt('?', '''
+    await assertHasAssistAt('? a.', '''
 abstract class A {
   int m();
 }
-int f(A a) => a?.m();
+int? f(A? a) => a?.m();
 ''');
   }
 
@@ -182,13 +180,13 @@ int f(A a) => a?.m();
 abstract class A {
   int m();
 }
-int f(A a) => a != null ? a.m() : null;
+int? f(A? a) => a != null ? a.m() : null;
 ''');
-    await assertHasAssistAt('?', '''
+    await assertHasAssistAt('? a.', '''
 abstract class A {
   int m();
 }
-int f(A a) => a?.m();
+int? f(A? a) => a?.m();
 ''');
   }
 }

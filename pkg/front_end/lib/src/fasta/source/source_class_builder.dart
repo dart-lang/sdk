@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.source_class_builder;
 
-import 'package:front_end/src/fasta/kernel/combined_member_signature.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
@@ -20,6 +17,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -38,6 +36,7 @@ import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
+import '../kernel/combined_member_signature.dart';
 import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
@@ -56,20 +55,20 @@ import '../type_inference/type_schema.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 Class initializeClass(
-    Class cls,
-    List<TypeVariableBuilder> typeVariables,
+    Class? cls,
+    List<TypeVariableBuilder>? typeVariables,
     String name,
     SourceLibraryBuilder parent,
     int startCharOffset,
     int charOffset,
     int charEndOffset,
-    Class referencesFrom) {
+    IndexedClass? referencesFrom) {
   cls ??= new Class(
       name: name,
       typeParameters:
           TypeVariableBuilder.typeParametersFromBuilders(typeVariables),
-      reference: referencesFrom?.reference);
-  cls.fileUri ??= parent.fileUri;
+      reference: referencesFrom?.cls.reference,
+      fileUri: parent.fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
   }
@@ -88,39 +87,35 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final Class actualCls;
 
-  final List<ConstructorReferenceBuilder> constructorReferences;
+  final List<ConstructorReferenceBuilder>? constructorReferences;
 
-  TypeBuilder mixedInTypeBuilder;
+  TypeBuilder? mixedInTypeBuilder;
 
   bool isMixinDeclaration;
 
-  final Class referencesFrom;
-  final IndexedClass referencesFromIndexed;
+  final IndexedClass? referencesFromIndexed;
 
   SourceClassBuilder(
-    List<MetadataBuilder> metadata,
+    List<MetadataBuilder>? metadata,
     int modifiers,
     String name,
-    List<TypeVariableBuilder> typeVariables,
-    TypeBuilder supertype,
-    List<TypeBuilder> interfaces,
-    List<TypeBuilder> onTypes,
+    List<TypeVariableBuilder>? typeVariables,
+    TypeBuilder? supertype,
+    List<TypeBuilder>? interfaces,
+    List<TypeBuilder>? onTypes,
     Scope scope,
     ConstructorScope constructors,
-    LibraryBuilder parent,
+    SourceLibraryBuilder parent,
     this.constructorReferences,
     int startCharOffset,
     int nameOffset,
     int charEndOffset,
-    Class referencesFrom,
-    IndexedClass referencesFromIndexed, {
-    Class cls,
+    this.referencesFromIndexed, {
+    Class? cls,
     this.mixedInTypeBuilder,
     this.isMixinDeclaration = false,
   })  : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, referencesFrom),
-        referencesFrom = referencesFrom,
-        referencesFromIndexed = referencesFromIndexed,
+            startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             onTypes, scope, constructors, parent, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
@@ -130,7 +125,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   Class get cls => origin.actualCls;
 
   @override
-  SourceLibraryBuilder get library => super.library;
+  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
 
   Class build(SourceLibraryBuilder library, LibraryBuilder coreLibrary) {
     SourceLibraryBuilder.checkMemberConflicts(library, scope,
@@ -139,15 +134,18 @@ class SourceClassBuilder extends ClassBuilderImpl
         checkForInstanceVsStaticConflict: false,
         checkForMethodVsSetterConflict: false);
 
-    void buildBuilders(String name, Builder declaration) {
-      do {
+    void buildBuilders(String name, Builder? declaration) {
+      while (declaration != null) {
         if (declaration.parent != this) {
-          if (fileUri != declaration.parent.fileUri) {
-            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+          if (fileUri != declaration.parent?.fileUri) {
+            unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
                 fileUri);
           } else {
-            unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
-                charOffset, fileUri);
+            unexpected(
+                fullNameForErrors,
+                declaration.parent?.fullNameForErrors ?? '',
+                charOffset,
+                fileUri);
           }
         } else if (declaration is MemberBuilderImpl) {
           MemberBuilderImpl memberBuilder = declaration;
@@ -163,8 +161,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 cls.addField(member);
               } else if (member is Constructor) {
                 cls.addConstructor(member);
-              } else if (member is RedirectingFactoryConstructor) {
-                cls.addRedirectingFactoryConstructor(member);
+              } else if (member is RedirectingFactory) {
+                cls.addRedirectingFactory(member);
               } else {
                 unhandled("${member.runtimeType}", "getMember",
                     member.fileOffset, member.fileUri);
@@ -176,13 +174,15 @@ class SourceClassBuilder extends ClassBuilderImpl
               declaration.charOffset, declaration.fileUri);
         }
         declaration = declaration.next;
-      } while (declaration != null);
+      }
     }
 
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
-    supertypeBuilder = checkSupertype(supertypeBuilder);
-    Supertype supertype =
+    if (supertypeBuilder != null) {
+      supertypeBuilder = checkSupertype(supertypeBuilder!);
+    }
+    Supertype? supertype =
         supertypeBuilder?.buildSupertype(library, charOffset, fileUri);
     if (supertype != null) {
       Class superclass = supertype.classNode;
@@ -196,13 +196,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
-        actualCls.superclass.isMixinDeclaration) {
+        actualCls.superclass!.isMixinDeclaration) {
       // Declared mixins have interfaces that can be implemented, but they
       // cannot be extended.  However, a mixin declaration with a single
       // superclass constraint is encoded with the constraint as the supertype,
       // and that is allowed to be a mixin's interface.
       library.addProblem(
-          templateSupertypeIsIllegal.withArguments(actualCls.superclass.name),
+          templateSupertypeIsIllegal.withArguments(actualCls.superclass!.name),
           charOffset,
           noLength,
           fileUri);
@@ -213,8 +213,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     actualCls.supertype = supertype;
 
-    mixedInTypeBuilder = checkSupertype(mixedInTypeBuilder);
-    Supertype mixedInType =
+    if (mixedInTypeBuilder != null) {
+      mixedInTypeBuilder = checkSupertype(mixedInTypeBuilder!);
+    }
+    Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
     if (mixedInType != null) {
       Class superclass = mixedInType.classNode;
@@ -237,10 +239,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     // compile-time error.
     cls.isAbstract = isAbstract;
     if (interfaceBuilders != null) {
-      for (int i = 0; i < interfaceBuilders.length; ++i) {
-        interfaceBuilders[i] = checkSupertype(interfaceBuilders[i]);
-        Supertype supertype =
-            interfaceBuilders[i].buildSupertype(library, charOffset, fileUri);
+      for (int i = 0; i < interfaceBuilders!.length; ++i) {
+        interfaceBuilders![i] = checkSupertype(interfaceBuilders![i]);
+        Supertype? supertype =
+            interfaceBuilders![i].buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
           Class superclass = supertype.classNode;
           if (superclass.name == 'Function' &&
@@ -256,7 +258,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     constructors.forEach((String name, Builder constructor) {
-      Builder member = scopeBuilder[name];
+      Builder? member = scopeBuilder[name];
       if (member == null) return;
       if (!member.isStatic) return;
       // TODO(ahe): Revisit these messages. It seems like the last two should
@@ -278,7 +280,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     });
 
     scope.forEachLocalSetter((String name, Builder setter) {
-      Builder constructor = constructorScopeBuilder[name];
+      Builder? constructor = constructorScopeBuilder[name];
       if (constructor == null || !setter.isStatic) return;
       addProblem(templateConflictsWithConstructor.withArguments(name),
           setter.charOffset, noLength);
@@ -291,36 +293,37 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   TypeBuilder checkSupertype(TypeBuilder supertype) {
-    if (typeVariables == null || supertype == null) return supertype;
-    Message message;
-    for (int i = 0; i < typeVariables.length; ++i) {
+    if (typeVariables == null) return supertype;
+    Message? message;
+    for (int i = 0; i < typeVariables!.length; ++i) {
+      TypeVariableBuilder typeVariableBuilder = typeVariables![i];
       int variance = computeTypeVariableBuilderVariance(
-          typeVariables[i], supertype, library);
-      if (!Variance.greaterThanOrEqual(variance, typeVariables[i].variance)) {
-        if (typeVariables[i].parameter.isLegacyCovariant) {
+          typeVariableBuilder, supertype, library);
+      if (!Variance.greaterThanOrEqual(variance, typeVariables![i].variance)) {
+        if (typeVariables![i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(
-              typeVariables[i].name,
+              typeVariables![i].name,
               Variance.keywordString(variance),
-              supertype.name);
+              supertype.name as String);
         } else {
           message =
               templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
-                  Variance.keywordString(typeVariables[i].variance),
-                  typeVariables[i].name,
+                  Variance.keywordString(typeVariables![i].variance),
+                  typeVariables![i].name,
                   Variance.keywordString(variance),
-                  supertype.name);
+                  supertype.name as String);
         }
         library.addProblem(message, charOffset, noLength, fileUri);
       }
     }
     if (message != null) {
       return new NamedTypeBuilder(
-          supertype.name,
+          supertype.name as String,
           const NullabilityBuilder.omitted(),
           /* arguments = */ null,
           fileUri,
           charOffset)
-        ..bind(new InvalidTypeDeclarationBuilder(supertype.name,
+        ..bind(new InvalidTypeDeclarationBuilder(supertype.name as String,
             message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;
@@ -355,6 +358,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         procedure.function.namedParameters;
     DartType returnType = procedure.function.returnType;
 
+    // ignore: unnecessary_null_comparison
     if (functionTypeParameters != null) {
       for (TypeParameter functionParameter in functionTypeParameters) {
         for (TypeParameter typeParameter in typeParameters) {
@@ -365,6 +369,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     }
+    // ignore: unnecessary_null_comparison
     if (positionalParameters != null) {
       for (VariableDeclaration formal in positionalParameters) {
         if (!formal.isCovariant) {
@@ -377,6 +382,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     }
+    // ignore: unnecessary_null_comparison
     if (namedParameters != null) {
       for (VariableDeclaration named in namedParameters) {
         for (TypeParameter typeParameter in typeParameters) {
@@ -387,6 +393,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     }
+    // ignore: unnecessary_null_comparison
     if (returnType != null) {
       for (TypeParameter typeParameter in typeParameters) {
         int returnTypeVariance = computeVariance(typeParameter, returnType);
@@ -407,11 +414,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (isReturnType) {
         message = templateInvalidTypeVariableVariancePositionInReturnType
             .withArguments(Variance.keywordString(typeParameter.variance),
-                typeParameter.name, Variance.keywordString(variance));
+                typeParameter.name!, Variance.keywordString(variance));
       } else {
         message = templateInvalidTypeVariableVariancePosition.withArguments(
             Variance.keywordString(typeParameter.variance),
-            typeParameter.name,
+            typeParameter.name!,
             Variance.keywordString(variance));
       }
       library.reportTypeArgumentIssue(message, fileUri, fileOffset,
@@ -474,8 +481,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               template.withArguments(
                   argument,
                   typeParameter.bound,
-                  typeParameter.name,
-                  getGenericTypeName(issue.enclosingType),
+                  typeParameter.name!,
+                  getGenericTypeName(issue.enclosingType!),
                   supertype.classNode.name,
                   name,
                   library.isNonNullableByDefault),
@@ -501,11 +508,12 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     // Check in supers.
     if (cls.supertype != null) {
-      checkBoundsInSupertype(cls.supertype, typeEnvironment);
+      checkBoundsInSupertype(cls.supertype!, typeEnvironment);
     }
     if (cls.mixedInType != null) {
-      checkBoundsInSupertype(cls.mixedInType, typeEnvironment);
+      checkBoundsInSupertype(cls.mixedInType!, typeEnvironment);
     }
+    // ignore: unnecessary_null_comparison
     if (cls.implementedTypes != null) {
       for (Supertype supertype in cls.implementedTypes) {
         checkBoundsInSupertype(supertype, typeEnvironment);
@@ -521,7 +529,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Check procedures
         checkVarianceInFunction(
             builder.procedure, typeEnvironment, cls.typeParameters);
-        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
       } else {
         assert(builder is DillFieldBuilder && builder.name == redirectingName,
             "Unexpected member: $builder.");
@@ -533,9 +541,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         library.checkTypesInConstructorBuilder(builder, typeEnvironment);
       } else if (builder is RedirectingFactoryBuilder) {
         library.checkTypesInRedirectingFactoryBuilder(builder, typeEnvironment);
-      } else if (builder is ProcedureBuilder) {
+      } else if (builder is SourceFactoryBuilder) {
         assert(builder.isFactory, "Unexpected constructor $builder.");
-        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
       } else {
         assert(
             // This is a synthesized constructor.
@@ -551,7 +559,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     constructorScopeBuilder.addMember(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
-    cls.addConstructor(constructorBuilder.member);
+    cls.addConstructor(constructorBuilder.invokeTarget);
+    if (constructorBuilder.readTarget != null &&
+        constructorBuilder.readTarget != constructorBuilder.invokeTarget) {
+      cls.addProcedure(constructorBuilder.readTarget as Procedure);
+    }
     if (constructorBuilder.isConst) {
       cls.hasConstConstructor = true;
     }
@@ -579,16 +591,15 @@ class SourceClassBuilder extends ClassBuilderImpl
   /// after expansion of type aliases, if any. For each supertype key, the
   /// corresponding value is the type alias which was unaliased in order to
   /// find the supertype, or null if the supertype was not aliased.
-  Map<TypeDeclarationBuilder, TypeAliasBuilder> computeDirectSupertypes(
+  Map<TypeDeclarationBuilder?, TypeAliasBuilder?> computeDirectSupertypes(
       ClassBuilder objectClass) {
-    final Map<TypeDeclarationBuilder, TypeAliasBuilder> result =
-        <TypeDeclarationBuilder, TypeAliasBuilder>{};
-    final TypeBuilder supertype = this.supertypeBuilder;
+    final Map<TypeDeclarationBuilder?, TypeAliasBuilder?> result = {};
+    final TypeBuilder? supertype = this.supertypeBuilder;
     if (supertype != null) {
-      TypeDeclarationBuilder declarationBuilder = supertype.declaration;
+      TypeDeclarationBuilder? declarationBuilder = supertype.declaration;
       if (declarationBuilder is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declarationBuilder;
-        NamedTypeBuilder namedBuilder = supertype;
+        NamedTypeBuilder namedBuilder = supertype as NamedTypeBuilder;
         declarationBuilder = aliasBuilder.unaliasDeclaration(
             namedBuilder.arguments,
             isUsedAsClass: true,
@@ -601,14 +612,14 @@ class SourceClassBuilder extends ClassBuilderImpl
     } else if (objectClass != this) {
       result[objectClass] = null;
     }
-    final List<TypeBuilder> interfaces = this.interfaceBuilders;
+    final List<TypeBuilder>? interfaces = this.interfaceBuilders;
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
         TypeBuilder interface = interfaces[i];
-        TypeDeclarationBuilder declarationBuilder = interface.declaration;
+        TypeDeclarationBuilder? declarationBuilder = interface.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = declarationBuilder;
-          NamedTypeBuilder namedBuilder = interface;
+          NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
           declarationBuilder = aliasBuilder.unaliasDeclaration(
               namedBuilder.arguments,
               isUsedAsClass: true,
@@ -620,13 +631,13 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     }
-    final TypeBuilder mixedInTypeBuilder = this.mixedInTypeBuilder;
+    final TypeBuilder? mixedInTypeBuilder = this.mixedInTypeBuilder;
     if (mixedInTypeBuilder != null) {
-      TypeDeclarationBuilder declarationBuilder =
+      TypeDeclarationBuilder? declarationBuilder =
           mixedInTypeBuilder.declaration;
       if (declarationBuilder is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declarationBuilder;
-        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+        NamedTypeBuilder namedBuilder = mixedInTypeBuilder as NamedTypeBuilder;
         declarationBuilder = aliasBuilder.unaliasDeclaration(
             namedBuilder.arguments,
             isUsedAsClass: true,
@@ -649,7 +660,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   bool _addMissingNoSuchMethodForwarders(
       KernelTarget target, Set<Member> existingForwarders,
-      {bool forSetters}) {
+      {required bool forSetters}) {
+    // ignore: unnecessary_null_comparison
     assert(forSetters != null);
 
     ClassHierarchy hierarchy = target.loader.hierarchy;
@@ -661,8 +673,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     List<Member> declaredMembers =
         hierarchy.getDeclaredMembers(cls, setters: forSetters);
 
-    Member noSuchMethod = ClassHierarchy.findMemberByName(
-        hierarchy.getInterfaceMembers(cls), noSuchMethodName);
+    Procedure noSuchMethod = ClassHierarchy.findMemberByName(
+        hierarchy.getInterfaceMembers(cls), noSuchMethodName) as Procedure;
     bool clsHasUserDefinedNoSuchMethod =
         hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
 
@@ -677,27 +689,27 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (Member member in allMembers) {
       (sameNameMembers[member.name] ??= []).add(member);
     }
-    for (Name name in sameNameMembers.keys) {
-      List<Member> members = sameNameMembers[name];
+    for (MapEntry<Name, List<Member>> entry in sameNameMembers.entries) {
+      List<Member> members = entry.value;
       assert(members.isNotEmpty);
       CombinedMemberSignatureBuilder combinedMemberSignature =
           new CombinedMemberSignatureBuilder(hierarchy, this, members,
               forSetter: forSetters);
-      Member member = combinedMemberSignature.canonicalMember;
+      Member? member = combinedMemberSignature.canonicalMember;
       if (member != null) {
         if (_isForwarderRequired(
                 clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
-                isPatch: member.fileUri != member.enclosingClass.fileUri) &&
+                isPatch: member.fileUri != member.enclosingClass!.fileUri) &&
             !existingForwarders.contains(member)) {
           assert(!combinedMemberSignature.needsCovarianceMerging,
               "Needed covariant merging for ${members}");
           if (ClassHierarchy.findMemberByName(declaredMembers, member.name) !=
               null) {
             _transformProcedureToNoSuchMethodForwarder(
-                noSuchMethod, target, member);
+                noSuchMethod, target, member as Procedure);
           } else {
             Procedure memberSignature =
-                combinedMemberSignature.createMemberFromSignature();
+                combinedMemberSignature.createMemberFromSignature()!;
             _transformProcedureToNoSuchMethodForwarder(
                 noSuchMethod, target, memberSignature);
             cls.procedures.add(memberSignature);
@@ -728,7 +740,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Set<Member> existingForwarders = new Set<Member>.identity();
     Set<Member> existingSetterForwarders = new Set<Member>.identity();
     {
-      Class nearestConcreteSuperclass = cls.superclass;
+      Class? nearestConcreteSuperclass = cls.superclass;
       while (nearestConcreteSuperclass != null &&
           nearestConcreteSuperclass.isAbstract) {
         nearestConcreteSuperclass = nearestConcreteSuperclass.superclass;
@@ -743,7 +755,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               in hierarchy.getInterfaceMembers(nearestConcreteSuperclass)) {
             if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
                 nearestConcreteSuperclass, concrete,
-                isPatch: member.fileUri != member.enclosingClass.fileUri)) {
+                isPatch: member.fileUri != member.enclosingClass!.fileUri)) {
               existingForwarders.add(member);
             }
           }
@@ -800,7 +812,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void _transformProcedureToNoSuchMethodForwarder(
-      Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
+      Procedure noSuchMethodInterface,
+      KernelTarget target,
+      Procedure procedure) {
     String prefix = procedure.isGetter
         ? 'get:'
         : procedure.isSetter
@@ -815,19 +829,11 @@ class SourceClassBuilder extends ClassBuilderImpl
         new Arguments.forwarded(procedure.function, library.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
-    Expression result;
-    if (library
-        .loader.target.backendTarget.supportsNewMethodInvocationEncoding) {
-      result = new InstanceInvocation(InstanceAccessKind.Instance,
-          new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
-          functionType: noSuchMethodInterface.getterType,
-          interfaceTarget: noSuchMethodInterface)
-        ..fileOffset = procedure.fileOffset;
-    } else {
-      result = new MethodInvocation(new ThisExpression(), noSuchMethodName,
-          new Arguments([invocation]), noSuchMethodInterface)
-        ..fileOffset = procedure.fileOffset;
-    }
+    Expression result = new InstanceInvocation(InstanceAccessKind.Instance,
+        new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
+        functionType: noSuchMethodInterface.getterType as FunctionType,
+        interfaceTarget: noSuchMethodInterface)
+      ..fileOffset = procedure.fileOffset;
     if (procedure.function.returnType is! VoidType) {
       result = new AsExpression(result, procedure.function.returnType)
         ..isTypeError = true
@@ -836,8 +842,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         ..fileOffset = procedure.fileOffset;
     }
     procedure.function.body = new ReturnStatement(result)
-      ..fileOffset = procedure.fileOffset;
-    procedure.function.body.parent = procedure.function;
+      ..fileOffset = procedure.fileOffset
+      ..parent = procedure.function;
     procedure.function.asyncMarker = AsyncMarker.Sync;
     procedure.function.dartAsyncMarker = AsyncMarker.Sync;
 
@@ -846,8 +852,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.stubTarget = null;
   }
 
-  void _addRedirectingConstructor(ProcedureBuilder constructorBuilder,
-      SourceLibraryBuilder library, Reference getterReference) {
+  void _addRedirectingConstructor(SourceFactoryBuilder constructorBuilder,
+      SourceLibraryBuilder library, Reference? getterReference) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
     // source code.
@@ -860,8 +866,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     // [constructor.target].
     //
     // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
-    DillFieldBuilder constructorsField =
-        origin.scope.lookupLocalMember(redirectingName, setter: false);
+    DillFieldBuilder? constructorsField = origin.scope
+        .lookupLocalMember(redirectingName, setter: false) as DillFieldBuilder?;
     if (constructorsField == null) {
       ListLiteral literal = new ListLiteral(<Expression>[]);
       Name name = new Name(redirectingName, library.library);
@@ -877,44 +883,44 @@ class SourceClassBuilder extends ClassBuilderImpl
       origin.scope
           .addLocalMember(redirectingName, constructorsField, setter: false);
     }
-    Field field = constructorsField.member;
-    ListLiteral literal = field.initializer;
+    Field field = constructorsField.field;
+    ListLiteral literal = field.initializer as ListLiteral;
     literal.expressions
-        .add(new StaticGet(constructorBuilder.procedure)..parent = literal);
+        .add(new StaticGet(constructorBuilder.member)..parent = literal);
   }
 
   @override
-  int resolveConstructors(LibraryBuilder library) {
+  int resolveConstructors(SourceLibraryBuilder library) {
     if (constructorReferences == null) return 0;
-    for (ConstructorReferenceBuilder ref in constructorReferences) {
+    for (ConstructorReferenceBuilder ref in constructorReferences!) {
       ref.resolveIn(scope, library);
     }
-    int count = constructorReferences.length;
+    int count = constructorReferences!.length;
     if (count != 0) {
       Map<String, MemberBuilder> constructors = this.constructors.local;
       // Copy keys to avoid concurrent modification error.
-      List<String> names = constructors.keys.toList();
-      for (String name in names) {
-        Builder declaration = constructors[name];
-        do {
+      for (MapEntry<String, MemberBuilder> entry in constructors.entries) {
+        Builder? declaration = entry.value;
+        while (declaration != null) {
           if (declaration.parent != this) {
-            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+            unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
                 fileUri);
           }
           if (declaration is RedirectingFactoryBuilder) {
             // Compute the immediate redirection target, not the effective.
             ConstructorReferenceBuilder redirectionTarget =
                 declaration.redirectionTarget;
+            // ignore: unnecessary_null_comparison
             if (redirectionTarget != null) {
-              Builder targetBuilder = redirectionTarget.target;
+              Builder? targetBuilder = redirectionTarget.target;
               if (declaration.next == null) {
                 // Only the first one (that is, the last on in the linked list)
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                Reference getterReference =
+                Reference? getterReference =
                     referencesFromIndexed?.lookupGetterReference(new Name(
-                        "_redirecting#", referencesFromIndexed.library));
+                        "_redirecting#", referencesFromIndexed!.library));
                 _addRedirectingConstructor(
                     declaration, library, getterReference);
               }
@@ -922,7 +928,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 List<DartType> typeArguments = declaration.typeArguments ??
                     new List<DartType>.filled(
                         targetBuilder
-                            .member.enclosingClass.typeParameters.length,
+                            .member.enclosingClass!.typeParameters.length,
                         const UnknownType());
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
@@ -930,7 +936,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 List<DartType> typeArguments = declaration.typeArguments ??
                     new List<DartType>.filled(
                         targetBuilder
-                            .member.enclosingClass.typeParameters.length,
+                            .member.enclosingClass!.typeParameters.length,
                         const UnknownType());
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
@@ -958,7 +964,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             }
           }
           declaration = declaration.next;
-        } while (declaration != null);
+        }
       }
     }
     return count;
@@ -966,8 +972,11 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkOverride(Types types, Member declaredMember, Member interfaceMember,
       bool isSetter, callback(Member interfaceMember, bool isSetter),
-      {bool isInterfaceCheck, bool declaredNeedsLegacyErasure}) {
+      {required bool isInterfaceCheck,
+      required bool declaredNeedsLegacyErasure}) {
+    // ignore: unnecessary_null_comparison
     assert(isInterfaceCheck != null);
+    // ignore: unnecessary_null_comparison
     assert(declaredNeedsLegacyErasure != null);
     if (declaredMember == interfaceMember) {
       return;
@@ -1066,20 +1075,20 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     DartType getterType = getter.getterType;
-    if (getter.enclosingClass.typeParameters.isNotEmpty) {
+    if (getter.enclosingClass!.typeParameters.isNotEmpty) {
       getterType = Substitution.fromPairs(
-              getter.enclosingClass.typeParameters,
+              getter.enclosingClass!.typeParameters,
               types.hierarchy.getTypeArgumentsAsInstanceOf(
-                  thisType, getter.enclosingClass))
+                  thisType, getter.enclosingClass!)!)
           .substituteType(getterType);
     }
 
     DartType setterType = setter.setterType;
-    if (setter.enclosingClass.typeParameters.isNotEmpty) {
+    if (setter.enclosingClass!.typeParameters.isNotEmpty) {
       setterType = Substitution.fromPairs(
-              setter.enclosingClass.typeParameters,
+              setter.enclosingClass!.typeParameters,
               types.hierarchy.getTypeArgumentsAsInstanceOf(
-                  thisType, setter.enclosingClass))
+                  thisType, setter.enclosingClass!)!)
           .substituteType(setterType);
     }
 
@@ -1101,9 +1110,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (!isValid) {
         Member getterOrigin = getter.memberSignatureOrigin ?? getter;
         Member setterOrigin = setter.memberSignatureOrigin ?? setter;
-        String getterMemberName = '${getterOrigin.enclosingClass.name}'
+        String getterMemberName = '${getterOrigin.enclosingClass!.name}'
             '.${getterOrigin.name.text}';
-        String setterMemberName = '${setterOrigin.enclosingClass.name}'
+        String setterMemberName = '${setterOrigin.enclosingClass!.name}'
             '.${setterOrigin.name.text}';
         if (getterOrigin.enclosingClass == cls &&
             setterOrigin.enclosingClass == cls) {
@@ -1212,33 +1221,33 @@ class SourceClassBuilder extends ClassBuilderImpl
     return unhandled('${member.runtimeType}', '_getMemberUri', -1, null);
   }
 
-  Substitution _computeInterfaceSubstitution(
+  Substitution? _computeInterfaceSubstitution(
       Types types,
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
-      FunctionNode declaredFunction,
-      FunctionNode interfaceFunction,
+      FunctionNode? declaredFunction,
+      FunctionNode? interfaceFunction,
       bool isInterfaceCheck,
       bool declaredNeedsLegacyErasure) {
-    Substitution interfaceSubstitution = Substitution.empty;
-    if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
-      Class enclosingClass = interfaceMember.enclosingClass;
+    Substitution? interfaceSubstitution;
+    if (interfaceMember.enclosingClass!.typeParameters.isNotEmpty) {
+      Class enclosingClass = interfaceMember.enclosingClass!;
       interfaceSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
           types.hierarchy
-              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass));
+              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass)!);
     }
 
-    if (declaredFunction?.typeParameters?.length !=
-        interfaceFunction?.typeParameters?.length) {
+    if (declaredFunction?.typeParameters.length !=
+        interfaceFunction?.typeParameters.length) {
       reportInvalidOverride(
           isInterfaceCheck,
           declaredMember,
           templateOverrideTypeVariablesMismatch.withArguments(
-              "${declaredMember.enclosingClass.name}."
+              "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
-              "${interfaceMemberOrigin.enclosingClass.name}."
+              "${interfaceMemberOrigin.enclosingClass!.name}."
                   "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
@@ -1251,8 +1260,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     } else if (declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
-      for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
-        substitutionMap[interfaceFunction.typeParameters[i]] =
+      for (int i = 0; i < declaredFunction!.typeParameters.length; ++i) {
+        substitutionMap[interfaceFunction!.typeParameters[i]] =
             new TypeParameterType.forAlphaRenaming(
                 interfaceFunction.typeParameters[i],
                 declaredFunction.typeParameters[i]);
@@ -1260,7 +1269,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
-        TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];
+        TypeParameter interfaceParameter = interfaceFunction!.typeParameters[i];
         if (!interfaceParameter.isGenericCovariantImpl) {
           DartType declaredBound = declaredParameter.bound;
           DartType interfaceBound = interfaceParameter.bound;
@@ -1285,11 +1294,11 @@ class SourceClassBuilder extends ClassBuilderImpl
                 declaredMember,
                 templateOverrideTypeVariablesBoundMismatch.withArguments(
                     declaredBound,
-                    declaredParameter.name,
-                    "${declaredMember.enclosingClass.name}."
+                    declaredParameter.name!,
+                    "${declaredMember.enclosingClass!.name}."
                         "${declaredMember.name.text}",
                     computedBound,
-                    "${interfaceMemberOrigin.enclosingClass.name}."
+                    "${interfaceMemberOrigin.enclosingClass!.name}."
                         "${interfaceMemberOrigin.name.text}",
                     library.isNonNullableByDefault),
                 declaredMember.fileOffset,
@@ -1303,36 +1312,40 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
         }
       }
-      interfaceSubstitution =
-          Substitution.combine(interfaceSubstitution, substitution);
+      if (interfaceSubstitution != null) {
+        interfaceSubstitution =
+            Substitution.combine(interfaceSubstitution, substitution);
+      } else {
+        interfaceSubstitution = substitution;
+      }
     }
     return interfaceSubstitution;
   }
 
-  Substitution _computeDeclaredSubstitution(
+  Substitution? _computeDeclaredSubstitution(
       Types types, Member declaredMember) {
-    Substitution declaredSubstitution = Substitution.empty;
-    if (declaredMember.enclosingClass.typeParameters.isNotEmpty) {
-      Class enclosingClass = declaredMember.enclosingClass;
+    Substitution? declaredSubstitution;
+    if (declaredMember.enclosingClass!.typeParameters.isNotEmpty) {
+      Class enclosingClass = declaredMember.enclosingClass!;
       declaredSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
           types.hierarchy
-              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass));
+              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass)!);
     }
     return declaredSubstitution;
   }
 
   void _checkTypes(
       Types types,
-      Substitution interfaceSubstitution,
-      Substitution declaredSubstitution,
+      Substitution? interfaceSubstitution,
+      Substitution? declaredSubstitution,
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
       DartType declaredType,
       DartType interfaceType,
       bool isCovariant,
-      VariableDeclaration declaredParameter,
+      VariableDeclaration? declaredParameter,
       bool isInterfaceCheck,
       bool declaredNeedsLegacyErasure,
       {bool asIfDeclaredParameter = false}) {
@@ -1374,10 +1387,10 @@ class SourceClassBuilder extends ClassBuilderImpl
               !types.isSubtypeOf(
                   supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
       if (isErrorInNnbdOptedOutMode || library.isNonNullableByDefault) {
-        String declaredMemberName = '${declaredMember.enclosingClass.name}'
+        String declaredMemberName = '${declaredMember.enclosingClass!.name}'
             '.${declaredMember.name.text}';
         String interfaceMemberName =
-            '${interfaceMemberOrigin.enclosingClass.name}'
+            '${interfaceMemberOrigin.enclosingClass!.name}'
             '.${interfaceMemberOrigin.name.text}';
         Message message;
         int fileOffset;
@@ -1401,7 +1414,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           fileOffset = declaredMember.fileOffset;
         } else {
           message = templateOverrideTypeMismatchParameter.withArguments(
-              declaredParameter.name,
+              declaredParameter.name!,
               declaredMemberName,
               declaredType,
               interfaceType,
@@ -1443,7 +1456,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     FunctionNode declaredFunction = declaredMember.function;
     FunctionNode interfaceFunction = interfaceMember.function;
 
-    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+    Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
         interfaceMember,
@@ -1453,7 +1466,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
 
-    Substitution declaredSubstitution =
+    Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
 
     _checkTypes(
@@ -1475,9 +1488,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           isInterfaceCheck,
           declaredMember,
           templateOverrideFewerPositionalArguments.withArguments(
-              "${declaredMember.enclosingClass.name}."
+              "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
-              "${interfaceMemberOrigin.enclosingClass.name}."
+              "${interfaceMemberOrigin.enclosingClass!.name}."
                   "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
@@ -1494,9 +1507,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           isInterfaceCheck,
           declaredMember,
           templateOverrideMoreRequiredArguments.withArguments(
-              "${declaredMember.enclosingClass.name}."
+              "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
-              "${interfaceMemberOrigin.enclosingClass.name}."
+              "${interfaceMemberOrigin.enclosingClass!.name}."
                   "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
@@ -1551,9 +1564,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           isInterfaceCheck,
           declaredMember,
           templateOverrideFewerNamedArguments.withArguments(
-              "${declaredMember.enclosingClass.name}."
+              "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
-              "${interfaceMemberOrigin.enclosingClass.name}."
+              "${interfaceMemberOrigin.enclosingClass!.name}."
                   "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
@@ -1564,8 +1577,9 @@ class SourceClassBuilder extends ClassBuilderImpl
                     interfaceMemberOrigin.fileOffset, noLength)
           ]);
     }
+
     int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
-      return p0.name.compareTo(p1.name);
+      return p0.name!.compareTo(p1.name!);
     }
 
     List<VariableDeclaration> sortedFromDeclared =
@@ -1588,10 +1602,10 @@ class SourceClassBuilder extends ClassBuilderImpl
               isInterfaceCheck,
               declaredMember,
               templateOverrideMismatchNamedParameter.withArguments(
-                  "${declaredMember.enclosingClass.name}."
+                  "${declaredMember.enclosingClass!.name}."
                       "${declaredMember.name.text}",
-                  interfaceNamedParameters.current.name,
-                  "${interfaceMember.enclosingClass.name}."
+                  interfaceNamedParameters.current.name!,
+                  "${interfaceMember.enclosingClass!.name}."
                       "${interfaceMember.name.text}"),
               declaredMember.fileOffset,
               noLength,
@@ -1627,10 +1641,10 @@ class SourceClassBuilder extends ClassBuilderImpl
             isInterfaceCheck,
             declaredMember,
             templateOverrideMismatchRequiredNamedParameter.withArguments(
-                declaredParameter.name,
-                "${declaredMember.enclosingClass.name}."
+                declaredParameter.name!,
+                "${declaredMember.enclosingClass!.name}."
                     "${declaredMember.name.text}",
-                "${interfaceMember.enclosingClass.name}."
+                "${interfaceMember.enclosingClass!.name}."
                     "${interfaceMember.name.text}"),
             declaredParameter.fileOffset,
             noLength,
@@ -1658,7 +1672,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMemberOrigin,
       bool isInterfaceCheck,
       bool declaredNeedsLegacyErasure) {
-    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+    Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
         interfaceMember,
@@ -1667,7 +1681,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         /* interfaceFunction = */ null,
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
-    Substitution declaredSubstitution =
+    Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.getterType;
     DartType interfaceType = interfaceMember.getterType;
@@ -1701,7 +1715,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMemberOrigin,
       bool isInterfaceCheck,
       bool declaredNeedsLegacyErasure) {
-    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+    Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
         interfaceMember,
@@ -1710,12 +1724,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         /* interfaceFunction = */ null,
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
-    Substitution declaredSubstitution =
+    Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.setterType;
     DartType interfaceType = interfaceMember.setterType;
-    VariableDeclaration declaredParameter =
-        declaredMember.function?.positionalParameters?.elementAt(0);
+    VariableDeclaration? declaredParameter =
+        declaredMember.function?.positionalParameters.elementAt(0);
     bool isCovariant = declaredParameter?.isCovariant ?? false;
     if (!isCovariant && declaredMember is Field) {
       isCovariant = declaredMember.isCovariant;
@@ -1744,7 +1758,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   // the conflict as the main error.
   void reportInvalidOverride(bool isInterfaceCheck, Member declaredMember,
       Message message, int fileOffset, int length,
-      {List<LocatedMessage> context}) {
+      {List<LocatedMessage>? context}) {
     if (shouldOverrideProblemBeOverlooked(this)) {
       return;
     }
@@ -1770,8 +1784,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       } else {
         if (cls.isAnonymousMixin) {
           // Implicit mixin application class
-          String baseName = cls.superclass.demangledName;
-          String mixinName = cls.mixedInClass.name;
+          String baseName = cls.superclass!.demangledName;
+          String mixinName = cls.mixedInClass!.name;
           int classNameLength = cls.nameAsMixinApplicationSubclass.length;
           library.addProblem(
               templateImplicitMixinOverride.withArguments(
@@ -1812,7 +1826,7 @@ bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
 /// classes that are not valid Dart. For instance `JSInt` in
 /// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
 /// in `dart:js` that implement both `ListMixin` and `JsObject`.
-int getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
+int? getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
   String uri = '${classBuilder.library.importUri}';
   if (uri == 'dart:js' && classBuilder.fileUri.pathSegments.last == 'js.dart') {
     return 0;

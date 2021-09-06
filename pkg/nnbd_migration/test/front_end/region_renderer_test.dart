@@ -23,14 +23,14 @@ void main() {
 class RegionRendererTest extends RegionRendererTestBase {
   /// Returns the basename of [testFile], used in traces.
   String get _testFileBasename =>
-      resourceProvider.pathContext.basename(testFile);
+      resourceProvider.pathContext.basename(testFile!);
 
   Future<void> test_informationalRegion_containsTrace() async {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int  a) => a.isEven;');
     var response = renderRegion(5);
     expect(response.traces, hasLength(1));
-    var trace = response.traces[0];
+    var trace = response.traces![0];
     expect(trace.description, equals('Non-nullability reason'));
   }
 
@@ -39,7 +39,7 @@ class RegionRendererTest extends RegionRendererTestBase {
         migratedContent: 'f(int  a) => a.isEven;');
     var response = renderRegion(5);
     expect(response.traces, hasLength(1));
-    var trace = response.traces[0];
+    var trace = response.traces![0];
     expect(trace.entries, hasLength(2));
     expect(trace.entries[0].description,
         equals('parameter 0 of f ($_testFileBasename:1:3)'));
@@ -51,13 +51,13 @@ class RegionRendererTest extends RegionRendererTestBase {
         migratedContent: 'f(int  a) => a.isEven;');
     var response = renderRegion(5);
     expect(response.traces, hasLength(1));
-    var trace = response.traces[0];
+    var trace = response.traces![0];
     var entry = trace.entries[0];
     expect(entry.link, isNotNull);
-    var testFileUriPath = resourceProvider.pathContext.toUri(testFile).path;
-    expect(entry.link.href,
+    var testFileUriPath = resourceProvider.pathContext.toUri(testFile!).path;
+    expect(entry.link!.href,
         equals('$testFileUriPath?offset=2&line=1&authToken=AUTH_TOKEN'));
-    expect(entry.link.path,
+    expect(entry.link!.path,
         equals(resourceProvider.pathContext.toUri(_testFileBasename).path));
   }
 
@@ -73,7 +73,7 @@ class RegionRendererTest extends RegionRendererTestBase {
         migratedContent: 'int? a = null;');
     var response = renderRegion(3);
     expect(response.displayPath, equals(testFile));
-    expect(response.uriPath, equals(pathMapper.map(testFile)));
+    expect(response.uriPath, equals(pathMapper!.map(testFile!)));
     expect(response.line, equals(1));
   }
 
@@ -82,7 +82,7 @@ class RegionRendererTest extends RegionRendererTestBase {
         migratedContent: 'int? a = null;');
     var response = renderRegion(3);
     expect(response.traces, hasLength(1));
-    var trace = response.traces[0];
+    var trace = response.traces![0];
     expect(trace.description, equals('Nullability reason'));
     expect(trace.entries, hasLength(4));
     expect(trace.entries[0].description, equals('a ($_testFileBasename:1:1)'));
@@ -104,20 +104,20 @@ class RegionRendererTest extends RegionRendererTestBase {
         migratedContent: 'f(int  a) => a.isEven;');
     var response = renderRegion(5);
     expect(response.displayPath, equals(testFile));
-    expect(response.uriPath, equals(pathMapper.map(testFile)));
+    expect(response.uriPath, equals(pathMapper!.map(testFile!)));
     expect(response.line, equals(1));
   }
 }
 
 class RegionRendererTestBase extends NnbdMigrationTestBase {
-  PathMapper pathMapper;
+  PathMapper? pathMapper;
 
   /// Render the region at [offset], using a [MigrationInfo] which knows only
   /// about the library at `infos.single`.
   EditDetails renderRegion(int offset) {
     var migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, projectPath);
-    var unitInfo = infos.single;
+    var unitInfo = infos!.single;
     var region = unitInfo.regionAt(offset);
     pathMapper = PathMapper(resourceProvider);
     return RegionRenderer(
@@ -159,7 +159,7 @@ g() {
     expect(response.displayPath,
         equals(_switchToDriveD(convertPath('/home/tests/bin/test.dart'))));
     expect(response.traces, hasLength(2));
-    var trace = response.traces[1];
+    var trace = response.traces![1];
     expect(trace.description, equals('Non-nullability reason'));
     expect(trace.entries, hasLength(1));
     var entry = trace.entries[0];
@@ -172,7 +172,7 @@ g() {
     var expectedLine =
         '\n'.allMatches(coreLibText.substring(0, expectedOffset)).length + 1;
     expect(
-        entry.link.href,
+        entry.link!.href,
         equals('$sdkCoreLibUriPath?'
             'offset=$expectedOffset&'
             'line=$expectedLine&'
@@ -183,7 +183,7 @@ g() {
     var expectedLinkPath = resourceProvider.pathContext.style == p.Style.windows
         ? sdkCoreLibUriPath
         : '../../..$sdkCoreLibUriPath';
-    expect(entry.link.path, equals(expectedLinkPath));
+    expect(entry.link!.path, equals(expectedLinkPath));
   }
 
   /// On Windows, replace the C:\ relative root in [path] with the D:\ relative

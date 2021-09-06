@@ -7,12 +7,13 @@
 
 library vm.transformations.ffi;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart'
     show TypeEnvironment, SubtypeCheckMode;
 
@@ -195,7 +196,7 @@ class FfiTransformer extends Transformer {
   final LibraryIndex index;
   final ClassHierarchy hierarchy;
   final DiagnosticReporter diagnosticReporter;
-  final ReferenceFromIndex referenceFromIndex;
+  final ReferenceFromIndex? referenceFromIndex;
 
   final Class objectClass;
   final Class intClass;
@@ -203,10 +204,12 @@ class FfiTransformer extends Transformer {
   final Class listClass;
   final Class typeClass;
   final Procedure unsafeCastMethod;
+  final Procedure nativeEffectMethod;
   final Class typedDataClass;
   final Procedure typedDataBufferGetter;
   final Procedure typedDataOffsetInBytesGetter;
   final Procedure byteBufferAsUint8List;
+  final Procedure uint8ListFactory;
   final Class pragmaClass;
   final Field pragmaName;
   final Field pragmaOptions;
@@ -217,6 +220,7 @@ class FfiTransformer extends Transformer {
   final Library ffiLibrary;
   final Class allocatorClass;
   final Class nativeFunctionClass;
+  final Class handleClass;
   final Class opaqueClass;
   final Class arrayClass;
   final Class arraySizeClass;
@@ -227,7 +231,9 @@ class FfiTransformer extends Transformer {
   final Field arraySizeDimension5Field;
   final Field arraySizeDimensionsField;
   final Class pointerClass;
+  final Class compoundClass;
   final Class structClass;
+  final Class unionClass;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
   final Field ffiStructLayoutPackingField;
@@ -244,7 +250,10 @@ class FfiTransformer extends Transformer {
   final Procedure addressGetter;
   final Procedure structPointerRef;
   final Procedure structPointerElemAt;
+  final Procedure unionPointerRef;
+  final Procedure unionPointerElemAt;
   final Procedure structArrayElemAt;
+  final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
   final Procedure arrayArrayAssignAt;
   final Procedure asFunctionMethod;
@@ -252,7 +261,7 @@ class FfiTransformer extends Transformer {
   final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
-  final Field addressOfField;
+  final Field compoundTypedDataBaseField;
   final Field arrayTypedDataBaseField;
   final Field arraySizeField;
   final Field arrayNestedDimensionsField;
@@ -260,7 +269,8 @@ class FfiTransformer extends Transformer {
   final Field arrayNestedDimensionsFlattened;
   final Field arrayNestedDimensionsFirst;
   final Field arrayNestedDimensionsRest;
-  final Constructor structFromPointer;
+  final Constructor structFromTypedDataBase;
+  final Constructor unionFromTypedDataBase;
   final Constructor arrayConstructor;
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
@@ -280,8 +290,10 @@ class FfiTransformer extends Transformer {
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
-  Library currentLibrary;
-  IndexedLibrary currentLibraryIndex;
+  Library? _currentLibrary;
+  Library get currentLibrary => _currentLibrary!;
+
+  IndexedLibrary? currentLibraryIndex;
 
   FfiTransformer(this.index, this.coreTypes, this.hierarchy,
       this.diagnosticReporter, this.referenceFromIndex)
@@ -292,143 +304,166 @@ class FfiTransformer extends Transformer {
         listClass = coreTypes.listClass,
         typeClass = coreTypes.typeClass,
         unsafeCastMethod =
-            index.getTopLevelMember('dart:_internal', 'unsafeCast'),
+            index.getTopLevelProcedure('dart:_internal', 'unsafeCast'),
+        nativeEffectMethod =
+            index.getTopLevelProcedure('dart:_internal', '_nativeEffect'),
         typedDataClass = index.getClass('dart:typed_data', 'TypedData'),
         typedDataBufferGetter =
-            index.getMember('dart:typed_data', 'TypedData', 'get:buffer'),
-        typedDataOffsetInBytesGetter = index.getMember(
+            index.getProcedure('dart:typed_data', 'TypedData', 'get:buffer'),
+        typedDataOffsetInBytesGetter = index.getProcedure(
             'dart:typed_data', 'TypedData', 'get:offsetInBytes'),
         byteBufferAsUint8List =
-            index.getMember('dart:typed_data', 'ByteBuffer', 'asUint8List'),
+            index.getProcedure('dart:typed_data', 'ByteBuffer', 'asUint8List'),
+        uint8ListFactory =
+            index.getProcedure('dart:typed_data', 'Uint8List', ''),
         pragmaClass = coreTypes.pragmaClass,
         pragmaName = coreTypes.pragmaName,
         pragmaOptions = coreTypes.pragmaOptions,
-        listElementAt = coreTypes.index.getMember('dart:core', 'List', '[]'),
-        numAddition = coreTypes.index.getMember('dart:core', 'num', '+'),
-        numMultiplication = coreTypes.index.getMember('dart:core', 'num', '*'),
+        listElementAt = coreTypes.index.getProcedure('dart:core', 'List', '[]'),
+        numAddition = coreTypes.index.getProcedure('dart:core', 'num', '+'),
+        numMultiplication =
+            coreTypes.index.getProcedure('dart:core', 'num', '*'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
+        handleClass = index.getClass('dart:ffi', 'Handle'),
         opaqueClass = index.getClass('dart:ffi', 'Opaque'),
         arrayClass = index.getClass('dart:ffi', 'Array'),
         arraySizeClass = index.getClass('dart:ffi', '_ArraySize'),
         arraySizeDimension1Field =
-            index.getMember('dart:ffi', '_ArraySize', 'dimension1'),
+            index.getField('dart:ffi', '_ArraySize', 'dimension1'),
         arraySizeDimension2Field =
-            index.getMember('dart:ffi', '_ArraySize', 'dimension2'),
+            index.getField('dart:ffi', '_ArraySize', 'dimension2'),
         arraySizeDimension3Field =
-            index.getMember('dart:ffi', '_ArraySize', 'dimension3'),
+            index.getField('dart:ffi', '_ArraySize', 'dimension3'),
         arraySizeDimension4Field =
-            index.getMember('dart:ffi', '_ArraySize', 'dimension4'),
+            index.getField('dart:ffi', '_ArraySize', 'dimension4'),
         arraySizeDimension5Field =
-            index.getMember('dart:ffi', '_ArraySize', 'dimension5'),
+            index.getField('dart:ffi', '_ArraySize', 'dimension5'),
         arraySizeDimensionsField =
-            index.getMember('dart:ffi', '_ArraySize', 'dimensions'),
+            index.getField('dart:ffi', '_ArraySize', 'dimensions'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
+        compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
+        unionClass = index.getClass('dart:ffi', 'Union'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
         ffiStructLayoutTypesField =
-            index.getMember('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
+            index.getField('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
         ffiStructLayoutPackingField =
-            index.getMember('dart:ffi', '_FfiStructLayout', 'packing'),
+            index.getField('dart:ffi', '_FfiStructLayout', 'packing'),
         ffiInlineArrayClass = index.getClass('dart:ffi', '_FfiInlineArray'),
         ffiInlineArrayElementTypeField =
-            index.getMember('dart:ffi', '_FfiInlineArray', 'elementType'),
+            index.getField('dart:ffi', '_FfiInlineArray', 'elementType'),
         ffiInlineArrayLengthField =
-            index.getMember('dart:ffi', '_FfiInlineArray', 'length'),
+            index.getField('dart:ffi', '_FfiInlineArray', 'length'),
         packedClass = index.getClass('dart:ffi', 'Packed'),
         packedMemberAlignmentField =
-            index.getMember('dart:ffi', 'Packed', 'memberAlignment'),
-        allocateMethod = index.getMember('dart:ffi', 'AllocatorAlloc', 'call'),
+            index.getField('dart:ffi', 'Packed', 'memberAlignment'),
+        allocateMethod =
+            index.getProcedure('dart:ffi', 'AllocatorAlloc', 'call'),
         allocatorAllocateMethod =
-            index.getMember('dart:ffi', 'Allocator', 'allocate'),
-        castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
-        offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
-        elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
-        addressGetter = index.getMember('dart:ffi', 'Pointer', 'get:address'),
-        addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
+            index.getProcedure('dart:ffi', 'Allocator', 'allocate'),
+        castMethod = index.getProcedure('dart:ffi', 'Pointer', 'cast'),
+        offsetByMethod = index.getProcedure('dart:ffi', 'Pointer', '_offsetBy'),
+        elementAtMethod =
+            index.getProcedure('dart:ffi', 'Pointer', 'elementAt'),
+        addressGetter =
+            index.getProcedure('dart:ffi', 'Pointer', 'get:address'),
+        compoundTypedDataBaseField =
+            index.getField('dart:ffi', '_Compound', '_typedDataBase'),
         arrayTypedDataBaseField =
-            index.getMember('dart:ffi', 'Array', '_typedDataBase'),
-        arraySizeField = index.getMember('dart:ffi', 'Array', '_size'),
+            index.getField('dart:ffi', 'Array', '_typedDataBase'),
+        arraySizeField = index.getField('dart:ffi', 'Array', '_size'),
         arrayNestedDimensionsField =
-            index.getMember('dart:ffi', 'Array', '_nestedDimensions'),
-        arrayCheckIndex = index.getMember('dart:ffi', 'Array', '_checkIndex'),
+            index.getField('dart:ffi', 'Array', '_nestedDimensions'),
+        arrayCheckIndex =
+            index.getProcedure('dart:ffi', 'Array', '_checkIndex'),
         arrayNestedDimensionsFlattened =
-            index.getMember('dart:ffi', 'Array', '_nestedDimensionsFlattened'),
+            index.getField('dart:ffi', 'Array', '_nestedDimensionsFlattened'),
         arrayNestedDimensionsFirst =
-            index.getMember('dart:ffi', 'Array', '_nestedDimensionsFirst'),
+            index.getField('dart:ffi', 'Array', '_nestedDimensionsFirst'),
         arrayNestedDimensionsRest =
-            index.getMember('dart:ffi', 'Array', '_nestedDimensionsRest'),
-        structFromPointer =
-            index.getMember('dart:ffi', 'Struct', '_fromPointer'),
-        arrayConstructor = index.getMember('dart:ffi', 'Array', '_'),
+            index.getField('dart:ffi', 'Array', '_nestedDimensionsRest'),
+        structFromTypedDataBase =
+            index.getConstructor('dart:ffi', 'Struct', '_fromTypedDataBase'),
+        unionFromTypedDataBase =
+            index.getConstructor('dart:ffi', 'Union', '_fromTypedDataBase'),
+        arrayConstructor = index.getConstructor('dart:ffi', 'Array', '_'),
         fromAddressInternal =
-            index.getTopLevelMember('dart:ffi', '_fromAddress'),
+            index.getTopLevelProcedure('dart:ffi', '_fromAddress'),
         structPointerRef =
-            index.getMember('dart:ffi', 'StructPointer', 'get:ref'),
+            index.getProcedure('dart:ffi', 'StructPointer', 'get:ref'),
         structPointerElemAt =
-            index.getMember('dart:ffi', 'StructPointer', '[]'),
-        structArrayElemAt = index.getMember('dart:ffi', 'StructArray', '[]'),
-        arrayArrayElemAt = index.getMember('dart:ffi', 'ArrayArray', '[]'),
-        arrayArrayAssignAt = index.getMember('dart:ffi', 'ArrayArray', '[]='),
-        asFunctionMethod =
-            index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
+            index.getProcedure('dart:ffi', 'StructPointer', '[]'),
+        unionPointerRef =
+            index.getProcedure('dart:ffi', 'UnionPointer', 'get:ref'),
+        unionPointerElemAt =
+            index.getProcedure('dart:ffi', 'UnionPointer', '[]'),
+        structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
+        unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),
+        arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),
+        arrayArrayAssignAt =
+            index.getProcedure('dart:ffi', 'ArrayArray', '[]='),
+        asFunctionMethod = index.getProcedure(
+            'dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
-            index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
-        sizeOfMethod = index.getTopLevelMember('dart:ffi', 'sizeOf'),
-        lookupFunctionMethod = index.getMember(
+            index.getTopLevelProcedure('dart:ffi', '_asFunctionInternal'),
+        sizeOfMethod = index.getTopLevelProcedure('dart:ffi', 'sizeOf'),
+        lookupFunctionMethod = index.getProcedure(
             'dart:ffi', 'DynamicLibraryExtension', 'lookupFunction'),
         fromFunctionMethod =
-            index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
+            index.getProcedure('dart:ffi', 'Pointer', 'fromFunction'),
         libraryLookupMethod =
-            index.getMember('dart:ffi', 'DynamicLibrary', 'lookup'),
-        abiMethod = index.getTopLevelMember('dart:ffi', '_abi'),
+            index.getProcedure('dart:ffi', 'DynamicLibrary', 'lookup'),
+        abiMethod = index.getTopLevelProcedure('dart:ffi', '_abi'),
         pointerFromFunctionProcedure =
-            index.getTopLevelMember('dart:ffi', '_pointerFromFunction'),
+            index.getTopLevelProcedure('dart:ffi', '_pointerFromFunction'),
         nativeCallbackFunctionProcedure =
-            index.getTopLevelMember('dart:ffi', '_nativeCallbackFunction'),
+            index.getTopLevelProcedure('dart:ffi', '_nativeCallbackFunction'),
         nativeTypesClasses = nativeTypeClassNames
             .map((name) => index.getClass('dart:ffi', name))
             .toList(),
         loadMethods = Map.fromIterable(optimizedTypes, value: (t) {
           final name = nativeTypeClassNames[t.index];
-          return index.getTopLevelMember('dart:ffi', "_load$name");
+          return index.getTopLevelProcedure('dart:ffi', "_load$name");
         }),
         loadUnalignedMethods =
             Map.fromIterable(unalignedLoadsStores, value: (t) {
           final name = nativeTypeClassNames[t.index];
-          return index.getTopLevelMember('dart:ffi', "_load${name}Unaligned");
+          return index.getTopLevelProcedure(
+              'dart:ffi', "_load${name}Unaligned");
         }),
         storeMethods = Map.fromIterable(optimizedTypes, value: (t) {
           final name = nativeTypeClassNames[t.index];
-          return index.getTopLevelMember('dart:ffi', "_store$name");
+          return index.getTopLevelProcedure('dart:ffi', "_store$name");
         }),
         storeUnalignedMethods =
             Map.fromIterable(unalignedLoadsStores, value: (t) {
           final name = nativeTypeClassNames[t.index];
-          return index.getTopLevelMember('dart:ffi', "_store${name}Unaligned");
+          return index.getTopLevelProcedure(
+              'dart:ffi', "_store${name}Unaligned");
         }),
         elementAtMethods = Map.fromIterable(optimizedTypes, value: (t) {
           final name = nativeTypeClassNames[t.index];
-          return index.getTopLevelMember('dart:ffi', "_elementAt$name");
+          return index.getTopLevelProcedure('dart:ffi', "_elementAt$name");
         }),
-        memCopy = index.getTopLevelMember('dart:ffi', '_memCopy'),
-        allocationTearoff = index.getMember(
+        memCopy = index.getTopLevelProcedure('dart:ffi', '_memCopy'),
+        allocationTearoff = index.getProcedure(
             'dart:ffi', 'AllocatorAlloc', LibraryIndex.tearoffPrefix + 'call'),
-        asFunctionTearoff = index.getMember('dart:ffi', 'NativeFunctionPointer',
-            LibraryIndex.tearoffPrefix + 'asFunction'),
-        lookupFunctionTearoff = index.getMember(
+        asFunctionTearoff = index.getProcedure('dart:ffi',
+            'NativeFunctionPointer', LibraryIndex.tearoffPrefix + 'asFunction'),
+        lookupFunctionTearoff = index.getProcedure(
             'dart:ffi',
             'DynamicLibraryExtension',
             LibraryIndex.tearoffPrefix + 'lookupFunction');
 
   @override
   TreeNode visitLibrary(Library node) {
-    assert(currentLibrary == null);
-    currentLibrary = node;
+    assert(_currentLibrary == null);
+    _currentLibrary = node;
     currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
     final result = super.visitLibrary(node);
-    currentLibrary = null;
+    _currentLibrary = null;
     return result;
   }
 
@@ -452,9 +487,8 @@ class FfiTransformer extends Transformer {
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
-  DartType convertNativeTypeToDartType(DartType nativeType,
-      {bool allowStructs = false,
-      bool allowStructItself = false,
+  DartType? convertNativeTypeToDartType(DartType nativeType,
+      {bool allowCompounds = false,
       bool allowHandle = false,
       bool allowInlineArray = false}) {
     if (nativeType is! InterfaceType) {
@@ -462,7 +496,7 @@ class FfiTransformer extends Transformer {
     }
     final InterfaceType native = nativeType;
     final Class nativeClass = native.classNode;
-    final NativeType nativeType_ = getType(nativeClass);
+    final NativeType? nativeType_ = getType(nativeClass);
 
     if (nativeClass == arrayClass) {
       if (!allowInlineArray) {
@@ -470,11 +504,11 @@ class FfiTransformer extends Transformer {
       }
       return nativeType;
     }
-    if (hierarchy.isSubclassOf(nativeClass, structClass)) {
-      if (structClass == nativeClass) {
-        return allowStructItself ? nativeType : null;
+    if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
+      if (nativeClass == structClass || nativeClass == unionClass) {
+        return null;
       }
-      return allowStructs ? nativeType : null;
+      return allowCompounds ? nativeType : null;
     }
     if (nativeType_ == null) {
       return null;
@@ -500,27 +534,29 @@ class FfiTransformer extends Transformer {
       return null;
     }
 
-    final FunctionType fun = native.typeArguments[0];
+    final FunctionType fun = native.typeArguments[0] as FunctionType;
     if (fun.namedParameters.isNotEmpty) return null;
     if (fun.positionalParameters.length != fun.requiredParameterCount) {
       return null;
     }
     if (fun.typeParameters.length != 0) return null;
 
-    final DartType returnType = convertNativeTypeToDartType(fun.returnType,
-        allowStructs: allowStructs, allowHandle: true);
+    final DartType? returnType = convertNativeTypeToDartType(fun.returnType,
+        allowCompounds: true, allowHandle: true);
     if (returnType == null) return null;
     final List<DartType> argumentTypes = fun.positionalParameters
-        .map((t) => convertNativeTypeToDartType(t,
-            allowStructs: allowStructs, allowHandle: true))
+        .map((t) =>
+            convertNativeTypeToDartType(t,
+                allowCompounds: true, allowHandle: true) ??
+            dummyDartType)
         .toList();
-    if (argumentTypes.contains(null)) return null;
+    if (argumentTypes.contains(dummyDartType)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
   }
 
   /// The [NativeType] corresponding to [c]. Returns `null` for user-defined
   /// structs.
-  NativeType getType(Class c) {
+  NativeType? getType(Class c) {
     final int index = nativeTypesClasses.indexOf(c);
     if (index == -1) {
       return null;
@@ -528,25 +564,30 @@ class FfiTransformer extends Transformer {
     return NativeType.values[index];
   }
 
+  InterfaceType _listOfIntType() => InterfaceType(
+      listClass, Nullability.legacy, [coreTypes.intLegacyRawType]);
+
   ConstantExpression intListConstantExpression(List<int> values) =>
       ConstantExpression(
-          ListConstant(InterfaceType(intClass, Nullability.legacy),
+          ListConstant(coreTypes.intLegacyRawType,
               [for (var v in values) IntConstant(v)]),
-          InterfaceType(listClass, Nullability.legacy,
-              [InterfaceType(intClass, Nullability.legacy)]));
+          _listOfIntType());
 
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
   Expression runtimeBranchOnLayout(Map<Abi, int> values) {
-    return MethodInvocation(
+    return InstanceInvocation(
+        InstanceAccessKind.Instance,
         intListConstantExpression([
-          values[Abi.wordSize64],
-          values[Abi.wordSize32Align32],
-          values[Abi.wordSize32Align64]
+          values[Abi.wordSize64]!,
+          values[Abi.wordSize32Align32]!,
+          values[Abi.wordSize32Align64]!
         ]),
-        Name("[]"),
+        listElementAt.name,
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
-        listElementAt);
+        interfaceTarget: listElementAt,
+        functionType: Substitution.fromInterfaceType(_listOfIntType())
+            .substituteType(listElementAt.getterType) as FunctionType);
   }
 
   /// Generates an expression that returns a new `Pointer<dartType>` offset
@@ -562,12 +603,13 @@ class FfiTransformer extends Transformer {
       StaticInvocation(
           fromAddressInternal,
           Arguments([
-            MethodInvocation(
-                PropertyGet(pointer, addressGetter.name, addressGetter)
+            add(
+                InstanceGet(
+                    InstanceAccessKind.Instance, pointer, addressGetter.name,
+                    interfaceTarget: addressGetter,
+                    resultType: addressGetter.getterType)
                   ..fileOffset = fileOffset,
-                numAddition.name,
-                Arguments([offset]),
-                numAddition)
+                offset)
           ], types: [
             dartType
           ]))
@@ -590,24 +632,28 @@ class FfiTransformer extends Transformer {
       ..fileOffset = fileOffset;
     return Let(
         typedDataVar,
-        MethodInvocation(
-            PropertyGet(VariableGet(typedDataVar), typedDataBufferGetter.name,
-                typedDataBufferGetter)
+        InstanceInvocation(
+            InstanceAccessKind.Instance,
+            InstanceGet(InstanceAccessKind.Instance, VariableGet(typedDataVar),
+                typedDataBufferGetter.name,
+                interfaceTarget: typedDataBufferGetter,
+                resultType: typedDataBufferGetter.getterType)
               ..fileOffset = fileOffset,
             byteBufferAsUint8List.name,
             Arguments([
-              MethodInvocation(
-                  PropertyGet(
+              add(
+                  InstanceGet(
+                      InstanceAccessKind.Instance,
                       VariableGet(typedDataVar),
                       typedDataOffsetInBytesGetter.name,
-                      typedDataOffsetInBytesGetter)
+                      interfaceTarget: typedDataOffsetInBytesGetter,
+                      resultType: typedDataOffsetInBytesGetter.getterType)
                     ..fileOffset = fileOffset,
-                  numAddition.name,
-                  Arguments([offset]),
-                  numAddition),
+                  offset),
               length
             ]),
-            byteBufferAsUint8List));
+            interfaceTarget: byteBufferAsUint8List,
+            functionType: byteBufferAsUint8List.getterType as FunctionType));
   }
 
   /// Generates an expression that returns a new `TypedDataBase` offset
@@ -734,7 +780,7 @@ class FfiTransformer extends Transformer {
     return dimensions;
   }
 
-  bool isStructSubtype(DartType type) {
+  bool isCompoundSubtype(DartType type) {
     if (type is InvalidType) {
       return false;
     }
@@ -742,23 +788,47 @@ class FfiTransformer extends Transformer {
       return false;
     }
     if (type is InterfaceType) {
-      if (type.classNode == structClass) {
+      if (type.classNode == structClass || type.classNode == unionClass) {
         return false;
       }
     }
-    return env.isSubtypeOf(type, InterfaceType(structClass, Nullability.legacy),
+    return env.isSubtypeOf(
+        type,
+        InterfaceType(compoundClass, Nullability.legacy),
         SubtypeCheckMode.ignoringNullabilities);
   }
-}
 
-/// Contains all information collected by _FfiDefinitionTransformer that is
-/// needed in _FfiUseSiteTransformer.
-class FfiTransformerData {
-  final Map<Field, Procedure> replacedGetters;
-  final Map<Field, Procedure> replacedSetters;
-  final Set<Class> emptyStructs;
-  FfiTransformerData(
-      this.replacedGetters, this.replacedSetters, this.emptyStructs);
+  Expression getCompoundTypedDataBaseField(
+      Expression receiver, int fileOffset) {
+    return InstanceGet(
+        InstanceAccessKind.Instance, receiver, compoundTypedDataBaseField.name,
+        interfaceTarget: compoundTypedDataBaseField,
+        resultType: compoundTypedDataBaseField.type)
+      ..fileOffset = fileOffset;
+  }
+
+  Expression getArrayTypedDataBaseField(Expression receiver,
+      [int fileOffset = TreeNode.noOffset]) {
+    return InstanceGet(
+        InstanceAccessKind.Instance, receiver, arrayTypedDataBaseField.name,
+        interfaceTarget: arrayTypedDataBaseField,
+        resultType: arrayTypedDataBaseField.type)
+      ..fileOffset = fileOffset;
+  }
+
+  Expression add(Expression a, Expression b) {
+    return InstanceInvocation(
+        InstanceAccessKind.Instance, a, numAddition.name, Arguments([b]),
+        interfaceTarget: numAddition,
+        functionType: numAddition.getterType as FunctionType);
+  }
+
+  Expression multiply(Expression a, Expression b) {
+    return InstanceInvocation(
+        InstanceAccessKind.Instance, a, numMultiplication.name, Arguments([b]),
+        interfaceTarget: numMultiplication,
+        functionType: numMultiplication.getterType as FunctionType);
+  }
 }
 
 /// Checks if any library depends on dart:ffi.

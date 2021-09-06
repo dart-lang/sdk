@@ -1,7 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library vm.target.flutter;
 
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -13,7 +12,7 @@ import 'package:vm/target/vm.dart' show VmTarget;
 class FlutterTarget extends VmTarget {
   FlutterTarget(TargetFlags flags) : super(flags);
 
-  WidgetCreatorTracker _widgetTracker;
+  late final WidgetCreatorTracker _widgetTracker = WidgetCreatorTracker();
 
   @override
   String get name => 'flutter';
@@ -56,15 +55,12 @@ class FlutterTarget extends VmTarget {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger, changedStructureNotifier: changedStructureNotifier);
     if (flags.trackWidgetCreation) {
-      if (_widgetTracker == null) {
-        _widgetTracker = WidgetCreatorTracker();
-      }
       _widgetTracker.transform(component, libraries, changedStructureNotifier);
     }
   }

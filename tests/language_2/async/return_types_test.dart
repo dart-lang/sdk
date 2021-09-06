@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
@@ -23,7 +25,7 @@ foo3() async {
 }
 
 Future<int, String>
-// [error line 25, column 1, length 19]
+// [error line 27, column 1, length 19]
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 1 type arguments.
 foo4() async {
@@ -31,10 +33,10 @@ foo4() async {
 }
 
 int
-// [error line 33, column 1, length 3]
+// [error line 35, column 1, length 3]
 // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_RETURN_TYPE
 foo5() async {
-// [error line 36, column 1]
+// [error line 38, column 1]
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return 3;
 }
@@ -57,9 +59,9 @@ Iterable<int> foo8() sync* {
   return 8;
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
-// [cfe] 'sync*' and 'async*' can't return a value.
 //^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
+// [cfe] 'sync*' and 'async*' can't return a value.
 }
 
 Stream<int> foo9() async* {
@@ -68,9 +70,9 @@ Stream<int> foo9() async* {
   return 8;
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
-// [cfe] 'sync*' and 'async*' can't return a value.
 //^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
+// [cfe] 'sync*' and 'async*' can't return a value.
 }
 
 test() async {

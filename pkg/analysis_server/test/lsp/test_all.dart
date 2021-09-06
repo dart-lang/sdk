@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/lsp/lsp_packet_transformer_test.dart' as lsp_packet_transformer;
 import 'analyzer_status_test.dart' as analyzer_status;
 import 'cancel_request_test.dart' as cancel_request;
 import 'change_workspace_folders_test.dart' as change_workspace_folders;
+import 'client_configuration_test.dart' as client_configuration;
 import 'closing_labels_test.dart' as closing_labels;
 import 'code_actions_assists_test.dart' as code_actions_assists;
 import 'code_actions_fixes_test.dart' as code_actions_fixes;
@@ -37,6 +36,7 @@ import 'pub_package_service_test.dart' as pub_package_service;
 import 'reanalyze_test.dart' as reanalyze;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
+import 'selection_range_test.dart' as selection_range;
 import 'semantic_tokens_test.dart' as semantic_tokens;
 import 'server_test.dart' as server;
 import 'signature_help_test.dart' as signature_help;
@@ -49,6 +49,7 @@ void main() {
     analyzer_status.main();
     cancel_request.main();
     change_workspace_folders.main();
+    client_configuration.main();
     closing_labels.main();
     code_actions_assists.main();
     code_actions_fixes.main();
@@ -78,6 +79,7 @@ void main() {
     reanalyze.main();
     references.main();
     rename.main();
+    selection_range.main();
     semantic_tokens.main();
     server.main();
     signature_help.main();

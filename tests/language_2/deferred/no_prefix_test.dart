@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Loading a deferred library without prefix is not allowed.
 import "constraints_lib2.dart"
   deferred

@@ -332,7 +332,6 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
-    var visitors = <AstVisitor>[];
     final workspacePackage = _getPackage(currentUnit.unit);
     var context = LinterContextImpl(
         allUnits,
@@ -350,14 +349,9 @@ class LibraryAnalyzer {
 
     // Run lints that handle specific node types.
     unit.accept(LinterVisitor(
-        nodeRegistry, ExceptionHandlingDelegatingAstVisitor.logException));
-
-    // Run visitor based lints.
-    if (visitors.isNotEmpty) {
-      AstVisitor visitor = ExceptionHandlingDelegatingAstVisitor(
-          visitors, ExceptionHandlingDelegatingAstVisitor.logException);
-      unit.accept(visitor);
-    }
+        nodeRegistry,
+        LinterExceptionHandler(_analysisOptions.propagateLinterExceptions)
+            .logException));
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
@@ -703,10 +697,8 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper? flowAnalysisHelper;
-    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      flowAnalysisHelper = FlowAnalysisHelper(_typeSystem, false);
-    }
+    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
+        _typeSystem, false, unit.featureSet.isEnabled(Feature.non_nullable));
 
     var resolverVisitor = ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,

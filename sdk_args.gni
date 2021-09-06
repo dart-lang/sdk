@@ -29,6 +29,9 @@ declare_args() {
   # Whether to enable the SDK hash check that will prevent loading a kernel
   # into a VM which was built with a different SDK.
   verify_sdk_hash = true
+
+  # The location in the build output directory of the built Dart SDK.
+  dart_sdk_output = "dart-sdk"
 }
 
 # The SDK hash to build into VM and kernels.

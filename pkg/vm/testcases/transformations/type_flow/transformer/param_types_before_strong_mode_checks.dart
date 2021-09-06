@@ -54,7 +54,7 @@ class D {
   }
 }
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 use(x) => unknown.call(x);

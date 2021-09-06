@@ -1,6 +1,3 @@
-// TODO(multitest): This was automatically migrated from a multitest and may
-// contain strange or dead code.
-
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18,7 +15,7 @@ bad() {
 class B {}
 
 class C extends B {
-  int v;
+  num v;
   C(this.v);
   static late int staticInt;
 }
@@ -44,58 +41,75 @@ class I extends G implements H {}
 C? nullC() => null;
 
 main() {
-  // Make sure the "none" test fails if assignment to "?." is not implemented.
-  // This makes status files easier to maintain.
-  nullC()?.v = 1;
-
   // e1?.v = e2 is equivalent to ((x) => x == null ? null : x.v = e2)(e1).
-
-
+  Expect.equals(null, nullC()?.v = bad());
+  {
+    C? c = new C(1) as dynamic;
+    Expect.equals(2, c?.v = 2);
+    Expect.equals(2, c!.v);
+  }
 
   // C?.v = e2 is equivalent to C.v = e2.
+  C.staticInt = 1;
+  Expect.equals(2, C?.staticInt = 2);
+  Expect.equals(2, C.staticInt);
 
-
+  h.C.staticInt = 1;
+  Expect.equals(2, h.C?.staticInt = 2);
+  Expect.equals(2, h.C.staticInt);
 
   // The static type of e1?.v = e2 is the static type of e2.
+  {
+    D? d = new D(new E()) as dynamic;
+    G g = new G();
+    F? f = (d?.v = g);
+    Expect.identical(f, g);
+  }
 
+  {
+    D.staticE = new E();
+    G g = new G();
+    F? f = (D?.staticE = g);
+    Expect.identical(f, g);
+  }
 
-
-
-
-
+  h.D.staticE = new h.E();
+  h.G g = new h.G();
+  h.F? f = (h.D?.staticE = g);
+  Expect.identical(f, g);
 
   // Exactly the same errors that would be caused by e1.v = e2 are
   // also generated in the case of e1?.v = e2.
 
-
-
   // e1?.v op= e2 is equivalent to ((x) => x?.v = x.v op e2)(e1).
-
-
+  Expect.equals(null, nullC()?.v += bad());
+  {
+    C? c = new C(1) as dynamic;
+    Expect.equals(3, c?.v += 2);
+    Expect.equals(3, c!.v);
+  }
 
   // C?.v op= e2 is equivalent to C.v op= e2.
-
+  C.staticInt = 1;
+  Expect.equals(3, C?.staticInt += 2);
+  Expect.equals(3, C?.staticInt);
 
   // The static type of e1?.v op= e2 is the static type of e1.v op e2.
+  {
+    D? d = new D(new E()) as dynamic;
+    F? f = (d?.v += 1);
+    Expect.identical(d!.v, f);
+  }
 
+  {
+    D.staticE = new E();
+    F? f = (D?.staticE += 1);
+    Expect.identical(D.staticE, f);
+  }
 
-
-
-  // Let T be the static type of e1 and let y be a fresh variable of type T.
-  // Exactly the same errors that would be caused by y.v op e2 are
-  // also generated in the case of e1?.v op= e2.
-
-
-
-
-
-
-
-
-
-  // '?.' cannot be used to assign to toplevel properties in libraries imported
-  // via prefix.
-
-
-
+  {
+    h.D.staticE = new h.E();
+    h.F? f = (h.D?.staticE += 1);
+    Expect.identical(h.D.staticE, f);
+  }
 }

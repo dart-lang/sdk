@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -40,34 +38,29 @@ int findIdentifierLength(String search) {
 
 /// An abstract base for all 'analysis' domain tests.
 class AbstractAnalysisTest with ResourceProviderMixin {
-  MockServerChannel serverChannel;
-  TestPluginManager pluginManager;
-  AnalysisServer server;
-  RequestHandler handler;
+  late MockServerChannel serverChannel;
+  late TestPluginManager pluginManager;
+  late AnalysisServer server;
+  late RequestHandler handler;
 
   final List<GeneralAnalysisService> generalServices =
       <GeneralAnalysisService>[];
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
-  String projectPath;
-  String testFolder;
-  String testFile;
-  String testCode;
+  late String projectPath;
+  late String testFolder;
+  late String testFile;
+  late String testCode;
 
   AbstractAnalysisTest();
 
-  AnalysisDomainHandler get analysisHandler => server.handlers
-      .singleWhere((handler) => handler is AnalysisDomainHandler);
+  AnalysisDomainHandler get analysisHandler =>
+      server.handlers.singleWhere((handler) => handler is AnalysisDomainHandler)
+          as AnalysisDomainHandler;
 
   AnalysisOptions get analysisOptions => testDiver.analysisOptions;
 
-  AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
-
-  void addAnalysisOptionsFile(String content) {
-    newFile(
-        resourceProvider.pathContext.join(projectPath, 'analysis_options.yaml'),
-        content: content);
-  }
+  AnalysisDriver get testDiver => server.getAnalysisDriver(testFile)!;
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
@@ -97,7 +90,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String> experiments}) {
+  void createAnalysisOptionsFile({List<String>? experiments}) {
     var buffer = StringBuffer();
     if (experiments != null) {
       buffer.writeln('analyzer:');
@@ -106,7 +99,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
         buffer.writeln('    - $experiment');
       }
     }
-    addAnalysisOptionsFile(buffer.toString());
+    newAnalysisOptionsYamlFile(projectPath, content: buffer.toString());
   }
 
   AnalysisServer createAnalysisServer() {
@@ -128,14 +121,14 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Creates a project [projectPath].
-  void createProject({Map<String, String> packageRoots}) {
+  void createProject({Map<String, String>? packageRoots}) {
     newFolder(projectPath);
     setRoots(included: [projectPath], excluded: []);
   }
 
   void doAllDeclarationsTrackerWork() {
-    while (server.declarationsTracker.hasWork) {
-      server.declarationsTracker.doWork();
+    while (server.declarationsTracker!.hasWork) {
+      server.declarationsTracker!.doWork();
     }
   }
 
@@ -158,9 +151,9 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Validates that the given [request] is handled successfully.
-  Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
+  Response handleSuccessfulRequest(Request request, {RequestHandler? handler}) {
     handler ??= this.handler;
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     expect(response, isResponseSuccess(request.id));
     return response;
   }
@@ -190,8 +183,8 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   void setRoots({
-    @required List<String> included,
-    @required List<String> excluded,
+    required List<String> included,
+    required List<String> excluded,
   }) {
     var includedConverted = included.map(convertPath).toList();
     var excludedConverted = excluded.map(convertPath).toList();
@@ -221,9 +214,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   @mustCallSuper
   void tearDown() {
     server.done();
-    handler = null;
-    server = null;
-    serverChannel = null;
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.

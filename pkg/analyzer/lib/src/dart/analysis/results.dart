@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -18,7 +17,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   final AnalysisSession session;
 
   @override
-  final String? path;
+  final String path;
 
   @override
   final Uri uri;
@@ -67,125 +66,24 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   ResultState get state => ResultState.VALID;
 }
 
-/// The implementation of [AnalysisResult] when not [ResultState.VALID].
-class NotValidAnalysisResultImpl implements AnalysisResult {
+class LibraryElementResultImpl implements LibraryElementResult {
   @override
-  final ResultState state;
+  final LibraryElement element;
 
-  NotValidAnalysisResultImpl(this.state);
-
-  @override
-  String? get path {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  AnalysisSession get session {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  Uri get uri {
-    throw StateError('This result is not valid');
-  }
-}
-
-/// The implementation of [ErrorsResult] when not [ResultState.VALID].
-class NotValidErrorsResultImpl extends NotValidFileResultImpl
-    implements ErrorsResult {
-  NotValidErrorsResultImpl(ResultState state) : super(state);
-
-  @override
-  List<AnalysisError> get errors {
-    throw StateError('This result is not valid');
-  }
-}
-
-/// The implementation of [FileResult] when not [ResultState.VALID].
-class NotValidFileResultImpl extends NotValidAnalysisResultImpl
-    implements FileResult {
-  NotValidFileResultImpl(ResultState state) : super(state);
-
-  @override
-  bool get isPart {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  LineInfo get lineInfo {
-    throw StateError('This result is not valid');
-  }
-}
-
-/// The implementation of [ResolvedUnitResult] when not [ResultState.VALID].
-class NotValidResolvedUnitResultImpl extends NotValidFileResultImpl
-    implements ResolvedUnitResult {
-  NotValidResolvedUnitResultImpl(ResultState state) : super(state);
-
-  @override
-  String? get content {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  List<AnalysisError> get errors {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  LibraryElement get libraryElement {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  TypeProvider get typeProvider {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  TypeSystem get typeSystem {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  CompilationUnit? get unit {
-    throw StateError('This result is not valid');
-  }
-}
-
-/// The implementation of [UnitElementResult] when not [ResultState.VALID].
-class NotValidUnitElementResultImpl extends NotValidAnalysisResultImpl
-    implements UnitElementResult {
-  NotValidUnitElementResultImpl(ResultState state) : super(state);
-
-  @override
-  CompilationUnitElement get element {
-    throw StateError('This result is not valid');
-  }
-
-  @override
-  String get signature {
-    throw StateError('This result is not valid');
-  }
+  LibraryElementResultImpl(this.element);
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override
-  final List<ParsedUnitResult>? units;
+  final List<ParsedUnitResult> units;
 
   ParsedLibraryResultImpl(
-      AnalysisSession session, String? path, Uri uri, this.units)
+      AnalysisSession session, String path, Uri uri, this.units)
       : super(session, path, uri);
-
-  ParsedLibraryResultImpl.external(AnalysisSession session, Uri uri)
-      : this(session, null, uri, null);
 
   @override
   ResultState get state {
-    if (path == null) {
-      return ResultState.NOT_A_FILE;
-    }
     return ResultState.VALID;
   }
 
@@ -203,7 +101,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     }
 
     var elementPath = element.source!.fullName;
-    var unitResult = units!.firstWhere(
+    var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
@@ -261,28 +159,22 @@ class ParseStringResultImpl implements ParseStringResult {
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override
-  final LibraryElement? element;
+  final LibraryElement element;
 
   @override
-  final List<ResolvedUnitResult>? units;
+  final List<ResolvedUnitResult> units;
 
   ResolvedLibraryResultImpl(
-      AnalysisSession session, String? path, Uri uri, this.element, this.units)
+      AnalysisSession session, String path, Uri uri, this.element, this.units)
       : super(session, path, uri);
-
-  ResolvedLibraryResultImpl.external(AnalysisSession session, Uri uri)
-      : this(session, null, uri, null, null);
 
   @override
   ResultState get state {
-    if (path == null) {
-      return ResultState.NOT_A_FILE;
-    }
     return ResultState.VALID;
   }
 
   @override
-  TypeProvider get typeProvider => element!.typeProvider;
+  TypeProvider get typeProvider => element.typeProvider;
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
@@ -298,7 +190,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     }
 
     var elementPath = element.source!.fullName;
-    var unitResult = units!.firstWhere(
+    var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
@@ -307,18 +199,13 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
         buffer.writeln(' is not defined in this library.');
         // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45430
         buffer.writeln('elementPath: $elementPath');
-        buffer.writeln('unitPaths: ${units!.map((e) => e.path).toList()}');
+        buffer.writeln('unitPaths: ${units.map((e) => e.path).toList()}');
         throw ArgumentError('$buffer');
       },
     );
 
-    var unit = unitResult.unit;
-    if (unit == null) {
-      throw StateError('The result has no unit');
-    }
-
     var locator = _DeclarationByElementLocator(element);
-    unit.accept(locator);
+    unitResult.unit.accept(locator);
     var declaration = locator.result;
 
     if (declaration == null) {
@@ -331,14 +218,14 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
 class ResolvedUnitResultImpl extends FileResultImpl
     implements ResolvedUnitResult {
-  /// Return `true` if the file exists.
+  @override
   final bool exists;
 
   @override
-  final String? content;
+  final String content;
 
   @override
-  final CompilationUnit? unit;
+  final CompilationUnit unit;
 
   @override
   final List<AnalysisError> errors;
@@ -357,10 +244,6 @@ class ResolvedUnitResultImpl extends FileResultImpl
 
   @override
   LibraryElement get libraryElement {
-    var unit = this.unit;
-    if (unit == null) {
-      throw StateError('The result has no unit');
-    }
     return unit.declaredElement!.library;
   }
 

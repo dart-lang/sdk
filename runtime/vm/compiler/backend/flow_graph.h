@@ -49,34 +49,42 @@ class BlockIterator : public ValueObject {
   intptr_t current_;
 };
 
+struct ConstantAndRepresentation {
+  const Object& constant;
+  Representation representation;
+};
+
 struct ConstantPoolTrait {
   typedef ConstantInstr* Value;
-  typedef const Object& Key;
+  typedef ConstantAndRepresentation Key;
   typedef ConstantInstr* Pair;
 
-  static Key KeyOf(Pair kv) { return kv->value(); }
+  static Key KeyOf(Pair kv) {
+    return ConstantAndRepresentation{kv->value(), kv->representation()};
+  }
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    if (key.IsSmi()) {
-      return Smi::Cast(key).Value();
+  static inline uword Hash(Key key) {
+    if (key.constant.IsSmi()) {
+      return Smi::Cast(key.constant).Value();
     }
-    if (key.IsDouble()) {
+    if (key.constant.IsDouble()) {
       return static_cast<intptr_t>(bit_cast<int32_t, float>(
-          static_cast<float>(Double::Cast(key).value())));
+          static_cast<float>(Double::Cast(key.constant).value())));
     }
-    if (key.IsMint()) {
-      return static_cast<intptr_t>(Mint::Cast(key).value());
+    if (key.constant.IsMint()) {
+      return static_cast<intptr_t>(Mint::Cast(key.constant).value());
     }
-    if (key.IsString()) {
-      return String::Cast(key).Hash();
+    if (key.constant.IsString()) {
+      return String::Cast(key.constant).Hash();
     }
-    return key.GetClassId();
+    return key.constant.GetClassId();
   }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
-    return kv->value().ptr() == key.ptr();
+    return (kv->value().ptr() == key.constant.ptr()) &&
+           (kv->representation() == key.representation);
   }
 };
 
@@ -264,11 +272,14 @@ class FlowGraph : public ZoneAllocated {
 
   // Returns the definition for the object from the constant pool if
   // one exists, otherwise returns nullptr.
-  ConstantInstr* GetExistingConstant(const Object& object) const;
+  ConstantInstr* GetExistingConstant(
+      const Object& object,
+      Representation representation = kTagged) const;
 
   // Always returns a definition for the object from the constant pool,
   // allocating one if it doesn't already exist.
-  ConstantInstr* GetConstant(const Object& object);
+  ConstantInstr* GetConstant(const Object& object,
+                             Representation representation = kTagged);
 
   void AddToGraphInitialDefinitions(Definition* defn);
   void AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
@@ -293,15 +304,55 @@ class FlowGraph : public ZoneAllocated {
   void InsertBefore(Instruction* next,
                     Instruction* instr,
                     Environment* env,
-                    UseKind use_kind);
+                    UseKind use_kind) {
+    InsertAfter(next->previous(), instr, env, use_kind);
+  }
+  void InsertSpeculativeBefore(Instruction* next,
+                               Instruction* instr,
+                               Environment* env,
+                               UseKind use_kind) {
+    InsertSpeculativeAfter(next->previous(), instr, env, use_kind);
+  }
   void InsertAfter(Instruction* prev,
                    Instruction* instr,
                    Environment* env,
                    UseKind use_kind);
+
+  // Inserts a speculative [instr] after existing [prev] instruction.
+  //
+  // If the inserted [instr] deopts eagerly or lazily we will always continue in
+  // unoptimized code at before-call using the given [env].
+  //
+  // This is mainly used during inlining / call specializing when replacing
+  // calls with N specialized instructions where the inserted [1..N[
+  // instructions cannot continue in unoptimized code after-call since they
+  // would miss instructions following the one that lazy-deopted.
+  //
+  // For example specializing an instance call to an implicit field setter
+  //
+  //     InstanceCall:<id>(v0, set:<name>, args = [v1])
+  //
+  // to
+  //
+  //     v2 <- AssertAssignable:<id>(v1, ...)
+  //     StoreInstanceField(v0, v2)
+  //
+  // If the [AssertAssignable] causes a lazy-deopt on return, we'll have to
+  // *re-try* the implicit setter call in unoptimized mode, i.e. lazy deopt to
+  // before-call (otherwise - if we continued after-call - the
+  // StoreInstanceField would not be performed).
+  void InsertSpeculativeAfter(Instruction* prev,
+                              Instruction* instr,
+                              Environment* env,
+                              UseKind use_kind);
   Instruction* AppendTo(Instruction* prev,
                         Instruction* instr,
                         Environment* env,
                         UseKind use_kind);
+  Instruction* AppendSpeculativeTo(Instruction* prev,
+                                   Instruction* instr,
+                                   Environment* env,
+                                   UseKind use_kind);
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,
@@ -479,6 +530,10 @@ class FlowGraph : public ZoneAllocated {
                        GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters);
+#if defined(DEBUG)
+  // Validates no phis are missing on join entry instructions.
+  void ValidatePhis();
+#endif  // defined(DEBUG)
 
   void PopulateEnvironmentFromFunctionEntry(
       FunctionEntryInstr* function_entry,
@@ -636,8 +691,8 @@ class LivenessAnalysis : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& postorder_;
 
   // Live-out sets for each block.  They contain indices of variables
-  // that are live out from this block: that is values that were either
-  // defined in this block or live into it and that are used in some
+  // that are live out from this block. That is values that were (1) either
+  // defined in this block or live into it, and (2) that are used in some
   // successor block.
   GrowableArray<BitVector*> live_out_;
 

@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,9 +18,9 @@ void main() {
 
 @reflectiveTest
 class Highlights2ComputerTest extends AbstractContextTest {
-  String sourcePath;
-  String content;
-  List<HighlightRegion> highlights;
+  late String sourcePath;
+  late String content;
+  late List<HighlightRegion> highlights;
 
   @override
   void setUp() {
@@ -114,7 +113,8 @@ void main() {
   }) async {
     this.content = content;
     newFile(sourcePath, content: content);
-    var result = await session.getResolvedUnit(sourcePath);
+    var result =
+        await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
 
     if (hasErrors) {
       expect(result.errors, isNotEmpty);

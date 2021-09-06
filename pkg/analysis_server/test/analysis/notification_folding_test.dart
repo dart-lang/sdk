@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -34,9 +32,9 @@ main async() {}
     FoldingRegion(FoldingKind.DIRECTIVES, 6, 34)
   ];
 
-  List<FoldingRegion> lastRegions;
+  List<FoldingRegion>? lastRegions;
 
-  Completer _regionsReceived;
+  late Completer _regionsReceived;
 
   @override
   void processNotification(Notification notification) {

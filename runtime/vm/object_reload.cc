@@ -6,6 +6,7 @@
 
 #include "platform/unaligned.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_entry.h"
 #include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
 #include "vm/log.h"
@@ -497,8 +498,8 @@ void Class::MigrateImplicitStaticClosures(ProgramReloadContext* irc,
   Function& old_func = Function::Handle();
   String& selector = String::Handle();
   Function& new_func = Function::Handle();
-  Instance& old_closure = Instance::Handle();
-  Instance& new_closure = Instance::Handle();
+  Closure& old_closure = Closure::Handle();
+  Closure& new_closure = Closure::Handle();
   for (intptr_t i = 0; i < funcs.Length(); i++) {
     old_func ^= funcs.At(i);
     if (old_func.is_static() && old_func.HasImplicitClosureFunction()) {
@@ -657,6 +658,17 @@ void Class::CheckReload(const Class& replacement,
   }
 
   if (is_finalized()) {
+    // Make sure the declaration types parameter count matches for the two
+    // classes.
+    // ex. class A<int,B> {} cannot be replace with class A<B> {}.
+    auto group_context = context->group_reload_context();
+    if (NumTypeParameters() != replacement.NumTypeParameters()) {
+      group_context->AddReasonForCancelling(
+          new (context->zone())
+              TypeParametersChanged(context->zone(), *this, replacement));
+      return;
+    }
+
     // Ensure the replacement class is also finalized.
     const Error& error =
         Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));

@@ -123,7 +123,8 @@ class OldPage {
 
   // 1 card = 128 slots.
   static const intptr_t kSlotsPerCardLog2 = 7;
-  static const intptr_t kBytesPerCardLog2 = kWordSizeLog2 + kSlotsPerCardLog2;
+  static const intptr_t kBytesPerCardLog2 =
+      kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
   intptr_t card_table_size() const {
     return memory_->size() >> kBytesPerCardLog2;
@@ -145,6 +146,17 @@ class OldPage {
     ASSERT((index >= 0) && (index < card_table_size()));
     card_table_[index] = 1;
   }
+  bool IsCardRemembered(ObjectPtr const* slot) {
+    ASSERT(Contains(reinterpret_cast<uword>(slot)));
+    if (card_table_ == NULL) {
+      return false;
+    }
+    intptr_t offset =
+        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    return card_table_[index] != 0;
+  }
 #if defined(DART_COMPRESSED_POINTERS)
   void RememberCard(CompressedObjectPtr const* slot) {
     ASSERT(Contains(reinterpret_cast<uword>(slot)));
@@ -157,6 +169,17 @@ class OldPage {
     intptr_t index = offset >> kBytesPerCardLog2;
     ASSERT((index >= 0) && (index < card_table_size()));
     card_table_[index] = 1;
+  }
+  bool IsCardRemembered(CompressedObjectPtr const* slot) {
+    ASSERT(Contains(reinterpret_cast<uword>(slot)));
+    if (card_table_ == NULL) {
+      return false;
+    }
+    intptr_t offset =
+        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    return card_table_[index] != 0;
   }
 #endif
   void VisitRememberedCards(ObjectPointerVisitor* visitor);
@@ -487,6 +510,7 @@ class PageSpace {
     return TryAllocatePromoLockedSlow(freelist, size);
   }
   uword TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size);
+  ObjectPtr AllocateSnapshot(intptr_t size);
 
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 

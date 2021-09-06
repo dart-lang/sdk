@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test for cyclicity check on named mixin applications.
 
 class A<T> {}
@@ -13,14 +15,14 @@ class M<T> {}
 class C1 = S with M;
 class C2 = S with C2;
 //    ^^
-// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE_WITH
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'C2' is a supertype of itself.
 //                ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 class C3 = S with M implements A;
 class C4 = S with M implements C4;
 //    ^^
-// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'C4' is a supertype of itself.
 
 void main() {

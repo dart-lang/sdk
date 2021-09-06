@@ -12,11 +12,16 @@ import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/util/graph.dart';
 
 class DefaultTypesBuilder {
+  final Linker _linker;
+
+  DefaultTypesBuilder(this._linker);
+
   void build(List<AstNode> nodes) {
     for (var node in nodes) {
       if (node is ClassDeclaration) {
@@ -240,22 +245,23 @@ class DefaultTypesBuilder {
         } else if (visited.add(startType.element)) {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
-              var parameterImpl = parameter as TypeParameterElementImpl;
-              var parameterNode = parameterImpl.linkedNode as TypeParameter;
+              var parameterNode = _linker.getLinkingNode(parameter);
               // TODO(scheglov) How to we skip already linked?
-              var bound = parameterNode.bound;
-              if (bound != null) {
-                var tails = _findRawTypePathsToDeclaration(
-                  parameterNode,
-                  bound.typeOrThrow,
-                  end,
-                  visited,
-                );
-                for (var tail in tails) {
-                  paths.add(<_CycleElement>[
-                    _CycleElement(startParameter, startType),
-                    ...tail,
-                  ]);
+              if (parameterNode is TypeParameter) {
+                var bound = parameterNode.bound;
+                if (bound != null) {
+                  var tails = _findRawTypePathsToDeclaration(
+                    parameterNode,
+                    bound.typeOrThrow,
+                    end,
+                    visited,
+                  );
+                  for (var tail in tails) {
+                    paths.add(<_CycleElement>[
+                      _CycleElement(startParameter, startType),
+                      ...tail,
+                    ]);
+                  }
                 }
               }
             }
@@ -392,7 +398,7 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
     required Map<TypeParameterElement, DartType> upper,
     required Map<TypeParameterElement, DartType> lower,
     required Variance variance,
-  })   : _upper = upper,
+  })  : _upper = upper,
         _lower = lower,
         _variance = variance;
 

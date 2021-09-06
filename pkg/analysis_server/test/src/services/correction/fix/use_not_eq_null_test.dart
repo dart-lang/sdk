@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -25,13 +23,13 @@ class UseNotEqNullMultiTest extends FixProcessorTest {
 
   Future<void> test_isNotNull_all() async {
     await resolveTestCode('''
-main(p, q) {
+void f(p, q) {
   p is! Null;
   q is! Null;
 }
 ''');
     await assertHasFixAllFix(HintCode.TYPE_CHECK_IS_NOT_NULL, '''
-main(p, q) {
+void f(p, q) {
   p != null;
   q != null;
 }
@@ -46,12 +44,12 @@ class UseNotEqNullTest extends FixProcessorTest {
 
   Future<void> test_isNotNull() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p is! Null;
 }
 ''');
     await assertHasFix('''
-main(p) {
+void f(p) {
   p != null;
 }
 ''');

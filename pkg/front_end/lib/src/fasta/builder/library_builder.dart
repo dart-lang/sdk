@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -51,9 +49,11 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   List<Export> get exporters;
 
-  LibraryBuilder partOfLibrary;
+  abstract LibraryBuilder? partOfLibrary;
 
-  bool mayImplementRestrictedTypes;
+  LibraryBuilder get nameOriginBuilder;
+
+  abstract bool mayImplementRestrictedTypes;
 
   bool get isPart;
 
@@ -61,6 +61,9 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   /// Returns the [Library] built by this builder.
   Library get library;
+
+  @override
+  Uri get fileUri;
 
   /// Returns the import uri for the library.
   ///
@@ -71,10 +74,10 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   NameIterator get nameIterator;
 
-  Builder addBuilder(String name, Builder declaration, int charOffset);
+  Builder? addBuilder(String? name, Builder declaration, int charOffset);
 
   void addExporter(
-      LibraryBuilder exporter, List<Combinator> combinators, int charOffset);
+      LibraryBuilder exporter, List<Combinator>? combinators, int charOffset);
 
   /// Add a problem with a severity determined by the severity of the message.
   ///
@@ -82,11 +85,11 @@ abstract class LibraryBuilder implements ModifierBuilder {
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
-  FormattedMessage addProblem(
-      Message message, int charOffset, int length, Uri fileUri,
+  FormattedMessage? addProblem(
+      Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled: false,
-      List<LocatedMessage> context,
-      Severity severity,
+      List<LocatedMessage>? context,
+      Severity? severity,
       bool problemOnLibrary: false});
 
   /// Returns true if the export scope was modified.
@@ -148,9 +151,9 @@ abstract class LibraryBuilder implements ModifierBuilder {
   ///
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder lookupLocalMember(String name, {bool required: false});
+  Builder? lookupLocalMember(String name, {bool required: false});
 
-  Builder lookup(String name, int charOffset, Uri fileUri);
+  Builder? lookup(String name, int charOffset, Uri fileUri);
 
   /// If this is a patch library, apply its patches to [origin].
   void applyPatches();
@@ -159,7 +162,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   void buildOutlineExpressions();
 
-  List<FieldBuilder> takeImplicitlyTypedFields();
+  List<FieldBuilder>? takeImplicitlyTypedFields();
 
   bool get isNonNullableByDefault;
 
@@ -194,21 +197,24 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   final List<Export> exporters = <Export>[];
 
   @override
-  LibraryBuilder partOfLibrary;
+  final Uri fileUri;
+
+  @override
+  LibraryBuilder? partOfLibrary;
 
   @override
   bool mayImplementRestrictedTypes = false;
 
-  LibraryBuilderImpl(Uri fileUri, this.scope, this.exportScope)
+  LibraryBuilderImpl(this.fileUri, this.scope, this.exportScope)
       : scopeBuilder = new ScopeBuilder(scope),
         exportScopeBuilder = new ScopeBuilder(exportScope),
-        super(null, -1, fileUri);
+        super(null, -1);
 
   @override
   bool get isSynthetic => false;
 
   @override
-  Builder get parent => null;
+  Builder? get parent => null;
 
   @override
   bool get isPart => false;
@@ -237,16 +243,16 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   void addExporter(
-      LibraryBuilder exporter, List<Combinator> combinators, int charOffset) {
+      LibraryBuilder exporter, List<Combinator>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
   @override
-  FormattedMessage addProblem(
-      Message message, int charOffset, int length, Uri fileUri,
+  FormattedMessage? addProblem(
+      Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled: false,
-      List<LocatedMessage> context,
-      Severity severity,
+      List<LocatedMessage>? context,
+      Severity? severity,
       bool problemOnLibrary: false}) {
     fileUri ??= this.fileUri;
 
@@ -261,7 +267,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   bool addToExportScope(String name, Builder member, [int charOffset = -1]) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
-    Builder existing =
+    Builder? existing =
         exportScope.lookupLocalMember(name, setter: member.isSetter);
     if (existing == member) {
       return false;
@@ -293,7 +299,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   MemberBuilder getConstructor(String className,
-      {String constructorName, bool bypassLibraryPrivacy: false}) {
+      {String? constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
@@ -302,8 +308,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
           -1,
           null);
     }
-    Builder cls = (bypassLibraryPrivacy ? scope : exportScope)
-        .lookup(className, -1, null);
+    Builder? cls = (bypassLibraryPrivacy ? scope : exportScope)
+        .lookup(className, -1, fileUri);
     if (cls is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = cls;
       // No type arguments are available, but this method is only called in
@@ -314,8 +320,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      MemberBuilder constructor =
-          cls.findConstructorOrFactory(constructorName, -1, null, this);
+      MemberBuilder? constructor =
+          cls.findConstructorOrFactory(constructorName, -1, fileUri, this);
       if (constructor == null) {
         // Fall-through to internal error below.
       } else if (constructor.isConstructor) {
@@ -359,8 +365,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  Builder lookupLocalMember(String name, {bool required: false}) {
-    Builder builder = scope.lookupLocalMember(name, setter: false);
+  Builder? lookupLocalMember(String name, {bool required: false}) {
+    Builder? builder = scope.lookupLocalMember(name, setter: false);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
@@ -372,7 +378,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  Builder lookup(String name, int charOffset, Uri fileUri) {
+  Builder? lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
   }
 
@@ -389,7 +395,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   void buildOutlineExpressions() {}
 
   @override
-  List<FieldBuilder> takeImplicitlyTypedFields() => null;
+  List<FieldBuilder>? takeImplicitlyTypedFields() => null;
 
   @override
   Nullability get nullable {

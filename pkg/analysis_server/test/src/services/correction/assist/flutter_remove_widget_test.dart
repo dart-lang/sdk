@@ -2,17 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../fix/fix_processor.dart';
 import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterRemoveWidgetTest);
+    defineReflectiveTests(RemoveContainerTest);
+    defineReflectiveTests(RemoveContainerBulkTest);
   });
 }
 
@@ -231,6 +235,104 @@ main() {
         ],
       ),
       Text('fff'),
+    ],
+  );
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveContainerBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_unnecessary_containers;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
+  @FailingTest(reason: 'nested row container not being removed')
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Container(
+      child: Row(
+        children: [
+          Text('...'),
+          Container(
+            child: Row(
+              children: [
+                 Text('...'),
+              ],
+            ),
+          )  
+        ],
+      )
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Row(
+    children: [
+      Text('...'),
+      Row(
+        children: [
+          Text('...'),
+        ],
+      )
+    ],
+  );
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveContainerTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER;
+
+  @override
+  String get lintCode => LintNames.avoid_unnecessary_containers;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
+  Future<void> test_simple() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Container(
+      child: Row(
+        children: [
+          Text('...'),
+        ],
+      )
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Row(
+    children: [
+      Text('...'),
     ],
   );
 }

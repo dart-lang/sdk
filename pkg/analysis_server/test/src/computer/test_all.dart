@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'closing_labels_computer_test.dart' as closing_labels_computer;
@@ -12,6 +10,7 @@ import 'highlights_computer_test.dart' as highlights_computer;
 import 'import_elements_computer_test.dart' as import_elements_computer;
 import 'imported_elements_computer_test.dart' as imported_elements_computer;
 import 'outline_computer_test.dart' as outline_computer;
+import 'selection_range_computer_test.dart' as selection_range;
 
 void main() {
   defineReflectiveSuite(() {
@@ -21,5 +20,6 @@ void main() {
     import_elements_computer.main();
     imported_elements_computer.main();
     outline_computer.main();
+    selection_range.main();
   });
 }

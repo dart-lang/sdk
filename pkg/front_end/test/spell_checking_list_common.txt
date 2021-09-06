@@ -415,6 +415,7 @@ caused
 causes
 causing
 caveats
+cell
 certain
 chain
 chained
@@ -561,6 +562,7 @@ computes
 computing
 concatenated
 concatenation
+concepts
 conclude
 conclusion
 concrete
@@ -587,6 +589,7 @@ conjunction
 connect
 connected
 connection
+connects
 consequence
 consequently
 conservative
@@ -1176,6 +1179,7 @@ feel
 fetch
 few
 fewer
+ffinative
 field
 field's
 fieldname
@@ -1723,6 +1727,7 @@ lightweight
 like
 likely
 limit
+limitation
 limited
 line
 linear
@@ -3063,6 +3068,7 @@ tool
 tools
 top
 topologically
+torn
 tortoise
 total
 totally
@@ -3181,6 +3187,7 @@ unimplemented
 uninitialized
 union
 unioned
+unions
 unique
 unit
 unite

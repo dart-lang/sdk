@@ -287,6 +287,15 @@ abstract class IdentifierContext {
 
   String toString() => _name;
 
+  /// Indicates whether the token `new` in this context should be treated as a
+  /// valid identifier, under the rules of the "constructor tearoff" feature.
+  /// Note that if the feature is disabled, such uses of `new` are still parsed
+  /// as identifiers, however the parser will report an appropriate error; this
+  /// should allow the best possible error recovery in the event that a user
+  /// attempts to use the feature with a language version that doesn't permit
+  /// it.
+  bool get allowsNewAsIdentifier => false;
+
   /// Ensure that the next token is an identifier (or keyword which should be
   /// treated as an identifier) and return that identifier.
   /// Report errors as necessary via [parser].

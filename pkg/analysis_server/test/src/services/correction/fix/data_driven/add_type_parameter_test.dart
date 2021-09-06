@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
@@ -479,12 +477,13 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
   /// Return the kind of element whose parameters are being modified.
   String get _kind;
 
-  Transform _add(int index, {List<String> components, String extendedType}) =>
+  Transform _add(int index, {List<String>? components, String? extendedType}) =>
       Transform(
           title: 'title',
+          date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
-              kind: ElementKindUtilities.fromName(_kind),
+              kind: ElementKindUtilities.fromName(_kind)!,
               components: components ?? ['m', 'C']),
           bulkApply: false,
           changesSelector: UnconditionalChangesSelector([

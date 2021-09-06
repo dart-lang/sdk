@@ -1,0 +1,78 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:9:14: Error: Constant evaluation error:
+// const var1 = finallyThrow(0);
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:19:5: Context: Unhandled exception: 2
+//     throw 2;
+//     ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:10:14: Error: Constant evaluation error:
+// const var2 = finallyThrow(1);
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:19:5: Context: Unhandled exception: 2
+//     throw 2;
+//     ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:23:14: Error: Constant evaluation error:
+// const var3 = unhandledThrow(0);
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:27:5: Context: Unhandled exception: 0
+//     throw x;
+//     ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:24:14: Error: Constant evaluation error:
+// const var4 = unhandledThrow("string");
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:29:5: Context: Unhandled exception: "string"
+//     throw e;
+//     ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:33:14: Error: Constant evaluation error:
+// const var5 = unhandledThrow2();
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_try_catch_finally_error.dart:36:26: Context: Unhandled exception: "a"
+//   for (int i = 0; i < 1; throw 'a') {
+//                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = invalid-expression "Unhandled exception: 2";
+static const field core::int var2 = invalid-expression "Unhandled exception: 2";
+static const field core::int var3 = invalid-expression "Unhandled exception: 0";
+static const field core::int var4 = invalid-expression "Unhandled exception: \"string\"";
+static const field core::int var5 = invalid-expression "Unhandled exception: \"a\"";
+static method finallyThrow(core::int x) → core::int {
+  try {
+    if(x =={core::num::==}{(core::Object) → core::bool} 1) {
+      throw x;
+    }
+    else {
+      return 0;
+    }
+  }
+  finally {
+    throw 2;
+  }
+}
+static method unhandledThrow(dynamic x) → core::int {
+  try {
+    throw x;
+  }
+  on core::String catch(final core::String e) {
+    throw e;
+  }
+}
+static method unhandledThrow2() → core::int {
+  core::int count = 0;
+  for (core::int i = 0; i.{core::num::<}(1){(core::num) → core::bool}; throw "a") {
+    count = count.{core::num::+}(i){(core::num) → core::int};
+  }
+  return 0;
+}
+static method main() → dynamic {}

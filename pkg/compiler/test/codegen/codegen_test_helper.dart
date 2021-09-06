@@ -33,7 +33,7 @@ runTests(List<String> args, [int shardIndex]) {
       shards: 2,
       directory: 'data',
       skip: skip,
-      options: [Flags.soundNullSafety, '--enable-experiment=triple-shift']);
+      options: [Flags.soundNullSafety]);
 }
 
 runTests2(List<String> args, [int shardIndex]) {
@@ -57,7 +57,7 @@ runTestsCommon(List<String> args,
         forUserLibrariesOnly: true,
         args: args,
         options: options,
-        testedConfigs: allInternalConfigs,
+        testedConfigs: allInternalConfigs + [canaryConfig],
         skip: skip,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex == null ? 1 : shards);

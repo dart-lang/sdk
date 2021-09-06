@@ -10,6 +10,7 @@
 */*/packages/*/*: Skip
 */packages/*/*: Skip
 analyzer/test/src/task/strong/checker_test: Slow, Pass
+analyzer/test/verify_diagnostics_test.dart: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 compiler/test/analyses/analyze_test: Slow, Pass
 compiler/test/analyses/api_dynamic_test: Slow, Pass
@@ -65,6 +66,8 @@ front_end/tool/incremental_perf_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
+vm_service/test/cpu_samples_stream_test: Slow, Pass # Requires CPU sample buffer to fill.
+wasm/*: SkipByDesign # These can't be run without running wasm:setup first.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
@@ -95,6 +98,7 @@ status_file/test/repo_status_files_test: SkipByDesign # Uses dart:io
 telemetry/test/*: SkipByDesign # Only meant to run on vm
 test_runner/test/*: SkipByDesign # Only meant to run on vm
 testing/*: SkipByDesign # Only meant to run on vm
+wasm/*: SkipByDesign # Only meant to run on vm
 
 [ $mode == debug ]
 compiler/test/deferred/load_graph_segmentation_test: Slow, Pass
@@ -123,9 +127,11 @@ analyzer/test/generated/strong_mode_driver_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_test: Slow, Pass
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
+analyzer/tool/experiments/experiments_test: Skip # https://github.com/dart-lang/sdk/issues/46277
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow, Pass
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
 dartdev/test/*: Slow, Pass
+dds/test/dap/integration/*: Slow, Pass
 
 [ $runtime != vm ]
 dds/test/*: SkipByDesign # Only meant to run on vm

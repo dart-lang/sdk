@@ -9,8 +9,8 @@ import 'package:kernel/src/printer.dart';
 
 /// Metadata for annotating nodes with an inferred type information.
 class InferredType {
-  final Reference _concreteClassReference;
-  final Constant _constantValue;
+  final Reference? _concreteClassReference;
+  final Constant? _constantValue;
   final int _flags;
 
   static const int flagNullable = 1 << 0;
@@ -31,11 +31,11 @@ class InferredType {
   //
   // Otherwise, a non-null type argument indicates that that particular type
   // argument (in the runtime type) is always exactly a particular `DartType`.
-  final List<DartType> exactTypeArguments;
+  final List<DartType?>? exactTypeArguments;
 
   InferredType(
-      Class concreteClass, bool nullable, bool isInt, Constant constantValue,
-      {List<DartType> exactTypeArguments,
+      Class? concreteClass, bool nullable, bool isInt, Constant? constantValue,
+      {List<DartType?>? exactTypeArguments,
       bool skipCheck: false,
       bool receiverNotInt: false})
       : this._byReference(
@@ -54,9 +54,9 @@ class InferredType {
     assert(_constantValue == null || _concreteClassReference != null);
   }
 
-  Class get concreteClass => _concreteClassReference?.asClass;
+  Class? get concreteClass => _concreteClassReference?.asClass;
 
-  Constant get constantValue => _constantValue;
+  Constant? get constantValue => _constantValue;
 
   bool get nullable => (_flags & flagNullable) != 0;
   bool get isInt => (_flags & flagInt) != 0;
@@ -69,7 +69,7 @@ class InferredType {
   String toString() {
     final StringBuffer buf = new StringBuffer();
     if (concreteClass != null) {
-      buf.write(concreteClass.toText(astTextStrategyForTesting));
+      buf.write(concreteClass!.toText(astTextStrategyForTesting));
     } else if (isInt) {
       buf.write('int');
     } else {
@@ -80,7 +80,7 @@ class InferredType {
     }
     if (exactTypeArguments != null) {
       buf.write('<');
-      buf.write(exactTypeArguments
+      buf.write(exactTypeArguments!
           .map(
               (t) => t != null ? "${t.toText(astTextStrategyForTesting)}" : "?")
           .join(", "));
@@ -91,7 +91,7 @@ class InferredType {
     }
     if (_constantValue != null) {
       buf.write(
-          ' (value: ${_constantValue.toText(astTextStrategyForTesting)})');
+          ' (value: ${_constantValue!.toText(astTextStrategyForTesting)})');
     }
     if (receiverNotInt) {
       buf.write(' (receiver not int)');
@@ -115,11 +115,11 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     // TODO(sjindel/tfa): Implement serialization of type arguments when can use
     // them for optimizations.
     sink.writeNullAllowedCanonicalNameReference(metadata.concreteClass != null
-        ? getCanonicalNameOfClass(metadata.concreteClass)
+        ? getCanonicalNameOfClass(metadata.concreteClass!)
         : null);
     sink.writeByte(metadata._flags);
     if (metadata.constantValue != null) {
-      sink.writeConstantReference(metadata.constantValue);
+      sink.writeConstantReference(metadata.constantValue!);
     }
   }
 

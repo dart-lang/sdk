@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -24,12 +22,12 @@ class ConvertToSpreadTest extends AssistProcessorTest {
 
   Future<void> test_addAll_condition_const() async {
     await resolveTestCode('''
-bool condition;
+bool condition = false;
 var things;
 var l = ['a']..add/*caret*/All(condition ? things : const []);
 ''');
     await assertHasAssist('''
-bool condition;
+bool condition = false;
 var things;
 var l = ['a', if (condition) ...things];
 ''');
@@ -37,12 +35,12 @@ var l = ['a', if (condition) ...things];
 
   Future<void> test_addAll_condition_nonConst() async {
     await resolveTestCode('''
-bool condition;
+bool condition = false;
 var things;
 var l = ['a']..add/*caret*/All(condition ? things : []);
 ''');
     await assertHasAssist('''
-bool condition;
+bool condition = false;
 var things;
 var l = ['a', if (condition) ...things];
 ''');

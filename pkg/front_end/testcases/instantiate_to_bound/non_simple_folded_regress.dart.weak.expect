@@ -17,7 +17,7 @@ class Hest<TypeX extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Fisk<TypeY extends self::Hest<self::Hest<core::Object*>*>* = self::Hest<self::Hest<core::Object*>*>*> extends core::Object {
+class Fisk<TypeY extends self::Hest<self::Hest<core::Object*>*>*> extends core::Object {
   synthetic constructor •() → self::Fisk<self::Fisk::TypeY*>*
     : super core::Object::•()
     ;

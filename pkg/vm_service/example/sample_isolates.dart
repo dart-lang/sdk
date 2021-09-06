@@ -4,7 +4,7 @@
 
 import 'dart:isolate';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   var arr = newArray(5);
   var arr2 = newArray(417);
   var hash1 = newHash(5);
@@ -30,7 +30,7 @@ void startIsolate(int val) {
   Isolate.spawn(isolateEntry, val);
 }
 
-isolateEntry(message) async {
+Future isolateEntry(message) async {
   print('starting $message');
   await Future.delayed(Duration(seconds: message));
   print('ending $message');

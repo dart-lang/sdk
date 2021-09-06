@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:convert' show jsonDecode, utf8;
 
 import 'dart:isolate' show RawReceivePort;
@@ -55,7 +53,7 @@ collectLog(DateTime time, HttpRequest request) async {
   String month = "${time.month}".padLeft(2, "0");
   String day = "${time.day}".padLeft(2, "0");
   String us = "${time.microsecondsSinceEpoch}".padLeft(19, '0');
-  Uri uri = Uri.base
+  Uri? uri = Uri.base
       .resolve("crash_logs/${data['client']}/$year-$month-$day/$us.log");
   File file = new File.fromUri(uri);
   await file.parent.create(recursive: true);
@@ -63,12 +61,12 @@ collectLog(DateTime time, HttpRequest request) async {
   print("Wrote ${uri.toFilePath()}");
 
   String type = data["type"];
-  String text = data["uri"];
+  String? text = data["uri"];
   uri = text == null ? null : Uri.parse(text);
   int charOffset = data["offset"];
   var error = data["error"];
   text = data["trace"];
-  StackTrace trace = text == null ? null : new StackTrace.fromString(text);
+  StackTrace? trace = text == null ? null : new StackTrace.fromString(text);
   String client = data["client"];
   print("""
 date: ${time}

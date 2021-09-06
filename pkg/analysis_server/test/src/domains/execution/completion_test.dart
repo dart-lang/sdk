@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/domains/execution/completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -20,11 +18,11 @@ void main() {
 
 @reflectiveTest
 class RuntimeCompletionComputerTest extends AbstractContextTest {
-  OverlayResourceProvider overlayResourceProvider;
-  String contextFile;
-  int contextOffset;
+  late OverlayResourceProvider overlayResourceProvider;
+  late String contextFile;
+  late int contextOffset;
 
-  RuntimeCompletionResult result;
+  late RuntimeCompletionResult result;
 
   void addContextFile(String content) {
     contextFile = convertPath('/home/test/lib/context.dart');
@@ -42,7 +40,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     }
   }
 
-  void assertSuggested(String completion, {String returnType}) {
+  void assertSuggested(String completion, {String? returnType}) {
     var suggestion = getSuggest(completion);
     if (suggestion == null) {
       failedCompletion('expected $completion');
@@ -52,41 +50,28 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     }
   }
 
-  Future<void> computeCompletion(
-    String code, {
-    List<RuntimeCompletionVariable> variables,
-    List<RuntimeCompletionExpression> expressions,
-  }) async {
+  Future<void> computeCompletion(String code) async {
     var codeOffset = code.indexOf('^');
     expect(codeOffset, isNonNegative);
     code = code.replaceAll('^', '');
 
-    var computer = RuntimeCompletionComputer(
-        overlayResourceProvider,
-        driverFor(contextFile),
-        code,
-        codeOffset,
-        contextFile,
-        contextOffset,
-        variables,
-        expressions);
+    var computer = RuntimeCompletionComputer(overlayResourceProvider,
+        driverFor(contextFile), code, codeOffset, contextFile, contextOffset);
     result = await computer.compute();
   }
 
-  void failedCompletion(String message) {
+  Never failedCompletion(String message) {
     var sb = StringBuffer(message);
-    if (result.suggestions != null) {
-      sb.write('\n  found');
-      result.suggestions.toList()
-        ..sort((a, b) => a.completion.compareTo(b.completion))
-        ..forEach((suggestion) {
-          sb.write('\n    ${suggestion.completion} -> $suggestion');
-        });
-    }
+    sb.write('\n  found');
+    result.suggestions.toList()
+      ..sort((a, b) => a.completion.compareTo(b.completion))
+      ..forEach((suggestion) {
+        sb.write('\n    ${suggestion.completion} -> $suggestion');
+      });
     fail(sb.toString());
   }
 
-  CompletionSuggestion getSuggest(String completion) {
+  CompletionSuggestion? getSuggest(String completion) {
     expect(result.suggestions, isNotNull);
     for (var suggestion in result.suggestions) {
       if (suggestion.completion == completion) {
@@ -151,7 +136,7 @@ part of 'a.dart';
 
 String c;
 
-void main() {
+void f() {
   // context line
 }
 ''');
@@ -185,7 +170,7 @@ void contextFunction() {
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_locals_block_codeWithClosure() async {
     addContextFile(r'''
-main() {
+void f() {
   var items = <String>[];
   // context line
 }
@@ -197,7 +182,7 @@ main() {
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_locals_block_nested() async {
     addContextFile(r'''
-void main() {
+void f() {
   var a = 0;
   var b = 0.0;
   {
@@ -218,7 +203,7 @@ void main() {
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_locals_for() async {
     addContextFile(r'''
-void main(List<int> intItems, List<double> doubleItems) {
+void f(List<int> intItems, List<double> doubleItems) {
   for (var a = 0, b = 0.0; a < 5; a++) {
     // context line
   }
@@ -232,7 +217,7 @@ void main(List<int> intItems, List<double> doubleItems) {
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_locals_forEach() async {
     addContextFile(r'''
-void main(List<int> intItems, List<double> doubleItems) {
+void f(List<int> intItems, List<double> doubleItems) {
   for (var a in intItems) {
     for (var b in doubleItems) {
       // context line
@@ -262,7 +247,7 @@ class C {
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_parameters_function() async {
     addContextFile(r'''
-void main(int a, double b) {
+void f(int a, double b) {
   // context line
 }
 ''');
@@ -274,7 +259,7 @@ void main(int a, double b) {
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_parameters_function_locals() async {
     addContextFile(r'''
-void main(int a, int b) {
+void f(int a, int b) {
   String a;
   double c;
   // context line
@@ -304,7 +289,7 @@ void foo(int a, double b) {
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_parameters_functionExpression() async {
     addContextFile(r'''
-void main(List<int> intItems, List<double> doubleItems) {
+void f(List<int> intItems, List<double> doubleItems) {
   intItems.forEach((a) {
     doubleItems.forEach((b) {
       // context line
@@ -321,7 +306,7 @@ void main(List<int> intItems, List<double> doubleItems) {
   Future<void> test_parameters_method() async {
     addContextFile(r'''
 class C {
-  void main(int a, double b) {
+  void f(int a, double b) {
     // context line
   }
 }
@@ -335,7 +320,7 @@ class C {
   Future<void> test_parameters_method_locals() async {
     addContextFile(r'''
 class C {
-  void main(int a, int b) {
+  void f(int a, int b) {
     String a;
     double c;
     // context line
@@ -355,7 +340,7 @@ class C {
     addContextFile(r'''
 import 'a.dart';
 impoty 'b.dart';
-main() {
+void f() {
   var a = new A();
   var b = new B();
   // context line
@@ -372,7 +357,7 @@ main() {
     addContextFile(r'''
 int a() => null;
 double b() => null;
-void main() {
+void f() {
   // context line
 }
 ''');
@@ -387,7 +372,7 @@ void main() {
 int a;
 double b;
 
-void main() {
+void f() {
   // context line
 }
 ''');

@@ -4,6 +4,8 @@
 // Dart test optimization of modulo operator on Smi.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

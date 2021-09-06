@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,13 +23,13 @@ class ChangeArgumentNameTest extends FixProcessorTest {
     await resolveTestCode('''
 f() => new A(children: 2);
 class A {
-  A({int child});
+  A({int child = 0});
 }
 ''');
     await assertHasFix('''
 f() => new A(child: 2);
 class A {
-  A({int child});
+  A({int child = 0});
 }
 ''');
   }
@@ -41,13 +39,13 @@ class A {
 f() {
   g(children: 0);
 }
-void g({int child}) {}
+void g({int child = 0}) {}
 ''');
     await assertHasFix('''
 f() {
   g(child: 0);
 }
-void g({int child}) {}
+void g({int child = 0}) {}
 ''');
   }
 
@@ -57,7 +55,7 @@ f(A a) {
   a.m(children: 0);
 }
 class A {
-  void m({int child}) {}
+  void m({int child = 0}) {}
 }
 ''');
     await assertHasFix('''
@@ -65,7 +63,7 @@ f(A a) {
   a.m(child: 0);
 }
 class A {
-  void m({int child}) {}
+  void m({int child = 0}) {}
 }
 ''');
   }
@@ -74,13 +72,13 @@ class A {
     await resolveTestCode('''
 f() => new A(child: 2);
 class A {
-  A({int children});
+  A({int children = 0});
 }
 ''');
     await assertHasFix('''
 f() => new A(children: 2);
 class A {
-  A({int children});
+  A({int children = 0});
 }
 ''');
   }
@@ -90,13 +88,13 @@ class A {
 f() {
   g(child: 0);
 }
-void g({int children}) {}
+void g({int children = 0}) {}
 ''');
     await assertHasFix('''
 f() {
   g(children: 0);
 }
-void g({int children}) {}
+void g({int children = 0}) {}
 ''');
   }
 
@@ -106,7 +104,7 @@ f(A a) {
   a.m(child: 0);
 }
 class A {
-  void m({int children}) {}
+  void m({int children = 0}) {}
 }
 ''');
     await assertHasFix('''
@@ -114,7 +112,7 @@ f(A a) {
   a.m(children: 0);
 }
 class A {
-  void m({int children}) {}
+  void m({int children = 0}) {}
 }
 ''');
   }
@@ -124,14 +122,14 @@ class A {
 @A(boot: 2)
 f() => null;
 class A {
-  const A({int boat});
+  const A({int boat = 0});
 }
 ''');
     await assertHasFix('''
 @A(boat: 2)
 f() => null;
 class A {
-  const A({int boat});
+  const A({int boat = 0});
 }
 ''');
   }
@@ -140,13 +138,13 @@ class A {
     await resolveTestCode('''
 f() => new A(boot: 2);
 class A {
-  A({int boat});
+  A({int boat = 0});
 }
 ''');
     await assertHasFix('''
 f() => new A(boat: 2);
 class A {
-  A({int boat});
+  A({int boat = 0});
 }
 ''');
   }
@@ -156,13 +154,13 @@ class A {
 f() {
   g(boot: 0);
 }
-void g({int boat}) {}
+void g({int boat = 0}) {}
 ''');
     await assertHasFix('''
 f() {
   g(boat: 0);
 }
-void g({int boat}) {}
+void g({int boat = 0}) {}
 ''');
   }
 
@@ -172,7 +170,7 @@ f(A a) {
   a.m(boot: 0);
 }
 class A {
-  void m({int boat}) {}
+  void m({int boat = 0}) {}
 }
 ''');
     await assertHasFix('''
@@ -180,7 +178,7 @@ f(A a) {
   a.m(boat: 0);
 }
 class A {
-  void m({int boat}) {}
+  void m({int boat = 0}) {}
 }
 ''');
   }
@@ -189,13 +187,13 @@ class A {
     await resolveTestCode('''
 class A {
   A.one() : this.two(boot: 3);
-  A.two({int boat});
+  A.two({int boat = 0});
 }
 ''');
     await assertHasFix('''
 class A {
   A.one() : this.two(boat: 3);
-  A.two({int boat});
+  A.two({int boat = 0});
 }
 ''');
   }
@@ -203,7 +201,7 @@ class A {
   Future<void> test_default_superConstructor() async {
     await resolveTestCode('''
 class A {
-  A.a({int boat});
+  A.a({int boat = 0});
 }
 class B extends A {
   B.b() : super.a(boot: 3);
@@ -211,7 +209,7 @@ class B extends A {
 ''');
     await assertHasFix('''
 class A {
-  A.a({int boat});
+  A.a({int boat = 0});
 }
 class B extends A {
   B.b() : super.a(boat: 3);
@@ -223,7 +221,7 @@ class B extends A {
     await resolveTestCode('''
 f() => new A(bbbbb: 2);
 class A {
-  A({int aaaaaaa});
+  A({int aaaaaaa = 0});
 }
 ''');
     await assertNoFix();
@@ -234,7 +232,7 @@ class A {
 f() {
   g(bbbbb: 0);
 }
-void g({int aaaaaaa}) {}
+void g({int aaaaaaa = 0}) {}
 ''');
     await assertNoFix();
   }
@@ -245,7 +243,7 @@ f(A a) {
   a.m(bbbbb: 0);
 }
 class A {
-  void m({int aaaaaaa}) {}
+  void m({int aaaaaaa = 0}) {}
 }
 ''');
     await assertNoFix();

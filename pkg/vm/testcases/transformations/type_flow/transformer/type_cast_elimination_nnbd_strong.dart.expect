@@ -34,7 +34,7 @@ static method testNullableInt2() → dynamic
 static method testDynamic() → dynamic
   return _in::unsafeCast<dynamic>(#C3);
 static method testObjectNegative() → dynamic
-  return let dynamic #t1 = #C2 in true ?{core::Object} #t1 as{ForNonNullableByDefault} core::Object : #t1{core::Object};
+  return let dynamic #t1 = #C2 in #t1 as{ForNonNullableByDefault} core::Object;
 static method testNullableObject() → dynamic
   return #C2;
 static method testAOfNum1([@vm.inferred-type.metadata=#lib::B<dart.core::int>] dynamic x) → dynamic
@@ -66,9 +66,14 @@ static method main() → void {
   self::testNullableAOfNum();
   self::testNullableAOfNumNegative(new self::B::•<core::int?>());
   self::testNullableAOfNullableNum(new self::B::•<core::int?>());
-  [@vm.direct-call.metadata=#lib::B.testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}();
-  [@vm.direct-call.metadata=#lib::B.testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2negative}();
-  [@vm.direct-call.metadata=#lib::B.testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}();
-  [@vm.direct-call.metadata=#lib::B.testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}();
-  [@vm.direct-call.metadata=#lib::B.testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}();
+  [@vm.direct-call.metadata=#lib::B.testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2negative}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(){(dynamic) → dynamic};
+}
+constants  {
+  #C1 = 42
+  #C2 = null
+  #C3 = "hi"
 }

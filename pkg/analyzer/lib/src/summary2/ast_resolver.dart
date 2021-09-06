@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -17,77 +20,95 @@ class AstResolver {
   final Linker _linker;
   final CompilationUnitElementImpl _unitElement;
   final Scope _nameScope;
+  final FeatureSet _featureSet;
+  final AnalysisErrorListener _errorListener =
+      AnalysisErrorListener.NULL_LISTENER;
+  final ClassElement? enclosingClassElement;
+  final ExecutableElement? enclosingExecutableElement;
+  late final _resolutionVisitor = ResolutionVisitor(
+    unitElement: _unitElement,
+    featureSet: _featureSet,
+    nameScope: _nameScope,
+    errorListener: _errorListener,
+  );
+  late final _variableResolverVisitor = VariableResolverVisitor(
+    _unitElement.library,
+    _unitElement.source,
+    _unitElement.library.typeProvider,
+    _errorListener,
+    nameScope: _nameScope,
+  );
+  late final _flowAnalysis = FlowAnalysisHelper(_unitElement.library.typeSystem,
+      false, _unitElement.library.isNonNullableByDefault);
+  late final _resolverVisitor = ResolverVisitor(
+    _linker.inheritance,
+    _unitElement.library,
+    _unitElement.source,
+    _unitElement.library.typeProvider,
+    _errorListener,
+    featureSet: _featureSet,
+    nameScope: _nameScope,
+    flowAnalysisHelper: _flowAnalysis,
+  );
 
-  AstResolver(this._linker, this._unitElement, this._nameScope);
+  AstResolver(this._linker, this._unitElement, this._nameScope, AstNode node,
+      {this.enclosingClassElement, this.enclosingExecutableElement})
+      : _featureSet = node.thisOrAncestorOfType<CompilationUnit>()!.featureSet;
 
-  void resolve(
-    AstNode node,
-    AstNode Function() getNode, {
-    bool buildElements = true,
-    bool isTopLevelVariableInitializer = false,
-    ClassElement? enclosingClassElement,
-    ExecutableElement? enclosingExecutableElement,
-    FunctionBody? enclosingFunctionBody,
-  }) {
-    var featureSet = node.thisOrAncestorOfType<CompilationUnit>()!.featureSet;
-    var errorListener = AnalysisErrorListener.NULL_LISTENER;
+  void resolveAnnotation(AnnotationImpl node) {
+    _resolverVisitor.shouldCloneAnnotations = false;
+    node.accept(_resolutionVisitor);
+    node.accept(_variableResolverVisitor);
+    _prepareEnclosingDeclarations();
+    _flowAnalysis.topLevelDeclaration_enter(node, null);
+    node.accept(_resolverVisitor);
+    _flowAnalysis.topLevelDeclaration_exit();
+  }
 
-    if (buildElements) {
-      node.accept(
-        ResolutionVisitor(
-          unitElement: _unitElement,
-          featureSet: featureSet,
-          nameScope: _nameScope,
-          errorListener: errorListener,
-        ),
-      );
-      node = getNode();
-
-      var variableResolverVisitor = VariableResolverVisitor(
-        _unitElement.library,
-        _unitElement.source,
-        _unitElement.library.typeProvider,
-        errorListener,
-        nameScope: _nameScope,
-      );
-      node.accept(variableResolverVisitor);
-    }
-
-    FlowAnalysisHelper? flowAnalysis;
-    if (isTopLevelVariableInitializer) {
-      if (_unitElement.library.isNonNullableByDefault) {
-        flowAnalysis = FlowAnalysisHelper(
-          _unitElement.library.typeSystem,
-          false,
-        );
-        flowAnalysis.topLevelDeclaration_enter(
-            node.parent as Declaration, null, null);
+  void resolveConstructorNode(ConstructorDeclarationImpl node) {
+    var isConst = node.constKeyword != null;
+    // We don't want to visit the whole node because that will try to create an
+    // element for it; we just want to process its children so that we can
+    // resolve initializers and/or a redirection.
+    void visit(AstVisitor<Object?> visitor) {
+      if (isConst) {
+        node.initializers.accept(visitor);
       }
+      node.redirectedConstructor?.accept(visitor);
     }
 
-    var resolverVisitor = ResolverVisitor(
-      _linker.inheritance,
-      _unitElement.library,
-      _unitElement.source,
-      _unitElement.library.typeProvider,
-      errorListener,
-      featureSet: featureSet,
-      nameScope: _nameScope,
-      reportConstEvaluationErrors: false,
-      flowAnalysisHelper: flowAnalysis,
-    );
-    resolverVisitor.prepareEnclosingDeclarations(
+    visit(_resolutionVisitor);
+    visit(_variableResolverVisitor);
+
+    _prepareEnclosingDeclarations();
+    _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
+        visit: visit);
+    visit(_resolverVisitor);
+    _flowAnalysis.topLevelDeclaration_exit();
+  }
+
+  void resolveExpression(Expression Function() getNode,
+      {DartType? contextType, bool buildElements = true}) {
+    Expression node = getNode();
+    if (buildElements) {
+      node.accept(_resolutionVisitor);
+      // Node may have been rewritten so get it again.
+      node = getNode();
+      if (contextType != null) {
+        InferenceContext.setType(node, contextType);
+      }
+      node.accept(_variableResolverVisitor);
+    }
+    _prepareEnclosingDeclarations();
+    _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
+    node.accept(_resolverVisitor);
+    _flowAnalysis.topLevelDeclaration_exit();
+  }
+
+  void _prepareEnclosingDeclarations() {
+    _resolverVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
-    if (enclosingFunctionBody != null) {
-      resolverVisitor.prepareCurrentFunctionBody(enclosingFunctionBody);
-    }
-
-    node.accept(resolverVisitor);
-
-    if (isTopLevelVariableInitializer) {
-      flowAnalysis?.topLevelDeclaration_exit();
-    }
   }
 }

@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic
+  return #C1;
+static method bar() → dynamic {
+  core::Type listString = #C2;
+  return listString;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = TypeLiteralConstant(core::List<core::int*>*)
+  #C2 = TypeLiteralConstant(core::List<core::String*>*)
+}

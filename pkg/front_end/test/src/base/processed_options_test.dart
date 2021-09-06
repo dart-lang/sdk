@@ -38,9 +38,12 @@ class ProcessedOptionsTest {
 
   Component _mockOutline;
 
-  Component get mockSummary => _mockOutline ??= new Component(
-      libraries: [new Library(Uri.parse('org-dartlang-test:///a/b.dart'))])
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
+  Component get mockSummary => _mockOutline ??= new Component(libraries: [
+        new Library(Uri.parse('org-dartlang-test:///a/b.dart'),
+            fileUri: Uri.parse('org-dartlang-test:///a/b.dart'))
+      ])
+        ..setMainMethodAndMode(
+            null, false, NonNullableByDefaultCompiledMode.Weak);
 
   test_compileSdk_false() {
     for (var value in [false, true]) {

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-#!/usr/bin/python2.6
+#!/usr/bin/env python3
 #
 """
 Usage: gen_manifest.py DIRECTORY EXTENSIONS CACHE-FILE HTML-FILES...
@@ -30,7 +30,7 @@ manifestName = sys.argv[3]
 htmlFiles = sys.argv[4:]
 
 os.chdir(cacheDir)
-print "Generating manifest from root path: " + cacheDir
+print("Generating manifest from root path: " + cacheDir)
 
 patterns = extensions + htmlFiles
 
@@ -68,7 +68,7 @@ manifest.append("*")
 with open(manifestName, 'w') as f:
     f.writelines(m + '\n' for m in manifest)
 
-print "Created manifest file: " + manifestName
+print("Created manifest file: " + manifestName)
 
 for htmlFile in htmlFiles:
     cachedHtmlFile = htmlFile.replace('.html', '-cache.html')
@@ -76,6 +76,6 @@ for htmlFile in htmlFiles:
     text = text.replace('<html>', '<html manifest="%s">' % manifestName, 1)
     with open(cachedHtmlFile, 'w') as output:
         output.write(text)
-    print "Processed html file: %s -> %s" % (htmlFile, cachedHtmlFile)
+    print("Processed html file: %s -> %s" % (htmlFile, cachedHtmlFile))
 
-print "Successfully generated manifest and html files"
+print("Successfully generated manifest and html files")

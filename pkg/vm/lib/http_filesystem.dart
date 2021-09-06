@@ -1,3 +1,7 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:io' as io;
 
@@ -29,6 +33,7 @@ class HttpFileSystemEntity implements FileSystemEntity {
     return connectAndRun((io.HttpClient httpClient) async {
       io.HttpClientRequest request = await httpClient.headUrl(uri);
       io.HttpClientResponse response = await request.close();
+      await response.drain();
       return response.statusCode == io.HttpStatus.ok;
     });
   }
@@ -42,6 +47,7 @@ class HttpFileSystemEntity implements FileSystemEntity {
       io.HttpClientRequest request = await httpClient.getUrl(uri);
       io.HttpClientResponse response = await request.close();
       if (response.statusCode != io.HttpStatus.ok) {
+        await response.drain();
         throw new FileSystemException(uri, response.toString());
       }
       List<List<int>> list = await response.toList();
@@ -57,13 +63,13 @@ class HttpFileSystemEntity implements FileSystemEntity {
     return String.fromCharCodes(await readAsBytes());
   }
 
-  T connectAndRun<T>(T body(io.HttpClient httpClient)) {
-    io.HttpClient httpClient;
+  Future<T> connectAndRun<T>(Future<T> body(io.HttpClient httpClient)) async {
+    io.HttpClient? httpClient;
     try {
       httpClient = new io.HttpClient();
       // Set timeout to be shorter than anticipated OS default
       httpClient.connectionTimeout = const Duration(seconds: 5);
-      return body(httpClient);
+      return await body(httpClient);
     } on Exception catch (e) {
       throw new FileSystemException(uri, e.toString());
     } finally {

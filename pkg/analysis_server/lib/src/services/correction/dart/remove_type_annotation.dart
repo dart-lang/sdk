@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -18,6 +17,12 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;
 
   @override
@@ -25,7 +30,7 @@ class RemoveTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    for (var node = this.node; node != null; node = node.parent) {
+    for (var node in this.node.withParents) {
       if (node is DeclaredIdentifier) {
         return _removeFromDeclaredIdentifier(builder, node);
       }
@@ -93,13 +98,13 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   }
 
   Future<void> _removeTypeAnnotation(
-      ChangeBuilder builder, TypeAnnotation type) async {
+      ChangeBuilder builder, TypeAnnotation? type) async {
     if (type == null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.startStart(type, type.endToken.next));
+      builder.addDeletion(range.startStart(type, type.endToken.next!));
     });
   }
 

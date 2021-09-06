@@ -18,7 +18,7 @@ import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'common_elements.dart' show ElementEnvironment;
-import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
+import 'deferred_load/deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
@@ -91,10 +91,6 @@ abstract class Compiler {
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
 
   final Environment environment;
-  // TODO(sigmund): delete once we migrate the rest of the compiler to use
-  // `environment` directly.
-  @deprecated
-  fromEnvironment(String name) => environment.valueOf(name);
 
   Entity get currentElement => _reporter.currentElement;
 
@@ -481,7 +477,7 @@ abstract class Compiler {
         serializationTask.serializeClosedWorld(closedWorld);
         return;
       }
-      if (stopAfterClosedWorld) return;
+      if (stopAfterClosedWorld || options.stopAfterProgramSplit) return;
       GlobalTypeInferenceResults globalInferenceResults =
           performGlobalTypeInference(closedWorld);
       if (options.writeDataUri != null) {

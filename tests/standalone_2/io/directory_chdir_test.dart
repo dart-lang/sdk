@@ -4,6 +4,8 @@
 //
 // Directory listing test.
 
+// @dart = 2.9
+
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";

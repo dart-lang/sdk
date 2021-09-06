@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test case is a reduction of some Flutter code.  We wish to verify that
 // the class _DismissibleState doesn't have any type inference errors.
 

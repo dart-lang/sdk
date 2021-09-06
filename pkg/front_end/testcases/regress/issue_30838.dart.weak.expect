@@ -9,7 +9,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   method test() → void {
-    let final core::String* #t1 = "hello" in this.{self::A::f}.call<core::String*>(#t1);
+    let final core::String* #t1 = "hello" in this.{self::A::f}{<T extends core::Object* = dynamic>(T*) →* core::int*}<core::String*>(#t1){(core::String*) →* core::int*};
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -27,10 +27,10 @@ static method foo<T extends core::Object* = dynamic>(self::foo::T* x) → core::
 static method bar() → <T extends core::Object* = dynamic>(T*) →* core::int*
   return #C1;
 static method test1() → void {
-  self::bar().call<core::String*>("hello");
+  self::bar()<core::String*>("hello"){(core::String*) →* core::int*};
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::foo
+  #C1 = static-tearoff self::foo
 }

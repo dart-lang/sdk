@@ -132,7 +132,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
   }
 
   FormattedMessage withFormatting(PlainAndColorizedString formatted, int line,
-      int column, Severity severity, List<FormattedMessage> relatedInformation,
+      int column, Severity severity, List<FormattedMessage>? relatedInformation,
       {List<Uri>? involvedFiles}) {
     return new FormattedMessage(this, formatted.plain, formatted.colorized,
         line, column, severity, relatedInformation,
@@ -279,7 +279,7 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
       this.severity, this.uri, this.involvedFiles, this.codeName);
 
   factory DiagnosticMessageFromJson.fromJson(String jsonString) {
-    Map<String, Object> decoded = json.decode(jsonString);
+    Map<String, Object?> decoded = json.decode(jsonString);
     List<String> ansiFormatted =
         new List<String>.from(_asListOfString(decoded["ansiFormatted"]));
     List<String> plainTextFormatted =

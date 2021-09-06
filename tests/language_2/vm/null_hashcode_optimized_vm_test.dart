@@ -4,6 +4,8 @@
 // Test that optimized Object.hashCode works for the null receiver.
 // VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
+// @dart = 2.9
+
 main() {
   for (int i = 0; i < 20; i++) {
     foo(null);

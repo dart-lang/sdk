@@ -4,9 +4,7 @@
 
 library kernel.ast_to_text;
 
-import 'dart:core' hide MapEntry;
-import 'dart:core' as core show MapEntry;
-
+import 'dart:core';
 import 'dart:convert' show json;
 
 import '../ast.dart';
@@ -51,7 +49,7 @@ class ConstantNamer extends RecursiveResultVisitor<Null> with Namer<Constant> {
           // Name everything in post-order visit of DAG.
           getName(value);
         }
-      } else if (constant is TearOffConstant) {
+      } else if (constant is StaticTearOffConstant) {
         // We only care about naming the constants themselves. [TearOffConstant]
         // has no Constant children.
         // Avoid visiting `TearOffConstant.procedureReference`.
@@ -120,7 +118,7 @@ String debugQualifiedClassName(Class node) {
 }
 
 String debugMemberName(Member node) {
-  return node.name?.text ?? globalDebuggingNames.nameMember(node);
+  return node.name.text;
 }
 
 String debugQualifiedMemberName(Member node) {
@@ -367,8 +365,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   static final Name emptyName = new Name(emptyNameString);
 
   Name getMemberName(Member node) {
-    if (node.name?.text == '') return emptyName;
-    if (node.name != null) return node.name!;
+    if (node.name.text == '') return emptyName;
+    // ignore: unnecessary_null_comparison
+    if (node.name != null) return node.name;
     return new Name(syntheticNames.nameMember(node));
   }
 
@@ -428,9 +427,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       endLine(":");
       endLine("//");
       for (String s in problemsAsJson) {
-        Map<String, Object> decoded = json.decode(s);
-        List<Object> plainTextFormatted =
-            decoded["plainTextFormatted"] as List<Object>;
+        Map<String, dynamic> decoded = json.decode(s);
+        List<dynamic> plainTextFormatted =
+            decoded["plainTextFormatted"] as List<dynamic>;
         List<String> lines = plainTextFormatted.join("\n").split("\n");
         for (int i = 0; i < lines.length; i++) {
           write("//");
@@ -514,11 +513,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!.text);
+        write(prefix + '::' + node.name.text);
       } else if (node is Procedure) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!.text);
+        write(prefix + '::' + node.name.text);
       } else if (node is Typedef) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -1205,13 +1204,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       case ProcedureStubKind.ConcreteForwardingStub:
       case ProcedureStubKind.NoSuchMethodForwarder:
       case ProcedureStubKind.ConcreteMixinStub:
-        writeFunction(node.function!, name: getMemberName(node));
+        writeFunction(node.function, name: getMemberName(node));
         break;
       case ProcedureStubKind.MemberSignature:
       case ProcedureStubKind.AbstractMixinStub:
-        writeFunction(node.function!,
+        writeFunction(node.function,
             name: getMemberName(node), terminateLine: false);
-        if (node.function!.body is ReturnStatement) {
+        if (node.function.body is ReturnStatement) {
           writeSymbol(';');
         }
         writeSymbol(' -> ');
@@ -1240,23 +1239,17 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    writeFunction(node.function!,
+    writeFunction(node.function,
         name: node.name, initializers: node.initializers);
   }
 
-  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  visitRedirectingFactory(RedirectingFactory node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
     writeWord('redirecting_factory');
-
-    if (node.name != null) {
-      writeName(node.name!);
-    }
-    writeTypeParameterList(node.typeParameters);
-    writeParameterList(node.positionalParameters, node.namedParameters,
-        node.requiredParameterCount);
+    writeFunction(node.function, name: node.name);
     writeSpaced('=');
     writeMemberReferenceFromReference(node.targetReference!);
     if (node.typeArguments.isNotEmpty) {
@@ -1327,7 +1320,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     node.fields.forEach(writeNode);
     node.constructors.forEach(writeNode);
     node.procedures.forEach(writeNode);
-    node.redirectingFactoryConstructors.forEach(writeNode);
+    node.redirectingFactories.forEach(writeNode);
     --indentation;
     writeIndentation();
     endLine('}');
@@ -1337,6 +1330,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('extension');
+    if (node.isExtensionTypeDeclaration) {
+      writeWord('type');
+    }
     writeWord(getExtensionName(node));
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
@@ -1492,6 +1488,16 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     _writeInstanceAccessKind(node.kind);
+    List<String> flags = <String>[];
+    if (node.isInvariant) {
+      flags.add('Invariant');
+    }
+    if (node.isBoundsSafe) {
+      flags.add('BoundsSafe');
+    }
+    if (flags.isNotEmpty) {
+      write('{${flags.join(',')}}');
+    }
     writeNode(node.arguments);
     writeSymbol('{');
     writeType(node.functionType);
@@ -1530,23 +1536,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('==');
     writeSpace();
     writeSymbol('null');
-  }
-
-  visitMethodInvocation(MethodInvocation node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
-    List<String> flags = <String>[];
-    if (node.isInvariant) {
-      flags.add('Invariant');
-    }
-    if (node.isBoundsSafe) {
-      flags.add('BoundsSafe');
-    }
-    if (flags.isNotEmpty) {
-      write('{${flags.join(',')}}');
-    }
-    writeNode(node.arguments);
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
@@ -1655,7 +1644,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       if (!first) {
         writeComma();
       }
-      writeWord('${fieldRef.asField.name!.text}');
+      writeWord('${fieldRef.asField.name.text}');
       writeSymbol(':');
       writeExpression(value);
       first = false;
@@ -1785,7 +1774,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
-  visitMapEntry(MapEntry node) {
+  visitMapLiteralEntry(MapLiteralEntry node) {
     writeExpression(node.key);
     writeComma(':');
     writeExpression(node.value);
@@ -1979,12 +1968,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
-  visitPropertyGet(PropertyGet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
-  }
-
   visitDynamicSet(DynamicSet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
@@ -1998,14 +1981,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     _writeInstanceAccessKind(node.kind);
-    writeSpaced('=');
-    writeExpression(node.value);
-  }
-
-  visitPropertySet(PropertySet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2036,6 +2011,28 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeMemberReferenceFromReference(node.targetReference);
     writeSpaced('=');
     writeExpression(node.value);
+  }
+
+  visitConstructorTearOff(ConstructorTearOff node) {
+    writeMemberReferenceFromReference(node.targetReference);
+  }
+
+  visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    writeMemberReferenceFromReference(node.targetReference);
+  }
+
+  visitTypedefTearOff(TypedefTearOff node) {
+    writeTypeParameterList(node.typeParameters);
+    state = SYMBOL;
+    writeSymbol('.(');
+    writeNode(node.expression);
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+    }
+    writeSymbol(')');
+    state = WORD;
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -2287,8 +2284,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
+    // ignore: unnecessary_null_comparison
     if (node.function != null) {
-      writeFunction(node.function!, name: getVariableName(node.variable));
+      writeFunction(node.function, name: getVariableName(node.variable));
     } else {
       writeWord(getVariableName(node.variable));
       endLine('...;');
@@ -2512,10 +2510,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
-    writeType(node.bound!);
-    if (node.defaultType != null) {
+    writeType(node.bound);
+    // ignore: unnecessary_null_comparison
+    if (node.defaultType != node.bound) {
       writeSpaced('=');
-      writeType(node.defaultType!);
+      writeType(node.defaultType);
     }
   }
 
@@ -2632,10 +2631,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
 
     writeSymbol(' {');
-    writeList(node.fieldValues.entries,
-        (core.MapEntry<Reference, Constant> entry) {
+    writeList(node.fieldValues.entries, (MapEntry<Reference, Constant> entry) {
       if (entry.key.node != null) {
-        writeWord('${entry.key.asField.name!.text}');
+        writeWord('${entry.key.asField.name.text}');
       } else {
         writeWord('${entry.key.canonicalName!.name}');
       }
@@ -2645,13 +2643,18 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine('}');
   }
 
-  visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+  visitInstantiationConstant(InstantiationConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeWord('partial-instantiation');
+    writeWord('instantiation');
     writeSpace();
-    writeMemberReferenceFromReference(node.tearOffConstant.procedureReference);
+    Constant tearOffConstant = node.tearOffConstant;
+    if (tearOffConstant is TearOffConstant) {
+      writeMemberReferenceFromReference(tearOffConstant.targetReference);
+    } else {
+      writeConstantReference(tearOffConstant);
+    }
     writeSpace();
     writeSymbol('<');
     writeList(node.types, writeType);
@@ -2666,13 +2669,33 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine('"${escapeString(node.value)}"');
   }
 
-  visitTearOffConstant(TearOffConstant node) {
+  visitStaticTearOffConstant(StaticTearOffConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeWord('tearoff');
+    writeWord('static-tearoff');
     writeSpace();
-    writeMemberReferenceFromReference(node.procedureReference);
+    writeMemberReferenceFromReference(node.targetReference);
+    endLine();
+  }
+
+  visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('typedef-tearoff');
+    writeSpace();
+    writeTypeParameterList(node.parameters);
+    state = SYMBOL;
+    writeSymbol('.(');
+    writeConstantReference(node.tearOffConstant);
+    if (node.types.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.types, writeType);
+      writeSymbol('>');
+    }
+    writeSymbol(')');
+    state = WORD;
     endLine();
   }
 
@@ -2683,6 +2706,27 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('eval');
     writeSpace();
     writeExpression(node.expression);
+    endLine();
+  }
+
+  visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('constructor-tearoff');
+    writeSpace();
+    writeMemberReferenceFromReference(node.targetReference);
+    endLine();
+  }
+
+  visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('redirecting-factory-tearoff');
+    writeSpace();
+    writeMemberReferenceFromReference(node.targetReference);
     endLine();
   }
 
@@ -2748,9 +2792,6 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
-
-  @override
-  int visitMethodInvocation(MethodInvocation node) => CALLEE;
 
   @override
   int visitInstanceInvocation(InstanceInvocation node) => CALLEE;
@@ -2856,9 +2897,6 @@ class Precedence implements ExpressionVisitor<int> {
   int visitVariableSet(VariableSet node) => EXPRESSION;
 
   @override
-  int visitPropertyGet(PropertyGet node) => PRIMARY;
-
-  @override
   int visitInstanceGet(InstanceGet node) => PRIMARY;
 
   @override
@@ -2869,9 +2907,6 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitFunctionTearOff(FunctionTearOff node) => PRIMARY;
-
-  @override
-  int visitPropertySet(PropertySet node) => EXPRESSION;
 
   @override
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;
@@ -2887,6 +2922,15 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitStaticSet(StaticSet node) => EXPRESSION;
+
+  @override
+  int visitConstructorTearOff(ConstructorTearOff node) => PRIMARY;
+
+  @override
+  int visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) => PRIMARY;
+
+  @override
+  int visitTypedefTearOff(TypedefTearOff node) => EXPRESSION;
 
   @override
   int visitLet(Let node) => EXPRESSION;

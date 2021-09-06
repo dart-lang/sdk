@@ -66,9 +66,13 @@ class ArgumentsDescriptor : public ValueObject {
     return Array::element_offset(kFirstNamedEntryIndex);
   }
 
-  static intptr_t name_offset() { return kNameOffset * kWordSize; }
-  static intptr_t position_offset() { return kPositionOffset * kWordSize; }
-  static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }
+  static intptr_t name_offset() { return kNameOffset * kCompressedWordSize; }
+  static intptr_t position_offset() {
+    return kPositionOffset * kCompressedWordSize;
+  }
+  static intptr_t named_entry_size() {
+    return kNamedEntrySize * kCompressedWordSize;
+  }
 
   // Constructs an argument descriptor where all arguments are boxed and
   // therefore number of parameters equals parameter size.
@@ -122,6 +126,12 @@ class ArgumentsDescriptor : public ValueObject {
 
   enum { kCachedDescriptorCount = 32 };
 
+  // For creating ArgumentDescriptor Slots.
+  static constexpr bool ContainsCompressedPointers() {
+    // Use the same state as the backing store.
+    return Array::ContainsCompressedPointers();
+  }
+
  private:
   // Absolute indices into the array.
   // Keep these in sync with the constants in invocation_mirror_patch.dart.
@@ -170,8 +180,6 @@ class ArgumentsDescriptor : public ValueObject {
   // A cache of VM heap allocated arguments descriptors.
   static ArrayPtr cached_args_descriptors_[kCachedDescriptorCount];
 
-  friend class SnapshotReader;
-  friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
   friend class Simulator;
@@ -194,6 +202,7 @@ class DartEntry : public AllStatic {
   // Invokes the specified code as if it was a Dart function.
   // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeCode(const Code& code,
+                              uword entry_point,
                               const Array& arguments_descriptor,
                               const Array& arguments,
                               Thread* thread);
@@ -296,6 +305,10 @@ class DartLibraryCalls : public AllStatic {
   // _startMicrotaskLoop from dart:async.
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
+
+  // Runs the `_rehashObjects()` function.
+  static ObjectPtr RehashObjects(Thread* thread,
+                                 const Object& array_or_growable_array);
 };
 
 }  // namespace dart

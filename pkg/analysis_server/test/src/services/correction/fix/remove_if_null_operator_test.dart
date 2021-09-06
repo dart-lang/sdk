@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -16,6 +14,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadNullAwareAssignmentExpressionTest);
     defineReflectiveTests(DeadNullAwareExpressionTest);
+    defineReflectiveTests(UnnecessaryNullInIfNullOperatorsBulkTest);
     defineReflectiveTests(UnnecessaryNullInIfNullOperatorsTest);
   });
 }
@@ -111,6 +110,42 @@ int f(int a, int b) => a;
 }
 
 @reflectiveTest
+class UnnecessaryNullInIfNullOperatorsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_null_in_if_null_operators;
+
+  @failingTest
+  Future<void> test_null_null_left() async {
+    // The fix only addresses one null and results in:
+    //
+    //     var b = null ?? a;
+    //
+    // (not incorrect but not complete).
+    await resolveTestCode('''
+var a = '';
+var b = null ?? null ?? a;
+''');
+    await assertHasFix('''
+var a = '';
+var b = a;
+''');
+  }
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+var a = '';
+var b = null ?? a ?? null;
+var c = a ?? null ?? null;
+''');
+    await assertHasFix('''
+var a = '';
+var b = a;
+var c = a;
+''');
+  }
+}
+
+@reflectiveTest
 class UnnecessaryNullInIfNullOperatorsTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
@@ -132,7 +167,7 @@ var b = a;
   Future<void> test_right() async {
     await resolveTestCode('''
 var a = '';
-var b = a ?? null;
+var b = a ?? '';
 ''');
     await assertHasFix('''
 var a = '';

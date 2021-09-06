@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing for statement.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Test several variations of for loops:

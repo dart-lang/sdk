@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -20,7 +18,7 @@ void main() {
 
 @reflectiveTest
 class HierarchyTest extends AbstractSingleUnitTest {
-  SearchEngineImpl searchEngine;
+  late SearchEngineImpl searchEngine;
 
   @override
   void setUp() {
@@ -73,13 +71,13 @@ class B extends A {
     var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberB]));
     });
-    return Future.wait([futureA, futureB]);
+    await Future.wait([futureA, futureB]);
   }
 
   Future<void> test_getHierarchyMembers_fields() async {
     await _indexTestUnit('''
 class A {
-  int foo;
+  int? foo;
 }
 class B extends A {
   get foo => null;
@@ -88,7 +86,7 @@ class C extends B {
   set foo(x) {}
 }
 class D {
-  int foo;
+  int? foo;
 }
 ''');
     var classA = findElement.class_('A');
@@ -111,13 +109,13 @@ class D {
     var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberD]));
     });
-    return Future.wait([futureA, futureB, futureC, futureD]);
+    await Future.wait([futureA, futureB, futureC, futureD]);
   }
 
   Future<void> test_getHierarchyMembers_fields_static() async {
     await _indexTestUnit('''
 class A {
-  static int foo;
+  static int? foo;
 }
 class B extends A {
   static get foo => null;
@@ -189,7 +187,7 @@ class E extends D {
     var futureE = getHierarchyMembers(searchEngine, memberE).then((members) {
       expect(members, unorderedEquals([memberD, memberE]));
     });
-    return Future.wait([futureA, futureB, futureC, futureD, futureE]);
+    await Future.wait([futureA, futureB, futureC, futureD, futureE]);
   }
 
   Future<void> test_getHierarchyMembers_methods_static() async {
@@ -247,7 +245,7 @@ class E {
     var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
-    return Future.wait([futureA, futureB, futureD]);
+    await Future.wait([futureA, futureB, futureD]);
   }
 
   Future<void> test_getHierarchyNamedParameters() async {
@@ -365,7 +363,10 @@ class B extends A {
             'toString',
             'hashCode',
             'noSuchMethod',
-            'runtimeType'
+            'runtimeType',
+            'hash',
+            'hashAll',
+            'hashAllUnordered',
           ]));
     }
     {
@@ -382,7 +383,10 @@ class B extends A {
             'toString',
             'hashCode',
             'noSuchMethod',
-            'runtimeType'
+            'runtimeType',
+            'hash',
+            'hashAll',
+            'hashAllUnordered',
           ]));
     }
   }
@@ -403,7 +407,7 @@ class F implements A {}
     var classD = findElement.class_('D');
     var classE = findElement.class_('E');
     var classF = findElement.class_('F');
-    var objectElement = classA.supertype.element;
+    var objectElement = classA.supertype!.element;
     // Object
     {
       var supers = getSuperClasses(objectElement);
@@ -461,7 +465,7 @@ mixin M5 on A, C {}
     var m3 = findElement.mixin('M3');
     var m4 = findElement.mixin('M4');
     var m5 = findElement.mixin('M5');
-    var object = a.supertype.element;
+    var object = a.supertype!.element;
 
     _assertSuperClasses(object, []);
     _assertSuperClasses(a, [object]);

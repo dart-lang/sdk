@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_PROGRAM_VISITOR_H_
 #define RUNTIME_VM_PROGRAM_VISITOR_H_
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 
 namespace dart {
@@ -104,7 +106,6 @@ class ProgramVisitor : public AllStatic {
 #endif
 
  private:
-#if !defined(DART_PRECOMPILED_RUNTIME)
   static void BindStaticCalls(Zone* zone, IsolateGroup* isolate_group);
   static void ShareMegamorphicBuckets(Zone* zone, IsolateGroup* isolate_group);
   static void NormalizeAndDedupCompressedStackMaps(Zone* zone,
@@ -114,13 +115,15 @@ class ProgramVisitor : public AllStatic {
 #if defined(DART_PRECOMPILER)
   static void DedupCatchEntryMovesMaps(Zone* zone, IsolateGroup* isolate_group);
   static void DedupUnlinkedCalls(Zone* zone, IsolateGroup* isolate_group);
+  static void PruneSubclasses(Zone* zone, IsolateGroup* isolate_group);
 #endif
   static void DedupCodeSourceMaps(Zone* zone, IsolateGroup* isolate_group);
   static void DedupLists(Zone* zone, IsolateGroup* isolate_group);
   static void DedupInstructions(Zone* zone, IsolateGroup* isolate_group);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_PROGRAM_VISITOR_H_

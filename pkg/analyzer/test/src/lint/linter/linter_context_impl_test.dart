@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -29,15 +28,12 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
-    var contextUnit = LinterContextUnit(result.content!, result.unit!);
+    var contextUnit = LinterContextUnit(result.content, result.unit);
 
-    final libraryPath = result.libraryElement.source.fullName;
-    // todo (pq): get workspace from analysis context
-    final workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: ContextBuilderOptions(),
-      rootPath: libraryPath,
-    );
+    final libraryElement = result.libraryElement;
+    final analysisContext = libraryElement.session.analysisContext;
+    final libraryPath = libraryElement.source.fullName;
+    final workspace = analysisContext.contextRoot.workspace;
     final workspacePackage = workspace.findPackageFor(libraryPath);
 
     context = LinterContextImpl(

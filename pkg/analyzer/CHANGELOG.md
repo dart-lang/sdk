@@ -1,6 +1,87 @@
-## 1.4.0-dev
+## 2.1.0-dev
+* Changed `AnalysisResult.path` to be non-nullable.
+* Changed `ParsedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedLibraryResult.element` to be non-nullable.
+* Changed `ResolvedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedUnitResult.content` to be non-nullable.
+* Changed `ResolvedUnitResult.unit` to be non-nullable.
+* Deprecated and renamed `AnalysisSession.getXyz2()` into `getXyz()`.
+* Changed `AnalysisDriver.results` to `Stream<Object>`.
+  It used to always produce `ResolvedUnitResult`s, but sometimes its
+  `content` and `unit` were `null`, when the result actually had only errors.
+  Now it produces either `ResolvedUnitResult`, or `ErrorsResult`, or
+  some other results that might be added in the future.
+* Added `DartType.alias` with information about instantiated type alias.
+  The type alias element and arguments are present or absent together.
+* Deprecated `DartType.aliasElement` and `DartType.aliasArguments`.
+
+## 2.0.0
+* Removed deprecated `Scope.lookup2()`.
+* Removed deprecated setters in API of AST.
+* Removed deprecated `FunctionTypeAliasElement`.
+* Updated `LineInfo.getLocation()` to return `CharacterLocation`.
+* Removed deprecated `LineInfo_Location`.
+* Removed deprecated methods from `AnalysisSession`.
+* Changed `DartObject.type` from `ParameterizedType?` to `DartType?`.
+* Changed `FunctionType` to implement `DartType`, not `ParameterizedType`.
+* Removed `FunctionType.element` and `FunctionType.typeArguments`.
+* Changed `DartObject.type` from `ParameterizedType?` to `DartType?`.
+* Changed `FunctionType` to implement `DartType`, not `ParameterizedType`.
+* Removed `FunctionType.element` and `FunctionType.typeArguments`.
+* Added `StringInterpolation.firstString` and `lastString`, to express
+  explicitly  that there are always (possibly empty) strings as the first
+  and the last elements of an interpolation.
+* Deprecated `ImportElement.prefixOffset`, use `prefix.nameOffset` instead.
+* Deprecated `CompilationUnitElement.types`, use `classes` instead.
+* Added `Element.nonSynthetic`, use it to get the element that caused creation
+  of this element, e.g. the field for a synthetic getter.
+* `FieldElement.isFinal` is `true` only when the field is not synthetic.
+* Synthetic getters and setters now use `-1` as `nameOffset`.
+* Fixed bug that `defaultValueCode` is `null` for field formal parameters.
+* Updated `LibraryElement.name` so that it is non-nullable.
+
+## 1.7.0
+* Require `meta: ^1.4.0`.
+
+## 1.6.0
+* Deprecated `AnalysisDriver` default constructor.  Added `tmp1`. The goal
+  is to allow deprecating and removing unused  parameters.
+* Added AST structures and visit methods to support the upcoming "constructor
+  tearoffs" feature: `ConstructorReference`, `FunctionReference`, and
+  `TypeLiteral`.
+
+## 1.5.0
+* Support for the language version `2.14`.
+* Deprecated `AnalysisSession.getUnitElement()`.
+  Use `AnalysisSession.getUnitElement2()` instead.
+* Deprecated `AnalysisSession.getResolvedUnit()`.
+  Use `AnalysisSession.getResolvedUnit2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibrary()`.
+  Use `AnalysisSession.getResolvedLibrary2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibraryByElement()`.
+  Use `AnalysisSession.getResolvedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getLibraryByUri()`.
+  Use `AnalysisSession.getLibraryByUri2()` instead.
+* Deprecated `AnalysisSession.getErrors()`.
+  Use `AnalysisSession.getErrors2()` instead.
+* Deprecated `AnalysisSession.getParsedLibrary()`.
+  Use `AnalysisSession.getParsedLibrary2()` instead.
+* Deprecated `AnalysisSession.getParsedLibraryByElement()`.
+  Use `AnalysisSession.getParsedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getParsedUnit()`.
+  Use `AnalysisSession.getParsedUnit2()` instead.
+* Deprecated `AnalysisSession.getFile()` and `getSourceKind()`.
+  Use `AnalysisSession.getFile2()` instead.
+* Deprecated `AnalysisSession.getUnitElementSignature()`.
+  This method is not used by any known client, and will be removed.
+
+## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.
   Use `TypeProvider.isNonSubtypableClass` instead.
+* Added `sdkPath` to `AnalysisContextCollection` constructor.
+* Improved support for generalized type aliases.
+* The feature `nonfunction-type-aliases` is enabled by default in the
+  language version `2.13`.
 
 ## 1.3.0
 * Added `Expression.inConstantContext` to API.

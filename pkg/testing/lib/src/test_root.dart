@@ -49,7 +49,7 @@ class TestRoot {
 
   TestRoot(this.packages, this.suites);
 
-  Analyze get analyze => suites.last;
+  Analyze get analyze => suites.last as Analyze;
 
   List<Uri> get urisToAnalyze => analyze.uris;
 

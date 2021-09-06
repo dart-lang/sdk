@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing dynamic calls.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Make this something that DDC considers side effecting.

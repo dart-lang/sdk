@@ -675,13 +675,13 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM) {
 ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest1) {
   intptr_t count = 0;
   {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     count += 1;
     {
-      SafepointOperationScope safepoint_scope(thread);
+      GcSafepointOperationScope safepoint_scope(thread);
       count += 1;
       {
-        SafepointOperationScope safepoint_scope(thread);
+        GcSafepointOperationScope safepoint_scope(thread);
         count += 1;
       }
     }
@@ -785,7 +785,7 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM2) {
   }
   bool all_helpers = false;
   do {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     {
       MonitorLocker ml(&monitor);
       if (expected_count == SafepointTestTask::kTaskCount) {
@@ -816,9 +816,9 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   }
   bool all_helpers = false;
   do {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     {
-      SafepointOperationScope safepoint_scope(thread);
+      GcSafepointOperationScope safepoint_scope(thread);
       MonitorLocker ml(&monitor);
       if (expected_count == SafepointTestTask::kTaskCount) {
         all_helpers = true;
@@ -830,9 +830,9 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   isolate->set_current_tag(tag);
   bool all_exited = false;
   do {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     {
-      SafepointOperationScope safepoint_scope(thread);
+      GcSafepointOperationScope safepoint_scope(thread);
       MonitorLocker ml(&monitor);
       if (exited == SafepointTestTask::kTaskCount) {
         all_exited = true;
@@ -1012,8 +1012,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
 template <typename LockType, typename LockerType>
 static void RunLockerWithLongJumpTest() {
   const intptr_t kNumIterations = 5;
-  intptr_t execution_count = 0;
-  intptr_t thrown_count = 0;
+  volatile intptr_t execution_count = 0;
+  volatile intptr_t thrown_count = 0;
   LockType lock;
   for (intptr_t i = 0; i < kNumIterations; ++i) {
     LongJumpScope jump;

@@ -9,7 +9,13 @@ import 'dart:typed_data';
 import 'dart:isolate';
 
 @pragma("vm:entry-point")
-abstract class Struct extends NativeType {}
+abstract class _Compound extends NativeType {}
+
+@pragma("vm:entry-point")
+abstract class Struct extends _Compound {}
+
+@pragma("vm:entry-point")
+abstract class Union extends _Compound {}
 
 @pragma("vm:entry-point")
 class _FfiStructLayout {

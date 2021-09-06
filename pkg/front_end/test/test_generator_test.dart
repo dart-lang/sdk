@@ -18,7 +18,8 @@ import 'package:kernel/kernel.dart' show Component;
 import 'incremental_suite.dart' as helper;
 
 main() async {
-  TestCompiler compiler = await TestCompiler.initialize();
+  CompilerAndOptions compilerAndOptions = TestCompiler.initialize();
+  TestCompiler compiler = compilerAndOptions.compiler;
   bool hasNewline = true;
   int numErrors = 0;
   List<String> errorSource = [];
@@ -31,6 +32,7 @@ main() async {
         String source = outerContext
             .generate(innerContext.generate(expression.generate("")));
         String compileResult = await compiler.compile(source);
+        compilerAndOptions.options.skipPlatformVerification = true;
         if (compileResult != "") {
           if (!hasNewline) print("");
           hasNewline = true;
@@ -122,13 +124,13 @@ class TestCompiler {
     return sb.toString();
   }
 
-  static Future<TestCompiler> initialize() async {
+  static CompilerAndOptions initialize() {
     final Uri base = Uri.parse("org-dartlang-test:///");
     final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
     final List<int> sdkSummaryData =
-        await new File.fromUri(platformUri).readAsBytes();
+        new File.fromUri(platformUri).readAsBytesSync();
     MemoryFileSystem fs = new MemoryFileSystem(base);
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
 
@@ -169,8 +171,10 @@ class TestCompiler {
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, testUri);
 
-    return new TestCompiler._(testUri, fs, formattedErrors, formattedWarnings,
-        formattedErrorsCodes, formattedWarningsCodes, compiler);
+    return new CompilerAndOptions(
+        new TestCompiler._(testUri, fs, formattedErrors, formattedWarnings,
+            formattedErrorsCodes, formattedWarningsCodes, compiler),
+        options);
   }
 }
 
@@ -227,4 +231,11 @@ class Generator {
   String generate(String plug) {
     return "// @dart = 2.9\n${beforePlug}${plug}${afterPlug}";
   }
+}
+
+class CompilerAndOptions {
+  final TestCompiler compiler;
+  final CompilerOptions options;
+
+  CompilerAndOptions(this.compiler, this.options);
 }

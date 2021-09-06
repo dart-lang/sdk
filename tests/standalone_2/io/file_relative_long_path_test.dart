@@ -6,6 +6,8 @@
 // representing a long absolute path cannot be used by Windows API. Running this
 // test without proper support on long path will get an error.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 const maxPath = 260;

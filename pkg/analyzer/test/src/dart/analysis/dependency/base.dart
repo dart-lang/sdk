@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/dependency/library_builder.dart';
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
@@ -138,7 +139,8 @@ class BaseDependencyTest extends PubPackageResolutionTest {
   Future<List<CompilationUnit>> _resolveLibrary(String libraryPath) async {
     var session = contextFor(libraryPath).currentSession;
     var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
-    return resolvedLibrary.units!.map((ru) => ru.unit!).toList();
+    resolvedLibrary as ResolvedLibraryResult;
+    return resolvedLibrary.units.map((ru) => ru.unit).toList();
   }
 }
 

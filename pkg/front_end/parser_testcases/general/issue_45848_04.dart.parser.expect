@@ -1,0 +1,13 @@
+NOTICE: Stream was rewritten by parser!
+
+void f<T>() {}
+
+void m() {
+f<*synthetic*>();
+}
+
+void[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] m[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+f[StringToken]<[BeginToken][SyntheticStringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

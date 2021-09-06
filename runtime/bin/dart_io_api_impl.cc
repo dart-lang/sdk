@@ -31,6 +31,7 @@ void BootstrapDartIo() {
 
 void CleanupDartIo() {
   EventHandler::Stop();
+  Process::TerminateExitCodeHandler();
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
   SSLFilter::Cleanup();
 #endif

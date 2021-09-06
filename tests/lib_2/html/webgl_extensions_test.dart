@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library web_gl_test;
 
 import 'dart:html';
@@ -75,6 +77,7 @@ main() {
     expect(name, anyOf(allExtensions), reason: 'unknown extension');
     var canvas = new CanvasElement();
     var context = canvas.getContext3d();
+    expect(context, isNotNull);
     var supportedExtensions = context.getSupportedExtensions();
     if (supportedExtensions.contains(name)) {
       var extension = context.getExtension(name);

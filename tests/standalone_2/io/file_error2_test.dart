@@ -11,6 +11,8 @@
 // Environment=MSAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
 // Environment=TSAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
 
+// @dart = 2.9
+
 import "dart:io";
 
 import "file_error_test.dart" show createTestFile;

@@ -12,6 +12,11 @@ library;
 //   var c2 = new C.bar<int>();
 //                  ^^^
 //
+// pkg/front_end/testcases/regress/issue_34403.dart:20:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   var c3 = C<String>.bar<int>();
+//             ^
+//
 // pkg/front_end/testcases/regress/issue_34403.dart:20:22: Error: A constructor invocation can't have type arguments on the constructor name.
 // Try to place the type arguments on the class name.
 //   var c3 = C<String>.bar<int>();
@@ -31,6 +36,11 @@ library;
 // Try to place the type arguments on the class name.
 //   const d2 = const D.foo<int>();
 //                      ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:29:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   const d3 = D<String>.foo<int>();
+//               ^
 //
 // pkg/front_end/testcases/regress/issue_34403.dart:29:24: Error: A constructor invocation can't have type arguments on the constructor name.
 // Try to place the type arguments on the class name.
@@ -52,6 +62,11 @@ library;
 //   var e2 = new p.E.bar<int>();
 //                    ^^^
 //
+// pkg/front_end/testcases/regress/issue_34403.dart:38:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   var e3 = p.E<String>.bar<int>();
+//               ^
+//
 // pkg/front_end/testcases/regress/issue_34403.dart:38:24: Error: A constructor invocation can't have type arguments on the constructor name.
 // Try to place the type arguments on the class name.
 //   var e3 = p.E<String>.bar<int>();
@@ -71,6 +86,11 @@ library;
 // Try to place the type arguments on the class name.
 //   const f2 = const p.F.foo<int>();
 //                        ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:47:17: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   const f3 = p.F<String>.foo<int>();
+//                 ^
 //
 // pkg/front_end/testcases/regress/issue_34403.dart:47:26: Error: A constructor invocation can't have type arguments on the constructor name.
 // Try to place the type arguments on the class name.
@@ -120,29 +140,29 @@ class D<T extends core::Object* = dynamic> extends core::Object /*hasConstConstr
 }
 static method main() → dynamic {
   self::C<core::int*>* c1 = new self::C::bar<core::int*>();
-  c1.{self::C::toString}();
+  c1.{self::C::toString}(){() →* core::String*};
   self::C<core::int*>* c2 = new self::C::bar<core::int*>();
-  c2.{self::C::toString}();
-  self::C<core::String*>* c3 = new self::C::bar<core::String*>();
-  c3.{self::C::toString}();
+  c2.{self::C::toString}(){() →* core::String*};
+  self::C<core::int*>* c3 = new self::C::bar<core::int*>();
+  c3.{self::C::toString}(){() →* core::String*};
   self::C<core::String*>* c4 = new self::C::bar<core::String*>();
-  c4.{self::C::toString}();
-  (#C1).{self::D::toString}();
-  (#C1).{self::D::toString}();
-  (#C2).{self::D::toString}();
-  (#C2).{self::D::toString}();
+  c4.{self::C::toString}(){() →* core::String*};
+  (#C1).{self::D::toString}(){() →* core::String*};
+  (#C1).{self::D::toString}(){() →* core::String*};
+  (#C1).{self::D::toString}(){() →* core::String*};
+  (#C2).{self::D::toString}(){() →* core::String*};
   iss::E<core::int*>* e1 = new iss::E::bar<core::int*>();
-  e1.{iss::E::toString}();
+  e1.{iss::E::toString}(){() →* core::String*};
   iss::E<dynamic>* e2 = new iss::E::bar<dynamic>();
-  e2.{iss::E::toString}();
-  iss::E<core::String*>* e3 = new iss::E::bar<core::String*>();
-  e3.{iss::E::toString}();
+  e2.{iss::E::toString}(){() →* core::String*};
+  iss::E<core::int*>* e3 = new iss::E::bar<core::int*>();
+  e3.{iss::E::toString}(){() →* core::String*};
   iss::E<core::String*>* e4 = new iss::E::bar<core::String*>();
-  e4.{iss::E::toString}();
-  (#C3).{iss::F::toString}();
-  (#C4).{iss::F::toString}();
-  (#C5).{iss::F::toString}();
-  (#C5).{iss::F::toString}();
+  e4.{iss::E::toString}(){() →* core::String*};
+  (#C3).{iss::F::toString}(){() →* core::String*};
+  (#C4).{iss::F::toString}(){() →* core::String*};
+  (#C3).{iss::F::toString}(){() →* core::String*};
+  (#C5).{iss::F::toString}(){() →* core::String*};
 }
 
 library;
@@ -194,6 +214,3 @@ org-dartlang-testcase:///issue_34403.dart:
 - D.foo (from org-dartlang-testcase:///issue_34403.dart:12:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - F.foo (from org-dartlang-testcase:///issue_34403_lib.dart:10:9)
-
-org-dartlang-testcase:///issue_34403_lib.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

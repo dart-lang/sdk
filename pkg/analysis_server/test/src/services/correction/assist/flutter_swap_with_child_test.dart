@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -41,7 +39,7 @@ build() {
           width: 200.0,
           height: 300.0,
         ),
-        key: null,
+        key: Key('x'),
       ),
     ),
   );
@@ -53,7 +51,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      key: null,
+      key: Key('x'),
       child: GestureDetector(
         onTap: () => startResize(),
         child: Container(
@@ -74,7 +72,7 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => _State();
+  State<Foo> createState() => _State();
 }
 
 class _State extends State<Foo> {
@@ -97,7 +95,7 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => _State();
+  State<Foo> createState() => _State();
 }
 
 class _State extends State<Foo> {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/kernel.dart';
 
@@ -14,9 +12,9 @@ class WidgetCache {
   /// Create a [WidgetCache] from a [Component] containing the flutter
   /// framework.
   WidgetCache(Component fullComponent) {
-    Library frameworkLibrary;
+    Library? frameworkLibrary;
     for (Library library in fullComponent.libraries) {
-      if (library?.importUri == _frameworkLibrary) {
+      if (library.importUri == _frameworkLibrary) {
         frameworkLibrary = library;
         break;
       }
@@ -33,9 +31,9 @@ class WidgetCache {
   static const String _statefulWidgetClassName = 'StatefulWidget';
   static const String _statelessWidgetClassName = 'StatelessWidget';
 
-  Class _statelessWidget;
-  Class _state;
-  Class _statefulWidget;
+  Class? _statelessWidget;
+  Class? _state;
+  Class? _statefulWidget;
   bool _frameworkTypesLocated = false;
 
   static final Uri _frameworkLibrary =
@@ -58,8 +56,8 @@ class WidgetCache {
   /// `State` subtype.
   ///
   /// Returns the class name if located, otherwise `null`.
-  String checkSingleWidgetTypeModified(
-    Component lastGoodComponent,
+  String? checkSingleWidgetTypeModified(
+    Component? lastGoodComponent,
     Component partialComponent,
     ClassHierarchy classHierarchy,
   ) {
@@ -69,7 +67,7 @@ class WidgetCache {
       return null;
     }
     Uri importUri = _invalidatedLibraries[0];
-    Library library;
+    Library? library;
     for (Library candidateLibrary in partialComponent.libraries) {
       if (candidateLibrary.importUri == importUri) {
         library = candidateLibrary;
@@ -79,9 +77,11 @@ class WidgetCache {
     if (library == null) {
       return null;
     }
-    List<int> oldSource = lastGoodComponent.uriToSource[library.fileUri].source;
-    List<int> newSource = partialComponent.uriToSource[library.fileUri].source;
+    List<int> oldSource =
+        lastGoodComponent.uriToSource[library.fileUri]!.source;
+    List<int> newSource = partialComponent.uriToSource[library.fileUri]!.source;
     // Library was added and does not exist in the old component.
+    // ignore: unnecessary_null_comparison
     if (oldSource == null) {
       return null;
     }
@@ -105,7 +105,7 @@ class WidgetCache {
       oldEndIndex -= 1;
     }
 
-    Class newClass =
+    Class? newClass =
         _locateContainingClass(library, newStartIndex, newEndIndex);
     if (newClass == null) {
       return null;
@@ -116,7 +116,7 @@ class WidgetCache {
       return library.importUri == importUri;
     });
 
-    Class oldClass =
+    Class? oldClass =
         _locateContainingClass(oldLibrary, oldStartIndex, oldEndIndex);
 
     if (oldClass == null || oldClass.name != newClass.name) {
@@ -125,13 +125,13 @@ class WidgetCache {
 
     // Update the class references to stateless, stateful, and state classes.
     for (Library library in classHierarchy.knownLibraries) {
-      if (library?.importUri == _frameworkLibrary) {
+      if (library.importUri == _frameworkLibrary) {
         _locatedClassDeclarations(library);
       }
     }
 
-    if (classHierarchy.isSubclassOf(newClass, _statelessWidget) ||
-        classHierarchy.isSubclassOf(newClass, _statefulWidget)) {
+    if (classHierarchy.isSubclassOf(newClass, _statelessWidget!) ||
+        classHierarchy.isSubclassOf(newClass, _statefulWidget!)) {
       if (classHierarchy.isExtended(newClass) ||
           classHierarchy.isUsedAsMixin(newClass)) {
         return null;
@@ -143,8 +143,8 @@ class WidgetCache {
     // StatefulWidget that is provided as a type parameter. If the bounds are
     // StatefulWidget itself, fail as that indicates the type was not
     // specified.
-    Supertype stateSuperType =
-        classHierarchy.getClassAsInstanceOf(newClass, _state);
+    Supertype? stateSuperType =
+        classHierarchy.getClassAsInstanceOf(newClass, _state!);
     if (stateSuperType != null) {
       if (stateSuperType.typeArguments.length != 1) {
         return null;
@@ -167,7 +167,7 @@ class WidgetCache {
   }
 
   // Locate the that fully contains the edit range, or null.
-  Class _locateContainingClass(
+  Class? _locateContainingClass(
       Library library, int startOffset, int endOffset) {
     for (Class classDeclaration in library.classes) {
       if (classDeclaration.startFileOffset <= startOffset &&

@@ -8,7 +8,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
     : self::Class::field = value is{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
     ;
 }
-class ClassWithBound<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+class ClassWithBound<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field core::bool field;
   const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
     : self::ClassWithBound::field = self::three is{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
@@ -45,5 +45,5 @@ static method main() → void
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///potentially_constant_type_is.dart:22:36 -> IntConstant(3)
-Evaluated: Instantiation @ org-dartlang-testcase:///potentially_constant_type_is.dart:11:43 -> PartialInstantiationConstant(idFunction<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///potentially_constant_type_is.dart:11:43 -> InstantiationConstant(idFunction<int*>)
 Extra constant evaluation: evaluated: 11, effectively constant: 2

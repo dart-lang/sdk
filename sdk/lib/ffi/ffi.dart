@@ -11,6 +11,7 @@
  */
 library dart.ffi;
 
+import 'dart:_internal' show Since;
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -19,6 +20,7 @@ part "allocation.dart";
 part "annotations.dart";
 part "dynamic_library.dart";
 part "struct.dart";
+part "union.dart";
 
 /// Number of bytes used by native type T.
 ///
@@ -148,7 +150,8 @@ extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   /// Convert to Dart function, automatically marshalling the arguments
   /// and return value.
-  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>();
+  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>(
+      {bool isLeaf: false});
 }
 
 //
@@ -692,6 +695,27 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T operator [](int index);
 }
 
+/// Extension on [Pointer] specialized for the type argument [Union].
+extension UnionPointer<T extends Union> on Pointer<T> {
+  /// Creates a reference to access the fields of this union backed by native
+  /// memory at [address].
+  ///
+  /// The [address] must be aligned according to the union alignment rules of
+  /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T get ref;
+
+  /// Creates a reference to access the fields of this union backed by native
+  /// memory at `address + sizeOf<T>() * index`.
+  ///
+  /// The [address] must be aligned according to the union alignment rules of
+  /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
 /// Bounds checking indexing methods on [Array]s of [Pointer].
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   external Pointer<T> operator [](int index);
@@ -701,6 +725,12 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
 
 /// Bounds checking indexing methods on [Array]s of [Struct].
 extension StructArray<T extends Struct> on Array<T> {
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Union].
+extension UnionArray<T extends Union> on Array<T> {
   /// This extension method must be invoked with a compile-time constant [T].
   external T operator [](int index);
 }
@@ -771,3 +801,34 @@ abstract class NativeApi {
   /// symbols in `dart_api_dl.h`.
   external static Pointer<Void> get initializeApiDLData;
 }
+
+/// Annotation to be used for marking an external function as FFI native.
+///
+/// Example:
+///```dart
+/// @FfiNative<Int64 Function(Int64, Int64)>("FfiNative_Sum", isLeaf:true)
+/// external int sum(int a, int b);
+///```
+/// Calling such functions will throw an exception if no resolver
+/// was set on the library or the resolver failed to resolve the name.
+///
+/// See `Dart_SetFfiNativeResolver` in `dart_api.h`
+///
+/// NOTE: This is an experimental feature and may change in the future.
+class FfiNative<T> {
+  final String nativeName;
+  final bool isLeaf;
+  const FfiNative(this.nativeName, {this.isLeaf: false});
+}
+
+// Bootstrapping native for getting the FFI native C function pointer to look
+// up the FFI resolver.
+Pointer<NativeFunction<IntPtr Function(Handle, Handle)>>
+    _get_ffi_native_resolver<
+        T extends NativeFunction>() native "Ffi_GetFfiNativeResolver";
+
+// Resolver for FFI Native C function pointers.
+@pragma('vm:entry-point')
+final _ffi_resolver =
+    _get_ffi_native_resolver<NativeFunction<IntPtr Function(Handle, Handle)>>()
+        .asFunction<int Function(Object, Object)>();

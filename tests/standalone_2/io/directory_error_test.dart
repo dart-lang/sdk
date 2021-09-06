@@ -4,6 +4,8 @@
 //
 // Dart test program for testing error handling in directory I/O.
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 

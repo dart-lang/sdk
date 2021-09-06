@@ -15,11 +15,11 @@ static method test() → dynamic {
   core::List<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> y = core::_GrowableList::_literal1<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>>(#C1);
   core::Set<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> z = block {
     final core::Set<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> #t1 = new col::_CompactLinkedHashSet::•<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>>();
-    #t1.{core::Set::add}{Invariant}(y.{core::Iterable::first});
+    #t1.{core::Set::add}{Invariant}(y.{core::Iterable::first}{<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>}){(<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>) → core::bool};
   } =>#t1;
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::foo
+  #C1 = static-tearoff self::foo
 }

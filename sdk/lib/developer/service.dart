@@ -17,9 +17,29 @@ class ServiceProtocolInfo {
   /// not support the service protocol, this is 0.
   final int minorVersion = _getServiceMinorVersion();
 
-  /// The Uri to access the service. If the web server is not running, this
-  /// will be null.
+  /// The Uri to connect to the debugger client hosted by the service. If the
+  /// web server is not running, this will be null.
   final Uri? serverUri;
+
+  /// The Uri to connect to the service via web socket. If the web server is
+  /// not running, this will be null.
+  Uri? get serverWebSocketUri {
+    Uri? uri = serverUri;
+    if (uri != null) {
+      final pathSegments = <String>[];
+      if (uri.pathSegments.isNotEmpty) {
+        pathSegments.addAll(uri.pathSegments.where(
+          // Strip out the empty string that appears at the end of path segments.
+          // Empty string elements will result in an extra '/' being added to the
+          // URI.
+          (s) => s.isNotEmpty,
+        ));
+      }
+      pathSegments.add('ws');
+      uri = uri.replace(scheme: 'ws', pathSegments: pathSegments);
+    }
+    return uri;
+  }
 
   ServiceProtocolInfo(this.serverUri);
 
@@ -43,12 +63,13 @@ class Service {
     // Port to receive response from service isolate.
     final RawReceivePort receivePort =
         new RawReceivePort(null, 'Service.getInfo');
-    final Completer<Uri?> uriCompleter = new Completer<Uri?>();
-    receivePort.handler = (Uri? uri) => uriCompleter.complete(uri);
+    final Completer<String?> completer = new Completer<String?>();
+    receivePort.handler = (String? uriString) => completer.complete(uriString);
     // Request the information from the service isolate.
     _getServerInfo(receivePort.sendPort);
     // Await the response from the service isolate.
-    Uri? uri = await uriCompleter.future;
+    String? uriString = await completer.future;
+    Uri? uri = uriString == null ? null : Uri.parse(uriString);
     // Close the port.
     receivePort.close();
     return new ServiceProtocolInfo(uri);
@@ -65,12 +86,13 @@ class Service {
     // Port to receive response from service isolate.
     final RawReceivePort receivePort =
         new RawReceivePort(null, 'Service.controlWebServer');
-    final Completer<Uri> uriCompleter = new Completer<Uri>();
-    receivePort.handler = (Uri uri) => uriCompleter.complete(uri);
+    final Completer<String?> completer = new Completer<String?>();
+    receivePort.handler = (String? uriString) => completer.complete(uriString);
     // Request the information from the service isolate.
     _webServerControl(receivePort.sendPort, enable, silenceOutput);
     // Await the response from the service isolate.
-    Uri uri = await uriCompleter.future;
+    String? uriString = await completer.future;
+    Uri? uri = uriString == null ? null : Uri.parse(uriString);
     // Close the port.
     receivePort.close();
     return new ServiceProtocolInfo(uri);

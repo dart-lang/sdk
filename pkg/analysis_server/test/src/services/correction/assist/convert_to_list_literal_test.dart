@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,6 +18,11 @@ void main() {
 class ConvertToListLiteralTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_LIST_LITERAL;
+
+  @override
+  // This assist doesn't apply in null safety because the default List
+  // constructor is removed.
+  String? get testPackageLanguageVersion => '2.9';
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''

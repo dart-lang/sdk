@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,6 +18,12 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
   @override
@@ -27,8 +32,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    while (node != null) {
+    for (var node in this.node.withParents) {
       if (node is FunctionTypeAlias) {
         return _convertFunctionTypeAlias(builder, node);
       } else if (node is FunctionTypedFormalParameter) {
@@ -38,7 +42,6 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
         // when the selection is inside a parameter list.
         return null;
       }
-      node = node.parent;
     }
   }
 
@@ -47,7 +50,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
   bool _allParametersHaveTypes(FormalParameterList parameters) {
     for (var parameter in parameters.parameters) {
       if (parameter is DefaultFormalParameter) {
-        parameter = (parameter as DefaultFormalParameter).parameter;
+        parameter = parameter.parameter;
       }
       if (parameter is SimpleFormalParameter) {
         if (parameter.type == null) {
@@ -65,10 +68,13 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     if (!_allParametersHaveTypes(node.parameters)) {
       return;
     }
-    String returnType;
-    if (node.returnType != null) {
-      returnType = utils.getNodeText(node.returnType);
+
+    String? returnType;
+    var returnTypeNode = node.returnType;
+    if (returnTypeNode != null) {
+      returnType = utils.getNodeText(returnTypeNode);
     }
+
     var functionName = utils.getRangeText(
         range.startEnd(node.name, node.typeParameters ?? node.name));
     var parameters = utils.getNodeText(node.parameters);
@@ -81,7 +87,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     // add change
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.startStart(node.typedefKeyword.next, node.semicolon),
+          range.startStart(node.typedefKeyword.next!, node.semicolon),
           replacement);
     });
   }
@@ -93,8 +99,9 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     }
     var required = node.requiredKeyword != null ? 'required ' : '';
     var covariant = node.covariantKeyword != null ? 'covariant ' : '';
+    var returnTypeNode = node.returnType;
     var returnType =
-        node.returnType != null ? '${utils.getNodeText(node.returnType)} ' : '';
+        returnTypeNode != null ? '${utils.getNodeText(returnTypeNode)} ' : '';
     var functionName = utils.getRangeText(range.startEnd(
         node.identifier, node.typeParameters ?? node.identifier));
     var parameters = utils.getNodeText(node.parameters);

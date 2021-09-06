@@ -11,6 +11,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -66,8 +67,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._typeSystem,
     this._typeProvider,
     this.declaredVariables,
-  ) : _evaluationEngine = ConstantEvaluationEngine(declaredVariables,
-            _currentLibrary.featureSet.isEnabled(Feature.triple_shift));
+  ) : _evaluationEngine = ConstantEvaluationEngine(
+          declaredVariables: declaredVariables,
+          isNonNullableByDefault:
+              _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
+        );
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
 
@@ -311,12 +315,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// @param errorCode the error code to be used if the expression is or
   ///        consists of a reference to a deferred library
   void _reportErrorIfFromDeferredLibrary(
-      Expression expression, ErrorCode errorCode) {
+      Expression expression, ErrorCode errorCode,
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     DeferredLibraryReferenceDetector referenceDetector =
         DeferredLibraryReferenceDetector();
     expression.accept(referenceDetector);
     if (referenceDetector.result) {
-      _errorReporter.reportErrorForNode(errorCode, expression);
+      _errorReporter.reportErrorForNode(
+          errorCode, expression, arguments, messages);
     }
   }
 
@@ -416,6 +422,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           argument is NamedExpression ? argument.expression : argument;
       _validate(
           realArgument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+      if (realArgument is PrefixedIdentifier && realArgument.isDeferred) {
+        _reportErrorIfFromDeferredLibrary(
+            realArgument,
+            CompileTimeErrorCode
+                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+            [realArgument]);
+      }
     }
   }
 
@@ -636,12 +649,12 @@ class _ConstLiteralVerifier {
 
       _validateExpressionFromDeferredLibrary(element);
 
-      var listElementType = this.listElementType;
+      final listElementType = this.listElementType;
       if (listElementType != null) {
         return _validateListExpression(listElementType, element, value);
       }
 
-      var setConfig = this.setConfig;
+      final setConfig = this.setConfig;
       if (setConfig != null) {
         return _validateSetExpression(setConfig, element, value);
       }
@@ -690,7 +703,7 @@ class _ConstLiteralVerifier {
         return _validateListOrSetSpread(element, value);
       }
 
-      var mapConfig = this.mapConfig;
+      final mapConfig = this.mapConfig;
       if (mapConfig != null) {
         return _validateMapSpread(mapConfig, element, value);
       }
@@ -789,18 +802,21 @@ class _ConstLiteralVerifier {
     }
 
     if (listValue != null) {
-      var elementType = value.type.typeArguments[0];
-      if (verifier._implementsEqualsWhenNotAllowed(elementType)) {
-        verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-          element,
-          [elementType],
-        );
-        return false;
+      var type = value.type;
+      if (type is InterfaceType) {
+        var elementType = type.typeArguments[0];
+        if (verifier._implementsEqualsWhenNotAllowed(elementType)) {
+          verifier._errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+            element,
+            [elementType],
+          );
+          return false;
+        }
       }
     }
 
-    var setConfig = this.setConfig;
+    final setConfig = this.setConfig;
     if (setConfig != null) {
       for (var item in iterableValue) {
         Expression expression = element.expression;

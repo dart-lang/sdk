@@ -34,14 +34,14 @@ void main(List<String> args) async {
   }
 
   if (!argResults.wasParsed('dart-sdk')) {
-    print('No value passed for \`dart-sdk\`.');
+    print('No value passed for `dart-sdk`.');
     print('');
     printUsage(argParser);
     io.exit(1);
   }
 
   if (!argResults.wasParsed('run')) {
-    print('No value passed for \`run\`.');
+    print('No value passed for `run`.');
     print('');
     printUsage(argParser);
     io.exit(1);
@@ -143,7 +143,7 @@ class DartRunStartup extends Benchmark {
       : super(
           'run-script-startup',
           'Benchmark the startup time of a minimal Dart script, executed with '
-              '\`dart run\` (μs).',
+              '`dart run` (μs).',
         );
 
   @override

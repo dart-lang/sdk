@@ -8,6 +8,8 @@
 // VMOptions=--lazy-dispatchers
 // VMOptions=--no-lazy-dispatchers
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 class A {

@@ -229,6 +229,9 @@ class NamespaceBuilder {
     for (PropertyAccessorElement element in compilationUnit.accessors) {
       _addIfPublic(definedNames, element);
     }
+    for (ClassElement element in compilationUnit.classes) {
+      _addIfPublic(definedNames, element);
+    }
     for (ClassElement element in compilationUnit.enums) {
       _addIfPublic(definedNames, element);
     }
@@ -242,9 +245,6 @@ class NamespaceBuilder {
       _addIfPublic(definedNames, element);
     }
     for (TypeAliasElement element in compilationUnit.typeAliases) {
-      _addIfPublic(definedNames, element);
-    }
-    for (ClassElement element in compilationUnit.types) {
       _addIfPublic(definedNames, element);
     }
   }
@@ -352,35 +352,6 @@ class PrefixedNamespace implements Namespace {
 }
 
 extension ScopeExtension on Scope {
-  /// Return `true` if the fact that the given [node] is not defined should be
-  /// ignored (from the perspective of error reporting).
-  bool shouldIgnoreUndefined(Identifier node) {
-    if (node is PrefixedIdentifier) {
-      return shouldIgnoreUndefined2(
-        prefix: node.prefix.name,
-        name: node.identifier.name,
-      );
-    }
-
-    return shouldIgnoreUndefined2(
-      prefix: null,
-      name: (node as SimpleIdentifier).name,
-    );
-  }
-
-  /// Return `true` if the fact that the identifier with the given [prefix]
-  /// (might be `null`) and [name] is not defined should be ignored (from the
-  /// perspective of error reporting).
-  bool shouldIgnoreUndefined2({
-    required String? prefix,
-    required String name,
-  }) {
-    return _enclosingLibraryScope.shouldIgnoreUndefined(
-      prefix: prefix,
-      name: name,
-    );
-  }
-
   List<ExtensionElement> get extensions {
     return _enclosingLibraryScope.extensions;
   }

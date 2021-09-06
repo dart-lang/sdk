@@ -45,6 +45,27 @@ void defineCompileTests() {
       ['compile', '--help'],
     );
     expect(result.stdout, contains('Compile Dart'));
+    expect(
+      result.stdout,
+      contains(
+        'Usage: dart compile <subcommand> [arguments]',
+      ),
+    );
+    expect(result.exitCode, 0);
+  });
+
+  test('--help --verbose', () {
+    final p = project();
+    final result = p.runSync(
+      ['compile', '--help', '--verbose'],
+    );
+    expect(result.stdout, contains('Compile Dart'));
+    expect(
+      result.stdout,
+      contains(
+        'Usage: dart [vm-options] compile <subcommand> [arguments]',
+      ),
+    );
     expect(result.exitCode, 0);
   });
 

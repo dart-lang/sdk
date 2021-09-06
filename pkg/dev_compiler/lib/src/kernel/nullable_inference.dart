@@ -91,10 +91,6 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitVariableSet(VariableSet node) => isNullable(node.value);
 
   @override
-  bool visitPropertyGet(PropertyGet node) =>
-      _getterIsNullable(node.interfaceTarget, node);
-
-  @override
   bool visitInstanceGet(InstanceGet node) =>
       _getterIsNullable(node.interfaceTarget, node);
 
@@ -108,9 +104,6 @@ class NullableInference extends ExpressionVisitor<bool> {
   @override
   bool visitFunctionTearOff(FunctionTearOff node) =>
       _getterIsNullable(null, node);
-
-  @override
-  bool visitPropertySet(PropertySet node) => isNullable(node.value);
 
   @override
   bool visitInstanceSet(InstanceSet node) => isNullable(node.value);
@@ -134,10 +127,6 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   @override
   bool visitStaticSet(StaticSet node) => isNullable(node.value);
-
-  @override
-  bool visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
-      node.interfaceTarget, node.name.text, node, node.receiver);
 
   @override
   bool visitInstanceInvocation(InstanceInvocation node) =>

@@ -56,6 +56,7 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   @override
   void reportInfoMessage(Spannable node, MessageKind errorCode,
       [Map<String, String> arguments = const {}]) {
+    // ignore: deprecated_member_use_from_same_package
     reporter.reportInfoMessage(node, errorCode, arguments);
   }
 

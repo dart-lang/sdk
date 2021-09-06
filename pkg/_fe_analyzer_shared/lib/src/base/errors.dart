@@ -47,29 +47,12 @@ abstract class ErrorCode {
     required String message,
     required this.name,
     required this.uniqueName,
-  })   : _correction = correction,
+  })  : _correction = correction,
         _message = message,
         // ignore: unnecessary_null_comparison
         assert(hasPublishedDocs != null),
         // ignore: unnecessary_null_comparison
         assert(isUnresolvedIdentifier != null);
-
-  @Deprecated('Use the default constructor')
-  const ErrorCode.temporary2({
-    String? correction,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
-    required String message,
-    required String name,
-    required String uniqueName,
-  }) : this(
-          correction: correction,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
-          name: name,
-          uniqueName: uniqueName,
-        );
 
   /**
    * The template used to create the correction to be displayed for this error,
@@ -104,7 +87,7 @@ abstract class ErrorCode {
    */
   String? get url {
     if (hasPublishedDocs) {
-      return 'https://dart.dev/tools/diagnostic-messages#${name.toLowerCase()}';
+      return 'https://dart.dev/diagnostics/${name.toLowerCase()}';
     }
     return null;
   }

@@ -1,6 +1,8 @@
 // TODO(multitest): This was automatically migrated from a multitest and may
 // contain strange or dead code.
 
+// @dart = 2.9
+
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9,14 +11,13 @@
 // methods to handle `noSuchMethod`.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
-
-    class Foo {
+class Foo {
   noSuchMethod(im) => 42;
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 returnFoo() {
   (() => 42)();
   return new Foo();

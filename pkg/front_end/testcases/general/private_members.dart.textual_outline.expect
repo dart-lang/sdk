@@ -1,0 +1,4 @@
+part 'private_members_part.dart';
+
+test(_AbstractClass c) {}
+main() {}

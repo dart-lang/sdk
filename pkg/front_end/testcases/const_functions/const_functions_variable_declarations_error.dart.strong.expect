@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/const_functions/const_functions_variable_declarations_error.dart:9:14: Error: Constant evaluation error:
+// const var1 = fn1();
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_variable_declarations_error.dart:12:10: Context: Expected constant 'null' to be of type 'int', but was of type 'Null'.
+//   return a;
+//          ^
+// pkg/front_end/testcases/const_functions/const_functions_variable_declarations_error.dart:9:7: Context: While analyzing:
+// const var1 = fn1();
+//       ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_variable_declarations_error.dart:15:14: Error: Constant evaluation error:
+// const var2 = fn2();
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_variable_declarations_error.dart:19:10: Context: Expected constant '"string"' to be of type 'int', but was of type 'String'.
+//   return x;
+//          ^
+// pkg/front_end/testcases/const_functions/const_functions_variable_declarations_error.dart:15:7: Context: While analyzing:
+// const var2 = fn2();
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = invalid-expression "Expected constant 'null' to be of type 'int', but was of type 'Null'.";
+static const field core::int var2 = invalid-expression "Expected constant '\"string\"' to be of type 'int', but was of type 'String'.";
+static method fn1() → core::int {
+  dynamic a;
+  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method fn2() → core::int {
+  dynamic x;
+  x = "string";
+  return x as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method main() → void {}

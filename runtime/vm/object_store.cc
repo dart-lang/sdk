@@ -24,12 +24,8 @@ void IsolateObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 void IsolateObjectStore::Init() {
-#define INIT_FIELD(Type, name) name##_ = Type::null();
-  ISOLATE_OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD)
-#undef INIT_FIELD
-
   for (ObjectPtr* current = from(); current <= to(); current++) {
-    ASSERT(*current == Object::null());
+    *current = Object::null();
   }
 }
 
@@ -40,12 +36,21 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
-#define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
-  value = name##_;                                                             \
-  fields.AddProperty(#name "_", value);
-    ISOLATE_OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD,
-                                    PRINT_OBJECT_STORE_FIELD);
-#undef PRINT_OBJECT_STORE_FIELD
+
+    static const char* const names[] = {
+#define EMIT_FIELD_NAME(type, name) #name "_",
+        ISOLATE_OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+    };
+    ObjectPtr* current = from();
+    intptr_t i = 0;
+    while (current <= to()) {
+      value = *current;
+      fields.AddProperty(names[i], value);
+      current++;
+      i++;
+    }
+    ASSERT(i == ARRAY_SIZE(names));
   }
 }
 #endif  // !PRODUCT
@@ -86,13 +91,22 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   return Error::null();
 }
 
-ObjectStore::ObjectStore() {
-#define INIT_FIELD(Type, name) name##_ = Type::null();
-  OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD, INIT_FIELD, INIT_FIELD)
-#undef INIT_FIELD
-
+ObjectStore::ObjectStore()
+    :
+#define EMIT_FIELD_INIT(type, name) name##_(nullptr),
+      OBJECT_STORE_FIELD_LIST(EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT)
+#undef EMIT_FIELD_INIT
+          unused_field_(0)  // Just to prevent a trailing comma.
+{
   for (ObjectPtr* current = from(); current <= to(); current++) {
-    ASSERT(*current == Object::null());
+    *current = Object::null();
   }
 }
 
@@ -118,12 +132,22 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
-#define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
-  value = name##_;                                                             \
-  fields.AddProperty(#name "_", value);
-    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD,
-                            PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD);
-#undef PRINT_OBJECT_STORE_FIELD
+    static const char* const names[] = {
+#define EMIT_FIELD_NAME(type, name) #name "_",
+        OBJECT_STORE_FIELD_LIST(
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+    };
+    ObjectPtr* current = from();
+    intptr_t i = 0;
+    while (current <= to()) {
+      value = *current;
+      fields.AddProperty(names[i], value);
+      current++;
+      i++;
+    }
+    ASSERT(i == ARRAY_SIZE(names));
   }
 }
 #endif  // !PRODUCT
@@ -260,10 +284,6 @@ void ObjectStore::InitKnownObjects() {
     }
   }
 
-  const Library& internal_lib = Library::Handle(zone, _internal_library());
-  cls = internal_lib.LookupClass(Symbols::Symbol());
-  set_symbol_class(cls);
-
   const Library& core_lib = Library::Handle(zone, core_library());
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
   ASSERT(!cls.IsNull());
@@ -272,11 +292,13 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
   ASSERT(!cls.IsNull());
   set_pragma_class(cls);
+  RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
   set_pragma_name(Field::Handle(zone, cls.LookupField(Symbols::name())));
   set_pragma_options(Field::Handle(zone, cls.LookupField(Symbols::options())));
 
   cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
   ASSERT(!cls.IsNull());
+  RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
   growable_list_factory_ =
       cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
   ASSERT(growable_list_factory_ != Function::null());
@@ -284,6 +306,10 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::Error());
   ASSERT(!cls.IsNull());
   set_error_class(cls);
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::Expando());
+  ASSERT(!cls.IsNull());
+  set_expando_class(cls);
 
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =
@@ -296,6 +322,7 @@ void ObjectStore::InitKnownObjects() {
   // Ensure AddSmiSmiCheckForFastSmiStubs run by the background compiler
   // will not create new functions.
   const Class& smi_class = Class::Handle(zone, this->smi_class());
+  RELEASE_ASSERT(smi_class.EnsureIsFinalized(thread) == Error::null());
   function_name =
       Function::CreateDynamicInvocationForwarderName(Symbols::Plus());
   Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
@@ -323,41 +350,64 @@ void ObjectStore::InitKnownObjects() {
 #endif
 }
 
-void ObjectStore::LazyInitCoreTypes() {
-  if (list_class_ == Type::null()) {
-    ASSERT(non_nullable_list_rare_type_ == Type::null());
-    ASSERT(non_nullable_map_rare_type_ == Type::null());
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-    Class& cls = Class::Handle(zone, core_lib.LookupClass(Symbols::List()));
+void ObjectStore::LazyInitCoreMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (list_class_.load() == Type::null()) {
+    ASSERT(non_nullable_list_rare_type_.load() == Type::null());
+    ASSERT(non_nullable_map_rare_type_.load() == Type::null());
+    ASSERT(_object_equals_function_.load() == Function::null());
+    ASSERT(_object_hash_code_function_.load() == Function::null());
+    ASSERT(_object_to_string_function_.load() == Function::null());
+
+    auto* const zone = thread->zone();
+    const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    auto& cls = Class::Handle(zone);
+
+    cls = core_lib.LookupClass(Symbols::List());
     ASSERT(!cls.IsNull());
-    set_list_class(cls);
-    Type& type = Type::Handle(zone);
+    list_class_.store(cls.ptr());
+
+    auto& type = Type::Handle(zone);
     type ^= cls.RareType();
-    set_non_nullable_list_rare_type(type);
+    non_nullable_list_rare_type_.store(type.ptr());
+
     cls = core_lib.LookupClass(Symbols::Map());
     ASSERT(!cls.IsNull());
     type ^= cls.RareType();
-    set_non_nullable_map_rare_type(type);
+    non_nullable_map_rare_type_.store(type.ptr());
+
+    auto& function = Function::Handle(zone);
+
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectHashCode());
+    ASSERT(!function.IsNull());
+    _object_hash_code_function_.store(function.ptr());
+
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectEquals());
+    ASSERT(!function.IsNull());
+    _object_equals_function_.store(function.ptr());
+
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectToString());
+    ASSERT(!function.IsNull());
+    _object_to_string_function_.store(function.ptr());
   }
 }
 
-void ObjectStore::LazyInitFutureTypes() {
-  if (non_nullable_future_rare_type_ == Type::null()) {
-    ASSERT(non_nullable_future_never_type_ == Type::null() &&
-           nullable_future_null_type_ == Type::null());
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    Class& cls = Class::Handle(zone, future_class());
-    if (cls.IsNull()) {
-      const Library& async_lib = Library::Handle(zone, async_library());
-      ASSERT(!async_lib.IsNull());
-      cls = async_lib.LookupClass(Symbols::Future());
-      ASSERT(!cls.IsNull());
-    }
-    TypeArguments& type_args = TypeArguments::Handle(zone);
-    Type& type = Type::Handle(zone);
+void ObjectStore::LazyInitAsyncMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (non_nullable_future_rare_type_.load() == Type::null()) {
+    ASSERT(non_nullable_future_never_type_.load() == Type::null());
+    ASSERT(nullable_future_null_type_.load() == Type::null());
+
+    auto* const zone = thread->zone();
+    const auto& cls = Class::Handle(zone, future_class());
+    ASSERT(!cls.IsNull());
+
+    auto& type_args = TypeArguments::Handle(zone);
+    auto& type = Type::Handle(zone);
     type = never_type();
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
@@ -365,7 +415,8 @@ void ObjectStore::LazyInitFutureTypes() {
     type = Type::New(cls, type_args, Nullability::kNonNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
-    set_non_nullable_future_never_type(type);
+    non_nullable_future_never_type_.store(type.ptr());
+
     type = null_type();
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
@@ -373,9 +424,67 @@ void ObjectStore::LazyInitFutureTypes() {
     type = Type::New(cls, type_args, Nullability::kNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
-    set_nullable_future_null_type(type);
+    nullable_future_null_type_.store(type.ptr());
+
     type ^= cls.RareType();
-    set_non_nullable_future_rare_type(type);
+    non_nullable_future_rare_type_.store(type.ptr());
+  }
+}
+
+void ObjectStore::LazyInitIsolateMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (lookup_port_handler_.load() == Type::null()) {
+    ASSERT(lookup_open_ports_.load() == Type::null());
+    ASSERT(handle_message_function_.load() == Type::null());
+
+    auto* const zone = thread->zone();
+    const auto& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
+    auto& cls = Class::Handle(zone);
+    auto& function = Function::Handle(zone);
+
+    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl());
+    ASSERT(!cls.IsNull());
+    const auto& error = cls.EnsureIsFinalized(thread);
+    ASSERT(error == Error::null());
+
+    function = cls.LookupFunctionAllowPrivate(Symbols::_lookupHandler());
+    ASSERT(!function.IsNull());
+    lookup_port_handler_.store(function.ptr());
+
+    function = cls.LookupFunctionAllowPrivate(Symbols::_lookupOpenPorts());
+    ASSERT(!function.IsNull());
+    lookup_open_ports_.store(function.ptr());
+
+    function = cls.LookupFunctionAllowPrivate(Symbols::_handleMessage());
+    ASSERT(!function.IsNull());
+    handle_message_function_.store(function.ptr());
+  }
+}
+
+void ObjectStore::LazyInitInternalMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (symbol_class_.load() == Type::null()) {
+    ASSERT(symbol_name_field_.load() == Field::null());
+
+    auto* const zone = thread->zone();
+    auto& cls = Class::Handle(zone);
+    auto& field = Field::Handle(zone);
+
+    const auto& internal_lib =
+        Library::Handle(zone, Library::InternalLibrary());
+    cls = internal_lib.LookupClass(Symbols::Symbol());
+    ASSERT(!cls.IsNull());
+    const auto& error = cls.EnsureIsFinalized(thread);
+    ASSERT(error == Error::null());
+    symbol_class_.store(cls.ptr());
+
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    ASSERT(!field.IsNull());
+    symbol_name_field_.store(field.ptr());
   }
 }
 

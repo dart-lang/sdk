@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/noop_service.dart';
 import 'package:analyzer/instrumentation/plugin_data.dart';
@@ -17,9 +15,11 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
   CrashReportingInstrumentation(this.serverReporter);
 
   @override
-  void logException(dynamic exception,
-      [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments = const []]) {
+  void logException(
+    Object exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {
     var crashReportAttachments = (attachments ?? []).map((e) {
       return CrashReportAttachment.string(
         field: 'attachment_${e.id}',
@@ -30,9 +30,14 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
     if (exception is CaughtException) {
       // Get the root CaughtException, which matters most for debugging.
       var root = exception.rootCaughtException;
-
-      _sendServerReport(root.exception, root.stackTrace,
-          attachments: crashReportAttachments, comment: root.message);
+      var message = root.message;
+      if (message == null) {
+        _sendServerReport(root.exception, root.stackTrace,
+            attachments: crashReportAttachments);
+      } else {
+        _sendServerReport(root.exception, root.stackTrace,
+            attachments: crashReportAttachments, comment: message);
+      }
     } else {
       _sendServerReport(exception, stackTrace ?? StackTrace.current,
           attachments: crashReportAttachments);
@@ -41,18 +46,16 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
 
   @override
   void logPluginException(
-    PluginData plugin,
-    dynamic exception,
-    StackTrace stackTrace,
-  ) {
-    _sendServerReport(exception, stackTrace, comment: 'plugin: ${plugin.name}');
+      PluginData plugin, Object exception, StackTrace? stackTrace) {
+    _sendServerReport(exception, stackTrace ?? StackTrace.current,
+        comment: 'plugin: ${plugin.name}');
   }
 
-  void _sendServerReport(Object exception, Object stackTrace,
-      {String comment, List<CrashReportAttachment> attachments}) {
+  void _sendServerReport(Object exception, StackTrace stackTrace,
+      {String? comment, List<CrashReportAttachment>? attachments}) {
     serverReporter
         .sendReport(exception, stackTrace,
-            attachments: attachments, comment: comment)
+            attachments: attachments ?? const [], comment: comment)
         .catchError((error) {
       // We silently ignore errors sending crash reports (network issues, ...).
     });

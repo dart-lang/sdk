@@ -22,7 +22,7 @@ class A implements I<int> {}
 class B implements I<String> {}
 class C extends A implements B {}
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 33),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
     ]);
   }
 
@@ -42,7 +42,7 @@ class A implements I<int> {}
 class B implements I<int?> {}
 class C extends A implements B {}
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 73, 33),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 79, 1),
     ]);
   }
 
@@ -81,7 +81,7 @@ class A implements I<int> {}
 class B implements I<String> {}
 class C extends A with B {}
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 27),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
     ]);
   }
 
@@ -152,7 +152,7 @@ typedef A = I<int>;
 mixin M implements I<String> {}
 class C = A with M;
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 66, 19),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 72, 1),
     ]);
   }
 
@@ -172,7 +172,7 @@ class A implements I<int> {}
 mixin M implements I<String> {}
 class C = A with M;
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 19),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
     ]);
   }
 
@@ -183,7 +183,7 @@ class A implements I<int> {}
 class B implements I<String> {}
 mixin M on A implements B {}
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
     ]);
   }
 

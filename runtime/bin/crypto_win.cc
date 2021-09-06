@@ -2,34 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef _CRT_RAND_S
-#define _CRT_RAND_S
-#endif
-
 #include "platform/globals.h"
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 
+#include <bcrypt.h>
 #include "bin/crypto.h"
 
 namespace dart {
 namespace bin {
 
+// see https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+#endif
+
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
-  uint32_t num;
-  intptr_t read = 0;
-  while (read < count) {
-    if (rand_s(&num) != 0) {
-      return false;
-    }
-    for (int i = 0; i < 4 && read < count; i++) {
-      buffer[read] = num >> (i * 8);
-      read++;
-    }
+  if (count <= 0) {
+    return true;
   }
-  return true;
+  return NT_SUCCESS(BCryptGenRandom(/*hAlgorithm=*/nullptr, buffer,
+                                    (ULONG)count,
+                                    BCRYPT_USE_SYSTEM_PREFERRED_RNG));
 }
 
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)

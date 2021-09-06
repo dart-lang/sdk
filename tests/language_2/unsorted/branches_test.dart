@@ -4,6 +4,8 @@
 // Dart test for branches. Make sure that shortcuts work, even if they have
 // to jump over several expressions.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class BranchesTest {

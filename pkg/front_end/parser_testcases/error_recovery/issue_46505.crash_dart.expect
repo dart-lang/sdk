@@ -1,0 +1,56 @@
+Problems reported:
+
+parser/error_recovery/issue_46505.crash:2:10: Expected '>' after this.
+  Stream<List<>>
+         ^^^^
+
+parser/error_recovery/issue_46505.crash:2:3: A method declaration needs an explicit list of parameters.
+  Stream<List<>>
+  ^^^^^^
+
+parser/error_recovery/issue_46505.crash:3:1: Expected a function body, but got '}'.
+}
+^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(A, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, A)
+      handleNoType(A)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(Stream)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(null, null, null, null, null, Stream)
+            handleNoType({)
+            handleIdentifier(Stream, methodDeclaration)
+            beginTypeVariables(<)
+              beginMetadataStar(List)
+              endMetadataStar(0)
+              handleIdentifier(List, typeVariableDeclaration)
+              beginTypeVariable(List)
+                handleTypeVariablesDefined(List, 1)
+                handleNoType(List)
+              endTypeVariable(<, 0, null, null)
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], List, List)
+            endTypeVariables(<, >)
+            handleRecoverableError(MissingMethodParameters, Stream, Stream)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '}'., null, {lexeme: }}], }, })
+            handleInvalidFunctionBody({)
+          endClassMethod(null, Stream, (, null, })
+        endMember()
+      endClassOrMixinBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

@@ -6,7 +6,7 @@ class A<X extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X*>*
     : super core::Object::•()
     ;
-  method bar<generic-covariant-impl Y extends self::A::X* = self::A::X*>() → dynamic
+  method bar<generic-covariant-impl Y extends self::A::X*>() → dynamic
     return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -23,7 +23,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-  static method foo<Y extends core::Object* = core::Object*>() → self::A<self::B::foo::Y*>*
+  static method foo<Y extends core::Object*>() → self::A<self::B::foo::Y*>*
     return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -37,6 +37,6 @@ class B extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method baz() → dynamic {
-  self::B::foo<core::Object*>().{self::A::bar}<core::String*>();
+  self::B::foo<core::Object*>().{self::A::bar}<core::String*>(){() →* dynamic};
 }
 static method main() → dynamic {}

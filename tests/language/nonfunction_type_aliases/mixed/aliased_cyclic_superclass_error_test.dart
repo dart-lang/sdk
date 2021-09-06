@@ -4,7 +4,6 @@
 // @dart = 2.9
 // Requirements=nnbd-weak
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
 
 // Test that a type alias `T` denoting a class
 // can give rise to the expected errors.

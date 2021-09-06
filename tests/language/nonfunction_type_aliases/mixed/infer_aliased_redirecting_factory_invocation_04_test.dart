@@ -4,7 +4,6 @@
 // @dart = 2.9
 // Requirements=nnbd-weak
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
 
 import 'infer_aliased_redirecting_factory_invocation_04_lib.dart';
 

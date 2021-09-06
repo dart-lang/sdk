@@ -104,7 +104,7 @@ class VerifyTests {
         fail('Found "test_all.dart" in $relativePath but did not expect one');
       }
       var result = session.getParsedUnit(testAllFile.path);
-      if (result.state != ResultState.VALID) {
+      if (result is! ParsedUnitResult) {
         fail('Could not parse ${testAllFile.path}');
       }
       var importedFiles = <String>[];

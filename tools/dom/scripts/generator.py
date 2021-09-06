@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -292,7 +292,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
         'Event':
-        'Event,InputEvent,SubmitEvent', # Workaround for issue 40901.
+        'Event,InputEvent,SubmitEvent',  # Workaround for issue 40901.
         'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
         'GainNode':
@@ -311,6 +311,10 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'OscillatorNode,Oscillator',
         'PannerNode':
         'PannerNode,AudioPannerNode,webkitAudioPannerNode',
+        'Position':
+        'Position,GeolocationPosition',
+        'PositionError':
+        'PositionError,GeolocationPositionError',
         'RTCPeerConnection':
         'RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection',
         'RTCIceCandidate':
@@ -937,7 +941,7 @@ class OperationInfo(object):
 
 def ConstantOutputOrder(a, b):
     """Canonical output ordering for constants."""
-    return cmp(a.id, b.id)
+    return (a.id > b.id) - (a.id < b.id)
 
 
 def _FormatNameList(names):
@@ -2098,7 +2102,8 @@ class TypeRegistry(object):
                 # It's a typedef (implied union)
                 return self.TypeInfo('any')
             else:
-                print "ERROR: Unexpected interface, or type not found. %s" % type_name
+                print("ERROR: Unexpected interface, or type not found. %s" %
+                      type_name)
 
             if 'Callback' in interface.ext_attrs:
                 return CallbackIDLTypeInfo(

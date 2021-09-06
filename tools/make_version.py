@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -11,7 +11,6 @@ import argparse
 import hashlib
 import os
 import sys
-import time
 import utils
 
 # When these files change, snapshots created by the VM are potentially no longer
@@ -24,7 +23,6 @@ VM_SNAPSHOT_FILES = [
     'object.h',
     'raw_object.h',
     'snapshot.h',
-    'snapshot_ids.h',
     'symbols.h',
     # Source files.
     'clustered_snapshot.cc',
@@ -33,7 +31,6 @@ VM_SNAPSHOT_FILES = [
     'image_snapshot.cc',
     'object.cc',
     'raw_object.cc',
-    'raw_object_snapshot.cc',
     'snapshot.cc',
     'symbols.cc',
 ]
@@ -85,7 +82,7 @@ def FormatVersionString(version,
         version_time = utils.GetGitTimestamp()
     if version_time == None:
         version_time = 'Unknown timestamp'
-    version = version.replace('{{COMMIT_TIME}}', version_time.decode('utf-8'))
+    version = version.replace('{{COMMIT_TIME}}', version_time)
 
     snapshot_hash = MakeSnapshotHashString()
     version = version.replace('{{SNAPSHOT_HASH}}', snapshot_hash)

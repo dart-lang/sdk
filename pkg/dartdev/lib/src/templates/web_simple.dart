@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as p;
+
 import '../templates.dart';
 import 'common.dart' as common;
 
@@ -22,6 +24,15 @@ class WebSimpleGenerator extends DefaultGenerator {
     );
     addFile('web/styles.css', _styles);
   }
+
+  @override
+  String getInstallInstructions(
+    String directory,
+    String scriptPath,
+  ) =>
+      '  cd ${p.relative(directory)}\n'
+      '  dart pub global activate webdev\n'
+      '  webdev serve';
 }
 
 final String _pubspec = '''
@@ -31,7 +42,7 @@ version: 1.0.0
 # homepage: https://www.example.com
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+${common.sdkConstraint}
 
 # dependencies:
 #   path: ^1.7.0
@@ -39,7 +50,7 @@ environment:
 dev_dependencies:
   build_runner: ^1.10.0
   build_web_compilers: ^2.11.0
-  pedantic: ^1.9.0
+  lints: ^1.0.0
 ''';
 
 final String _readme = '''

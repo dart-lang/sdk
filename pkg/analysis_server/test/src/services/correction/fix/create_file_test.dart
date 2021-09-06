@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -21,6 +19,24 @@ void main() {
 class CreateFileTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_FILE;
+
+  Future<void> test_forExport() async {
+    await resolveTestCode('''
+export 'my_file.dart';
+''');
+    await assertHasFixWithoutApplying();
+    // validate change
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    var fileEdit = change.edits[0];
+    expect(fileEdit.file, convertPath('/home/test/lib/my_file.dart'));
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(
+      fileEdit.edits[0].replacement,
+      contains('// TODO Implement this library.'),
+    );
+  }
 
   Future<void> test_forImport() async {
     await resolveTestCode('''
@@ -84,7 +100,7 @@ import 'a/bb/my_lib.dart';
     );
   }
 
-  Future<void> test_forPart() async {
+  Future<void> test_forPart_explicitlyNamedLibrary() async {
     await resolveTestCode('''
 library my.lib;
 part 'my_part.dart';
@@ -97,6 +113,21 @@ part 'my_part.dart';
     expect(fileEdit.file, convertPath('/home/test/lib/my_part.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
-    expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
+    expect(fileEdit.edits[0].replacement, contains("part of 'test.dart';"));
+  }
+
+  Future<void> test_forPart_implicitlyNamedLibrary() async {
+    await resolveTestCode('''
+part 'foo/my_part.dart';
+''');
+    await assertHasFixWithoutApplying();
+    // validate change
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    var fileEdit = change.edits[0];
+    expect(fileEdit.file, convertPath('/home/test/lib/foo/my_part.dart'));
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(fileEdit.edits[0].replacement, contains("part of '../test.dart';"));
   }
 }

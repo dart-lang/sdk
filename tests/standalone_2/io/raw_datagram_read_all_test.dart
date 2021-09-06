@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 import "dart:typed_data";
@@ -29,7 +31,7 @@ main() {
         var datagram = receiver.receive();
         Expect.listEquals([0], datagram.data);
         if (timer != null) timer.cancel();
-        timer = new Timer(const Duration(milliseconds: 200), () {
+        timer = new Timer(const Duration(seconds: 1), () {
           Expect.isNull(receiver.receive());
           receiver.close();
           asyncEnd();

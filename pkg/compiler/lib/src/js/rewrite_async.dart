@@ -762,8 +762,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         variableDeclarations, node.sourceInformation, bodySourceInformation);
   }
 
-  @override
-  js.Expression visitFun(js.Fun node) {
+  js.Expression visitFunctionExpression(js.FunctionExpression node) {
     if (node.asyncModifier.isAsync || node.asyncModifier.isYielding) {
       // The translation does not handle nested functions that are generators
       // or asynchronous.  These functions should only be ones that are
@@ -772,6 +771,16 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
           spannable, 'Nested function is a generator or asynchronous.');
     }
     return node;
+  }
+
+  @override
+  js.Expression visitFun(js.Fun node) {
+    return visitFunctionExpression(node);
+  }
+
+  @override
+  js.Expression visitArrowFunction(js.ArrowFunction node) {
+    return visitFunctionExpression(node);
   }
 
   @override
@@ -1265,6 +1274,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Expression visitDeferredExpression(js.DeferredExpression node) => node;
 
   @override
+  visitDeferredStatement(js.DeferredStatement node) => unsupported(node);
+
+  @override
   js.Expression visitDeferredNumber(js.DeferredNumber node) => node;
 
   @override
@@ -1282,10 +1294,14 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   js.Expression visitObjectInitializer(js.ObjectInitializer node) {
+    // throw Exception("NOOOOOOOOOOOOOOOO");
     return withExpressions(
         node.properties.map((js.Property property) => property.value).toList(),
         (List<js.Node> values) {
       List<js.Property> properties = new List.generate(values.length, (int i) {
+        if (node.properties[i] is js.MethodDefinition) {
+          return new js.MethodDefinition(node.properties[i].name, values[i]);
+        }
         return new js.Property(node.properties[i].name, values[i]);
       });
       return new js.ObjectInitializer(properties);
@@ -1344,8 +1360,16 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   js.Property visitProperty(js.Property node) {
+    assert(node.runtimeType == js.Property);
     return withExpression(
         node.value, (js.Expression value) => new js.Property(node.name, value),
+        store: false);
+  }
+
+  @override
+  js.MethodDefinition visitMethodDefinition(js.MethodDefinition node) {
+    return withExpression(node.function,
+        (js.Expression value) => new js.MethodDefinition(node.name, value),
         store: false);
   }
 
@@ -2414,7 +2438,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 /// - targets of jumps
 /// - a set of used names.
 /// - if any [This]-expressions are used.
-class PreTranslationAnalysis extends js.NodeVisitor<bool> {
+class PreTranslationAnalysis extends js.BaseVisitor<bool> {
   Set<js.Node> hasAwaitOrYield = new Set<js.Node>();
 
   Map<js.Node, js.Node> targets = new Map<js.Node, js.Node>();
@@ -2615,7 +2639,17 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   }
 
   @override
+  bool visitFunctionExpression(js.FunctionExpression node) {
+    return false;
+  }
+
+  @override
   bool visitFun(js.Fun node) {
+    return false;
+  }
+
+  @override
+  bool visitArrowFunction(js.ArrowFunction node) {
     return false;
   }
 
@@ -2674,6 +2708,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitDeferredExpression(js.DeferredExpression node) {
     return false;
+  }
+
+  @override
+  bool visitDeferredStatement(js.DeferredStatement node) {
+    return unsupported(node);
   }
 
   @override
@@ -2774,6 +2813,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitProperty(js.Property node) {
     return visit(node.value);
+  }
+
+  @override
+  bool visitMethodDefinition(js.MethodDefinition node) {
+    return false;
   }
 
   @override

@@ -15,11 +15,14 @@ import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
+
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-import 'package:front_end/src/api_unstable/bazel_worker.dart';
+
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;

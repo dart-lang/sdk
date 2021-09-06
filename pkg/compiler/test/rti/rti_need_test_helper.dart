@@ -187,22 +187,21 @@ abstract class ComputeValueMixin {
 }
 
 /// Visitor that determines whether a type refers to [entity].
-class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
+class FindTypeVisitor extends DartTypeVisitor<bool, Null> {
   final Entity entity;
 
   FindTypeVisitor(this.entity);
 
-  bool visitTypes(List<DartType> types) {
+  bool check(DartType type) => visit(type, null);
+
+  bool checkList(List<DartType> types) {
     for (DartType type in types) {
-      if (type.accept(this, null)) {
+      if (check(type)) {
         return true;
       }
     }
     return false;
   }
-
-  @override
-  bool visitType(DartType type, _) => false;
 
   @override
   bool visitLegacyType(LegacyType type, _) => visit(type.baseType, _);
@@ -211,30 +210,41 @@ class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
   bool visitNullableType(NullableType type, _) => visit(type.baseType, _);
 
   @override
-  bool visitInterfaceType(InterfaceType type, _) {
-    if (type.element == entity) return true;
-    return visitTypes(type.typeArguments);
-  }
+  bool visitNeverType(NeverType type, _) => false;
 
   @override
-  bool visitFunctionType(FunctionType type, _) {
-    if (type.returnType.accept(this, null)) return true;
-    if (visitTypes(type.typeVariables)) return true;
-    if (visitTypes(type.parameterTypes)) return true;
-    if (visitTypes(type.optionalParameterTypes)) return true;
-    if (visitTypes(type.namedParameterTypes)) return true;
-    return false;
-  }
+  bool visitVoidType(VoidType type, _) => false;
 
   @override
-  bool visitTypeVariableType(TypeVariableType type, _) {
-    return type.element.typeDeclaration == entity;
-  }
+  bool visitTypeVariableType(TypeVariableType type, _) =>
+      type.element.typeDeclaration == entity;
 
   @override
-  bool visitFutureOrType(FutureOrType type, _) {
-    return type.typeArgument.accept(this, null);
-  }
+  bool visitFunctionTypeVariable(FunctionTypeVariable type, _) => false;
+
+  @override
+  bool visitFunctionType(FunctionType type, _) =>
+      type.returnType.accept(this, null) ||
+      checkList(type.typeVariables) ||
+      checkList(type.parameterTypes) ||
+      checkList(type.optionalParameterTypes) ||
+      checkList(type.namedParameterTypes);
+
+  @override
+  bool visitInterfaceType(InterfaceType type, _) =>
+      type.element == entity || checkList(type.typeArguments);
+
+  @override
+  bool visitDynamicType(DynamicType type, _) => false;
+
+  @override
+  bool visitErasedType(ErasedType type, _) => false;
+
+  @override
+  bool visitAnyType(AnyType type, _) => false;
+
+  @override
+  bool visitFutureOrType(FutureOrType type, _) => check(type.typeArgument);
 }
 
 class RtiNeedDataComputer extends DataComputer<String> {

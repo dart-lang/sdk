@@ -21,7 +21,9 @@ if (is_fuchsia) {
 }
 
 config("libdart_builtin_config") {
-  if (!is_win) {
+  if (is_win) {
+    libs = [ "bcrypt.lib" ]
+  } else {
     libs = [ "dl" ]
   }
   if (is_android) {
@@ -525,7 +527,7 @@ template("bin_to_assembly") {
     output = invoker.input + ".S"
     args = [
       "--input",
-      rebase_path(invoker.input),
+      rebase_path(invoker.input, root_build_dir),
       "--output",
       rebase_path(output),
       "--symbol_name",
@@ -543,6 +545,9 @@ template("bin_to_assembly") {
     }
     if (invoker.executable) {
       args += [ "--executable" ]
+    }
+    if (current_os != "win") {
+      args += [ "--incbin" ]
     }
     inputs = [ invoker.input ]
     outputs = [ output ]
@@ -871,6 +876,11 @@ dart_executable("dart_precompiled_runtime_product") {
 
 executable("process_test") {
   sources = [ "process_test.cc" ]
+}
+
+executable("abstract_socket_test") {
+  sources = [ "abstract_socket_test.cc" ]
+  include_dirs = [ ".." ]
 }
 
 executable("run_vm_tests") {

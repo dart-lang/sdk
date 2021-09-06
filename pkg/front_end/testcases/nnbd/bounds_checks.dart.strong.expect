@@ -59,7 +59,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A<X extends core::num = core::num> extends core::Object {
+class A<X extends core::num> extends core::Object {
   synthetic constructor •() → self::A<self::A::X>
     : super core::Object::•()
     ;
@@ -69,7 +69,7 @@ class B extends self::A<core::num?> {
     : super self::A::•()
     ;
 }
-class C<T extends self::A<core::num?> = self::A<core::num?>> extends core::Object {
+class C<T extends self::A<core::num?>> extends core::Object {
   synthetic constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
@@ -78,14 +78,14 @@ class Hest extends core::Object {
   synthetic constructor •() → self::Hest
     : super core::Object::•()
     ;
-  method hest<T extends core::num = core::num>() → void {}
+  method hest<T extends core::num>() → void {}
 }
 static method foo(self::A<core::num?> a) → dynamic {}
 static method bar() → self::A<core::num?>? {}
-static method baz<T extends self::A<core::num?> = self::A<core::num?>>() → dynamic {}
-static method hest<T extends core::num = core::num>() → void {}
+static method baz<T extends self::A<core::num?>>() → dynamic {}
+static method hest<T extends core::num>() → void {}
 static method fisk(self::Hest h) → dynamic {
   self::hest<core::num?>();
-  h.{self::Hest::hest}<core::num?>();
+  h.{self::Hest::hest}<core::num?>(){() → void};
 }
 static method main() → dynamic {}

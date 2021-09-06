@@ -331,18 +331,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     return symbolId;
   }
 
-  /// Emits a private name JS Symbol for [memberName] unique to a Dart
-  /// class [className].
-  ///
-  /// This is now required for fields of constant objects that may be
-  /// overridden within the same library.
-  @protected
-  js_ast.TemporaryId emitClassPrivateNameSymbol(
-      Library library, String className, String memberName,
-      [js_ast.TemporaryId id]) {
-    return emitPrivateNameSymbol(library, '$className.$memberName', id);
-  }
-
   /// Emits an expression to set the property [nameExpr] on the class [className],
   /// with [value].
   ///

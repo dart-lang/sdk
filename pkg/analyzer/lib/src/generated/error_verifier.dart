@@ -38,6 +38,7 @@ import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
+import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
@@ -85,7 +86,7 @@ class EnclosingExecutableContext {
   EnclosingExecutableContext.empty() : this(null);
 
   String? get displayName {
-    var element = this.element;
+    final element = this.element;
     if (element is ConstructorElement) {
       var className = element.enclosingElement.displayName;
       var constructorName = element.displayName;
@@ -249,6 +250,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   final RequiredParametersVerifier _requiredParametersVerifier;
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
+  final UseResultVerifier _checkUseVerifier;
   late final TypeArgumentsVerifier _typeArgumentsVerifier;
   late final ConstructorFieldsVerifier _constructorFieldsVerifier;
   late final ReturnTypeVerifier _returnTypeVerifier;
@@ -258,6 +260,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       this._inheritanceManager)
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
+        _checkUseVerifier = UseResultVerifier(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
@@ -307,12 +310,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superClass.name == 'Struct';
   }
 
+  /// The language team is thinking about adding abstract fields, or external
+  /// fields. But for now we will ignore such fields in `Struct` subtypes.
+  bool get _isEnclosingClassFfiUnion {
+    var superClass = _enclosingClass?.supertype?.element;
+    return superClass != null &&
+        superClass.library.name == 'dart.ffi' &&
+        superClass.name == 'Union';
+  }
+
   bool get _isNonNullableByDefault =>
       _featureSet?.isEnabled(Feature.non_nullable) ?? false;
 
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
-      Expression? expression,
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted) {
     return [];
@@ -507,8 +518,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _withEnclosingExecutable(element, () {
       _checkForInvalidModifierOnBody(
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
-      _checkForConstConstructorWithNonFinalField(node, element);
-      _checkForConstConstructorWithNonConstSuper(node);
+      if (!_checkForConstConstructorWithNonConstSuper(node)) {
+        _checkForConstConstructorWithNonFinalField(node, element);
+      }
       _constructorFieldsVerifier.verify(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMultipleSuperInitializers(node);
@@ -562,7 +574,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumDeclaration(EnumDeclaration node) {
     var outerEnum = _enclosingEnum;
     try {
-      _enclosingEnum = node.declaredElement!;
+      _enclosingEnum = node.declaredElement;
       _duplicateDefinitionVerifier.checkEnum(node);
       super.visitEnumDeclaration(node);
     } finally {
@@ -755,12 +767,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    _typeArgumentsVerifier.checkFunctionReference(node);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction(node.name);
     _checkForTypeAliasCannotReferenceItself(
-        node, node.declaredElement as TypeAliasElementImpl);
+        node.name, node.declaredElement as TypeAliasElementImpl);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -795,7 +812,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction(node.name);
     _checkForTypeAliasCannotReferenceItself(
-        node, node.declaredElement as TypeAliasElementImpl);
+        node.name, node.declaredElement as TypeAliasElementImpl);
     super.visitGenericTypeAlias(node);
   }
 
@@ -931,6 +948,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _requiredParametersVerifier.visitMethodInvocation(node);
+    _checkUseVerifier.checkMethodInvocation(node);
     super.visitMethodInvocation(node);
   }
 
@@ -1030,7 +1048,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
     _checkForUnnecessaryNullAware(target, node.operator);
-
+    _checkUseVerifier.checkPropertyAccess(node);
     super.visitPropertyAccess(node);
   }
 
@@ -1101,6 +1119,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
     }
+    _checkUseVerifier.checkSimpleIdentifier(node);
     super.visitSimpleIdentifier(node);
   }
 
@@ -1496,24 +1515,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (expression is! SimpleIdentifier) return;
 
     // Already handled in the assignment resolver.
-    if (expression is SimpleIdentifier &&
-        expression.parent is AssignmentExpression) {
+    if (expression.parent is AssignmentExpression) {
       return;
     }
 
     // prepare element
-    Element? element;
-    AstNode highlightedNode = expression;
-    if (expression is Identifier) {
-      element = expression.staticElement;
-      if (expression is PrefixedIdentifier) {
-        var prefixedIdentifier = expression as PrefixedIdentifier;
-        highlightedNode = prefixedIdentifier.identifier;
-      }
-    } else if (expression is PropertyAccess) {
-      var propertyAccess = expression as PropertyAccess;
-      element = propertyAccess.propertyName.staticElement;
-      highlightedNode = propertyAccess.propertyName;
+    var highlightedNode = expression;
+    var element = expression.staticElement;
+    if (expression is PrefixedIdentifier) {
+      var prefixedIdentifier = expression as PrefixedIdentifier;
+      highlightedNode = prefixedIdentifier.identifier;
     }
     // check if element is assignable
     if (element is VariableElement) {
@@ -1580,6 +1591,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// extends/implements/mixes in `Function`.
   void _checkForBadFunctionUse(ClassDeclaration node) {
     var extendsClause = node.extendsClause;
+    var implementsClause = node.implementsClause;
     var withClause = node.withClause;
 
     if (node.name.name == "Function") {
@@ -1592,6 +1604,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
             HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+      }
+    }
+
+    if (implementsClause != null) {
+      for (var interface in implementsClause.interfaces) {
+        var type = interface.type;
+        if (type != null && type.isDartCoreFunction) {
+          errorReporter.reportErrorForNode(
+            HintCode.DEPRECATED_IMPLEMENTS_FUNCTION,
+            interface,
+          );
+          break;
+        }
       }
     }
 
@@ -1750,28 +1775,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify all conflicts between type variable and enclosing class.
   /// TODO(scheglov)
-  ///
-  /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
-  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
   void _checkForConflictingClassTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter
         in _enclosingClass!.typeParameters) {
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (_enclosingClass!.name == name) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
-            typeParameter,
-            [name]);
+        var code = _enclosingClass!.isMixin
+            ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
+            : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
+        errorReporter.reportErrorForElement(code, typeParameter, [name]);
       }
       // check members
       if (_enclosingClass!.getMethod(name) != null ||
           _enclosingClass!.getGetter(name) != null ||
           _enclosingClass!.getSetter(name) != null) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
-            typeParameter,
-            [name]);
+        var code = _enclosingClass!.isMixin
+            ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
+            : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
+        errorReporter.reportErrorForElement(code, typeParameter, [name]);
       }
     }
   }
@@ -1813,7 +1835,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (error is IncompatibleInterfacesClassHierarchyError) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-          node,
+          node.name,
           [
             _enclosingClass!.name,
             error.first.getDisplayString(withNullability: true),
@@ -1830,23 +1852,40 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// are no invocations of non-'const' super constructors, and that there are
   /// no instance variables mixed in.
   ///
+  /// Return `true` if an error is reported here, and the caller should stop
+  /// checking the constructor for constant-related errors.
+  ///
   /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER], and
   /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
-  void _checkForConstConstructorWithNonConstSuper(
+  bool _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
     if (!_enclosingExecutable.isConstConstructor) {
-      return;
+      return false;
     }
     // OK, const factory, checked elsewhere
     if (constructor.factoryKeyword != null) {
-      return;
+      return false;
     }
 
     // check for mixins
     var instanceFields = <FieldElement>[];
     for (var mixin in _enclosingClass!.mixins) {
-      instanceFields.addAll(mixin.element.fields
-          .where((field) => !field.isStatic && !field.isSynthetic));
+      instanceFields.addAll(mixin.element.fields.where((field) {
+        if (field.isStatic) {
+          return false;
+        }
+        if (field.isSynthetic) {
+          return false;
+        }
+        // From the abstract and external fields specification:
+        // > An abstract instance variable declaration D is treated as an
+        // > abstract getter declaration and possibly an abstract setter
+        // > declaration. The setter is included if and only if D is non-final.
+        if (field.isAbstract && field.isFinal) {
+          return false;
+        }
+        return true;
+      }));
     }
     if (instanceFields.length == 1) {
       var field = instanceFields.single;
@@ -1854,7 +1893,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
           constructor.returnType,
           ["'${field.enclosingElement.name}.${field.name}'"]);
-      return;
+      return true;
     } else if (instanceFields.length > 1) {
       var fieldNames = instanceFields
           .map((field) => "'${field.enclosingElement.name}.${field.name}'")
@@ -1863,7 +1902,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
           constructor.returnType,
           [fieldNames]);
-      return;
+      return true;
     }
 
     // try to find and check super constructor invocation
@@ -1871,26 +1910,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (initializer is SuperConstructorInvocation) {
         var element = initializer.staticElement;
         if (element == null || element.isConst) {
-          return;
+          return false;
         }
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
             initializer,
             [element.enclosingElement.displayName]);
-        return;
+        return true;
       }
     }
     // no explicit super constructor invocation, check default constructor
     var supertype = _enclosingClass!.supertype;
     if (supertype == null) {
-      return;
+      return false;
     }
     if (supertype.isDartCoreObject) {
-      return;
+      return false;
     }
     var unnamedConstructor = supertype.element.unnamedConstructor;
     if (unnamedConstructor == null || unnamedConstructor.isConst) {
-      return;
+      return false;
     }
 
     // default constructor is not 'const', report problem
@@ -1898,6 +1937,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
         constructor.returnType,
         [supertype]);
+    return true;
   }
 
   /// Verify that if the given [constructor] declaration is 'const' then there
@@ -1914,10 +1954,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!classElement.hasNonFinalField) {
       return;
     }
-    // TODO(brianwilkerson) Stop generating
-    //  CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD when either
-    //  CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER or
-    //  CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD is also generated.
     errorReporter.reportErrorForName(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
         constructor);
@@ -3121,7 +3157,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (withClause == null) {
       return;
     }
-    var declaredSupertype = superclassName?.type;
+    var declaredSupertype = superclassName?.type ?? _typeProvider.objectType;
     if (declaredSupertype is! InterfaceType) {
       return;
     }
@@ -3411,6 +3447,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (fields.isFinal) return;
 
     if (_isEnclosingClassFfiStruct) return;
+    if (_isEnclosingClassFfiUnion) return;
 
     for (var field in fields.variables) {
       var fieldElement = field.declaredElement as FieldElement;
@@ -3963,13 +4000,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
   void _checkForTypeAliasCannotReferenceItself(
-    AstNode node,
+    SimpleIdentifier nameNode,
     TypeAliasElementImpl element,
   ) {
     if (element.hasSelfReference) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-        node,
+        nameNode,
       );
     }
   }
@@ -4012,7 +4049,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             var element = parameter.declaredElement!;
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-              parameter,
+              parameter.name,
               [element.displayName, element.bound],
             );
             break;
@@ -4273,7 +4310,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 [parameter.identifier.name]);
           } else if (fieldElement.isStatic) {
             errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
           } else if (!typeSystem.isSubtypeOf(declaredType, fieldType)) {
@@ -4290,7 +4327,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 [parameter.identifier.name]);
           } else if (fieldElement.isStatic) {
             errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
           }

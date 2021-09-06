@@ -19,7 +19,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -146,21 +145,20 @@ Future<TestResult<T>> runTestForConfig<T>(
   var byteStore = MemoryByteStore();
   var analysisOptions = AnalysisOptionsImpl()
     ..contextFeatures = config.featureSet;
-  var driver = AnalysisDriver(
-      scheduler,
-      logger,
-      resourceProvider,
-      byteStore,
-      FileContentOverlay(),
-      null,
-      SourceFactory([
-        DartUriResolver(sdk),
-        PackageMapUriResolver(resourceProvider, packageMap),
-        ResourceUriResolver(resourceProvider)
-      ]),
-      analysisOptions,
-      packages: Packages.empty,
-      retainDataForTesting: true);
+  var driver = AnalysisDriver.tmp1(
+    scheduler: scheduler,
+    logger: logger,
+    resourceProvider: resourceProvider,
+    byteStore: byteStore,
+    sourceFactory: SourceFactory([
+      DartUriResolver(sdk),
+      PackageMapUriResolver(resourceProvider, packageMap),
+      ResourceUriResolver(resourceProvider)
+    ]),
+    analysisOptions: analysisOptions,
+    packages: Packages.empty,
+    retainDataForTesting: true,
+  );
   scheduler.start();
 
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
@@ -173,7 +171,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   var results = <Uri, ResolvedUnitResult>{};
   for (var testUri in testUris) {
     var path = resourceProvider.convertPath(testUri.path);
-    var result = await driver.getResult(path);
+    var result = await driver.getResult2(path) as ResolvedUnitResult;
     var errors =
         result.errors.where((e) => e.severity == Severity.error).toList();
     if (errors.isNotEmpty) {
@@ -198,7 +196,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         });
       } else {
         String _formatError(AnalysisError e) {
-          var locationInfo = result.unit!.lineInfo!.getLocation(e.offset);
+          var locationInfo = result.unit.lineInfo!.getLocation(e.offset);
           return '$locationInfo: ${e.errorCode}: ${e.message}';
         }
 
@@ -211,7 +209,7 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   results.forEach((testUri, result) {
     dataComputer.computeUnitData(
-        driver.testingData!, result.unit!, actualMapFor(testUri));
+        driver.testingData!, result.unit, actualMapFor(testUri));
   });
   var compiledData = AnalyzerCompiledData<T>(
       testData.code, testData.entryPoint, actualMaps, globalData);

@@ -159,7 +159,7 @@ Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
   var suiteDirectory = Path.raw(Uri.base.path);
   var content = await testFile.readAsString();
   var test = TestFile.parse(suiteDirectory, testFilePath, content);
-  if (!multitestMarker.hasMatch(content)) {
+  if (!content.contains(multitestMarker)) {
     print("Test ${test.path.toNativePath()} is not a multi-test.");
     exitCode = 1;
     return;

@@ -2,18 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterRemoveWidget extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
+
+  /// todo(pq): find out why overlapping edits are not being applied (and enable)
+  @override
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  bool get canBeAppliedToFile => false;
+
+  @override
+  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER;
+
+  @override
+  FixKind? get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -25,7 +38,7 @@ class FlutterRemoveWidget extends CorrectionProducer {
     // Prepare the list of our children.
     var childrenArgument = flutter.findChildrenArgument(widgetCreation);
     if (childrenArgument != null) {
-      var childrenExpression = childrenArgument?.expression;
+      var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
           childrenExpression.elements.isNotEmpty) {
         await _removeChildren(

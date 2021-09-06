@@ -12,10 +12,10 @@ import "dart:core" as core;
 import "dart:async";
 
 static method method(() → void f) → dynamic {
-  f.call();
+  f(){() → void};
 }
 static method method2(() → FutureOr<void>f) → dynamic {
-  f.call();
+  f(){() → FutureOr<void>};
 }
 static method test() → dynamic {
   self::method(() → void {

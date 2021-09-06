@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,14 +19,17 @@ class ReplaceWithNullAwareTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
 
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_chain() async {
     await resolveTestCode('''
-main(x) {
+void f(x) {
   x?.a.b.c;
 }
 ''');
     await assertHasFix('''
-main(x) {
+void f(x) {
   x?.a?.b?.c;
 }
 ''');
@@ -36,12 +37,12 @@ main(x) {
 
   Future<void> test_methodInvocation() async {
     await resolveTestCode('''
-main(x) {
+void f(x) {
   x?.a.b();
 }
 ''');
     await assertHasFix('''
-main(x) {
+void f(x) {
   x?.a?.b();
 }
 ''');
@@ -49,12 +50,12 @@ main(x) {
 
   Future<void> test_propertyAccess() async {
     await resolveTestCode('''
-main(x) {
+void f(x) {
   x?.a().b;
 }
 ''');
     await assertHasFix('''
-main(x) {
+void f(x) {
   x?.a()?.b;
 }
 ''');

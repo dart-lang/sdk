@@ -4,6 +4,7 @@ src/org/dartlang/vm/service/VmService.java
 src/org/dartlang/vm/service/consumer/AddBreakpointAtEntryConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointWithScriptUriConsumer.java
+src/org/dartlang/vm/service/consumer/BreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/ClearCpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/CpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateConsumer.java
@@ -98,6 +99,7 @@ src/org/dartlang/vm/service/element/Null.java
 src/org/dartlang/vm/service/element/NullRef.java
 src/org/dartlang/vm/service/element/Obj.java
 src/org/dartlang/vm/service/element/ObjRef.java
+src/org/dartlang/vm/service/element/Parameter.java
 src/org/dartlang/vm/service/element/PortList.java
 src/org/dartlang/vm/service/element/ProcessMemoryItem.java
 src/org/dartlang/vm/service/element/ProcessMemoryUsage.java
@@ -127,6 +129,7 @@ src/org/dartlang/vm/service/element/TimelineFlags.java
 src/org/dartlang/vm/service/element/Timestamp.java
 src/org/dartlang/vm/service/element/TypeArguments.java
 src/org/dartlang/vm/service/element/TypeArgumentsRef.java
+src/org/dartlang/vm/service/element/TypeParameters.java
 src/org/dartlang/vm/service/element/UnresolvedSourceLocation.java
 src/org/dartlang/vm/service/element/VM.java
 src/org/dartlang/vm/service/element/VMRef.java

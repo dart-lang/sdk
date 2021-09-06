@@ -26,7 +26,7 @@ library from "org-dartlang-test:///libA.dart" as libA {
       : super libA::_Bar&Object&Foo::•()
       ;
     method method2() → dynamic {
-      this.{libA::_Bar&Object&Foo::method}();
+      this.{libA::_Bar&Object&Foo::method}(){() →* dynamic};
     }
   }
 }

@@ -93,7 +93,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _visitClassOrMixinMembers(node);
+    _visitClassOrMixinMembers(node.members);
     visitNode(node);
   }
 
@@ -105,6 +105,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitParamList(node.parameters);
+    visitNode(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _visitClassOrMixinMembers(node.members);
     visitNode(node);
   }
 
@@ -179,7 +185,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _visitClassOrMixinMembers(node);
+    _visitClassOrMixinMembers(node.members);
     visitNode(node);
   }
 
@@ -211,8 +217,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     visitNode(node);
   }
 
-  void _visitClassOrMixinMembers(ClassOrMixinDeclaration node) {
-    for (var member in node.members) {
+  void _visitClassOrMixinMembers(List<ClassMember> members) {
+    for (var member in members) {
       if (member is FieldDeclaration) {
         member.fields.variables.forEach((VariableDeclaration varDecl) {
           declaredField(member, varDecl);

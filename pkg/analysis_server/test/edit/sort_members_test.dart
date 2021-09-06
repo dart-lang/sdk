@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -21,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractAnalysisTest {
-  SourceFileEdit fileEdit;
+  late SourceFileEdit fileEdit;
 
   @override
   void setUp() {
@@ -197,7 +195,7 @@ class MyAnnotation {
   }
 
   Future<void> test_OK_genericFunctionType() async {
-    newFile('$projectPath/analysis_options.yaml', content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   strong-mode: true
 ''');

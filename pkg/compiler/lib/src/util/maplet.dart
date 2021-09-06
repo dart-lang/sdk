@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library dart2js.util.maplet;
 
 import 'dart:collection' show MapBase, IterableBase;
@@ -57,7 +59,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   }
 
   @override
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     if (_extra == null) {
       return _key == key;
     } else if (_MARKER == _extra) {
@@ -74,7 +76,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   }
 
   @override
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (_extra == null) {
       return (_key == key) ? _value : null;
     } else if (_MARKER == _extra) {
@@ -113,7 +115,8 @@ class Maplet<K, V> extends MapBase<K, V> {
     } else {
       int remaining = _extra;
       int index = 0;
-      int copyTo, copyFrom;
+      int copyTo = 0;
+      int copyFrom = 0;
       while (remaining > 0 && index < CAPACITY) {
         var candidate = _key[index];
         if (_MARKER == candidate) {
@@ -172,7 +175,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   }
 
   @override
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (_extra == null) {
       if (_key != key) return null;
       _key = _MARKER;
@@ -248,12 +251,12 @@ class _MapletKeyIterable<K> extends IterableBase<K> {
 
 class _MapletSingleIterator<K> implements Iterator<K> {
   var _element;
-  K _current;
+  K? _current;
 
   _MapletSingleIterator(this._element);
 
   @override
-  K get current => _current;
+  K get current => _current as K;
 
   @override
   bool moveNext() {
@@ -271,12 +274,12 @@ class _MapletListIterator<K> implements Iterator<K> {
   final List _list;
   int _remaining;
   int _index = 0;
-  K _current;
+  K? _current;
 
   _MapletListIterator(this._list, this._remaining);
 
   @override
-  K get current => _current;
+  K get current => _current as K;
 
   @override
   bool moveNext() {

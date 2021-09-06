@@ -77,6 +77,7 @@ import '../js_model/type_recipe.dart'
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
+import 'namer.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
 
 /// Run the minifier for 'type$' property names even in non-minified mode,
@@ -162,58 +163,55 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
 }
 
-/// A [TypeReferenceResource] is a deferred JavaScript expression determined by
+/// A [TypeReferenceResource] is a deferred JavaScript statement determined by
 /// the finalization of type references. It is the injection point for data or
 /// code to support type references. For example, if the
 /// [TypeReferenceFinalizer] decides that type should be referred to via a
 /// variable, the [TypeReferenceResource] would be set to code that declares and
 /// initializes the variable.
-class TypeReferenceResource extends js.DeferredExpression
+class TypeReferenceResource extends js.DeferredStatement
     implements js.AstContainer {
-  js.Expression _value;
+  js.Statement _statement;
 
   @override
   final js.JavaScriptNodeSourceInformation sourceInformation;
 
   TypeReferenceResource() : sourceInformation = null;
-  TypeReferenceResource._(this._value, this.sourceInformation);
+  TypeReferenceResource._(this._statement, this.sourceInformation);
 
-  set value(js.Expression value) {
-    assert(!isFinalized && value != null);
-    _value = value;
+  set statement(js.Statement statement) {
+    assert(!isFinalized && statement != null);
+    _statement = statement;
   }
 
   @override
-  js.Expression get value {
+  js.Statement get statement {
     assert(isFinalized, 'TypeReferenceResource is unassigned');
-    return _value;
+    return _statement;
   }
 
   @override
-  bool get isFinalized => _value != null;
-
-  @override
-  int get precedenceLevel => value.precedenceLevel;
+  bool get isFinalized => _statement != null;
 
   @override
   TypeReferenceResource withSourceInformation(
       js.JavaScriptNodeSourceInformation newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
-    return TypeReferenceResource._(_value, newSourceInformation);
+    return TypeReferenceResource._(_statement, newSourceInformation);
   }
 
   @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
+  Iterable<js.Node> get containedNodes => isFinalized ? [_statement] : const [];
 
   @override
   void visitChildren<T>(js.NodeVisitor<T> visitor) {
-    _value?.accept<T>(visitor);
+    _statement?.accept<T>(visitor);
   }
 
   @override
   void visitChildren1<R, A>(js.NodeVisitor1<R, A> visitor, A arg) {
-    _value?.accept1<R, A>(visitor, arg);
+    _statement?.accept1<R, A>(visitor, arg);
   }
 }
 
@@ -322,10 +320,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     }
 
     if (properties.isEmpty) {
-      // We don't have a deferred statement sequence. "0;" is the smallest we
-      // can do with an expression statement.
-      // TODO(sra): Add deferred expression statement sequences.
-      _resource.value = js.js('0');
+      _resource.statement = js.Block.empty();
     } else {
       js.Expression initializer =
           js.ObjectInitializer(properties, isOneLiner: false);
@@ -335,7 +330,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
             [js.VariableDeclaration(helperLocal), helperAccess, initializer]);
         initializer = js.js('#()', js.Parentheses(function));
       }
-      _resource.value = js.js(r'var # = #',
+      _resource.statement = js.js.statement(r'var # = #',
           [js.VariableDeclaration(typesHolderLocalName), initializer]);
     }
   }
@@ -551,7 +546,14 @@ class _TypeReferenceCollectorVisitor extends js.BaseVisitor<void> {
   void visitDeferredExpression(js.DeferredExpression node) {
     if (node is TypeReference) {
       _finalizer._registerTypeReference(node);
-    } else if (node is TypeReferenceResource) {
+    } else {
+      visitNode(node);
+    }
+  }
+
+  @override
+  void visitDeferredStatement(js.DeferredStatement node) {
+    if (node is TypeReferenceResource) {
       _finalizer._registerTypeReferenceResource(node);
     } else {
       visitNode(node);
@@ -581,9 +583,6 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   final Map<DartType, int> _backrefs = Map.identity();
   final List<String> _fragments = [];
 
-  static RegExp identifierStartRE = RegExp(r'[A-Za-z_$]');
-  static RegExp nonIdentifierRE = RegExp(r'[^A-Za-z0-9_$]');
-
   String run(TypeRecipe recipe) {
     if (recipe is TypeExpressionRecipe) {
       _visit(recipe.type, null);
@@ -604,7 +603,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
       throw StateError('Unexpected recipe: $recipe');
     }
     String result = _fragments.join('_');
-    if (result.startsWith(identifierStartRE)) return result;
+    if (Namer.startsWithIdentifierCharacter(result)) return result;
     return 'z' + result;
   }
 
@@ -613,7 +612,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   }
 
   void _identifier(String text) {
-    _add(text.replaceAll(nonIdentifierRE, '_'));
+    _add(Namer.replaceNonIdentifierCharacters(text));
   }
 
   bool _comma(bool needsComma) {

@@ -112,7 +112,7 @@ abstract class _FileSystemWatcher {
   @patch
   static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
-    if (Platform.isLinux) {
+    if (Platform.isLinux || Platform.isAndroid) {
       return new _InotifyFileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isWindows) {
@@ -210,9 +210,9 @@ abstract class _FileSystemWatcher {
   }
 
   static Stream _listenOnSocket(int socketId, int id, int pathId) {
-    var native = new _NativeSocket.watch(socketId);
-    var socket = new _RawSocket(native);
-    return socket.expand((event) {
+    final nativeSocket = _NativeSocket.watch(socketId);
+    final rawSocket = _RawSocket(nativeSocket);
+    return rawSocket.expand((event) {
       var stops = [];
       var events = [];
       var pair = {};
@@ -300,7 +300,7 @@ abstract class _FileSystemWatcher {
         } while (eventCount > 0);
         // Be sure to clear this manually, as the sockets are not read through
         // the _NativeSocket interface.
-        native.available = 0;
+        nativeSocket.available = 0;
         for (var map in pair.values) {
           for (var event in map.values) {
             rewriteMove(event, getIsDir(event));

@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -21,43 +21,33 @@ import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/variables.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Implementation of the [NullabilityMigration] public API.
 class NullabilityMigrationImpl implements NullabilityMigration {
-  /// Set this constant to a pathname to cause nullability migration to output
-  /// a post-mortem file that can be later examined by tool/postmortem.dart.
-  static const String _postmortemPath = null;
+  final NullabilityMigrationListener? listener;
 
-  final NullabilityMigrationListener listener;
-
-  Variables _variables;
+  Variables? _variables;
 
   final NullabilityGraph _graph;
 
-  final bool _permissive;
+  final bool? _permissive;
 
-  final NullabilityMigrationInstrumentation _instrumentation;
+  final NullabilityMigrationInstrumentation? _instrumentation;
 
-  DecoratedClassHierarchy _decoratedClassHierarchy;
+  DecoratedClassHierarchy? _decoratedClassHierarchy;
 
   bool _propagated = false;
 
   /// Indicates whether code removed by the migration engine should be removed
   /// by commenting it out.  A value of `false` means to actually delete the
   /// code that is removed.
-  final bool removeViaComments;
+  final bool? removeViaComments;
 
-  final bool warnOnWeakCode;
+  final bool? warnOnWeakCode;
 
   final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
-
-  /// If not `null`, the object that will be used to write out post-mortem
-  /// information once migration is complete.
-  final PostmortemFileWriter _postmortemFileWriter =
-      _makePostmortemFileWriter();
 
   final LineInfo Function(String) _getLineInfo;
 
@@ -86,12 +76,12 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
-  NullabilityMigrationImpl(NullabilityMigrationListener listener,
+  NullabilityMigrationImpl(NullabilityMigrationListener? listener,
       LineInfo Function(String) getLineInfo,
-      {bool permissive = false,
-      NullabilityMigrationInstrumentation instrumentation,
-      bool removeViaComments = false,
-      bool warnOnWeakCode = true})
+      {bool? permissive = false,
+      NullabilityMigrationInstrumentation? instrumentation,
+      bool? removeViaComments = false,
+      bool? warnOnWeakCode = true})
       : this._(
             listener,
             NullabilityGraph(instrumentation: instrumentation),
@@ -110,18 +100,17 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       this.warnOnWeakCode,
       this._getLineInfo) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
-    _postmortemFileWriter?.graph = _graph;
   }
 
   @override
-  bool get isPermissive => _permissive;
+  bool? get isPermissive => _permissive;
 
   @override
   List<String> get unmigratedDependencies {
     _queriedUnmigratedDependencies = true;
     var unmigratedDependencies = <Source>[];
     for (var entry in _libraryOptInStatus.entries) {
-      if (_graph.isBeingMigrated(entry.key)) continue;
+      if (_graph.isPathBeingMigrated(entry.key.fullName)) continue;
       if (!entry.value) {
         unmigratedDependencies.add(entry.key);
       }
@@ -142,10 +131,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     ExperimentStatusException.sanityCheck(result);
     if (!_propagated) {
       _propagated = true;
-      _graph.propagate(_postmortemFileWriter);
+      _graph.propagate();
     }
     var unit = result.unit;
-    var compilationUnit = unit.declaredElement;
+    var compilationUnit = unit.declaredElement!;
     var library = compilationUnit.library;
     var source = compilationUnit.source;
     // Hierarchies were created assuming the libraries being migrated are opted
@@ -158,8 +147,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         result.typeProvider,
         library.typeSystem as TypeSystemImpl,
         _variables,
-        library,
-        _permissive ? listener : null,
+        library as LibraryElementImpl,
+        _permissive! ? listener : null,
         unit,
         warnOnWeakCode,
         _graph,
@@ -171,27 +160,26 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       DecoratedTypeParameterBounds.current = null;
     }
     var changes = FixAggregator.run(unit, result.content, fixBuilder.changes,
-        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
+        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode)!;
     _instrumentation?.changes(source, changes);
     final lineInfo = LineInfo.fromContent(source.contents.data);
     var offsets = changes.keys.toList();
     offsets.sort();
     for (var offset in offsets) {
-      var edits = changes[offset];
+      var edits = changes[offset]!;
       var descriptions = edits
           .map((edit) => edit.info)
           .where((info) => info != null)
-          .map((info) => info.description.appliedMessage)
+          .map((info) => info!.description.appliedMessage)
           .join(', ');
-      var sourceEdit = edits.toSourceEdit(offset);
-      listener.addSuggestion(
+      var sourceEdit = edits.toSourceEdit(offset!);
+      listener!.addSuggestion(
           descriptions, _computeLocation(lineInfo, sourceEdit, source));
-      listener.addEdit(source, sourceEdit);
+      listener!.addEdit(source, sourceEdit);
     }
   }
 
   Map<String, Version> finish() {
-    _postmortemFileWriter?.write();
     _instrumentation?.finished();
     return _neededPackages;
   }
@@ -212,8 +200,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         result.libraryElement.exportedLibraries);
     if (_variables == null) {
       _variables = Variables(_graph, result.typeProvider, _getLineInfo,
-          instrumentation: _instrumentation,
-          postmortemFileWriter: _postmortemFileWriter);
+          instrumentation: _instrumentation);
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
     }
     var unit = result.unit;
@@ -221,8 +208,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       unit.accept(NodeBuilder(
           _variables,
-          unit.declaredElement.source,
-          _permissive ? listener : null,
+          unit.declaredElement!.source,
+          _permissive! ? listener : null,
           _graph,
           result.typeProvider,
           _getLineInfo,
@@ -246,8 +233,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
           result.typeSystem,
           _variables,
           _graph,
-          unit.declaredElement.source,
-          _permissive ? listener : null,
+          unit.declaredElement!.source,
+          _permissive! ? listener : null,
           _decoratedClassHierarchy,
           instrumentation: _instrumentation));
     } finally {
@@ -257,7 +244,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void update() {
-    _graph.update(_postmortemFileWriter);
+    _graph.update();
   }
 
   /// Records the opt in/out status of all libraries in [libraries], and any
@@ -284,15 +271,9 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       edit.length,
       startLocation.lineNumber,
       startLocation.columnNumber,
-      endLocation.lineNumber,
-      endLocation.columnNumber,
+      endLine: endLocation.lineNumber,
+      endColumn: endLocation.columnNumber,
     );
     return location;
-  }
-
-  static PostmortemFileWriter _makePostmortemFileWriter() {
-    if (_postmortemPath == null) return null;
-    return PostmortemFileWriter(
-        PhysicalResourceProvider.INSTANCE.getFile(_postmortemPath));
   }
 }

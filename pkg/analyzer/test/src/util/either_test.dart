@@ -23,4 +23,14 @@ class Either2Test {
     var either = Either2<int, String>.t2('hello');
     expect(either.map((_) => throw 'unexpected', (x) => x.length), 5);
   }
+
+  void test_toString_t1() {
+    var either = Either2<int, String>.t1(42);
+    expect(either.toString(), '42');
+  }
+
+  void test_toString_t2() {
+    var either = Either2<int, String>.t2('hello');
+    expect(either.toString(), 'hello');
+  }
 }

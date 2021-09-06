@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -45,19 +45,21 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
-    final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.remove.unusedImport'), 'Remove unused import');
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.remove.unusedImport'),
+        'Remove unused import')!;
 
     // Ensure the edit came back, and using documentChanges.
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.documentChanges, isNotNull);
-    expect(fixAction.edit.changes, isNull);
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyDocumentChanges(contents, fixAction.edit.documentChanges);
+    applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -83,19 +85,21 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
-    final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.remove.unusedImport'), 'Remove unused import');
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.remove.unusedImport'),
+        'Remove unused import')!;
 
     // Ensure the edit came back, and using changes.
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.changes, isNotNull);
-    expect(fixAction.edit.documentChanges, isNull);
+    final edit = fixAction.edit!;
+    expect(edit.changes, isNotNull);
+    expect(edit.documentChanges, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, fixAction.edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -118,16 +122,16 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'");
+        CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'")!;
 
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.documentChanges, isNotNull);
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges, isNotNull);
 
     // Ensure applying the changes creates the file and with the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyDocumentChanges(contents, fixAction.edit.documentChanges);
+    applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[expectedCreatedFile], isNotEmpty);
   }
 
@@ -152,6 +156,87 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
     expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
     expect(await ofKind(CodeActionKind.Refactor), isEmpty);
+  }
+
+  Future<void> test_ignoreDiagnosticForFile() async {
+    const content = '''
+// Header comment
+// Header comment
+// Header comment
+
+// This comment is attached to the below import
+import 'dart:async';
+[[import]] 'dart:convert';
+
+Future foo;''';
+
+    const expectedContent = '''
+// Header comment
+// Header comment
+// Header comment
+
+// ignore_for_file: unused_import
+
+// This comment is attached to the below import
+import 'dart:async';
+import 'dart:convert';
+
+Future foo;''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    // Find the ignore action.
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.ignore.file'),
+        "Ignore 'unused_import' for this file")!;
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, fixAction.edit!.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_ignoreDiagnosticForLine() async {
+    const content = '''
+import 'dart:async';
+[[import]] 'dart:convert';
+
+Future foo;''';
+
+    const expectedContent = '''
+import 'dart:async';
+// ignore: unused_import
+import 'dart:convert';
+
+Future foo;''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    // Find the ignore action.
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.ignore.line'),
+        "Ignore 'unused_import' for this line")!;
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, fixAction.edit!.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_noDuplicates_sameFix() async {
@@ -240,18 +325,18 @@ ProcessInfo b;
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.organize.imports'), 'Organize Imports');
+        CodeActionKind('quickfix.organize.imports'), 'Organize Imports')!;
 
     // Ensure the edit came back, and using changes.
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.changes, isNotNull);
-    expect(fixAction.edit.documentChanges, isNull);
+    final edit = fixAction.edit!;
+    expect(edit.changes, isNotNull);
+    expect(edit.documentChanges, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, fixAction.edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -266,6 +351,111 @@ ProcessInfo b;
 
     final codeActions = await getCodeActions(otherFileUri.toString());
     expect(codeActions, isEmpty);
+  }
+
+  Future<void> test_plugin() async {
+    // This code should get a fix to replace 'foo' with 'bar'.'
+    const content = '[[foo]]';
+    const expectedContent = 'bar';
+
+    final pluginResult = plugin.EditGetFixesResult([
+      plugin.AnalysisErrorFixes(
+        plugin.AnalysisError(
+          plugin.AnalysisErrorSeverity.ERROR,
+          plugin.AnalysisErrorType.HINT,
+          plugin.Location(mainFilePath, 0, 3, 0, 0),
+          "Do not use 'foo'",
+          'do_not_use_foo',
+        ),
+        fixes: [
+          plugin.PrioritizedSourceChange(
+            0,
+            plugin.SourceChange(
+              "Change 'foo' to 'bar'",
+              edits: [
+                plugin.SourceFileEdit(mainFilePath, 0,
+                    edits: [plugin.SourceEdit(0, 3, 'bar')])
+              ],
+              id: 'fooToBar',
+            ),
+          )
+        ],
+      )
+    ]);
+    configureTestPlugin(
+      handler: (request) =>
+          request is plugin.EditGetFixesParams ? pluginResult : null,
+    );
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final assist = findEditAction(codeActions,
+        CodeActionKind('quickfix.fooToBar'), "Change 'foo' to 'bar'")!;
+
+    final edit = assist.edit!;
+    expect(edit.changes, isNotNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, edit.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_plugin_sortsWithServer() async {
+    // Produces a server fix for removing unused import with a default
+    // priority of 50.
+    const content = '''
+[[import]] 'dart:convert';
+''';
+
+    // Provide two plugin results that should sort either side of the server fix.
+    final pluginResult = plugin.EditGetFixesResult([
+      plugin.AnalysisErrorFixes(
+        plugin.AnalysisError(
+          plugin.AnalysisErrorSeverity.ERROR,
+          plugin.AnalysisErrorType.HINT,
+          plugin.Location(mainFilePath, 0, 3, 0, 0),
+          'Dummy error',
+          'dummy',
+        ),
+        fixes: [
+          plugin.PrioritizedSourceChange(10, plugin.SourceChange('Low')),
+          plugin.PrioritizedSourceChange(100, plugin.SourceChange('High')),
+        ],
+      )
+    ]);
+    configureTestPlugin(
+      handler: (request) =>
+          request is plugin.EditGetFixesParams ? pluginResult : null,
+    );
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeActionTitles = codeActions.map((action) =>
+        action.map((command) => command.title, (action) => action.title));
+
+    expect(
+      codeActionTitles,
+      containsAllInOrder([
+        'High',
+        'Remove unused import',
+        'Low',
+      ]),
+    );
   }
 }
 
@@ -298,10 +488,7 @@ var b = bar();
     expect(fixTitle, equals("Create function 'foo'"));
   }
 
-  @failingTest
   Future<void> test_fixAll_notWhenSingle() async {
-    // TODO(dantup): Fix the text used to locate the fix once the
-    // new server support has landed.
     const content = '''
 void f(String a) {
   [[print(a!)]];
@@ -314,17 +501,16 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final fixAction = await getFixAllAction(
-        "Apply all: Remove the '!'", mainFileUri, content);
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file");
 
     // Should not appear if there was only a single error.
     expect(fixAction, isNull);
   }
 
-  @failingTest
   Future<void> test_fixAll_whenMultiple() async {
-    // TODO(dantup): Fix this test up to use the new server support for
-    // fix-all-in-file once landed.
     const content = '''
 void f(String a) {
   [[print(a!!)]];
@@ -344,13 +530,17 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final fixAction = await getFixAllAction(
-        "Apply all: Remove the '!'", mainFileUri, content);
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file")!;
 
-    expect(fixAction, isNotNull);
-
-    await verifyCodeActionEdits(
-        fixAction, withoutMarkers(content), expectedContent);
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, fixAction.edit!.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_noDuplicates_differentFix() async {
@@ -372,10 +562,8 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final caretPos = positionFromMarker(content);
-
     final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: Range(start: caretPos, end: caretPos));
+        position: positionFromMarker(content));
     final removeNnaAction = findEditActions(codeActions,
         CodeActionKind('quickfix.remove.nonNullAssertion'), "Remove the '!'");
 
@@ -387,7 +575,7 @@ void f(String a) {
     final secondBangPos =
         positionFromOffset(withoutMarkers(content).indexOf('!);'), content);
     expect(removeNnaAction.first.diagnostics, hasLength(1));
-    final diagStart = removeNnaAction.first.diagnostics.first.range.start;
+    final diagStart = removeNnaAction.first.diagnostics!.first.range.start;
     expect(diagStart, equals(secondBangPos));
   }
 }

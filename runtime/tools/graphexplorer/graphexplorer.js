@@ -47,6 +47,8 @@ function Graph() {
   this.dom_ = null;
   this.domHead_ = null;
   this.domNext_ = null;
+  this.mergedDomHead_ = null;
+  this.mergedDomNext_ = null;
 
   // Intermediates.
   this.Nconnected_ = 0;  // Number of nodes reachable from root.
@@ -62,14 +64,8 @@ function Graph() {
   this.stack_ = null;
 }
 
-// Load a graph in V8 heap profile format from `data`, then compute the graph's
-// dominator tree and the retained size of each vertex.
-//
-// If `rewriteForOwners` is true, for each vertex that has an "owner" edge,
-// replace all edges to the vertex with an edge from the owner to the vertex.
-// This can be the graph more hierachical and reveal more structure in the
-// dominator tree.
-Graph.prototype.loadV8Profile = function(data, rewriteForOwners) {
+// Load a graph in V8 heap profile format from parsed JSON `data`.
+Graph.prototype.loadV8Profile = function(data) {
   console.log("Building successors...");
 
   const N = data.snapshot.node_count;
@@ -145,10 +141,6 @@ Graph.prototype.loadV8Profile = function(data, rewriteForOwners) {
     throw "Incorrect edge_count!";
   }
 
-  // Free memory.
-  data["nodes"] = null;
-  data["edges"] = null;
-
   this.N_ = N;
   this.E_ = E;
   this.strings_ = data.strings;
@@ -159,7 +151,170 @@ Graph.prototype.loadV8Profile = function(data, rewriteForOwners) {
   this.class_ = clazz;
   this.shallowSize_ = shallowSize;
   this.shallowSizeSum_ = shallowSizeSum;
+};
 
+// Load a graph in Dart heap snapshot format from ArrayBuffer `data`.
+Graph.prototype.loadDartHeapSnapshot = function(data) {
+  console.log("Building successors...");
+
+  let stream = new Stream(data);
+
+  for (let i = 0; i < 8; i++) {
+    if (stream.byte() != 'dartheap'.charCodeAt(i)) {
+      throw "Wrong format identifier."
+    }
+  }
+
+  stream.uleb128();  // Flags.
+  stream.utf8();     // Name.
+  stream.uleb128();  // Shallow size (used).
+  stream.uleb128();  // Capacity.
+  stream.uleb128();  // External size.
+
+  const strings = new Array();
+  strings.push("???");
+
+  const classCount = stream.uleb128();
+  const classNames = new Uint32Array(classCount + 1);
+  classNames[0] = strings.length;
+  strings.push("Root");
+  const classEdges = new Array(classCount + 1);
+  for (let cid = 1; cid <= classCount; cid++) {
+    stream.uleb128();  // Flags.
+    classNames[cid] = strings.length;
+    strings.push(stream.utf8());  // Class name.
+    stream.utf8();  // Library name.
+    stream.utf8();  // Library name.
+    stream.utf8();  // Reserved.
+    const fieldCount = stream.uleb128();
+    const edgeNames = new Array(fieldCount + 1);
+    classEdges[cid] = edgeNames;
+    for (let j = 0; j < fieldCount; j++) {
+      stream.uleb128();  // Flags.
+      const fieldIndex = stream.uleb128();
+      const fieldName = stream.utf8();
+      stream.utf8();  // Reserved.
+
+      edgeNames[fieldIndex] = strings.length;
+      strings.push(fieldName);
+    }
+  }
+
+  const E = stream.uleb128();  // Reference count.
+  const N = stream.uleb128();  // Object count.
+
+  const firstSuccessor = new Uint32Array(N + 2);
+  const successors = new Uint32Array(E);
+  const successorName = new Uint32Array(E);
+  const name = new Uint32Array(N + 1);
+  const clazz = new Array(N + 1);
+  const shallowSize = new Uint32Array(N + 1);
+
+  name[0] = strings.length;
+  strings.push("<omitted-object>");
+  clazz[0] = "<omitted-object>";
+  const unknownEdge = strings.length;
+  strings.push("<unknown>");
+
+  let shallowSizeSum = 0;
+  let nextSuccessorIndex = 0;
+  for (let i = 1; i <= N; i++) {
+    const cid = stream.uleb128();
+    clazz[i] = strings[classNames[cid]];
+    const objShallowSize = stream.uleb128();
+    shallowSize[i] = objShallowSize;
+    shallowSizeSum += objShallowSize;
+
+    const tag = stream.uleb128();
+    switch (tag) {
+      case 0:  // NoData
+        name[i] = classNames[cid];
+        break;
+      case 1:  // NullData
+        name[i] = strings.length;
+        strings.push("null");
+        break;
+      case 2:  // BoolData
+        name[i] = strings.length;
+        strings.push(stream.uleb128() == 0 ? "false" : "true");
+        break;
+      case 3:  // IntegerData
+        name[i] = stream.sleb128();
+        break;
+      case 4:  // DoubleData
+        name[i] = stream.float64();
+        break;
+      case 5:  // Latin1StringData
+        stream.uleb128();  // Full length.
+        name[i] = strings.length;
+        strings.push(stream.latin1());
+        break;
+      case 6:  // Utf16StringData
+        stream.uleb128();  // Full length.
+        name[i] = strings.length;
+        strings.push(stream.utf16());
+        break;
+      case 7:  // LengthData
+        name[i] = strings.length;
+        strings.push(strings[classNames[cid]] + "(" + stream.uleb128() + ")");
+        break;
+      case 8:  // NameData
+        name[i] = strings.length;
+        strings.push(stream.utf8());
+        break;
+      default:
+        throw "Unknown tag " + tag;
+    }
+
+    firstSuccessor[i] = nextSuccessorIndex;
+    const edge_count = stream.uleb128();
+    for (let j = 0; j < edge_count; j++) {
+      successors[nextSuccessorIndex] = stream.uleb128();
+      successorName[nextSuccessorIndex] = unknownEdge;
+      const edgeNames = classEdges[cid];
+      if (edgeNames !== undefined) {
+        const edgeName = classEdges[cid][j];
+        if (edgeName !== undefined) {
+          successorName[nextSuccessorIndex] = edgeName;
+        }
+      }
+      nextSuccessorIndex++;
+    }
+  }
+  firstSuccessor[N + 1] = nextSuccessorIndex;
+
+  if (nextSuccessorIndex != E) {
+    throw "Incorrect edge_count!";
+  }
+
+  const externalPropertyCount = stream.uleb128();
+  for (let i = 0; i < externalPropertyCount; i++) {
+    let object = stream.uleb128();
+    let externalSize = stream.uleb128();
+    stream.utf8();  // Name.
+    shallowSize[object] += externalSize;
+    shallowSizeSum += externalSize;
+  }
+
+  this.N_ = N;
+  this.E_ = E;
+  this.strings_ = strings;
+  this.firstSuccessor_ = firstSuccessor;
+  this.successorName_ = successorName;
+  this.successors_ = successors;
+  this.name_ = name;
+  this.class_ = clazz;
+  this.shallowSize_ = shallowSize;
+  this.shallowSizeSum_ = shallowSizeSum;
+};
+
+// Compute the graph's dominator tree and the retained size of each vertex.
+//
+// If `rewriteForOwners` is true, for each vertex that has an "owner" edge,
+// replace all edges to the vertex with an edge from the owner to the vertex.
+// This can be the graph more hierachical and reveal more structure in the
+// dominator tree.
+Graph.prototype.compute = function(rewriteForOwners) {
   this.computePredecessors();
   if (rewriteForOwners) {
     this.rewriteEdgesForOwners();
@@ -168,9 +323,11 @@ Graph.prototype.loadV8Profile = function(data, rewriteForOwners) {
   this.computeDominators();
   this.computeRetainedSizes();
   this.linkDominatorChildren();
+  this.sortDominatorChildren();
+  this.mergeDominatorSiblings(1);
 
-  this.mark_ = new Uint8Array(N + 1);
-  this.stack_ = new Uint32Array(E);
+  this.mark_ = new Uint8Array(this.N_ + 1);
+  this.stack_ = new Uint32Array(this.E_);
 };
 
 Graph.prototype.computePredecessors = function() {
@@ -193,6 +350,7 @@ Graph.prototype.computePredecessors = function() {
        successorIndex < lastSuccessorIndex;
        successorIndex++) {
       let successor = successors[successorIndex];
+      if (successor == 0) continue;  // Omitted object.
       predecessorCount[successor]++;
     }
   }
@@ -203,9 +361,6 @@ Graph.prototype.computePredecessors = function() {
     nextPredecessorIndex += predecessorCount[i];
   }
   firstPredecessor[N + 1] = nextPredecessorIndex;
-  if (nextPredecessorIndex != E) {
-    throw "Mismatched edges";
-  }
 
   for (let i = 1; i <= N; i++) {
     let firstSuccessorIndex = firstSuccessor[i];
@@ -214,6 +369,7 @@ Graph.prototype.computePredecessors = function() {
        successorIndex < lastSuccessorIndex;
        successorIndex++) {
       let successor = successors[successorIndex];
+      if (successor == 0) continue;  // Omitted object.
       let count = --predecessorCount[successor];
       let predecessorIndex = firstPredecessor[successor] + count;
       predecessors[predecessorIndex] = i;
@@ -250,18 +406,24 @@ Graph.prototype.rewriteEdgesForOwners = function() {
     let cls = this.class_[i];
     let ownerEdgeName;
 
-    if (cls == "Class") {
+    if (cls == "Class") {  // Dart VM
       ownerEdgeName = "library_";
-    } else if (cls == "PatchClass") {
+    } else if (cls == "PatchClass") {  // Dart VM
       ownerEdgeName = "patched_class_";
-    } else if (cls == "Function") {
+    } else if (cls == "Function") {  // Dart VM
       ownerEdgeName = "owner_";
-    } else if (cls == "Field") {
+    } else if (cls == "Field") {  // Dart VM
       ownerEdgeName = "owner_";
-    } else if (cls == "Code") {
+    } else if (cls == "Code") {  // Dart VM
       ownerEdgeName = "owner_";
-    } else if (cls == "ICData") {
+    } else if (cls == "ICData") {  // Dart VM
       ownerEdgeName = "owner_";
+    } else if (cls == "Method") {  // Primordial Soup
+      ownerEdgeName = "mixin";
+    } else if (cls.startsWith("InstanceMixin`")) {  // Primordial Soup
+      ownerEdgeName = "_enclosingMixin";
+    } else if (cls.startsWith("ClassMixin`")) {  // Primordial Soup
+      ownerEdgeName = "_instanceMixin";
     } else {
       continue;
     }
@@ -378,7 +540,11 @@ Graph.prototype.computePreorder = function(root) {
       e++;
       stackEdges[stackTop] = e;
 
-      if (semi[w] == 0) {
+      if (w == 0) {
+        // Omitted object.
+      } else if (semi[w] != 0) {
+        // Already visited.
+      } else {
         parent[w] = v;
 
         preorderNumber++;
@@ -567,6 +733,143 @@ Graph.prototype.linkDominatorChildren = function() {
   this.domNext_ = next;
 };
 
+// Merge the given lists according to the given key in ascending order.
+// Returns the head of the merged list.
+function mergeSorted(head1, head2, next, key) {
+  let head = head1;
+  let beforeInsert = 0;
+  let afterInsert = head1;
+  let startInsert = head2;
+
+  while (startInsert != 0) {
+    while ((afterInsert != 0) &&
+           (key[afterInsert] <= key[startInsert])) {
+      beforeInsert = afterInsert;
+      afterInsert = next[beforeInsert];
+    }
+    let endInsert = startInsert;
+    let peek = next[endInsert];
+
+    while ((peek != 0) && (key[peek] < key[afterInsert])) {
+      endInsert = peek;
+      peek = next[endInsert];
+    }
+
+    if (beforeInsert == 0) {
+      head = startInsert;
+    } else {
+      next[beforeInsert] = startInsert;
+    }
+    next[endInsert] = afterInsert;
+
+    startInsert = peek;
+    beforeInsert = endInsert;
+  }
+
+  return head;
+}
+
+Graph.prototype.sortDominatorChildren = function() {
+  console.log("Sorting dominator tree children...");
+
+  const N = this.N_;
+  const Nconnected = this.Nconnected_;
+  const cids = this.class_;
+  const head = this.domHead_;
+  const next = this.domNext_;
+
+  function sort(head) {
+    if (head == 0) return 0;
+    if (next[head] == 0) return head;
+
+    // Find the middle of the list.
+    let head1 = head;
+    let slow = head;
+    let fast = head;
+    while (next[fast] != 0 && next[next[fast]] != 0) {
+      slow = next[slow];
+      fast = next[next[fast]];
+    }
+
+    // Split the list in half.
+    let head2 = next[slow];
+    next[slow] = 0;
+
+    // Recursively sort the sublists and merge.
+    let newHead1 = sort(head1);
+    let newHead2 = sort(head2);
+    return mergeSorted(newHead1, newHead2, next, cids);
+  };
+
+  // Sort all list of dominator tree children by cid.
+  for (let parent = 1; parent <= N; parent++) {
+    head[parent] = sort(head[parent]);
+  }
+};
+
+Graph.prototype.mergeDominatorSiblings = function(root) {
+  console.log("Merging dominator tree siblings...");
+
+  const N = this.N_;
+  const cids = this.class_;
+  const head = new Uint32Array(this.domHead_);
+  const next = new Uint32Array(this.domNext_);
+  const workStack = new Uint32Array(N);
+  let workStackTop = 0;
+
+  function mergeChildrenAndSort(parent1, end) {
+    if (next[parent1] == end) return;
+
+    // Find the middle of the list.
+    let slow = parent1;
+    let fast = parent1;
+    while (next[fast] != end && next[next[fast]] != end) {
+      slow = next[slow];
+      fast = next[next[fast]];
+    }
+
+    let parent2 = next[slow];
+
+    // Recursively sort the sublists.
+    mergeChildrenAndSort(parent1, parent2);
+    mergeChildrenAndSort(parent2, end);
+
+    // Merge sorted sublists.
+    head[parent1] = mergeSorted(head[parent1], head[parent2], next, cids);
+
+    // Children moved to parent1.
+    head[parent2] = 0;
+  }
+
+  // Push root.
+  workStack[workStackTop++] = root;
+
+  while (workStackTop > 0) {
+    let parent = workStack[--workStackTop];
+
+    let child = head[parent];
+    while (child != 0) {
+      // Push child.
+      workStack[workStackTop++] = child;
+
+      // Find next sibling with a different cid.
+      let after = child;
+      while (after != 0 && cids[after] == cids[child]) {
+        after = next[after];
+      }
+
+      // From all the siblings between child and after, take their children,
+      // merge them and given to child.
+      mergeChildrenAndSort(child, after);
+
+      child = after;
+    }
+  }
+
+  this.mergedDomHead_ = head;
+  this.mergedDomNext_ = next;
+};
+
 Graph.prototype.getTotalSize = function() {
   return this.shallowSizeSum_;
 };
@@ -618,6 +921,10 @@ Graph.prototype.predecessorsOfDo = function(v, action) {
   }
 }
 
+Graph.prototype.parentOf = function(v) {
+  return this.dom_[v];
+};
+
 Graph.prototype.dominatorChildrenOfDo = function(v, action) {
   for (let w = this.domHead_[v]; w != 0; w = this.domNext_[w]) {
     action(w);
@@ -638,6 +945,10 @@ Graph.prototype.shallowSizeOf = function(v) {
 
 Graph.prototype.retainedSizeOf = function(v) {
   return this.retainedSize_[v];
+};
+
+Graph.prototype.setFrom = function(v) {
+  return [v];
 };
 
 Graph.prototype.shallowSizeOfSet = function(nodes) {
@@ -714,6 +1025,198 @@ Graph.prototype.retainedSizeOfSet = function(nodes) {
   return sum;
 };
 
+Graph.prototype.toggleMerge = function() {
+  return new MergedGraph(this);
+};
+
+function MergedGraph(graph) {
+  this.graph_ = graph;
+}
+
+MergedGraph.prototype.nameOf = function(v) {
+  const cids = this.graph_.class_;
+  const next = this.graph_.mergedDomNext_;
+  let count = 0;
+  let sibling = v;
+  while (sibling != 0 && cids[sibling] == cids[v]) {
+    count++;
+    sibling = next[sibling];
+  }
+  return count.toString() + " instances of " + this.graph_.class_[v];
+};
+
+MergedGraph.prototype.classOf = function(v) {
+  return this.graph_.class_[v];
+};
+
+MergedGraph.prototype.shallowSizeOf = function(v) {
+  const cids = this.graph_.class_;
+  const shallowSize = this.graph_.shallowSize_;
+  const next = this.graph_.mergedDomNext_;
+  let size = 0;
+  let sibling = v;
+  while (sibling != 0 && cids[sibling] == cids[v]) {
+    size += shallowSize[sibling];
+    sibling = next[sibling];
+  }
+  return size;
+};
+
+MergedGraph.prototype.retainedSizeOf = function(v) {
+  const cids = this.graph_.class_;
+  const retainedSize = this.graph_.retainedSize_;
+  const next = this.graph_.mergedDomNext_;
+  let size = 0;
+  let sibling = v;
+  while (sibling != 0 && cids[sibling] == cids[v]) {
+    size += retainedSize[sibling];
+    sibling = next[sibling];
+  }
+  return size;
+};
+
+MergedGraph.prototype.setFrom = function(v) {
+  const cids = this.graph_.class_;
+  const next = this.graph_.mergedDomNext_;
+  let set = new Array();
+  let sibling = v;
+  while (sibling != 0 && cids[sibling] == cids[v]) {
+    set.push(sibling);
+    sibling = next[sibling];
+  }
+  return set;
+};
+
+MergedGraph.prototype.parentOf = function(v) {
+  // N.B.: Not dom_[v], which might not be the representative element of the
+  // merged group.
+  const N = this.graph_.N_;
+  const head = this.graph_.mergedDomHead_;
+  const next = this.graph_.mergedDomNext_;
+  for (let parent = 1; parent <= N; parent++) {
+    for (let child = head[parent]; child != 0; child = next[child]) {
+      if (child == v) {
+        return parent;
+      }
+    }
+  }
+  return 0;
+};
+
+MergedGraph.prototype.dominatorChildrenOfDo = function(v, action) {
+  const next = this.graph_.mergedDomNext_;
+  const cids = this.graph_.class_;
+  let prev = 0;
+  let child = this.graph_.mergedDomHead_[v];
+  // Walk the list of children and look for the representative objects, i.e.
+  // the first sibling of each cid.
+  while (child != 0) {
+    if (prev == 0 || cids[prev] != cids[child]) {
+      action(child);
+    }
+    prev = child;
+    child = next[child];
+  }
+};
+
+MergedGraph.prototype.getTotalSize = function() {
+  return this.graph_.shallowSizeSum_;
+};
+
+MergedGraph.prototype.toggleMerge = function() {
+  return this.graph_;
+};
+
+function Stream(bytes) {
+  this.bytes_ = new Uint8Array(bytes);
+  this.position_ = 0;
+}
+
+Stream.prototype.byte = function() {
+  const position = this.position_;
+  const bytes = this.bytes_;
+  if ((position >= 0) && (position < bytes.length)) {
+    const result = bytes[position];
+    this.position_ = position + 1;
+    return result;
+  }
+  throw "Attempt to read past end of stream";
+};
+
+Stream.prototype.uleb128 = function() {
+  let result = 0;
+  let shift = 0;
+  for (;;) {
+    const part = this.byte();
+    result |= (part & 0x7F) << shift;
+    if ((part & 0x80) == 0) {
+      break;
+    }
+    shift += 7;
+  }
+  return result;
+};
+
+Stream.prototype.sleb128 = function() {
+  let result = 0;
+  let shift = 0;
+  for (;;) {
+    const part = this.byte();
+    result |= (part & 0x7F) << shift;
+    shift += 7;
+    if ((part & 0x80) == 0) {
+      if ((part & 0x40) != 0) {
+        result |= (-1 << shift);
+      }
+      break;
+    }
+  }
+  return result;
+};
+
+Stream.prototype.float64 = function() {
+  const buffer = new ArrayBuffer(8);
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < 8; i++) {
+    bytes[i] = this.byte();
+  }
+  return new Float64Array(buffer)[0];
+};
+
+Stream.prototype.utf8 = function() {
+  const length = this.uleb128();
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    // This is incorrect outside of ASCII, but good enough for our purpose
+    // since we're mostly interested in identifiers.
+    result += String.fromCharCode(this.byte());
+  }
+  // Can we force flattening of the rope string?
+  return result.toString();
+};
+
+Stream.prototype.latin1 = function() {
+  const length = this.uleb128();
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += String.fromCharCode(this.byte());
+  }
+  // Can we force flattening of the rope string?
+  return result.toString();
+};
+
+Stream.prototype.utf16 = function() {
+  const length = this.uleb128();
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    const lo = this.byte();
+    const hi = this.byte();
+    result += String.fromCharCode((hi << 8) | lo);
+  }
+  // Can we force flattening of the rope string?
+  return result.toString();
+};
+
 function hash(string) {
   // Jenkin's one_at_a_time.
   let h = string.length;
@@ -747,27 +1250,27 @@ function prettyPercent(fraction) {
   return (fraction * 100).toFixed(1);
 }
 
-function createTreemapTile(v, width, height, depth) {
+function createTreemapTile(graph, v, width, height, depth) {
   let div = document.createElement("div");
   div.className = "treemapTile";
   div.style["background-color"] = color(graph.classOf(v));
   div.ondblclick = function(event) {
     event.stopPropagation();
     if (depth == 0) {
-      let dom = graph.dom_[v];
+      let dom = graph.parentOf(v);
       if (dom == 0) {
         // Already at root.
       } else {
-        showDominatorTree(dom);  // Zoom out.
+        showDominatorTree(graph, dom);  // Zoom out.
       }
     } else {
-      showDominatorTree(v);  // Zoom in.
+      showDominatorTree(graph, v);  // Zoom in.
     }
   };
   div.oncontextmenu = function(event) {
     event.stopPropagation();
     event.preventDefault();
-    showTables([v]);
+    showTables(graph.setFrom(v));
   };
 
   let left = 0;
@@ -877,7 +1380,7 @@ function createTreemapTile(v, width, height, depth) {
         childWidth = size / childHeight;
       }
 
-      let childDiv = createTreemapTile(child, childWidth, childHeight, depth + 1);
+      let childDiv = createTreemapTile(graph, child, childWidth, childHeight, depth + 1);
       childDiv.style.left = rowLeft + "px";
       childDiv.style.top = rowTop + "px";
       // Oversize the final div by kBorder to make the borders overlap.
@@ -905,17 +1408,35 @@ function createTreemapTile(v, width, height, depth) {
   return div;
 }
 
-function showDominatorTree(v) {
-  let header = document.createElement("div");
-  header.textContent = "Dominator Tree";
-  header.title =
+function showDominatorTree(graph, v) {
+  let title = document.createElement("span");
+  title.textContent = "Dominator Tree";
+  title.title =
+    "Click title to merge/unmerge by class.\n" +
     "Double click a box to zoom in.\n" +
     "Double click the outermost box to zoom out.\n" +
     "Right click a box to view successor and predecessor tables.";
+  title.className = "nameCell actionCell";
+  title.onclick = function(event) { showDominatorTree(graph.toggleMerge(), v); };
+
+  let filler = document.createElement("span");
+  filler.style["flex-grow"] = 1;
+
+  let totalSize = document.createElement("span");
+  totalSize.className = "sizeCell";
+  totalSize.textContent = graph ? "" + graph.getTotalSize() : "0";
+
+  let totalPercent = document.createElement("span");
+  totalPercent.className = "sizePercentCell";
+  totalPercent.textContent = prettyPercent(1.0);
+
+  let header = document.createElement("div");
   header.className = "headerRow";
-  header.style["flex-grow"] = 0;
-  header.style["padding"] = "5px";
   header.style["border-bottom"] = "solid 1px";
+  header.appendChild(title);
+  header.appendChild(filler);
+  header.appendChild(totalSize);
+  header.appendChild(totalPercent);
 
   let content = document.createElement("div");
   content.style["flex-basis"] = 0;
@@ -937,7 +1458,7 @@ function showDominatorTree(v) {
   let w = content.offsetWidth;
   let h = content.offsetHeight;
 
-  let topTile = createTreemapTile(v, w, h, 0);
+  let topTile = createTreemapTile(graph, v, w, h, 0);
   topTile.style.width = w;
   topTile.style.height = h;
   topTile.style.border = "none";
@@ -1048,8 +1569,6 @@ function Table(title, labeledNodes, byEdges) {
 
   let header = document.createElement("div");
   header.className = "headerRow";
-  header.style["display"] = "flex";
-  header.style["flex-direction"] = "row";
   header.style["border-bottom"] = "solid 1px";
   header.appendChild(this.nom);
   header.appendChild(edge);
@@ -1199,14 +1718,19 @@ function createObjectRow(labeledNode) {
   shallowPercent.className = "sizePercentCell";
   shallowPercent.textContent = prettyPercent(graph.shallowSizeOf(v) / graph.getTotalSize());
 
+  function onClickRetained(event) {
+    // For the root, default to the merged view for the sake of web browser layout performance.
+    showDominatorTree(v == 1 ? graph.toggleMerge() : graph, v);
+  }
+
   let retainedSize = document.createElement("span");
-  retainedSize.onclick = function(event) { showDominatorTree(v); };
+  retainedSize.onclick = onClickRetained;
   retainedSize.className = "sizeCell actionCell";
   retainedSize.textContent = graph.retainedSizeOf(v);
   retainedSize.title = "Show dominator tree";
 
   let retainedPercent = document.createElement("span");
-  retainedPercent.onclick = function(event) { showDominatorTree(v); };
+  retainedPercent.onclick = onClickRetained;
   retainedPercent.className = "sizePercentCell actionCell";
   retainedPercent.textContent = prettyPercent(graph.retainedSizeOf(v) / graph.getTotalSize());
   retainedPercent.title = "Show dominator tree";
@@ -1355,14 +1879,27 @@ function showTables(nodes) {
   input.setAttribute("multiple", false);
   input.onchange = function(event) {
     let file = event.target.files[0];
+    document.title = file.name;
     let reader = new FileReader();
     reader.readAsText(file, 'UTF-8');
     reader.onload = function(event) {
       let data = JSON.parse(event.target.result);
-      document.title = file.name;
-      graph = new Graph();
-      graph.loadV8Profile(data, rewrite.checked);
+      let g = new Graph();
+      g.loadV8Profile(data);
       data = null; // Release memory
+      graph = g;
+      g.compute(rewrite.checked);
+      showTables([graph.getRoot()]);
+    };
+    reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+    reader.onload = function(event) {
+      let data = event.target.result;
+      let g = new Graph();
+      g.loadDartHeapSnapshot(data);
+      data = null; // Release memory
+      graph = g;
+      g.compute(rewrite.checked);
       showTables([graph.getRoot()]);
     };
   };
@@ -1393,8 +1930,6 @@ function showTables(nodes) {
   let topBar = document.createElement("div");
   topBar.className = "headerRow";
   topBar.style["border"] = "solid 2px";
-  topBar.style["display"] = "flex";
-  topBar.style["flex-direction"] = "row";
   topBar.style["align-items"] = "center";
   topBar.appendChild(rewrite);
   topBar.appendChild(rewriteLabel);

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Regression test for issue 6353.
 
+// @dart = 2.9
+
 class A<E> {}
 
 class C<E> extends A<E> {

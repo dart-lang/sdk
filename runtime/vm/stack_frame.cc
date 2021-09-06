@@ -146,7 +146,7 @@ bool StackFrame::IsStubFrame() const {
   }
 
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-#if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
+#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_HOST_OS_FUCHSIA)
   // On Windows and Fuchsia, the profiler calls this from a separate thread
   // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
@@ -335,7 +335,7 @@ CodePtr StackFrame::LookupDartCode() const {
 // We add a no gc scope to ensure that the code below does not trigger
 // a GC as we are handling raw object references here. It is possible
 // that the code is called while a GC is in progress, that is ok.
-#if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
+#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_HOST_OS_FUCHSIA)
   // On Windows and Fuchsia, the profiler calls this from a separate thread
   // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
@@ -351,24 +351,10 @@ CodePtr StackFrame::GetCodeObject() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     NoSafepointScope no_safepoint;
-    Code code;
-    code = ReversePc::Lookup(isolate_group(), pc(),
-                             /*is_return_address=*/true);
-    if (!code.IsNull()) {
-      // This is needed in order to test stack traces with the future
-      // behavior of ReversePc::Lookup which will return
-      // StubCode::UnknownDartCode() if code object is omitted from
-      // the snapshot.
-      if (code.is_discarded()) {
-        ASSERT(StubCode::UnknownDartCode().PayloadStart() == 0);
-        ASSERT(StubCode::UnknownDartCode().Size() == kUwordMax);
-        ASSERT(StubCode::UnknownDartCode().IsFunctionCode());
-        ASSERT(StubCode::UnknownDartCode().IsUnknownDartCode());
-        return StubCode::UnknownDartCode().ptr();
-      }
-      return code.ptr();
-    }
-    UNREACHABLE();
+    CodePtr code = ReversePc::Lookup(isolate_group(), pc(),
+                                     /*is_return_address=*/true);
+    ASSERT(code != Code::null());
+    return code;
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 

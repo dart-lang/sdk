@@ -116,7 +116,7 @@ typedef F(C value);
 class C<T extends F> {}
 class D<T extends C> {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 19),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
       error(CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, 38, 1),
       error(CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, 62, 1),
     ]);

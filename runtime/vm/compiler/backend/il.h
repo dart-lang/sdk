@@ -24,6 +24,7 @@
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/native_entry.h"
@@ -171,7 +172,7 @@ class Value : public ZoneAllocated {
   // in the same chain of redefinitions.
   bool NeedsWriteBarrier();
 
-  bool Equals(Value* other) const;
+  bool Equals(const Value& other) const;
 
   // Returns true if this |Value| can evaluate to the given |value| during
   // execution.
@@ -429,10 +430,10 @@ struct InstrAttrs {
   M(InstanceOf, _)                                                             \
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
+  M(AllocateClosure, _)                                                        \
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
-  M(StoreUntagged, kNoGC)                                                      \
   M(LoadClassId, kNoGC)                                                        \
   M(InstantiateType, _)                                                        \
   M(InstantiateTypeArguments, _)                                               \
@@ -478,7 +479,6 @@ struct InstrAttrs {
   M(Constraint, kNoGC)                                                         \
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
-  M(StringInterpolate, _)                                                      \
   M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, kNoGC)                                                \
   M(TruncDivMod, kNoGC)                                                        \
@@ -499,7 +499,7 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
-  M(BoxUint8, kNoGC)                                                           \
+  M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
   M(Deoptimize, kNoGC)                                                         \
@@ -1077,18 +1077,18 @@ class Instruction : public ZoneAllocated {
   virtual bool has_inlining_id() const { return inlining_id_ >= 0; }
 
   // Returns a hash code for use with hash maps.
-  virtual intptr_t Hashcode() const;
+  virtual uword Hash() const;
 
   // Compares two instructions.  Returns true, iff:
   // 1. They have the same tag.
   // 2. All input operands are Equals.
   // 3. They satisfy AttributesEqual.
-  bool Equals(Instruction* other) const;
+  bool Equals(const Instruction& other) const;
 
   // Compare attributes of a instructions (except input operands and tag).
   // All instructions that participate in CSE have to override this function.
   // This function can assume that the argument has the same type as this.
-  virtual bool AttributesEqual(Instruction* other) const {
+  virtual bool AttributesEqual(const Instruction& other) const {
     UNREACHABLE();
     return false;
   }
@@ -1264,9 +1264,6 @@ class TemplateInstruction
 class MoveOperands : public ZoneAllocated {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
-
-  MoveOperands(const MoveOperands& other)
-      : dest_(other.dest_), src_(other.src_) {}
 
   MoveOperands& operator=(const MoveOperands& other) {
     dest_ = other.dest_;
@@ -2489,7 +2486,7 @@ class PhiInstr : public Definition {
                : kGuardInputs;
   }
 
-  virtual intptr_t Hashcode() const {
+  virtual uword Hash() const {
     UNREACHABLE();
     return 0;
   }
@@ -2590,7 +2587,7 @@ class ParameterInstr : public Definition {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual intptr_t Hashcode() const {
+  virtual uword Hash() const {
     UNREACHABLE();
     return 0;
   }
@@ -2695,8 +2692,8 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsStoreIndexedUnsafe()->offset() == offset();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsStoreIndexedUnsafe()->offset() == offset();
   }
 
   Value* index() const { return inputs_[kIndexPos]; }
@@ -2744,8 +2741,8 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsLoadIndexedUnsafe()->offset() == offset();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsLoadIndexedUnsafe()->offset() == offset();
   }
 
   virtual Representation representation() const { return representation_; }
@@ -2804,7 +2801,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return true; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   Value* src() const { return inputs_[kSrcPos]; }
   Value* dest() const { return inputs_[kDestPos]; }
@@ -2875,8 +2872,8 @@ class TailCallInstr : public Instruction {
   // Two tailcalls can be canonicalized into one instruction if both have the
   // same destination.
   virtual bool AllowsCSE() const { return true; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return &other->AsTailCall()->code() == &code();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return &other.AsTailCall()->code() == &code();
   }
 
   // Since no code after this instruction will be executed, there will be no
@@ -2970,8 +2967,8 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    auto other_return = other->AsReturn();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_return = other.AsReturn();
     return token_pos() == other_return->token_pos() &&
            yield_index() == other_return->yield_index();
   }
@@ -3183,28 +3180,39 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
 // IndirectGotoInstr represents a dynamically computed jump. Only
 // IndirectEntryInstr targets are valid targets of an indirect goto. The
-// concrete target to jump to is given as a parameter to the indirect goto.
+// concrete target index to jump to is given as a parameter to the indirect
+// goto.
 //
 // In order to preserve split-edge form, an indirect goto does not itself point
 // to its targets. Instead, for each possible target, the successors_ field
 // will contain an ordinary goto instruction that jumps to the target.
 // TODO(zerny): Implement direct support instead of embedding gotos.
 //
-// Byte offsets of all possible targets are stored in the offsets_ array. The
-// desired offset is looked up while the generated code is executing, and passed
-// to IndirectGoto as an input.
+// The input to the [IndirectGotoInstr] is the target index to jump to.
+// All targets of the [IndirectGotoInstr] are added via [AddSuccessor] and get
+// increasing indices.
+//
+// The FlowGraphCompiler will - as a post-processing step - invoke
+// [ComputeOffsetTable] of all [IndirectGotoInstr]s. In there we initialize a
+// TypedDataInt32Array containing offsets of all [IndirectEntryInstr]s (the
+// offests are relative to start of the instruction payload).
+//
+//  => See `FlowGraphCompiler::CompileGraph()`
+//  => See `IndirectGotoInstr::ComputeOffsetTable`
 class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  IndirectGotoInstr(const TypedData* offsets, Value* offset_from_start)
-      : offsets_(*offsets) {
-    SetInputAt(0, offset_from_start);
+  IndirectGotoInstr(intptr_t target_count, Value* target_index)
+      : offsets_(TypedData::ZoneHandle(TypedData::New(kTypedDataInt32ArrayCid,
+                                                      target_count,
+                                                      Heap::kOld))) {
+    SetInputAt(0, target_index);
   }
 
   DECLARE_INSTRUCTION(IndirectGoto)
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kNoRepresentation;
+    return kTagged;
   }
 
   void AddSuccessor(TargetEntryInstr* successor) {
@@ -3274,12 +3282,11 @@ class ComparisonInstr : public Definition {
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    ComparisonInstr* other_comparison = other->AsComparison();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_comparison = other.AsComparison();
     return kind() == other_comparison->kind() &&
            (operation_cid() == other_comparison->operation_cid());
   }
-
 
   DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
@@ -3439,7 +3446,7 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   DECLARE_INSTRUCTION(Deoptimize)
 
@@ -3518,7 +3525,7 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
+  virtual bool AttributesEqual(const Instruction& other) const {
     UNREACHABLE();
     return false;
   }
@@ -3562,13 +3569,14 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   void EmitMoveToLocation(FlowGraphCompiler* compiler,
                           const Location& destination,
-                          Register tmp = kNoRegister);
+                          Register tmp = kNoRegister,
+                          intptr_t pair_index = 0);
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -3653,7 +3661,7 @@ class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -3745,7 +3753,7 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   virtual Value* RedefinedValue() const;
 
@@ -3784,7 +3792,7 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   virtual Value* RedefinedValue() const;
 
@@ -3835,8 +3843,8 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return kind() == other->AsSpecialParameter()->kind();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return kind() == other.AsSpecialParameter()->kind();
   }
   SpecialParameterKind kind() const { return kind_; }
 
@@ -3959,7 +3967,6 @@ class TemplateDartCall : public Definition {
         ArgumentsSizeWithoutTypeArgs(), argument_names());
   }
 
-
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
@@ -3980,14 +3987,12 @@ class ClosureCallInstr : public TemplateDartCall<1> {
                    intptr_t type_args_len,
                    const Array& argument_names,
                    const InstructionSource& source,
-                   intptr_t deopt_id,
-                   Code::EntryKind entry_kind = Code::EntryKind::kNormal)
+                   intptr_t deopt_id)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          inputs,
-                         source),
-        entry_kind_(entry_kind) {}
+                         source) {}
 
   DECLARE_INSTRUCTION(ClosureCall)
 
@@ -3996,13 +4001,9 @@ class ClosureCallInstr : public TemplateDartCall<1> {
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
-  Code::EntryKind entry_kind() const { return entry_kind_; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const Code::EntryKind entry_kind_;
-
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
 };
 
@@ -4416,7 +4417,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
 
-  bool AttributesEqual(Instruction* other) const;
+  bool AttributesEqual(const Instruction& other) const;
 
   PRINT_OPERANDS_TO_SUPPORT;
 
@@ -4503,7 +4504,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
     return kTagged;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -4557,10 +4558,10 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
     return speculative_mode_;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
+  virtual bool AttributesEqual(const Instruction& other) const {
     return ComparisonInstr::AttributesEqual(other) &&
-           (null_aware_ == other->AsEqualityCompare()->null_aware_) &&
-           (speculative_mode_ == other->AsEqualityCompare()->speculative_mode_);
+           (null_aware_ == other.AsEqualityCompare()->null_aware_) &&
+           (speculative_mode_ == other.AsEqualityCompare()->speculative_mode_);
   }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -4609,9 +4610,9 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
     return speculative_mode_;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
+  virtual bool AttributesEqual(const Instruction& other) const {
     return ComparisonInstr::AttributesEqual(other) &&
-           (speculative_mode_ == other->AsRelationalOp()->speculative_mode_);
+           (speculative_mode_ == other.AsRelationalOp()->speculative_mode_);
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -4680,10 +4681,10 @@ class IfThenElseInstr : public Definition {
   }
   virtual bool CanCallDart() const { return comparison()->CanCallDart(); }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_if_then_else = other.AsIfThenElse();
     return (comparison()->tag() == other_if_then_else->comparison()->tag()) &&
-           comparison()->AttributesEqual(other_if_then_else->comparison()) &&
+           comparison()->AttributesEqual(*other_if_then_else->comparison()) &&
            (if_true_ == other_if_then_else->if_true_) &&
            (if_false_ == other_if_then_else->if_false_);
   }
@@ -5120,12 +5121,14 @@ class FfiCallInstr : public Definition {
  public:
   FfiCallInstr(Zone* zone,
                intptr_t deopt_id,
-               const compiler::ffi::CallMarshaller& marshaller)
+               const compiler::ffi::CallMarshaller& marshaller,
+               bool is_leaf)
       : Definition(deopt_id),
         zone_(zone),
         marshaller_(marshaller),
         inputs_(marshaller.NumDefinitions() + 1 +
-                (marshaller.PassTypedData() ? 1 : 0)) {
+                (marshaller.PassTypedData() ? 1 : 0)),
+        is_leaf_(is_leaf) {
     inputs_.FillWith(
         nullptr, 0,
         marshaller.NumDefinitions() + 1 + (marshaller.PassTypedData() ? 1 : 0));
@@ -5176,13 +5179,26 @@ class FfiCallInstr : public Definition {
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
-  void EmitParamMoves(FlowGraphCompiler* compiler);
-  void EmitReturnMoves(FlowGraphCompiler* compiler);
+  LocationSummary* MakeLocationSummaryInternal(Zone* zone,
+                                               bool is_optimizing,
+                                               const Register temp) const;
+
+  // Clobbers both given registers.
+  // `saved_fp` is used as the frame base to rebase off of.
+  void EmitParamMoves(FlowGraphCompiler* compiler,
+                      const Register saved_fp,
+                      const Register temp);
+  // Clobbers both given temp registers.
+  void EmitReturnMoves(FlowGraphCompiler* compiler,
+                       const Register temp0,
+                       const Register temp1);
 
   Zone* const zone_;
   const compiler::ffi::CallMarshaller& marshaller_;
 
   GrowableArray<Value*> inputs_;
+
+  bool is_leaf_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
@@ -5308,6 +5324,16 @@ enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
 // field initializers *must* be marked as initializing. Initializing stores
 // into unboxed fields are responsible for allocating the mutable box which
 // would be mutated by subsequent stores.
+//
+// Note: If the value to store is an unboxed derived pointer (e.g. pointer to
+// start of internal typed data array backing) then this instruction cannot be
+// moved across instructions which can trigger GC, to ensure that
+//
+//    LoadUntagged + Arithmetic + StoreInstanceField
+//
+// are performed as an effectively atomic set of instructions.
+//
+// See kernel_to_il.cc:BuildTypedDataViewFactoryConstructor.
 class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
  public:
   enum class Kind {
@@ -5352,8 +5378,9 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     // In AOT unbox is done based on TFA, therefore it was proven to be correct
-    // and it can never deoptmize.
-    return (IsUnboxedStore() && CompilerState::Current().is_aot())
+    // and it can never deoptimize.
+    return (slot().representation() != kTagged ||
+            (IsUnboxedDartFieldStore() && CompilerState::Current().is_aot()))
                ? kNotSpeculative
                : kGuardInputs;
   }
@@ -5370,6 +5397,10 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   bool is_initialization() const { return is_initialization_; }
 
   bool ShouldEmitStoreBarrier() const {
+    if (RepresentationUtils::IsUnboxed(slot().representation())) {
+      // The target field is native and unboxed, so not traversed by the GC.
+      return false;
+    }
     if (instance()->definition() == value()->definition()) {
       // `x.slot = x` cannot create an old->new or old&marked->old&unmarked
       // reference.
@@ -5388,7 +5419,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   }
 
   virtual bool CanTriggerGC() const {
-    return IsUnboxedStore() || IsPotentialUnboxedStore();
+    return IsUnboxedDartFieldStore() || IsPotentialUnboxedDartFieldStore();
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5401,8 +5432,14 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   // are marked as having no side-effects.
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  bool IsUnboxedStore() const;
-  bool IsPotentialUnboxedStore() const;
+  // Returns whether this instruction is an unboxed store into a _boxed_ Dart
+  // field. Unboxed Dart fields are handled similar to unboxed native fields.
+  bool IsUnboxedDartFieldStore() const;
+
+  // Returns whether this instruction is an potential unboxed store into a
+  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
+  // native fields.
+  bool IsPotentialUnboxedDartFieldStore() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
@@ -5468,7 +5505,7 @@ class GuardFieldClassInstr : public GuardFieldInstr {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldClassInstr);
@@ -5485,7 +5522,7 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldLengthInstr);
@@ -5508,7 +5545,7 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
@@ -5532,7 +5569,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
-  bool IsFieldInitialized(Instance* field_value = nullptr) const;
+  bool IsFieldInitialized(Object* field_value = nullptr) const;
 
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
@@ -5543,9 +5580,10 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
     // the dominating load.
     //
     // Though if the field is final-late there can be stores into it via
-    // load/compare-with-sentinel/store. Those loads have `!calls_initializer()`
-    // and we won't allow CSE for them.
-    return field().is_final() && (!field().is_late() || calls_initializer());
+    // load/compare-with-sentinel/store. Those loads have
+    // `!field().has_initializer()` and we won't allow CSE for them.
+    return field().is_final() &&
+           (!field().is_late() || field().has_initializer());
   }
 
   virtual bool ComputeCanDeoptimize() const {
@@ -5557,7 +5595,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -5664,17 +5702,23 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t class_id() const { return class_id_; }
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
   virtual bool ComputeCanDeoptimize() const {
     return GetDeoptId() != DeoptId::kNone;
   }
 
-  virtual Representation representation() const;
+  // Representation of LoadIndexed from arrays with given cid.
+  static Representation RepresentationOfArrayElement(intptr_t array_cid);
+
+  Representation representation() const {
+    return RepresentationOfArrayElement(class_id());
+  }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
 
  private:
   const bool index_unboxed_;
@@ -5776,7 +5820,7 @@ class OneByteStringFromCharCodeInstr
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(OneByteStringFromCharCodeInstr);
@@ -5796,49 +5840,14 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsStringToCharCode()->cid_ == cid_;
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsStringToCharCode()->cid_ == cid_;
   }
 
  private:
   const intptr_t cid_;
 
   DISALLOW_COPY_AND_ASSIGN(StringToCharCodeInstr);
-};
-
-class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
- public:
-  StringInterpolateInstr(Value* value,
-                         const InstructionSource& source,
-                         intptr_t deopt_id)
-      : TemplateDefinition(source, deopt_id),
-        token_pos_(source.token_pos),
-        function_(Function::ZoneHandle()) {
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  virtual CompileType ComputeType() const;
-  // Issues a static call to Dart code which calls toString on objects.
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
-  const Function& CallFunction() const;
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_INSTRUCTION(StringInterpolate)
-
- private:
-  const TokenPosition token_pos_;
-  Function& function_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
 };
 
 // Scanning instruction to compute the result size and decoding parameters
@@ -5901,8 +5910,8 @@ class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
     return kNotSpeculative;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return scan_flags_field_.Equals(&other->AsUtf8Scan()->scan_flags_field_);
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return scan_flags_field_.Equals(other.AsUtf8Scan()->scan_flags_field_);
   }
 
   bool IsScanFlagsUnboxed() const;
@@ -5964,6 +5973,9 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
+  // Representation of value passed to StoreIndexed for arrays with given cid.
+  static Representation RepresentationOfArrayElement(intptr_t array_cid);
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
   bool IsExternal() const {
@@ -5981,7 +5993,6 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   void PrintOperandsTo(BaseTextBuffer* f) const;
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
 
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
@@ -6098,6 +6109,29 @@ class AllocationInstr : public Definition {
     return InputCount();
   }
 
+  // Returns the slot in the allocated object that contains the value at the
+  // given input position. Returns nullptr if the input position is invalid
+  // or if the input is not stored in the object.
+  virtual const Slot* SlotForInput(intptr_t pos) { return nullptr; }
+
+  // Returns the input index that has a corresponding slot which is identical to
+  // the given slot. Returns a negative index if no such input found.
+  intptr_t InputForSlot(const Slot& slot) {
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      auto* const input_slot = SlotForInput(i);
+      if (input_slot != nullptr && input_slot->IsIdentical(slot)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  // Returns whether the allocated object has initialized fields and/or payload
+  // elements. Override for any subclass that returns an uninitialized object.
+  virtual bool ObjectIsInitialized() { return true; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
 
  private:
@@ -6129,17 +6163,19 @@ class TemplateAllocation : public AllocationInstr {
 
 class AllocateObjectInstr : public AllocationInstr {
  public:
+  enum { kTypeArgumentsPos = 0 };
   AllocateObjectInstr(const InstructionSource& source,
                       const Class& cls,
                       intptr_t deopt_id,
                       Value* type_arguments = nullptr)
       : AllocationInstr(source, deopt_id),
         cls_(cls),
-        type_arguments_(type_arguments),
-        closure_function_(Function::ZoneHandle()) {
+        type_arguments_(type_arguments) {
     ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
     if (type_arguments != nullptr) {
-      SetInputAt(0, type_arguments);
+      SetInputAt(kTypeArgumentsPos, type_arguments);
+      type_arguments_slot_ =
+          &Slot::GetTypeArgumentsSlotFor(Thread::Current(), cls);
     }
   }
 
@@ -6149,16 +6185,11 @@ class AllocateObjectInstr : public AllocationInstr {
   const Class& cls() const { return cls_; }
   Value* type_arguments() const { return type_arguments_; }
 
-  const Function& closure_function() const { return closure_function_; }
-  void set_closure_function(const Function& function) {
-    closure_function_ = function.ptr();
-  }
-
   virtual intptr_t InputCount() const {
     return (type_arguments_ != nullptr) ? 1 : 0;
   }
   virtual Value* InputAt(intptr_t i) const {
-    ASSERT(type_arguments_ != nullptr && i == 0);
+    ASSERT(type_arguments_ != nullptr && i == kTypeArgumentsPos);
     return type_arguments_;
   }
 
@@ -6172,20 +6203,75 @@ class AllocateObjectInstr : public AllocationInstr {
     return Heap::IsAllocatableInNewSpace(cls.target_instance_size());
   }
 
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    return pos == kTypeArgumentsPos ? type_arguments_slot_ : nullptr;
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
-    ASSERT((type_arguments_ != nullptr) && (i == 0));
+    ASSERT((type_arguments_ != nullptr) && (i == kTypeArgumentsPos));
     ASSERT(value != nullptr);
     type_arguments_ = value;
   }
 
   const Class& cls_;
   Value* type_arguments_;
-  Function& closure_function_;
+  const Slot* type_arguments_slot_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
+};
+
+// Allocates and null initializes a closure object, given the closure function
+// and the context as values.
+class AllocateClosureInstr : public TemplateAllocation<2> {
+ public:
+  enum Inputs { kFunctionPos = 0, kContextPos = 1 };
+  AllocateClosureInstr(const InstructionSource& source,
+                       Value* closure_function,
+                       Value* context,
+                       intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id) {
+    SetInputAt(kFunctionPos, closure_function);
+    SetInputAt(kContextPos, context);
+  }
+
+  DECLARE_INSTRUCTION(AllocateClosure)
+  virtual CompileType ComputeType() const;
+
+  Value* closure_function() const { return inputs_[kFunctionPos]; }
+  Value* context() const { return inputs_[kContextPos]; }
+
+  const Function& known_function() const {
+    Value* const value = closure_function();
+    if (value->BindsToConstant()) {
+      ASSERT(value->BoundConstant().IsFunction());
+      return Function::Cast(value->BoundConstant());
+    }
+    return Object::null_function();
+  }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kFunctionPos:
+        return &Slot::Closure_function();
+      case kContextPos:
+        return &Slot::Closure_context();
+      default:
+        return TemplateAllocation::SlotForInput(pos);
+    }
+  }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    return Heap::IsAllocatableInNewSpace(
+        compiler::target::Closure::InstanceSize());
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateClosureInstr);
 };
 
 class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
@@ -6205,6 +6291,8 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
     return compiler::target::WillAllocateNewOrRememberedContext(
         num_context_variables_);
   }
+
+  virtual bool ObjectIsInitialized() { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -6340,20 +6428,20 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
 class CreateArrayInstr : public TemplateArrayAllocation<2> {
  public:
   CreateArrayInstr(const InstructionSource& source,
-                   Value* element_type,
+                   Value* type_arguments,
                    Value* num_elements,
                    intptr_t deopt_id)
       : TemplateArrayAllocation(source, deopt_id) {
-    SetInputAt(kElementTypePos, element_type);
+    SetInputAt(kTypeArgumentsPos, type_arguments);
     SetInputAt(kLengthPos, num_elements);
   }
 
-  enum { kElementTypePos = 0, kLengthPos = 1 };
+  enum { kTypeArgumentsPos = 0, kLengthPos = 1 };
 
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType ComputeType() const;
 
-  Value* element_type() const { return inputs_[kElementTypePos]; }
+  Value* type_arguments() const { return inputs_[kTypeArgumentsPos]; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6363,6 +6451,17 @@ class CreateArrayInstr : public TemplateArrayAllocation<2> {
     if (!HasConstantNumElements()) return false;
     return compiler::target::WillAllocateNewOrRememberedArray(
         GetConstantNumElements());
+  }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kTypeArgumentsPos:
+        return &Slot::Array_type_arguments();
+      case kLengthPos:
+        return &Slot::Array_length();
+      default:
+        return TemplateArrayAllocation::SlotForInput(pos);
+    }
   }
 
  private:
@@ -6392,6 +6491,15 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
   virtual bool WillAllocateNewOrRemembered() const {
     // No write barriers are generated for typed data accesses.
     return false;
+  }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kLengthPos:
+        return &Slot::TypedDataBase_length();
+      default:
+        return TemplateArrayAllocation::SlotForInput(pos);
+    }
   }
 
  private:
@@ -6427,8 +6535,8 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsLoadUntagged()->offset_ == offset_;
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsLoadUntagged()->offset_ == offset_;
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -6437,55 +6545,6 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   intptr_t offset_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
-};
-
-// Stores an untagged value into the given object.
-//
-// If the untagged value is a derived pointer (e.g. pointer to start of internal
-// typed data array backing) then this instruction cannot be moved across
-// instructions which can trigger GC, to ensure that
-//
-//    LoadUntaggeed + Arithmetic + StoreUntagged
-//
-// are performed atomically
-//
-// See kernel_to_il.cc:BuildTypedDataViewFactoryConstructor.
-class StoreUntaggedInstr : public TemplateInstruction<2, NoThrow> {
- public:
-  StoreUntaggedInstr(Value* object, Value* value, intptr_t offset)
-      : offset_(offset) {
-    SetInputAt(0, object);
-    SetInputAt(1, value);
-  }
-
-  DECLARE_INSTRUCTION(StoreUntagged)
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0 || idx == 1);
-    // The object may be tagged or untagged (for external objects).
-    if (idx == 0) return kNoRepresentation;
-    return kUntagged;
-  }
-
-  Value* object() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
-  intptr_t offset() const { return offset_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsStoreUntagged()->offset_ == offset_;
-  }
-
-  intptr_t offset_from_tagged() const {
-    const bool is_tagged = object()->definition()->representation() == kTagged;
-    return offset() - (is_tagged ? kHeapObjectTag : 0);
-  }
-
- private:
-  intptr_t offset_;
-
-  DISALLOW_COPY_AND_ASSIGN(StoreUntaggedInstr);
 };
 
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -6508,8 +6567,8 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    auto other_load = other->AsLoadClassId();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_load = other.AsLoadClassId();
     return other_load->representation_ == representation_ &&
            other_load->input_can_be_smi_ == input_can_be_smi_;
   }
@@ -6584,6 +6643,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     return calls_initializer() && !CompilerState::Current().is_aot();
@@ -6601,7 +6661,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  bool IsImmutableLengthLoad() const;
+  bool IsImmutableLengthLoad() const { return slot().IsImmutableLengthSlot(); }
 
   // Try evaluating this load against the given constant value of
   // the instance. Returns true if evaluation succeeded and
@@ -6625,7 +6685,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -6868,7 +6928,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -6913,8 +6973,8 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return from_representation();
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsBox()->from_representation() == from_representation();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsBox()->from_representation() == from_representation();
   }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
@@ -6963,18 +7023,22 @@ class BoxIntegerInstr : public BoxInstr {
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
 
-class BoxUint8Instr : public BoxIntegerInstr {
+class BoxSmallIntInstr : public BoxIntegerInstr {
  public:
-  explicit BoxUint8Instr(Value* value)
-      : BoxIntegerInstr(kUnboxedUint8, value) {}
+  explicit BoxSmallIntInstr(Representation rep, Value* value)
+      : BoxIntegerInstr(rep, value) {
+    ASSERT(RepresentationUtils::ValueSize(rep) * kBitsPerByte <=
+           compiler::target::kSmiBits);
+  }
 
   virtual bool ValueFitsSmi() const { return true; }
 
-  DECLARE_INSTRUCTION(BoxUint8)
+  DECLARE_INSTRUCTION(BoxSmallInt)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BoxUint8Instr);
+  DISALLOW_COPY_AND_ASSIGN(BoxSmallIntInstr);
 };
+
 class BoxInteger32Instr : public BoxIntegerInstr {
  public:
   BoxInteger32Instr(Representation representation, Value* value)
@@ -7058,8 +7122,8 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(Unbox)
   virtual CompileType ComputeType() const;
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    UnboxInstr* other_unbox = other->AsUnbox();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_unbox = other.AsUnbox();
     return (representation() == other_unbox->representation()) &&
            (speculative_mode_ == other_unbox->speculative_mode_);
   }
@@ -7093,8 +7157,9 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   intptr_t ValueOffset() const { return Boxing::ValueOffset(representation_); }
 
+ protected:
   const Representation representation_;
-  const SpeculativeMode speculative_mode_;
+  SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxInstr);
 };
@@ -7117,8 +7182,8 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    UnboxIntegerInstr* other_unbox = other->AsUnboxInteger();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_unbox = other.AsUnboxInteger();
     return UnboxInstr::AttributesEqual(other) &&
            (other_unbox->is_truncating_ == is_truncating_);
   }
@@ -7269,8 +7334,8 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(MathUnary)
   virtual CompileType ComputeType() const;
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return kind() == other->AsMathUnary()->kind();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return kind() == other.AsMathUnary()->kind();
   }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
@@ -7328,8 +7393,8 @@ class CaseInsensitiveCompareInstr
   DECLARE_INSTRUCTION(CaseInsensitiveCompare)
   virtual CompileType ComputeType() const;
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsCaseInsensitiveCompare()->cid_ == cid_;
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsCaseInsensitiveCompare()->cid_ == cid_;
   }
 
  private:
@@ -7388,7 +7453,7 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(MathMinMax)
   virtual CompileType ComputeType() const;
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -7446,8 +7511,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    const BinaryDoubleOpInstr* other_bin_op = other->AsBinaryDoubleOp();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_bin_op = other.AsBinaryDoubleOp();
     return (op_kind() == other_bin_op->op_kind()) &&
            (speculative_mode_ == other_bin_op->speculative_mode_);
   }
@@ -7489,8 +7554,8 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind_ == other->AsDoubleTestOp()->op_kind() &&
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return op_kind_ == other.AsDoubleTestOp()->op_kind() &&
            ComparisonInstr::AttributesEqual(other);
   }
 
@@ -7519,8 +7584,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
   Token::Kind op_kind() const { return op_kind_; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsUnaryIntegerOp()->op_kind() == op_kind();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsUnaryIntegerOp()->op_kind() == op_kind();
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -7605,8 +7670,8 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
     return kUnboxedInt64;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    UnaryInt64OpInstr* unary_op_other = other->AsUnaryInt64Op();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const unary_op_other = other.AsUnaryInt64Op();
     return UnaryIntegerOpInstr::AttributesEqual(other) &&
            (speculative_mode_ == unary_op_other->speculative_mode_);
   }
@@ -7677,7 +7742,7 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
@@ -7859,9 +7924,9 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
     return speculative_mode_;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
+  virtual bool AttributesEqual(const Instruction& other) const {
     return BinaryIntegerOpInstr::AttributesEqual(other) &&
-           (speculative_mode_ == other->AsBinaryInt64Op()->speculative_mode_);
+           (speculative_mode_ == other.AsBinaryInt64Op()->speculative_mode_);
   }
 
   virtual CompileType ComputeType() const;
@@ -8077,8 +8142,8 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return speculative_mode_;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return speculative_mode_ == other->AsUnaryDoubleOp()->speculative_mode_;
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return speculative_mode_ == other.AsUnaryDoubleOp()->speculative_mode_;
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -8164,7 +8229,7 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
  private:
   const TokenPosition token_pos_;
@@ -8190,7 +8255,7 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
@@ -8229,8 +8294,8 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return speculative_mode_;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return speculative_mode_ == other->AsInt64ToDouble()->speculative_mode_;
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return speculative_mode_ == other.AsInt64ToDouble()->speculative_mode_;
   }
 
  private:
@@ -8290,7 +8355,7 @@ class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
@@ -8323,8 +8388,8 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsDoubleToDouble()->recognized_kind() == recognized_kind();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsDoubleToDouble()->recognized_kind() == recognized_kind();
   }
 
  private:
@@ -8369,7 +8434,7 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -8403,7 +8468,7 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -8445,8 +8510,8 @@ class InvokeMathCFunctionInstr : public PureDefinition {
 
   virtual Value* InputAt(intptr_t i) const { return (*inputs_)[i]; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    InvokeMathCFunctionInstr* other_invoke = other->AsInvokeMathCFunction();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_invoke = other.AsInvokeMathCFunction();
     return other_invoke->recognized_kind() == recognized_kind();
   }
 
@@ -8503,8 +8568,8 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return definition_rep_;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    ExtractNthOutputInstr* other_extract = other->AsExtractNthOutput();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_extract = other.AsExtractNthOutput();
     return (other_extract->representation() == representation()) &&
            (other_extract->index() == index());
   }
@@ -8539,7 +8604,7 @@ class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(TruncDivMod)
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -8590,7 +8655,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
   bool licm_hoisted() const { return licm_hoisted_; }
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
@@ -8641,7 +8706,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   bool licm_hoisted() const { return licm_hoisted_; }
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
@@ -8700,7 +8765,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(const Instruction& other) const;
 
   static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                         FlowGraphCompiler* compiler);
@@ -8737,7 +8802,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -8805,7 +8870,7 @@ class CheckArrayBoundInstr : public CheckBoundBase {
 
   static bool IsFixedLengthArrayType(intptr_t class_id);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -8832,7 +8897,7 @@ class GenericCheckBoundInstr : public CheckBoundBase {
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
       : CheckBoundBase(length, index, deopt_id) {}
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   DECLARE_INSTRUCTION(GenericCheckBound)
 
@@ -8894,9 +8959,9 @@ class CheckConditionInstr : public Instruction {
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->Cast<CheckConditionInstr>()->comparison()->AttributesEqual(
-        comparison());
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsCheckCondition()->comparison()->AttributesEqual(
+        *comparison());
   }
 
   virtual intptr_t InputCount() const { return comparison()->InputCount(); }
@@ -8957,9 +9022,9 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return from();
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsIntConverter());
-    auto converter = other->AsIntConverter();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    ASSERT(other.IsIntConverter());
+    auto const converter = other.AsIntConverter();
     return (converter->from() == from()) && (converter->to() == to()) &&
            (converter->is_truncating() == is_truncating());
   }
@@ -9016,9 +9081,9 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return from();
   }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsBitCast());
-    BitCastInstr* converter = other->AsBitCast();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    ASSERT(other.IsBitCast());
+    auto const converter = other.AsBitCast();
     return converter->from() == from() && converter->to() == to();
   }
 
@@ -9229,8 +9294,8 @@ class SimdOpInstr : public Definition {
   virtual bool HasUnknownSideEffects() const { return false; }
   virtual bool AllowsCSE() const { return true; }
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    SimdOpInstr* other_op = other->AsSimdOp();
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_op = other.AsSimdOp();
     return kind() == other_op->kind() &&
            (!HasMask() || mask() == other_op->mask());
   }
@@ -9397,6 +9462,14 @@ class Environment : public ZoneAllocated {
     return LazyDeoptPruningBits::decode(bitfield_);
   }
 
+  bool LazyDeoptToBeforeDeoptId() const {
+    return LazyDeoptToBeforeDeoptId::decode(bitfield_);
+  }
+
+  void MarkAsLazyDeoptToBeforeDeoptId() {
+    bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
+  }
+
   Environment* GetLazyDeoptEnv(Zone* zone) {
     const intptr_t num_args_to_prune = LazyDeoptPruneCount();
     if (num_args_to_prune == 0) return this;
@@ -9475,11 +9548,13 @@ class Environment : public ZoneAllocated {
   friend class FlowGraphDeserializer;   // For constructor and deopt_id_.
 
   class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
+  class LazyDeoptToBeforeDeoptId
+      : public BitField<uintptr_t, bool, LazyDeoptPruningBits::kNextBit, 1> {};
   class DeoptIdBits
       : public BitField<uintptr_t,
                         intptr_t,
-                        LazyDeoptPruningBits::kNextBit,
-                        kBitsPerWord - LazyDeoptPruningBits::kNextBit,
+                        LazyDeoptToBeforeDeoptId::kNextBit,
+                        kBitsPerWord - LazyDeoptToBeforeDeoptId::kNextBit,
                         /*sign_extend=*/true> {};
 
   Environment(intptr_t length,
@@ -9490,6 +9565,7 @@ class Environment : public ZoneAllocated {
       : values_(length),
         fixed_parameter_count_(fixed_parameter_count),
         bitfield_(DeoptIdBits::encode(DeoptId::kNone) |
+                  LazyDeoptToBeforeDeoptId::encode(false) |
                   LazyDeoptPruningBits::encode(lazy_deopt_pruning_count)),
         parsed_function_(parsed_function),
         outer_(outer) {}
@@ -9499,6 +9575,9 @@ class Environment : public ZoneAllocated {
   }
   void SetLazyDeoptPruneCount(intptr_t value) {
     bitfield_ = LazyDeoptPruningBits::update(value, bitfield_);
+  }
+  void SetLazyDeoptToBeforeDeoptId(bool value) {
+    bitfield_ = LazyDeoptToBeforeDeoptId::update(value, bitfield_);
   }
 
   GrowableArray<Value*> values_;

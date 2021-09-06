@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart';
@@ -141,24 +139,29 @@ Procedure getMainTarget(Component component1Prime) {
       Uri.parse('org-dartlang:///main.dart')) {
     throw "Expected main first, got ${component1Prime.libraries[0].importUri}";
   }
-  Block block = component1Prime.libraries[0].procedures[0].function.body;
-  ReturnStatement returnStatement = block.statements[0];
-  StaticInvocation staticInvocation = returnStatement.expression;
+  Block block =
+      component1Prime.libraries[0].procedures[0].function.body as Block;
+  ReturnStatement returnStatement = block.statements[0] as ReturnStatement;
+  StaticInvocation staticInvocation =
+      returnStatement.expression as StaticInvocation;
   Procedure target = staticInvocation.target;
   return target;
 }
 
 Component createComponent(int literal) {
-  final Library lib = new Library(Uri.parse('org-dartlang:///lib.dart'));
+  final Uri libUri = Uri.parse('org-dartlang:///lib.dart');
+  final Library lib = new Library(libUri, fileUri: libUri);
   final Block libProcedureBody =
       new Block([new ReturnStatement(new IntLiteral(literal))]);
   final Procedure libProcedure = new Procedure(
       new Name("method"),
       ProcedureKind.Method,
-      new FunctionNode(libProcedureBody, returnType: new DynamicType()));
+      new FunctionNode(libProcedureBody, returnType: new DynamicType()),
+      fileUri: libUri);
   lib.addProcedure(libProcedure);
 
-  final Library main = new Library(Uri.parse('org-dartlang:///main.dart'));
+  final Uri mainUri = Uri.parse('org-dartlang:///main.dart');
+  final Library main = new Library(mainUri, fileUri: mainUri);
   final Block mainProcedureBody = new Block([
     new ReturnStatement(
         new StaticInvocation(libProcedure, new Arguments.empty()))
@@ -166,7 +169,8 @@ Component createComponent(int literal) {
   final Procedure mainProcedure = new Procedure(
       new Name("method"),
       ProcedureKind.Method,
-      new FunctionNode(mainProcedureBody, returnType: new DynamicType()));
+      new FunctionNode(mainProcedureBody, returnType: new DynamicType()),
+      fileUri: mainUri);
   main.addProcedure(mainProcedure);
   return new Component(libraries: [main, lib])
     ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);

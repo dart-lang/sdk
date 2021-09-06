@@ -1,31 +1,36 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 @#C3
 class A extends core::Object {
-  constructor •() → self::A*
+  constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  constructor •() → self::B*
+  constructor •() → self::B
     : super self::A::•()
     ;
 }
 abstract class C extends core::Object {
-  constructor •() → self::C*
+  constructor •() → self::C
     : super core::Object::•()
     ;
 }
 abstract class D extends self::C {
-  constructor •() → self::D*
+  constructor •() → self::D
     : super self::C::•()
     ;
 }
 class E extends self::D {
-  constructor •() → self::E*
+  constructor •() → self::E
     : super self::D::•()
     ;
 }
 static method main() → void {}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

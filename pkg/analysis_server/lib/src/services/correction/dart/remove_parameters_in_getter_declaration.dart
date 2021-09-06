@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,16 +15,14 @@ class RemoveParametersInGetterDeclaration extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    final node = this.node;
     if (node is MethodDeclaration) {
       // Support for the analyzer error.
-      var method = node as MethodDeclaration;
-      var name = method.name;
-      var body = method.body;
-      if (name != null && body != null) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.endStart(name, body), ' ');
-        });
-      }
+      var name = node.name;
+      var body = node.body;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.endStart(name, body), ' ');
+      });
     } else if (node is FormalParameterList) {
       // Support for the fasta error.
       await builder.addDartFileEdit(file, (builder) {

@@ -52,7 +52,7 @@ import "dart:core" as core;
 import "dart:_internal";
 
 @#C1
-class Class<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+class Class<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field test::Class::T b;
   const constructor constConstructor(core::int a, test::Class::T b) → test::Class<test::Class::T>

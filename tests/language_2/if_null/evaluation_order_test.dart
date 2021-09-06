@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Evaluation of an if-null expression e of the form e1 ?? e2 is equivalent to
 // the evaluation of the expression ((x) => x == null ? e2 : x)(e1).
 //

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -25,9 +23,9 @@ class ImportLibrarySdkTest extends FixProcessorTest {
   Future<void> test_alreadyImported_sdk() async {
     await resolveTestCode('''
 import 'dart:collection' show HashMap;
-main() {
-  HashMap s = null;
-  LinkedHashMap f = null;
+void f() {
+  HashMap? s = null;
+  LinkedHashMap? f = null;
   print('\$s \$f');
 }
 ''');
@@ -36,14 +34,14 @@ main() {
 
   Future<void> test_withClass_asExpression() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p as HashMap;
 }
 ''');
     await assertHasFix('''
 import 'dart:collection';
 
-main(p) {
+void f(p) {
   p as HashMap;
 }
 ''');
@@ -151,14 +149,14 @@ class C {
 
   Future<void> test_withClass_invocationTarget() async {
     await resolveTestCode('''
-main() {
+void f() {
   Timer.run(null);
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
-main() {
+void f() {
   Timer.run(null);
 }
 ''');
@@ -166,14 +164,14 @@ main() {
 
   Future<void> test_withClass_IsExpression() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p is Completer;
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
-main(p) {
+void f(p) {
   p is Completer;
 }
 ''');
@@ -181,7 +179,7 @@ main(p) {
 
   Future<void> test_withClass_itemOfList() async {
     await resolveTestCode('''
-main() {
+void f() {
   var a = [Completer];
   print(a);
 }
@@ -189,7 +187,7 @@ main() {
     await assertHasFix('''
 import 'dart:async';
 
-main() {
+void f() {
   var a = [Completer];
   print(a);
 }
@@ -202,7 +200,7 @@ class MyAnnotation {
   const MyAnnotation(a, b);
 }
 @MyAnnotation(int, const [Completer])
-main() {}
+void f() {}
 ''');
     await assertHasFix('''
 import 'dart:async';
@@ -211,7 +209,7 @@ class MyAnnotation {
   const MyAnnotation(a, b);
 }
 @MyAnnotation(int, const [Completer])
-main() {}
+void f() {}
 ''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
     });
@@ -219,7 +217,7 @@ main() {}
 
   Future<void> test_withClass_typeAnnotation() async {
     await resolveTestCode('''
-main() {
+void f() {
   Completer f = null;
   print(f);
 }
@@ -227,7 +225,7 @@ main() {
     await assertHasFix('''
 import 'dart:async';
 
-main() {
+void f() {
   Completer f = null;
   print(f);
 }
@@ -236,14 +234,14 @@ main() {
 
   Future<void> test_withClass_typeAnnotation_PrefixedIdentifier() async {
     await resolveTestCode('''
-main() {
+void f() {
   Timer.run;
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
-main() {
+void f() {
   Timer.run;
 }
 ''');
@@ -251,7 +249,7 @@ main() {
 
   Future<void> test_withClass_typeArgument() async {
     await resolveTestCode('''
-main() {
+void f() {
   List<Completer> completers = [];
   print(completers);
 }
@@ -259,7 +257,7 @@ main() {
     await assertHasFix('''
 import 'dart:async';
 
-main() {
+void f() {
   List<Completer> completers = [];
   print(completers);
 }
@@ -279,14 +277,14 @@ class MyCompleter with Completer<String> {}
 
   Future<void> test_withTopLevelVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(pi);
 }
 ''');
     await assertHasFix('''
 import 'dart:math';
 
-main() {
+void f() {
   print(pi);
 }
 ''');
@@ -295,14 +293,14 @@ main() {
   Future<void> test_withTopLevelVariable_annotation() async {
     await resolveTestCode('''
 @pi
-main() {
+void f() {
 }
 ''');
     await assertHasFix('''
 import 'dart:math';
 
 @pi
-main() {
+void f() {
 }
 ''');
   }

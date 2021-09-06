@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.modifier_builder;
 
 import '../modifier.dart';
@@ -11,7 +9,7 @@ import '../modifier.dart';
 import 'builder.dart';
 
 abstract class ModifierBuilder implements Builder {
-  String get name;
+  String? get name;
 
   bool get isNative;
 }
@@ -23,16 +21,12 @@ abstract class ModifierBuilderImpl extends BuilderImpl
   String get debugName;
 
   @override
-  Builder parent;
+  Builder? parent;
 
   @override
   final int charOffset;
 
-  @override
-  final Uri fileUri;
-
-  ModifierBuilderImpl(this.parent, this.charOffset, [Uri fileUri])
-      : fileUri = fileUri ?? parent?.fileUri;
+  ModifierBuilderImpl(Builder? parent, this.charOffset) : this.parent = parent;
 
   @override
   bool get isConst => (modifiers & constMask) != 0;
@@ -47,7 +41,7 @@ abstract class ModifierBuilderImpl extends BuilderImpl
   bool get isNative => false;
 
   StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(name ?? fullNameForErrors);
+    return buffer..write(name);
   }
 
   @override

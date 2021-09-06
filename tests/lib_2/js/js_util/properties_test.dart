@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests the functionality of object properties with the js_util library. For
 // js_util tests with HTML objects see tests/lib/html/js_util_test.dart.
 
@@ -50,10 +52,39 @@ class ExampleTypedLiteral {
   external get b;
 }
 
+class DartClass {
+  int x = 3;
+  int getX() => x;
+
+  static staticFunction() => 'static';
+  static const staticConstList = [1];
+}
+
+class GenericDartClass<T> {
+  final T myT;
+  GenericDartClass(this.myT);
+
+  T getT() => myT;
+}
+
+T getTopLevelGenerics<T>(T t) => t;
+
 String _getBarWithSideEffect() {
   var x = 5;
   expect(x, equals(5));
   return 'bar';
+}
+
+@JS()
+class CallMethodTest {
+  external CallMethodTest();
+
+  external zero();
+  external one(a);
+  external two(a, b);
+  external three(a, b, c);
+  external four(a, b, c, d);
+  external five(a, b, c, d, e);
 }
 
 main() {
@@ -106,6 +137,27 @@ main() {
 
     Foo.prototype.callFn = function(fn) {
       return fn();
+    }
+
+    function CallMethodTest() {}
+
+    CallMethodTest.prototype.zero = function() {
+      return 'zero';
+    }
+    CallMethodTest.prototype.one = function(a) {
+      return 'one';
+    }
+    CallMethodTest.prototype.two = function(a, b) {
+      return 'two';
+    }
+    CallMethodTest.prototype.three = function(a, b, c) {
+      return 'three';
+    }
+    CallMethodTest.prototype.four = function(a, b, c, d) {
+      return 'four';
+    }
+    CallMethodTest.prototype.five = function(a, b, c, d, e) {
+      return 'five';
     }
     """);
 
@@ -252,6 +304,8 @@ main() {
       js_util.setProperty(f, 'a', 100);
       expect(f.a, equals(100));
       expect(js_util.getProperty(f, 'a'), equals(100));
+      js_util.setProperty(f, 'a', null);
+      expect(f.a, equals(null));
 
       expect(js_util.getProperty(f, 'list') is List, isTrue);
       js_util.setProperty(f, 'list', [8]);
@@ -260,6 +314,23 @@ main() {
 
       js_util.setProperty(f, 'newProperty', 'new');
       expect(js_util.getProperty(f, 'newProperty'), equals('new'));
+
+      // Using a variable for the property value.
+      var num = 4;
+      js_util.setProperty(f, 'a', num);
+      expect(f.a, equals(num));
+      var str = 'bar';
+      js_util.setProperty(f, 'a', str);
+      expect(f.a, equals(str));
+      var b = false;
+      js_util.setProperty(f, 'a', b);
+      expect(f.a, equals(b));
+      var list = [2, 4, 6];
+      js_util.setProperty(f, 'a', list);
+      expect(f.a, equals(list));
+      var fn = allowInterop(dartFunction);
+      js_util.setProperty(f, 'a', fn);
+      expect(f.a, equals(fn));
     });
 
     test('typed literal', () {
@@ -291,6 +362,8 @@ main() {
         return 'Inline';
       }));
       expect(js_util.callMethod(f, 'bar', []), equals('Inline'));
+      js_util.setProperty(f, 'bar', allowInterop(DartClass.staticFunction));
+      expect(js_util.callMethod(f, 'bar', []), equals('static'));
 
       // Set property to a JS function.
       js_util.setProperty(f, 'bar', allowInterop(jsFunction));
@@ -314,6 +387,27 @@ main() {
       String bar = _getBarWithSideEffect();
       js_util.setProperty(f, bar, 'baz');
       expect(js_util.getProperty(f, bar), equals('baz'));
+      js_util.setProperty(f, _getBarWithSideEffect(), 'mumble');
+      expect(js_util.getProperty(f, bar), equals('mumble'));
+
+      // Set property to a function call.
+      js_util.setProperty(f, 'a', dartFunction());
+      String expected = dartFunction();
+      expect(f.a, equals(expected));
+
+      // Using a tearoff as the property value.
+      js_util.setProperty(f, 'tearoff', allowInterop(DartClass().getX));
+      expect(js_util.callMethod(f, 'tearoff', []), equals(3));
+
+      // Set property to instance method calls.
+      js_util.setProperty(f, 'a', DartClass().getX());
+      expect(f.a, equals(3));
+      js_util.setProperty(f, 'a', GenericDartClass<int>(5).getT());
+      expect(f.a, equals(5));
+
+      // Set property using a generics wrapper on value.
+      js_util.setProperty(f, 'a', getTopLevelGenerics<int>(10));
+      expect(f.a, equals(10));
     });
   });
 
@@ -349,22 +443,92 @@ main() {
       expect(js_util.callMethod(f, 'sumFn', [2, 3]), equals(5));
       expect(js_util.callMethod(f, 'getA', [f]), equals(42));
       expect(js_util.callMethod(f, 'callFn', [allowInterop(jsFunction)]),
-          equals("JS Function"));
+          equals('JS Function'));
       expect(js_util.callMethod(f, 'callFn', [allowInterop(dartFunction)]),
-          equals("Dart Function"));
+          equals('Dart Function'));
       expect(
           js_util.callMethod(f, 'callFn', [
             allowInterop(() {
-              return "inline";
+              return 'inline';
             })
           ]),
-          equals("inline"));
+          equals('inline'));
+      expect(
+          js_util.callMethod(
+              f, 'callFn', [allowInterop(DartClass.staticFunction)]),
+          equals('static'));
 
       // Using a variable for the method name.
       String methodName = 'bar';
       expect(js_util.callMethod(f, methodName, []), equals(42));
       String bar = _getBarWithSideEffect();
       expect(js_util.callMethod(f, bar, []), equals(42));
+    });
+
+    test('callMethod with List edge cases', () {
+      var o = CallMethodTest();
+
+      expect(js_util.callMethod(o, 'zero', List()), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', List<int>()), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', List.empty()), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', List<int>.empty()), equals('zero'));
+
+      expect(
+          js_util.callMethod(o, 'two', List<int>.filled(2, 0)), equals('two'));
+      expect(js_util.callMethod(o, 'three', List<int>.generate(3, (i) => i)),
+          equals('three'));
+
+      Iterable<String> iterableStrings = <String>['foo', 'bar'];
+      expect(js_util.callMethod(o, 'two', List.of(iterableStrings)),
+          equals('two'));
+
+      const l1 = [1, 2];
+      const l2 = [3, 4];
+      expect(js_util.callMethod(o, 'four', List.from(l1)..addAll(l2)),
+          equals('four'));
+      expect(js_util.callMethod(o, 'four', l1 + l2), equals('four'));
+      expect(js_util.callMethod(o, 'four', List.unmodifiable([1, 2, 3, 4])),
+          equals('four'));
+
+      var setElements = {1, 2};
+      expect(js_util.callMethod(o, 'two', setElements.toList()), equals('two'));
+
+      var spreadList = [1, 2, 3];
+      expect(js_util.callMethod(o, 'four', [1, ...spreadList]), equals('four'));
+    });
+
+    test('edge cases for lowering to _callMethodUncheckedN', () {
+      var o = CallMethodTest();
+
+      expect(js_util.callMethod(o, 'zero', []), equals('zero'));
+      expect(js_util.callMethod(o, 'one', [1]), equals('one'));
+      expect(js_util.callMethod(o, 'four', [1, 2, 3, 4]), equals('four'));
+      expect(js_util.callMethod(o, 'five', [1, 2, 3, 4, 5]), equals('five'));
+
+      // List with a type declaration, short circuits element checking
+      expect(js_util.callMethod(o, 'two', <int>[1, 2]), equals('two'));
+
+      // List as a variable instead of a List Literal or constant
+      var list = [1, 2];
+      expect(js_util.callMethod(o, 'two', list), equals('two'));
+
+      // Mixed types of elements to check in the given list.
+      var x = 4;
+      var str = 'cat';
+      var b = false;
+      var evens = [2, 4, 6];
+      expect(js_util.callMethod(o, 'four', [x, str, b, evens]), equals('four'));
+      var obj = Object();
+      expect(js_util.callMethod(o, 'one', [obj]), equals('one'));
+      var nullElement = null;
+      expect(js_util.callMethod(o, 'one', [nullElement]), equals('one'));
+
+      // const lists.
+      expect(js_util.callMethod(o, 'one', const [3]), equals('one'));
+      const constList = [10, 20, 30];
+      expect(js_util.callMethod(o, 'three', constList), equals('three'));
+      expect(js_util.callMethod(o, 'one', DartClass.staticConstList),
+          equals('one'));
     });
   });
 

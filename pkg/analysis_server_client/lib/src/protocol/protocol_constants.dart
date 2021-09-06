@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.32.5';
+const String PROTOCOL_VERSION = '1.32.7';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -163,14 +163,6 @@ const String DIAGNOSTIC_RESPONSE_GET_SERVER_PORT_PORT = 'port';
 const String EDIT_REQUEST_BULK_FIXES = 'edit.bulkFixes';
 const String EDIT_REQUEST_BULK_FIXES_INCLUDED = 'included';
 const String EDIT_REQUEST_BULK_FIXES_IN_TEST_MODE = 'inTestMode';
-const String EDIT_REQUEST_DARTFIX = 'edit.dartfix';
-const String EDIT_REQUEST_DARTFIX_EXCLUDED_FIXES = 'excludedFixes';
-const String EDIT_REQUEST_DARTFIX_INCLUDED = 'included';
-const String EDIT_REQUEST_DARTFIX_INCLUDED_FIXES = 'includedFixes';
-const String EDIT_REQUEST_DARTFIX_INCLUDE_PEDANTIC_FIXES =
-    'includePedanticFixes';
-const String EDIT_REQUEST_DARTFIX_OUTPUT_DIR = 'outputDir';
-const String EDIT_REQUEST_DARTFIX_PORT = 'port';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
 const String EDIT_REQUEST_FORMAT_FILE = 'file';
 const String EDIT_REQUEST_FORMAT_LINE_LENGTH = 'lineLength';
@@ -185,7 +177,6 @@ const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS =
 const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS_FILE = 'file';
 const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS_LENGTH = 'length';
 const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS_OFFSET = 'offset';
-const String EDIT_REQUEST_GET_DARTFIX_INFO = 'edit.getDartfixInfo';
 const String EDIT_REQUEST_GET_FIXES = 'edit.getFixes';
 const String EDIT_REQUEST_GET_FIXES_FILE = 'file';
 const String EDIT_REQUEST_GET_FIXES_OFFSET = 'offset';
@@ -221,19 +212,11 @@ const String EDIT_REQUEST_SORT_MEMBERS = 'edit.sortMembers';
 const String EDIT_REQUEST_SORT_MEMBERS_FILE = 'file';
 const String EDIT_RESPONSE_BULK_FIXES_DETAILS = 'details';
 const String EDIT_RESPONSE_BULK_FIXES_EDITS = 'edits';
-const String EDIT_RESPONSE_DARTFIX_DETAILS = 'details';
-const String EDIT_RESPONSE_DARTFIX_EDITS = 'edits';
-const String EDIT_RESPONSE_DARTFIX_HAS_ERRORS = 'hasErrors';
-const String EDIT_RESPONSE_DARTFIX_OTHER_SUGGESTIONS = 'otherSuggestions';
-const String EDIT_RESPONSE_DARTFIX_PORT = 'port';
-const String EDIT_RESPONSE_DARTFIX_SUGGESTIONS = 'suggestions';
-const String EDIT_RESPONSE_DARTFIX_URLS = 'urls';
 const String EDIT_RESPONSE_FORMAT_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_SELECTION_LENGTH = 'selectionLength';
 const String EDIT_RESPONSE_FORMAT_SELECTION_OFFSET = 'selectionOffset';
 const String EDIT_RESPONSE_GET_ASSISTS_ASSISTS = 'assists';
 const String EDIT_RESPONSE_GET_AVAILABLE_REFACTORINGS_KINDS = 'kinds';
-const String EDIT_RESPONSE_GET_DARTFIX_INFO_FIXES = 'fixes';
 const String EDIT_RESPONSE_GET_FIXES_FIXES = 'fixes';
 const String EDIT_RESPONSE_GET_POSTFIX_COMPLETION_CHANGE = 'change';
 const String EDIT_RESPONSE_GET_REFACTORING_CHANGE = 'change';

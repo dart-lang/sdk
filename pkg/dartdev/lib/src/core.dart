@@ -18,16 +18,24 @@ import 'utils.dart';
 Logger log;
 bool isDiagnostics = false;
 
+/// When set, this function is executed from the [DartdevCommand] constructor to
+/// contribute additional flags.
+void Function(ArgParser argParser, String cmdName) flagContributor;
+
 abstract class DartdevCommand extends Command<int> {
   final String _name;
   final String _description;
+  final bool _verbose;
 
   Project _project;
 
   @override
   final bool hidden;
 
-  DartdevCommand(this._name, this._description, {this.hidden = false});
+  DartdevCommand(this._name, this._description, this._verbose,
+      {this.hidden = false}) {
+    flagContributor?.call(argParser, _name);
+  }
 
   @override
   String get name => _name;
@@ -39,6 +47,17 @@ abstract class DartdevCommand extends Command<int> {
 
   @override
   ArgParser get argParser => _argParser ??= createArgParser();
+
+  @override
+  String get invocation {
+    if (_verbose) {
+      final splitInvocation = super.invocation.split(' ');
+      splitInvocation.insert(1, '[vm-options]');
+      return splitInvocation.join(' ');
+    } else {
+      return super.invocation;
+    }
+  }
 
   /// Create the ArgParser instance for this command.
   ///

@@ -41,7 +41,7 @@ abstract class double extends num {
 
   double abs();
 
-  /// Returns the sign of the double's numerical value.
+  /// The sign of the double's numerical value.
   ///
   /// Returns -1.0 if the value is less than zero,
   /// +1.0 if the value is greater than zero,

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 import re, base64, logging, pickle, httplib2, time, urlparse, urllib2, urllib, StringIO, gzip, zipfile
 

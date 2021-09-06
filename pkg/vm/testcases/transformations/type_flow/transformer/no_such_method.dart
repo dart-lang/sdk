@@ -69,7 +69,7 @@ class H {
 A bb = new B();
 A dd = new D();
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 

@@ -139,7 +139,7 @@ void SimulatorDebugger::Stop(Instr* instr, const char* message) {
 }
 
 static Register LookupCpuRegisterByName(const char* name) {
-  static const char* kNames[] = {
+  static const char* const kNames[] = {
       "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",
       "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
       "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
@@ -950,7 +950,7 @@ void Simulator::set_register(Instr* instr,
                              R31Type r31t) {
   // Register is in range.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
-#if !defined(TARGET_OS_FUCHSIA)
+#if !defined(DART_TARGET_OS_FUCHSIA)
   ASSERT(instr == NULL || reg != R18);  // R18 is globally reserved on iOS.
 #endif
 
@@ -2711,7 +2711,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     // Format(instr, "smulh 'rd, 'rn, 'rm");
     const int64_t rn_val = get_register(rn, R31IsZR);
     const int64_t rm_val = get_register(rm, R31IsZR);
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
     // Visual Studio does not support __int128.
     int64_t alu_out;
     Multiply128(rn_val, rm_val, &alu_out);
@@ -2719,7 +2719,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     const __int128 res =
         static_cast<__int128>(rn_val) * static_cast<__int128>(rm_val);
     const int64_t alu_out = static_cast<int64_t>(res >> 64);
-#endif  // HOST_OS_WINDOWS
+#endif  // DART_HOST_OS_WINDOWS
     set_register(instr, rd, alu_out, R31IsZR);
   } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 6) &&
              (instr->Bit(15) == 0)) {
@@ -2727,7 +2727,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     // Format(instr, "umulh 'rd, 'rn, 'rm");
     const uint64_t rn_val = get_register(rn, R31IsZR);
     const uint64_t rm_val = get_register(rm, R31IsZR);
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
     // Visual Studio does not support __int128.
     uint64_t alu_out;
     UnsignedMultiply128(rn_val, rm_val, &alu_out);
@@ -2735,7 +2735,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     const unsigned __int128 res = static_cast<unsigned __int128>(rn_val) *
                                   static_cast<unsigned __int128>(rm_val);
     const uint64_t alu_out = static_cast<uint64_t>(res >> 64);
-#endif  // HOST_OS_WINDOWS
+#endif  // DART_HOST_OS_WINDOWS
     set_register(instr, rd, alu_out, R31IsZR);
   } else if ((instr->Bits(29, 3) == 4) && (instr->Bit(15) == 0)) {
     if (instr->Bits(21, 3) == 5) {
@@ -3735,11 +3735,10 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
   set_register(NULL, CODE_REG, code);
   set_register(NULL, PP, pp);
-  set_register(NULL, BARRIER_MASK, thread->write_barrier_mask());
+  set_register(
+      NULL, HEAP_BITS,
+      (thread->write_barrier_mask() << 32) | (thread->heap_base() >> 32));
   set_register(NULL, NULL_REG, static_cast<int64_t>(Object::null()));
-#if defined(DART_COMPRESSED_POINTERS)
-  set_register(NULL, HEAP_BASE, thread->heap_base());
-#endif
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     set_register(NULL, DISPATCH_TABLE_REG,
                  reinterpret_cast<int64_t>(thread->dispatch_table_array()));

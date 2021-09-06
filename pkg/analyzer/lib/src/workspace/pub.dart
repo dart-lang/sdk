@@ -6,8 +6,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 
 /// Information about a Pub workspace.
 class PubWorkspace extends SimpleWorkspace {
@@ -22,13 +24,30 @@ class PubWorkspace extends SimpleWorkspace {
   /// The associated pubspec file.
   final File _pubspecFile;
 
+  /// The content of the `pubspec.yaml` file.
+  /// We read it once, so that all usages return consistent results.
+  final String? _pubspecContent;
+
   PubWorkspace._(
     ResourceProvider provider,
     Map<String, List<Folder>> packageMap,
     String root,
-    this._pubspecFile,
-  ) : super(provider, packageMap, root) {
+    File pubspecFile,
+  )   : _pubspecFile = pubspecFile,
+        _pubspecContent = _fileContentOrNull(pubspecFile),
+        super(provider, packageMap, root) {
     _theOnlyPackage = PubWorkspacePackage(root, this);
+  }
+
+  @override
+  bool get isConsistentWithFileSystem {
+    return _fileContentOrNull(_pubspecFile) == _pubspecContent;
+  }
+
+  @internal
+  @override
+  void contributeToResolutionSalt(ApiSignature buffer) {
+    buffer.addString(_pubspecContent ?? '');
   }
 
   @override
@@ -56,6 +75,13 @@ class PubWorkspace extends SimpleWorkspace {
       }
     }
   }
+
+  /// Return the content of the [file], `null` if cannot be read.
+  static String? _fileContentOrNull(File file) {
+    try {
+      return file.readAsStringSync();
+    } catch (_) {}
+  }
 }
 
 /// Information about a package defined in a [PubWorkspace].
@@ -82,11 +108,9 @@ class PubWorkspacePackage extends WorkspacePackage {
   Pubspec? get pubspec {
     if (!_parsedPubspec) {
       _parsedPubspec = true;
-      try {
-        final content = workspace._pubspecFile.readAsStringSync();
+      final content = workspace._pubspecContent;
+      if (content != null) {
         _pubspec = Pubspec.parse(content);
-      } catch (_) {
-        // Pubspec will be null.
       }
     }
     return _pubspec;

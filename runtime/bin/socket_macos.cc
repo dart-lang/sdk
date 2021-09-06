@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/socket.h"
 
@@ -44,6 +44,11 @@ static intptr_t Create(const RawAddr& addr) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
+  // Don't raise SIGPIPE when attempting to write to a connection which has
+  // already closed.
+  int optval = 1;
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &optval, sizeof(optval)));
   return fd;
 }
 
@@ -289,4 +294,4 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)

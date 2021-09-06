@@ -26,9 +26,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
         parseExperimentalArguments,
         parseExperimentalFlags;
 
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
-
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, EvaluationMode;
 
@@ -127,20 +124,12 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 import 'package:kernel/target/targets.dart'
     show
         ConstantsBackend,
+        ConstructorTearOffLowering,
         DiagnosticReporter,
-        NoneConstantsBackend,
-        NoneTarget,
         LateLowering,
-        Target,
-        TargetFlags;
-
-import 'package:kernel/target/targets.dart'
-    show
-        ConstantsBackend,
-        DiagnosticReporter,
+        NumberSemantics,
         NoneConstantsBackend,
         NoneTarget,
-        NumberSemantics,
         Target,
         TargetFlags;
 
@@ -252,6 +241,7 @@ class FolderOptions {
   final bool forceLateLoweringSentinel;
   final bool forceStaticFieldLowering;
   final bool forceNoExplicitGetterCalls;
+  final int forceConstructorTearOffLowering;
   final bool nnbdAgnosticMode;
   final Map<String, String> defines;
   final bool noVerify;
@@ -263,6 +253,7 @@ class FolderOptions {
       this.forceLateLoweringSentinel: false,
       this.forceStaticFieldLowering: false,
       this.forceNoExplicitGetterCalls: false,
+      this.forceConstructorTearOffLowering: ConstructorTearOffLowering.none,
       this.nnbdAgnosticMode: false,
       this.defines: const {},
       this.noVerify: false,
@@ -429,6 +420,7 @@ class FastaContext extends ChainContext with MatchContext {
       bool forceLateLoweringSentinel = false;
       bool forceStaticFieldLowering = false;
       bool forceNoExplicitGetterCalls = false;
+      int forceConstructorTearOffLowering = ConstructorTearOffLowering.none;
       bool nnbdAgnosticMode = false;
       bool noVerify = false;
       Map<String, String> defines = {};
@@ -439,6 +431,7 @@ class FastaContext extends ChainContext with MatchContext {
             forceLateLoweringSentinel: forceLateLoweringSentinel,
             forceStaticFieldLowering: forceStaticFieldLowering,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+            forceConstructorTearOffLowering: forceConstructorTearOffLowering,
             nnbdAgnosticMode: nnbdAgnosticMode,
             defines: defines,
             noVerify: noVerify,
@@ -471,6 +464,8 @@ class FastaContext extends ChainContext with MatchContext {
               forceNoExplicitGetterCalls = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
               forceNoExplicitGetterCalls = true;
+            } else if (line.startsWith(Flags.forceConstructorTearOffLowering)) {
+              forceConstructorTearOffLowering = ConstructorTearOffLowering.all;
             } else if (line.startsWith(Flags.nnbdAgnosticMode)) {
               nnbdAgnosticMode = true;
             } else if (line.startsWith(Flags.noDefines)) {
@@ -523,6 +518,7 @@ class FastaContext extends ChainContext with MatchContext {
               forceLateLoweringSentinel: forceLateLoweringSentinel,
               forceStaticFieldLowering: forceStaticFieldLowering,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+              forceConstructorTearOffLowering: forceConstructorTearOffLowering,
               nnbdAgnosticMode: nnbdAgnosticMode,
               defines: defines,
               noVerify: noVerify,
@@ -1711,6 +1707,8 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     forceStaticFieldLoweringForTesting: folderOptions.forceStaticFieldLowering,
     forceNoExplicitGetterCallsForTesting:
         folderOptions.forceNoExplicitGetterCalls,
+    forceConstructorTearOffLoweringForTesting:
+        folderOptions.forceConstructorTearOffLowering,
     enableNullSafety: context.soundNullSafety,
   );
   Target target;
@@ -1982,7 +1980,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
     return await CompilerContext.runWithOptions(options,
         (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
-      List<LocatedMessage> verificationErrors = verifyComponent(component,
+      List<LocatedMessage> verificationErrors = verifyComponent(
+          component, options.target,
           isOutline: !fullCompile, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {

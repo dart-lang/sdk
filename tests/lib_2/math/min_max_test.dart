@@ -4,6 +4,8 @@
 // Dart test for testing Math.min and Math.max.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 library min_max_test;
 
 import "package:expect/expect.dart";

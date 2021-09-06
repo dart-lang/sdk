@@ -4,6 +4,8 @@
 // Test that we invalidate parameter type optimization in the presence
 // of optional parameters.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

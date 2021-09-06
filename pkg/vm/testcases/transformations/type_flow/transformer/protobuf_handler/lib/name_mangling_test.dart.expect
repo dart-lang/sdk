@@ -1,14 +1,13 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "generated/name_mangling.pb.dart" as pb;
 import "dart:core" as core;
 
-import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart";
 
 static method main() → dynamic {
-  pb::NameManglingKeep* n = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep] pb::NameManglingKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int*>] core::_GrowableList::•<core::int*>(0));
-  if([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep.hasClone_10] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{pb::NameManglingKeep::hasClone_10}()) {
+  pb::NameManglingKeep n = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep] pb::NameManglingKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0));
+  if([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep.hasClone_10] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{pb::NameManglingKeep::hasClone_10}(){() → core::bool}) {
     core::print("Has clone field");
   }
 }
@@ -35,15 +34,15 @@ class AKeep extends pro::GeneratedMessage {
 }
 class NameManglingKeep extends pro::GeneratedMessage {
 [@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t2 = new pro::BuilderInfo::•((#C1) ?{core::String} "" : "NameManglingKeep", #C6) in block {
-    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>((#C1) ?{core::String} "" : "clone", #C2);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>((#C1) ?{core::String} "" : "clone", #C2){(core::int, core::String, {protoName: core::String?, subBuilder: () →? self::AKeep}) → void};
     [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::hasRequiredFields} = false;
   } =>#t2;
   constructor _() → self::NameManglingKeep
     : super pro::GeneratedMessage::•()
     ;
-  static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int*>] core::List<core::int> i) → self::NameManglingKeep
+  static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::List<core::int> i) → self::NameManglingKeep
     return let final self::NameManglingKeep #t3 = [@vm.inferred-type.metadata=name_mangling.pb.dart::NameManglingKeep] self::NameManglingKeep::create() in block {
-      [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pro::GeneratedMessage::mergeFromBuffer}(i);
+      [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pro::GeneratedMessage::mergeFromBuffer}(i){(core::List<core::int>, [pro::ExtensionRegistry]) → void};
     } =>#t3;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::NameManglingKeep::_i;
@@ -52,5 +51,15 @@ class NameManglingKeep extends pro::GeneratedMessage {
     return new self::NameManglingKeep::_();
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  @#C8
   method hasClone_10() → core::bool
-    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}();
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}(){(core::int) → core::bool};
+}
+constants  {
+  #C1 = false
+  #C2 = static-tearoff self::AKeep::create
+  #C3 = "dart2js:noInline"
+  #C4 = null
+  #C5 = core::pragma {name:#C3, options:#C4}
+  #C6 = static-tearoff self::NameManglingKeep::create
+  #C7 = 10
+  #C8 = pro::TagNumber {tagNumber:#C7}
 }

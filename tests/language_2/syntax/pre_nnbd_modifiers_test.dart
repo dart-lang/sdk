@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test ensures that the modifiers added as part of NNBD are not enabled
 // until NNBD is enabled by default. At that time, this test should be removed.
 

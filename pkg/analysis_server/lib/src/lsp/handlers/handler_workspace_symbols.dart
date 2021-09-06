@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -24,15 +22,25 @@ class WorkspaceSymbolHandler
   @override
   Future<ErrorOr<List<SymbolInformation>>> handle(
       WorkspaceSymbolParams params, CancellationToken token) async {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
     // Respond to empty queries with an empty list. The spec says this should
     // be non-empty, however VS Code's client sends empty requests (but then
     // appears to not render the results we supply anyway).
-    final query = params?.query ?? '';
+    // TODO(dantup): The spec has been updated to allow empty queries. Clients
+    // may expect a full list in this case, though we may choose not to send
+    // it on performance grounds until they type a filter.
+    final query = params.query;
     if (query == '') {
       return success([]);
     }
 
-    final supportedSymbolKinds = server.clientCapabilities.workspaceSymbolKinds;
+    final supportedSymbolKinds = clientCapabilities.workspaceSymbolKinds;
 
     // Convert the string input into a case-insensitive regex that has wildcards
     // between every character and at start/end to allow for fuzzy matching.
@@ -45,7 +53,7 @@ class WorkspaceSymbolHandler
     var remainingResults = 500;
 
     final filePathsHashSet = <String>{};
-    final tracker = server.declarationsTracker;
+    final tracker = server.declarationsTracker!;
     final declarations = search.WorkspaceSymbols(tracker).declarations(
       regex,
       remainingResults,
@@ -89,10 +97,9 @@ class WorkspaceSymbolHandler
       range: range,
     );
 
-    final hasParameters =
-        declaration.parameters != null && declaration.parameters.isNotEmpty;
-    final nameSuffix =
-        hasParameters ? (declaration.parameters == '()' ? '()' : '(…)') : '';
+    final parameters = declaration.parameters;
+    final hasParameters = parameters != null && parameters.isNotEmpty;
+    final nameSuffix = hasParameters ? (parameters == '()' ? '()' : '(…)') : '';
 
     return SymbolInformation(
         name: '${declaration.name}$nameSuffix',

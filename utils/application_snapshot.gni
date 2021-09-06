@@ -82,15 +82,21 @@ template("_application_snapshot") {
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
     deps = extra_deps + [
              "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
              "$_dart_root/runtime/vm:vm_platform",
+             "$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
            ]
-    gen_kernel_script = "$_dart_root/pkg/vm/bin/gen_kernel.dart"
+    gen_kernel_kernel =
+        get_label_info("$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
+                       "target_gen_dir") + "/bootstrap_gen_kernel.dill"
     platform_dill = "$root_out_dir/vm_platform_strong.dill"
 
     inputs = extra_inputs + [
-               gen_kernel_script,
+               gen_kernel_kernel,
                platform_dill,
                main_dart,
                dot_packages,
@@ -99,18 +105,13 @@ template("_application_snapshot") {
     outputs = [ output ]
 
     depfile = "$output.d"
-    abs_depfile = rebase_path(depfile)
-    rebased_output = rebase_path(output, root_build_dir)
 
     vm_args = [
-      "--depfile=$abs_depfile",
-      "--depfile_output_filename=$rebased_output",
-
       # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
       "-Dsdk_hash=$sdk_hash",
     ]
 
-    script = gen_kernel_script
+    script = gen_kernel_kernel
 
     args = [
       "--packages=" + rebase_path(dot_packages),
@@ -118,7 +119,8 @@ template("_application_snapshot") {
       "--no-aot",
       "--no-embed-sources",
       "--no-link-platform",
-      "--output=" + rebase_path(output),
+      "--output=" + rebase_path(output, root_build_dir),
+      "--depfile=" + rebase_path(depfile),
 
       # Ensure the compiled appliation (e.g. kernel-service, frontend-server,
       # ...) will use this SDK hash when consuming/producing kernel.
@@ -132,6 +134,9 @@ template("_application_snapshot") {
 
   # Create a snapshot from kernel built above.
   dart_action(target_name) {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
     deps = extra_deps + [ ":${target_name}_dill" ]
     depfile = "$output.d"
 
@@ -143,16 +148,18 @@ template("_application_snapshot") {
 
     # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
     # snapshot (creating a circular dep. for kernel-service_snapshot).
-    dfe = "$_dart_root/pkg/vm/bin/kernel_service.dart"
+    dfe = "NEVER LOADED"
 
     abs_depfile = rebase_path(depfile)
-    abs_output = rebase_path(output, root_build_dir)
+    abs_output = rebase_path(output)
+    rel_output = rebase_path(output, root_build_dir)
 
     vm_args = [
                 "--deterministic",
                 "--packages=$dot_packages",
                 "--snapshot=$abs_output",
                 "--snapshot-depfile=$abs_depfile",
+                "--depfile-output-filename=$rel_output",
               ] + snapshot_vm_args
 
     if (dart_snapshot_kind == "kernel") {
@@ -198,7 +205,6 @@ template("application_snapshot") {
     if (!defined(invoker.deps)) {
       deps = []
     }
-    deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
   }
 }
 

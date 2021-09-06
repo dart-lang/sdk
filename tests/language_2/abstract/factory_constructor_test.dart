@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
+// @dart = 2.9
+
 // Exercises issue 2282, factory constructors in abstract classes should
 // not emit a static type warning
 

@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/src/bounds_checks.dart' as ir;
+import 'package:kernel/text/debug_printer.dart';
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
@@ -26,7 +27,6 @@ import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../ir/constants.dart';
-import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
@@ -817,7 +817,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       reportLocatedMessage(reporter, message, context);
     },
         environment: _environment.toMap(),
-        enableTripleShift: options.enableTripleShift,
         evaluationMode: options.useLegacySubtyping
             ? ir.EvaluationMode.weak
             : ir.EvaluationMode.strong);
@@ -942,6 +941,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       }
       type ??= findIn(Uris.dart_core);
       type ??= findIn(Uris.dart__js_helper);
+      type ??= findIn(Uris.dart__late_helper);
       type ??= findIn(Uris.dart__interceptors);
       type ??= findIn(Uris.dart__native_typed_data);
       type ??= findIn(Uris.dart_collection);

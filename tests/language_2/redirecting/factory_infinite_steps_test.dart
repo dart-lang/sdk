@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // From Dart Language Specification, 0.12 M1, "7.6.2 Factories": It is
 // a compile-time error if a redirecting factory constructor does not
 // redirect to a non-redirecting factory constructor or to a

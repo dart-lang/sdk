@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
@@ -46,7 +44,7 @@ class FlutterBase extends AbstractAnalysisTest {
     testFile = convertPath('/home/test/lib/test.dart');
 
     newPubspecYamlFile('/home/test', '');
-    newFile('/home/test/.packages', content: '''
+    newDotPackagesFile('/home/test', content: '''
 test:${toUri('/home/test/lib')}
 ''');
 

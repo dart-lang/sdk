@@ -9,7 +9,7 @@ static method main() → void {
 }
 
 constants  {
-  #C1 = TypeLiteralConstant((<T extends Never* = Never*>(Never*) →* void) →* Never*)
+  #C1 = TypeLiteralConstant((<T extends Never* = dynamic>(Never*) →* void) →* Never*)
 }
 
 Extra constant evaluation status:

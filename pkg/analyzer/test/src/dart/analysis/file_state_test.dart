@@ -12,6 +12,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -82,7 +84,6 @@ class FileSystemStateTest with ResourceProviderMixin {
     fileSystemState = FileSystemState(
       logger,
       byteStore,
-      contentOverlay,
       resourceProvider,
       'contextName',
       sourceFactory,
@@ -92,6 +93,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       Uint32List(0),
       Uint32List(0),
       featureSetProvider,
+      fileContentCache: FileContentCache.ephemeral(resourceProvider),
     );
   }
 
@@ -346,8 +348,14 @@ part 'not-a2.dart';
 
   test_getFileForUri_invalidUri() {
     var uri = Uri.parse('package:x');
-    var file = fileSystemState.getFileForUri(uri);
-    expect(file, isNull);
+    fileSystemState.getFileForUri(uri).map(
+      (file) {
+        expect(file, isNull);
+      },
+      (_) {
+        fail('Expected null.');
+      },
+    );
   }
 
   test_getFileForUri_packageVsFileUri() {
@@ -356,8 +364,8 @@ part 'not-a2.dart';
     var fileUri = toUri(path);
 
     // The files with `package:` and `file:` URIs are different.
-    FileState filePackageUri = fileSystemState.getFileForUri(packageUri)!;
-    FileState fileFileUri = fileSystemState.getFileForUri(fileUri)!;
+    var filePackageUri = fileSystemState.getFileForUri(packageUri).asFileState;
+    var fileFileUri = fileSystemState.getFileForUri(fileUri).asFileState;
     expect(filePackageUri, isNot(same(fileFileUri)));
 
     expect(filePackageUri.path, path);
@@ -737,5 +745,14 @@ class _SourceMock implements Source {
   @override
   noSuchMethod(Invocation invocation) {
     throw StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
+
+extension on Either2<FileState?, ExternalLibrary> {
+  FileState get asFileState {
+    return map(
+      (file) => file!,
+      (_) => fail('Expected a file'),
+    );
   }
 }

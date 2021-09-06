@@ -8,6 +8,6 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   get current() → self::A::T%
-    return this.{self::A::_current} as{ForNonNullableByDefault} self::A::T%;
+    return this.{self::A::_current}{self::A::T?} as{ForNonNullableByDefault} self::A::T%;
 }
 static method main() → dynamic {}

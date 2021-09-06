@@ -5,6 +5,8 @@
 // Verify that FormatException is thrown when HttpClient userAgent has
 // invalid value.
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 import "package:async_helper/async_helper.dart";

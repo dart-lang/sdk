@@ -10,6 +10,8 @@
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
@@ -295,10 +297,10 @@ final testCases = [
           passStruct8BytesPackedIntx10, 0),
       passStruct8BytesPackedIntx10AfterCallback),
   CallbackTest.withCheck(
-      "PassStruct9BytesPackedMixedx10DoubleInt32",
-      Pointer.fromFunction<PassStruct9BytesPackedMixedx10DoubleInt32Type>(
-          passStruct9BytesPackedMixedx10DoubleInt32, 0.0),
-      passStruct9BytesPackedMixedx10DoubleInt32AfterCallback),
+      "PassStruct9BytesPackedMixedx10DoubleInt32x2",
+      Pointer.fromFunction<PassStruct9BytesPackedMixedx10DoubleInt32x2Type>(
+          passStruct9BytesPackedMixedx10DoubleInt32x2, 0.0),
+      passStruct9BytesPackedMixedx10DoubleInt32x2AfterCallback),
   CallbackTest.withCheck(
       "PassStruct5BytesPackedMixed",
       Pointer.fromFunction<PassStruct5BytesPackedMixedType>(
@@ -320,6 +322,31 @@ final testCases = [
       Pointer.fromFunction<PassStruct15BytesInlineArrayMixedType>(
           passStruct15BytesInlineArrayMixed, 0.0),
       passStruct15BytesInlineArrayMixedAfterCallback),
+  CallbackTest.withCheck(
+      "PassUnion4BytesMixedx10",
+      Pointer.fromFunction<PassUnion4BytesMixedx10Type>(
+          passUnion4BytesMixedx10, 0.0),
+      passUnion4BytesMixedx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassUnion8BytesNestedFloatx10",
+      Pointer.fromFunction<PassUnion8BytesNestedFloatx10Type>(
+          passUnion8BytesNestedFloatx10, 0.0),
+      passUnion8BytesNestedFloatx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassUnion9BytesNestedIntx10",
+      Pointer.fromFunction<PassUnion9BytesNestedIntx10Type>(
+          passUnion9BytesNestedIntx10, 0.0),
+      passUnion9BytesNestedIntx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassUnion16BytesNestedInlineArrayFloatx10",
+      Pointer.fromFunction<PassUnion16BytesNestedInlineArrayFloatx10Type>(
+          passUnion16BytesNestedInlineArrayFloatx10, 0.0),
+      passUnion16BytesNestedInlineArrayFloatx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassUnion16BytesNestedFloatx10",
+      Pointer.fromFunction<PassUnion16BytesNestedFloatx10Type>(
+          passUnion16BytesNestedFloatx10, 0.0),
+      passUnion16BytesNestedFloatx10AfterCallback),
   CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
@@ -442,6 +469,25 @@ final testCases = [
       Pointer.fromFunction<ReturnStruct9BytesPackedMixedType>(
           returnStruct9BytesPackedMixed),
       returnStruct9BytesPackedMixedAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnUnion4BytesMixed",
+      Pointer.fromFunction<ReturnUnion4BytesMixedType>(returnUnion4BytesMixed),
+      returnUnion4BytesMixedAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnUnion8BytesNestedFloat",
+      Pointer.fromFunction<ReturnUnion8BytesNestedFloatType>(
+          returnUnion8BytesNestedFloat),
+      returnUnion8BytesNestedFloatAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnUnion9BytesNestedInt",
+      Pointer.fromFunction<ReturnUnion9BytesNestedIntType>(
+          returnUnion9BytesNestedInt),
+      returnUnion9BytesNestedIntAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnUnion16BytesNestedFloat",
+      Pointer.fromFunction<ReturnUnion16BytesNestedFloatType>(
+          returnUnion16BytesNestedFloat),
+      returnUnion16BytesNestedFloatAfterCallback),
   CallbackTest.withCheck(
       "ReturnStructArgumentStruct1ByteInt",
       Pointer.fromFunction<ReturnStructArgumentStruct1ByteIntType>(
@@ -6709,7 +6755,7 @@ void passStruct8BytesPackedIntx10AfterCallback() {
   Expect.equals(1275, result);
 }
 
-typedef PassStruct9BytesPackedMixedx10DoubleInt32Type = Double Function(
+typedef PassStruct9BytesPackedMixedx10DoubleInt32x2Type = Double Function(
     Struct9BytesPackedMixed,
     Struct9BytesPackedMixed,
     Struct9BytesPackedMixed,
@@ -6721,69 +6767,72 @@ typedef PassStruct9BytesPackedMixedx10DoubleInt32Type = Double Function(
     Struct9BytesPackedMixed,
     Struct9BytesPackedMixed,
     Double,
+    Int32,
     Int32);
 
 // Global variables to be able to test inputs after callback returned.
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a0 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a0 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a1 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a1 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a2 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a2 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a3 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a3 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a4 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a4 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a5 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a5 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a6 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a6 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a7 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a7 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a8 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a8 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a9 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a9 =
     Struct9BytesPackedMixed();
-double passStruct9BytesPackedMixedx10DoubleInt32_a10 = 0.0;
-int passStruct9BytesPackedMixedx10DoubleInt32_a11 = 0;
+double passStruct9BytesPackedMixedx10DoubleInt32x2_a10 = 0.0;
+int passStruct9BytesPackedMixedx10DoubleInt32x2_a11 = 0;
+int passStruct9BytesPackedMixedx10DoubleInt32x2_a12 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-double passStruct9BytesPackedMixedx10DoubleInt32Result = 0.0;
+double passStruct9BytesPackedMixedx10DoubleInt32x2Result = 0.0;
 
-double passStruct9BytesPackedMixedx10DoubleInt32CalculateResult() {
+double passStruct9BytesPackedMixedx10DoubleInt32x2CalculateResult() {
   double result = 0;
 
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a0.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a0.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a1.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a1.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a2.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a2.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a3.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a3.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a4.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a4.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a5.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a5.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a6.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a6.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a7.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a7.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a8.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a8.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a9.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a9.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a10;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a11;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a0.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a0.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a1.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a1.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a2.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a2.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a3.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a3.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a4.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a4.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a5.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a5.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a6.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a6.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a7.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a7.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a8.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a8.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a9.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a9.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a10;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a11;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a12;
 
-  passStruct9BytesPackedMixedx10DoubleInt32Result = result;
+  passStruct9BytesPackedMixedx10DoubleInt32x2Result = result;
 
   return result;
 }
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
-double passStruct9BytesPackedMixedx10DoubleInt32(
+double passStruct9BytesPackedMixedx10DoubleInt32x2(
     Struct9BytesPackedMixed a0,
     Struct9BytesPackedMixed a1,
     Struct9BytesPackedMixed a2,
@@ -6795,9 +6844,10 @@ double passStruct9BytesPackedMixedx10DoubleInt32(
     Struct9BytesPackedMixed a8,
     Struct9BytesPackedMixed a9,
     double a10,
-    int a11) {
+    int a11,
+    int a12) {
   print(
-      "passStruct9BytesPackedMixedx10DoubleInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})");
+      "passStruct9BytesPackedMixedx10DoubleInt32x2(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})");
 
   // In legacy mode, possibly return null.
   if (a0.a0 == 84) {
@@ -6809,35 +6859,36 @@ double passStruct9BytesPackedMixedx10DoubleInt32(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct9BytesPackedMixedx10DoubleInt32 throwing on purpose!");
+        "PassStruct9BytesPackedMixedx10DoubleInt32x2 throwing on purpose!");
   }
 
-  passStruct9BytesPackedMixedx10DoubleInt32_a0 = a0;
-  passStruct9BytesPackedMixedx10DoubleInt32_a1 = a1;
-  passStruct9BytesPackedMixedx10DoubleInt32_a2 = a2;
-  passStruct9BytesPackedMixedx10DoubleInt32_a3 = a3;
-  passStruct9BytesPackedMixedx10DoubleInt32_a4 = a4;
-  passStruct9BytesPackedMixedx10DoubleInt32_a5 = a5;
-  passStruct9BytesPackedMixedx10DoubleInt32_a6 = a6;
-  passStruct9BytesPackedMixedx10DoubleInt32_a7 = a7;
-  passStruct9BytesPackedMixedx10DoubleInt32_a8 = a8;
-  passStruct9BytesPackedMixedx10DoubleInt32_a9 = a9;
-  passStruct9BytesPackedMixedx10DoubleInt32_a10 = a10;
-  passStruct9BytesPackedMixedx10DoubleInt32_a11 = a11;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a0 = a0;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a1 = a1;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a2 = a2;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a3 = a3;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a4 = a4;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a5 = a5;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a6 = a6;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a7 = a7;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a8 = a8;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a9 = a9;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a10 = a10;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a11 = a11;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a12 = a12;
 
-  final result = passStruct9BytesPackedMixedx10DoubleInt32CalculateResult();
+  final result = passStruct9BytesPackedMixedx10DoubleInt32x2CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void passStruct9BytesPackedMixedx10DoubleInt32AfterCallback() {
-  final result = passStruct9BytesPackedMixedx10DoubleInt32CalculateResult();
+void passStruct9BytesPackedMixedx10DoubleInt32x2AfterCallback() {
+  final result = passStruct9BytesPackedMixedx10DoubleInt32x2CalculateResult();
 
   print("after callback result = $result");
 
-  Expect.approxEquals(211.0, result);
+  Expect.approxEquals(188.0, result);
 }
 
 typedef PassStruct5BytesPackedMixedType = Double Function(
@@ -7066,6 +7117,602 @@ void passStruct15BytesInlineArrayMixedAfterCallback() {
   print("after callback result = $result");
 
   Expect.approxEquals(3.0, result);
+}
+
+typedef PassUnion4BytesMixedx10Type = Double Function(
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed,
+    Union4BytesMixed);
+
+// Global variables to be able to test inputs after callback returned.
+Union4BytesMixed passUnion4BytesMixedx10_a0 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a1 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a2 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a3 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a4 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a5 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a6 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a7 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a8 = Union4BytesMixed();
+Union4BytesMixed passUnion4BytesMixedx10_a9 = Union4BytesMixed();
+
+// Result variable also global, so we can delete it after the callback.
+double passUnion4BytesMixedx10Result = 0.0;
+
+double passUnion4BytesMixedx10CalculateResult() {
+  double result = 0;
+
+  result += passUnion4BytesMixedx10_a0.a0;
+  result += passUnion4BytesMixedx10_a1.a0;
+  result += passUnion4BytesMixedx10_a2.a0;
+  result += passUnion4BytesMixedx10_a3.a0;
+  result += passUnion4BytesMixedx10_a4.a0;
+  result += passUnion4BytesMixedx10_a5.a0;
+  result += passUnion4BytesMixedx10_a6.a0;
+  result += passUnion4BytesMixedx10_a7.a0;
+  result += passUnion4BytesMixedx10_a8.a0;
+  result += passUnion4BytesMixedx10_a9.a0;
+
+  passUnion4BytesMixedx10Result = result;
+
+  return result;
+}
+
+/// Check placement of mixed integer/float union.
+double passUnion4BytesMixedx10(
+    Union4BytesMixed a0,
+    Union4BytesMixed a1,
+    Union4BytesMixed a2,
+    Union4BytesMixed a3,
+    Union4BytesMixed a4,
+    Union4BytesMixed a5,
+    Union4BytesMixed a6,
+    Union4BytesMixed a7,
+    Union4BytesMixed a8,
+    Union4BytesMixed a9) {
+  print(
+      "passUnion4BytesMixedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassUnion4BytesMixedx10 throwing on purpose!");
+  }
+
+  passUnion4BytesMixedx10_a0 = a0;
+  passUnion4BytesMixedx10_a1 = a1;
+  passUnion4BytesMixedx10_a2 = a2;
+  passUnion4BytesMixedx10_a3 = a3;
+  passUnion4BytesMixedx10_a4 = a4;
+  passUnion4BytesMixedx10_a5 = a5;
+  passUnion4BytesMixedx10_a6 = a6;
+  passUnion4BytesMixedx10_a7 = a7;
+  passUnion4BytesMixedx10_a8 = a8;
+  passUnion4BytesMixedx10_a9 = a9;
+
+  final result = passUnion4BytesMixedx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUnion4BytesMixedx10AfterCallback() {
+  final result = passUnion4BytesMixedx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(55.0, result);
+}
+
+typedef PassUnion8BytesNestedFloatx10Type = Double Function(
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat,
+    Union8BytesNestedFloat);
+
+// Global variables to be able to test inputs after callback returned.
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a0 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a1 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a2 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a3 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a4 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a5 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a6 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a7 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a8 =
+    Union8BytesNestedFloat();
+Union8BytesNestedFloat passUnion8BytesNestedFloatx10_a9 =
+    Union8BytesNestedFloat();
+
+// Result variable also global, so we can delete it after the callback.
+double passUnion8BytesNestedFloatx10Result = 0.0;
+
+double passUnion8BytesNestedFloatx10CalculateResult() {
+  double result = 0;
+
+  result += passUnion8BytesNestedFloatx10_a0.a0;
+  result += passUnion8BytesNestedFloatx10_a1.a0;
+  result += passUnion8BytesNestedFloatx10_a2.a0;
+  result += passUnion8BytesNestedFloatx10_a3.a0;
+  result += passUnion8BytesNestedFloatx10_a4.a0;
+  result += passUnion8BytesNestedFloatx10_a5.a0;
+  result += passUnion8BytesNestedFloatx10_a6.a0;
+  result += passUnion8BytesNestedFloatx10_a7.a0;
+  result += passUnion8BytesNestedFloatx10_a8.a0;
+  result += passUnion8BytesNestedFloatx10_a9.a0;
+
+  passUnion8BytesNestedFloatx10Result = result;
+
+  return result;
+}
+
+/// Check placement of mixed floats union.
+double passUnion8BytesNestedFloatx10(
+    Union8BytesNestedFloat a0,
+    Union8BytesNestedFloat a1,
+    Union8BytesNestedFloat a2,
+    Union8BytesNestedFloat a3,
+    Union8BytesNestedFloat a4,
+    Union8BytesNestedFloat a5,
+    Union8BytesNestedFloat a6,
+    Union8BytesNestedFloat a7,
+    Union8BytesNestedFloat a8,
+    Union8BytesNestedFloat a9) {
+  print(
+      "passUnion8BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassUnion8BytesNestedFloatx10 throwing on purpose!");
+  }
+
+  passUnion8BytesNestedFloatx10_a0 = a0;
+  passUnion8BytesNestedFloatx10_a1 = a1;
+  passUnion8BytesNestedFloatx10_a2 = a2;
+  passUnion8BytesNestedFloatx10_a3 = a3;
+  passUnion8BytesNestedFloatx10_a4 = a4;
+  passUnion8BytesNestedFloatx10_a5 = a5;
+  passUnion8BytesNestedFloatx10_a6 = a6;
+  passUnion8BytesNestedFloatx10_a7 = a7;
+  passUnion8BytesNestedFloatx10_a8 = a8;
+  passUnion8BytesNestedFloatx10_a9 = a9;
+
+  final result = passUnion8BytesNestedFloatx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUnion8BytesNestedFloatx10AfterCallback() {
+  final result = passUnion8BytesNestedFloatx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(5.0, result);
+}
+
+typedef PassUnion9BytesNestedIntx10Type = Double Function(
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt,
+    Union9BytesNestedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a0 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a1 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a2 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a3 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a4 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a5 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a6 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a7 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a8 = Union9BytesNestedInt();
+Union9BytesNestedInt passUnion9BytesNestedIntx10_a9 = Union9BytesNestedInt();
+
+// Result variable also global, so we can delete it after the callback.
+double passUnion9BytesNestedIntx10Result = 0.0;
+
+double passUnion9BytesNestedIntx10CalculateResult() {
+  double result = 0;
+
+  result += passUnion9BytesNestedIntx10_a0.a0.a0;
+  result += passUnion9BytesNestedIntx10_a0.a0.a1;
+  result += passUnion9BytesNestedIntx10_a0.a0.a2;
+  result += passUnion9BytesNestedIntx10_a1.a0.a0;
+  result += passUnion9BytesNestedIntx10_a1.a0.a1;
+  result += passUnion9BytesNestedIntx10_a1.a0.a2;
+  result += passUnion9BytesNestedIntx10_a2.a0.a0;
+  result += passUnion9BytesNestedIntx10_a2.a0.a1;
+  result += passUnion9BytesNestedIntx10_a2.a0.a2;
+  result += passUnion9BytesNestedIntx10_a3.a0.a0;
+  result += passUnion9BytesNestedIntx10_a3.a0.a1;
+  result += passUnion9BytesNestedIntx10_a3.a0.a2;
+  result += passUnion9BytesNestedIntx10_a4.a0.a0;
+  result += passUnion9BytesNestedIntx10_a4.a0.a1;
+  result += passUnion9BytesNestedIntx10_a4.a0.a2;
+  result += passUnion9BytesNestedIntx10_a5.a0.a0;
+  result += passUnion9BytesNestedIntx10_a5.a0.a1;
+  result += passUnion9BytesNestedIntx10_a5.a0.a2;
+  result += passUnion9BytesNestedIntx10_a6.a0.a0;
+  result += passUnion9BytesNestedIntx10_a6.a0.a1;
+  result += passUnion9BytesNestedIntx10_a6.a0.a2;
+  result += passUnion9BytesNestedIntx10_a7.a0.a0;
+  result += passUnion9BytesNestedIntx10_a7.a0.a1;
+  result += passUnion9BytesNestedIntx10_a7.a0.a2;
+  result += passUnion9BytesNestedIntx10_a8.a0.a0;
+  result += passUnion9BytesNestedIntx10_a8.a0.a1;
+  result += passUnion9BytesNestedIntx10_a8.a0.a2;
+  result += passUnion9BytesNestedIntx10_a9.a0.a0;
+  result += passUnion9BytesNestedIntx10_a9.a0.a1;
+  result += passUnion9BytesNestedIntx10_a9.a0.a2;
+
+  passUnion9BytesNestedIntx10Result = result;
+
+  return result;
+}
+
+/// Mixed-size union argument.
+double passUnion9BytesNestedIntx10(
+    Union9BytesNestedInt a0,
+    Union9BytesNestedInt a1,
+    Union9BytesNestedInt a2,
+    Union9BytesNestedInt a3,
+    Union9BytesNestedInt a4,
+    Union9BytesNestedInt a5,
+    Union9BytesNestedInt a6,
+    Union9BytesNestedInt a7,
+    Union9BytesNestedInt a8,
+    Union9BytesNestedInt a9) {
+  print(
+      "passUnion9BytesNestedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassUnion9BytesNestedIntx10 throwing on purpose!");
+  }
+
+  passUnion9BytesNestedIntx10_a0 = a0;
+  passUnion9BytesNestedIntx10_a1 = a1;
+  passUnion9BytesNestedIntx10_a2 = a2;
+  passUnion9BytesNestedIntx10_a3 = a3;
+  passUnion9BytesNestedIntx10_a4 = a4;
+  passUnion9BytesNestedIntx10_a5 = a5;
+  passUnion9BytesNestedIntx10_a6 = a6;
+  passUnion9BytesNestedIntx10_a7 = a7;
+  passUnion9BytesNestedIntx10_a8 = a8;
+  passUnion9BytesNestedIntx10_a9 = a9;
+
+  final result = passUnion9BytesNestedIntx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUnion9BytesNestedIntx10AfterCallback() {
+  final result = passUnion9BytesNestedIntx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(15.0, result);
+}
+
+typedef PassUnion16BytesNestedInlineArrayFloatx10Type = Double Function(
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat,
+    Union16BytesNestedInlineArrayFloat);
+
+// Global variables to be able to test inputs after callback returned.
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a0 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a1 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a2 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a3 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a4 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a5 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a6 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a7 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a8 =
+    Union16BytesNestedInlineArrayFloat();
+Union16BytesNestedInlineArrayFloat
+    passUnion16BytesNestedInlineArrayFloatx10_a9 =
+    Union16BytesNestedInlineArrayFloat();
+
+// Result variable also global, so we can delete it after the callback.
+double passUnion16BytesNestedInlineArrayFloatx10Result = 0.0;
+
+double passUnion16BytesNestedInlineArrayFloatx10CalculateResult() {
+  double result = 0;
+
+  result += passUnion16BytesNestedInlineArrayFloatx10_a0.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a0.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a0.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a0.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a1.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a1.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a1.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a1.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a2.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a2.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a2.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a2.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a3.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a3.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a3.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a3.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a4.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a4.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a4.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a4.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a5.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a5.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a5.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a5.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a6.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a6.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a6.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a6.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a7.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a7.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a7.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a7.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a8.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a8.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a8.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a8.a0[3];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a9.a0[0];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a9.a0[1];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a9.a0[2];
+  result += passUnion16BytesNestedInlineArrayFloatx10_a9.a0[3];
+
+  passUnion16BytesNestedInlineArrayFloatx10Result = result;
+
+  return result;
+}
+
+/// Union with homogenous floats.
+double passUnion16BytesNestedInlineArrayFloatx10(
+    Union16BytesNestedInlineArrayFloat a0,
+    Union16BytesNestedInlineArrayFloat a1,
+    Union16BytesNestedInlineArrayFloat a2,
+    Union16BytesNestedInlineArrayFloat a3,
+    Union16BytesNestedInlineArrayFloat a4,
+    Union16BytesNestedInlineArrayFloat a5,
+    Union16BytesNestedInlineArrayFloat a6,
+    Union16BytesNestedInlineArrayFloat a7,
+    Union16BytesNestedInlineArrayFloat a8,
+    Union16BytesNestedInlineArrayFloat a9) {
+  print(
+      "passUnion16BytesNestedInlineArrayFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0[0] == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0[0] == 42 || a0.a0[0] == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassUnion16BytesNestedInlineArrayFloatx10 throwing on purpose!");
+  }
+
+  passUnion16BytesNestedInlineArrayFloatx10_a0 = a0;
+  passUnion16BytesNestedInlineArrayFloatx10_a1 = a1;
+  passUnion16BytesNestedInlineArrayFloatx10_a2 = a2;
+  passUnion16BytesNestedInlineArrayFloatx10_a3 = a3;
+  passUnion16BytesNestedInlineArrayFloatx10_a4 = a4;
+  passUnion16BytesNestedInlineArrayFloatx10_a5 = a5;
+  passUnion16BytesNestedInlineArrayFloatx10_a6 = a6;
+  passUnion16BytesNestedInlineArrayFloatx10_a7 = a7;
+  passUnion16BytesNestedInlineArrayFloatx10_a8 = a8;
+  passUnion16BytesNestedInlineArrayFloatx10_a9 = a9;
+
+  final result = passUnion16BytesNestedInlineArrayFloatx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUnion16BytesNestedInlineArrayFloatx10AfterCallback() {
+  final result = passUnion16BytesNestedInlineArrayFloatx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(20.0, result);
+}
+
+typedef PassUnion16BytesNestedFloatx10Type = Double Function(
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat,
+    Union16BytesNestedFloat);
+
+// Global variables to be able to test inputs after callback returned.
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a0 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a1 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a2 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a3 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a4 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a5 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a6 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a7 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a8 =
+    Union16BytesNestedFloat();
+Union16BytesNestedFloat passUnion16BytesNestedFloatx10_a9 =
+    Union16BytesNestedFloat();
+
+// Result variable also global, so we can delete it after the callback.
+double passUnion16BytesNestedFloatx10Result = 0.0;
+
+double passUnion16BytesNestedFloatx10CalculateResult() {
+  double result = 0;
+
+  result += passUnion16BytesNestedFloatx10_a0.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a0.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a1.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a1.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a2.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a2.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a3.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a3.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a4.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a4.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a5.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a5.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a6.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a6.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a7.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a7.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a8.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a8.a0.a1;
+  result += passUnion16BytesNestedFloatx10_a9.a0.a0;
+  result += passUnion16BytesNestedFloatx10_a9.a0.a1;
+
+  passUnion16BytesNestedFloatx10Result = result;
+
+  return result;
+}
+
+/// Union with homogenous floats.
+double passUnion16BytesNestedFloatx10(
+    Union16BytesNestedFloat a0,
+    Union16BytesNestedFloat a1,
+    Union16BytesNestedFloat a2,
+    Union16BytesNestedFloat a3,
+    Union16BytesNestedFloat a4,
+    Union16BytesNestedFloat a5,
+    Union16BytesNestedFloat a6,
+    Union16BytesNestedFloat a7,
+    Union16BytesNestedFloat a8,
+    Union16BytesNestedFloat a9) {
+  print(
+      "passUnion16BytesNestedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassUnion16BytesNestedFloatx10 throwing on purpose!");
+  }
+
+  passUnion16BytesNestedFloatx10_a0 = a0;
+  passUnion16BytesNestedFloatx10_a1 = a1;
+  passUnion16BytesNestedFloatx10_a2 = a2;
+  passUnion16BytesNestedFloatx10_a3 = a3;
+  passUnion16BytesNestedFloatx10_a4 = a4;
+  passUnion16BytesNestedFloatx10_a5 = a5;
+  passUnion16BytesNestedFloatx10_a6 = a6;
+  passUnion16BytesNestedFloatx10_a7 = a7;
+  passUnion16BytesNestedFloatx10_a8 = a8;
+  passUnion16BytesNestedFloatx10_a9 = a9;
+
+  final result = passUnion16BytesNestedFloatx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUnion16BytesNestedFloatx10AfterCallback() {
+  final result = passUnion16BytesNestedFloatx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(10.0, result);
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);
@@ -9415,6 +10062,232 @@ void returnStruct9BytesPackedMixedAfterCallback() {
   print("after callback result = $result");
 
   calloc.free(returnStruct9BytesPackedMixedResultPointer);
+}
+
+typedef ReturnUnion4BytesMixedType = Union4BytesMixed Function(Uint32);
+
+// Global variables to be able to test inputs after callback returned.
+int returnUnion4BytesMixed_a0 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+Pointer<Union4BytesMixed> returnUnion4BytesMixedResultPointer = nullptr;
+
+Union4BytesMixed returnUnion4BytesMixedCalculateResult() {
+  final resultPointer = calloc<Union4BytesMixed>();
+  final result = resultPointer.ref;
+
+  result.a0 = returnUnion4BytesMixed_a0;
+
+  returnUnion4BytesMixedResultPointer = resultPointer;
+
+  return result;
+}
+
+/// Returning a mixed integer/float union.
+Union4BytesMixed returnUnion4BytesMixed(int a0) {
+  print("returnUnion4BytesMixed(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnUnion4BytesMixed throwing on purpose!");
+  }
+
+  returnUnion4BytesMixed_a0 = a0;
+
+  final result = returnUnion4BytesMixedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnUnion4BytesMixedAfterCallback() {
+  calloc.free(returnUnion4BytesMixedResultPointer);
+
+  final result = returnUnion4BytesMixedCalculateResult();
+
+  print("after callback result = $result");
+
+  calloc.free(returnUnion4BytesMixedResultPointer);
+}
+
+typedef ReturnUnion8BytesNestedFloatType = Union8BytesNestedFloat Function(
+    Double);
+
+// Global variables to be able to test inputs after callback returned.
+double returnUnion8BytesNestedFloat_a0 = 0.0;
+
+// Result variable also global, so we can delete it after the callback.
+Pointer<Union8BytesNestedFloat> returnUnion8BytesNestedFloatResultPointer =
+    nullptr;
+
+Union8BytesNestedFloat returnUnion8BytesNestedFloatCalculateResult() {
+  final resultPointer = calloc<Union8BytesNestedFloat>();
+  final result = resultPointer.ref;
+
+  result.a0 = returnUnion8BytesNestedFloat_a0;
+
+  returnUnion8BytesNestedFloatResultPointer = resultPointer;
+
+  return result;
+}
+
+/// Returning a floating point only union.
+Union8BytesNestedFloat returnUnion8BytesNestedFloat(double a0) {
+  print("returnUnion8BytesNestedFloat(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnUnion8BytesNestedFloat throwing on purpose!");
+  }
+
+  returnUnion8BytesNestedFloat_a0 = a0;
+
+  final result = returnUnion8BytesNestedFloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnUnion8BytesNestedFloatAfterCallback() {
+  calloc.free(returnUnion8BytesNestedFloatResultPointer);
+
+  final result = returnUnion8BytesNestedFloatCalculateResult();
+
+  print("after callback result = $result");
+
+  calloc.free(returnUnion8BytesNestedFloatResultPointer);
+}
+
+typedef ReturnUnion9BytesNestedIntType = Union9BytesNestedInt Function(
+    Struct8BytesInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesInt returnUnion9BytesNestedInt_a0 = Struct8BytesInt();
+
+// Result variable also global, so we can delete it after the callback.
+Pointer<Union9BytesNestedInt> returnUnion9BytesNestedIntResultPointer = nullptr;
+
+Union9BytesNestedInt returnUnion9BytesNestedIntCalculateResult() {
+  final resultPointer = calloc<Union9BytesNestedInt>();
+  final result = resultPointer.ref;
+
+  result.a0.a0 = returnUnion9BytesNestedInt_a0.a0;
+  result.a0.a1 = returnUnion9BytesNestedInt_a0.a1;
+  result.a0.a2 = returnUnion9BytesNestedInt_a0.a2;
+
+  returnUnion9BytesNestedIntResultPointer = resultPointer;
+
+  return result;
+}
+
+/// Returning a mixed-size union.
+Union9BytesNestedInt returnUnion9BytesNestedInt(Struct8BytesInt a0) {
+  print("returnUnion9BytesNestedInt(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnUnion9BytesNestedInt throwing on purpose!");
+  }
+
+  returnUnion9BytesNestedInt_a0 = a0;
+
+  final result = returnUnion9BytesNestedIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnUnion9BytesNestedIntAfterCallback() {
+  calloc.free(returnUnion9BytesNestedIntResultPointer);
+
+  final result = returnUnion9BytesNestedIntCalculateResult();
+
+  print("after callback result = $result");
+
+  calloc.free(returnUnion9BytesNestedIntResultPointer);
+}
+
+typedef ReturnUnion16BytesNestedFloatType = Union16BytesNestedFloat Function(
+    Struct8BytesHomogeneousFloat);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesHomogeneousFloat returnUnion16BytesNestedFloat_a0 =
+    Struct8BytesHomogeneousFloat();
+
+// Result variable also global, so we can delete it after the callback.
+Pointer<Union16BytesNestedFloat> returnUnion16BytesNestedFloatResultPointer =
+    nullptr;
+
+Union16BytesNestedFloat returnUnion16BytesNestedFloatCalculateResult() {
+  final resultPointer = calloc<Union16BytesNestedFloat>();
+  final result = resultPointer.ref;
+
+  result.a0.a0 = returnUnion16BytesNestedFloat_a0.a0;
+  result.a0.a1 = returnUnion16BytesNestedFloat_a0.a1;
+
+  returnUnion16BytesNestedFloatResultPointer = resultPointer;
+
+  return result;
+}
+
+/// Returning union with homogenous floats.
+Union16BytesNestedFloat returnUnion16BytesNestedFloat(
+    Struct8BytesHomogeneousFloat a0) {
+  print("returnUnion16BytesNestedFloat(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnUnion16BytesNestedFloat throwing on purpose!");
+  }
+
+  returnUnion16BytesNestedFloat_a0 = a0;
+
+  final result = returnUnion16BytesNestedFloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnUnion16BytesNestedFloatAfterCallback() {
+  calloc.free(returnUnion16BytesNestedFloatResultPointer);
+
+  final result = returnUnion16BytesNestedFloatCalculateResult();
+
+  print("after callback result = $result");
+
+  calloc.free(returnUnion16BytesNestedFloatResultPointer);
 }
 
 typedef ReturnStructArgumentStruct1ByteIntType = Struct1ByteInt Function(

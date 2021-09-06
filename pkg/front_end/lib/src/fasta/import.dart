@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.import;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
@@ -18,22 +16,24 @@ import 'combinator.dart' show Combinator;
 
 import 'configuration.dart' show Configuration;
 
+import 'source/source_library_builder.dart';
+
 class Import {
   /// The library that is importing [imported];
-  final LibraryBuilder importer;
+  final SourceLibraryBuilder importer;
 
   /// The library being imported.
-  LibraryBuilder imported;
+  LibraryBuilder? imported;
 
-  final PrefixBuilder prefixBuilder;
+  final PrefixBuilder? prefixBuilder;
 
   final bool deferred;
 
-  final String prefix;
+  final String? prefix;
 
-  final List<Combinator> combinators;
+  final List<Combinator>? combinators;
 
-  final List<Configuration> configurations;
+  final List<Configuration>? configurations;
 
   final int charOffset;
 
@@ -41,7 +41,7 @@ class Import {
 
   // The LibraryBuilder for the imported library ('imported') may be null when
   // this field is set.
-  final String nativeImportPath;
+  final String? nativeImportPath;
 
   Import(
       this.importer,
@@ -68,12 +68,12 @@ class Import {
       };
     } else {
       add = (String name, Builder member) {
-        prefixBuilder.addToExportScope(name, member, charOffset);
+        prefixBuilder!.addToExportScope(name, member, charOffset);
       };
     }
-    imported.exportScope.forEach((String name, Builder member) {
+    imported!.exportScope.forEach((String name, Builder member) {
       if (combinators != null) {
-        for (Combinator combinator in combinators) {
+        for (Combinator combinator in combinators!) {
           if (combinator.isShow && !combinator.names.contains(name)) return;
           if (combinator.isHide && combinator.names.contains(name)) return;
         }
@@ -81,28 +81,28 @@ class Import {
       add(name, member);
     });
     if (prefixBuilder != null) {
-      Builder existing =
-          importer.addBuilder(prefix, prefixBuilder, prefixCharOffset);
+      Builder? existing =
+          importer.addBuilder(prefix, prefixBuilder!, prefixCharOffset);
       if (existing == prefixBuilder) {
-        importer.addToScope(prefix, prefixBuilder, prefixCharOffset, true);
+        importer.addToScope(prefix!, prefixBuilder!, prefixCharOffset, true);
       }
     }
   }
 }
 
-PrefixBuilder createPrefixBuilder(
-    String prefix,
-    LibraryBuilder importer,
-    LibraryBuilder imported,
-    List<Combinator> combinators,
+PrefixBuilder? createPrefixBuilder(
+    String? prefix,
+    SourceLibraryBuilder importer,
+    LibraryBuilder? imported,
+    List<Combinator>? combinators,
     bool deferred,
     int charOffset,
     int prefixCharOffset,
     int importIndex) {
   if (prefix == null) return null;
-  LibraryDependency dependency = null;
+  LibraryDependency? dependency = null;
   if (deferred) {
-    dependency = new LibraryDependency.deferredImport(imported.library, prefix,
+    dependency = new LibraryDependency.deferredImport(imported!.library, prefix,
         combinators: toKernelCombinators(combinators))
       ..fileOffset = charOffset;
   }

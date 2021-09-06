@@ -9,7 +9,7 @@ import 'package:js_ast/js_ast.dart';
 import '../common.dart';
 import '../options.dart';
 import '../dump_info.dart' show DumpInfoTask;
-import '../io/code_output.dart' show CodeBuffer;
+import '../io/code_output.dart' show CodeBuffer, CodeOutputListener;
 import 'js_source_mapping.dart';
 
 export 'package:js_ast/js_ast.dart';
@@ -18,15 +18,13 @@ export 'js_debug.dart';
 String prettyPrint(Node node,
     {bool enableMinification: false,
     bool allowVariableMinification: true,
-    bool preferSemicolonToNewlineInMinifiedOutput: false,
-    Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
+    bool preferSemicolonToNewlineInMinifiedOutput: false}) {
   // TODO(johnniwinther): Do we need all the options here?
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: enableMinification,
       minifyLocalVariables: allowVariableMinification,
       preferSemicolonToNewlineInMinifiedOutput:
-          preferSemicolonToNewlineInMinifiedOutput,
-      renamerForNames: renamerForNames);
+          preferSemicolonToNewlineInMinifiedOutput);
   SimpleJavaScriptPrintingContext context =
       new SimpleJavaScriptPrintingContext();
   Printer printer = new Printer(options, context);
@@ -38,12 +36,11 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
     {DumpInfoTask monitor,
     bool allowVariableMinification: true,
-    Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
+    List<CodeOutputListener> listeners: const []}) {
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: compilerOptions.enableMinification,
-      minifyLocalVariables: allowVariableMinification,
-      renamerForNames: renamerForNames);
-  CodeBuffer outBuffer = new CodeBuffer();
+      minifyLocalVariables: allowVariableMinification);
+  CodeBuffer outBuffer = new CodeBuffer(listeners);
   SourceInformationProcessor sourceInformationProcessor =
       sourceInformationStrategy.createProcessor(
           new SourceMapperProviderImpl(outBuffer),
@@ -160,7 +157,7 @@ class UnparsedNode extends DeferredString implements AstContainer {
           }
         }
       }
-      _cachedLiteral = js.escapedString(text);
+      _cachedLiteral = js.string(text);
     }
     return _cachedLiteral;
   }

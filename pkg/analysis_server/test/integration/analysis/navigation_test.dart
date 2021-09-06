@@ -117,13 +117,13 @@ part of foo;
         'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
     checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
         ElementKind.TYPE_ALIAS);
-    checkLocal('field)', 'field = (', ElementKind.GETTER);
+    checkLocal('field)', 'field = (', ElementKind.FIELD);
     checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
     checkLocal(
         'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
     checkLocal('method();', 'method() {', ElementKind.METHOD);
     checkLocal('parameter());', 'parameter) {', ElementKind.PARAMETER);
-    checkLocal('field = 1', 'field = (', ElementKind.SETTER);
+    checkLocal('field = 1', 'field = (', ElementKind.FIELD);
     checkLocal('topLevelVariable = 0;', 'topLevelVariable = 0;',
         ElementKind.TOP_LEVEL_VARIABLE);
     checkLocal('TypeParameter field = (', 'TypeParameter>',

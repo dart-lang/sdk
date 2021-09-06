@@ -405,6 +405,39 @@ class MyClass {
 ''');
   }
 
+  test_visitBinaryExpression_and_bool_false_invalid() async {
+    await resolveTestCode('''
+final a = false;
+const c = false && a;
+''');
+    DartObjectImpl result = _evaluateConstant('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    _assertBoolValue(result, false);
+  }
+
+  test_visitBinaryExpression_and_bool_invalid_false() async {
+    await resolveTestCode('''
+final a = false;
+const c = a && false;
+''');
+    var result = _evaluateConstantOrNull('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
+  }
+
+  test_visitBinaryExpression_and_bool_invalid_true() async {
+    await resolveTestCode('''
+final a = false;
+const c = a && true;
+''');
+    var result = _evaluateConstantOrNull('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
+  }
+
   test_visitBinaryExpression_and_bool_known_known() async {
     await resolveTestCode('''
 const c = false & true;
@@ -420,6 +453,18 @@ const c = false & b;
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_and_bool_true_invalid() async {
+    await resolveTestCode('''
+final a = false;
+const c = true && a;
+''');
+    var result = _evaluateConstantOrNull('c', errorCodes: [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
   }
 
   test_visitBinaryExpression_and_bool_unknown_known() async {
@@ -457,6 +502,40 @@ const c = 3 & false;
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
   }
 
+  test_visitBinaryExpression_or_bool_false_invalid() async {
+    await resolveTestCode('''
+final a = false;
+const c = false || a;
+''');
+    var result = _evaluateConstantOrNull('c', errorCodes: [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
+  }
+
+  test_visitBinaryExpression_or_bool_invalid_false() async {
+    await resolveTestCode('''
+final a = false;
+const c = a || false;
+''');
+    var result = _evaluateConstantOrNull('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
+  }
+
+  test_visitBinaryExpression_or_bool_invalid_true() async {
+    await resolveTestCode('''
+final a = false;
+const c = a || true;
+''');
+    var result = _evaluateConstantOrNull('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
+  }
+
   test_visitBinaryExpression_or_bool_known_known() async {
     await resolveTestCode('''
 const c = false | true;
@@ -472,6 +551,17 @@ const c = false | b;
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.boolType);
+  }
+
+  test_visitBinaryExpression_or_bool_true_invalid() async {
+    await resolveTestCode('''
+final a = false;
+const c = true || a;
+''');
+    var result = _evaluateConstant('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    _assertBoolValue(result, true);
   }
 
   test_visitBinaryExpression_or_bool_unknown_known() async {
@@ -509,7 +599,29 @@ const c = 3 | false;
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
   }
 
-  test_visitBinaryExpression_questionQuestion_eager_notNull_notNull() async {
+  test_visitBinaryExpression_questionQuestion_invalid_notNull() async {
+    await resolveTestCode('''
+final x = 0;
+const c = x ?? 1;
+''');
+    var result = _evaluateConstantOrNull('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
+  }
+
+  test_visitBinaryExpression_questionQuestion_notNull_invalid() async {
+    await resolveTestCode('''
+final x = 1;
+const c = 0 ?? x;
+''');
+    var result = _evaluateConstant('c', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    _assertIntValue(result, 0);
+  }
+
+  test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
     await resolveTestCode('''
 const c = 'a' ?? 'b';
 ''');
@@ -518,43 +630,7 @@ const c = 'a' ?? 'b';
     expect(result.toStringValue(), 'a');
   }
 
-  test_visitBinaryExpression_questionQuestion_eager_null_notNull() async {
-    await resolveTestCode('''
-const c = null ?? 'b';
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.stringType);
-    expect(result.toStringValue(), 'b');
-  }
-
-  test_visitBinaryExpression_questionQuestion_eager_null_null() async {
-    await resolveTestCode('''
-const c = null ?? null;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.isNull, isTrue);
-  }
-
-  test_visitBinaryExpression_questionQuestion_lazy_notNull_invalid() async {
-    await resolveTestCode('''
-const c = 'a' ?? new C();
-class C {}
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.stringType);
-    expect(result.toStringValue(), 'a');
-  }
-
-  test_visitBinaryExpression_questionQuestion_lazy_notNull_notNull() async {
-    await resolveTestCode('''
-const c = 'a' ?? 'b';
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.stringType);
-    expect(result.toStringValue(), 'a');
-  }
-
-  test_visitBinaryExpression_questionQuestion_lazy_null_invalid() async {
+  test_visitBinaryExpression_questionQuestion_null_invalid() async {
     await resolveTestCode('''
 const c = null ?? new C();
 class C {}
@@ -563,7 +639,7 @@ class C {}
         errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
-  test_visitBinaryExpression_questionQuestion_lazy_null_notNull() async {
+  test_visitBinaryExpression_questionQuestion_null_notNull() async {
     await resolveTestCode('''
 const c = null ?? 'b';
 ''');
@@ -572,7 +648,7 @@ const c = null ?? 'b';
     expect(result.toStringValue(), 'b');
   }
 
-  test_visitBinaryExpression_questionQuestion_lazy_null_null() async {
+  test_visitBinaryExpression_questionQuestion_null_null() async {
     await resolveTestCode('''
 const c = null ?? null;
 ''');
@@ -1082,6 +1158,16 @@ const b = 3;''');
     expect(result.toIntValue(), 3);
   }
 
+  void _assertBoolValue(DartObjectImpl result, bool value) {
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), value);
+  }
+
+  void _assertIntValue(DartObjectImpl result, int value) {
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), value);
+  }
+
   DartObjectImpl _boolValue(bool value) {
     if (identical(value, false)) {
       return DartObjectImpl(
@@ -1132,9 +1218,6 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var expression = findNode.topVariableDeclarationByName(name).initializer!;
 
     var unit = this.result.unit;
-    if (unit == null) {
-      throw StateError('analysis result unit is null');
-    }
     var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
     var errorReporter = ErrorReporter(
@@ -1146,8 +1229,9 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     DartObjectImpl? result = expression.accept(
       ConstantVisitor(
         ConstantEvaluationEngine(
-          DeclaredVariables.fromMap(declaredVariables),
-          unit.featureSet.isEnabled(Feature.triple_shift),
+          declaredVariables: DeclaredVariables.fromMap(declaredVariables),
+          isNonNullableByDefault:
+              unit.featureSet.isEnabled(Feature.non_nullable),
         ),
         this.result.libraryElement as LibraryElementImpl,
         errorReporter,

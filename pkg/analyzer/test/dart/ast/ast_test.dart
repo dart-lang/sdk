@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -29,6 +30,7 @@ main() {
     defineReflectiveTests(MethodDeclarationTest);
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
+    defineReflectiveTests(NormalFormalParameterTest);
     defineReflectiveTests(PreviousTokenTest);
     defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(SimpleIdentifierTest);
@@ -430,171 +432,155 @@ class IndexExpressionTest {
 
 @reflectiveTest
 class InterpolationStringTest extends ParserTestCase {
-  InterpolationString interpolationString(
-      String lexeme, String value, bool isFirst, bool isLast) {
-    var node = AstTestFactory.interpolationString(lexeme, value);
-    var nodes = <InterpolationElement>[
-      if (!isFirst) AstTestFactory.interpolationString("'first", "first"),
-      node,
-      if (!isLast) AstTestFactory.interpolationString("last'", "last")
-    ];
-    var parent = AstTestFactory.string(nodes);
-    assert(node.parent == parent);
-    return node;
-  }
+  /// This field is updated in [_parseStringInterpolation].
+  /// It is used in [_assertContentsOffsetEnd].
+  var _baseOffset = 0;
 
   void test_contentsOffset_doubleQuote_first() {
-    var node = interpolationString('"foo', "foo", true, true);
-    expect(node.contentsOffset, '"'.length);
-    expect(node.contentsEnd, '"'.length + "foo".length);
-  }
-
-  void test_contentsOffset_doubleQuote_firstLast() {
-    var node = interpolationString('"foo"', "foo", true, true);
-    expect(node.contentsOffset, '"'.length);
-    expect(node.contentsEnd, '"'.length + "foo".length);
+    var interpolation = _parseStringInterpolation('"foo\$x last"');
+    var node = interpolation.firstString;
+    _assertContentsOffsetEnd(node, 1, 4);
   }
 
   void test_contentsOffset_doubleQuote_last() {
-    var node = interpolationString('foo"', "foo", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo".length);
+    var interpolation = _parseStringInterpolation('"first \$x foo"');
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 9, 13);
   }
 
   void test_contentsOffset_doubleQuote_last_empty() {
-    var node = interpolationString('"', "", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, 0);
+    var interpolation = _parseStringInterpolation('"first \$x"');
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 9, 9);
   }
 
   void test_contentsOffset_doubleQuote_last_unterminated() {
-    var node = interpolationString('foo', "foo", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo".length);
+    var interpolation = _parseStringInterpolation('"first \$x foo');
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 9, 13);
   }
 
   void test_contentsOffset_doubleQuote_multiline_first() {
-    var node = interpolationString('"""\nfoo\n', "foo\n", true, true);
-    expect(node.contentsOffset, '"""\n'.length);
-    expect(node.contentsEnd, '"""\n'.length + "foo\n".length);
-  }
-
-  void test_contentsOffset_doubleQuote_multiline_firstLast() {
-    var node = interpolationString('"""\nfoo\n"""', "foo\n", true, true);
-    expect(node.contentsOffset, '"""\n'.length);
-    expect(node.contentsEnd, '"""\n'.length + "foo\n".length);
+    var interpolation = _parseStringInterpolation('"""foo\n\$x last"""');
+    var node = interpolation.firstString;
+    _assertContentsOffsetEnd(node, 3, 7);
   }
 
   void test_contentsOffset_doubleQuote_multiline_last() {
-    var node = interpolationString('foo\n"""', "foo\n", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo\n".length);
+    var interpolation = _parseStringInterpolation('"""first\$x foo\n"""');
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 10, 15);
   }
 
   void test_contentsOffset_doubleQuote_multiline_last_empty() {
-    var node = interpolationString('"""', "", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, 0);
+    var interpolation = _parseStringInterpolation('"""first\$x"""');
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 10, 10);
   }
 
   void test_contentsOffset_doubleQuote_multiline_last_unterminated() {
-    var node = interpolationString('foo\n', "foo\n", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo\n".length);
+    var interpolation = _parseStringInterpolation('"""first\$x foo\n');
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 10, 15);
   }
 
   void test_contentsOffset_escapeCharacters() {
     // Contents offset cannot use 'value' string, because of escape sequences.
-    var node = interpolationString(r'"foo\nbar"', "foo\nbar", true, true);
-    expect(node.contentsOffset, '"'.length);
-    expect(node.contentsEnd, '"'.length + "foo\\nbar".length);
+    var interpolation = _parseStringInterpolation(r'"foo\nbar$x last"');
+    var node = interpolation.firstString;
+    _assertContentsOffsetEnd(node, 1, 9);
   }
 
   void test_contentsOffset_middle() {
-    var node = interpolationString("foo", "foo", false, false);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo".length);
+    var interpolation =
+        _parseStringInterpolation(r'"first $x foo\nbar $y last"');
+    var node = interpolation.elements[2] as InterpolationString;
+    _assertContentsOffsetEnd(node, 9, 19);
   }
 
   void test_contentsOffset_middle_quoteBegin() {
-    // This occurs in, for instance, `"$a'foo$b"`
-    var node = interpolationString("'foo", "'foo", false, false);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "'foo".length);
+    var interpolation = _parseStringInterpolation('"first \$x \'foo\$y last"');
+    var node = interpolation.elements[2] as InterpolationString;
+    _assertContentsOffsetEnd(node, 9, 14);
   }
 
   void test_contentsOffset_middle_quoteBeginEnd() {
-    // This occurs in, for instance, `"$a'foo'$b"`
-    var node = interpolationString("'foo'", "'foo'", false, false);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "'foo'".length);
+    var interpolation =
+        _parseStringInterpolation('"first \$x \'foo\'\$y last"');
+    var node = interpolation.elements[2] as InterpolationString;
+    _assertContentsOffsetEnd(node, 9, 15);
   }
 
   void test_contentsOffset_middle_quoteEnd() {
-    // This occurs in, for instance, `"${a}foo'$b"`
-    var node = interpolationString("foo'", "foo'", false, false);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo'".length);
+    var interpolation = _parseStringInterpolation('"first \$x foo\'\$y last"');
+    var node = interpolation.elements[2] as InterpolationString;
+    _assertContentsOffsetEnd(node, 9, 14);
   }
 
   void test_contentsOffset_singleQuote_first() {
-    var node = interpolationString("'foo", "foo", true, true);
-    expect(node.contentsOffset, "'".length);
-    expect(node.contentsEnd, "'".length + "foo".length);
-  }
-
-  void test_contentsOffset_singleQuote_firstLast() {
-    var node = interpolationString("'foo'", "foo", true, true);
-    expect(node.contentsOffset, "'".length);
-    expect(node.contentsEnd, "'".length + "foo".length);
+    var interpolation = _parseStringInterpolation("'foo\$x last'");
+    var node = interpolation.firstString;
+    _assertContentsOffsetEnd(node, 1, 4);
   }
 
   void test_contentsOffset_singleQuote_last() {
-    var node = interpolationString("foo'", "foo", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo".length);
+    var interpolation = _parseStringInterpolation("'first \$x foo'");
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 9, 13);
   }
 
   void test_contentsOffset_singleQuote_last_empty() {
-    var node = interpolationString("'", "", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, 0);
+    var interpolation = _parseStringInterpolation("'first \$x'");
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 9, 9);
   }
 
   void test_contentsOffset_singleQuote_last_unterminated() {
-    var node = interpolationString("foo", "foo", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo".length);
+    var interpolation = _parseStringInterpolation("'first \$x");
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 9, 9);
   }
 
   void test_contentsOffset_singleQuote_multiline_first() {
-    var node = interpolationString("'''\nfoo\n", "foo\n", true, true);
-    expect(node.contentsOffset, "'''\n".length);
-    expect(node.contentsEnd, "'''\n".length + "foo\n".length);
-  }
-
-  void test_contentsOffset_singleQuote_multiline_firstLast() {
-    var node = interpolationString("'''\nfoo\n'''", "foo\n", true, true);
-    expect(node.contentsOffset, "'''\n".length);
-    expect(node.contentsEnd, "'''\n".length + "foo\n".length);
+    var interpolation = _parseStringInterpolation("'''foo\n\$x last'''");
+    var node = interpolation.firstString;
+    _assertContentsOffsetEnd(node, 3, 7);
   }
 
   void test_contentsOffset_singleQuote_multiline_last() {
-    var node = interpolationString("foo\n'''", "foo\n", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo\n".length);
+    var interpolation = _parseStringInterpolation("'''first\$x foo\n'''");
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 10, 15);
   }
 
   void test_contentsOffset_singleQuote_multiline_last_empty() {
-    var node = interpolationString("'''", "", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, 0);
+    var interpolation = _parseStringInterpolation("'''first\$x'''");
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 10, 10);
   }
 
   void test_contentsOffset_singleQuote_multiline_last_unterminated() {
-    var node = interpolationString("foo\n", "foo\n", false, true);
-    expect(node.contentsOffset, 0);
-    expect(node.contentsEnd, "foo\n".length);
+    var interpolation = _parseStringInterpolation("'''first\$x'''");
+    var node = interpolation.lastString;
+    _assertContentsOffsetEnd(node, 10, 10);
+  }
+
+  void _assertContentsOffsetEnd(InterpolationString node, int offset, int end) {
+    expect(node.contentsOffset, _baseOffset + offset);
+    expect(node.contentsEnd, _baseOffset + end);
+  }
+
+  StringInterpolation _parseStringInterpolation(String code) {
+    var unitCode = 'var x = ';
+    _baseOffset = unitCode.length;
+    unitCode += code;
+    var unit = parseString(
+      content: unitCode,
+      throwIfDiagnostics: false,
+    ).unit;
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    return declaration.variables.variables[0].initializer
+        as StringInterpolation;
   }
 }
 
@@ -929,6 +915,19 @@ class NodeListTest {
     } on RangeError {
       // Expected
     }
+  }
+}
+
+@reflectiveTest
+class NormalFormalParameterTest extends ParserTestCase {
+  test_sortedCommentAndAnnotations_noComment() {
+    var result = parseString(content: '''
+void f(int i) {}
+''');
+    var function = result.unit.declarations[0] as FunctionDeclaration;
+    var parameters = function.functionExpression.parameters;
+    var parameter = parameters?.parameters[0] as NormalFormalParameter;
+    expect(parameter.sortedCommentAndAnnotations, isEmpty);
   }
 }
 
@@ -1587,13 +1586,14 @@ class SpreadElementTest extends ParserTestCase {
 @reflectiveTest
 class StringInterpolationTest extends ParserTestCase {
   void test_contentsOffsetEnd() {
-    AstTestFactory.interpolationExpression(AstTestFactory.identifier3('bb'));
+    var bb = AstTestFactory.interpolationExpression(
+        AstTestFactory.identifier3('bb'));
     // 'a${bb}ccc'
     {
       var ae = AstTestFactory.interpolationString("'a", "a");
       var cToken = StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
+      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
       expect(node.contentsOffset, 1);
       expect(node.contentsEnd, 10 + 4 - 1);
     }
@@ -1602,7 +1602,7 @@ class StringInterpolationTest extends ParserTestCase {
       var ae = AstTestFactory.interpolationString("'''a", "a");
       var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
+      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
       expect(node.contentsOffset, 3);
       expect(node.contentsEnd, 10 + 4 - 1);
     }
@@ -1611,7 +1611,7 @@ class StringInterpolationTest extends ParserTestCase {
       var ae = AstTestFactory.interpolationString('"""a', "a");
       var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
+      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
       expect(node.contentsOffset, 3);
       expect(node.contentsEnd, 10 + 4 - 1);
     }
@@ -1620,7 +1620,7 @@ class StringInterpolationTest extends ParserTestCase {
       var ae = AstTestFactory.interpolationString("r'a", "a");
       var cToken = StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
+      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
       expect(node.contentsOffset, 2);
       expect(node.contentsEnd, 10 + 4 - 1);
     }
@@ -1629,7 +1629,7 @@ class StringInterpolationTest extends ParserTestCase {
       var ae = AstTestFactory.interpolationString("r'''a", "a");
       var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
+      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
       expect(node.contentsOffset, 4);
       expect(node.contentsEnd, 10 + 4 - 1);
     }
@@ -1638,7 +1638,7 @@ class StringInterpolationTest extends ParserTestCase {
       var ae = AstTestFactory.interpolationString('r"""a', "a");
       var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
+      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
       expect(node.contentsOffset, 4);
       expect(node.contentsEnd, 10 + 4 - 1);
     }
@@ -1678,7 +1678,7 @@ class StringInterpolationTest extends ParserTestCase {
   }
 
   void test_isRaw() {
-    StringInterpolation node = AstTestFactory.string();
+    var node = parseStringLiteral('"first \$x last"') as StringInterpolation;
     expect(node.isRaw, isFalse);
   }
 
@@ -1734,6 +1734,15 @@ class VariableDeclarationTest extends ParserTestCase {
     Comment comment = astFactory.documentationComment([]);
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
+  }
+
+  test_sortedCommentAndAnnotations_noComment() {
+    var result = parseString(content: '''
+int i = 0;
+''');
+    var variables = result.unit.declarations[0] as TopLevelVariableDeclaration;
+    var variable = variables.variables.variables[0];
+    expect(variable.sortedCommentAndAnnotations, isEmpty);
   }
 }
 

@@ -19,7 +19,7 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method g(self::C* c) → void {
-  let final self::C* #t1 = c in let final core::double* #t2 = 1.5 in #t1.{self::C::f}.call(#t2);
+  let final self::C* #t1 = c in let final core::double* #t2 = 1.5 in #t1.{self::C::f}{dynamic}{dynamic}.call(#t2);
 }
 static method h(core::int* i) → void {}
 static method test() → void {
@@ -28,5 +28,5 @@ static method test() → void {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::h
+  #C1 = static-tearoff self::h
 }

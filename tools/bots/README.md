@@ -12,7 +12,7 @@ infrastructure. Changes to the test matrix affect all builds that include them.
 
 The test matrix is a JSON document and consists of the `"filesets"` object, the
 `"configurations"` list, and the `"builder_configurations"` list as well as a
-`"global"` values object and a `"branches"` list.
+`"branches"` list.
 
 ### Filesets
 

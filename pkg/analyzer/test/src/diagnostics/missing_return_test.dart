@@ -97,7 +97,7 @@ Future Function() f = () async {};
 
   test_functionExpression_async_block_futureInt() async {
     await assertErrorsInCode(r'''
-Future<int> Function() f = () async {}; 
+Future<int> Function() f = () async {};
 ''', [
       error(HintCode.MISSING_RETURN, 27, 11),
     ]);

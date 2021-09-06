@@ -5,6 +5,12 @@
 import 'c_types.dart';
 
 final functions = [
+  ...functionsStructArguments,
+  ...functionsStructReturn,
+  ...functionsReturnArgument,
+];
+
+final functionsStructArguments = [
   FunctionType(List.filled(10, struct1byteInt), int64, """
 Smallest struct with data.
 10 struct arguments will exhaust available registers."""),
@@ -333,7 +339,7 @@ Small struct with mis-aligned member."""),
   FunctionType(List.filled(10, struct8bytesPacked), int64, """
 Struct with mis-aligned member."""),
   FunctionType(
-      [...List.filled(10, struct9bytesPacked), double_, int32],
+      [...List.filled(10, struct9bytesPacked), double_, int32, int32],
       double_,
       """
 Struct with mis-aligned member.
@@ -358,6 +364,19 @@ Check alignment of packed struct array in non-packed struct."""),
       double_,
       """
 Check alignment of packed struct array in non-packed struct."""),
+  FunctionType(List.filled(10, union4bytesMixed), double_, """
+Check placement of mixed integer/float union."""),
+  FunctionType(List.filled(10, union8bytesFloat), double_, """
+Check placement of mixed floats union."""),
+  FunctionType(List.filled(10, union12bytesInt), double_, """
+Mixed-size union argument."""),
+  FunctionType(List.filled(10, union16bytesFloat), double_, """
+Union with homogenous floats."""),
+  FunctionType(List.filled(10, union16bytesFloat2), double_, """
+Union with homogenous floats."""),
+];
+
+final functionsStructReturn = [
   FunctionType(struct1byteInt.memberTypes, struct1byteInt, """
 Smallest struct with data."""),
   FunctionType(struct3bytesInt.memberTypes, struct3bytesInt, """
@@ -420,6 +439,29 @@ Struct with mis-aligned member."""),
   FunctionType(struct9bytesPacked.memberTypes, struct9bytesPacked, """
 Struct with mis-aligned member.
 Tests backfilling of CPU and FPU registers."""),
+  FunctionType(
+      [union4bytesMixed.memberTypes.first],
+      union4bytesMixed,
+      """
+Returning a mixed integer/float union."""),
+  FunctionType(
+      [union8bytesFloat.memberTypes.first],
+      union8bytesFloat,
+      """
+Returning a floating point only union."""),
+  FunctionType(
+      [union12bytesInt.memberTypes.first],
+      union12bytesInt,
+      """
+Returning a mixed-size union."""),
+  FunctionType(
+      [union16bytesFloat2.memberTypes.first],
+      union16bytesFloat2,
+      """
+Returning union with homogenous floats."""),
+];
+
+final functionsReturnArgument = [
   FunctionType(
       [struct1byteInt],
       struct1byteInt,
@@ -515,7 +557,7 @@ Test alignment and padding of nested struct with 64 byte int."""),
 Return big irregular struct as smoke test."""),
 ];
 
-final structs = [
+final compounds = [
   struct1byteInt,
   struct3bytesInt,
   struct3bytesInt2,
@@ -574,6 +616,11 @@ final structs = [
   struct8bytesPacked,
   struct9bytesPacked,
   struct15bytesPacked,
+  union4bytesMixed,
+  union8bytesFloat,
+  union12bytesInt,
+  union16bytesFloat,
+  union16bytesFloat2,
 ];
 
 final struct1byteInt = StructType([int8]);
@@ -741,3 +788,23 @@ final struct9bytesPacked = StructType([uint8, double_], packing: 1);
 /// inline array, but not in the subsequent ones.
 final struct15bytesPacked =
     StructType([FixedLengthArrayType(struct5bytesPacked, 3)]);
+
+/// Mixed integer and float. Tests whether calling conventions put this in
+/// integer registers or not.
+final union4bytesMixed = UnionType([uint32, float]);
+
+/// Different types of float. Tests whether calling conventions put this in
+/// FPU registers or not.
+final union8bytesFloat = UnionType([double_, struct8bytesFloat]);
+
+/// This union has a size of 12, because of the 4-byte alignment of the first
+/// member.
+final union12bytesInt = UnionType([struct8bytesInt, struct9bytesInt]);
+
+/// This union has homogenous floats of the same sizes.
+final union16bytesFloat =
+    UnionType([FixedLengthArrayType(float, 4), struct16bytesFloat]);
+
+/// This union has homogenous floats of different sizes.
+final union16bytesFloat2 =
+    UnionType([struct8bytesFloat, struct12bytesFloat, struct16bytesFloat]);

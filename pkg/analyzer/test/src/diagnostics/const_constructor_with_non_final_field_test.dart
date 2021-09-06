@@ -15,35 +15,6 @@ main() {
 
 @reflectiveTest
 class ConstConstructorWithNonFinalFieldTest extends PubPackageResolutionTest {
-  test_mixin() async {
-    await assertErrorsInCode(r'''
-class A {
-  var a;
-}
-class B extends Object with A {
-  const B();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 61, 1),
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 61, 1),
-    ]);
-  }
-
-  test_super() async {
-    await assertErrorsInCode(r'''
-class A {
-  var a;
-}
-class B extends A {
-  const B();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 49, 1),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 49, 1),
-    ]);
-  }
-
   test_this_named() async {
     await assertErrorsInCode(r'''
 class A {

@@ -698,6 +698,30 @@ abstract class Future<T> {
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
 }
 
+/// Explicitly ignores a future.
+///
+/// Not all futures need to be awaited.
+/// The Dart linter has an optional ["unawaited futures" lint](https://dart-lang.github.io/linter/lints/unawaited_futures.html)
+/// which enforces that futures (expressions with a static type of [Future])
+/// in asynchronous functions are handled *somehow*.
+/// If a particular future value doesn't need to be awaited,
+/// you can call `unawaited(...)` with it, which will avoid the lint,
+/// simply because the expression no longer has type [Future].
+/// Using `unawaited` has no other effect.
+/// You should use `unawaited` to convey the *intention* of
+/// deliberately not waiting for the future.
+///
+/// If the future completes with an error,
+/// it was likely a mistake to not await it.
+/// That error will still occur and will be considered unhandled
+/// unless the same future is awaited (or otherwise handled) elsewhere too.
+/// Because of that, `unawaited` should only be used for futures that
+/// are *expected* to complete with a value.
+/// You can use [FutureExtensions.ignore] if you also don't want to know
+/// about errors from this future.
+@Since("2.14")
+void unawaited(Future<void> future) {}
+
 /// Convenience methods on futures.
 ///
 /// Adds functionality to futures which makes it easier to
@@ -770,6 +794,32 @@ extension FutureExtensions<T> on Future<T> {
             handleError(error as E, stackTrace),
         test: (Object error) => error is E && (test == null || test(error)));
   }
+
+  /// Completely ignores this future and its result.
+  ///
+  /// Not all futures are important, not even if they contain errors,
+  /// for example if a request was made, but the response is no longer needed.
+  /// Simply ignoring a future can result in uncaught asynchronous errors.
+  /// This method instead handles (and ignores) any values or errors
+  /// coming from this future, making it safe to otherwise ignore
+  /// the future.
+  ///
+  /// Use `ignore` to signal that the result of the future is
+  /// no longer important to the program, not even if it's an error.
+  /// If you merely want to silence the ["unawaited futures" lint](https://dart-lang.github.io/linter/lints/unawaited_futures.html),
+  /// use the [unawaited] function instead.
+  /// That will ensure that an unexpected error is still reported.
+  @Since("2.14")
+  void ignore() {
+    var self = this;
+    if (self is _Future<T>) {
+      self._ignore();
+    } else {
+      self.then<void>(_ignore, onError: _ignore);
+    }
+  }
+
+  static void _ignore(Object? _, [Object? __]) {}
 }
 
 /// Thrown when a scheduled timeout happens while waiting for an async result.

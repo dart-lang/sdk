@@ -3,38 +3,54 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*spec.library: 
- output_units=[
-  f1: {units: [3{libA, libB, libC}], usedBy: [], needs: []},
-  f2: {units: [6{libA}], usedBy: [], needs: []},
-  f3: {units: [1{libB}], usedBy: [], needs: []},
-  f4: {units: [2{libC}], usedBy: [], needs: []}],
- steps=[
-  libA=(f1, f2),
-  libB=(f1, f3),
-  libC=(f1, f4)]
+ a_pre_fragments=[
+  p1: {units: [6{libA}], usedBy: [], needs: []},
+  p2: {units: [1{libB}], usedBy: [], needs: []},
+  p3: {units: [2{libC}], usedBy: [], needs: []},
+  p4: {units: [4{libA, libC}], usedBy: [], needs: []},
+  p5: {units: [5{libB, libC}], usedBy: [], needs: []},
+  p6: {units: [3{libA, libB, libC}], usedBy: [], needs: []}],
+ b_finalized_fragments=[
+  f1: [6{libA}],
+  f2: [1{libB}],
+  f3: [2{libC}],
+  f6: [3{libA, libB, libC}]],
+ c_steps=[
+  libA=(f6, f1),
+  libB=(f6, f2),
+  libC=(f6, f3)]
 */
 
 /*two-frag.library: 
- output_units=[
-  f1: {units: [3{libA, libB, libC}], usedBy: [], needs: [2]},
-  f2: {units: [5{libB, libC}, 4{libA, libC}, 2{libC}], usedBy: [1], needs: [3]},
-  f3: {units: [1{libB}, 6{libA}], usedBy: [2], needs: []}],
- steps=[
-  libA=(f1, f2, f3),
-  libB=(f1, f2, f3),
-  libC=(f1, f2)]
+ a_pre_fragments=[
+  p1: {units: [1{libB}, 6{libA}], usedBy: [p2, p3], needs: []},
+  p2: {units: [4{libA, libC}, 2{libC}], usedBy: [p3], needs: [p1]},
+  p3: {units: [3{libA, libB, libC}, 5{libB, libC}], usedBy: [], needs: [p2, p1]}],
+ b_finalized_fragments=[
+  f1: [1{libB}, 6{libA}],
+  f2: [2{libC}],
+  f3: [3{libA, libB, libC}]],
+ c_steps=[
+  libA=(f3, f1),
+  libB=(f3, f1),
+  libC=(f3, f2)]
 */
 
 /*three-frag.library: 
- output_units=[
-  f1: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}], usedBy: [], needs: [4, 3, 2]},
-  f2: {units: [6{libA}], usedBy: [1], needs: []},
-  f3: {units: [1{libB}], usedBy: [1], needs: []},
-  f4: {units: [2{libC}], usedBy: [1], needs: []}],
- steps=[
-  libA=(f1, f2),
-  libB=(f1, f3),
-  libC=(f1, f4)]
+ a_pre_fragments=[
+  p1: {units: [6{libA}], usedBy: [p4], needs: []},
+  p2: {units: [1{libB}], usedBy: [p4], needs: []},
+  p3: {units: [2{libC}], usedBy: [p4], needs: []},
+  p4: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}], usedBy: [], needs: [p3, p2, p1]}],
+ b_finalized_fragments=[
+  f1: [6{libA}],
+  f2: [1{libB}],
+  f3: [2{libC}],
+  f4: [3{libA, libB, libC}]],
+ c_steps=[
+  libA=(f4, f1),
+  libB=(f4, f2),
+  libC=(f4, f3)]
 */
 
 // @dart = 2.7

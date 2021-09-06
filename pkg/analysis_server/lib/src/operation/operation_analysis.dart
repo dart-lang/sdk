@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
@@ -19,9 +17,6 @@ import 'package:analyzer/src/generated/source.dart';
 Future<void> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
   var searchEngine = server.searchEngine;
-  if (searchEngine == null) {
-    return;
-  }
   for (var file in files) {
     var unit = server.getCachedResolvedUnit(file)?.unit;
     var unitElement = unit?.declaredElement;
@@ -79,7 +74,7 @@ void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
 void sendAnalysisNotificationFlushResults(
     AnalysisServer server, List<String> files) {
   _sendNotification(server, () {
-    if (files != null && files.isNotEmpty) {
+    if (files.isNotEmpty) {
       var params = protocol.AnalysisFlushResultsParams(files);
       server.sendNotification(params.toNotification());
     }
@@ -99,14 +94,15 @@ void sendAnalysisNotificationOutline(
     AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
     protocol.FileKind fileKind;
-    if (resolvedUnit.unit.directives.any((d) => d is PartOfDirective)) {
+    var unit = resolvedUnit.unit;
+    if (unit.directives.any((d) => d is PartOfDirective)) {
       fileKind = protocol.FileKind.PART;
     } else {
       fileKind = protocol.FileKind.LIBRARY;
     }
 
     // compute library name
-    var libraryName = _computeLibraryName(resolvedUnit.unit);
+    var libraryName = _computeLibraryName(unit);
 
     // compute Outline
     var outline = DartUnitOutlineComputer(
@@ -131,15 +127,18 @@ void sendAnalysisNotificationOverrides(
   });
 }
 
-String _computeLibraryName(CompilationUnit unit) {
+String? _computeLibraryName(CompilationUnit unit) {
   for (var directive in unit.directives) {
-    if (directive is LibraryDirective && directive.name != null) {
+    if (directive is LibraryDirective) {
       return directive.name.name;
     }
   }
   for (var directive in unit.directives) {
-    if (directive is PartOfDirective && directive.libraryName != null) {
-      return directive.libraryName.name;
+    if (directive is PartOfDirective) {
+      var libraryName = directive.libraryName;
+      if (libraryName != null) {
+        return libraryName.name;
+      }
     }
   }
   return null;

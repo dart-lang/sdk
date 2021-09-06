@@ -36,7 +36,7 @@ def GetDefaultConcurrentLinks():
         stat = MEMORYSTATUSEX(dwLength=ctypes.sizeof(MEMORYSTATUSEX))
         ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
 
-        mem_limit = max(1, stat.ullTotalPhys / (4 * (2**30)))  # total / 4GB
+        mem_limit = max(1, stat.ullTotalPhys // (4 * (2**30)))  # total / 4GB
         hard_cap = max(1, int(os.getenv('GYP_LINK_CONCURRENCY_MAX', 2**32)))
         return min(mem_limit, hard_cap)
     elif sys.platform.startswith('linux'):
@@ -48,7 +48,7 @@ def GetDefaultConcurrentLinks():
                     if not match:
                         continue
                     # Allow 8Gb per link on Linux because Gold is quite memory hungry
-                    return max(1, int(match.group(1)) / (8 * (2**20)))
+                    return max(1, int(match.group(1)) // (8 * (2**20)))
         return 1
     elif sys.platform == 'darwin':
         try:
@@ -56,7 +56,7 @@ def GetDefaultConcurrentLinks():
                 subprocess.check_output(['sysctl', '-n', 'hw.memsize']))
             # A static library debug build of Chromium's unit_tests takes ~2.7GB, so
             # 4GB per ld process allows for some more bloat.
-            return max(1, avail_bytes / (4 * (2**30)))  # total / 4GB
+            return max(1, avail_bytes // (4 * (2**30)))  # total / 4GB
         except Exception:
             return 1
     else:
@@ -64,4 +64,4 @@ def GetDefaultConcurrentLinks():
         return 1
 
 
-print GetDefaultConcurrentLinks()
+print(GetDefaultConcurrentLinks())

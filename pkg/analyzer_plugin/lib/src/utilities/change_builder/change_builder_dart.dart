@@ -1155,12 +1155,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return false;
     }
 
-    var aliasElement = type.aliasElement;
-    var aliasArguments = type.aliasArguments;
-    if (aliasElement != null && aliasArguments != null) {
+    var alias = type.alias;
+    if (alias != null) {
       _writeTypeElementArguments(
-        element: aliasElement,
-        typeArguments: aliasArguments,
+        element: alias.element,
+        typeArguments: alias.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
       _writeTypeNullability(type);
@@ -1281,7 +1280,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// the given [resolvedUnit] and [timeStamp].
   DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
       int timeStamp, this.libraryChangeBuilder)
-      : super(changeBuilder, resolvedUnit.path!, timeStamp);
+      : super(changeBuilder, resolvedUnit.path, timeStamp);
 
   @override
   bool get hasEdits =>
@@ -1353,7 +1352,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void format(SourceRange range) {
-    var newContent = resolvedUnit.content!;
+    var newContent = resolvedUnit.content;
     var newRangeOffset = range.offset;
     var newRangeLength = range.length;
     for (var edit in fileEdit.edits) {
@@ -1437,7 +1436,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
     PartDirective? partDirective;
-    var unit = resolvedUnit.unit!;
+    var unit = resolvedUnit.unit;
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
@@ -1496,7 +1495,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             // file.
             var isFirst =
                 next == (next.parent as CompilationUnit).directives.first;
-            var offset = isFirst && next is AnnotatedNode
+            var offset = isFirst
                 ? next.firstTokenAfterCommentAndMetadata.offset
                 : next.offset;
             addInsertion(offset, (EditBuilder builder) {

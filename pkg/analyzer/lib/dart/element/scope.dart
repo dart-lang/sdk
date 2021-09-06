@@ -12,14 +12,6 @@ abstract class Scope {
   /// done with the lookup, and return both the getter and the setter, if
   /// available.
   ScopeLookupResult lookup(String id);
-
-  /// Return the result of lexical lookup for the given [id], not `null`.
-  ///
-  /// Getters and setters are bundled, when we found one or another, we are
-  /// done with the lookup, and return both the getter and the setter, if
-  /// available.
-  @Deprecated('Use lookup() instead')
-  ScopeLookupResult lookup2(String id);
 }
 
 class ScopeLookupResult {

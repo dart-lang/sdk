@@ -59,7 +59,7 @@ Future closureInvocation({bool minify, String prefix}) async {
 // the closure.
 Future closureBailout({bool minify, String prefix}) async {
   String generated = await compileAll(TEST_BAILOUT, minify: minify);
-  RegExp regexp = new RegExp("$prefix\\\$0:${minify ? "" : " "}function");
+  RegExp regexp = new RegExp("$prefix\\\$0\\(\\)${minify ? "" : " "}{");
   Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
 }

@@ -533,7 +533,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class Foo3a<X extends (self::A<Never>) → self::A<dynamic> = (self::A<Never>) → self::A<dynamic>> extends core::Object {
+class Foo3a<X extends (self::A<Never>) → self::A<dynamic>> extends core::Object {
   synthetic constructor •() → self::Foo3a<self::Foo3a::X>
     : super core::Object::•()
     ;
@@ -543,12 +543,12 @@ class Foo3b<X extends (self::A<Never>) → self::A<dynamic> = dynamic> extends c
     : super core::Object::•()
     ;
 }
-class B<X extends core::int = core::int> extends core::Object {
+class B<X extends core::int> extends core::Object {
   synthetic constructor •() → self::B<self::B::X>
     : super core::Object::•()
     ;
 }
-class Bar3<X extends self::B<core::num> = self::B<core::num>> extends core::Object {
+class Bar3<X extends self::B<core::num>> extends core::Object {
   synthetic constructor •() → self::Bar3<self::Bar3::X>
     : super core::Object::•()
     ;
@@ -560,7 +560,7 @@ class Bar8 extends self::B<dynamic> {
 }
 static method foo1a((self::A<Never>) → self::A<dynamic> x) → dynamic {}
 static method foo1b((self::A<Never>) → self::A<dynamic> x) → dynamic {}
-static method foo2a<X extends (self::A<Never>) → self::A<dynamic> = (self::A<Never>) → self::A<dynamic>>() → dynamic {}
+static method foo2a<X extends (self::A<Never>) → self::A<dynamic>>() → dynamic {}
 static method foo2b<X extends (self::A<Never>) → self::A<dynamic> = dynamic>() → dynamic {}
 static method foo4a() → (self::A<Never>) → self::A<dynamic>
   return throw 42;
@@ -571,14 +571,14 @@ static method foo5b({required (self::A<Never>) → self::A<dynamic> x = #C1}) �
 static method foo6a() → dynamic {
   (self::A<Never>) → self::A<dynamic> x;
   {
-    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator}{core::Iterator<(self::A<Never>) → self::A<dynamic>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current}{(self::A<Never>) → self::A<dynamic>};
       {}
     }
   }
   function fooFoo1((self::A<Never>) → self::A<dynamic> x) → Null {}
-  function fooFoo2<X extends (self::A<Never>) → self::A<dynamic> = (self::A<Never>) → self::A<dynamic>>() → Null {}
+  function fooFoo2<X extends (self::A<Never>) → self::A<dynamic>>() → Null {}
   function fooFoo4() → (self::A<Never>) → self::A<dynamic>
     return throw 42;
   function fooFoo5({required (self::A<Never>) → self::A<dynamic> x = #C1}) → Null {}
@@ -587,14 +587,14 @@ static method foo6a() → dynamic {
 static method foo6b() → dynamic {
   (self::A<Never>) → self::A<dynamic> x;
   {
-    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator}{core::Iterator<(self::A<Never>) → self::A<dynamic>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current}{(self::A<Never>) → self::A<dynamic>};
       {}
     }
   }
   function fooFoo1((self::A<Never>) → self::A<dynamic> x) → Null {}
-  function fooFoo2<X extends (self::A<Never>) → self::A<dynamic> = (self::A<Never>) → self::A<dynamic>>() → Null {}
+  function fooFoo2<X extends (self::A<Never>) → self::A<dynamic>>() → Null {}
   function fooFoo4() → (self::A<Never>) → self::A<dynamic>
     return throw 42;
   function fooFoo5({required (self::A<Never>) → self::A<dynamic> x = #C1}) → Null {}
@@ -603,21 +603,21 @@ static method foo6b() → dynamic {
 static method foo7a([(self::A<Never>) →? self::A<dynamic> x = #C1]) → dynamic {}
 static method foo7b([(self::A<Never>) →? self::A<dynamic> x = #C1]) → dynamic {}
 static method bar1(self::B<core::num> x) → dynamic {}
-static method bar2<X extends self::B<core::num> = self::B<core::num>>() → dynamic {}
+static method bar2<X extends self::B<core::num>>() → dynamic {}
 static method bar4() → self::B<core::num>
   return throw 42;
 static method bar5({required self::B<core::num> x = #C1}) → dynamic {}
 static method bar6() → dynamic {
   self::B<core::num> x;
   {
-    core::Iterator<self::B<core::num>> :sync-for-iterator = core::_GrowableList::•<self::B<core::num>>(0).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      self::B<core::num> x = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<self::B<core::num>> :sync-for-iterator = core::_GrowableList::•<self::B<core::num>>(0).{core::Iterable::iterator}{core::Iterator<self::B<core::num>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      self::B<core::num> x = :sync-for-iterator.{core::Iterator::current}{self::B<core::num>};
       {}
     }
   }
   function barBar1(self::B<core::num> x) → Null {}
-  function barBar2<X extends self::B<core::num> = self::B<core::num>>() → Null {}
+  function barBar2<X extends self::B<core::num>>() → Null {}
   function barBar4() → self::B<core::num>
     return throw 42;
   function barBar5({required self::B<core::num> x = #C1}) → Null {}

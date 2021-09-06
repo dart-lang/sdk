@@ -22,22 +22,22 @@ Map<K, List<T>> _groupBy<K, T>(
 
 /// The HTML that is displayed for a region of code.
 class NavigationTreeRenderer {
-  final MigrationInfo migrationInfo;
+  final MigrationInfo? migrationInfo;
 
   /// An object used to map the file paths of analyzed files to the file paths
   /// of the HTML files used to view the content of those files.
-  final PathMapper pathMapper;
+  final PathMapper? pathMapper;
 
   /// Initializes a newly created region page within the given [site]. The
   /// [unitInfo] provides the information needed to render the page.
   NavigationTreeRenderer(this.migrationInfo, this.pathMapper);
 
   /// Returns the path context used to manipulate paths.
-  path.Context get pathContext => migrationInfo.pathContext;
+  path.Context get pathContext => migrationInfo!.pathContext;
 
   /// Renders the navigation link tree.
   List<NavigationTreeNode> render() {
-    var linkData = migrationInfo.unitLinks();
+    var linkData = migrationInfo!.unitLinks();
     var tree = _renderNavigationSubtree(linkData, 0);
     for (var node in tree) {
       node.parent = null;
@@ -64,7 +64,7 @@ class NavigationTreeRenderer {
         NavigationTreeFileNode(
           name: link.fileName,
           path: pathContext.joinAll(link.pathParts),
-          href: pathMapper.map(link.fullPath),
+          href: pathMapper!.map(link.fullPath!),
           editCount: link.editCount,
           wasExplicitlyOptedOut: link.wasExplicitlyOptedOut,
           migrationStatus: link.migrationStatus,

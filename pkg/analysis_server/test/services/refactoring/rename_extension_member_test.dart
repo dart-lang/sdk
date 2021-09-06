@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -53,7 +51,7 @@ extension E on int {
     await indexTestUnit('''
 extension E on int {
   test() {}
-  main() {
+  void f() {
     newName() {}
     test(); // marker
   }
@@ -77,7 +75,7 @@ extension E on int {
     await indexTestUnit('''
 extension E on int {
   test() {}
-  main() {
+  void f() {
     var newName;
     test(); // marker
   }
@@ -101,7 +99,7 @@ extension E on int {
     await indexTestUnit('''
 extension E on int {
   test() {}
-  main(newName) {
+  void f(newName) {
     test(); // marker
   }
 }
@@ -139,12 +137,12 @@ extension E on int {
 }
 ''');
     createRenameRefactoringAtString('test =>');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: 'Field name must not be null.',
+      expectedMessage: 'Field name must not be empty.',
     );
 
     // OK
@@ -159,14 +157,6 @@ extension E on int {
 }
 ''');
     createRenameRefactoringAtString('test() {}');
-
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-      refactoring.checkNewName(),
-      RefactoringProblemSeverity.FATAL,
-      expectedMessage: 'Method name must not be null.',
-    );
 
     // empty
     refactoring.newName = '';
@@ -197,7 +187,7 @@ extension E on A {
   test() {} // marker
 }
 
-main() {
+void f() {
   var a = A();
   a.test();
   E(a).test();
@@ -217,7 +207,7 @@ extension E on A {
   newName() {} // marker
 }
 
-main() {
+void f() {
   var a = A();
   a.newName();
   E(a).newName();
@@ -230,15 +220,15 @@ main() {
 extension E on int {
   get test {} // marker
   set test(x) {}
-  main() {
+  void f() {
     test;
     test = 1;
   }
 }
-main() {
+void f() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -253,15 +243,15 @@ main() {
 extension E on int {
   get newName {} // marker
   set newName(x) {}
-  main() {
+  void f() {
     newName;
     newName = 1;
   }
 }
-main() {
+void f() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }
@@ -273,15 +263,15 @@ main() {
 extension E on int {
   get test {}
   set test(x) {} // marker
-  main() {
+  void f() {
     test;
     test = 1;
   }
 }
-main() {
+void f() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -296,15 +286,15 @@ main() {
 extension E on int {
   get newName {}
   set newName(x) {} // marker
-  main() {
+  void f() {
     newName;
     newName = 1;
   }
 }
-main() {
+void f() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }
@@ -341,7 +331,7 @@ extension on int {
   void test() {} // marker
 }
 
-main() {
+void f() {
   0.test();
 }
 ''');
@@ -357,7 +347,7 @@ extension on int {
   void newName() {} // marker
 }
 
-main() {
+void f() {
   0.newName();
 }
 ''');

@@ -301,6 +301,11 @@ class AstFactoryImpl extends AstFactory {
           type as TypeNameImpl, period, name as SimpleIdentifierImpl?);
 
   @override
+  ConstructorReferenceImpl constructorReference(
+          {required ConstructorName constructorName}) =>
+      ConstructorReferenceImpl(constructorName as ConstructorNameImpl);
+
+  @override
   ContinueStatementImpl continueStatement(
           Token continueKeyword, SimpleIdentifier? label, Token semicolon) =>
       ContinueStatementImpl(
@@ -425,7 +430,8 @@ class AstFactoryImpl extends AstFactory {
           {Comment? comment,
           List<Annotation>? metadata,
           required Token extensionKeyword,
-          required SimpleIdentifier? name,
+          Token? typeKeyword,
+          SimpleIdentifier? name,
           TypeParameterList? typeParameters,
           required Token onKeyword,
           required TypeAnnotation extendedType,
@@ -436,6 +442,7 @@ class AstFactoryImpl extends AstFactory {
           comment as CommentImpl?,
           metadata,
           extensionKeyword,
+          typeKeyword,
           name as SimpleIdentifierImpl?,
           typeParameters as TypeParameterListImpl?,
           onKeyword,
@@ -628,6 +635,12 @@ class AstFactoryImpl extends AstFactory {
           function as ExpressionImpl,
           typeArguments as TypeArgumentListImpl?,
           argumentList as ArgumentListImpl);
+
+  @override
+  FunctionReferenceImpl functionReference(
+          {required Expression function, TypeArgumentList? typeArguments}) =>
+      FunctionReferenceImpl(function as ExpressionImpl,
+          typeArguments: typeArguments as TypeArgumentListImpl);
 
   @override
   FunctionTypeAliasImpl functionTypeAlias(
@@ -1184,6 +1197,10 @@ class AstFactoryImpl extends AstFactory {
   TypeArgumentListImpl typeArgumentList(Token leftBracket,
           List<TypeAnnotation> arguments, Token rightBracket) =>
       TypeArgumentListImpl(leftBracket, arguments, rightBracket);
+
+  @override
+  TypeLiteralImpl typeLiteral({required TypeName typeName}) =>
+      TypeLiteralImpl(typeName as TypeNameImpl);
 
   @override
   TypeNameImpl typeName(Identifier name, TypeArgumentList? typeArguments,

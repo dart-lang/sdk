@@ -7,6 +7,8 @@
 library invalid_package_name_test;
 
 import 'package:foo/foo.dart' as foo;
+//     ^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.URI_DOES_NOT_EXIST
 
 main() {
   if (foo.foo != 'foo') {

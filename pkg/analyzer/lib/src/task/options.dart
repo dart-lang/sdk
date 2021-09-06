@@ -26,7 +26,11 @@ import 'package:yaml/yaml.dart';
 final _OptionsProcessor _processor = _OptionsProcessor();
 
 List<AnalysisError> analyzeAnalysisOptions(
-    Source source, String content, SourceFactory sourceFactory) {
+  Source source,
+  String content,
+  SourceFactory sourceFactory,
+  String contextRoot,
+) {
   List<AnalysisError> errors = <AnalysisError>[];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
@@ -70,7 +74,7 @@ List<AnalysisError> analyzeAnalysisOptions(
           initialIncludeSpan!.start.offset,
           initialIncludeSpan!.length,
           AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
-          [includeUri, source.fullName]));
+          [includeUri, source.fullName, contextRoot]));
       return;
     }
     try {
@@ -147,6 +151,8 @@ class AnalyzerOptions {
   /// Ways to say `include`.
   static const List<String> includeSynonyms = ['include', 'true'];
 
+  static const String propagateLinterExceptions = 'propagate-linter-exceptions';
+
   /// Ways to say `true` or `false`.
   static const List<String> trueOrFalse = ['true', 'false'];
 
@@ -159,6 +165,7 @@ class AnalyzerOptions {
     language,
     optionalChecks,
     plugins,
+    propagateLinterExceptions,
     strong_mode,
   ];
 
@@ -800,6 +807,9 @@ class _OptionsProcessor {
       }
       if (feature == AnalyzerOptions.implicitDynamic) {
         options.implicitDynamic = boolValue;
+      }
+      if (feature == AnalyzerOptions.propagateLinterExceptions) {
+        options.propagateLinterExceptions = boolValue;
       }
     }
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -14,7 +12,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
 class FormatRangeHandler
-    extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>> {
+    extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
   FormatRangeHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;
@@ -23,35 +21,36 @@ class FormatRangeHandler
   LspJsonHandler<DocumentRangeFormattingParams> get jsonHandler =>
       DocumentRangeFormattingParams.jsonHandler;
 
-  ErrorOr<List<TextEdit>> formatRange(String path, Range range) {
+  ErrorOr<List<TextEdit>?> formatRange(String path, Range range) {
     final file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
 
     final result = server.getParsedUnit(path);
-    if (result.state != ResultState.VALID || result.errors.isNotEmpty) {
-      return success();
+    if (result?.state != ResultState.VALID || result!.errors.isNotEmpty) {
+      return success(null);
     }
 
-    return generateEditsForFormatting(
-        result, server.clientConfiguration.lineLength,
-        range: range);
+    final lineLength = server.clientConfiguration.forResource(path).lineLength;
+    return generateEditsForFormatting(result, lineLength, range: range);
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>>> handle(
+  Future<ErrorOr<List<TextEdit>?>> handle(
       DocumentRangeFormattingParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
 
-    if (!server.clientConfiguration.enableSdkFormatter) {
-      return error(ServerErrorCodes.FeatureDisabled,
-          'Formatter was disabled by client settings');
-    }
-
     final path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) => formatRange(path, params.range));
+    return path.mapResult((path) {
+      if (!server.clientConfiguration.forResource(path).enableSdkFormatter) {
+        // Because we now support formatting for just some WorkspaceFolders
+        // we should silently do nothing for those that are disabled.
+        return success(null);
+      }
+      return formatRange(path, params.range);
+    });
   }
 }

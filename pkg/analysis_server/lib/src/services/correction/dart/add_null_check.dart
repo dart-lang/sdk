@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -23,8 +22,9 @@ class AddNullCheck extends CorrectionProducer {
       // Don't suggest a feature that isn't supported.
       return;
     }
-    Expression target;
-    var coveredNodeParent = coveredNode.parent;
+    Expression? target;
+    final coveredNode = this.coveredNode;
+    var coveredNodeParent = coveredNode?.parent;
     if (coveredNode is SimpleIdentifier) {
       if (coveredNodeParent is MethodInvocation) {
         target = coveredNodeParent.realTarget;
@@ -38,59 +38,66 @@ class AddNullCheck extends CorrectionProducer {
         target = coveredNode;
       }
     } else if (coveredNode is IndexExpression) {
-      target = (coveredNode as IndexExpression).realTarget;
-    } else if (coveredNodeParent is FunctionExpressionInvocation) {
+      target = coveredNode.realTarget;
+    } else if (coveredNode is Expression &&
+        coveredNodeParent is FunctionExpressionInvocation) {
       target = coveredNode;
     } else if (coveredNodeParent is AssignmentExpression) {
       target = coveredNodeParent.rightHandSide;
     } else if (coveredNode is PostfixExpression) {
-      target = (coveredNode as PostfixExpression).operand;
+      target = coveredNode.operand;
     } else if (coveredNode is PrefixExpression) {
-      target = (coveredNode as PrefixExpression).operand;
+      target = coveredNode.operand;
     } else if (coveredNode is BinaryExpression) {
-      target = (coveredNode as BinaryExpression).leftOperand;
-    } else {
+      target = coveredNode.leftOperand;
+    }
+
+    if (target == null) {
       return;
     }
 
     var fromType = target.staticType;
+    if (fromType == null) {
+      return;
+    }
+
     if (fromType == typeProvider.nullType) {
       // Adding a null check after an explicit `null` is pointless.
       return;
     }
-    DartType toType;
+    DartType? toType;
     var parent = target.parent;
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.declaredElement.type;
+      toType = parent.declaredElement?.type;
     } else if (parent is ArgumentList) {
-      toType = target.staticParameterElement.type;
+      toType = target.staticParameterElement?.type;
     } else if (parent is IndexExpression) {
-      toType = parent.realTarget.staticType;
+      toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType =
-          typeProvider.iterableType(parent.loopVariable.declaredElement.type);
+          typeProvider.iterableType(parent.loopVariable.declaredElement!.type);
     } else if (parent is ForEachPartsWithIdentifier) {
-      toType = typeProvider.iterableType(parent.identifier.staticType);
+      toType = typeProvider.iterableType(parent.identifier.typeOrThrow);
     } else if (parent is SpreadElement) {
       var literal = parent.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
-        toType = literal.staticType.asInstanceOf(typeProvider.iterableElement);
+        toType = literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement);
       } else if (literal is SetOrMapLiteral) {
-        toType = literal.staticType.isDartCoreSet
-            ? literal.staticType.asInstanceOf(typeProvider.iterableElement)
-            : literal.staticType.asInstanceOf(typeProvider.mapElement);
+        toType = literal.typeOrThrow.isDartCoreSet
+            ? literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement)
+            : literal.typeOrThrow.asInstanceOf(typeProvider.mapElement);
       }
     } else if (parent is YieldStatement) {
       var enclosingExecutable =
-          parent.thisOrAncestorOfType<FunctionBody>().parent;
+          parent.thisOrAncestorOfType<FunctionBody>()?.parent;
       if (enclosingExecutable is FunctionDeclaration) {
         toType = enclosingExecutable.returnType?.type;
       } else if (enclosingExecutable is MethodDeclaration) {
         toType = enclosingExecutable.returnType?.type;
       } else if (enclosingExecutable is FunctionExpression) {
-        toType = enclosingExecutable.declaredElement.returnType;
+        toType = enclosingExecutable.declaredElement!.returnType;
       }
     } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
         parent is PostfixExpression ||
@@ -113,12 +120,14 @@ class AddNullCheck extends CorrectionProducer {
       // problem.
       return;
     }
+
+    final target_final = target;
     var needsParentheses = target.precedence < Precedence.postfix;
     await builder.addDartFileEdit(file, (builder) {
       if (needsParentheses) {
-        builder.addSimpleInsertion(target.offset, '(');
+        builder.addSimpleInsertion(target_final.offset, '(');
       }
-      builder.addInsertion(target.end, (builder) {
+      builder.addInsertion(target_final.end, (builder) {
         if (needsParentheses) {
           builder.write(')');
         }

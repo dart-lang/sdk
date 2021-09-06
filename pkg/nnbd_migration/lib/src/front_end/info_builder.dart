@@ -31,7 +31,7 @@ import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
   /// The node mapper for the migration state.
-  NodeMapper nodeMapper;
+  NodeMapper? nodeMapper;
 
   /// The logger to use for showing progress when explaining the migration.
   final Logger _logger;
@@ -39,28 +39,28 @@ class InfoBuilder {
   /// The resource provider used to access the file system.
   ResourceProvider provider;
 
-  String includedPath;
+  String? includedPath;
 
   /// The instrumentation information gathered while the migration engine was
   /// running.
   final InstrumentationInformation info;
 
   /// The listener used to gather the changes to be applied.
-  final DartFixListener listener;
+  final DartFixListener? listener;
 
   /// The [NullabilityMigration] instance for this migration.
-  final NullabilityMigration migration;
+  final NullabilityMigration? migration;
 
   /// A map from the path of a compilation unit to the information about that
   /// unit.
-  final Map<String, UnitInfo> unitMap = {};
+  final Map<String?, UnitInfo> unitMap = {};
 
   /// A function which returns whether a file at a given path should be
   /// migrated.
-  final bool Function(String) shouldBeMigratedFunction;
+  final bool Function(String?) shouldBeMigratedFunction;
 
   /// The set of files which are being considered for migration.
-  final Iterable<String> _pathsToProcess;
+  final Iterable<String?>? _pathsToProcess;
 
   /// Initialize a newly created builder.
   InfoBuilder(
@@ -75,32 +75,32 @@ class InfoBuilder {
       this._pathsToProcess);
 
   /// The provider used to get information about libraries.
-  DriverProviderImpl get driverProvider => listener.server;
+  DriverProviderImpl? get driverProvider => listener!.server;
 
   /// Return the migration information for all of the libraries that were
   /// migrated.
   Future<Set<UnitInfo>> explainMigration() async {
     var sourceInfoMap = info.sourceInformation;
     Set<UnitInfo> units =
-        SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
+        SplayTreeSet<UnitInfo>((u1, u2) => u1.path!.compareTo(u2.path!));
 
     // Collect all of the sources for which we have [SourceInformation], as well
     // as all files which are being "processed" during this migration, which may
     // include already migrated files.
     var sources = {
-      ...sourceInfoMap.keys.map((source) => source.fullName),
-      ..._pathsToProcess,
+      ...sourceInfoMap.keys.map((source) => source!.fullName),
+      ..._pathsToProcess!,
     };
     var progressBar = ProgressBar(_logger, sources.length);
 
     for (var filePath in sources) {
       progressBar.tick();
-      var session = driverProvider.getAnalysisSession(filePath);
-      if (!session.getFile(filePath).isPart) {
-        var result = await session.getResolvedLibrary(filePath);
+      var session = driverProvider!.getAnalysisSession(filePath);
+      var result = await session.getResolvedLibrary(filePath!);
+      if (result is ResolvedLibraryResult) {
         for (var unitResult in result.units) {
           var sourceInfo =
-              sourceInfoMap[unitResult.unit.declaredElement.source];
+              sourceInfoMap[unitResult.unit.declaredElement!.source];
           // Note: there might have been no information for this unit in
           // sourceInfoMap.  That can happen if there's an already-migrated
           // library being referenced by the code being migrated, but not all
@@ -111,9 +111,9 @@ class InfoBuilder {
           // referenced (we'll just skip the entire library because we'll only
           // ever see its parts).
           sourceInfo ??= SourceInformation();
-          var edit = listener.sourceChange.getFileEdit(unitResult.path);
+          var edit = listener!.sourceChange.getFileEdit(unitResult.path);
           var unit = _explainUnit(sourceInfo, unitResult, edit);
-          if (_pathsToProcess.contains(unitResult.path)) {
+          if (_pathsToProcess!.contains(unitResult.path)) {
             units.add(unit);
           }
         }
@@ -129,7 +129,7 @@ class InfoBuilder {
     for (var edge in node.upstreamEdges) {
       if (skipExactNullable &&
           node.isExactNullable &&
-          edge.sourceNode.isExactNullable) {
+          edge.sourceNode!.isExactNullable) {
         // When an exact nullable points here, the nullability propagated
         // in the other direction.
         continue;
@@ -164,12 +164,12 @@ class InfoBuilder {
 
     EditDetail removeHint(String description) => EditDetail.fromSourceEdit(
         description,
-        fixInfo.hintComment.changesToRemove(content).toSourceEdits().single);
+        fixInfo.hintComment!.changesToRemove(content).toSourceEdits().single);
 
     EditDetail changeHint(String description, String replacement) =>
         EditDetail.fromSourceEdit(
             description,
-            fixInfo.hintComment
+            fixInfo.hintComment!
                 .changesToReplace(content, replacement)
                 .toSourceEdits()
                 .single);
@@ -265,6 +265,10 @@ class InfoBuilder {
       case NullabilityFixKind.addThen:
         // We don't offer any edits around addition of `.then` to a future.
         break;
+      case NullabilityFixKind.removeNullableAnnotation:
+        // We don't offer any edits around removal of built_value `@nullable`
+        // annotations.
+        break;
     }
     return edits;
   }
@@ -279,7 +283,7 @@ class InfoBuilder {
     var regions = collector.regions;
     var rawTargets = collector.targets;
     var convertedTargets =
-        List<NavigationTarget>.filled(rawTargets.length, null);
+        List<NavigationTarget?>.filled(rawTargets.length, null);
     return regions.map((region) {
       var targets = region.targets;
       if (targets.isEmpty) {
@@ -331,7 +335,7 @@ class InfoBuilder {
     }
     assert(identical(step.targetNode, node));
     while (step != null) {
-      entries.add(_nodeToTraceEntry(step.targetNode));
+      entries.add(_nodeToTraceEntry(step.targetNode!));
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));
       }
@@ -342,7 +346,7 @@ class InfoBuilder {
   }
 
   List<TraceInfo> _computeTraces(
-      Map<FixReasonTarget, FixReasonInfo> fixReasons) {
+      Map<FixReasonTarget?, FixReasonInfo?> fixReasons) {
     var traces = <TraceInfo>[];
     for (var entry in fixReasons.entries) {
       var reason = entry.value;
@@ -353,10 +357,10 @@ class InfoBuilder {
           _computeTraceNonNullableInfo(reason, traces, FixReasonTarget.root);
         }
       } else if (reason is EdgeInfo) {
-        if (reason.sourceNode.isNullable &&
+        if (reason.sourceNode!.isNullable &&
             !reason.destinationNode.isNullable) {
-          var target = entry.key;
-          _computeTraceNullableInfo(reason.sourceNode, traces, target);
+          var target = entry.key!;
+          _computeTraceNullableInfo(reason.sourceNode!, traces, target);
           _computeTraceNonNullableInfo(reason.destinationNode, traces, target);
         }
       } else if (reason is SimpleFixReasonInfo) {
@@ -371,7 +375,7 @@ class InfoBuilder {
   /// Return the migration information for the unit associated with the
   /// [result].
   UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
-      SourceFileEdit fileEdit) {
+      SourceFileEdit? fileEdit) {
     var unitInfo = _unitForPath(result.path);
     unitInfo.sources ??= _computeNavigationSources(result);
     var content = result.content;
@@ -402,7 +406,7 @@ class InfoBuilder {
     regions.clear();
 
     var lineInfo = result.unit.lineInfo;
-    var insertions = <int, List<AtomicEdit>>{};
+    var insertions = <int?, List<AtomicEdit>>{};
     var infosSeen = Set<AtomicEditInfo>.identity();
 
     // Apply edits and build the regions.
@@ -412,8 +416,8 @@ class InfoBuilder {
     var offset = 0;
     var sourceOffset = 0;
     for (var nextSourceOffset in sourceOffsets) {
-      var changesForSourceOffset = changes[nextSourceOffset];
-      var unchangedTextLength = nextSourceOffset - sourceOffset;
+      var changesForSourceOffset = changes[nextSourceOffset]!;
+      var unchangedTextLength = nextSourceOffset! - sourceOffset;
       offset += unchangedTextLength;
       sourceOffset += unchangedTextLength;
       for (var edit in changesForSourceOffset) {
@@ -429,7 +433,7 @@ class InfoBuilder {
         var edits = info != null
             ? _computeEdits(info, sourceOffset, result)
             : <EditDetail>[];
-        var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
+        var lineNumber = lineInfo!.getLocation(sourceOffset).lineNumber;
         var traces = info == null
             ? const <TraceInfo>[]
             : _computeTraces(info.fixReasons);
@@ -491,7 +495,7 @@ class InfoBuilder {
 
   /// Searches [unit] for an import directive whose URI matches [uri], returning
   /// it if found, or `null` if not found.
-  ImportDirective _findImportDirective(CompilationUnit unit, String uri) {
+  ImportDirective? _findImportDirective(CompilationUnit unit, String uri) {
     for (var directive in unit.directives) {
       if (directive is ImportDirective && directive.uriContent == uri) {
         return directive;
@@ -501,7 +505,7 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _makeTraceEntry(
-      String description, CodeReference codeReference,
+      String description, CodeReference? codeReference,
       {List<HintAction> hintActions = const []}) {
     var length = 1; // TODO(paulberry): figure out the correct value.
     return TraceEntryInfo(
@@ -515,11 +519,11 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node,
-      {String description}) {
+      {String? description}) {
     description ??= node.toString(); // TODO(paulberry): improve this message
     return _makeTraceEntry(description, node.codeReference,
         hintActions: node.hintActions.keys
-            .map((kind) => HintAction(kind, nodeMapper.idForNode(node)))
+            .map((kind) => HintAction(kind, nodeMapper!.idForNode(node)))
             .toList());
   }
 
@@ -542,7 +546,7 @@ class InfoBuilder {
   }
 
   /// Return the unit info for the file at the given [path].
-  UnitInfo _unitForPath(String path) {
+  UnitInfo _unitForPath(String? path) {
     return unitMap.putIfAbsent(path, () => UnitInfo(path));
   }
 
@@ -551,21 +555,21 @@ class InfoBuilder {
   /// This may include a class and method name, for example, or the name of the
   /// enclosing top-level member.
   @visibleForTesting
-  static String buildEnclosingMemberDescription(AstNode node) {
+  static String buildEnclosingMemberDescription(AstNode? node) {
     for (var enclosingNode = node;
         enclosingNode != null;
         enclosingNode = enclosingNode.parent) {
       if (enclosingNode is ConstructorDeclaration) {
         if (enclosingNode.name == null) {
           return _describeClassOrExtensionMember(
-              enclosingNode.parent as CompilationUnitMember,
+              enclosingNode.parent as CompilationUnitMember?,
               'the default constructor of',
               '');
         } else {
           return _describeClassOrExtensionMember(
-              enclosingNode.parent as CompilationUnitMember,
+              enclosingNode.parent as CompilationUnitMember?,
               'the constructor',
-              enclosingNode.name.name);
+              enclosingNode.name!.name);
         }
       } else if (enclosingNode is MethodDeclaration) {
         var functionName = enclosingNode.name.name;
@@ -581,7 +585,7 @@ class InfoBuilder {
           baseDescription = 'the method';
         }
         return _describeClassOrExtensionMember(
-            enclosingNode.parent as CompilationUnitMember,
+            enclosingNode.parent as CompilationUnitMember?,
             baseDescription,
             functionName);
       } else if (enclosingNode is FunctionDeclaration &&
@@ -610,7 +614,7 @@ class InfoBuilder {
         "Can't describe enclosing member of ${node.runtimeType}");
   }
 
-  static String _describeClassOrExtensionMember(CompilationUnitMember parent,
+  static String _describeClassOrExtensionMember(CompilationUnitMember? parent,
       String baseDescription, String functionName) {
     if (parent is NamedCompilationUnitMember) {
       var parentName = parent.name.name;
@@ -621,12 +625,12 @@ class InfoBuilder {
       }
     } else if (parent is ExtensionDeclaration) {
       if (parent.name == null) {
-        var extendedTypeString = parent.extendedType.type.getDisplayString(
+        var extendedTypeString = parent.extendedType.type!.getDisplayString(
           withNullability: false,
         );
         return "$baseDescription '$functionName' in unnamed extension on $extendedTypeString";
       } else {
-        return "$baseDescription '${parent.name.name}.$functionName'";
+        return "$baseDescription '${parent.name!.name}.$functionName'";
       }
     } else {
       throw ArgumentError(
@@ -634,13 +638,13 @@ class InfoBuilder {
     }
   }
 
-  static String _describeVariableDeclaration(VariableDeclaration node) {
+  static String? _describeVariableDeclaration(VariableDeclaration node) {
     var variableName = node.name.name;
-    var parent = node.parent;
+    var parent = node.parent!;
     var grandParent = parent.parent;
     if (grandParent is FieldDeclaration) {
       return _describeClassOrExtensionMember(
-          grandParent.parent as CompilationUnitMember,
+          grandParent.parent as CompilationUnitMember?,
           'the field',
           variableName);
     } else if (grandParent is TopLevelVariableDeclaration) {

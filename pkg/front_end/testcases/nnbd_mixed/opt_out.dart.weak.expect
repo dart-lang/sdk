@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out.dart:16:11: Error: Can't create typedef from nullable type.
+// pkg/front_end/testcases/nnbd_mixed/opt_out.dart:18:11: Error: Can't create typedef from nullable type.
 // typedef F = void Function()?;
 //           ^
 //
@@ -33,10 +33,10 @@ static method noErrors() → dynamic {
   late core::int local = 42;
   core::String? s = null;
   dynamic c;
-  let final dynamic #t1 = c in #t1.{core::Object::==}(null) ?{dynamic} null : block {
-    #t1.f;
+  let final dynamic #t1 = c in #t1 == null ?{dynamic} null : block {
+    #t1{dynamic}.f;
   } =>#t1;
-  let final dynamic #t2 = c in #t2.{core::Object::==}(null) ?{dynamic} null : #t2.[](0);
+  let final dynamic #t2 = c in #t2 == null ?{dynamic} null : #t2{dynamic}.[](0);
 }
 
 library;
@@ -172,8 +172,8 @@ static method errors() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
 Try inserting an identifier before ''.
   c?..f;
-     ^".f;
-  let final dynamic #t3 = c in #t3.{core::Object::==}(null) ?{dynamic} null : #t3.[](0);
+     ^"{dynamic}.f;
+  let final dynamic #t3 = c in #t3 == null ?{dynamic} null : #t3{dynamic}.[](0);
 }
 
 constants  {

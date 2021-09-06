@@ -12,6 +12,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/message.h"
+#include "vm/message_snapshot.h"
 #include "vm/native_message_handler.h"
 #include "vm/port.h"
 #include "vm/service_isolate.h"
@@ -43,9 +44,9 @@ class IsolateLeaveScope {
 };
 
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
-  ApiMessageWriter writer;
-  std::unique_ptr<Message> msg =
-      writer.WriteCMessage(message, port_id, Message::kNormalPriority);
+  AllocOnlyStackZone zone;
+  std::unique_ptr<Message> msg = WriteApiMessage(
+      zone.GetZone(), message, port_id, Message::kNormalPriority);
 
   if (msg == nullptr) {
     return false;
@@ -233,8 +234,6 @@ struct RunInSafepointAndRWCodeArgs {
 };
 
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
-  if (!FLAG_enable_testing_pragmas) return nullptr;
-
   if (strcmp(command, "gc-on-nth-allocation") == 0) {
     TransitionNativeToVM _(Thread::Current());
     intptr_t argument = reinterpret_cast<intptr_t>(arg);
@@ -246,6 +245,12 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     ASSERT(arg == nullptr);  // Don't pass an argument to this command.
     TransitionNativeToVM _(Thread::Current());
     IsolateGroup::Current()->heap()->CollectAllGarbage();
+    return nullptr;
+
+  } else if (strcmp(command, "is-thread-in-generated") == 0) {
+    if (Thread::Current()->execution_state() == Thread::kThreadInGenerated) {
+      return reinterpret_cast<void*>(1);
+    }
     return nullptr;
 
   } else if (strcmp(command, "is-mutator-in-native") == 0) {
@@ -263,7 +268,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     Thread::EnterIsolateAsHelper(args->isolate, Thread::TaskKind::kUnknownTask);
     Thread* const thread = Thread::Current();
     {
-      SafepointOperationScope scope(thread);
+      GcSafepointOperationScope scope(thread);
       args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();
       args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/true);

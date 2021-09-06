@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveInitializerBulkTest);
     defineReflectiveTests(RemoveInitializerTest);
   });
+}
+
+@reflectiveTest
+class RemoveInitializerBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_init_to_null;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class T {
+  int? x = null;
+}
+
+class T2 {
+  int? x = null;
+}
+''');
+    await assertHasFix('''
+class T {
+  int? x;
+}
+
+class T2 {
+  int? x;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -28,12 +54,12 @@ class RemoveInitializerTest extends FixProcessorLintTest {
   Future<void> test_field() async {
     await resolveTestCode('''
 class Test {
-  int x = null;
+  int? x = null;
 }
 ''');
     await assertHasFix('''
 class Test {
-  int x;
+  int? x;
 }
 ''');
   }
@@ -55,28 +81,28 @@ void f() {
 
   Future<void> test_listOfVariableDeclarations() async {
     await resolveTestCode('''
-String a = 'a', b = null, c = 'c';
+String? a = 'a', b = null, c = 'c';
 ''');
     await assertHasFix('''
-String a = 'a', b, c = 'c';
+String? a = 'a', b, c = 'c';
 ''');
   }
 
   Future<void> test_parameter_optionalNamed() async {
     await resolveTestCode('''
-void f({String s = null}) {}
+void f({String? s = null}) {}
 ''');
     await assertHasFix('''
-void f({String s}) {}
+void f({String? s}) {}
 ''');
   }
 
   Future<void> test_parameter_optionalPositional() async {
     await resolveTestCode('''
-void f([String s = null]) {}
+void f([String? s = null]) {}
 ''');
     await assertHasFix('''
-void f([String s]) {}
+void f([String? s]) {}
 ''');
   }
 

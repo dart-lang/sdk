@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js, issue 15720.
 
 class B {}
 
 confuse(x) {
-  if (new DateTime.now() == 42) return confuse(x);
+  if (DateTime.now().millisecondsSinceEpoch == 42) return confuse(x);
   return x;
 }
 

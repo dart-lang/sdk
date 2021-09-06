@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-testing-pragmas --enable-isolate-groups --experimental-enable-isolate-groups-jit
-// VMOptions=--enable-testing-pragmas --no-enable-isolate-groups
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
-// VMOptions=--enable-testing-pragmas
-// VMOptions=--enable-testing-pragmas --stacktrace-every=100
-// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code
-// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
-// VMOptions=--use-slow-path --enable-testing-pragmas
-// VMOptions=--use-slow-path --enable-testing-pragmas --stacktrace-every=100
-// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code
-// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+// VMOptions=--stacktrace-every=100
+// VMOptions=--write-protect-code --no-dual-map-code
+// VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
+// VMOptions=--use-slow-path
+// VMOptions=--use-slow-path --stacktrace-every=100
+// VMOptions=--use-slow-path --write-protect-code --no-dual-map-code
+// VMOptions=--use-slow-path --write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';

@@ -22,7 +22,7 @@ class InferredTypeTest extends PubPackageResolutionTest
   // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
   //  test cases.
   CompilationUnitElement get _resultUnitElement {
-    return result.unit!.declaredElement!;
+    return result.unit.declaredElement!;
   }
 
   test_asyncClosureReturnType_flatten() async {
@@ -364,8 +364,8 @@ var v = () => null;
 var x = () => y;
 var y = () => x;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 14, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 31, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
     ]);
 
     var x = _resultUnitElement.topLevelVariables[0];
@@ -381,8 +381,8 @@ var y = () => x;
 var x = () => y;
 var y = () => x;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 14, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 31, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
     ]);
 
     var x = _resultUnitElement.topLevelVariables[0];
@@ -1148,7 +1148,7 @@ void main() {
   new F4(a: [[3]]);
   new F4(a: [["hello"]]);
   new F4(a: [["hello"], [3]]);
-  
+
   new F5([[[3]]]);
 }
 ''', [
@@ -1660,7 +1660,7 @@ class C {
   static int get _x => null;
 }
 ''');
-    var x = _resultUnitElement.types[0].fields[0];
+    var x = _resultUnitElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
@@ -1671,7 +1671,7 @@ class C {
 }
 int get y => null;
 ''');
-    var x = _resultUnitElement.types[0].fields[0];
+    var x = _resultUnitElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
@@ -2560,7 +2560,7 @@ var f = <dynamic, dynamic>{};
   }
 
   test_infer_use_of_void() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class B {
   void f() {}
 }
@@ -2568,9 +2568,8 @@ class C extends B {
   f() {}
 }
 var x = new C().f();
-''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, 65, 11),
-    ]);
+''');
+    assertType(findElement.topVar('x').type, 'void');
   }
 
   test_inferConstsTransitively() async {

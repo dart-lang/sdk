@@ -13,7 +13,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
-import 'options.dart' show CompilerOptions;
+import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -135,6 +135,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   Map<String, String> environment = new Map<String, String>();
   ReadStrategy readStrategy = ReadStrategy.fromDart;
   WriteStrategy writeStrategy = WriteStrategy.toJs;
+  FeatureOptions features = FeatureOptions();
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -512,6 +513,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
     new OptionHandler(Flags.minify, passThrough),
     new OptionHandler(Flags.noMinify, passThrough),
+    new OptionHandler(Flags.omitLateNames, passThrough),
+    new OptionHandler(Flags.noOmitLateNames, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
     new OptionHandler(Flags.printLegacyStars, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -543,6 +546,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.serverMode, passThrough),
     new OptionHandler(Flags.disableInlining, passThrough),
     new OptionHandler(Flags.disableProgramSplit, passThrough),
+    new OptionHandler(Flags.stopAfterProgramSplit, passThrough),
     new OptionHandler(Flags.disableTypeInference, passThrough),
     new OptionHandler(Flags.useTrivialAbstractValueDomain, passThrough),
     new OptionHandler(Flags.experimentalWrapped, passThrough),
@@ -562,8 +566,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
     new OptionHandler(Flags.omitAsCasts, passThrough),
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
-    new OptionHandler(Flags.legacyJavaScript, passThrough),
-    new OptionHandler(Flags.noLegacyJavaScript, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
     new OptionHandler(Flags.soundNullSafety, setNullSafetyMode),
@@ -581,6 +583,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.useOldRti, passThrough),
+    new OptionHandler(Flags.useSimpleLoadIds, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
     new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     new OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
@@ -592,7 +595,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     // TODO(29574): provide a warning/hint/error, when profile-based data is
     // used without `--fast-startup`.
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
-    new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
     new OptionHandler(Flags.experimentLocalNames, ignoreOption),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
@@ -600,7 +602,20 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentUnreachableMethodsThrow, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
+    new OptionHandler(Flags.experimentLateInstanceVariables, passThrough),
     new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
+
+    // Wire up feature flags.
+    OptionHandler(Flags.canary, passThrough),
+    OptionHandler(Flags.noShipping, passThrough),
+    for (var feature in features.shipping)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.shipping)
+      OptionHandler('--no-${feature.flag}', passThrough),
+    for (var feature in features.canary)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.canary)
+      OptionHandler('--no-${feature.flag}', passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*|--define=.+=.*|--define', addInEnvironment,
@@ -971,6 +986,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      featureOptions: features,
       librariesSpecificationUri: librariesSpecificationUri,
       platformBinaries: platformBinaries,
       onError: (String message) => fail(message),
@@ -1019,7 +1035,8 @@ void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
     fail('Unhandled scheme ${uri.scheme}.');
   }
-  var file = new File(uri.toFilePath()).openSync(mode: FileMode.write);
+  var file = (File(uri.toFilePath())..createSync(recursive: true))
+      .openSync(mode: FileMode.write);
   file.writeStringSync(text);
   file.closeSync();
 }
@@ -1122,6 +1139,11 @@ Supported options:
   --no-source-maps
     Do not generate a source map file.
 
+  --omit-late-names
+    Do not include names of late variables in error messages. This allows
+    dart2js to generate smaller code by removing late variable names from the
+    generated JavaScript.
+
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve
     performance of the generated code for deployment.
@@ -1149,6 +1171,7 @@ Supported options:
        Equivalent to calling dart2js with these extra flags:
         --minify
         --lax-runtime-type-to-string
+        --omit-late-names
 
     -O3
        Enables optimizations that respect the language semantics only on

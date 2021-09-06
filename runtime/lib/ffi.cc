@@ -11,6 +11,8 @@
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
+#include "vm/compiler/ffi/native_type.h"
+#include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/log.h"
@@ -62,7 +64,7 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
 }
 
 // Static invocations to this method are translated directly in streaming FGB.
-DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
+DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
   UNREACHABLE();
 }
 
@@ -271,6 +273,43 @@ static const DartApi dart_api_data = {
 
 DEFINE_NATIVE_ENTRY(DartApiDLInitializeData, 0, 0) {
   return Integer::New(reinterpret_cast<intptr_t>(&dart_api_data));
+}
+
+// FFI native C function pointer resolver.
+static intptr_t FfiResolve(Dart_Handle lib_url, Dart_Handle name) {
+  DARTSCOPE(Thread::Current());
+
+  const String& lib_url_str = Api::UnwrapStringHandle(T->zone(), lib_url);
+  const String& function_name = Api::UnwrapStringHandle(T->zone(), name);
+
+  // Find the corresponding library's native function resolver (if set).
+  const Library& lib = Library::Handle(Library::LookupLibrary(T, lib_url_str));
+  if (lib.IsNull()) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Unknown library: '%s'.", lib_url_str.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+  }
+  auto resolver = lib.ffi_native_resolver();
+  if (resolver == nullptr) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Library has no handler: '%s'.", lib_url_str.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  auto* f = resolver(function_name.ToCString());
+  if (f == nullptr) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Couldn't resolve function: '%s'.", function_name.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  return reinterpret_cast<intptr_t>(f);
+}
+
+// Bootstrap to get the FFI Native resolver through a `native` call.
+DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
+  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
+  return Pointer::New(type_arg, reinterpret_cast<intptr_t>(FfiResolve));
 }
 
 }  // namespace dart

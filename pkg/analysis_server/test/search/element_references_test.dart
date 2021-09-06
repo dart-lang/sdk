@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -19,7 +17,7 @@ void main() {
 
 @reflectiveTest
 class ElementReferencesTest extends AbstractSearchDomainTest {
-  Element searchElement;
+  Element? searchElement;
 
   void assertHasRef(SearchResultKind kind, String search, bool isPotential) {
     assertHasResult(kind, search);
@@ -47,13 +45,13 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
 class A {
   A.named(p);
 }
-main() {
+void f() {
   new A.named(1);
   new A.named(2);
 }
 ''');
     await findElementReferences('named(p)', false);
-    expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
     assertHasResult(SearchResultKind.REFERENCE, '.named(2)', 6);
@@ -77,7 +75,7 @@ f(x) {
 }
 ''');
     await findElementReferences('named(p); // A', true);
-    expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
   }
@@ -87,13 +85,13 @@ f(x) {
 class A {
   A(p);
 }
-main() {
+void f() {
   new A(1);
   new A(2);
 }
 ''');
     await findElementReferences('A(p)', false);
-    expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
     assertHasResult(SearchResultKind.REFERENCE, '(2)', 0);
@@ -116,13 +114,13 @@ class B {
     k = 3;
   }
 }
-main() {
+void f() {
   new A(1);
   new B(2);
 }
 ''');
     await findElementReferences('A(p)', true);
-    expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+    expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
   }
@@ -134,13 +132,13 @@ extension E on int {
   void bar() {}
 }
 
-main() {
+void f() {
   E.foo();
   E(0).bar();
 }
 ''');
     await findElementReferences('E on int', false);
-    expect(searchElement.kind, ElementKind.EXTENSION);
+    expect(searchElement!.kind, ElementKind.EXTENSION);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'E.foo();');
     assertHasResult(SearchResultKind.REFERENCE, 'E(0)');
@@ -159,15 +157,15 @@ class A {
     fff(); // in m()
   }
 }
-main(A a) {
+void f(A a) {
   a.fff = 20;
   a.fff += 30;
-  print(a.fff); // in main()
-  a.fff(); // in main()
+  print(a.fff); // in f()
+  a.fff(); // in f()
 }
 ''');
     await findElementReferences('fff; // declaration', false);
-    expect(searchElement.kind, ElementKind.FIELD);
+    expect(searchElement!.kind, ElementKind.FIELD);
     expect(results, hasLength(10));
     assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
     assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
@@ -176,11 +174,11 @@ main(A a) {
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
     assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
-    // main()
+    // f()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
-    assertHasResult(SearchResultKind.READ, 'fff); // in main()');
-    assertHasResult(SearchResultKind.READ, 'fff(); // in main()');
+    assertHasResult(SearchResultKind.READ, 'fff); // in f()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in f()');
   }
 
   Future<void> test_field_implicit() async {
@@ -193,18 +191,18 @@ class A {
     fff = 1;
   }
 }
-main(A a) {
-  print(a.fff); // in main()
+void f(A a) {
+  print(a.fff); // in f()
   a.fff = 10;
 }
 ''');
     {
       await findElementReferences('fff =>', false);
-      expect(searchElement.kind, ElementKind.FIELD);
+      expect(searchElement!.kind, ElementKind.FIELD);
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
-      assertHasResult(SearchResultKind.READ, 'fff); // in main()');
+      assertHasResult(SearchResultKind.READ, 'fff); // in f()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     }
     {
@@ -212,7 +210,7 @@ main(A a) {
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
-      assertHasResult(SearchResultKind.READ, 'fff); // in main()');
+      assertHasResult(SearchResultKind.READ, 'fff); // in f()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     }
   }
@@ -229,7 +227,7 @@ class A {
 }
 ''');
     await findElementReferences('fff); // in constructor', false);
-    expect(searchElement.kind, ElementKind.FIELD);
+    expect(searchElement!.kind, ElementKind.FIELD);
     expect(results, hasLength(3));
     assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
@@ -249,26 +247,26 @@ extension E on int {
   }
 }
 
-main() {
+void f() {
   E.fff = 20;
   E.fff += 30;
-  print(E.fff); // in main()
-  E.fff(); // in main()
+  print(E.fff); // in f()
+  E.fff(); // in f()
 }
 ''');
     await findElementReferences('fff; // declaration', false);
-    expect(searchElement.kind, ElementKind.FIELD);
+    expect(searchElement!.kind, ElementKind.FIELD);
     expect(results, hasLength(8));
     // m()
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
     assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
-    // main()
+    // f()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
-    assertHasResult(SearchResultKind.READ, 'fff); // in main()');
-    assertHasResult(SearchResultKind.READ, 'fff(); // in main()');
+    assertHasResult(SearchResultKind.READ, 'fff); // in f()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in f()');
   }
 
   Future<void> test_field_ofExtension_implicit_instance() async {
@@ -281,18 +279,18 @@ extension E on int {
     fff = 1;
   }
 }
-main() {
-  print(0.fff); // in main()
+void f() {
+  print(0.fff); // in f()
   0.fff = 10;
 }
 ''');
     {
       await findElementReferences('fff =>', false);
-      expect(searchElement.kind, ElementKind.FIELD);
+      expect(searchElement!.kind, ElementKind.FIELD);
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
-      assertHasResult(SearchResultKind.READ, 'fff); // in main()');
+      assertHasResult(SearchResultKind.READ, 'fff); // in f()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     }
     {
@@ -300,7 +298,7 @@ main() {
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
-      assertHasResult(SearchResultKind.READ, 'fff); // in main()');
+      assertHasResult(SearchResultKind.READ, 'fff); // in f()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     }
   }
@@ -315,18 +313,18 @@ extension E on int {
     fff = 1;
   }
 }
-main() {
-  print(E.fff); // in main()
+void f() {
+  print(E.fff); // in f()
   E.fff = 10;
 }
 ''');
     {
       await findElementReferences('fff =>', false);
-      expect(searchElement.kind, ElementKind.FIELD);
+      expect(searchElement!.kind, ElementKind.FIELD);
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
-      assertHasResult(SearchResultKind.READ, 'fff); // in main()');
+      assertHasResult(SearchResultKind.READ, 'fff); // in f()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     }
     {
@@ -334,7 +332,7 @@ main() {
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
-      assertHasResult(SearchResultKind.READ, 'fff); // in main()');
+      assertHasResult(SearchResultKind.READ, 'fff); // in f()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     }
   }
@@ -342,13 +340,13 @@ main() {
   Future<void> test_function() async {
     addTestFile('''
 fff(p) {}
-main() {
+void f() {
   fff(1);
   print(fff);
 }
 ''');
     await findElementReferences('fff(p) {}', false);
-    expect(searchElement.kind, ElementKind.FUNCTION);
+    expect(searchElement!.kind, ElementKind.FUNCTION);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.INVOCATION, 'fff(1)');
     assertHasResult(SearchResultKind.REFERENCE, 'fff);');
@@ -365,14 +363,14 @@ main() {
   class C extends B {
     int fff; // in C
   }
-  main(A a, B b, C c) {
+  void f(A a, B b, C c) {
     a.fff = 10;
     b.fff = 20;
     c.fff = 30;
   }
   ''');
     await findElementReferences('fff; // in B', false);
-    expect(searchElement.kind, ElementKind.FIELD);
+    expect(searchElement!.kind, ElementKind.FIELD);
     assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff = 30;');
@@ -389,14 +387,14 @@ class B extends A {
 class C extends B {
   mmm(_) {} // in C
 }
-main(A a, B b, C c) {
+void f(A a, B b, C c) {
   a.mmm(10);
   b.mmm(20);
   c.mmm(30);
 }
 ''');
     await findElementReferences('mmm(_) {} // in B', false);
-    expect(searchElement.kind, ElementKind.METHOD);
+    expect(searchElement!.kind, ElementKind.METHOD);
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
@@ -413,14 +411,14 @@ class B extends A {
 class C extends B {
   static void mmm(_) {} // in C
 }
-main() {
+void f() {
   A.mmm(10);
   B.mmm(20);
   C.mmm(30);
 }
 ''');
     await findElementReferences('mmm(_) {} // in B', false);
-    expect(searchElement.kind, ElementKind.METHOD);
+    expect(searchElement!.kind, ElementKind.METHOD);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
   }
@@ -436,14 +434,14 @@ class B extends A {
 class C extends B {
   m({p}) {} // in C
 }
-main(A a, B b, C c) {
+void f(A a, B b, C c) {
   a.m(p: 1);
   b.m(p: 2);
   c.m(p: 3);
 }
 ''');
     await findElementReferences('p}) {} // in B', false);
-    expect(searchElement.kind, ElementKind.PARAMETER);
+    expect(searchElement!.kind, ElementKind.PARAMETER);
     assertHasResult(SearchResultKind.REFERENCE, 'p: 1');
     assertHasResult(SearchResultKind.REFERENCE, 'p: 2');
     assertHasResult(SearchResultKind.REFERENCE, 'p: 3');
@@ -451,7 +449,7 @@ main(A a, B b, C c) {
 
   Future<void> test_label() async {
     addTestFile('''
-main() {
+void f() {
 myLabel:
   for (int i = 0; i < 10; i++) {
     if (i == 2) {
@@ -462,7 +460,7 @@ myLabel:
 }
 ''');
     await findElementReferences('myLabel; // break', false);
-    expect(searchElement.kind, ElementKind.LABEL);
+    expect(searchElement!.kind, ElementKind.LABEL);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'myLabel; // continue');
     assertHasResult(SearchResultKind.REFERENCE, 'myLabel; // break');
@@ -470,7 +468,7 @@ myLabel:
 
   Future<void> test_localVariable() async {
     addTestFile('''
-main() {
+void f() {
   var vvv = 1;
   print(vvv);
   vvv += 3;
@@ -479,7 +477,7 @@ main() {
 }
 ''');
     await findElementReferences('vvv = 1', false);
-    expect(searchElement.kind, ElementKind.LOCAL_VARIABLE);
+    expect(searchElement!.kind, ElementKind.LOCAL_VARIABLE);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.READ_WRITE, 'vvv += 3');
@@ -496,18 +494,18 @@ class A {
     print(mmm); // in m()
   }
 }
-main(A a) {
+void f(A a) {
   a.mmm(10);
-  print(a.mmm); // in main()
+  print(a.mmm); // in f()
 }
 ''');
     await findElementReferences('mmm(p) {}', false);
-    expect(searchElement.kind, ElementKind.METHOD);
+    expect(searchElement!.kind, ElementKind.METHOD);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(1);');
     assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in m()');
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
-    assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in main()');
+    assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in f()');
   }
 
   Future<void> test_method_ofExtension() async {
@@ -516,7 +514,7 @@ extension E on int {
   void foo() {}
 }
 
-main() {
+void f() {
   E(0).foo(); // 1
   E(0).foo; // 2
   0.foo(); // 3
@@ -524,7 +522,7 @@ main() {
 }
 ''');
     await findElementReferences('foo() {}', false);
-    expect(searchElement.kind, ElementKind.METHOD);
+    expect(searchElement!.kind, ElementKind.METHOD);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.INVOCATION, 'foo(); // 1');
     assertHasResult(SearchResultKind.REFERENCE, 'foo; // 2');
@@ -537,14 +535,14 @@ main() {
 class A {
   mmm(p) {}
 }
-main() {
+void f() {
   var a = new A();
   a.mmm(10);
   print(a.mmm);
 }
 ''');
     await findElementReferences('mmm(p) {}', false);
-    expect(searchElement.kind, ElementKind.METHOD);
+    expect(searchElement!.kind, ElementKind.METHOD);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
     assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
@@ -556,14 +554,14 @@ mixin A {}
 class B extends Object with A {} // B
 ''');
     await findElementReferences('A {}', false);
-    expect(searchElement.kind, ElementKind.MIXIN);
+    expect(searchElement!.kind, ElementKind.MIXIN);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, 'A {} // B');
   }
 
   Future<void> test_noElement() async {
     addTestFile('''
-main() {
+void f() {
   print(noElement);
 }
 ''');
@@ -575,7 +573,7 @@ main() {
     addTestFile('''
 part of lib;
 fff(p) {}
-main() {
+void f() {
   fff(10);
 }
 ''');
@@ -586,7 +584,7 @@ main() {
 
   Future<void> test_parameter() async {
     addTestFile('''
-main(ppp) {
+void f(ppp) {
   print(ppp);
   ppp += 3;
   ppp = 2;
@@ -594,7 +592,7 @@ main(ppp) {
 }
 ''');
     await findElementReferences('ppp) {', false);
-    expect(searchElement.kind, ElementKind.PARAMETER);
+    expect(searchElement!.kind, ElementKind.PARAMETER);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.READ, 'ppp);');
     assertHasResult(SearchResultKind.READ_WRITE, 'ppp += 3');
@@ -694,7 +692,7 @@ LIBRARY''');
     addTestFile('''
 library my_lib;
 class A {}
-main() {
+void f() {
   A a = null;
 }
 ''');
@@ -702,7 +700,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
     expect(getPathString(result.path), '''
 LOCAL_VARIABLE a
-FUNCTION main
+FUNCTION f
 COMPILATION_UNIT test.dart
 LIBRARY my_lib''');
   }
@@ -712,7 +710,7 @@ LIBRARY my_lib''');
 class A {
   test(p) {}
 }
-main(A a, p) {
+void f(A a, p) {
   a.test(1);
   p.test(2);
 }
@@ -727,7 +725,7 @@ main(A a, p) {
 class A {
   var test; // declaration
 }
-main(A a, p) {
+void f(A a, p) {
   a.test = 1;
   p.test = 2;
   print(p.test); // p
@@ -753,7 +751,7 @@ main(A a, p) {
 class A {
   test(p) {}
 }
-main(A a, p) {
+void f(A a, p) {
   a.test(1);
   p.test(2);
 }
@@ -795,15 +793,16 @@ globalFunction(Base b) {
   Future<void> test_prefix() async {
     addTestFile('''
 import 'dart:async' as ppp;
-main() {
+void f() {
   ppp.Future a;
   ppp.Stream b;
 }
 ''');
     await findElementReferences('ppp;', false);
+    final searchElement = this.searchElement!;
     expect(searchElement.kind, ElementKind.PREFIX);
     expect(searchElement.name, 'ppp');
-    expect(searchElement.location.startLine, 1);
+    expect(searchElement.location!.startLine, 1);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Future');
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Stream');
@@ -812,7 +811,7 @@ main() {
   Future<void> test_topLevelVariable_explicit() async {
     addTestFile('''
 var vvv = 1;
-main() {
+void f() {
   print(vvv);
   vvv += 3;
   vvv = 2;
@@ -820,7 +819,7 @@ main() {
 }
 ''');
     await findElementReferences('vvv = 1', false);
-    expect(searchElement.kind, ElementKind.TOP_LEVEL_VARIABLE);
+    expect(searchElement!.kind, ElementKind.TOP_LEVEL_VARIABLE);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.WRITE, 'vvv += 3');
@@ -832,14 +831,14 @@ main() {
     addTestFile('''
 get vvv => null;
 set vvv(x) {}
-main() {
+void f() {
   print(vvv);
   vvv = 1;
 }
 ''');
     {
       await findElementReferences('vvv =>', false);
-      expect(searchElement.kind, ElementKind.TOP_LEVEL_VARIABLE);
+      expect(searchElement!.kind, ElementKind.TOP_LEVEL_VARIABLE);
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.READ, 'vvv);');
       assertHasResult(SearchResultKind.WRITE, 'vvv = 1;');
@@ -854,13 +853,13 @@ main() {
 
   Future<void> test_typeReference_class() async {
     addTestFile('''
-main() {
+void f() {
   int a = 1;
   int b = 2;
 }
 ''');
     await findElementReferences('int a', false);
-    expect(searchElement.kind, ElementKind.CLASS);
+    expect(searchElement!.kind, ElementKind.CLASS);
     assertHasResult(SearchResultKind.REFERENCE, 'int a');
     assertHasResult(SearchResultKind.REFERENCE, 'int b');
   }
@@ -868,11 +867,11 @@ main() {
   Future<void> test_typeReference_typeAlias_functionType() async {
     addTestFile('''
 typedef F = Function();
-main(F f) {
+void f(F f) {
 }
 ''');
     await findElementReferences('F =', false);
-    expect(searchElement.kind, ElementKind.TYPE_ALIAS);
+    expect(searchElement!.kind, ElementKind.TYPE_ALIAS);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, 'F f');
   }
@@ -885,24 +884,24 @@ void(A<String> a) {}
 ''');
     // Can find `A`.
     await findElementReferences('A<T> =', false);
-    expect(searchElement.kind, ElementKind.TYPE_ALIAS);
+    expect(searchElement!.kind, ElementKind.TYPE_ALIAS);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, 'A<String>');
 
     // Can find in `A`.
     await findElementReferences('int,', false);
-    expect(searchElement.kind, ElementKind.CLASS);
+    expect(searchElement!.kind, ElementKind.CLASS);
     assertHasResult(SearchResultKind.REFERENCE, 'int,');
   }
 
   Future<void> test_typeReference_typeAlias_legacy() async {
     addTestFile('''
 typedef F();
-main(F f) {
+void f(F f) {
 }
 ''');
     await findElementReferences('F()', false);
-    expect(searchElement.kind, ElementKind.TYPE_ALIAS);
+    expect(searchElement!.kind, ElementKind.TYPE_ALIAS);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, 'F f');
   }
@@ -915,7 +914,7 @@ class A<T> {
 }
 ''');
     await findElementReferences('T> {', false);
-    expect(searchElement.kind, ElementKind.TYPE_PARAMETER);
+    expect(searchElement!.kind, ElementKind.TYPE_PARAMETER);
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'T f;');
     assertHasResult(SearchResultKind.REFERENCE, 'T m()');

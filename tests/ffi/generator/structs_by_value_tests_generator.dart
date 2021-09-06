@@ -24,14 +24,19 @@ enum TestType {
 
 extension on FunctionType {
   TestType get testType {
-    if (arguments.containsStructs && returnValue is FundamentalType) {
+    if (arguments.containsComposites && returnValue is FundamentalType) {
       return TestType.structArguments;
     }
-    if (returnValue is StructType && argumentTypes.contains(returnValue)) {
+    if (returnValue is CompositeType && argumentTypes.contains(returnValue)) {
       return TestType.structReturnArgument;
     }
     if (returnValue is StructType) {
-      if (arguments.length == (returnValue as StructType).members.length) {
+      if (arguments.length == (returnValue as CompositeType).members.length) {
+        return TestType.structReturn;
+      }
+    }
+    if (returnValue is UnionType) {
+      if (arguments.length == 1) {
         return TestType.structReturn;
       }
     }
@@ -52,7 +57,8 @@ extension on CType {
         return "<< $variableName";
 
       case StructType:
-        final this_ = this as StructType;
+      case UnionType:
+        final this_ = this as CompositeType;
         return this_.members.coutExpression("$variableName.");
 
       case FixedLengthArrayType:
@@ -102,6 +108,12 @@ extension on CType {
         final this_ = this as StructType;
         return this_.members.addToResultStatements("$variableName.");
 
+      case UnionType:
+        final this_ = this as UnionType;
+        final member = this_.members.first;
+        return member.type
+            .addToResultStatements("$variableName.${member.name}");
+
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
         final indices = [for (var i = 0; i < this_.length; i += 1) i];
@@ -138,6 +150,12 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.assignValueStatements(a, "$variableName.");
+
+      case UnionType:
+        final this_ = this as UnionType;
+        final member = this_.members.first;
+        return member.type
+            .assignValueStatements(a, "$variableName.${member.name}");
 
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
@@ -224,6 +242,7 @@ extension on CType {
         return "${dartType} ${variableName};\n";
 
       case StructType:
+      case UnionType:
         return """
 final ${variableName}Pointer = calloc<$dartType>();
 final ${dartType} ${variableName} = ${variableName}Pointer.ref;
@@ -245,6 +264,7 @@ final ${dartType} ${variableName} = ${variableName}Pointer.ref;
         return "${dartType} ${variableName} = 0.0;\n";
 
       case StructType:
+      case UnionType:
         if (structsAsPointers) {
           return "Pointer<${dartType}> ${variableName}Pointer = nullptr;\n";
         } else {
@@ -278,6 +298,7 @@ extension on CType {
         return "";
 
       case StructType:
+      case UnionType:
         return "calloc.free(${variableName}Pointer);\n";
     }
 
@@ -297,8 +318,10 @@ extension on CType {
   String cAllocateStatements(String variableName) {
     switch (this.runtimeType) {
       case FundamentalType:
-      case StructType:
         return "${cType} ${variableName};\n";
+      case StructType:
+      case UnionType:
+        return "${cType} ${variableName} = {};\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -432,7 +455,8 @@ extension on CType {
         return variableName;
 
       case StructType:
-        final this_ = this as StructType;
+      case UnionType:
+        final this_ = this as CompositeType;
         return this_.members.firstArgumentName("$variableName.");
 
       case FixedLengthArrayType:
@@ -453,9 +477,12 @@ extension on List<Member> {
   }
 }
 
-extension on StructType {
+extension on CompositeType {
   String dartClass(bool nnbd) {
-    final packingAnnotation = hasPacking ? "@Packed(${packing})" : "";
+    final self = this;
+    final packingAnnotation = (self is StructType) && self.hasPacking
+        ? "@Packed(${self.packing})"
+        : "";
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField(nnbd)}\n\n";
@@ -479,7 +506,7 @@ extension on StructType {
     }).join(", ");
     return """
     $packingAnnotation
-    class $name extends Struct {
+    class $name extends $dartSuperClass {
       $dartFields
 
       String toString() => "($toStringBody)";
@@ -488,16 +515,20 @@ extension on StructType {
   }
 
   String get cDefinition {
-    final packingPragmaPush =
-        hasPacking ? "#pragma pack(push, ${packing})" : "";
-    final packingPragmaPop = hasPacking ? "#pragma pack(pop)" : "";
+    final self = this;
+    final packingPragmaPush = (self is StructType) && self.hasPacking
+        ? "#pragma pack(push, ${self.packing})"
+        : "";
+    final packingPragmaPop =
+        (self is StructType) && self.hasPacking ? "#pragma pack(pop)" : "";
+
     String cFields = "";
     for (final member in members) {
       cFields += "  ${member.cStructField}\n";
     }
     return """
     $packingPragmaPush
-    struct $name {
+    $cKeyword $name {
       $cFields
     };
     $packingPragmaPop
@@ -507,7 +538,7 @@ extension on StructType {
 }
 
 extension on FunctionType {
-  String get dartCallCode {
+  String dartCallCode({bool isLeaf: false}) {
     final a = ArgumentValueAssigner();
     final assignValues = arguments.assignValueStatements(a);
     final argumentFrees = arguments.dartFreeStatements();
@@ -531,17 +562,19 @@ extension on FunctionType {
         break;
     }
 
+    final namePostfix = isLeaf ? "Leaf" : "";
     return """
-    final $dartName =
-      ffiTestFunctions.lookupFunction<$dartCType, $dartType>("$cName");
+    final $dartName$namePostfix =
+      ffiTestFunctions.lookupFunction<$dartCType, $dartType>(
+          "$cName"${isLeaf ? ", isLeaf:true" : ""});
 
     ${reason.makeDartDocComment()}
-    void $dartTestName() {
+    void $dartTestName$namePostfix() {
       ${arguments.dartAllocateStatements()}
 
       ${assignValues}
 
-      final result = $dartName($argumentNames);
+      final result = $dartName$namePostfix($argumentNames);
 
       print("result = \$result");
 
@@ -711,7 +744,7 @@ extension on FunctionType {
         break;
       case TestType.structReturn:
         body = """
-        ${returnValue.cType} result;
+        ${returnValue.cType} result = {};
 
         ${arguments.copyValueStatements("", "result.")}
         """;
@@ -727,7 +760,7 @@ extension on FunctionType {
         arguments.map((e) => "${e.type.cType} ${e.name}").join(", ");
 
     return """
-    // Used for testing structs by value.
+    // Used for testing structs and unions by value.
     ${reason.makeCComment()}
     DART_EXPORT ${returnValue.cType} $cName($argumentss) {
       std::cout << \"$cName\" ${arguments.coutExpression()} << \"\\n\";
@@ -779,7 +812,7 @@ extension on FunctionType {
     }
 
     return """
-    // Used for testing structs by value.
+    // Used for testing structs and unions by value.
     ${reason.makeCComment()}
     DART_EXPORT intptr_t
     Test$cName(
@@ -824,7 +857,14 @@ const throwExceptionValue = 42;
 /// Some value between 0 and 127 (works in every native type).
 const returnNullValue = 84;
 
-const headerDartCallTest = """
+const dart2dot9 = '''
+// @dart = 2.9
+''';
+
+headerDartCallTest(bool nnbd) {
+  final dartVersion = nnbd ? '' : dart2dot9;
+
+  return """
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -837,6 +877,8 @@ const headerDartCallTest = """
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
+$dartVersion
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
@@ -846,21 +888,24 @@ import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 """;
+}
 
 void writeDartCallTest() {
   for (bool nnbd in [true, false]) {
     final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallTest);
+    buffer.write(headerDartCallTest(nnbd));
 
     buffer.write("""
     void main() {
       for (int i = 0; i < 10; ++i) {
         ${functions.map((e) => "${e.dartTestName}();").join("\n")}
+        ${functions.map((e) => "${e.dartTestName}Leaf();").join("\n")}
       }
     }
     """);
-    buffer.writeAll(structs.map((e) => e.dartClass(nnbd)));
-    buffer.writeAll(functions.map((e) => e.dartCallCode));
+    buffer.writeAll(compounds.map((e) => e.dartClass(nnbd)));
+    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: false)));
+    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: true)));
 
     final path = callTestPath(nnbd);
     File(path).writeAsStringSync(buffer.toString());
@@ -875,7 +920,10 @@ String callTestPath(bool nnbd) {
       .path;
 }
 
-const headerDartCallbackTest = """
+headerDartCallbackTest(bool nnbd) {
+  final dartVersion = nnbd ? '' : dart2dot9;
+
+  return """
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -887,6 +935,8 @@ const headerDartCallbackTest = """
 // VMOptions=--deterministic --optimization-counter-threshold=10
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
+
+$dartVersion
 
 import 'dart:ffi';
 
@@ -908,11 +958,12 @@ void main() {
 
 
 """;
+}
 
 void writeDartCallbackTest() {
   for (bool nnbd in [true, false]) {
     final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallbackTest);
+    buffer.write(headerDartCallbackTest(nnbd));
 
     buffer.write("""
   final testCases = [
@@ -984,7 +1035,7 @@ void writeC() {
   final StringBuffer buffer = StringBuffer();
   buffer.write(headerC);
 
-  buffer.writeAll(structs.map((e) => e.cDefinition));
+  buffer.writeAll(compounds.map((e) => e.cDefinition));
   buffer.writeAll(functions.map((e) => e.cCallCode));
   buffer.writeAll(functions.map((e) => e.cCallbackCode));
 

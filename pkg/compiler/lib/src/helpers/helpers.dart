@@ -7,9 +7,10 @@
 
 library dart2js.helpers;
 
+import 'package:kernel/text/indentation.dart' show Indentation;
+
 import '../common.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
-import '../util/util.dart';
 
 export 'debug_collection.dart';
 export 'expensive_map.dart';
@@ -89,6 +90,7 @@ ReportHere get reportHere {
 
 /// Implementation of [reportHere]
 _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
+  // ignore: deprecated_member_use_from_same_package
   reporter.reportInfoMessage(
       node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
 }

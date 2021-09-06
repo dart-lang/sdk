@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // dart2js used to have an infinite loop in its type propagation
 // algorithm due to types becoming broader instead of narrower.
 

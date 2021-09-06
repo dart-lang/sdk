@@ -32,14 +32,6 @@ DEFINE_FLAG(
     false,
     "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
-DEFINE_FLAG(bool,
-            trace_timeline_analysis,
-            false,
-            "Trace timeline analysis backend");
-DEFINE_FLAG(bool,
-            timing,
-            false,
-            "Dump isolate timing information from timeline.");
 DEFINE_FLAG(charp,
             timeline_dir,
             NULL,
@@ -102,7 +94,7 @@ DEFINE_FLAG(charp,
 static TimelineEventRecorder* CreateTimelineRecorder() {
   // Some flags require that we use the endless recorder.
   const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
+      (FLAG_timeline_dir != NULL) || FLAG_complete_timeline;
 
   const bool use_startup_recorder = FLAG_startup_timeline;
   const bool use_systrace_recorder = FLAG_systrace_timeline;
@@ -114,13 +106,13 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
         THR_Print("Using the Systrace timeline recorder.\n");
       }
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
       return new TimelineEventSystraceRecorder();
-#elif defined(HOST_OS_MACOS)
+#elif defined(DART_HOST_OS_MACOS)
       if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
         return new TimelineEventMacosRecorder();
       }
-#elif defined(HOST_OS_FUCHSIA)
+#elif defined(DART_HOST_OS_FUCHSIA)
       return new TimelineEventFuchsiaRecorder();
 #else
       OS::PrintErr(
@@ -190,7 +182,7 @@ static void FreeEnabledByDefaultTimelineStreams(
 
 // Returns true if |streams| contains |stream| or "all". Not case sensitive.
 static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
-  if ((FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline ||
+  if ((FLAG_timeline_dir != NULL) || FLAG_complete_timeline ||
       FLAG_startup_timeline) {
     return true;
   }
@@ -762,13 +754,13 @@ TimelineStream::TimelineStream(const char* name,
                                bool enabled)
     : name_(name),
       fuchsia_name_(fuchsia_name),
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
       enabled_(static_cast<uintptr_t>(true))  // For generated code.
 #else
       enabled_(static_cast<uintptr_t>(enabled))
 #endif
 {
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
   if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
     macos_log_ = os_log_create("Dart", name);
   }
@@ -1094,7 +1086,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
 int64_t TimelineEventRecorder::GetNextAsyncId() {
   // TODO(johnmccutchan): Gracefully handle wrap around.
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
   return trace_generate_nonce();
 #else
   uint32_t next = static_cast<uint32_t>(async_id_.fetch_add(1u));

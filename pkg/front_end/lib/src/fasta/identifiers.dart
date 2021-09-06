@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.qualified_name;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
@@ -21,7 +19,7 @@ class Identifier {
 
   int get charOffset => token.charOffset;
 
-  Expression get initializer => null;
+  Expression? get initializer => null;
 
   int get endCharOffset => charOffset + name.length;
 
@@ -66,7 +64,7 @@ class QualifiedName extends Identifier {
 }
 
 void flattenQualifiedNameOn(
-    QualifiedName name, StringBuffer buffer, int charOffset, Uri fileUri) {
+    QualifiedName name, StringBuffer buffer, int charOffset, Uri? fileUri) {
   final Object qualifier = name.qualifier;
   if (qualifier is QualifiedName) {
     flattenQualifiedNameOn(qualifier, buffer, charOffset, fileUri);
@@ -82,7 +80,7 @@ void flattenQualifiedNameOn(
   buffer.write(name.name);
 }
 
-String flattenName(Object name, int charOffset, Uri fileUri) {
+String flattenName(Object name, int charOffset, Uri? fileUri) {
   if (name is String) {
     return name;
   } else if (name is QualifiedName) {

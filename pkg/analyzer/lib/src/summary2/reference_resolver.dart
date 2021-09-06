@@ -13,10 +13,9 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
-import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
-import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 
 /// Recursive visitor of [LinkedNode]s that resolves explicit type annotations
@@ -29,29 +28,26 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
+  final Linker linker;
   final TypeSystemImpl _typeSystem;
   final NodesToBuildType nodesToBuildType;
-  final LinkedElementFactory elementFactory;
-  final Reference unitReference;
 
   /// Indicates whether the library is opted into NNBD.
   final bool isNNBD;
 
-  /// The depth-first number of the next [GenericFunctionType] node.
-  int _nextGenericFunctionTypeId = 0;
-
-  Reference? reference;
   Scope scope;
 
   ReferenceResolver(
+    this.linker,
     this.nodesToBuildType,
-    this.elementFactory,
     LibraryElementImpl libraryElement,
-    this.unitReference,
-    this.isNNBD,
-    this.scope,
   )   : _typeSystem = libraryElement.typeSystem,
-        reference = unitReference;
+        scope = libraryElement.scope,
+        isNNBD = libraryElement.isNonNullableByDefault;
+
+  void enterScopeClassElement(ClassElementImpl element) {
+    scope = TypeParameterScope(scope, element.typeParameters);
+  }
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -59,15 +55,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as ClassElementImpl;
-    reference = element.reference!;
-    element.accessors; // create elements
-    element.constructors; // create elements
-    element.methods; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
@@ -82,18 +72,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as ClassElementImpl;
-    reference = element.reference!;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
@@ -104,7 +90,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
@@ -116,11 +101,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as ConstructorElementImpl;
-    reference = element.reference!;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -128,7 +110,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
@@ -150,12 +131,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as ExtensionElementImpl;
-    reference = element.reference!;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
@@ -168,7 +146,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
@@ -179,13 +156,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as FieldFormalParameterElementImpl;
-    reference = element.reference;
-    element.parameters; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.type?.accept(this);
@@ -194,7 +167,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
@@ -205,16 +177,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    reference = element.reference!;
-    element.parameters; // create elements
 
-    _createTypeParameterElements(
-      element,
-      node.functionExpression.typeParameters,
-    );
     scope = TypeParameterScope(outerScope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
@@ -223,7 +188,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
@@ -235,38 +199,26 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as TypeAliasElementImpl;
-    reference = element.reference!;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
-
-    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
-    reference = function.reference!;
-    function.parameters; // create elements
     node.parameters.accept(this);
 
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as ParameterElementImpl;
-    reference = element.reference;
-    element.parameters; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.returnType?.accept(this);
@@ -275,28 +227,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
     var nodeImpl = node as GenericFunctionTypeImpl;
     var outerScope = scope;
-    var outerReference = reference;
 
-    // TODO(scheglov) remove reference
-    var id = _nextGenericFunctionTypeId++;
-    var containerRef = unitReference.getChild('@genericFunctionType');
-    reference = containerRef.getChild('$id');
-
-    var element = GenericFunctionTypeElementImpl.forLinkedNode(
-      unitReference.element as CompilationUnitElementImpl,
-      reference!,
-      node,
-    );
-    element.parameters; // create elements
-
-    _createTypeParameterElements(element, node.typeParameters);
+    var element = node.declaredElement as GenericFunctionTypeElementImpl;
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
     node.returnType?.accept(this);
@@ -309,18 +247,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addTypeBuilder(builder);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as TypeAliasElementImpl;
-    reference = element.reference!;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
     node.typeParameters?.accept(this);
@@ -335,7 +269,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     }
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
@@ -346,13 +279,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    reference = element.reference!;
-    element.parameters; // create elements
-
-    _createTypeParameterElements(element, node.typeParameters);
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -363,21 +291,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     var outerScope = scope;
-    var outerReference = reference;
 
     var element = node.declaredElement as MixinElementImpl;
-    reference = element.reference!;
-    element.accessors; // create elements
-    element.constructors; // create elements
-    element.methods; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
@@ -391,7 +312,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
-    reference = outerReference;
   }
 
   @override
@@ -458,6 +378,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       );
     } else {
       var builder = NamedTypeBuilder.of(
+        linker,
         _typeSystem,
         node,
         element,
@@ -470,7 +391,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    node.bound?.accept(this);
+    var bound = node.bound;
+    if (bound != null) {
+      bound.accept(this);
+      var element = node.declaredElement as TypeParameterElementImpl;
+      element.bound = bound.type;
+    }
   }
 
   @override
@@ -487,29 +413,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     node.mixinTypes.accept(this);
-  }
-
-  void _createTypeParameterElement(
-    ElementImpl enclosingElement,
-    TypeParameterImpl node,
-  ) {
-    var element = TypeParameterElementImpl.forLinkedNode(
-      enclosingElement,
-      node,
-    );
-    node.name.staticElement = element;
-  }
-
-  void _createTypeParameterElements(
-    ElementImpl enclosingElement,
-    TypeParameterList? typeParameterList,
-  ) {
-    if (typeParameterList == null) return;
-
-    for (var typeParameter in typeParameterList.typeParameters) {
-      typeParameter as TypeParameterImpl;
-      _createTypeParameterElement(enclosingElement, typeParameter);
-    }
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {

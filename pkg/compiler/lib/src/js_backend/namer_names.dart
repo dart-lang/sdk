@@ -6,18 +6,46 @@ part of js_backend.namer;
 
 abstract class _NamerName extends jsAst.Name {
   int get _kind;
-  _NamerName get _target => this;
+
+  @override
+  _NamerName withSourceInformation(
+      jsAst.JavaScriptNodeSourceInformation newSourceInformation) {
+    if (sourceInformation == newSourceInformation) return this;
+    final name = this; // Variable needed for type promotion in next line.
+    final underlying = name is _NameReference ? name._target : this;
+    return _NameReference(underlying, newSourceInformation);
+  }
+
+  int _compareSameKind(covariant _NamerName);
 
   @override
   String toString() {
     if (DEBUG_MODE) {
       return 'Name($key)';
     }
-    throw new UnsupportedError("Cannot convert a name to a string");
+    throw UnsupportedError("Cannot convert a name to a string");
   }
 }
 
 enum _NamerNameKinds { StringBacked, Getter, Setter, Async, Compound, Token }
+
+/// An arbitrary but stable sorting comparison method.
+int compareNames(jsAst.Name aName, jsAst.Name bName) {
+  _NamerName dereference(jsAst.Name name) {
+    if (name is ModularName) return dereference(name.value);
+    if (name is _NameReference) return dereference(name._target);
+    if (name is _NamerName) return name;
+    throw UnsupportedError('Cannot find underlying _NamerName: $name');
+  }
+
+  _NamerName a = dereference(aName);
+  _NamerName b = dereference(bName);
+
+  int aKind = a._kind;
+  int bKind = b._kind;
+  if (bKind != aKind) return bKind - aKind;
+  return a._compareSameKind(b);
+}
 
 class StringBackedName extends _NamerName {
   @override
@@ -31,26 +59,18 @@ class StringBackedName extends _NamerName {
   String get key => name;
 
   @override
-  operator ==(other) {
-    if (other is _NameReference) other = other._target;
+  operator ==(Object other) {
+    if (other is _NameReference) return this == other._target;
     if (identical(this, other)) return true;
-    return (other is StringBackedName) && other.name == name;
+    return other is StringBackedName && name == other.name;
   }
 
   @override
   int get hashCode => name.hashCode;
 
   @override
-  int compareTo(jsAst.Name other) {
-    _NamerName otherNamerName;
-    if (other is ModularName) {
-      otherNamerName = other.value;
-    } else {
-      otherNamerName = other;
-    }
-    otherNamerName = otherNamerName._target;
-    if (otherNamerName._kind != _kind) return otherNamerName._kind - _kind;
-    return name.compareTo(otherNamerName.name);
+  int _compareSameKind(StringBackedName other) {
+    return name.compareTo(other.name);
   }
 }
 
@@ -72,11 +92,12 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   String get key => prefix.key + base.key;
 
   @override
-  bool operator ==(other) {
-    if (other is _NameReference) other = other._target;
+  bool operator ==(Object other) {
+    if (other is _NameReference) return this == other._target;
     if (identical(this, other)) return true;
-    if (other is! _PrefixedName) return false;
-    return other.base == base && other.prefix == prefix;
+    return other is _PrefixedName &&
+        base == other.base &&
+        prefix == other.prefix;
   }
 
   @override
@@ -86,22 +107,10 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   bool get isFinalized => prefix.isFinalized && base.isFinalized;
 
   @override
-  int compareTo(jsAst.Name other) {
-    _NamerName otherNamerName;
-    if (other is ModularName) {
-      otherNamerName = other.value;
-    } else {
-      otherNamerName = other;
-    }
-    otherNamerName = otherNamerName._target;
-    if (otherNamerName._kind != _kind) return otherNamerName._kind - _kind;
-    _PrefixedName otherSameKind = otherNamerName;
-    int result = prefix.compareTo(otherSameKind.prefix);
+  int _compareSameKind(_PrefixedName other) {
+    int result = compareNames(prefix, other.prefix);
     if (result == 0) {
-      result = prefix.compareTo(otherSameKind.prefix);
-      if (result == 0) {
-        result = base.compareTo(otherSameKind.base);
-      }
+      result = compareNames(base, other.base);
     }
     return result;
   }
@@ -150,25 +159,24 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
 
   @override
   String get name {
-    if (_cachedName == null) {
-      _cachedName = _parts.map((jsAst.Name name) => name.name).join();
-    }
-    return _cachedName;
+    return _cachedName ??= _parts.map((jsAst.Name name) => name.name).join();
   }
 
   @override
   String get key => _parts.map((_NamerName name) => name.key).join();
 
   @override
-  bool operator ==(other) {
-    if (other is _NameReference) other = other._target;
+  bool operator ==(Object other) {
+    if (other is _NameReference) return this == other._target;
     if (identical(this, other)) return true;
-    if (other is! CompoundName) return false;
-    if (other._parts.length != _parts.length) return false;
-    for (int i = 0; i < _parts.length; ++i) {
-      if (other._parts[i] != _parts[i]) return false;
+    if (other is CompoundName) {
+      if (other._parts.length != _parts.length) return false;
+      for (int i = 0; i < _parts.length; ++i) {
+        if (_parts[i] != other._parts[i]) return false;
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 
   @override
@@ -183,22 +191,10 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   }
 
   @override
-  int compareTo(jsAst.Name other) {
-    _NamerName otherNamerName;
-    if (other is ModularName) {
-      otherNamerName = other.value;
-    } else {
-      otherNamerName = other;
-    }
-    otherNamerName = otherNamerName._target;
-    if (otherNamerName._kind != _kind) return otherNamerName._kind - _kind;
-    CompoundName otherSameKind = otherNamerName;
-    if (otherSameKind._parts.length != _parts.length) {
-      return otherSameKind._parts.length - _parts.length;
-    }
-    int result = 0;
+  int _compareSameKind(CompoundName other) {
+    int result = _parts.length.compareTo(other._parts.length);
     for (int pos = 0; result == 0 && pos < _parts.length; pos++) {
-      result = _parts[pos].compareTo(otherSameKind._parts[pos]);
+      result = compareNames(_parts[pos], other._parts[pos]);
     }
     return result;
   }
@@ -225,19 +221,16 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   }
 
   @override
-  int compareTo(covariant _NamerName other) {
-    other = other._target;
-    if (other._kind != _kind) return other._kind - _kind;
-    TokenName otherToken = other;
-    return key.compareTo(otherToken.key);
+  int _compareSameKind(TokenName other) {
+    return key.compareTo(other.key);
   }
 
   @override
   void markSeen(jsAst.TokenCounter counter) => _rc++;
 
   @override
-  bool operator ==(other) {
-    if (other is _NameReference) other = other._target;
+  bool operator ==(Object other) {
+    if (other is _NameReference) return this == other._target;
     if (identical(this, other)) return true;
     return false;
   }
@@ -254,9 +247,18 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   }
 }
 
+/// A [_NameReference] behaves like the underlying (target) [_NamerName] but
+/// carries its own [JavaScriptNodeSourceInformation].
+// TODO(sra): See if this functionality can be moved into js_ast.
 class _NameReference extends _NamerName implements jsAst.AstContainer {
+  final _NamerName _target;
+  final jsAst.JavaScriptNodeSourceInformation _sourceInformation;
+
+  _NameReference(this._target, this._sourceInformation);
+
   @override
-  _NamerName _target;
+  jsAst.JavaScriptNodeSourceInformation get sourceInformation =>
+      _sourceInformation;
 
   @override
   int get _kind => _target._kind;
@@ -266,27 +268,19 @@ class _NameReference extends _NamerName implements jsAst.AstContainer {
   @override
   Iterable<jsAst.Node> get containedNodes => [_target];
 
-  _NameReference(this._target);
-
   @override
   String get name => _target.name;
 
   @override
-  int compareTo(jsAst.Name other) {
-    _NamerName otherNamerName;
-    if (other is ModularName) {
-      otherNamerName = other.value;
-    } else {
-      otherNamerName = other;
-    }
-    return _target.compareTo(otherNamerName);
+  int _compareSameKind(_NameReference other) {
+    throw StateError('Should have been dereferenced: $this');
   }
 
   @override
   bool get isFinalized => _target.isFinalized;
 
   @override
-  bool operator ==(other) => _target == other;
+  bool operator ==(Object other) => _target == other;
 
   @override
   int get hashCode => _target.hashCode;

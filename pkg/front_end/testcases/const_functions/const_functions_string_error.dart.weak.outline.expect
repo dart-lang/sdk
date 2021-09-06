@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::String str = "str";
+static const field core::String var1 = self::str.{core::String::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::String};
+static const field core::String var2 = self::str.{core::String::[]}(3){(core::int) → core::String};
+static const field dynamic var3 = self::fn();
+static const field dynamic var4 = self::fn2();
+static const field dynamic var5 = self::fn3();
+static method fn() → dynamic
+  ;
+static method fn2() → dynamic
+  ;
+static method fn3() → dynamic
+  ;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_string_error.dart:10:14 -> StringConstant("str")
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///const_functions_string_error.dart:10:18 -> IntConstant(-1)
+Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_string_error.dart:11:14 -> StringConstant("str")
+Extra constant evaluation: evaluated: 8, effectively constant: 3

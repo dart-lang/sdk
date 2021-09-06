@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateFile extends CorrectionProducer {
-  String _fileName;
+  String _fileName = '';
 
   @override
   List<Object> get fixArguments => [_fileName];
@@ -25,7 +23,7 @@ class CreateFile extends CorrectionProducer {
     // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral) {
       var parent = node.parent;
-      if (parent is ImportDirective) {
+      if (parent is NamespaceDirective) {
         // TODO(brianwilkerson) Support the case where the node's parent is a
         //  Configuration.
         var source = parent.uriSource;
@@ -43,10 +41,16 @@ class CreateFile extends CorrectionProducer {
       } else if (parent is PartDirective) {
         var source = parent.uriSource;
         if (source != null) {
-          var libName = resolvedResult.libraryElement.name;
+          var pathContext = resourceProvider.pathContext;
+          var relativePath = pathContext.relative(
+              resolvedResult.libraryElement.source.fullName,
+              from: pathContext.dirname(source.fullName));
+
+          // URIs always use forward slashes regardless of platform.
+          var relativeUri = pathContext.split(relativePath).join('/');
+
           await builder.addDartFileEdit(source.fullName, (builder) {
-            // TODO(brianwilkerson) Consider using the URI rather than name.
-            builder.addSimpleInsertion(0, 'part of $libName;$eol$eol');
+            builder.addSimpleInsertion(0, "part of '$relativeUri';$eol$eol");
           });
           _fileName = source.shortName;
         }

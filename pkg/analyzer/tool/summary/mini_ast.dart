@@ -635,7 +635,7 @@ class MiniAstParser extends Parser {
 
   @override
   Token parseArgumentsOpt(Token token) {
-    var listener = this.listener as MiniAstBuilder;
+    final listener = this.listener as MiniAstBuilder;
     if (listener.inMetadata) {
       return super.parseArgumentsOpt(token);
     } else {

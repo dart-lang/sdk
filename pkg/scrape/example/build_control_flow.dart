@@ -86,7 +86,7 @@ class ControlFlowVisitor extends ScrapeVisitor {
     }
   }
 
-  bool _isReturn(Statement statement) {
+  bool _isReturn(Statement? statement) {
     // Ignore empty "else" clauses.
     if (statement == null) return true;
 
@@ -99,7 +99,7 @@ class ControlFlowVisitor extends ScrapeVisitor {
     return false;
   }
 
-  bool _isAdd(Statement statement) {
+  bool _isAdd(Statement? statement) {
     // Ignore empty "else" clauses.
     if (statement == null) return true;
 

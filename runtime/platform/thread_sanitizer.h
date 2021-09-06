@@ -15,6 +15,8 @@
 
 #if defined(USING_THREAD_SANITIZER)
 #define NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
+extern "C" void __tsan_acquire(void* addr);
+extern "C" void __tsan_release(void* addr);
 #else
 #define NO_SANITIZE_THREAD
 #endif

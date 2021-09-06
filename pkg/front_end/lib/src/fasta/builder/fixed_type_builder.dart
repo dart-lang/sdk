@@ -2,25 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 
 import '../problems.dart';
+import '../source/source_library_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 class FixedTypeBuilder extends TypeBuilder {
   final DartType type;
-  final Uri fileUri;
-  final int charOffset;
+  final Uri? fileUri;
+  final int? charOffset;
 
   const FixedTypeBuilder(this.type, this.fileUri, this.charOffset);
 
-  TypeBuilder clone(List<TypeBuilder> newTypes) => this;
+  TypeBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
+    return this;
+  }
 
-  Object get name => null;
+  Object? get name => null;
 
   NullabilityBuilder get nullabilityBuilder =>
       new NullabilityBuilder.fromNullability(type.nullability);
@@ -35,7 +39,7 @@ class FixedTypeBuilder extends TypeBuilder {
   }
 
   DartType build(LibraryBuilder library,
-      [TypedefType origin, bool notInstanceContext]) {
+      {TypedefType? origin, bool? nonInstanceContext}) {
     return type;
   }
 

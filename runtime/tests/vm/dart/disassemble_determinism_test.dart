@@ -33,22 +33,28 @@ Future<void> main(List<String> args) async {
     return; // Our IA32 code is not position independent.
   }
 
-  final result1 = await runDart('GENERATE DISASSEMBLY 1', [
-    '--deterministic',
-    '--disassemble',
-    '--disassemble-relative',
-    Platform.script.toFilePath(),
-    '--child'
-  ]);
+  final result1 = await runDart(
+      'GENERATE DISASSEMBLY 1',
+      [
+        '--deterministic',
+        '--disassemble',
+        '--disassemble-relative',
+        Platform.script.toFilePath(),
+        '--child'
+      ],
+      printOut: false);
   final asm1 = result1.processResult.stderr;
 
-  final result2 = await runDart('GENERATE DISASSEMBLY 2', [
-    '--deterministic',
-    '--disassemble',
-    '--disassemble-relative',
-    Platform.script.toFilePath(),
-    '--child'
-  ]);
+  final result2 = await runDart(
+      'GENERATE DISASSEMBLY 2',
+      [
+        '--deterministic',
+        '--disassemble',
+        '--disassemble-relative',
+        Platform.script.toFilePath(),
+        '--child'
+      ],
+      printOut: false);
   final asm2 = result2.processResult.stderr;
 
   Expect.isTrue(

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -32,14 +30,14 @@ import 'dart:io';
 
 import 'dart:async';
 
-void main(Stream<String> args) { }
+void f(Stream<String> args) { }
 ''');
     await assertHasFix('''
 //ignore_for_file: unused_import
 import 'dart:async';
 import 'dart:io';
 
-void main(Stream<String> args) { }
+void f(Stream<String> args) { }
 ''');
   }
 }

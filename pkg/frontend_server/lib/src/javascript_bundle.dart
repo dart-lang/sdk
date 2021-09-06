@@ -27,6 +27,7 @@ class JavaScriptBundler {
       this._fileSystemScheme, this._packageConfig,
       {this.useDebuggerModuleNames = false,
       this.emitDebugMetadata = false,
+      this.emitDebugSymbols = false,
       this.soundNullSafety = false,
       String moduleFormat})
       : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
@@ -63,6 +64,7 @@ class JavaScriptBundler {
   final PackageConfig _packageConfig;
   final bool useDebuggerModuleNames;
   final bool emitDebugMetadata;
+  final bool emitDebugSymbols;
   final ModuleFormat _moduleFormat;
   final bool soundNullSafety;
 
@@ -74,16 +76,19 @@ class JavaScriptBundler {
 
   /// Compile each component into a single JavaScript module.
   Future<Map<String, ProgramCompiler>> compile(
-      ClassHierarchy classHierarchy,
-      CoreTypes coreTypes,
-      Set<Library> loadedLibraries,
-      IOSink codeSink,
-      IOSink manifestSink,
-      IOSink sourceMapsSink,
-      IOSink metadataSink) async {
+    ClassHierarchy classHierarchy,
+    CoreTypes coreTypes,
+    Set<Library> loadedLibraries,
+    IOSink codeSink,
+    IOSink manifestSink,
+    IOSink sourceMapsSink,
+    IOSink metadataSink,
+    IOSink symbolsSink,
+  ) async {
     var codeOffset = 0;
     var sourceMapOffset = 0;
     var metadataOffset = 0;
+    var symbolsOffset = 0;
     final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
     final Map<String, ProgramCompiler> kernel2JsCompilers = {};
@@ -135,6 +140,7 @@ class JavaScriptBundler {
           sourceMap: true,
           summarizeApi: false,
           emitDebugMetadata: emitDebugMetadata,
+          emitDebugSymbols: emitDebugSymbols,
           moduleName: moduleName,
           soundNullSafety: soundNullSafety,
         ),
@@ -144,10 +150,6 @@ class JavaScriptBundler {
       );
 
       final jsModule = compiler.emitModule(summaryComponent);
-
-      // TODO:(annagrin): create symbol tables and pass to expression compiler
-      // so it can map dart symbols to js symbols
-      // [issue 40273](https://github.com/dart-lang/sdk/issues/40273)
 
       // Save program compiler to reuse for expression evaluation.
       kernel2JsCompilers[moduleName] = compiler;
@@ -168,21 +170,28 @@ class JavaScriptBundler {
         inlineSourceMap: true,
         buildSourceMap: true,
         emitDebugMetadata: emitDebugMetadata,
+        emitDebugSymbols: emitDebugSymbols,
         jsUrl: '$moduleUrl.lib.js',
         mapUrl: '$moduleUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
         customScheme: _fileSystemScheme,
+        compiler: compiler,
         component: summaryComponent,
       );
       final codeBytes = utf8.encode(code.code);
       final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
       final metadataBytes =
           emitDebugMetadata ? utf8.encode(json.encode(code.metadata)) : null;
+      final symbolsBytes =
+          emitDebugSymbols ? utf8.encode(json.encode(code.symbols)) : null;
 
       codeSink.add(codeBytes);
       sourceMapsSink.add(sourceMapBytes);
       if (emitDebugMetadata) {
         metadataSink.add(metadataBytes);
+      }
+      if (emitDebugSymbols) {
+        symbolsSink.add(symbolsBytes);
       }
       final String moduleKey = _moduleImportForSummary[moduleUri];
       manifest[moduleKey] = {
@@ -195,6 +204,11 @@ class JavaScriptBundler {
           'metadata': <int>[
             metadataOffset,
             metadataOffset += metadataBytes.length
+          ],
+        if (emitDebugSymbols)
+          'symbols': <int>[
+            symbolsOffset,
+            symbolsOffset += symbolsBytes.length,
           ],
       };
     }

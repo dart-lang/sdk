@@ -34,7 +34,7 @@ class A extends core::Object implements self::I {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder method foo() → void
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
 }
 abstract class _B&Object&A extends core::Object implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_B&Object&A*
@@ -57,7 +57,7 @@ class B extends self::_B&Object&A {
     : super self::_B&Object&A::•()
     ;
   no-such-method-forwarder method foo() → void
-    return this.{self::_B&Object&A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::_B&Object&A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
 }
 static method main() → dynamic {}
 

@@ -4,10 +4,9 @@
 
 import 'dart:collection';
 import '../../common_elements.dart' show ElementEnvironment;
-import '../../deferred_load.dart'
+import '../../deferred_load/deferred_load.dart'
     show ImportDescription, OutputUnit, OutputUnitData, deferredPartFileName;
 import '../../elements/entities.dart';
-import '../../deferred_load.dart' show OutputUnit;
 import '../../js/js.dart' as js;
 import '../../options.dart';
 import '../model.dart';
@@ -110,6 +109,7 @@ import '../model.dart';
 /// sent to the client.
 
 class EmittedOutputUnit {
+  final Fragment fragment;
   final OutputUnit outputUnit;
   final List<Library> libraries;
   final js.Statement classPrototypes;
@@ -125,6 +125,7 @@ class EmittedOutputUnit {
   final js.Statement nativeSupport;
 
   EmittedOutputUnit(
+      this.fragment,
       this.outputUnit,
       this.libraries,
       this.classPrototypes,
@@ -141,6 +142,7 @@ class EmittedOutputUnit {
 
   CodeFragment toCodeFragment(Program program) {
     return CodeFragment(
+        [fragment],
         [outputUnit],
         libraries,
         classPrototypes,
@@ -165,7 +167,8 @@ class PreFragment {
   final Set<PreFragment> predecessors = {};
   FinalizedFragment finalizedFragment;
   int size = 0;
-  bool shouldInterleave = true;
+  // TODO(joshualitt): interleave dynamically when it makes sense.
+  bool shouldInterleave = false;
 
   PreFragment(
       this.outputFileName, EmittedOutputUnit emittedOutputUnit, this.size) {
@@ -201,6 +204,7 @@ class PreFragment {
       return seedEmittedOutputUnit.toCodeFragment(program);
     } else {
       var seedOutputUnit = seedEmittedOutputUnit.outputUnit;
+      List<Fragment> fragments = [];
       List<Library> libraries = [];
       List<OutputUnit> outputUnits = [seedOutputUnit];
       List<js.Statement> classPrototypes = [];
@@ -219,6 +223,7 @@ class PreFragment {
         if (seedOutputUnit != thatOutputUnit) {
           program.mergeOutputUnitMetadata(seedOutputUnit, thatOutputUnit);
           outputUnits.add(thatOutputUnit);
+          fragments.add(emittedOutputUnit.fragment);
         }
         libraries.addAll(emittedOutputUnit.libraries);
         classPrototypes.add(emittedOutputUnit.classPrototypes);
@@ -234,6 +239,7 @@ class PreFragment {
         nativeSupport.add(emittedOutputUnit.nativeSupport);
       }
       return CodeFragment(
+          fragments,
           outputUnits,
           libraries,
           js.Block(classPrototypes),
@@ -316,6 +322,7 @@ class PreFragment {
 }
 
 class CodeFragment {
+  final List<Fragment> fragments;
   final List<OutputUnit> outputUnits;
   final List<Library> libraries;
   final js.Statement classPrototypes;
@@ -332,6 +339,7 @@ class CodeFragment {
   final js.Expression deferredTypes;
 
   CodeFragment(
+      this.fragments,
       this.outputUnits,
       this.libraries,
       this.classPrototypes,
@@ -388,6 +396,8 @@ class CodeFragment {
     }
     return outputUnitStrings.join('+');
   }
+
+  OutputUnit get canonicalOutputUnit => outputUnits.first;
 }
 
 class FinalizedFragment {
@@ -400,7 +410,7 @@ class FinalizedFragment {
   // TODO(joshualitt): Refactor this to more clearly disambiguate between
   // [OutputUnits](units of deferred merging), fragments(units of emitted code),
   // and files.
-  OutputUnit get canonicalOutputUnit => codeFragments.first.outputUnits.first;
+  OutputUnit get canonicalOutputUnit => codeFragments.first.canonicalOutputUnit;
 
   @override
   String toString() {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,8 +18,8 @@ class FlutterConvertToChildren extends CorrectionProducer {
     // Find "child: widget" under selection.
     NamedExpression namedExp;
     {
-      var node = this.node;
-      var parent = node?.parent;
+      final node = this.node;
+      var parent = node.parent;
       var parent2 = parent?.parent;
       if (node is SimpleIdentifier &&
           parent is Label &&

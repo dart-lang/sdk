@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 var a = [null];
 
@@ -11,7 +12,8 @@ class A {
   var foo;
   var bar;
 
-  @DontInline()
+  @pragma('vm:never-inline')
+  @pragma('dart2js:noInline')
   A() {
     // Currently defeat inlining by using a closure.
     bar = () => 42;
@@ -24,7 +26,8 @@ class B {
   var foo;
   var bar;
 
-  @DontInline()
+  @pragma('vm:never-inline')
+  @pragma('dart2js:noInline')
   B() {
     // Currently defeat inlining by using a closure.
     bar = () => 42;
@@ -44,7 +47,8 @@ main() {
   new B();
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 bar() {
   // Currently defeat inlining by using a closure.
   Expect.throwsNoSuchMethodError(() => new A().foo + 42);

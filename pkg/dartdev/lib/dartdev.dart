@@ -10,8 +10,8 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
+import 'package:dartdev/src/commands/migrate.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/migration_cli.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
 import 'package:usage/usage.dart';
@@ -40,7 +40,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     args = args
         .where(
           (element) => !(element.contains('--observe') ||
-              element.contains('--enable-vm-service')),
+              element.contains('--enable-vm-service') ||
+              element.contains('--devtools')),
         )
         .toList();
   }
@@ -62,18 +63,22 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 }
 
 class DartdevRunner extends CommandRunner<int> {
+  static const String dartdevDescription =
+      'A command-line utility for Dart development';
+
   @override
   final ArgParser argParser = ArgParser(
     usageLineLength: dartdevUsageLineLength,
     allowTrailingOptions: false,
   );
 
-  static const String dartdevDescription =
-      'A command-line utility for Dart development';
+  final bool verbose;
 
-  DartdevRunner(List<String> args) : super('dart', '$dartdevDescription.') {
-    final bool verbose = args.contains('-v') || args.contains('--verbose');
+  Analytics _analytics;
 
+  DartdevRunner(List<String> args)
+      : verbose = args.contains('-v') || args.contains('--verbose'),
+        super('dart', '$dartdevDescription.') {
     argParser.addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show additional command output.');
     argParser.addFlag('version',
@@ -105,17 +110,15 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(TestCommand());
   }
 
-  @override
-  String get usageFooter =>
-      'See https://dart.dev/tools/dart-tool for detailed documentation.';
+  @visibleForTesting
+  Analytics get analytics => _analytics;
 
   @override
   String get invocation =>
-      'dart [<vm-flags>] <command|dart-file> [<arguments>]';
-
-  @visibleForTesting
-  Analytics get analytics => _analytics;
-  Analytics _analytics;
+      'dart ${verbose ? '[vm-options] ' : ''}<command|dart-file> [arguments]';
+  @override
+  String get usageFooter =>
+      'See https://dart.dev/tools/dart-tool for detailed documentation.';
 
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
@@ -228,6 +231,7 @@ class DartdevRunner extends CommandRunner<int> {
       exitCode = 1;
     } finally {
       stopwatch.stop();
+
       if (analytics.enabled) {
         unawaited(
           analytics.sendTiming(
@@ -237,6 +241,7 @@ class DartdevRunner extends CommandRunner<int> {
           ),
         );
       }
+
       // Set the exitCode, if it wasn't set in the catch block above.
       exitCode ??= 0;
 
@@ -262,7 +267,8 @@ class DartdevRunner extends CommandRunner<int> {
         analytics.enabled = true;
       }
       analytics.close();
-      return exitCode;
     }
+
+    return exitCode;
   }
 }

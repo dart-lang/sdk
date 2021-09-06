@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
 
 #include "bin/process.h"
 
@@ -826,6 +826,7 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {}
 void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {}
 
 void ProcessInfoList::Init() {
+  active_processes_ = NULL;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }
@@ -837,6 +838,9 @@ void ProcessInfoList::Cleanup() {
 }
 
 void ExitCodeHandler::Init() {
+  port_ = ZX_HANDLE_INVALID;
+  running_ = false;
+  terminate_done_ = false;
   ASSERT(ExitCodeHandler::monitor_ == nullptr);
   ExitCodeHandler::monitor_ = new Monitor();
 }
@@ -867,4 +871,4 @@ void Process::Cleanup() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_FUCHSIA)

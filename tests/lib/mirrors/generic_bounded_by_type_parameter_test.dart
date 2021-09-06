@@ -50,13 +50,6 @@ main() {
   Expect.equals(reflectClass(Object), xFromGeneric.upperBound); // //# 02: continued
   Expect.equals(reflectClass(Object), yFromGeneric.upperBound); // //# 02: continued
 
-  typeParameters(superDecl, [#T, #R]);
-  typeParameters(superOfNumAndInt, [#T, #R]);
-  typeParameters(genericDecl, [#X, #Y]); // //# 02: continued
-  typeParameters(superOfXAndY, [#T, #R]); // //# 02: continued
-  typeParameters(genericOfNumAndDouble, [#X, #Y]); // //# 02: continued
-  typeParameters(superOfNumAndDouble, [#T, #R]); // //# 02: continued
-
   typeArguments(superDecl, []);
   typeArguments(superOfNumAndInt, [reflectClass(num), reflectClass(int)]);
   typeArguments(genericDecl, []); // //# 02: continued

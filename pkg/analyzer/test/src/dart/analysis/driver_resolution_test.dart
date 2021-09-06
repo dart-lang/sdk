@@ -143,7 +143,7 @@ void topLevelFunction() {}
     await resolveTestFile();
 
     var myDeclaration =
-        result.unit!.declarations[0] as TopLevelVariableDeclaration;
+        result.unit.declarations[0] as TopLevelVariableDeclaration;
     var myVariable = myDeclaration.variables.variables[0];
     var myElement = myVariable.declaredElement as TopLevelVariableElement;
 
@@ -157,7 +157,7 @@ void topLevelFunction() {}
     }
 
     {
-      var classNode = result.unit!.declarations[1] as ClassDeclaration;
+      var classNode = result.unit.declarations[1] as ClassDeclaration;
       assertMyAnnotation(classNode);
 
       {
@@ -177,12 +177,12 @@ void topLevelFunction() {}
     }
 
     {
-      var node = result.unit!.declarations[2] as TopLevelVariableDeclaration;
+      var node = result.unit.declarations[2] as TopLevelVariableDeclaration;
       assertMyAnnotation(node);
     }
 
     {
-      var node = result.unit!.declarations[3] as FunctionDeclaration;
+      var node = result.unit.declarations[3] as FunctionDeclaration;
       assertMyAnnotation(node);
     }
   }
@@ -346,11 +346,11 @@ main() {
 
     await resolveTestFile();
 
-    var c = result.unit!.declarations[0] as ClassDeclaration;
+    var c = result.unit.declarations[0] as ClassDeclaration;
     var constructor = c.members[1] as ConstructorDeclaration;
     ConstructorElement element = constructor.declaredElement!;
 
-    var main = result.unit!.declarations[1] as FunctionDeclaration;
+    var main = result.unit.declarations[1] as FunctionDeclaration;
     var statement = (main.functionExpression.body as BlockFunctionBody)
         .block
         .statements[0] as VariableDeclarationStatement;
@@ -377,11 +377,11 @@ class C {
     await resolveTestFile();
 
     var myDeclaration =
-        result.unit!.declarations[0] as TopLevelVariableDeclaration;
+        result.unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclaration myVariable = myDeclaration.variables.variables[0];
     var myElement = myVariable.declaredElement as TopLevelVariableElement;
 
-    var classNode = result.unit!.declarations[1] as ClassDeclaration;
+    var classNode = result.unit.declarations[1] as ClassDeclaration;
     var node = classNode.members[0] as MethodDeclaration;
     var statement = (node.body as BlockFunctionBody).block.statements[0]
         as VariableDeclarationStatement;
@@ -406,7 +406,7 @@ import 'a.dart' as p;
 main() {}
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     ImportElement aImport = unit.declaredElement!.library.imports[0];
     PrefixElement aPrefix = aImport.prefix!;
@@ -445,7 +445,7 @@ import 'a.dart' as p;
 main() {}
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     ImportElement aImport = unit.declaredElement!.library.imports[0];
     PrefixElement aPrefix = aImport.prefix!;
@@ -486,7 +486,7 @@ import 'a.dart' as p;
 main() {}
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     ImportElement aImport = unit.declaredElement!.library.imports[0];
     PrefixElement aPrefix = aImport.prefix!;
@@ -527,7 +527,7 @@ import 'a.dart' as p;
 main() {}
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     ImportElement aImport = unit.declaredElement!.library.imports[0];
     PrefixElement aPrefix = aImport.prefix!;
@@ -560,7 +560,7 @@ class A {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     ClassElement aClass = unitElement.getType('A')!;
@@ -590,7 +590,7 @@ class A {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     ClassElement aClass = unitElement.getType('A')!;
@@ -620,7 +620,7 @@ class A {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     ClassElement aClass = unitElement.getType('A')!;
@@ -657,11 +657,11 @@ class D {
 f() {}
 ''');
     await resolveTestFile();
-    var elementC = AstFinder.getClass(result.unit!, 'C').declaredElement!;
+    var elementC = AstFinder.getClass(result.unit, 'C').declaredElement!;
     var constructorC = elementC.constructors[0];
-    var elementD = AstFinder.getClass(result.unit!, 'D').declaredElement!;
+    var elementD = AstFinder.getClass(result.unit, 'D').declaredElement!;
     var constructorD = elementD.constructors[0];
-    var atD = AstFinder.getTopLevelFunction(result.unit!, 'f').metadata[0];
+    var atD = AstFinder.getTopLevelFunction(result.unit, 'f').metadata[0];
     var constC = atD.arguments!.arguments[0] as InstanceCreationExpression;
 
     expect(atD.name.staticElement, elementD);
@@ -689,16 +689,16 @@ void main() {
     await resolveTestFile();
 
     var declaration_1 =
-        result.unit!.declarations[0] as TopLevelVariableDeclaration;
+        result.unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclaration variable_1 = declaration_1.variables.variables[0];
     var element_1 = variable_1.declaredElement as TopLevelVariableElement;
 
     var declaration_2 =
-        result.unit!.declarations[1] as TopLevelVariableDeclaration;
+        result.unit.declarations[1] as TopLevelVariableDeclaration;
     VariableDeclaration variable_2 = declaration_2.variables.variables[0];
     var element_2 = variable_2.declaredElement as TopLevelVariableElement;
 
-    var main = result.unit!.declarations[2] as FunctionDeclaration;
+    var main = result.unit.declarations[2] as FunctionDeclaration;
 
     Annotation annotation_1 = main.metadata[0];
     expect(annotation_1.element, same(element_1.getter));
@@ -959,7 +959,7 @@ main() {
 ''');
     await resolveTestFile();
 
-    var mainDeclaration = result.unit!.declarations[0] as FunctionDeclaration;
+    var mainDeclaration = result.unit.declarations[0] as FunctionDeclaration;
     var mainElement = mainDeclaration.declaredElement as FunctionElement;
     var mainBody = mainDeclaration.functionExpression.body as BlockFunctionBody;
     List<Statement> mainStatements = mainBody.block.statements;
@@ -1090,7 +1090,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var c = unit.declarations[0] as ClassDeclaration;
     var declaration = c.members[0] as FieldDeclaration;
@@ -1107,7 +1107,7 @@ class C {
 var v = (() => 42)();
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclaration variable = declaration.variables.variables[0];
@@ -1164,7 +1164,7 @@ class C {
 ''');
     await resolveTestFile();
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
 
     var constructorNode = cNode.members[0] as ConstructorDeclaration;
     ParameterElement pElement = constructorNode.declaredElement!.parameters[0];
@@ -1188,7 +1188,7 @@ class C {
 ''');
     await resolveTestFile();
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
     FieldElement fElement = cElement.getField('f')!;
 
@@ -1219,10 +1219,10 @@ class B extends A {
 ''');
     await resolveTestFile();
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
 
-    var bNode = result.unit!.declarations[1] as ClassDeclaration;
+    var bNode = result.unit.declarations[1] as ClassDeclaration;
 
     {
       var constructor = bNode.members[0] as ConstructorDeclaration;
@@ -1261,7 +1261,7 @@ class C {
 ''');
     await resolveTestFile();
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
 
     {
@@ -1312,10 +1312,10 @@ class B {
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
 
-    var bNode = result.unit!.declarations[1] as ClassDeclaration;
+    var bNode = result.unit.declarations[1] as ClassDeclaration;
 
     {
       ConstructorElement aUnnamed = aElement.constructors[0];
@@ -1373,10 +1373,10 @@ class B<U> {
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
 
-    var bNode = result.unit!.declarations[1] as ClassDeclaration;
+    var bNode = result.unit.declarations[1] as ClassDeclaration;
     TypeParameterType uType =
         typeParameterTypeNone(bNode.declaredElement!.typeParameters[0]);
     InterfaceType auType = aElement.instantiate(
@@ -1714,7 +1714,7 @@ main(MyEnum e) {
 ''');
     await resolveTestFile();
 
-    var enumNode = result.unit!.declarations[0] as EnumDeclaration;
+    var enumNode = result.unit.declarations[0] as EnumDeclaration;
     ClassElement enumElement = enumNode.declaredElement!;
 
     List<Statement> mainStatements = _getMainStatements(result);
@@ -1758,7 +1758,7 @@ class C<T> {
 ''');
     await resolveTestFile();
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
     var tElement = cNode.declaredElement!.typeParameters[0];
 
     var fDeclaration = cNode.members[0] as FieldDeclaration;
@@ -1806,7 +1806,7 @@ class A {
 ''');
     await resolveTestFile();
 
-    var clazz = result.unit!.declarations[0] as ClassDeclaration;
+    var clazz = result.unit.declarations[0] as ClassDeclaration;
     var constructor = clazz.members[0] as ConstructorDeclaration;
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
@@ -1841,7 +1841,7 @@ class A {
 ''');
     await resolveTestFile();
 
-    var clazz = result.unit!.declarations[0] as ClassDeclaration;
+    var clazz = result.unit.declarations[0] as ClassDeclaration;
 
     var fDeclaration = clazz.members[0] as FieldDeclaration;
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
@@ -1886,7 +1886,7 @@ class A {
 ''');
     await resolveTestFile();
 
-    var clazz = result.unit!.declarations[0] as ClassDeclaration;
+    var clazz = result.unit.declarations[0] as ClassDeclaration;
 
     var fDeclaration = clazz.members[0] as FieldDeclaration;
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
@@ -1916,7 +1916,7 @@ class A {
 ''');
     await resolveTestFile();
 
-    var clazz = result.unit!.declarations[0] as ClassDeclaration;
+    var clazz = result.unit.declarations[0] as ClassDeclaration;
 
     var fDeclaration = clazz.members[0] as FieldDeclaration;
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
@@ -2078,7 +2078,7 @@ var b = new C.named();
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
@@ -2131,7 +2131,7 @@ var v = new X(1, b: true, c: 3.0);
 ''');
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var xNode = unit.declarations[0] as ClassDeclaration;
     ClassElement xElement = xNode.declaredElement!;
@@ -2172,7 +2172,7 @@ var b = new C.named(2);
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
@@ -2239,7 +2239,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     ImportElement aImport = unit.declaredElement!.library.imports[0];
     LibraryElement aLibrary = aImport.importedLibrary!;
@@ -2356,7 +2356,7 @@ class C<T> {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     ClassElement cElement = unitElement.getType('C')!;
@@ -3798,72 +3798,42 @@ main() {
 
   test_isExpression() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  var v = 42;
-  v is num;
+void f(var a) {
+  a is num;
 }
 ''');
 
-    List<Statement> statements = _getMainStatements(result);
+    var isExpression = findNode.isExpression('a is num');
+    expect(isExpression.notOperator, isNull);
+    expect(isExpression.staticType, typeProvider.boolType);
 
-    // var v = 42;
-    VariableElement vElement;
-    {
-      var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
-    }
+    var target = isExpression.expression as SimpleIdentifier;
+    expect(target.staticElement, findElement.parameter('a'));
+    expect(target.staticType, dynamicType);
 
-    // v is num;
-    {
-      var statement = statements[1] as ExpressionStatement;
-      var isExpression = statement.expression as IsExpression;
-      expect(isExpression.notOperator, isNull);
-      expect(isExpression.staticType, typeProvider.boolType);
-
-      var target = isExpression.expression as SimpleIdentifier;
-      expect(target.staticElement, vElement);
-      expect(target.staticType, typeProvider.intType);
-
-      var numName = isExpression.type as TypeName;
-      expect(numName.name.staticElement, typeProvider.numType.element);
-      expect(numName.name.staticType, isNull);
-    }
+    var numName = isExpression.type as TypeName;
+    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticType, isNull);
   }
 
   test_isExpression_not() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  var v = 42;
-  v is! num;
+void f(var a) {
+  a is! num;
 }
 ''');
 
-    List<Statement> statements = _getMainStatements(result);
+    var isExpression = findNode.isExpression('a is! num');
+    expect(isExpression.notOperator, isNotNull);
+    expect(isExpression.staticType, typeProvider.boolType);
 
-    // var v = 42;
-    VariableElement vElement;
-    {
-      var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
-    }
+    var target = isExpression.expression as SimpleIdentifier;
+    expect(target.staticElement, findElement.parameter('a'));
+    expect(target.staticType, dynamicType);
 
-    // v is! num;
-    {
-      var statement = statements[1] as ExpressionStatement;
-      var isExpression = statement.expression as IsExpression;
-      expect(isExpression.notOperator, isNotNull);
-      expect(isExpression.staticType, typeProvider.boolType);
-
-      var target = isExpression.expression as SimpleIdentifier;
-      expect(target.staticElement, vElement);
-      expect(target.staticType, typeProvider.intType);
-
-      var numName = isExpression.type as TypeName;
-      expect(numName.name.staticElement, typeProvider.numType.element);
-      expect(numName.name.staticType, isNull);
-    }
+    var numName = isExpression.type as TypeName;
+    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticType, isNull);
   }
 
   test_label_while() async {
@@ -4372,7 +4342,7 @@ void main(List<String> p) {
 }
 ''');
 
-    var main = result.unit!.declarations[0] as FunctionDeclaration;
+    var main = result.unit.declarations[0] as FunctionDeclaration;
     List<Statement> statements = _getMainStatements(result);
 
     // (int p)
@@ -4765,7 +4735,7 @@ void main() {
 
     InterfaceType intType = typeProvider.intType;
 
-    var main = result.unit!.declarations[0] as FunctionDeclaration;
+    var main = result.unit.declarations[0] as FunctionDeclaration;
     expect(main.declaredElement, isNotNull);
     expect(main.name.staticElement, isNotNull);
     expect(main.name.staticType, isNull);
@@ -4808,7 +4778,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cDeclaration = unit.declarations[0] as ClassDeclaration;
 
@@ -4879,7 +4849,7 @@ void main() {
 num v;
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     List<Statement> statements = _getMainStatements(result);
 
@@ -5119,7 +5089,7 @@ void g(C c) {
     String fTypeString = 'double Function(int, {String b, bool c})';
 
     await resolveTestFile();
-    var classDeclaration = result.unit!.declarations[0] as ClassDeclaration;
+    var classDeclaration = result.unit.declarations[0] as ClassDeclaration;
     var methodDeclaration = classDeclaration.members[0] as MethodDeclaration;
     var methodElement = methodDeclaration.declaredElement as MethodElement;
 
@@ -5164,7 +5134,7 @@ void g(C c) {
     // Validate the arguments at the call site.
     //
     var functionDeclaration =
-        result.unit!.declarations[1] as FunctionDeclaration;
+        result.unit.declarations[1] as FunctionDeclaration;
     var body = functionDeclaration.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
@@ -5187,7 +5157,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
     MethodElement callElement = cElement.methods[0];
 
@@ -5213,7 +5183,7 @@ f(double computation(int p)) {
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var main = result.unit!.declarations[0] as FunctionDeclaration;
+    var main = result.unit.declarations[0] as FunctionDeclaration;
     var mainElement = main.declaredElement as FunctionElement;
     ParameterElement parameter = mainElement.parameters[0];
 
@@ -5250,7 +5220,7 @@ main(B b) {
 ''');
     await resolveTestFile();
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
     var fooNode = aNode.members[0] as MethodDeclaration;
     var fooElement = fooNode.declaredElement as MethodElement;
 
@@ -5335,7 +5305,7 @@ void foo(int a, {bool b, double c}) {}
     await resolveTestFile();
     List<Statement> mainStatements = _getMainStatements(result);
 
-    var foo = result.unit!.declarations[1] as FunctionDeclaration;
+    var foo = result.unit.declarations[1] as FunctionDeclaration;
     ExecutableElement fooElement = foo.declaredElement!;
 
     var statement = mainStatements[0] as ExpressionStatement;
@@ -5482,7 +5452,7 @@ class C {
     await resolveTestFile();
     List<Statement> mainStatements = _getMainStatements(result);
 
-    var cNode = result.unit!.declarations[1] as ClassDeclaration;
+    var cNode = result.unit.declarations[1] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
     var mNode = cNode.members[0] as MethodDeclaration;
     var mElement = mNode.declaredElement as MethodElement;
@@ -5539,7 +5509,7 @@ class C<T> {
 ''');
     await resolveTestFile();
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
     TypeParameterElement tElement = cNode.declaredElement!.typeParameters[0];
 
     var barNode = cNode.members[1] as MethodDeclaration;
@@ -5565,7 +5535,7 @@ double f(int a, String b) {}
 
     InterfaceType doubleType = typeProvider.doubleType;
 
-    var fNode = result.unit!.declarations[1] as FunctionDeclaration;
+    var fNode = result.unit.declarations[1] as FunctionDeclaration;
     var fElement = fNode.declaredElement as FunctionElement;
 
     var statement = mainStatements[0] as ExpressionStatement;
@@ -5594,7 +5564,7 @@ void f<T, U>(T a, U b) {}
 
     List<Statement> mainStatements = _getMainStatements(result);
 
-    var fNode = result.unit!.declarations[1] as FunctionDeclaration;
+    var fNode = result.unit.declarations[1] as FunctionDeclaration;
     var fElement = fNode.declaredElement as FunctionElement;
 
     // f<bool, String>(true, 'str');
@@ -6060,7 +6030,7 @@ class C {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
     ClassElement cClassElement = cClassDeclaration.declaredElement!;
@@ -6159,7 +6129,7 @@ class C {
 
     List<Statement> statements = _getMainStatements(result);
 
-    var cDeclaration = result.unit!.declarations[1] as ClassDeclaration;
+    var cDeclaration = result.unit.declarations[1] as ClassDeclaration;
     ClassElement cElement = cDeclaration.declaredElement!;
     FieldElement fElement = cElement.fields[0];
 
@@ -6194,7 +6164,7 @@ class C {
 
     List<Statement> statements = _getMainStatements(result);
 
-    var cDeclaration = result.unit!.declarations[1] as ClassDeclaration;
+    var cDeclaration = result.unit.declarations[1] as ClassDeclaration;
     ClassElement cElement = cDeclaration.declaredElement!;
     FieldElement fElement = cElement.fields[0];
 
@@ -6219,7 +6189,7 @@ f(double computation(int p)) {
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var main = result.unit!.declarations[0] as FunctionDeclaration;
+    var main = result.unit.declarations[0] as FunctionDeclaration;
     var mainElement = main.declaredElement as FunctionElement;
     ParameterElement parameter = mainElement.parameters[0];
 
@@ -6262,13 +6232,13 @@ main() {
     // TODO(scheglov) Uncomment and fix "unused imports" hint.
 //    expect(result.errors, isEmpty);
 
-    var unitElement = result.unit!.declaredElement!;
+    var unitElement = result.unit.declaredElement!;
     ImportElement myImport = unitElement.library.imports[0];
     PrefixElement myPrefix = myImport.prefix!;
 
     var myLibrary = myImport.importedLibrary!;
     var myUnit = myLibrary.definingCompilationUnit;
-    var myClass = myUnit.types.single;
+    var myClass = myUnit.classes.single;
     var myTypeAlias = myUnit.typeAliases.single;
     var myTopVariable = myUnit.topLevelVariables[0];
     var myTopFunction = myUnit.functions.single;
@@ -6435,7 +6405,7 @@ class C {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
     ClassElement cClassElement = cClassDeclaration.declaredElement!;
@@ -6497,7 +6467,7 @@ class C {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
     ClassElement cClassElement = cClassDeclaration.declaredElement!;
@@ -6534,7 +6504,7 @@ class C {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
     ClassElement cClassElement = cClassDeclaration.declaredElement!;
@@ -6601,7 +6571,7 @@ void main() {
 }
 ''');
 
-    var main = result.unit!.declarations[0] as FunctionDeclaration;
+    var main = result.unit.declarations[0] as FunctionDeclaration;
     expect(main.declaredElement, isNotNull);
     expect(main.name.staticElement, isNotNull);
     expect(main.name.staticType, isNull);
@@ -6685,8 +6655,8 @@ class B extends A {
     addTestFile(content);
     await resolveTestFile();
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
-    var bNode = result.unit!.declarations[1] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
+    var bNode = result.unit.declarations[1] as ClassDeclaration;
 
     var methodElement = aNode.members[0].declaredElement as MethodElement;
     var getterElement =
@@ -6814,7 +6784,7 @@ class A {
     addTestFile(content);
     await resolveTestFile();
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
 
     var methodElement = aNode.members[0].declaredElement as MethodElement;
     var getterElement =
@@ -6930,7 +6900,7 @@ class C {
     addTestFile(content);
     await resolveTestFile();
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
 
     var constructorNode = cNode.members[1] as ConstructorDeclaration;
@@ -6975,16 +6945,16 @@ class D extends A<bool> with B<int> implements C<double> {}
     addTestFile(content);
     await resolveTestFile();
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
 
-    var bNode = result.unit!.declarations[1] as ClassDeclaration;
+    var bNode = result.unit.declarations[1] as ClassDeclaration;
     ClassElement bElement = bNode.declaredElement!;
 
-    var cNode = result.unit!.declarations[2] as ClassDeclaration;
+    var cNode = result.unit.declarations[2] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
 
-    var dNode = result.unit!.declarations[3] as ClassDeclaration;
+    var dNode = result.unit.declarations[3] as ClassDeclaration;
     Element dElement = dNode.declaredElement!;
 
     SimpleIdentifier dName = dNode.name;
@@ -7044,16 +7014,16 @@ class D = A<bool> with B<int> implements C<double>;
     addTestFile(content);
     await resolveTestFile();
 
-    var aNode = result.unit!.declarations[0] as ClassDeclaration;
+    var aNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
 
-    var bNode = result.unit!.declarations[1] as ClassDeclaration;
+    var bNode = result.unit.declarations[1] as ClassDeclaration;
     ClassElement bElement = bNode.declaredElement!;
 
-    var cNode = result.unit!.declarations[2] as ClassDeclaration;
+    var cNode = result.unit.declarations[2] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
 
-    var dNode = result.unit!.declarations[3] as ClassTypeAlias;
+    var dNode = result.unit.declarations[3] as ClassTypeAlias;
     Element dElement = dNode.declaredElement!;
 
     SimpleIdentifier dName = dNode.name;
@@ -7112,7 +7082,7 @@ enum MyEnum {
     addTestFile(content);
     await resolveTestFile();
 
-    var enumNode = result.unit!.declarations[0] as EnumDeclaration;
+    var enumNode = result.unit.declarations[0] as EnumDeclaration;
     ClassElement enumElement = enumNode.declaredElement!;
 
     SimpleIdentifier dName = enumNode.name;
@@ -7153,7 +7123,7 @@ class C {
     ClassElement doubleElement = doubleType.element;
     ClassElement intElement = intType.element;
 
-    var cNode = result.unit!.declarations[0] as ClassDeclaration;
+    var cNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
 
     // The class name identifier.
@@ -7278,7 +7248,7 @@ void set topSetter(double p) {}
 
     // topFunction()
     {
-      var node = result.unit!.declarations[0] as FunctionDeclaration;
+      var node = result.unit.declarations[0] as FunctionDeclaration;
       expect(node.declaredElement, isNotNull);
       assertType(node.declaredElement!.type, 'int Function(double)');
 
@@ -7311,7 +7281,7 @@ void set topSetter(double p) {}
 
     // topGetter()
     {
-      var node = result.unit!.declarations[1] as FunctionDeclaration;
+      var node = result.unit.declarations[1] as FunctionDeclaration;
       expect(node.declaredElement, isNotNull);
       assertType(node.declaredElement!.type, 'int Function()');
 
@@ -7329,7 +7299,7 @@ void set topSetter(double p) {}
 
     // topSetter()
     {
-      var node = result.unit!.declarations[2] as FunctionDeclaration;
+      var node = result.unit.declarations[2] as FunctionDeclaration;
       expect(node.declaredElement, isNotNull);
       assertType(node.declaredElement!.type, 'void Function(double)');
 
@@ -7371,13 +7341,13 @@ class C<T> {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
     TypeParameterElement tElement = cElement.typeParameters[0];
-    expect(cElement, same(unitElement.types[0]));
+    expect(cElement, same(unitElement.classes[0]));
 
     {
       FieldElement aElement = cElement.getField('a')!;
@@ -7418,7 +7388,7 @@ class C {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
@@ -7462,7 +7432,7 @@ double b = 2.3;
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     {
@@ -7504,7 +7474,7 @@ var a = 1, b = 2.3;
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     var variableDeclaration =
@@ -7548,7 +7518,7 @@ void main() {
     String fTypeString = 'double Function(int, {String b, bool c})';
 
     await resolveTestFile();
-    var fDeclaration = result.unit!.declarations[0] as FunctionDeclaration;
+    var fDeclaration = result.unit.declarations[0] as FunctionDeclaration;
     var fElement = fDeclaration.declaredElement as FunctionElement;
 
     InterfaceType doubleType = typeProvider.doubleType;
@@ -7601,7 +7571,7 @@ void main() {
     //
     // Validate the arguments at the call site.
     //
-    var mainDeclaration = result.unit!.declarations[1] as FunctionDeclaration;
+    var mainDeclaration = result.unit.declarations[1] as FunctionDeclaration;
     var body = mainDeclaration.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
@@ -7619,7 +7589,7 @@ typedef int F<T>(bool a, T b);
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var alias = unit.declarations[0] as FunctionTypeAlias;
     TypeAliasElement aliasElement = alias.declaredElement!;
@@ -7653,16 +7623,16 @@ class C<T extends A, U extends List<A>, V> {}
 ''';
     addTestFile(content);
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     var aNode = unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
-    expect(aElement, same(unitElement.types[0]));
+    expect(aElement, same(unitElement.classes[0]));
 
     var cNode = unit.declarations[1] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
-    expect(cElement, same(unitElement.types[1]));
+    expect(cElement, same(unitElement.classes[1]));
 
     {
       TypeParameter tNode = cNode.typeParameters!.typeParameters[0];
@@ -7900,7 +7870,7 @@ b.A a1;
 c.A a2;
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     ImportElement bImport = unit.declaredElement!.library.imports[0];
     ImportElement cImport = unit.declaredElement!.library.imports[1];
@@ -7945,7 +7915,7 @@ void main() {
 typedef void F(int p);
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
 
     var fNode = unit.declarations[1] as FunctionTypeAlias;
     TypeAliasElement fElement = fNode.declaredElement!;
@@ -8063,7 +8033,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var unitElement = result.unit!.declaredElement!;
+    var unitElement = result.unit.declaredElement!;
     var foo = unitElement.library.imports[0].prefix;
 
     List<Statement> statements = _getMainStatements(result);
@@ -8147,7 +8117,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var unitElement = result.unit!.declaredElement!;
+    var unitElement = result.unit.declaredElement!;
     var mathImport = unitElement.library.imports[0];
     var foo = mathImport.prefix;
 
@@ -8193,7 +8163,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var unitElement = result.unit!.declaredElement!;
+    var unitElement = result.unit.declaredElement!;
     var mathImport = unitElement.library.imports[0];
     var foo = mathImport.prefix;
     var randomElement = mathImport.importedLibrary!.getType('Random')!;
@@ -8746,7 +8716,7 @@ main() {
   }
 
   List<Statement> _getMainStatements(ResolvedUnitResult result) {
-    for (var declaration in result.unit!.declarations) {
+    for (var declaration in result.unit.declarations) {
       if (declaration is FunctionDeclaration &&
           declaration.name.name == 'main') {
         var body = declaration.functionExpression.body as BlockFunctionBody;
@@ -8758,7 +8728,7 @@ main() {
 
   TopLevelVariableElement _getTopLevelVariable(
       ResolvedUnitResult result, String name) {
-    for (var variable in result.unit!.declaredElement!.topLevelVariables) {
+    for (var variable in result.unit.declaredElement!.topLevelVariables) {
       if (variable.name == name) {
         return variable;
       }

@@ -34,10 +34,10 @@ import 'zone_helper.dart' show acknowledgeControlMessages;
 
 import 'run_tests.dart' show CommandLine;
 
-Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
+Future<TestRoot> computeTestRoot(String? configurationPath, Uri? base) {
   Uri configuration = configurationPath == null
       ? Uri.base.resolve("testing.json")
-      : base.resolve(configurationPath);
+      : base!.resolve(configurationPath);
   return TestRoot.fromUri(configuration);
 }
 
@@ -50,8 +50,8 @@ Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to [me] which defaults to `Platform.script`.
 Future<Null> runMe(List<String> arguments, CreateContext f,
-    {String configurationPath,
-    Uri me,
+    {String? configurationPath,
+    Uri? me,
     int shards = 1,
     int shard = 0,
     Logger logger: const StdoutLogger()}) {
@@ -98,7 +98,7 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to `Uri.base`.
 Future<Null> run(List<String> arguments, List<String> suiteNames,
-    [String configurationPath]) {
+    [String? configurationPath]) {
   return withErrorHandling(() async {
     TestRoot root = await computeTestRoot(configurationPath, Uri.base);
     List<Suite> suites = root.suites
@@ -106,7 +106,7 @@ Future<Null> run(List<String> arguments, List<String> suiteNames,
         .toList();
     SuiteRunner runner = new SuiteRunner(suites, <String, String>{},
         const <String>[], new Set<String>(), new Set<String>());
-    String program = await runner.generateDartProgram();
+    String? program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {
       await runProgram(program, root.packages);
@@ -125,7 +125,7 @@ Future<Null> runProgram(String program, Uri packages) async {
       errorsAreFatal: false,
       checked: true,
       packageConfig: packages);
-  List error;
+  List? error;
   var subscription = isolate.errors.listen((data) {
     error = data;
     exitPort.close();
@@ -137,7 +137,7 @@ Future<Null> runProgram(String program, Uri packages) async {
   subscription.cancel();
   return error == null
       ? null
-      : new Future<Null>.error(error[0], new StackTrace.fromString(error[1]));
+      : new Future<Null>.error(error![0], new StackTrace.fromString(error![1]));
 }
 
 class SuiteRunner {
@@ -162,7 +162,7 @@ class SuiteRunner {
         (selectedSuites.isEmpty || selectedSuites.contains(suite.name));
   }
 
-  Future<String> generateDartProgram() async {
+  Future<String?> generateDartProgram() async {
     testUris.clear();
     StringBuffer imports = new StringBuffer();
     StringBuffer dart = new StringBuffer();
@@ -238,10 +238,10 @@ Future<Null> main() async {
   }
 
   Stream<FileBasedTestDescription> listDescriptions() async* {
-    for (Dart suite in suites.where((Suite suite) => suite is Dart)) {
+    for (Dart suite in suites.whereType<Dart>()) {
       await for (FileBasedTestDescription description
           in listTests(<Uri>[suite.uri], pattern: "")) {
-        testUris.add(await Isolate.resolvePackageUri(description.uri));
+        testUris.add((await Isolate.resolvePackageUri(description.uri))!);
         if (shouldRunSuite(suite)) {
           String path = description.file.uri.path;
           if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
@@ -254,19 +254,19 @@ Future<Null> main() async {
   }
 
   Stream<Chain> listChainSuites() async* {
-    for (Chain suite in suites.where((Suite suite) => suite is Chain)) {
-      testUris.add(await Isolate.resolvePackageUri(suite.source));
+    for (Chain suite in suites.whereType<Chain>()) {
+      testUris.add((await Isolate.resolvePackageUri(suite.source))!);
       if (shouldRunSuite(suite)) {
         yield suite;
       }
     }
   }
 
-  Iterable<Suite> listTestDartSuites() {
-    return suites.where((Suite suite) => suite is TestDart);
+  Iterable<TestDart> listTestDartSuites() {
+    return suites.whereType<TestDart>();
   }
 
-  Iterable<Suite> listAnalyzerSuites() {
-    return suites.where((Suite suite) => suite is Analyze);
+  Iterable<Analyze> listAnalyzerSuites() {
+    return suites.whereType<Analyze>();
   }
 }

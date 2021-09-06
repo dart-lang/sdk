@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -14,8 +12,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToIfNullBulkTest);
     defineReflectiveTests(ConvertToIfNullTest);
   });
+}
+
+@reflectiveTest
+class ConvertToIfNullBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_if_null_operators;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f(String s) {
+  print(s == null ? 'default' : s);
+  print(s != null ? s : 'default');
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  print(s ?? 'default');
+  print(s ?? 'default');
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -28,12 +48,12 @@ class ConvertToIfNullTest extends FixProcessorLintTest {
 
   Future<void> test_equalEqual() async {
     await resolveTestCode('''
-void f(String s) {
+void f(String? s) {
   print(s == null ? 'default' : s);
 }
 ''');
     await assertHasFix('''
-void f(String s) {
+void f(String? s) {
   print(s ?? 'default');
 }
 ''');
@@ -68,12 +88,12 @@ void f(String s, bool b) {
 
   Future<void> test_notEqual() async {
     await resolveTestCode('''
-void f(String s) {
+void f(String? s) {
   print(s != null ? s : 'default');
 }
 ''');
     await assertHasFix('''
-void f(String s) {
+void f(String? s) {
   print(s ?? 'default');
 }
 ''');

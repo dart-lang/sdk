@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -18,14 +16,21 @@ class AddFieldFormalParameters extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
+    var constructor = node.parent;
+    if (node is! SimpleIdentifier || constructor is! ConstructorDeclaration) {
       return;
     }
-    ConstructorDeclaration constructor = node.parent;
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
-    ClassDeclaration classNode = constructor.parent;
-    var superType = classNode.declaredElement.supertype;
+    var classNode = constructor.parent;
+    if (classNode is! ClassDeclaration) {
+      return;
+    }
+
+    var superType = classNode.declaredElement!.supertype;
+    if (superType == null) {
+      return;
+    }
 
     // Compute uninitialized final fields.
     var fields = ErrorVerifier.computeNotInitializedFields(constructor);
@@ -51,7 +56,7 @@ class AddFieldFormalParameters extends CorrectionProducer {
     }
 
     // Prepare the last required parameter.
-    FormalParameter lastRequiredParameter;
+    FormalParameter? lastRequiredParameter;
     for (var parameter in parameters) {
       if (parameter.isRequiredPositional) {
         lastRequiredParameter = parameter;

@@ -829,8 +829,23 @@ class ArgumentCollector extends DartTypeVisitor<void, void> {
   }
 
   @override
-  void visitFutureOrType(FutureOrType type, _) {
-    collect(type.typeArgument);
+  void visitNeverType(NeverType type, _) {}
+
+  @override
+  void visitVoidType(VoidType type, _) {}
+
+  @override
+  void visitTypeVariableType(TypeVariableType type, _) {}
+
+  @override
+  void visitFunctionTypeVariable(FunctionTypeVariable type, _) {}
+
+  @override
+  void visitFunctionType(FunctionType type, _) {
+    collect(type.returnType);
+    collectAll(type.parameterTypes);
+    collectAll(type.optionalParameterTypes);
+    collectAll(type.namedParameterTypes);
   }
 
   @override
@@ -840,11 +855,17 @@ class ArgumentCollector extends DartTypeVisitor<void, void> {
   }
 
   @override
-  void visitFunctionType(FunctionType type, _) {
-    collect(type.returnType);
-    collectAll(type.parameterTypes);
-    collectAll(type.optionalParameterTypes);
-    collectAll(type.namedParameterTypes);
+  void visitDynamicType(DynamicType type, _) {}
+
+  @override
+  void visitErasedType(ErasedType type, _) {}
+
+  @override
+  void visitAnyType(AnyType type, _) {}
+
+  @override
+  void visitFutureOrType(FutureOrType type, _) {
+    collect(type.typeArgument);
   }
 }
 
@@ -913,8 +934,10 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       visitType(type.baseType, state);
 
   @override
-  void visitFutureOrType(FutureOrType type, TypeVisitorState state) =>
-      visitType(type.typeArgument, state);
+  void visitNeverType(NeverType type, TypeVisitorState state) {}
+
+  @override
+  void visitVoidType(VoidType type, TypeVisitorState state) {}
 
   @override
   void visitTypeVariableType(TypeVariableType type, TypeVisitorState state) {
@@ -924,15 +947,14 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
   }
 
   @override
-  visitInterfaceType(InterfaceType type, TypeVisitorState state) {
-    if (onClass != null) {
-      onClass(type.element, state: state);
+  visitFunctionTypeVariable(FunctionTypeVariable type, TypeVisitorState state) {
+    if (_visitedFunctionTypeVariables.add(type)) {
+      visitType(type.bound, state);
     }
-    visitTypes(type.typeArguments, covariantArgument(state));
   }
 
   @override
-  visitFunctionType(FunctionType type, TypeVisitorState state) {
+  void visitFunctionType(FunctionType type, TypeVisitorState state) {
     if (onFunctionType != null) {
       onFunctionType(type, state: state);
     }
@@ -946,11 +968,25 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
   }
 
   @override
-  visitFunctionTypeVariable(FunctionTypeVariable type, TypeVisitorState state) {
-    if (_visitedFunctionTypeVariables.add(type)) {
-      visitType(type.bound, state);
+  void visitInterfaceType(InterfaceType type, TypeVisitorState state) {
+    if (onClass != null) {
+      onClass(type.element, state: state);
     }
+    visitTypes(type.typeArguments, covariantArgument(state));
   }
+
+  @override
+  void visitDynamicType(DynamicType type, TypeVisitorState state) {}
+
+  @override
+  void visitErasedType(ErasedType type, TypeVisitorState state) {}
+
+  @override
+  void visitAnyType(AnyType type, TypeVisitorState state) {}
+
+  @override
+  void visitFutureOrType(FutureOrType type, TypeVisitorState state) =>
+      visitType(type.typeArgument, state);
 }
 
 /// Runtime type usage for a class.

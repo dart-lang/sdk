@@ -14,7 +14,6 @@
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
-#include "vm/snapshot_ids.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -22,7 +21,7 @@ namespace dart {
 StringPtr Symbols::predefined_[Symbols::kNumberOfOneCharCodeSymbols];
 String* Symbols::symbol_handles_[Symbols::kMaxPredefinedId];
 
-static const char* names[] = {
+static const char* const names[] = {
     // clang-format off
   NULL,
 #define DEFINE_SYMBOL_LITERAL(symbol, literal) literal,
@@ -353,60 +352,25 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
     ObjectStore* object_store = group->object_store();
-    if (thread->IsAtSafepoint()) {
-      // There are two cases where we can cause symbol allocation while holding
-      // a safepoint:
-      //    - FLAG_enable_isolate_groups in AOT due to the usage of
-      //      `RunWithStoppedMutators` in SwitchableCall runtime entry.
-      //    - non-PRODUCT mode where the vm-service uses a HeapIterationScope
-      //      while building instances
-      // Ideally we should get rid of both cases to avoid this unsafe usage of
-      // the symbol table (we are assuming here that no other thread holds the
-      // symbols_lock).
-      // TODO(https://dartbug.com/41943): Get rid of the symbol table accesses
-      // within safepoint operation scope.
-      RELEASE_ASSERT(group->safepoint_handler()->IsOwnedByTheThread(thread));
-      RELEASE_ASSERT(IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT);
+    RELEASE_ASSERT(!thread->IsAtSafepoint());
 
-      // Uncommon case: We are at a safepoint, all mutators are stopped and we
-      // have therefore exclusive access to the symbol table.
+    // Most common case: The symbol is already in the table.
+    {
+      // We do allow lock-free concurrent read access to the symbol table.
+      // Both, the array in the ObjectStore as well as elements in the array
+      // are accessed via store-release/load-acquire barriers.
+      data = object_store->symbol_table();
+      CanonicalStringSet table(&key, &value, &data);
+      symbol ^= table.GetOrNull(str);
+      table.Release();
+    }
+    // Otherwise we'll have to get exclusive access and get-or-insert it.
+    if (symbol.IsNull()) {
+      SafepointMutexLocker ml(group->symbols_mutex());
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.InsertNewOrGet(str);
       object_store->set_symbol_table(table.Release());
-    } else {
-      // Most common case: We are not at a safepoint and the symbol is available
-      // in the symbol table: We require only read access.
-      {
-        SafepointReadRwLocker sl(thread, group->symbols_lock());
-        data = object_store->symbol_table();
-        CanonicalStringSet table(&key, &value, &data);
-        symbol ^= table.GetOrNull(str);
-        table.Release();
-      }
-      // Second common case: We are not at a safepoint and the symbol is not
-      // available in the symbol table: We require only exclusive access.
-      if (symbol.IsNull()) {
-        auto insert_or_get = [&]() {
-          data = object_store->symbol_table();
-          CanonicalStringSet table(&key, &value, &data);
-          symbol ^= table.InsertNewOrGet(str);
-          object_store->set_symbol_table(table.Release());
-        };
-
-        SafepointWriteRwLocker sl(thread, group->symbols_lock());
-        if (IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT) {
-          // NOTE: Strictly speaking we should use a safepoint operation scope
-          // here to ensure the lock-free usage inside safepoint operations (see
-          // above) is safe. Though this would really kill the performance.
-          // TODO(https://dartbug.com/41943): Get rid of the symbol table
-          // accesses within safepoint operation scope.
-          group->RunWithStoppedMutators(insert_or_get,
-                                        /*force_heap_growth=*/true);
-        } else {
-          insert_or_get();
-        }
-      }
     }
   }
   ASSERT(symbol.IsSymbol());
@@ -440,14 +404,13 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
       // In DEBUG mode the snapshot writer also calls this method inside a
       // safepoint.
 #if !defined(DEBUG)
-      RELEASE_ASSERT(IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT);
+      RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
 #endif
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
       table.Release();
     } else {
-      SafepointReadRwLocker sl(thread, group->symbols_lock());
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
@@ -548,24 +511,6 @@ void Symbols::DumpTable(IsolateGroup* isolate_group) {
   CanonicalStringSet table(isolate_group->object_store()->symbol_table());
   table.Dump();
   table.Release();
-}
-
-intptr_t Symbols::LookupPredefinedSymbol(ObjectPtr obj) {
-  for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
-    if (symbol_handles_[i]->ptr() == obj) {
-      return (i + kMaxPredefinedObjectIds);
-    }
-  }
-  return kInvalidIndex;
-}
-
-ObjectPtr Symbols::GetPredefinedSymbol(intptr_t object_id) {
-  ASSERT(IsPredefinedSymbolId(object_id));
-  intptr_t i = (object_id - kMaxPredefinedObjectIds);
-  if ((i > kIllegal) && (i < Symbols::kMaxPredefinedId)) {
-    return symbol_handles_[i]->ptr();
-  }
-  return Object::null();
 }
 
 }  // namespace dart

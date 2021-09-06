@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -51,6 +49,7 @@ import 'package:analysis_server/src/services/correction/dart/flutter_remove_widg
 import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_child.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_parent.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap.dart';
+import 'package:analysis_server/src/services/correction/dart/flutter_wrap_builder.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_generic.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_stream_builder.dart';
 import 'package:analysis_server/src/services/correction/dart/import_add_show.dart';
@@ -107,7 +106,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertPartOfToUri.newInstance,
     ConvertToDoubleQuotes.newInstance,
     ConvertToFieldParameter.newInstance,
-    ConvertToMutilineString.newInstance,
+    ConvertToMultilineString.newInstance,
     ConvertToNormalParameter.newInstance,
     ConvertToSingleQuotes.newInstance,
     ConvertToExpressionFunctionBody.newInstance,
@@ -128,6 +127,7 @@ class AssistProcessor extends BaseProcessor {
     FlutterRemoveWidget.newInstance,
     FlutterSwapWithChild.newInstance,
     FlutterSwapWithParent.newInstance,
+    FlutterWrapBuilder.newInstance,
     FlutterWrapGeneric.newInstance,
     FlutterWrapStreamBuilder.newInstance,
     ImportAddShow.newInstance,
@@ -167,28 +167,18 @@ class AssistProcessor extends BaseProcessor {
         );
 
   Future<List<Assist>> compute() async {
-    if (!setupCompute()) {
-      return assists;
-    }
     await _addFromProducers();
-
     return assists;
   }
 
   Future<List<Assist>> computeAssist(AssistKind assistKind) async {
-    if (!setupCompute()) {
-      return assists;
-    }
-
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
       resolvedResult: resolvedResult,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return assists;
     }
 
@@ -199,8 +189,11 @@ class AssistProcessor extends BaseProcessor {
           workspace: context.workspace, eol: context.utils.endOfLine);
       await producer.compute(builder);
 
-      _addAssistFromBuilder(builder, producer.assistKind,
-          args: producer.assistArguments);
+      var assistKind = producer.assistKind;
+      if (assistKind != null) {
+        _addAssistFromBuilder(builder, assistKind,
+            args: producer.assistArguments);
+      }
     }
 
     // Calculate only specific assists for edit.dartFix
@@ -219,10 +212,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   void _addAssistFromBuilder(ChangeBuilder builder, AssistKind kind,
-      {List<Object> args}) {
-    if (builder == null) {
-      return;
-    }
+      {List<Object>? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -233,15 +223,13 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addFromProducers() async {
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
       resolvedResult: resolvedResult,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return;
     }
 
@@ -251,8 +239,11 @@ class AssistProcessor extends BaseProcessor {
           workspace: context.workspace, eol: context.utils.endOfLine);
       try {
         await producer.compute(builder);
-        _addAssistFromBuilder(builder, producer.assistKind,
-            args: producer.assistArguments);
+        var assistKind = producer.assistKind;
+        if (assistKind != null) {
+          _addAssistFromBuilder(builder, assistKind,
+              args: producer.assistArguments);
+        }
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding an assist based on the
         // producer and (b) logging the exception.
@@ -278,6 +269,11 @@ class AssistProcessor extends BaseProcessor {
   }
 
   bool _containsErrorCode(Set<String> errorCodes) {
+    final node = findSelectedNode();
+    if (node == null) {
+      return false;
+    }
+
     final fileOffset = node.offset;
     for (var error in assistContext.resolveResult.errors) {
       final errorSource = error.source;
@@ -301,10 +297,8 @@ class AssistProcessor extends BaseProcessor {
     var map = <ProducerGenerator, Set<String>>{};
     for (var entry in FixProcessor.lintProducerMap.entries) {
       var lintName = entry.key;
-      for (var fix in entry.value) {
-        for (var generator in fix.generators) {
-          map.putIfAbsent(generator, () => <String>{}).add(lintName);
-        }
+      for (var generator in entry.value) {
+        map.putIfAbsent(generator, () => <String>{}).add(lintName);
       }
     }
     return map;

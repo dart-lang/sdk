@@ -13,7 +13,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../util/util.dart' show ImmutableEmptySet, Setlet;
+import '../util/util.dart' show Setlet;
 import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
@@ -93,7 +93,7 @@ abstract class TypeInformation {
 
   TypeInformation.untracked(this.type)
       : _inputs = const <TypeInformation>[],
-        users = const ImmutableEmptySet(),
+        users = const {},
         context = null;
 
   TypeInformation.withInputs(this.type, this.context, this._inputs)
@@ -170,7 +170,7 @@ abstract class TypeInformation {
 
   void clear() {
     _inputs = STOP_TRACKING_INPUTS_MARKER;
-    users = const ImmutableEmptySet();
+    users = const {};
   }
 
   /// Reset the analysis of this node by making its type empty.
@@ -2182,9 +2182,7 @@ abstract class TracedTypeInformation implements TypeInformation {
   /// The set of [TypeInformation] nodes where values from the traced node could
   /// flow in.
   Set<TypeInformation> get flowsInto {
-    return (_flowsInto == null)
-        ? const ImmutableEmptySet<TypeInformation>()
-        : _flowsInto;
+    return _flowsInto ?? const {};
   }
 
   /// Adds [nodes] to the sets of values this [TracedTypeInformation] flows

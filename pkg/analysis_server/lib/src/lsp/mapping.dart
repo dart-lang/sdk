@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -24,7 +23,6 @@ import 'package:analysis_server/src/protocol_server.dart' as server
 import 'package:analysis_server/src/search/workspace_symbols.dart' as server
     show DeclarationKind;
 import 'package:analyzer/dart/analysis/results.dart' as server;
-import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/source/source_range.dart' as server;
@@ -33,28 +31,35 @@ import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/pair.dart';
-import 'package:meta/meta.dart';
-
-const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{
-  HintCode.DEAD_CODE: [lsp.DiagnosticTag.Unnecessary],
-  HintCode.DEPRECATED_MEMBER_USE: [lsp.DiagnosticTag.Deprecated],
-  HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [
-    lsp.DiagnosticTag.Deprecated
-  ],
-  HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
-    lsp.DiagnosticTag.Deprecated
-  ],
-  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [lsp.DiagnosticTag.Deprecated],
-};
+import 'package:collection/collection.dart';
 
 const languageSourceName = 'dart';
 
-lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
-    Set<lsp.MarkupKind> preferredFormats, String content) {
-  if (content == null) {
-    return null;
-  }
+final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
+  _errorCode(HintCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+};
 
+/// Pattern for docComplete text on completion items that can be upgraded to
+/// the "detail" field so that it can be shown more prominently by clients.
+///
+/// This is typically used for labels like _latest compatible_ and _latest_ in
+/// the pubspec version items. These go into docComplete so that they appear
+/// reasonably for non-LSP clients where there is no equivalent of the detail
+/// field.
+final _upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
+
+lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
+    Set<lsp.MarkupKind>? preferredFormats, String content) {
   return preferredFormats == null
       ? lsp.Either2<String, lsp.MarkupContent>.t1(content)
       : lsp.Either2<String, lsp.MarkupContent>.t2(
@@ -63,16 +68,11 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
 
 /// Builds an LSP snippet string with supplied ranges as tabstops.
 String buildSnippetStringWithTabStops(
-  String text,
-  List<int> offsetLengthPairs,
+  String? text,
+  List<int>? offsetLengthPairs,
 ) {
   text ??= '';
   offsetLengthPairs ??= const [];
-
-  String escape(String input) => input.replaceAllMapped(
-        RegExp(r'[$}\\]'), // Replace any of $ } \
-        (c) => '\\${c[0]}', // Prefix with a backslash
-      );
 
   // Snippets syntax is documented in the LSP spec:
   // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
@@ -94,18 +94,18 @@ String buildSnippetStringWithTabStops(
     final pairLength = offsetLengthPairs[i + 1];
 
     // Add any text that came before this tabstop to the result.
-    output.add(escape(text.substring(offset, pairOffset)));
+    output.add(escapeSnippetString(text.substring(offset, pairOffset)));
 
     // Add this tabstop
-    final tabStopText =
-        escape(text.substring(pairOffset, pairOffset + pairLength));
+    final tabStopText = escapeSnippetString(
+        text.substring(pairOffset, pairOffset + pairLength));
     output.add('\${${tabStopNumber++}:$tabStopText}');
 
     offset = pairOffset + pairLength;
   }
 
   // Add any remaining text that was after the last tabstop.
-  output.add(escape(text.substring(offset)));
+  output.add(escapeSnippetString(text.substring(offset)));
 
   return output.join('');
 }
@@ -118,11 +118,13 @@ String buildSnippetStringWithTabStops(
 lsp.WorkspaceEdit createPlainWorkspaceEdit(
     lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
-      server.clientCapabilities,
+      // Client capabilities are always available after initialization.
+      server.clientCapabilities!,
       edits
           .map((e) => FileEditInformation(
                 server.getVersionedDocumentIdentifier(e.file),
-                server.getLineInfo(e.file),
+                // We should never produce edits for a file with no LineInfo.
+                server.getLineInfo(e.file)!,
                 e.edits,
                 // fileStamp == 1 is used by the server to indicate the file needs creating.
                 newFile: e.fileStamp == -1,
@@ -142,7 +144,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   // In order to return snippets, we must ensure we are only modifying a single
   // existing file with a single edit and that there is a linked edit group with
   // only one position and no suggestions.
-  if (!server.clientCapabilities.experimentalSnippetTextEdit ||
+  if (!server.clientCapabilities!.experimentalSnippetTextEdit ||
       change.edits.length != 1 ||
       change.edits.first.fileStamp == -1 || // new file
       change.edits.first.edits.length != 1 ||
@@ -163,11 +165,12 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   }
 
   return toWorkspaceEdit(
-      server.clientCapabilities,
+      server.clientCapabilities!,
       change.edits
           .map((e) => FileEditInformation(
                 server.getVersionedDocumentIdentifier(e.file),
-                server.getLineInfo(e.file),
+                // We should never produce edits for a file with no LineInfo.
+                server.getLineInfo(e.file)!,
                 e.edits,
                 selectionOffsetRelative: selectionOffset - edit.offset,
                 selectionLength: selectionLength,
@@ -176,7 +179,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
           .toList());
 }
 
-lsp.CompletionItemKind declarationKindToCompletionItemKind(
+lsp.CompletionItemKind? declarationKindToCompletionItemKind(
   Set<lsp.CompletionItemKind> supportedCompletionKinds,
   dec.DeclarationKind kind,
 ) {
@@ -209,12 +212,12 @@ lsp.CompletionItemKind declarationKindToCompletionItemKind(
     }
   }
 
-  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
+  return getKindPreferences().firstWhereOrNull(isSupported);
 }
 
 lsp.SymbolKind declarationKindToSymbolKind(
   Set<lsp.SymbolKind> supportedSymbolKinds,
-  server.DeclarationKind kind,
+  server.DeclarationKind? kind,
 ) {
   bool isSupported(lsp.SymbolKind kind) => supportedSymbolKinds.contains(kind);
 
@@ -229,6 +232,8 @@ lsp.SymbolKind declarationKindToSymbolKind(
         return const [lsp.SymbolKind.Enum];
       case server.DeclarationKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
+      case server.DeclarationKind.EXTENSION:
+        return const [lsp.SymbolKind.Class];
       case server.DeclarationKind.FIELD:
         return const [lsp.SymbolKind.Field];
       case server.DeclarationKind.FUNCTION:
@@ -271,26 +276,25 @@ lsp.CompletionItem declarationToCompletionItem(
   int replacementOffset,
   int insertLength,
   int replacementLength, {
-  @required bool includeCommitCharacters,
-  @required bool completeFunctionCalls,
+  required bool includeCommitCharacters,
+  required bool completeFunctionCalls,
 }) {
   final supportsSnippets = capabilities.completionSnippets;
+  final parent = declaration.parent;
 
   String completion;
   switch (declaration.kind) {
     case DeclarationKind.ENUM_CONSTANT:
-      completion = '${declaration.parent.name}.${declaration.name}';
+      completion = '${parent!.name}.${declaration.name}';
       break;
     case DeclarationKind.GETTER:
     case DeclarationKind.FIELD:
-      completion = declaration.parent != null &&
-              declaration.parent.name != null &&
-              declaration.parent.name.isNotEmpty
-          ? '${declaration.parent.name}.${declaration.name}'
+      completion = parent != null && parent.name.isNotEmpty
+          ? '${parent.name}.${declaration.name}'
           : declaration.name;
       break;
     case DeclarationKind.CONSTRUCTOR:
-      completion = declaration.parent.name;
+      completion = parent!.name;
       if (declaration.name.isNotEmpty) {
         completion += '.${declaration.name}';
       }
@@ -344,10 +348,8 @@ lsp.CompletionItem declarationToCompletionItem(
       capabilities.completionItemKinds, declaration.kind);
 
   var relevanceBoost = 0;
-  if (declaration.relevanceTags != null) {
-    declaration.relevanceTags.forEach(
-        (t) => relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0));
-  }
+  declaration.relevanceTags
+      .forEach((t) => relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0));
   final itemRelevance = includedSuggestionSet.relevance + relevanceBoost;
 
   // Because we potentially send thousands of these items, we should minimise
@@ -366,12 +368,7 @@ lsp.CompletionItem declarationToCompletionItem(
         supportsDeprecatedFlag || supportsDeprecatedTag),
     deprecated:
         supportsDeprecatedFlag && declaration.isDeprecated ? true : null,
-    // Relevance is a number, highest being best. LSP does text sort so subtract
-    // from a large number so that a text sort will result in the correct order.
-    // 555 -> 999455
-    //  10 -> 999990
-    //   1 -> 999999
-    sortText: (1000000 - itemRelevance).toString(),
+    sortText: relevanceToSortText(itemRelevance),
     filterText: completion != label
         ? completion
         : null, // filterText uses label if not set
@@ -389,14 +386,14 @@ lsp.CompletionItem declarationToCompletionItem(
         file: file,
         offset: offset,
         libId: includedSuggestionSet.id,
-        displayUri: includedSuggestionSet.displayUri ?? library.uri?.toString(),
+        displayUri: includedSuggestionSet.displayUri ?? library.uri.toString(),
         rOffset: replacementOffset,
         iLength: insertLength,
         rLength: replacementLength),
   );
 }
 
-lsp.CompletionItemKind elementKindToCompletionItemKind(
+lsp.CompletionItemKind? elementKindToCompletionItemKind(
   Set<lsp.CompletionItemKind> supportedCompletionKinds,
   server.ElementKind kind,
 ) {
@@ -458,12 +455,12 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
     }
   }
 
-  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
+  return getKindPreferences().firstWhereOrNull(isSupported);
 }
 
 lsp.SymbolKind elementKindToSymbolKind(
   Set<lsp.SymbolKind> supportedSymbolKinds,
-  server.ElementKind kind,
+  server.ElementKind? kind,
 ) {
   bool isSupported(lsp.SymbolKind kind) => supportedSymbolKinds.contains(kind);
 
@@ -535,20 +532,30 @@ lsp.SymbolKind elementKindToSymbolKind(
       .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
 
-String getCompletionDetail(
+/// Escapes a string to be used in an LSP edit that uses Snippet mode.
+///
+/// Snippets can contain special markup like `${a:b}` so some characters need
+/// escaping (according to the LSP spec, those are `$`, `}` and `\`).
+String escapeSnippetString(String input) => input.replaceAllMapped(
+      RegExp(r'[$}\\]'), // Replace any of $ } \
+      (c) => '\\${c[0]}', // Prefix with a backslash
+    );
+
+String? getCompletionDetail(
   server.CompletionSuggestion suggestion,
-  lsp.CompletionItemKind completionKind,
+  lsp.CompletionItemKind? completionKind,
   bool supportsDeprecated,
 ) {
-  final hasElement = suggestion.element != null;
-  final hasParameters = hasElement &&
-      suggestion.element.parameters != null &&
-      suggestion.element.parameters.isNotEmpty;
-  final hasReturnType = hasElement &&
-      suggestion.element.returnType != null &&
-      suggestion.element.returnType.isNotEmpty;
-  final hasParameterType =
-      suggestion.parameterType != null && suggestion.parameterType.isNotEmpty;
+  final element = suggestion.element;
+  final hasElement = element != null;
+  final parameters = element?.parameters;
+  final returnType = element?.returnType;
+  final parameterType = suggestion.parameterType;
+  final hasParameters =
+      hasElement && parameters != null && parameters.isNotEmpty;
+  final hasReturnType =
+      hasElement && returnType != null && returnType.isNotEmpty;
+  final hasParameterType = parameterType != null && parameterType.isNotEmpty;
 
   final prefix =
       supportsDeprecated || !suggestion.isDeprecated ? '' : '(Deprecated) ';
@@ -559,36 +566,34 @@ String getCompletionDetail(
     // To avoid this, always show only the return type, whether it's a getter
     // or a setter.
     return prefix +
-        (suggestion.element.kind == server.ElementKind.GETTER
-            ? suggestion.element.returnType
+        (element?.kind == server.ElementKind.GETTER
+            ? (returnType ?? '')
             // Don't assume setters always have parameters
             // See https://github.com/dart-lang/sdk/issues/27747
-            : suggestion.element.parameters != null &&
-                    suggestion.element.parameters.isNotEmpty
+            : parameters != null && parameters.isNotEmpty
                 // Extract the type part from '(MyType value)`
-                ? suggestion.element.parameters.substring(
-                    1, suggestion.element.parameters.lastIndexOf(' '))
+                ? parameters.substring(1, parameters.lastIndexOf(' '))
                 : '');
   } else if (hasParameters && hasReturnType) {
-    return '$prefix${suggestion.element.parameters} → ${suggestion.element.returnType}';
+    return '$prefix$parameters → $returnType';
   } else if (hasReturnType) {
-    return '$prefix${suggestion.element.returnType}';
+    return '$prefix$returnType';
   } else if (hasParameterType) {
-    return '$prefix${suggestion.parameterType}';
+    return '$prefix$parameterType';
   } else {
     return prefix.isNotEmpty ? prefix : null;
   }
 }
 
-String getDeclarationCompletionDetail(
+String? getDeclarationCompletionDetail(
   dec.Declaration declaration,
-  lsp.CompletionItemKind completionKind,
+  lsp.CompletionItemKind? completionKind,
   bool supportsDeprecated,
 ) {
-  final hasParameters =
-      declaration.parameters != null && declaration.parameters.isNotEmpty;
-  final hasReturnType =
-      declaration.returnType != null && declaration.returnType.isNotEmpty;
+  final parameters = declaration.parameters;
+  final hasParameters = parameters != null && parameters.isNotEmpty;
+  final returnType = declaration.returnType;
+  final hasReturnType = returnType != null && returnType.isNotEmpty;
 
   final prefix =
       supportsDeprecated || !declaration.isDeprecated ? '' : '(Deprecated) ';
@@ -600,15 +605,15 @@ String getDeclarationCompletionDetail(
     // or a setter.
     var suffix = '';
     if (declaration.kind == dec.DeclarationKind.GETTER) {
-      suffix = declaration.returnType;
+      suffix = declaration.returnType ?? '';
     } else {
       // Don't assume setters always have parameters
       // See https://github.com/dart-lang/sdk/issues/27747
-      if (declaration.parameters != null && declaration.parameters.isNotEmpty) {
+      if (parameters != null && parameters.isNotEmpty) {
         // Extract the type part from `(MyType value)`, if there is a type.
-        var spaceIndex = declaration.parameters.lastIndexOf(' ');
+        var spaceIndex = parameters.lastIndexOf(' ');
         if (spaceIndex > 0) {
-          suffix = declaration.parameters.substring(1, spaceIndex);
+          suffix = parameters.substring(1, spaceIndex);
         }
       }
     }
@@ -622,51 +627,45 @@ String getDeclarationCompletionDetail(
   }
 }
 
-List<lsp.DiagnosticTag> getDiagnosticTags(
-    Set<lsp.DiagnosticTag> supportedTags, server.AnalysisError error) {
+List<lsp.DiagnosticTag>? getDiagnosticTags(
+    Set<lsp.DiagnosticTag>? supportedTags, plugin.AnalysisError error) {
   if (supportedTags == null) {
     return null;
   }
 
-  final tags = diagnosticTagsForErrorCode[error.errorCode]
+  final tags = diagnosticTagsForErrorCode[error.code]
       ?.where(supportedTags.contains)
-      ?.toList();
+      .toList();
 
   return tags != null && tags.isNotEmpty ? tags : null;
 }
 
-bool isDartDocument(lsp.TextDocumentIdentifier doc) =>
-    doc?.uri?.endsWith('.dart');
+bool isDartDocument(lsp.TextDocumentIdentifier? doc) =>
+    doc?.uri.endsWith('.dart') ?? false;
 
 lsp.Location navigationTargetToLocation(
   String targetFilePath,
   server.NavigationTarget target,
   server.LineInfo targetLineInfo,
 ) {
-  if (targetLineInfo == null) {
-    return null;
-  }
-
   return lsp.Location(
     uri: Uri.file(targetFilePath).toString(),
     range: toRange(targetLineInfo, target.offset, target.length),
   );
 }
 
-lsp.LocationLink navigationTargetToLocationLink(
+lsp.LocationLink? navigationTargetToLocationLink(
   server.NavigationRegion region,
   server.LineInfo regionLineInfo,
   String targetFilePath,
   server.NavigationTarget target,
   server.LineInfo targetLineInfo,
 ) {
-  if (regionLineInfo == null || targetLineInfo == null) {
-    return null;
-  }
-
   final nameRange = toRange(targetLineInfo, target.offset, target.length);
-  final codeRange = target.codeOffset != null && target.codeLength != null
-      ? toRange(targetLineInfo, target.codeOffset, target.codeLength)
+  final codeOffset = target.codeOffset;
+  final codeLength = target.codeLength;
+  final codeRange = codeOffset != null && codeLength != null
+      ? toRange(targetLineInfo, codeOffset, codeLength)
       : nameRange;
 
   return lsp.LocationLink(
@@ -679,21 +678,21 @@ lsp.LocationLink navigationTargetToLocationLink(
 
 /// Returns the file system path for a TextDocumentIdentifier.
 ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) =>
-    pathOfUri(Uri.tryParse(doc?.uri));
+    pathOfUri(Uri.tryParse(doc.uri));
 
 /// Returns the file system path for a TextDocumentItem.
 ErrorOr<String> pathOfDocItem(lsp.TextDocumentItem doc) =>
-    pathOfUri(Uri.tryParse(doc?.uri));
+    pathOfUri(Uri.tryParse(doc.uri));
 
 /// Returns the file system path for a file URI.
-ErrorOr<String> pathOfUri(Uri uri) {
+ErrorOr<String> pathOfUri(Uri? uri) {
   if (uri == null) {
     return ErrorOr<String>.error(ResponseError(
       code: lsp.ServerErrorCodes.InvalidFilePath,
       message: 'Document URI was not supplied',
     ));
   }
-  final isValidFileUri = uri?.isScheme('file') ?? false;
+  final isValidFileUri = uri.isScheme('file');
   if (!isValidFileUri) {
     return ErrorOr<String>.error(ResponseError(
       code: lsp.ServerErrorCodes.InvalidFilePath,
@@ -715,13 +714,17 @@ ErrorOr<String> pathOfUri(Uri uri) {
 
 lsp.Diagnostic pluginToDiagnostic(
   server.LineInfo Function(String) getLineInfo,
-  plugin.AnalysisError error,
-) {
-  List<lsp.DiagnosticRelatedInformation> relatedInformation;
-  if (error.contextMessages != null && error.contextMessages.isNotEmpty) {
-    relatedInformation = error.contextMessages
+  plugin.AnalysisError error, {
+  required Set<lsp.DiagnosticTag>? supportedTags,
+  required bool clientSupportsCodeDescription,
+}) {
+  List<lsp.DiagnosticRelatedInformation>? relatedInformation;
+  final contextMessages = error.contextMessages;
+  if (contextMessages != null && contextMessages.isNotEmpty) {
+    relatedInformation = contextMessages
         .map((message) =>
             pluginToDiagnosticRelatedInformation(getLineInfo, message))
+        .whereNotNull()
         .toList();
   }
 
@@ -731,21 +734,33 @@ lsp.Diagnostic pluginToDiagnostic(
   }
 
   var lineInfo = getLineInfo(error.location.file);
+  var documentationUrl = error.url;
   return lsp.Diagnostic(
     range: toRange(lineInfo, error.location.offset, error.location.length),
     severity: pluginToDiagnosticSeverity(error.severity),
     code: error.code,
     source: languageSourceName,
     message: message,
+    tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
+    // Only include codeDescription if the client explicitly supports it
+    // (a minor optimization to avoid unnecessary payload/(de)serialisation).
+    codeDescription: clientSupportsCodeDescription && documentationUrl != null
+        ? CodeDescription(href: documentationUrl)
+        : null,
   );
 }
 
-lsp.DiagnosticRelatedInformation pluginToDiagnosticRelatedInformation(
-    server.LineInfo Function(String) getLineInfo,
+lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
+    server.LineInfo? Function(String) getLineInfo,
     plugin.DiagnosticMessage message) {
-  var file = message.location.file;
-  var lineInfo = getLineInfo(file);
+  final file = message.location.file;
+  final lineInfo = getLineInfo(file);
+  // We shouldn't get context messages for something we can't get a LineInfo for
+  // but if we did, it's better to omit the context than fail to send the errors.
+  if (lineInfo == null) {
+    return null;
+  }
   return lsp.DiagnosticRelatedInformation(
       location: lsp.Location(
         uri: Uri.file(file).toString(),
@@ -776,8 +791,24 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
   }
 }
 
-lsp.Location searchResultToLocation(
-    server.SearchResult result, server.LineInfo lineInfo) {
+/// Converts a numeric relevance to a sortable string.
+///
+/// The servers relevance value is a number with highest being best. LSP uses a
+/// a string sort on the `sortText` field. Subtracting the relevance from a large
+/// number will produce text that will sort correctly.
+///
+/// Relevance can be 0, so it's important to subtract from a number like 999
+/// and not 1000 or the 0 relevance items will sort at the top instead of the
+/// bottom.
+///
+/// 555 -> 9999999 - 555 -> 9 999 444
+///  10 -> 9999999 -  10 -> 9 999 989
+///   1 -> 9999999 -   1 -> 9 999 998
+///   0 -> 9999999 -   0 -> 9 999 999
+String relevanceToSortText(int relevance) => (9999999 - relevance).toString();
+
+lsp.Location? searchResultToLocation(
+    server.SearchResult result, server.LineInfo? lineInfo) {
   final location = result.location;
 
   if (lineInfo == null) {
@@ -790,7 +821,7 @@ lsp.Location searchResultToLocation(
   );
 }
 
-lsp.CompletionItemKind suggestionKindToCompletionItemKind(
+lsp.CompletionItemKind? suggestionKindToCompletionItemKind(
   Set<lsp.CompletionItemKind> supportedCompletionKinds,
   server.CompletionSuggestionKind kind,
   String label,
@@ -835,7 +866,7 @@ lsp.CompletionItemKind suggestionKindToCompletionItemKind(
     }
   }
 
-  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
+  return getKindPreferences().firstWhereOrNull(isSupported);
 }
 
 lsp.ClosingLabel toClosingLabel(
@@ -844,19 +875,30 @@ lsp.ClosingLabel toClosingLabel(
         range: toRange(lineInfo, label.offset, label.length),
         label: label.label);
 
-lsp.CodeActionKind toCodeActionKind(String id, lsp.CodeActionKind fallback) {
+/// Converts [id] to a [CodeActionKind] using [fallbackOrPrefix] as a fallback
+/// or a prefix if the ID is not already a fix/refactor.
+lsp.CodeActionKind toCodeActionKind(
+    String? id, lsp.CodeActionKind fallbackOrPrefix) {
   if (id == null) {
-    return fallback;
+    return fallbackOrPrefix;
   }
   // Dart fixes and assists start with "dart.assist." and "dart.fix." but in LSP
   // we want to use the predefined prefixes for CodeActions.
-  final newId = id
+  var newId = id
       .replaceAll('dart.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll('dart.fix', lsp.CodeActionKind.QuickFix.toString())
       .replaceAll(
           'analysisOptions.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll(
           'analysisOptions.fix', lsp.CodeActionKind.QuickFix.toString());
+
+  // If the ID does not start with either of the kinds above, prefix it as
+  // it will be an unqualified ID from a plugin.
+  if (!newId.startsWith(lsp.CodeActionKind.Refactor.toString()) &&
+      !newId.startsWith(lsp.CodeActionKind.QuickFix.toString())) {
+    newId = '$fallbackOrPrefix.$newId';
+  }
+
   return lsp.CodeActionKind(newId);
 }
 
@@ -867,9 +909,9 @@ lsp.CompletionItem toCompletionItem(
   int replacementOffset,
   int insertLength,
   int replacementLength, {
-  @required bool includeCommitCharacters,
-  @required bool completeFunctionCalls,
-  Object resolutionData,
+  required bool includeCommitCharacters,
+  required bool completeFunctionCalls,
+  CompletionItemResolutionInfo? resolutionData,
 }) {
   // Build separate display and filter labels. Displayed labels may have additional
   // info appended (for example '(...)' on callables) that should not be included
@@ -912,9 +954,10 @@ lsp.CompletionItem toCompletionItem(
   final supportsAsIsInsertMode =
       capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
 
-  final completionKind = suggestion.element != null
+  final element = suggestion.element;
+  final completionKind = element != null
       ? elementKindToCompletionItemKind(
-          capabilities.completionItemKinds, suggestion.element.kind)
+          capabilities.completionItemKinds, element.kind)
       : suggestionKindToCompletionItemKind(
           capabilities.completionItemKinds, suggestion.kind, label);
 
@@ -934,6 +977,21 @@ lsp.CompletionItem toCompletionItem(
   final insertTextFormat = insertTextInfo.last;
   final isMultilineCompletion = insertText.contains('\n');
 
+  var cleanedDoc = cleanDartdoc(suggestion.docComplete);
+  var detail = getCompletionDetail(suggestion, completionKind,
+      supportsCompletionDeprecatedFlag || supportsDeprecatedTag);
+
+  // To improve the display of some items (like pubspec version numbers),
+  // short labels in the format `_foo_` in docComplete are "upgraded" to the
+  // detail field.
+  final labelMatch = cleanedDoc != null
+      ? _upgradableDocCompletePattern.firstMatch(cleanedDoc)
+      : null;
+  if (labelMatch != null) {
+    cleanedDoc = null;
+    detail = labelMatch.group(1);
+  }
+
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
   // of empty lists/false where possible.
@@ -947,19 +1005,14 @@ lsp.CompletionItem toCompletionItem(
     commitCharacters:
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
-    detail: getCompletionDetail(suggestion, completionKind,
-        supportsCompletionDeprecatedFlag || supportsDeprecatedTag),
-    documentation:
-        asStringOrMarkupContent(formats, cleanDartdoc(suggestion.docComplete)),
+    detail: detail,
+    documentation: cleanedDoc != null
+        ? asStringOrMarkupContent(formats, cleanedDoc)
+        : null,
     deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated
         ? true
         : null,
-    // Relevance is a number, highest being best. LSP does text sort so subtract
-    // from a large number so that a text sort will result in the correct order.
-    // 555 -> 999455
-    //  10 -> 999990
-    //   1 -> 999999
-    sortText: (1000000 - suggestion.relevance).toString(),
+    sortText: relevanceToSortText(suggestion.relevance),
     filterText: filterText != label
         ? filterText
         : null, // filterText uses label if not set
@@ -992,84 +1045,33 @@ lsp.CompletionItem toCompletionItem(
 lsp.Diagnostic toDiagnostic(
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
-  @required Set<lsp.DiagnosticTag> supportedTags,
-  server.ErrorSeverity errorSeverity,
+  required Set<lsp.DiagnosticTag> supportedTags,
+  required bool clientSupportsCodeDescription,
 }) {
-  var errorCode = error.errorCode;
-
-  // Default to the error's severity if none is specified.
-  errorSeverity ??= errorCode.errorSeverity;
-
-  List<lsp.DiagnosticRelatedInformation> relatedInformation;
-  if (error.contextMessages.isNotEmpty) {
-    relatedInformation = error.contextMessages
-        .map((message) => toDiagnosticRelatedInformation(result, message))
-        .toList();
-  }
-
-  var message = error.message;
-  if (error.correctionMessage != null) {
-    message = '$message\n${error.correctionMessage}';
-  }
-
-  return lsp.Diagnostic(
-    range: toRange(result.lineInfo, error.offset, error.length),
-    severity: toDiagnosticSeverity(errorSeverity),
-    code: errorCode.name.toLowerCase(),
-    source: languageSourceName,
-    message: message,
-    tags: getDiagnosticTags(supportedTags, error),
-    relatedInformation: relatedInformation,
+  return pluginToDiagnostic(
+    (_) => result.lineInfo,
+    server.newAnalysisError_fromEngine(result, error),
+    supportedTags: supportedTags,
+    clientSupportsCodeDescription: clientSupportsCodeDescription,
   );
 }
 
-lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
-    server.ResolvedUnitResult result, analyzer.DiagnosticMessage message) {
-  var file = message.filePath;
-  var lineInfo = result.session.getFile(file).lineInfo;
-  return lsp.DiagnosticRelatedInformation(
-      location: lsp.Location(
-        uri: Uri.file(file).toString(),
-        range: toRange(
-          lineInfo,
-          message.offset,
-          message.length,
-        ),
-      ),
-      message: message.message);
+lsp.Element toElement(server.LineInfo lineInfo, server.Element element) {
+  final location = element.location;
+  return lsp.Element(
+    range: location != null
+        ? toRange(lineInfo, location.offset, location.length)
+        : null,
+    name: toElementName(element),
+    kind: element.kind.name,
+    parameters: element.parameters,
+    typeParameters: element.typeParameters,
+    returnType: element.returnType,
+  );
 }
-
-lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
-  switch (severity) {
-    case server.ErrorSeverity.ERROR:
-      return lsp.DiagnosticSeverity.Error;
-    case server.ErrorSeverity.WARNING:
-      return lsp.DiagnosticSeverity.Warning;
-    case server.ErrorSeverity.INFO:
-      return lsp.DiagnosticSeverity.Information;
-    // Note: LSP also supports "Hint", but they won't render in things like the
-    // VS Code errors list as they're apparently intended to communicate
-    // non-visible diagnostics back (for example, if you wanted to grey out
-    // unreachable code without producing an item in the error list).
-    default:
-      throw 'Unknown AnalysisErrorSeverity: $severity';
-  }
-}
-
-lsp.Element toElement(server.LineInfo lineInfo, server.Element element) =>
-    lsp.Element(
-      range: element.location != null
-          ? toRange(lineInfo, element.location.offset, element.location.length)
-          : null,
-      name: toElementName(element),
-      kind: element.kind.name,
-      parameters: element.parameters,
-      typeParameters: element.typeParameters,
-      returnType: element.returnType,
-    );
 
 String toElementName(server.Element element) {
-  return element.name != null && element.name != ''
+  return element.name.isNotEmpty
       ? element.name
       : (element.kind == server.ElementKind.EXTENSION
           ? '<unnamed extension>'
@@ -1077,37 +1079,40 @@ String toElementName(server.Element element) {
 }
 
 lsp.FlutterOutline toFlutterOutline(
-        server.LineInfo lineInfo, server.FlutterOutline outline) =>
-    lsp.FlutterOutline(
-      kind: outline.kind.name,
-      label: outline.label,
-      className: outline.className,
-      variableName: outline.variableName,
-      attributes: outline.attributes != null
-          ? outline.attributes
-              .map(
-                  (attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
-              .toList()
-          : null,
-      dartElement: outline.dartElement != null
-          ? toElement(lineInfo, outline.dartElement)
-          : null,
-      range: toRange(lineInfo, outline.offset, outline.length),
-      codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
-      children: outline.children != null
-          ? outline.children.map((c) => toFlutterOutline(lineInfo, c)).toList()
-          : null,
-    );
+    server.LineInfo lineInfo, server.FlutterOutline outline) {
+  final attributes = outline.attributes;
+  final dartElement = outline.dartElement;
+  final children = outline.children;
+
+  return lsp.FlutterOutline(
+    kind: outline.kind.name,
+    label: outline.label,
+    className: outline.className,
+    variableName: outline.variableName,
+    attributes: attributes != null
+        ? attributes
+            .map((attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
+            .toList()
+        : null,
+    dartElement: dartElement != null ? toElement(lineInfo, dartElement) : null,
+    range: toRange(lineInfo, outline.offset, outline.length),
+    codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
+    children: children != null
+        ? children.map((c) => toFlutterOutline(lineInfo, c)).toList()
+        : null,
+  );
+}
 
 lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
-        server.LineInfo lineInfo, server.FlutterOutlineAttribute attribute) =>
-    lsp.FlutterOutlineAttribute(
-        name: attribute.name,
-        label: attribute.label,
-        valueRange: attribute.valueLocation != null
-            ? toRange(lineInfo, attribute.valueLocation.offset,
-                attribute.valueLocation.length)
-            : null);
+    server.LineInfo lineInfo, server.FlutterOutlineAttribute attribute) {
+  final valueLocation = attribute.valueLocation;
+  return lsp.FlutterOutlineAttribute(
+      name: attribute.name,
+      label: attribute.label,
+      valueRange: valueLocation != null
+          ? toRange(lineInfo, valueLocation.offset, valueLocation.length)
+          : null);
+}
 
 lsp.FoldingRange toFoldingRange(
     server.LineInfo lineInfo, server.FoldingRegion region) {
@@ -1120,7 +1125,7 @@ lsp.FoldingRange toFoldingRange(
       kind: toFoldingRangeKind(region.kind));
 }
 
-lsp.FoldingRangeKind toFoldingRangeKind(server.FoldingKind kind) {
+lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
   switch (kind) {
     case server.FoldingKind.COMMENT:
     case server.FoldingKind.DOCUMENTATION_COMMENT:
@@ -1175,15 +1180,17 @@ ErrorOr<int> toOffset(
       lineInfo.getOffsetOfLine(pos.line) + pos.character);
 }
 
-lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) =>
-    lsp.Outline(
-      element: toElement(lineInfo, outline.element),
-      range: toRange(lineInfo, outline.offset, outline.length),
-      codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
-      children: outline.children != null
-          ? outline.children.map((c) => toOutline(lineInfo, c)).toList()
-          : null,
-    );
+lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) {
+  final children = outline.children;
+  return lsp.Outline(
+    element: toElement(lineInfo, outline.element),
+    range: toRange(lineInfo, outline.offset, outline.length),
+    codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
+    children: children != null
+        ? children.map((c) => toOutline(lineInfo, c)).toList()
+        : null,
+  );
+}
 
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.
@@ -1192,8 +1199,8 @@ lsp.Position toPosition(server.CharacterLocation location) {
 }
 
 lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
-  server.CharacterLocation start = lineInfo.getLocation(offset);
-  server.CharacterLocation end = lineInfo.getLocation(offset + length);
+  final start = lineInfo.getLocation(offset);
+  final end = lineInfo.getLocation(offset + length);
 
   return lsp.Range(
     start: toPosition(start),
@@ -1201,7 +1208,7 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
   );
 }
 
-lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind> preferredFormats,
+lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
     server.AnalysisGetSignatureResult signature) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
@@ -1251,13 +1258,15 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind> preferredFormats,
     return lsp.ParameterInformation(label: getParamLabel(param));
   }
 
-  final cleanDoc = cleanDartdoc(signature.dartdoc);
+  final cleanedDoc = cleanDartdoc(signature.dartdoc);
 
   return lsp.SignatureHelp(
     signatures: [
       lsp.SignatureInformation(
         label: getSignatureLabel(signature),
-        documentation: asStringOrMarkupContent(preferredFormats, cleanDoc),
+        documentation: cleanedDoc != null
+            ? asStringOrMarkupContent(preferredFormats, cleanedDoc)
+            : null,
         parameters: signature.parameters.map(toParameterInfo).toList(),
       ),
     ],
@@ -1279,8 +1288,7 @@ lsp.SnippetTextEdit toSnippetTextEdit(
     server.LineInfo lineInfo,
     server.SourceEdit edit,
     int selectionOffsetRelative,
-    int selectionLength) {
-  assert(selectionOffsetRelative != null);
+    int? selectionLength) {
   return lsp.SnippetTextEdit(
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     range: toRange(lineInfo, edit.offset, edit.length),
@@ -1291,26 +1299,26 @@ lsp.SnippetTextEdit toSnippetTextEdit(
 
 ErrorOr<server.SourceRange> toSourceRange(
     server.LineInfo lineInfo, Range range) {
-  if (range == null) {
-    return success(null);
-  }
-
   // If there is a range, convert to offsets because that's what
   // the tokens are computed using initially.
   final start = toOffset(lineInfo, range.start);
   final end = toOffset(lineInfo, range.end);
-  if (start?.isError ?? false) {
+  if (start.isError) {
     return failure(start);
   }
-  if (end?.isError ?? false) {
+  if (end.isError) {
     return failure(end);
   }
 
-  final startOffset = start?.result;
-  final endOffset = end?.result;
+  final startOffset = start.result;
+  final endOffset = end.result;
 
   return success(server.SourceRange(startOffset, endOffset - startOffset));
 }
+
+ErrorOr<server.SourceRange?> toSourceRangeNullable(
+        server.LineInfo lineInfo, Range? range) =>
+    range != null ? toSourceRange(lineInfo, range) : success(null);
 
 lsp.TextDocumentEdit toTextDocumentEdit(
     LspClientCapabilities capabilities, FileEditInformation edit) {
@@ -1328,8 +1336,8 @@ Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.SourceEdit edit, {
-  int selectionOffsetRelative,
-  int selectionLength,
+  int? selectionOffsetRelative,
+  int? selectionLength,
 }) {
   if (!capabilities.experimentalSnippetTextEdit ||
       selectionOffsetRelative == null) {
@@ -1400,15 +1408,6 @@ Map<String, List<lsp.TextEdit>> toWorkspaceEditChanges(
 
 lsp.MarkupContent _asMarkup(
     Set<lsp.MarkupKind> preferredFormats, String content) {
-  // It's not valid to call this function with a null format, as null formats
-  // do not support MarkupContent. [asStringOrMarkupContent] is probably the
-  // better choice.
-  assert(preferredFormats != null);
-
-  if (content == null) {
-    return null;
-  }
-
   if (preferredFormats.isEmpty) {
     preferredFormats.add(lsp.MarkupKind.Markdown);
   }
@@ -1425,16 +1424,16 @@ lsp.MarkupContent _asMarkup(
 }
 
 Pair<String, lsp.InsertTextFormat> _buildInsertText({
-  @required bool supportsSnippets,
-  @required bool includeCommitCharacters,
-  @required bool completeFunctionCalls,
-  @required bool isCallable,
-  @required bool isInvocation,
-  @required String defaultArgumentListString,
-  @required List<int> defaultArgumentListTextRanges,
-  @required String completion,
-  @required int selectionOffset,
-  @required int selectionLength,
+  required bool supportsSnippets,
+  required bool includeCommitCharacters,
+  required bool completeFunctionCalls,
+  required bool isCallable,
+  required bool isInvocation,
+  required String? defaultArgumentListString,
+  required List<int>? defaultArgumentListTextRanges,
+  required String completion,
+  required int selectionOffset,
+  required int selectionLength,
 }) {
   var insertText = completion;
   var insertTextFormat = lsp.InsertTextFormat.PlainText;
@@ -1465,7 +1464,7 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
               defaultArgumentListTextRanges,
             )
           : '\${0:}'; // No required params still gets a tabstop in the parens.
-      insertText += '($functionCallSuffix)';
+      insertText = '${escapeSnippetString(insertText)}($functionCallSuffix)';
     } else if (selectionOffset != 0 &&
         // We don't need a tabstop if the selection is the end of the string.
         selectionOffset != completion.length) {
@@ -1479,3 +1478,5 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
 
   return Pair(insertText, insertTextFormat);
 }
+
+String _errorCode(server.ErrorCode code) => code.name.toLowerCase();

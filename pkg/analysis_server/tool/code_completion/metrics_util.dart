@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+import 'dart:math' as math;
 
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -12,22 +12,28 @@ import 'output_utilities.dart';
 /// https://en.wikipedia.org/wiki/Average#Arithmetic_mean
 class ArithmeticMeanComputer {
   final String name;
-  num sum = 0;
+  int sum = 0;
   int count = 0;
+  int? min;
+  int? max;
 
   ArithmeticMeanComputer(this.name);
 
-  num get mean => sum / count;
+  double get mean => sum / count;
 
   /// Add the data from the given [computer] to this computer.
   void addData(ArithmeticMeanComputer computer) {
     sum += computer.sum;
     count += computer.count;
+    min = _min(min, computer.min);
+    max = _max(max, computer.max);
   }
 
-  void addValue(num val) {
+  void addValue(int val) {
     sum += val;
     count++;
+    min = _min(min, val);
+    max = _max(max, val);
   }
 
   void clear() {
@@ -38,12 +44,10 @@ class ArithmeticMeanComputer {
   /// Set the state of this computer to the state recorded in the decoded JSON
   /// [map].
   void fromJson(Map<String, dynamic> map) {
-    sum = map['sum'] as num;
+    sum = map['sum'] as int;
     count = map['count'] as int;
-  }
-
-  void printMean() {
-    print('Mean \'$name\' ${mean.toStringAsFixed(6)} (total = $count)');
+    min = map['min'] as int?;
+    max = map['max'] as int?;
   }
 
   /// Return a map used to represent this computer in a JSON structure.
@@ -51,7 +55,29 @@ class ArithmeticMeanComputer {
     return {
       'sum': sum,
       'count': count,
+      if (min != null) 'min': min,
+      if (max != null) 'max': max,
     };
+  }
+
+  int? _max(int? first, int? second) {
+    if (first == null) {
+      return second;
+    } else if (second == null) {
+      return first;
+    } else {
+      return math.max(first, second);
+    }
+  }
+
+  int? _min(int? first, int? second) {
+    if (first == null) {
+      return second;
+    } else if (second == null) {
+      return first;
+    } else {
+      return math.min(first, second);
+    }
   }
 }
 
@@ -96,12 +122,12 @@ class Counter {
   }
 
   void count(String id, [int countNumber = 1]) {
-    assert(id != null && id.isNotEmpty && 1 <= countNumber);
-    if (_buckets.containsKey(id)) {
-      _buckets[id] += countNumber;
-    } else {
-      _buckets.putIfAbsent(id, () => countNumber);
-    }
+    assert(id.isNotEmpty && 1 <= countNumber);
+    _buckets.update(
+      id,
+      (value) => value + countNumber,
+      ifAbsent: () => countNumber,
+    );
     _totalCount += countNumber;
   }
 
@@ -140,6 +166,52 @@ class Counter {
     return {
       'buckets': _buckets,
       'totalCount': _totalCount,
+    };
+  }
+}
+
+class DistributionComputer {
+  /// The buckets in which values are counted: [0..9], [10..19], ... [100..].
+  List<int> buckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  /// Add the data from the given [computer] to this computer.
+  void addData(DistributionComputer computer) {
+    for (var i = 0; i < buckets.length; i++) {
+      buckets[i] += computer.buckets[i];
+    }
+  }
+
+  /// Add a millisecond value to the list of buckets.
+  void addValue(int value) {
+    var bucket = math.min(value ~/ 10, buckets.length - 1);
+    buckets[bucket]++;
+  }
+
+  /// Return a textual representation of the distribution.
+  String displayString() {
+    var buffer = StringBuffer();
+    for (var i = 0; i < buckets.length; i++) {
+      if (i > 0) {
+        buffer.write(' ');
+      }
+      buffer.write('[');
+      buffer.write(i * 10);
+      buffer.write('] ');
+      buffer.write(buckets[i]);
+    }
+    return buffer.toString();
+  }
+
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    buckets = map['buckets'] as List<int>;
+  }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'buckets': buckets,
     };
   }
 }

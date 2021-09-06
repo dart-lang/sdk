@@ -1765,6 +1765,64 @@ ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
   }
 }
 
+//                                          3         2         1         0
+//                                         10987654321098765432109876543210
+static constexpr uint32_t kBfxTestBits = 0b00010000001000001000010001001011;
+
+static int32_t ExpectedUbfxBitPattern(uint8_t lsb, uint8_t width) {
+  ASSERT(width >= 1);
+  ASSERT(width < 32);
+  ASSERT(lsb < 32);
+  ASSERT(lsb + width <= 32);
+  return (kBfxTestBits & (Utils::NBitMask(width) << lsb)) >> lsb;
+}
+
+static int32_t ExpectedSbfxBitPattern(uint8_t lsb, uint8_t width) {
+  const uint32_t no_extension = ExpectedUbfxBitPattern(lsb, width);
+  const uint32_t sign_extension =
+      Utils::TestBit(no_extension, width - 1) ? ~Utils::NBitMask(width) : 0;
+  return no_extension | sign_extension;
+}
+
+// (lsb, width, extracted bit field is signed)
+#define BFX_TEST_CASES(V)                                                      \
+  V(0, 1, true)                                                                \
+  V(0, 8, false)                                                               \
+  V(0, 11, true) V(0, 19, false) V(3, 20, false) V(10, 19, true) V(31, 1, false)
+
+#define GENERATE_BFX_TEST(L, W, S)                                             \
+  ASSEMBLER_TEST_GENERATE(UbfxLSB##L##Width##W, assembler) {                   \
+    __ LoadImmediate(R1, kBfxTestBits);                                        \
+    __ ubfx(R0, R1, L, W);                                                     \
+    __ Ret();                                                                  \
+  }                                                                            \
+  ASSEMBLER_TEST_RUN(UbfxLSB##L##Width##W, test) {                             \
+    EXPECT(test != nullptr);                                                   \
+    typedef int (*Tst)() DART_UNUSED;                                          \
+    ASSERT((ExpectedUbfxBitPattern(L, W) == ExpectedSbfxBitPattern(L, W)) !=   \
+           S);                                                                 \
+    EXPECT_EQ(ExpectedUbfxBitPattern(L, W),                                    \
+              EXECUTE_TEST_CODE_INT32(Tst, test->entry()));                    \
+  }                                                                            \
+  ASSEMBLER_TEST_GENERATE(SbfxLSB##L##Width##W, assembler) {                   \
+    __ LoadImmediate(R1, kBfxTestBits);                                        \
+    __ sbfx(R0, R1, L, W);                                                     \
+    __ Ret();                                                                  \
+  }                                                                            \
+  ASSEMBLER_TEST_RUN(SbfxLSB##L##Width##W, test) {                             \
+    EXPECT(test != nullptr);                                                   \
+    typedef int (*Tst)() DART_UNUSED;                                          \
+    ASSERT((ExpectedUbfxBitPattern(L, W) == ExpectedSbfxBitPattern(L, W)) !=   \
+           S);                                                                 \
+    EXPECT_EQ(ExpectedSbfxBitPattern(L, W),                                    \
+              EXECUTE_TEST_CODE_INT32(Tst, test->entry()));                    \
+  }
+
+BFX_TEST_CASES(GENERATE_BFX_TEST)
+
+#undef GENERATE_BFX_TEST
+#undef BFX_TEST_CASES
+
 ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
     __ mov(R0, Operand(27));

@@ -96,7 +96,9 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
 static InstancePtr CreateParameterMirrorList(const Function& func,
                                              const FunctionType& signature,
                                              const Instance& owner_mirror) {
-  HANDLESCOPE(Thread::Current());
+  Thread* const T = Thread::Current();
+  Zone* const Z = T->zone();
+  HANDLESCOPE(T);
   const intptr_t implicit_param_count = signature.num_implicit_parameters();
   const intptr_t non_implicit_param_count =
       signature.NumParameters() - implicit_param_count;
@@ -104,15 +106,15 @@ static InstancePtr CreateParameterMirrorList(const Function& func,
       non_implicit_param_count - signature.NumOptionalParameters();
   const intptr_t index_of_first_named_param =
       non_implicit_param_count - signature.NumOptionalNamedParameters();
-  const Array& results = Array::Handle(Array::New(non_implicit_param_count));
-  const Array& args = Array::Handle(Array::New(9));
+  const Array& results = Array::Handle(Z, Array::New(non_implicit_param_count));
+  const Array& args = Array::Handle(Z, Array::New(9));
 
-  Smi& pos = Smi::Handle();
-  String& name = String::Handle();
-  Instance& param = Instance::Handle();
-  Bool& is_final = Bool::Handle();
-  Object& default_value = Object::Handle();
-  Object& metadata = Object::Handle();
+  Smi& pos = Smi::Handle(Z);
+  String& name = String::Handle(Z);
+  Instance& param = Instance::Handle(Z);
+  Bool& is_final = Bool::Handle(Z);
+  Object& default_value = Object::Handle(Z);
+  Object& metadata = Object::Handle(Z);
 
   // We force compilation of constructors to ensure the types of initializing
   // formals have been corrected. We do not force the compilation of all types
@@ -156,10 +158,17 @@ static InstancePtr CreateParameterMirrorList(const Function& func,
 
   for (intptr_t i = 0; i < non_implicit_param_count; i++) {
     pos = Smi::New(i);
-    if (!func.IsNull()) {
+    if (i >= index_of_first_named_param) {
+      // Named parameters are stored in the signature.
+      name = signature.ParameterNameAt(implicit_param_count + i);
+    } else if (!func.IsNull()) {
+      // Positional parameters are stored in the function.
       name = func.ParameterNameAt(implicit_param_count + i);
     } else {
-      name = signature.ParameterNameAt(implicit_param_count + i);
+      // We were not given a function, only the type, so create placeholder
+      // names for the positional parameters.
+      const char* const placeholder = OS::SCreate(Z, ":param%" Pd "", i);
+      name = String::New(placeholder);
     }
     if (has_extra_parameter_info) {
       is_final ^= param_descriptor.At(i * Parser::kParameterEntrySize +
@@ -191,7 +200,7 @@ static InstancePtr CreateTypeVariableMirror(const TypeParameter& param,
                                             const Instance& owner_mirror) {
   const Array& args = Array::Handle(Array::New(3));
   args.SetAt(0, param);
-  args.SetAt(1, String::Handle(param.name()));
+  args.SetAt(1, String::Handle(param.UserVisibleName()));
   args.SetAt(2, owner_mirror);
   return CreateMirror(Symbols::_TypeVariableMirror(), args);
 }
@@ -199,18 +208,17 @@ static InstancePtr CreateTypeVariableMirror(const TypeParameter& param,
 // We create a list in native code and let Dart code create the type mirror
 // object and the ordered map.
 static InstancePtr CreateTypeVariableList(const Class& cls) {
-  const TypeArguments& args = TypeArguments::Handle(cls.type_parameters());
-  if (args.IsNull()) {
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  if (num_type_params == 0) {
     return Object::empty_array().ptr();
   }
-  const Array& result = Array::Handle(Array::New(args.Length() * 2));
+  const Array& result = Array::Handle(Array::New(num_type_params * 2));
   TypeParameter& type = TypeParameter::Handle();
   String& name = String::Handle();
-  for (intptr_t i = 0; i < args.Length(); i++) {
-    type ^= args.TypeAt(i);
-    ASSERT(type.IsTypeParameter());
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type = cls.TypeParameterAt(i, Nullability::kLegacy);
     ASSERT(type.IsFinalized());
-    name = type.name();
+    name = type.UserVisibleName();
     result.SetAt(2 * i, name);
     result.SetAt(2 * i + 1, type);
   }

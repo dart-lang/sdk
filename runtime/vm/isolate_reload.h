@@ -256,7 +256,7 @@ class IsolateGroupReloadContext {
 
     static Key KeyOf(Pair kv) { return kv->cid(); }
     static Value ValueOf(Pair kv) { return kv; }
-    static intptr_t Hashcode(Key key) { return key; }
+    static uword Hash(Key key) { return Utils::WordHash(key); }
     static bool IsKeyEqual(Pair kv, Key key) { return kv->cid() == key; }
   };
 

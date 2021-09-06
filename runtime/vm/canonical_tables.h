@@ -30,12 +30,12 @@ class CharArray {
     }
     return other.Equals(data_, len_);
   }
-  intptr_t Hash() const { return hash_; }
+  uword Hash() const { return hash_; }
 
  private:
   const CharType* data_;
   intptr_t len_;
-  intptr_t hash_;
+  uword hash_;
 };
 typedef CharArray<uint8_t> Latin1Array;
 typedef CharArray<uint16_t> UTF16Array;
@@ -55,14 +55,14 @@ class StringSlice {
     }
     return other.Equals(str_, begin_index_, len_);
   }
-  intptr_t Hash() const { return hash_; }
+  uword Hash() const { return hash_; }
 
  private:
   bool is_all() const { return begin_index_ == 0 && len_ == str_.Length(); }
   const String& str_;
   intptr_t begin_index_;
   intptr_t len_;
-  intptr_t hash_;
+  uword hash_;
 };
 
 class ConcatString {
@@ -77,12 +77,12 @@ class ConcatString {
     }
     return other.EqualsConcat(str1_, str2_);
   }
-  intptr_t Hash() const { return hash_; }
+  uword Hash() const { return hash_; }
 
  private:
   const String& str1_;
   const String& str2_;
-  intptr_t hash_;
+  uword hash_;
 };
 
 class SymbolTraits {
@@ -131,7 +131,8 @@ class SymbolTraits {
     return concat.ToSymbol();
   }
 };
-typedef UnorderedHashSet<SymbolTraits> CanonicalStringSet;
+
+typedef UnorderedHashSet<SymbolTraits, AcqRelStorageTraits> CanonicalStringSet;
 
 class CanonicalTypeKey {
  public:

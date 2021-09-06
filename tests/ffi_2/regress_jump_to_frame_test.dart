@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Check that JumpToFrame does not use LR clobbered by slow path of
 // TransitionNativeToGenerated.
-// VMOptions=--use-slow-path --enable-testing-pragmas
+// VMOptions=--use-slow-path
 
 import 'dart:ffi';
 

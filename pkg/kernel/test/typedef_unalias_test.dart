@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.typedef_unalias_test;
 
 import 'package:kernel/ast.dart';
@@ -18,7 +16,7 @@ void harnessTest(String name, void doTest(TestHarness harness)) {
 
 main() {
   harnessTest('`Foo` where typedef Foo = C', (TestHarness harness) {
-    var foo = new Typedef('Foo', harness.otherLegacyRawType);
+    var foo = new Typedef('Foo', harness.otherLegacyRawType, fileUri: dummyUri);
     harness.enclosingLibrary.addTypedef(foo);
     var type = new TypedefType(foo, Nullability.legacy);
     expect(type.unalias, equals(harness.otherLegacyRawType));
@@ -29,7 +27,8 @@ main() {
         'Foo',
         new InterfaceType(harness.otherClass, Nullability.legacy,
             [new TypeParameterType(param, Nullability.legacy)]),
-        typeParameters: [param]);
+        typeParameters: [param],
+        fileUri: dummyUri);
     harness.enclosingLibrary.addTypedef(foo);
     var input =
         new TypedefType(foo, Nullability.legacy, [harness.objectLegacyRawType]);
@@ -44,13 +43,15 @@ main() {
         'Foo',
         new InterfaceType(harness.otherClass, Nullability.legacy,
             [new TypeParameterType(fooParam, Nullability.legacy)]),
-        typeParameters: [fooParam]);
+        typeParameters: [fooParam],
+        fileUri: dummyUri);
     var barParam = harness.makeTypeParameter('T');
     var bar = new Typedef(
         'Bar',
         new TypedefType(foo, Nullability.legacy,
             [new TypeParameterType(barParam, Nullability.legacy)]),
-        typeParameters: [barParam]);
+        typeParameters: [barParam],
+        fileUri: dummyUri);
     harness.enclosingLibrary.addTypedef(foo);
     harness.enclosingLibrary.addTypedef(bar);
     var input =
@@ -66,7 +67,8 @@ main() {
         'Foo',
         new InterfaceType(harness.otherClass, Nullability.legacy,
             [new TypeParameterType(param, Nullability.legacy)]),
-        typeParameters: [param]);
+        typeParameters: [param],
+        fileUri: dummyUri);
     harness.enclosingLibrary.addTypedef(foo);
     var input = new TypedefType(foo, Nullability.legacy, [
       new TypedefType(foo, Nullability.legacy, [harness.objectLegacyRawType])

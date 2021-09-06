@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -28,7 +26,7 @@ class CreateGetterMixinTest extends FixProcessorTest {
 mixin M {
 }
 
-main(M m) {
+void f(M m) {
   int v = m.test;
   print(v);
 }
@@ -38,7 +36,7 @@ mixin M {
   int get test => null;
 }
 
-main(M m) {
+void f(M m) {
   int v = m.test;
   print(v);
 }
@@ -48,7 +46,7 @@ main(M m) {
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     test = 42;
   }
 }
@@ -59,7 +57,7 @@ mixin M {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -69,7 +67,7 @@ mixin M {
 mixin M {
   int get test => null;
 
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -87,7 +85,7 @@ class CreateGetterTest extends FixProcessorTest {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   var x = a;
   int v = x.test;
   print(v);
@@ -97,7 +95,7 @@ main(A a) {
 class A {
   int get test => null;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   int v = x.test;
   print(v);
@@ -107,7 +105,7 @@ main(A a) {
 
   Future<void> test_inSDK() async {
     await resolveTestCode('''
-main(List p) {
+void f(List p) {
   int v = p.foo;
   print(v);
 }
@@ -148,28 +146,28 @@ extension E on String {
   Future<void> test_location_afterLastGetter() async {
     await resolveTestCode('''
 class A {
-  int existingField;
+  int existingField = 0;
 
-  int get existingGetter => null;
+  int get existingGetter => 0;
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
 ''');
     await assertHasFix('''
 class A {
-  int existingField;
+  int existingField = 0;
 
-  int get existingGetter => null;
+  int get existingGetter => 0;
 
   int get test => null;
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -181,12 +179,12 @@ main(A a) {
 class A {
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   int v = c.b.a.test;
   print(v);
 }
@@ -196,12 +194,12 @@ class A {
   int get test => null;
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   int v = c.b.a.test;
   print(v);
 }
@@ -213,7 +211,7 @@ main(C c) {
 extension E on String {
 }
 
-main(String s) {
+void f(String s) {
   int v = E(s).test;
   print(v);
 }
@@ -223,7 +221,7 @@ extension E on String {
   int get test => null;
 }
 
-main(String s) {
+void f(String s) {
   int v = E(s).test;
   print(v);
 }
@@ -234,7 +232,7 @@ main(String s) {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -243,7 +241,7 @@ main(A a) {
 class A {
   int get test => null;
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -265,7 +263,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/other.dart';
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -287,7 +285,7 @@ class A {
   Future<void> test_qualified_instance_dynamicType() async {
     await resolveTestCode('''
 class A {
-  B b;
+  B b = B();
   void f(dynamic context) {
     context + b.test;
   }
@@ -297,7 +295,7 @@ class B {
 ''');
     await assertHasFix('''
 class A {
-  B b;
+  B b = B();
   void f(dynamic context) {
     context + b.test;
   }
@@ -318,7 +316,7 @@ class A {}
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -335,7 +333,7 @@ part of lib;
 class A {
 }
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -348,7 +346,7 @@ main(A a) {
 class A {
   A get self => this;
 }
-main() {
+void f() {
   var a = new A();
   int v = a.self.test;
   print(v);
@@ -360,7 +358,7 @@ class A {
 
   int get test => null;
 }
-main() {
+void f() {
   var a = new A();
   int v = a.self.test;
   print(v);
@@ -372,7 +370,7 @@ main() {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   a.test = 42;
 }
 ''');
@@ -384,7 +382,7 @@ main(A a) {
 extension E on String {
 }
 
-main(String s) {
+void f(String s) {
   int v = E.test;
   print(v);
 }
@@ -394,7 +392,7 @@ extension E on String {
   static int get test => null;
 }
 
-main(String s) {
+void f(String s) {
   int v = E.test;
   print(v);
 }
@@ -404,7 +402,7 @@ main(String s) {
   Future<void> test_unqualified_instance_asInvocationArgument() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void m() {
     f(test);
   }
 }
@@ -414,7 +412,7 @@ f(String s) {}
 class A {
   String get test => null;
 
-  main() {
+  void m() {
     f(test);
   }
 }
@@ -425,7 +423,7 @@ f(String s) {}
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test = 42;
   }
 }
@@ -436,7 +434,7 @@ class A {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -446,7 +444,7 @@ class A {
 class A {
   int get test => null;
 
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -457,7 +455,7 @@ class A {
   Future<void> test_unqualified_instance_asStatement() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test;
   }
 }
@@ -466,7 +464,7 @@ class A {
 class A {
   get test => null;
 
-  main() {
+  void f() {
     test;
   }
 }

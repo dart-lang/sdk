@@ -21,7 +21,7 @@ bool typeIsNonNullableByContext(TypeAnnotation node) {
 /// This mixin provides utilities that are useful to visitors implementing
 /// resolution-like behaviors.
 mixin ResolutionUtils {
-  List<String> _objectGetNames;
+  List<String>? _objectGetNames;
 
   TypeProvider get typeProvider;
 

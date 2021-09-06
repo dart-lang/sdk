@@ -110,50 +110,50 @@ static method Extension|invocationsFromStaticContext(core::int* value) → dynam
 }
 static method Extension|tearOffsFromStaticContext(core::int* value) → dynamic {
   () →* dynamic tearOffNoArgs = #C2;
-  tearOffNoArgs.call();
+  tearOffNoArgs(){() →* dynamic};
   (dynamic) →* dynamic tearOffRequired = #C3;
-  tearOffRequired.call(value);
+  tearOffRequired(value){(dynamic) →* dynamic};
   ([dynamic]) →* dynamic tearOffOptional = #C4;
-  tearOffOptional.call();
-  tearOffOptional.call(value);
+  tearOffOptional(){([dynamic]) →* dynamic};
+  tearOffOptional(value){([dynamic]) →* dynamic};
   ({value: dynamic}) →* dynamic tearOffNamed = #C5;
-  tearOffNamed.call();
-  tearOffNamed.call(value: value);
+  tearOffNamed(){({value: dynamic}) →* dynamic};
+  tearOffNamed(value: value){({value: dynamic}) →* dynamic};
   <S extends core::Object* = dynamic>(S*) →* dynamic tearOffGenericRequired = #C6;
-  tearOffGenericRequired.call<core::int*>(value);
-  tearOffGenericRequired.call<core::int*>(value);
+  tearOffGenericRequired<core::int*>(value){(core::int*) →* dynamic};
+  tearOffGenericRequired<core::int*>(value){(core::int*) →* dynamic};
   <S extends core::Object* = dynamic>([S*]) →* dynamic tearOffGenericOptional = #C7;
-  tearOffGenericOptional.call<dynamic>();
-  tearOffGenericOptional.call<core::int*>();
-  tearOffGenericOptional.call<core::int*>(value);
-  tearOffGenericOptional.call<core::int*>(value);
+  tearOffGenericOptional<dynamic>(){([dynamic]) →* dynamic};
+  tearOffGenericOptional<core::int*>(){([core::int*]) →* dynamic};
+  tearOffGenericOptional<core::int*>(value){([core::int*]) →* dynamic};
+  tearOffGenericOptional<core::int*>(value){([core::int*]) →* dynamic};
   <S extends core::Object* = dynamic>({value: S*}) →* dynamic tearOffGenericNamed = #C8;
-  tearOffGenericNamed.call<dynamic>();
-  tearOffGenericNamed.call<core::int*>();
-  tearOffGenericNamed.call<core::int*>(value: value);
-  tearOffGenericNamed.call<core::int*>(value: value);
+  tearOffGenericNamed<dynamic>(){({value: dynamic}) →* dynamic};
+  tearOffGenericNamed<core::int*>(){({value: core::int*}) →* dynamic};
+  tearOffGenericNamed<core::int*>(value: value){({value: core::int*}) →* dynamic};
+  tearOffGenericNamed<core::int*>(value: value){({value: core::int*}) →* dynamic};
 }
 static method Extension|fieldAccessFromStaticContext() → dynamic {
   self::Extension|field = self::Extension|property;
   self::Extension|property = self::Extension|field;
 }
 static method Extension|getterCallsFromStaticContext(core::int* value) → dynamic {
-  self::Extension|tearOffGetterNoArgs.call();
-  self::Extension|tearOffGetterRequired.call(value);
-  self::Extension|tearOffGetterOptional.call();
-  self::Extension|tearOffGetterOptional.call(value);
-  self::Extension|tearOffGetterNamed.call();
-  self::Extension|tearOffGetterNamed.call(value: value);
-  self::Extension|tearOffGetterGenericRequired.call(value);
-  self::Extension|tearOffGetterGenericRequired.call<core::int*>(value);
-  self::Extension|tearOffGetterGenericOptional.call();
-  self::Extension|tearOffGetterGenericOptional.call<core::int*>();
-  self::Extension|tearOffGetterGenericOptional.call(value);
-  self::Extension|tearOffGetterGenericOptional.call<core::int*>(value);
-  self::Extension|tearOffGetterGenericNamed.call();
-  self::Extension|tearOffGetterGenericNamed.call<core::int*>();
-  self::Extension|tearOffGetterGenericNamed.call(value: value);
-  self::Extension|tearOffGetterGenericNamed.call<core::int*>(value: value);
+  self::Extension|tearOffGetterNoArgs{dynamic}.call();
+  self::Extension|tearOffGetterRequired{dynamic}.call(value);
+  self::Extension|tearOffGetterOptional{dynamic}.call();
+  self::Extension|tearOffGetterOptional{dynamic}.call(value);
+  self::Extension|tearOffGetterNamed{dynamic}.call();
+  self::Extension|tearOffGetterNamed{dynamic}.call(value: value);
+  self::Extension|tearOffGetterGenericRequired{dynamic}.call(value);
+  self::Extension|tearOffGetterGenericRequired{dynamic}.call<core::int*>(value);
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call();
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call<core::int*>();
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call(value);
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call<core::int*>(value);
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call();
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call<core::int*>();
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call(value: value);
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call<core::int*>(value: value);
 }
 static method Extension|invocationsFromInstanceContext<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|invocationsFromInstanceContext::T*>* #this, self::Extension|invocationsFromInstanceContext::T* value) → dynamic {
   self::Extension|readGetter();
@@ -177,28 +177,28 @@ static method Extension|get#invocationsFromInstanceContext<T extends core::Objec
   return (self::Extension|get#invocationsFromInstanceContext::T* value) → dynamic => self::Extension|invocationsFromInstanceContext<self::Extension|get#invocationsFromInstanceContext::T*>(#this, value);
 static method Extension|tearOffsFromInstanceContext<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|tearOffsFromInstanceContext::T*>* #this, self::Extension|tearOffsFromInstanceContext::T* value) → dynamic {
   () →* dynamic tearOffNoArgs = #C2;
-  tearOffNoArgs.call();
+  tearOffNoArgs(){() →* dynamic};
   (dynamic) →* dynamic tearOffRequired = #C3;
-  tearOffRequired.call(value);
+  tearOffRequired(value){(dynamic) →* dynamic};
   ([dynamic]) →* dynamic tearOffOptional = #C4;
-  tearOffOptional.call();
-  tearOffOptional.call(value);
+  tearOffOptional(){([dynamic]) →* dynamic};
+  tearOffOptional(value){([dynamic]) →* dynamic};
   ({value: dynamic}) →* dynamic tearOffNamed = #C5;
-  tearOffNamed.call();
-  tearOffNamed.call(value: value);
+  tearOffNamed(){({value: dynamic}) →* dynamic};
+  tearOffNamed(value: value){({value: dynamic}) →* dynamic};
   <S extends core::Object* = dynamic>(S*) →* dynamic tearOffGenericRequired = #C6;
-  tearOffGenericRequired.call<self::Extension|tearOffsFromInstanceContext::T*>(value);
-  tearOffGenericRequired.call<self::Extension|tearOffsFromInstanceContext::T*>(value);
+  tearOffGenericRequired<self::Extension|tearOffsFromInstanceContext::T*>(value){(self::Extension|tearOffsFromInstanceContext::T*) →* dynamic};
+  tearOffGenericRequired<self::Extension|tearOffsFromInstanceContext::T*>(value){(self::Extension|tearOffsFromInstanceContext::T*) →* dynamic};
   <S extends core::Object* = dynamic>([S*]) →* dynamic tearOffGenericOptional = #C7;
-  tearOffGenericOptional.call<dynamic>();
-  tearOffGenericOptional.call<self::Extension|tearOffsFromInstanceContext::T*>();
-  tearOffGenericOptional.call<self::Extension|tearOffsFromInstanceContext::T*>(value);
-  tearOffGenericOptional.call<self::Extension|tearOffsFromInstanceContext::T*>(value);
+  tearOffGenericOptional<dynamic>(){([dynamic]) →* dynamic};
+  tearOffGenericOptional<self::Extension|tearOffsFromInstanceContext::T*>(){([self::Extension|tearOffsFromInstanceContext::T*]) →* dynamic};
+  tearOffGenericOptional<self::Extension|tearOffsFromInstanceContext::T*>(value){([self::Extension|tearOffsFromInstanceContext::T*]) →* dynamic};
+  tearOffGenericOptional<self::Extension|tearOffsFromInstanceContext::T*>(value){([self::Extension|tearOffsFromInstanceContext::T*]) →* dynamic};
   <S extends core::Object* = dynamic>({value: S*}) →* dynamic tearOffGenericNamed = #C8;
-  tearOffGenericNamed.call<dynamic>();
-  tearOffGenericNamed.call<self::Extension|tearOffsFromInstanceContext::T*>();
-  tearOffGenericNamed.call<self::Extension|tearOffsFromInstanceContext::T*>(value: value);
-  tearOffGenericNamed.call<self::Extension|tearOffsFromInstanceContext::T*>(value: value);
+  tearOffGenericNamed<dynamic>(){({value: dynamic}) →* dynamic};
+  tearOffGenericNamed<self::Extension|tearOffsFromInstanceContext::T*>(){({value: self::Extension|tearOffsFromInstanceContext::T*}) →* dynamic};
+  tearOffGenericNamed<self::Extension|tearOffsFromInstanceContext::T*>(value: value){({value: self::Extension|tearOffsFromInstanceContext::T*}) →* dynamic};
+  tearOffGenericNamed<self::Extension|tearOffsFromInstanceContext::T*>(value: value){({value: self::Extension|tearOffsFromInstanceContext::T*}) →* dynamic};
 }
 static method Extension|get#tearOffsFromInstanceContext<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|get#tearOffsFromInstanceContext::T*>* #this) → (self::Extension|get#tearOffsFromInstanceContext::T*) →* dynamic
   return (self::Extension|get#tearOffsFromInstanceContext::T* value) → dynamic => self::Extension|tearOffsFromInstanceContext<self::Extension|get#tearOffsFromInstanceContext::T*>(#this, value);
@@ -209,22 +209,22 @@ static method Extension|fieldAccessFromInstanceContext<T extends core::Object* =
 static method Extension|get#fieldAccessFromInstanceContext<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|get#fieldAccessFromInstanceContext::T*>* #this) → () →* dynamic
   return () → dynamic => self::Extension|fieldAccessFromInstanceContext<self::Extension|get#fieldAccessFromInstanceContext::T*>(#this);
 static method Extension|getterCallsFromInstanceContext<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|getterCallsFromInstanceContext::T*>* #this, self::Extension|getterCallsFromInstanceContext::T* value) → dynamic {
-  self::Extension|tearOffGetterNoArgs.call();
-  self::Extension|tearOffGetterRequired.call(value);
-  self::Extension|tearOffGetterOptional.call();
-  self::Extension|tearOffGetterOptional.call(value);
-  self::Extension|tearOffGetterNamed.call();
-  self::Extension|tearOffGetterNamed.call(value: value);
-  self::Extension|tearOffGetterGenericRequired.call(value);
-  self::Extension|tearOffGetterGenericRequired.call<self::Extension|getterCallsFromInstanceContext::T*>(value);
-  self::Extension|tearOffGetterGenericOptional.call();
-  self::Extension|tearOffGetterGenericOptional.call<self::Extension|getterCallsFromInstanceContext::T*>();
-  self::Extension|tearOffGetterGenericOptional.call(value);
-  self::Extension|tearOffGetterGenericOptional.call<self::Extension|getterCallsFromInstanceContext::T*>(value);
-  self::Extension|tearOffGetterGenericNamed.call();
-  self::Extension|tearOffGetterGenericNamed.call<self::Extension|getterCallsFromInstanceContext::T*>();
-  self::Extension|tearOffGetterGenericNamed.call(value: value);
-  self::Extension|tearOffGetterGenericNamed.call<self::Extension|getterCallsFromInstanceContext::T*>(value: value);
+  self::Extension|tearOffGetterNoArgs{dynamic}.call();
+  self::Extension|tearOffGetterRequired{dynamic}.call(value);
+  self::Extension|tearOffGetterOptional{dynamic}.call();
+  self::Extension|tearOffGetterOptional{dynamic}.call(value);
+  self::Extension|tearOffGetterNamed{dynamic}.call();
+  self::Extension|tearOffGetterNamed{dynamic}.call(value: value);
+  self::Extension|tearOffGetterGenericRequired{dynamic}.call(value);
+  self::Extension|tearOffGetterGenericRequired{dynamic}.call<self::Extension|getterCallsFromInstanceContext::T*>(value);
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call();
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call<self::Extension|getterCallsFromInstanceContext::T*>();
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call(value);
+  self::Extension|tearOffGetterGenericOptional{dynamic}.call<self::Extension|getterCallsFromInstanceContext::T*>(value);
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call();
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call<self::Extension|getterCallsFromInstanceContext::T*>();
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call(value: value);
+  self::Extension|tearOffGetterGenericNamed{dynamic}.call<self::Extension|getterCallsFromInstanceContext::T*>(value: value);
 }
 static method Extension|get#getterCallsFromInstanceContext<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|get#getterCallsFromInstanceContext::T*>* #this) → (self::Extension|get#getterCallsFromInstanceContext::T*) →* dynamic
   return (self::Extension|get#getterCallsFromInstanceContext::T* value) → dynamic => self::Extension|getterCallsFromInstanceContext<self::Extension|get#getterCallsFromInstanceContext::T*>(#this, value);
@@ -232,11 +232,11 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = null
-  #C2 = tearoff self::Extension|readGetter
-  #C3 = tearoff self::Extension|writeSetterRequired
-  #C4 = tearoff self::Extension|writeSetterOptional
-  #C5 = tearoff self::Extension|writeSetterNamed
-  #C6 = tearoff self::Extension|genericWriteSetterRequired
-  #C7 = tearoff self::Extension|genericWriteSetterOptional
-  #C8 = tearoff self::Extension|genericWriteSetterNamed
+  #C2 = static-tearoff self::Extension|readGetter
+  #C3 = static-tearoff self::Extension|writeSetterRequired
+  #C4 = static-tearoff self::Extension|writeSetterOptional
+  #C5 = static-tearoff self::Extension|writeSetterNamed
+  #C6 = static-tearoff self::Extension|genericWriteSetterRequired
+  #C7 = static-tearoff self::Extension|genericWriteSetterOptional
+  #C8 = static-tearoff self::Extension|genericWriteSetterNamed
 }

@@ -4,9 +4,7 @@
 
 // Regression test for https://github.com/dart-lang/sdk/issues/41452.
 // Tests handling of null initializer of covariant field.
-// This test requires non-nullable experiment and NNBD strong mode.
-
-// @dart = 2.10
+// This test requires sound null safety.
 
 class _SplayTreeNode<Node extends _SplayTreeNode<Node>> {
   Node? left;

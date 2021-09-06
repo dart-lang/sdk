@@ -4,6 +4,8 @@
 //
 // VMOptions=--optimization-counter-threshold=1000 --no-background-compilation
 
+// @dart = 2.9
+
 // Regression test for correct LICM and type propagation.
 
 class Attribute {

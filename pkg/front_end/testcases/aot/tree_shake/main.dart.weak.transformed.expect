@@ -6,13 +6,13 @@ import "dart:_internal" as _in;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract class UnusedEnum extends core::Object {
+abstract class UnusedEnum extends core::Object implements core::Enum {
 }
-class UsedEnum extends core::Object /*isEnum*/  {
+class UsedEnum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   method toString() → core::String
-    return this.{self::UsedEnum::_name};
+    return this.{self::UsedEnum::_name}{core::String};
 }
 abstract class UnusedInterface extends core::Object {
   abstract get /*isLegacy*/ usedInterfaceField() → core::int?;
@@ -26,16 +26,16 @@ class UsedClass extends core::Object implements self::UnusedInterface {
     ;
 }
 static method usedMethod(self::UnusedInterface c) → dynamic {
-  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField};
+  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField}{core::int?};
 }
 static method main() → dynamic {
   self::usedMethod(let final self::UsedClass #t1 = new self::UsedClass::•() in block {
-    #t1.{self::UsedClass::usedField};
+    #t1.{self::UsedClass::usedField}{core::int?};
   } =>#t1);
   #C3;
   core::List<self::UnusedEnum> list = core::_GrowableList::•<self::UnusedEnum>(0);
-  if(list.{core::Iterable::isNotEmpty}) {
-    new mai::ConstClass::•().{mai::ConstClass::method}(_in::unsafeCast<mai::ConstEnum>(_in::unsafeCast<dynamic>(null)));
+  if(list.{core::Iterable::isNotEmpty}{core::bool}) {
+    new mai::ConstClass::•().{mai::ConstClass::method}(_in::unsafeCast<mai::ConstEnum>(_in::unsafeCast<dynamic>(null))){(mai::ConstEnum) → core::int};
   }
 }
 
@@ -43,7 +43,7 @@ library /*isNonNullableByDefault*/;
 import self as mai;
 import "dart:core" as core;
 
-abstract class ConstEnum extends core::Object {
+abstract class ConstEnum extends core::Object implements core::Enum {
   abstract get /*isLegacy*/ index() → core::int;
 }
 class ConstClass extends core::Object {
@@ -51,7 +51,7 @@ class ConstClass extends core::Object {
     : super core::Object::•()
     ;
   method method(mai::ConstEnum e) → core::int
-    return e.{mai::ConstEnum::index};
+    return e.{mai::ConstEnum::index}{core::int};
 }
 
 constants  {

@@ -50,8 +50,8 @@ git commit DEPS -m \
   "$(printf "[co19] Roll co19 to $NEW\n\n" \
   && cd $CO19 \
   && git log --date='format:%Y-%m-%d' --pretty='format:%ad %ae %s' $OLD..$NEW \
-  && printf "\nCq-Include-Trybots: dart/try:$BUILDERS\n" \
-  | tr -d '#')"
+    | tr -d '#' \
+  && printf "\nCq-Include-Trybots: dart/try:$BUILDERS\n")"
 
 rm -rf tests/co19/src.git
 

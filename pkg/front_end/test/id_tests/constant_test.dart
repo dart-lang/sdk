@@ -21,7 +21,6 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         onFailure,
         runTestFor;
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' show Class, Member, TreeNode;
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {

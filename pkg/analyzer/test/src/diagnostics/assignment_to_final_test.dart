@@ -10,101 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalTest);
-    defineReflectiveTests(AssignmentToFinalWithNullSafetyTest);
+    defineReflectiveTests(AssignmentToFinalWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class AssignmentToFinalTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_prefixedIdentifier_instanceField() async {
-    await assertNoErrorsInCode('''
-class A {
-  var x = 0;
-}
-
-void f(A a) {
-  a.x = 0;
-  a.x += 0;
-  ++a.x;
-  a.x++;
-}
-''');
-  }
-
-  test_prefixedIdentifier_instanceField_final() async {
-    await assertErrorsInCode('''
-class A {
-  final x = 0;
-}
-
-void f(A a) {
-  a.x = 0;
-  a.x += 0;
-  ++a.x;
-  a.x++;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 46, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 71, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 78, 1),
-    ]);
-  }
-
-  test_simpleIdentifier_topLevelGetter() async {
-    await assertErrorsInCode('''
-int get x => 0;
-
-void f() {
-  x = 0;
-  x += 0;
-  ++x;
-  x++;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 39, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 51, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 56, 1),
-    ]);
-  }
-
-  test_simpleIdentifier_topLevelVariable() async {
-    await assertNoErrorsInCode('''
-var x = 0;
-
-void f() {
-  x = 0;
-  x += 0;
-  ++x;
-  x++;
-}
-''');
-  }
-
-  test_simpleIdentifier_topLevelVariable_final() async {
-    await assertErrorsInCode('''
-final x = 0;
-
-void f() {
-  x = 0;
-  x += 0;
-  ++x;
-  x++;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 27, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 48, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class AssignmentToFinalWithNullSafetyTest extends AssignmentToFinalTest
-    with WithNullSafetyMixin {
+    with AssignmentToFinalTestCases {
   test_prefixedIdentifier_instanceField_abstract() async {
     await assertNoErrorsInCode('''
 abstract class A {
@@ -432,3 +344,111 @@ void f() {
     ]);
   }
 }
+
+mixin AssignmentToFinalTestCases on PubPackageResolutionTest {
+  test_prefixedIdentifier_instanceField() async {
+    await assertNoErrorsInCode('''
+class A {
+  var x = 0;
+}
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
+}
+''');
+  }
+
+  test_prefixedIdentifier_instanceField_final() async {
+    await assertErrorsInCode('''
+class A {
+  final x = 0;
+}
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 46, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 71, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 78, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_inheritedSetter_shadowedBy_topLevelGetter() async {
+    await assertErrorsInCode('''
+class A {
+  void set foo(int _) {}
+}
+
+int get foo => 0;
+
+class B extends A {
+  void bar() {
+    foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 3),
+    ]);
+  }
+
+  test_simpleIdentifier_topLevelGetter() async {
+    await assertErrorsInCode('''
+int get x => 0;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 39, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 51, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 56, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_topLevelVariable() async {
+    await assertNoErrorsInCode('''
+var x = 0;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''');
+  }
+
+  test_simpleIdentifier_topLevelVariable_final() async {
+    await assertErrorsInCode('''
+final x = 0;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 27, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 48, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class AssignmentToFinalWithoutNullSafetyTest extends PubPackageResolutionTest
+    with AssignmentToFinalTestCases, WithoutNullSafetyMixin {}

@@ -7,19 +7,17 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/summary2/library_builder.dart';
+import 'package:analyzer/src/summary2/link.dart';
 
 /// Compute simple-boundedness for all classes and generic types aliases in
-/// the source [libraryBuilders].  There might be dependencies between them,
-/// so they all should be processed simultaneously.
-void computeSimplyBounded(
-  Iterable<LibraryBuilder> libraryBuilders,
-) {
-  var walker = SimplyBoundedDependencyWalker();
+/// the [linker]. There might be dependencies between them, so they all should
+/// be processed simultaneously.
+void computeSimplyBounded(Linker linker) {
+  var walker = SimplyBoundedDependencyWalker(linker);
   var nodes = <SimplyBoundedNode>[];
-  for (var libraryBuilder in libraryBuilders) {
+  for (var libraryBuilder in linker.builders.values) {
     for (var unit in libraryBuilder.element.units) {
-      for (var element in unit.typeAliases) {
+      for (var element in unit.classes) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
@@ -27,7 +25,7 @@ void computeSimplyBounded(
         var node = walker.getNode(element);
         nodes.add(node);
       }
-      for (var element in unit.types) {
+      for (var element in unit.typeAliases) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
@@ -60,7 +58,10 @@ void computeSimplyBounded(
 /// The graph walker for evaluating whether types are simply bounded.
 class SimplyBoundedDependencyWalker
     extends graph.DependencyWalker<SimplyBoundedNode> {
+  final Linker linker;
   final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
+
+  SimplyBoundedDependencyWalker(this.linker);
 
   @override
   void evaluate(SimplyBoundedNode v) {
@@ -77,7 +78,7 @@ class SimplyBoundedDependencyWalker
   SimplyBoundedNode getNode(Element element) {
     var graphNode = nodeMap[element];
     if (graphNode == null) {
-      var node = (element as ElementImpl).linkedNode;
+      var node = linker.getLinkingNode(element);
       if (node is ClassDeclaration) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(

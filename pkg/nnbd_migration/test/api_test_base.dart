@@ -23,7 +23,7 @@ class TestMigrationListener implements NullabilityMigrationListener {
 
   @override
   void reportException(
-      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+      Source? source, AstNode? node, Object exception, StackTrace stackTrace) {
     fail('Exception reported: $exception\n$stackTrace');
   }
 }

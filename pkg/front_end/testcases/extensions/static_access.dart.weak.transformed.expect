@@ -53,6 +53,6 @@ static method main() → dynamic {
 }
 
 constants  {
-  #C1 = tearoff self::Extension|method
-  #C2 = tearoff self::Extension|genericMethod
+  #C1 = static-tearoff self::Extension|method
+  #C2 = static-tearoff self::Extension|genericMethod
 }

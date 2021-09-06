@@ -4,6 +4,8 @@
 //
 // Dart test program for testing FileSystemEntity.resolveSymbolicLinks
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 import "package:async_helper/async_helper.dart";

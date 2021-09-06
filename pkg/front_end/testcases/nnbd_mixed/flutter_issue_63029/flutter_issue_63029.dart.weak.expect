@@ -34,7 +34,7 @@ abstract class A extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class B<T extends flu::A = flu::A> extends core::Object {
+abstract class B<T extends flu::A> extends core::Object {
   synthetic constructor •() → flu::B<flu::B::T>
     : super core::Object::•()
     ;
@@ -62,7 +62,7 @@ class C extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-abstract class D<T extends flu::A* = flu::A*> extends flu::B<flu2::D::T*> implements flu2::C /*isMixinDeclaration*/  {
+abstract class D<T extends flu::A*> extends flu::B<flu2::D::T*> implements flu2::C /*isMixinDeclaration*/  {
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

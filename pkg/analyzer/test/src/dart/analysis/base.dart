@@ -9,7 +9,6 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -25,7 +24,6 @@ import 'package:test/test.dart';
 class BaseAnalysisDriverTest with ResourceProviderMixin {
   late final DartSdk sdk;
   final ByteStore byteStore = MemoryByteStore();
-  final FileContentOverlay contentOverlay = FileContentOverlay();
 
   final StringBuffer logBuffer = StringBuffer();
   late final PerformanceLog logger;
@@ -35,7 +33,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   late final AnalysisDriverScheduler scheduler;
   late final AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
-  final List<ResolvedUnitResult> allResults = <ResolvedUnitResult>[];
+  final List<AnalysisResultWithErrors> allResults = [];
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   late final String testProject;
@@ -61,42 +59,41 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
-    return AnalysisDriver(
-        scheduler,
-        logger,
-        resourceProvider,
-        byteStore,
-        contentOverlay,
-        null,
-        SourceFactory([
-          DartUriResolver(sdk),
-          generatedUriResolver,
-          PackageMapUriResolver(resourceProvider, packageMap),
-          ResourceUriResolver(resourceProvider)
-        ]),
-        createAnalysisOptions(),
-        packages: Packages({
-          'test': Package(
-            name: 'test',
-            rootFolder: getFolder(testProject),
-            libFolder: getFolder('$testProject/lib'),
-            languageVersion: Version.parse('2.9.0'),
-          ),
-          'aaa': Package(
-            name: 'aaa',
-            rootFolder: getFolder('/aaa'),
-            libFolder: getFolder('/aaa/lib'),
-            languageVersion: Version.parse('2.9.0'),
-          ),
-          'bbb': Package(
-            name: 'bbb',
-            rootFolder: getFolder('/bbb'),
-            libFolder: getFolder('/bbb/lib'),
-            languageVersion: Version.parse('2.9.0'),
-          ),
-        }),
-        enableIndex: true,
-        externalSummaries: externalSummaries);
+    return AnalysisDriver.tmp1(
+      scheduler: scheduler,
+      logger: logger,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: SourceFactory([
+        DartUriResolver(sdk),
+        generatedUriResolver,
+        PackageMapUriResolver(resourceProvider, packageMap),
+        ResourceUriResolver(resourceProvider)
+      ]),
+      analysisOptions: createAnalysisOptions(),
+      packages: Packages({
+        'test': Package(
+          name: 'test',
+          rootFolder: getFolder(testProject),
+          libFolder: getFolder('$testProject/lib'),
+          languageVersion: Version.parse('2.9.0'),
+        ),
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: getFolder('/aaa'),
+          libFolder: getFolder('/aaa/lib'),
+          languageVersion: Version.parse('2.9.0'),
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: getFolder('/bbb'),
+          libFolder: getFolder('/bbb/lib'),
+          languageVersion: Version.parse('2.9.0'),
+        ),
+      }),
+      enableIndex: true,
+      externalSummaries: externalSummaries,
+    );
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
@@ -144,7 +141,11 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
     driver = createAnalysisDriver();
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
-    driver.results.listen(allResults.add);
+    driver.results.listen((result) {
+      if (result is AnalysisResultWithErrors) {
+        allResults.add(result);
+      }
+    });
     driver.exceptions.listen(allExceptions.add);
   }
 

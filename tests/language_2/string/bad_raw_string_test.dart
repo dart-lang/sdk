@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 main() {
   // Raw String may not contain newline (may not be multi-line).
   String x = ''
@@ -11,7 +13,7 @@ main() {
 //   ^
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 '
-// [error line 13, column 1, length 1]
+// [error line 15, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 // [cfe] String starting with ' must end with '.
     r"
@@ -20,7 +22,7 @@ main() {
 //   ^
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 "
-// [error line 22, column 1, length 1]
+// [error line 24, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 // [cfe] String starting with " must end with ".
 
@@ -35,7 +37,7 @@ main() {
 //   ^
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 '
-// [error line 37, column 1, length 1]
+// [error line 39, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 // [cfe] String starting with ' must end with '.
     '''

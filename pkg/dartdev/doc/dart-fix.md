@@ -9,7 +9,7 @@ used to batch apply fixes for analysis issues.
 
 `dart fix` runs over your project looking for analysis issues. For each issue it
 checks whether there is an automated fix that can be applied. These fixes are
-generaly either in response to a lint or hint in your code, or part of upgrading
+generally either in response to a lint or hint in your code, or part of upgrading
 your source to newer package APIs.
 
 For the first type of change, the fixes are generally in response to the set of

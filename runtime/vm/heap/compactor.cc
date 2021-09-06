@@ -473,7 +473,6 @@ uword CompactorTask::PlanBlock(uword first_object,
 
   // 1. Compute bitvector of surviving allocation units in the block.
   intptr_t block_live_size = 0;
-  intptr_t block_dead_size = 0;
   uword current = first_object;
   while (current < block_end) {
     ObjectPtr obj = UntaggedObject::FromAddr(current);
@@ -483,8 +482,6 @@ uword CompactorTask::PlanBlock(uword first_object,
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
       block_live_size += size;
-    } else {
-      block_dead_size += size;
     }
     current += size;
   }

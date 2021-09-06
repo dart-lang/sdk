@@ -160,8 +160,8 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   /**** Internal implementation details ****/
-  _get_id() native "RawReceivePortImpl_get_id";
-  _get_sendport() native "RawReceivePortImpl_get_sendport";
+  int _get_id() native "RawReceivePortImpl_get_id";
+  SendPort _get_sendport() native "RawReceivePortImpl_get_sendport";
 
   // Called from the VM to retrieve the handler for a message.
   @pragma("vm:entry-point", "call")
@@ -186,7 +186,7 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   // Call into the VM to close the VM maintained mappings.
-  _closeInternal() native "RawReceivePortImpl_closeInternal";
+  int _closeInternal() native "RawReceivePortImpl_closeInternal";
 
   // Set this port as active or inactive in the VM. If inactive, this port
   // will not be considered live even if it hasn't been explicitly closed.
@@ -195,7 +195,7 @@ class _RawReceivePortImpl implements RawReceivePort {
   _setActive(bool active) native "RawReceivePortImpl_setActive";
 
   void set handler(Function? value) {
-    final id = this._get_id();
+    final int id = this._get_id();
     if (!_portMap.containsKey(id)) {
       _portMap[id] = <String, dynamic>{
         'port': this,
@@ -204,7 +204,7 @@ class _RawReceivePortImpl implements RawReceivePort {
     _portMap[id]!['handler'] = value;
   }
 
-  static final _portMap = <dynamic, Map<String, dynamic>>{};
+  static final _portMap = <int, Map<String, dynamic>>{};
 }
 
 @pragma("vm:entry-point")

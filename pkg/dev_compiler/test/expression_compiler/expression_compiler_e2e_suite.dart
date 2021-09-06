@@ -152,8 +152,10 @@ class TestCompiler {
       inlineSourceMap: true,
       buildSourceMap: true,
       emitDebugMetadata: true,
+      emitDebugSymbols: true,
       jsUrl: '$output',
       mapUrl: '$output.map',
+      compiler: kernel2jsCompiler,
       component: component,
     );
     metadata = code.metadata;
@@ -314,7 +316,7 @@ class TestDriver {
             'dart_sdk.js'));
         var dartLibraryPath =
             escaped(p.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'));
-        var outputPath = escaped(output.toFilePath());
+        var outputPath = output.toFilePath();
         bootstrapFile.writeAsStringSync('''
 <script src='$dartLibraryPath'></script>
 <script src='$dartSdkPath'></script>
@@ -542,7 +544,12 @@ class TestDriver {
       for (var prop in response) {
         var propKey = '${prop.name}';
         var propValue = '${prop.value.value}';
-        jsScope[propKey] = propValue == 'null' ? propKey : propValue;
+        if (prop.value.type == 'string') {
+          propValue = "'$propValue'";
+        } else if (propValue == 'null') {
+          propValue = propKey;
+        }
+        jsScope[propKey] = propValue;
       }
     }
     return jsScope;

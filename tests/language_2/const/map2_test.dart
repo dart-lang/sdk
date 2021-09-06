@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {
@@ -15,7 +17,7 @@ class B implements A {
 }
 
 confuse(x) {
-  if (new DateTime.now() == 42) return confuse(2);
+  if (DateTime.now().millisecondsSinceEpoch == 42) return confuse(2);
   return x;
 }
 

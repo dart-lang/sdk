@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' show json;
 
 import 'package:kernel/ast.dart';
@@ -24,7 +22,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   final Map<String, List<LabeledNode>> nameMap = <String, List<LabeledNode>>{};
   final bool printNullability;
 
-  List<Object> result;
+  List<Object> result = const [];
 
   TypeLabeler(this.printNullability);
 
@@ -34,6 +32,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   /// representation (with labels on duplicated names) by the `join()` method.
   List<Object> labelType(DartType type) {
     // TODO(askesc): Remove null check when we are completely null clean here.
+    // ignore: unnecessary_null_comparison
     if (type == null) return ["null-type"];
     result = [];
     type.accept(this);
@@ -46,6 +45,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   /// representation (with labels on duplicated names) by the `join()` method.
   List<Object> labelConstant(Constant constant) {
     // TODO(askesc): Remove null check when we are completely null clean here.
+    // ignore: unnecessary_null_comparison
     if (constant == null) return ["null-constant"];
     result = [];
     constant.accept(this);
@@ -73,7 +73,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   LabeledNode nameForEntity(
       TreeNode node, String nodeName, Uri importUri, Uri fileUri) {
-    List<LabeledNode> labelsForName = nameMap[nodeName];
+    List<LabeledNode>? labelsForName = nameMap[nodeName];
     if (labelsForName == null) {
       // First encountered entity with this name
       LabeledNode name =
@@ -112,8 +112,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(nameForEntity(
         typedefNode,
         typedefNode.name,
-        typedefNode?.enclosingLibrary?.importUri ?? unknownUri,
-        typedefNode?.enclosingLibrary?.fileUri ?? unknownUri));
+        typedefNode.enclosingLibrary.importUri,
+        typedefNode.enclosingLibrary.fileUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -150,17 +150,17 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitTypeParameterType(TypeParameterType node) {
-    TreeNode parent = node.parameter;
+    TreeNode? parent = node.parameter;
     while (parent is! Library && parent != null) {
       parent = parent.parent;
     }
     // Note that this can be null if, for instance, the erroneous code is not
     // actually in the tree - then we don't know where it comes from!
-    Library enclosingLibrary = parent;
+    Library? enclosingLibrary = parent as Library?;
 
     result.add(nameForEntity(
         node.parameter,
-        node.parameter.name,
+        node.parameter.name ?? '',
         enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
     addNullability(node.declaredNullability);
@@ -174,7 +174,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       bool first = true;
       for (TypeParameter param in node.typeParameters) {
         if (!first) result.add(", ");
-        result.add(param.name);
+        result.add(param.name ?? '');
         if (isObject(param.bound) && param.defaultType is DynamicType) {
           // Bound was not specified, and therefore should not be printed.
         } else {
@@ -223,13 +223,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   void visitInterfaceType(InterfaceType node) {
     Class classNode = node.classNode;
+    // TODO(johnniwinther): Ensure enclosing libraries on classes earlier
+    // in the compiler to ensure types in error messages have context.
+    Library? enclosingLibrary = classNode.parent as Library?;
     result.add(nameForEntity(
         classNode,
         classNode.name,
-        // TODO(johnniwinther): Ensure enclosing libraries on classes earlier
-        // in the compiler to ensure types in error messages have context.
-        classNode?.enclosingLibrary?.importUri ?? unknownUri,
-        classNode?.enclosingLibrary?.fileUri ?? unknownUri));
+        enclosingLibrary?.importUri ?? unknownUri,
+        enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -251,11 +252,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitExtensionType(ExtensionType node) {
+    // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
+    // in the compiler to ensure types in error messages have context.
+    Library? enclosingLibrary = node.extension.parent as Library?;
     result.add(nameForEntity(
         node.extension,
         node.extension.name,
-        node.extension?.enclosingLibrary?.importUri ?? unknownUri,
-        node.extension?.enclosingLibrary?.fileUri ?? unknownUri));
+        enclosingLibrary?.importUri ?? unknownUri,
+        enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -289,7 +293,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   void visitSymbolConstant(SymbolConstant node) {
     String text = node.libraryReference != null
-        ? '#${node.libraryReference.asLibrary.importUri}::${node.name}'
+        ? '#${node.libraryReference!.asLibrary.importUri}::${node.name}'
         : '#${node.name}';
     result.add(text);
   }
@@ -307,7 +311,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (field.isStatic) continue;
       if (!first) result.add(", ");
       result.add("${field.name}: ");
-      node.fieldValues[field.getterReference].accept(this);
+      node.fieldValues[field.getterReference]!.accept(this);
       first = false;
     }
     result.add("}");
@@ -356,9 +360,9 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("}");
   }
 
-  void visitTearOffConstant(TearOffConstant node) {
-    Procedure procedure = node.procedure;
-    Class classNode = procedure.enclosingClass;
+  void visitStaticTearOffConstant(StaticTearOffConstant node) {
+    Procedure procedure = node.target;
+    Class? classNode = procedure.enclosingClass;
     if (classNode != null) {
       result.add(nameForEntity(
           classNode,
@@ -370,8 +374,63 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(procedure.name.text);
   }
 
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    Member constructor = node.target;
+    Class classNode = constructor.enclosingClass!;
+    result.add(nameForEntity(
+        classNode,
+        classNode.name,
+        classNode.enclosingLibrary.importUri,
+        classNode.enclosingLibrary.fileUri));
+    result.add(".");
+    result.add(constructor.name.text);
+  }
+
+  void visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    Member constructor = node.target;
+    Class classNode = constructor.enclosingClass!;
+    result.add(nameForEntity(
+        classNode,
+        classNode.name,
+        classNode.enclosingLibrary.importUri,
+        classNode.enclosingLibrary.fileUri));
+    result.add(".");
+    result.add(constructor.name.text);
+  }
+
+  void visitInstantiationConstant(InstantiationConstant node) {
     node.tearOffConstant.accept(this);
+    if (node.types.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.types) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
+  }
+
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    node.tearOffConstant.accept(this);
+    if (node.parameters.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (TypeParameter param in node.parameters) {
+        if (!first) result.add(", ");
+        result.add(param.name ?? '');
+        if (isObject(param.bound) && param.defaultType is DynamicType) {
+          // Bound was not specified, and therefore should not be printed.
+        } else {
+          result.add(" extends ");
+          param.bound.accept(this);
+        }
+        first = false;
+      }
+      result.add(">");
+    }
     if (node.types.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -406,7 +465,7 @@ class LabeledNode {
       this.node, this.name, this.importUri, this.fileUri, this.typeLabeler);
 
   String toString() {
-    List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+    List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
     if (entityForName.length == 1) {
       return name;
     }
@@ -417,7 +476,7 @@ class LabeledNode {
     if (importUri.scheme == 'dart' && importUri.path == 'core') {
       if (node is Class && denylistedCoreClasses.contains(name)) {
         // Denylisted core class. Only print if ambiguous.
-        List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+        List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
         if (entityForName.length == 1) {
           return "";
         }
@@ -426,7 +485,7 @@ class LabeledNode {
     if (importUri == unknownUri || node is! Class) {
       // We don't know where it comes from and/or it's not a class.
       // Only print if ambiguous.
-      List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+      List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
       if (entityForName.length == 1) {
         return "";
       }

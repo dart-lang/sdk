@@ -11,12 +11,12 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method main() → dynamic {
     () →* dart.async::Future<dynamic>* f = #C1;
-    f.call();
+    f(){() →* dart.async::Future<dynamic>*};
     dart.core::print("Done");
   }
   static method _#loadLibrary_foo() → dart.async::Future<dynamic>*
     return LoadLibrary(foo);
 }
 constants  {
-  #C1 = tearoff main::_#loadLibrary_foo
+  #C1 = static-tearoff main::_#loadLibrary_foo
 }

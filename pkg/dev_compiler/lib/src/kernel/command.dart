@@ -18,6 +18,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
+import 'package:kernel/text/debug_printer.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
@@ -30,6 +31,8 @@ import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
 import 'module_metadata.dart';
+import 'module_symbols.dart';
+import 'module_symbols_collector.dart';
 import 'target.dart';
 
 const _binaryName = 'dartdevc -k';
@@ -86,7 +89,7 @@ Future<CompilerResult> _compile(List<String> args,
     ..addOption('packages', help: 'The package spec file to use.')
     // TODO(jmesserly): is this still useful for us, or can we remove it now?
     ..addFlag('summarize-text',
-        help: 'Emit API summary in a .js.txt file.',
+        help: 'Emit API summary and AST in .js.txt and .ast.xml files.',
         defaultsTo: false,
         hide: true)
     ..addFlag('track-widget-creation',
@@ -411,6 +414,8 @@ Future<CompilerResult> _compile(List<String> args,
     var sb = StringBuffer();
     kernel.Printer(sb).writeComponentFile(component);
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
+    outFiles.add(File(outPaths.first.split('.')[0] + '.ast.xml')
+        .writeAsString(DebugPrinter.prettyPrint(compiledLibraries)));
   }
 
   final importToSummary = Map<Library, Component>.identity();
@@ -443,11 +448,13 @@ Future<CompilerResult> _compile(List<String> args,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         emitDebugMetadata: options.emitDebugMetadata,
+        emitDebugSymbols: options.emitDebugSymbols,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
         fullDillUri: fullDillUri,
         customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
+        compiler: compiler,
         component: compiledLibraries);
 
     outFiles.add(file.writeAsString(jsCode.code));
@@ -458,6 +465,11 @@ Future<CompilerResult> _compile(List<String> args,
     if (jsCode.metadata != null) {
       outFiles.add(
           File('$output.metadata').writeAsString(json.encode(jsCode.metadata)));
+    }
+
+    if (jsCode.symbols != null) {
+      outFiles.add(
+          File('$output.symbols').writeAsString(json.encode(jsCode.symbols)));
     }
   }
 
@@ -635,7 +647,13 @@ class JSCode {
   /// see: https://goto.google.com/dart-web-debugger-metadata
   final ModuleMetadata metadata;
 
-  JSCode(this.code, this.sourceMap, {this.metadata});
+  /// Module debug symbols.
+  ///
+  /// The [symbols] is a contract between compiler and the debugger,
+  /// helping the debugger map between dart and JS objects.
+  final ModuleSymbols symbols;
+
+  JSCode(this.code, this.sourceMap, {this.symbols, this.metadata});
 }
 
 /// Converts [moduleTree] to [JSCode], using [format].
@@ -646,12 +664,14 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
     bool emitDebugMetadata = false,
+    bool emitDebugSymbols = false,
     String jsUrl,
     String mapUrl,
     String fullDillUri,
     String sourceMapBase,
     String customScheme,
     String multiRootOutputPath,
+    ProgramCompiler compiler,
     Component component}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
@@ -666,8 +686,9 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   }
 
   var tree = transformModuleFormat(format, moduleTree);
-  tree.accept(
-      js_ast.Printer(opts, printer, localNamer: js_ast.TemporaryNamer(tree)));
+  var nameListener = emitDebugSymbols ? js_ast.NameListener() : null;
+  tree.accept(js_ast.Printer(opts, printer,
+      localNamer: js_ast.TemporaryNamer(tree, nameListener)));
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
@@ -710,7 +731,38 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
       ? _emitMetadata(moduleTree, component, mapUrl, jsUrl, fullDillUri)
       : null;
 
-  return JSCode(text, builtMap, metadata: debugMetadata);
+  var debugSymbols = emitDebugSymbols
+      ? _emitSymbols(
+          compiler, moduleTree.name, nameListener.identifierNames, component)
+      : null;
+
+  return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
+}
+
+/// Assembles symbol information describing the nodes from the AST [component]
+/// and their representation in JavaScript.
+///
+/// Uses information from the [compiler] used to compile the JS module combined
+/// with [identifierNames] that maps JavaScript identifier nodes to their actual
+/// names used when outputting the JavaScript.
+ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
+    Map<js_ast.Identifier, String> identifierNames, Component component) {
+  var classJsNames = <Class, String>{
+    for (var e in compiler.classIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
+  var procedureJsNames = <Procedure, String>{
+    for (var e in compiler.procedureIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
+  var variableJsNames = <VariableDeclaration, String>{
+    for (var e in compiler.variableIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
+
+  return ModuleSymbolsCollector(moduleName, classJsNames, compiler.memberNames,
+          procedureJsNames, variableJsNames)
+      .collectSymbolInfo(component);
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,

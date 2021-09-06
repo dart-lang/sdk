@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Testing Bigints with and without intrinsics.
 // VMOptions=--intrinsify --no-enable-asserts
 // VMOptions=--intrinsify --enable-asserts
 // VMOptions=--no-intrinsify --enable-asserts
 // VMOptions=--optimization-counter-threshold=5 --no-background-compilation
+// VMOptions=--dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
 
 import "package:expect/expect.dart";
 

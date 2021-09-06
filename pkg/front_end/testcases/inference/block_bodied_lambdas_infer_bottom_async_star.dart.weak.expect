@@ -9,7 +9,7 @@ static method main() → dynamic async {
   () →* asy::Stream<Null>* f = () → asy::Stream<Null>* async* {
     yield null;
   };
-  asy::Stream<dynamic>* y = f.call();
-  asy::Stream<core::String*>* z = f.call();
-  core::String* s = await f.call().{asy::Stream::first};
+  asy::Stream<dynamic>* y = f(){() →* asy::Stream<Null>*};
+  asy::Stream<core::String*>* z = f(){() →* asy::Stream<Null>*};
+  core::String* s = await f(){() →* asy::Stream<Null>*}.{asy::Stream::first}{asy::Future<Null>*};
 }

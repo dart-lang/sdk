@@ -4,6 +4,8 @@
 // VMOptions=--enable-asserts
 // dart2jsOptions=--enable-asserts
 
+// @dart = 2.9
+
 // Dart test program testing assert statements.
 
 import "package:expect/expect.dart";

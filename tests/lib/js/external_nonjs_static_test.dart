@@ -7,6 +7,7 @@
 
 library external_nonjs_static_test;
 
+import 'dart:html';
 import 'package:js/js.dart';
 
 external var topLevelField;
@@ -96,6 +97,83 @@ class AnonymousClass {
   external factory AnonymousClass({var field});
   //               ^
   // [web] Only JS interop members may be 'external'.
+}
+
+extension ExtensionNonJS on NonJSClass {
+  external var field;
+  //           ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external final finalField;
+  //             ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external static var staticField;
+  //                  ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external static final staticFinalField;
+  //                    ^
+  // [web] JS interop or Native class required for 'external' extension members.
+
+  external get getter;
+  //           ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external set setter(_);
+  //           ^
+  // [web] JS interop or Native class required for 'external' extension members.
+
+  external static get staticGetter;
+  //                  ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external static set staticSetter(_);
+  //                  ^
+  // [web] JS interop or Native class required for 'external' extension members.
+
+  external method();
+  //       ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external static staticMethod();
+  //              ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external optionalParameterMethod([int? a, int b = 0]);
+  //       ^
+  // [web] JS interop or Native class required for 'external' extension members.
+  external overridenMethod();
+  //       ^
+  // [web] JS interop or Native class required for 'external' extension members.
+
+  nonExternalMethod() => 1;
+  static nonExternalStaticMethod() => 2;
+}
+
+class NonJSClass {
+  void overridenMethod() => 5;
+}
+
+extension ExtensionGenericNonJS<T> on GenericNonJSClass<T> {
+  external T method();
+  //         ^
+  // [web] JS interop or Native class required for 'external' extension members.
+}
+
+class GenericNonJSClass<T> {}
+
+extension ExtensionNative on HtmlElement {
+  external var field;
+  external final finalField;
+  external static var staticField;
+  external static final staticFinalField;
+
+  external get getter;
+  external set setter(_);
+
+  external static get staticGetter;
+  external static set staticSetter(_);
+
+  external method();
+  external static staticMethod();
+  external optionalParameterMethod([int? a, int b = 0]);
+
+  nonExternalMethod() => 1;
+  static nonExternalStaticMethod() => 2;
 }
 
 main() {}

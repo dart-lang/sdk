@@ -4,6 +4,8 @@
 //
 // Allow assignment of string interpolation to a static const field
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

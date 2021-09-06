@@ -49,42 +49,42 @@ abstract class _HashVMBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
   @pragma("vm:prefer-inline")
-  Uint32List get _index native "LinkedHashMap_getIndex";
+  Uint32List get _index native "LinkedHashBase_getIndex";
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _index(Uint32List value) native "LinkedHashMap_setIndex";
+  void set _index(Uint32List value) native "LinkedHashBase_setIndex";
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get _hashMask native "LinkedHashMap_getHashMask";
+  int get _hashMask native "LinkedHashBase_getHashMask";
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _hashMask(int value) native "LinkedHashMap_setHashMask";
+  void set _hashMask(int value) native "LinkedHashBase_setHashMask";
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_List")
   @pragma("vm:prefer-inline")
-  List get _data native "LinkedHashMap_getData";
+  List get _data native "LinkedHashBase_getData";
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _data(List value) native "LinkedHashMap_setData";
+  void set _data(List value) native "LinkedHashBase_setData";
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get _usedData native "LinkedHashMap_getUsedData";
+  int get _usedData native "LinkedHashBase_getUsedData";
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _usedData(int value) native "LinkedHashMap_setUsedData";
+  void set _usedData(int value) native "LinkedHashBase_setUsedData";
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get _deletedKeys native "LinkedHashMap_getDeletedKeys";
+  int get _deletedKeys native "LinkedHashBase_getDeletedKeys";
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _deletedKeys(int value) native "LinkedHashMap_setDeletedKeys";
+  void set _deletedKeys(int value) native "LinkedHashBase_setDeletedKeys";
 }
 
 // This mixin can be applied to _HashFieldBase or _HashVMBase (for
@@ -238,7 +238,10 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     final int tmpUsed = _usedData;
     _usedData = 0;
     for (int i = 0; i < tmpUsed; i += 2) {
-      this[_data[i]] = _data[i + 1];
+      final key = _data[i];
+      if (!_HashBase._isDeleted(_data, key)) {
+        this[key] = _data[i + 1];
+      }
     }
   }
 
@@ -487,18 +490,14 @@ class _CompactIterator<E> implements Iterator<E> {
   E get current => _current as E;
 }
 
-// Set implementation, analogous to _CompactLinkedHashMap.
-@pragma('vm:entry-point')
-class _CompactLinkedHashSet<E> extends _HashFieldBase
-    with _HashBase, _OperatorEqualsAndHashCode, SetMixin<E>
-    implements LinkedHashSet<E> {
-  _CompactLinkedHashSet() : super(_HashBase._INITIAL_INDEX_SIZE >> 1) {
-    assert(_HashBase._UNUSED_PAIR == 0);
-  }
+abstract class _LinkedHashSetMixin<E> implements _HashBase {
+  int _hashCode(e);
+  bool _equals(e1, e2);
+  int get _checkSum;
+  bool _isModifiedSince(List oldData, int oldCheckSum);
 
-  static Set<R> _newEmpty<R>() => new _CompactLinkedHashSet<R>();
-
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
   int get length => _usedData - _deletedKeys;
 
   E get first {
@@ -647,19 +646,51 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   Iterator<E> get iterator =>
       new _CompactIterator<E>(this, _data, _usedData, -1, 1);
 
-  // Returns a set of the same type, although this
-  // is not required by the spec. (For instance, always using an identity set
-  // would be technically correct, albeit surprising.)
-  Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
-
   // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
+    _index = _data.length == 0 ? _initialIndex : new Uint32List(_data.length);
+    assert(_hashMask == 0);
+    _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     _rehash();
   }
 }
 
-class _CompactLinkedIdentityHashSet<E> extends _CompactLinkedHashSet<E>
-    with _IdenticalAndIdentityHashCode {
+// Set implementation, analogous to _CompactLinkedHashMap.
+@pragma('vm:entry-point')
+class _CompactLinkedHashSet<E> extends _HashVMBase
+    with
+        SetMixin<E>,
+        _LinkedHashSetMixin<E>,
+        _HashBase,
+        _OperatorEqualsAndHashCode
+    implements LinkedHashSet<E> {
+  _CompactLinkedHashSet() {
+    _index = _initialIndex;
+    _hashMask = 0;
+    _data = _initialData;
+    _usedData = 0;
+    _deletedKeys = 0;
+  }
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  static Set<R> _newEmpty<R>() => new _CompactLinkedHashSet<R>();
+
+  // Returns a set of the same type, although this
+  // is not required by the spec. (For instance, always using an identity set
+  // would be technically correct, albeit surprising.)
+  Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
+}
+
+class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
+    with
+        SetMixin<E>,
+        _LinkedHashSetMixin<E>,
+        _HashBase,
+        _IdenticalAndIdentityHashCode
+    implements LinkedHashSet<E> {
+  _CompactLinkedIdentityHashSet() : super(_HashBase._INITIAL_INDEX_SIZE);
+
   Set<E> toSet() => new _CompactLinkedIdentityHashSet<E>()..addAll(this);
 
   static Set<R> _newEmpty<R>() => new _CompactLinkedIdentityHashSet<R>();
@@ -667,7 +698,9 @@ class _CompactLinkedIdentityHashSet<E> extends _CompactLinkedHashSet<E>
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 }
 
-class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
+class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
+    with SetMixin<E>, _LinkedHashSetMixin<E>, _HashBase
+    implements LinkedHashSet<E> {
   final _equality;
   final _hasher;
   final _validKey;
@@ -680,7 +713,8 @@ class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
 
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
+      : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test,
+        super(_HashBase._INITIAL_INDEX_SIZE);
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
   Set<E> toSet() =>

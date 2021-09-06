@@ -8,7 +8,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
-import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -49,8 +48,9 @@ class AnalyzerConverter {
     return plugin.AnalysisError(
         convertErrorSeverity(severity),
         convertErrorType(errorCode.type),
-        plugin.Location(error.source.fullName, offset, error.length, startLine,
-            startColumn, endLine, endColumn),
+        plugin.Location(
+            error.source.fullName, offset, error.length, startLine, startColumn,
+            endLine: endLine, endColumn: endColumn),
         error.message,
         errorCode.name.toLowerCase(),
         contextMessages: contextMessages,
@@ -107,9 +107,9 @@ class AnalyzerConverter {
       endColumn = endLocation.columnNumber;
     }
     return plugin.DiagnosticMessage(
-        message.message,
-        plugin.Location(
-            file, offset, length, startLine, startColumn, endLine, endColumn));
+        message.messageText(includeUrl: true),
+        plugin.Location(file, offset, length, startLine, startColumn,
+            endLine: endLine, endColumn: endColumn));
   }
 
   /// Convert the given [element] from the 'analyzer' package to an element
@@ -408,6 +408,7 @@ class AnalyzerConverter {
       // Ignore exceptions
     }
     return plugin.Location(unitElement.source.fullName, range.offset,
-        range.length, startLine, startColumn, endLine, endColumn);
+        range.length, startLine, startColumn,
+        endLine: endLine, endColumn: endColumn);
   }
 }

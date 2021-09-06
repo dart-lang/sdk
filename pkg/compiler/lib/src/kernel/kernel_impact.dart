@@ -340,10 +340,6 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
 
-    if (commonElements.isSymbolConstructor(constructor)) {
-      impactBuilder.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
-    }
-
     if (target.isExternal &&
         constructor.isFromEnvironmentConstructor &&
         !isConst) {

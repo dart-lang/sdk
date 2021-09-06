@@ -4,6 +4,8 @@
 //
 // Dart test program for testing typed data.
 
+// @dart = 2.9
+
 // VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
 // Library tag to be able to run in html test framework.

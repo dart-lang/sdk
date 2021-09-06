@@ -9,7 +9,7 @@ class B<T extends core::Object* = dynamic> extends core::Object {
     ;
   method g({generic-covariant-impl self::B::T* x}) → void
     ;
-  method h<generic-covariant-impl U extends self::B::T* = self::B::T*>() → void
+  method h<generic-covariant-impl U extends self::B::T*>() → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

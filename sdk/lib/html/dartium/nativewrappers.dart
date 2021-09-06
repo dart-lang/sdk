@@ -6,8 +6,18 @@ library nativewrappers;
 
 class NativeFieldWrapperClass1 {}
 
-class NativeFieldWrapperClass2 {}
+class NativeFieldWrapperClass2 extends NativeFieldWrapperClass1 {}
 
-class NativeFieldWrapperClass3 {}
+class NativeFieldWrapperClass3 extends NativeFieldWrapperClass2 {}
 
-class NativeFieldWrapperClass4 {}
+class NativeFieldWrapperClass4 extends NativeFieldWrapperClass3 {}
+
+/// Gets the value of the native field of [object].
+///
+/// Throws an exception if [object] is null or if the native field was not set.
+///
+/// NOTE: This is function is temporary and will be deprecated in the near
+/// future.
+@pragma("vm:recognized", "other")
+int getNativeField(NativeFieldWrapperClass1 object)
+    native "FullyRecognizedMethod_NoNative";

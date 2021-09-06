@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -12,6 +10,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -22,7 +21,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     var tokens = <Token>[];
-    var scanner = Scanner(null, CharSequenceReader(text), null)
+    var scanner = Scanner(_SourceMock.instance, CharSequenceReader(text),
+        AnalysisErrorListener.NULL_LISTENER)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,
@@ -30,11 +30,11 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
     var token = scanner.tokenize();
     while (token.type != TokenType.EOF) {
       tokens.add(token);
-      token = token.next;
+      token = token.next!;
     }
     return tokens;
   } catch (e) {
-    return List<Token>.filled(0, null);
+    return const <Token>[];
   }
 }
 
@@ -56,7 +56,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   }
 
   /// Records fatal error with given message and [Location].
-  void invalidSelection(String message, [Location context]) {
+  void invalidSelection(String message, [Location? context]) {
     if (!_status.hasFatalError) {
       _status.addFatalError(message, context);
     }
@@ -64,10 +64,10 @@ class StatementAnalyzer extends SelectionAnalyzer {
   }
 
   @override
-  Object visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     super.visitCompilationUnit(node);
     if (!hasSelectedNodes) {
-      return null;
+      return;
     }
     // check that selection does not begin/end in comment
     {
@@ -87,26 +87,24 @@ class StatementAnalyzer extends SelectionAnalyzer {
     if (!_status.hasFatalError) {
       _checkSelectedNodes(node);
     }
-    return null;
   }
 
   @override
-  Object visitDoStatement(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     super.visitDoStatement(node);
-    var selectedNodes = this.selectedNodes;
+    final selectedNodes = this.selectedNodes;
     if (_contains(selectedNodes, node.body)) {
       invalidSelection(
           "Operation not applicable to a 'do' statement's body and expression.");
     }
-    return null;
   }
 
   @override
-  Object visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     super.visitForStatement(node);
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
-      var selectedNodes = this.selectedNodes;
+      final selectedNodes = this.selectedNodes;
       bool containsInit;
       if (forLoopParts is ForPartsWithExpression) {
         containsInit = _contains(selectedNodes, forLoopParts.initialization);
@@ -129,13 +127,12 @@ class StatementAnalyzer extends SelectionAnalyzer {
             "Operation not applicable to a 'for' statement's updaters and body.");
       }
     }
-    return null;
   }
 
   @override
-  Object visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     super.visitSwitchStatement(node);
-    var selectedNodes = this.selectedNodes;
+    final selectedNodes = this.selectedNodes;
     List<SwitchMember> switchMembers = node.members;
     for (var selectedNode in selectedNodes) {
       if (switchMembers.contains(selectedNode)) {
@@ -144,13 +141,12 @@ class StatementAnalyzer extends SelectionAnalyzer {
         break;
       }
     }
-    return null;
   }
 
   @override
-  Object visitTryStatement(TryStatement node) {
+  void visitTryStatement(TryStatement node) {
     super.visitTryStatement(node);
-    var firstSelectedNode = this.firstSelectedNode;
+    final firstSelectedNode = this.firstSelectedNode;
     if (firstSelectedNode != null) {
       if (firstSelectedNode == node.body ||
           firstSelectedNode == node.finallyBlock) {
@@ -168,19 +164,17 @@ class StatementAnalyzer extends SelectionAnalyzer {
         }
       }
     }
-    return null;
   }
 
   @override
-  Object visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     super.visitWhileStatement(node);
-    var selectedNodes = this.selectedNodes;
+    final selectedNodes = this.selectedNodes;
     if (_contains(selectedNodes, node.condition) &&
         _contains(selectedNodes, node.body)) {
       invalidSelection(
           "Operation not applicable to a while statement's expression and body.");
     }
-    return null;
   }
 
   /// Checks final selected [AstNode]s after processing [CompilationUnit].
@@ -220,7 +214,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   }
 
   /// Returns `true` if [nodes] contains [node].
-  static bool _contains(List<AstNode> nodes, AstNode node) =>
+  static bool _contains(List<AstNode> nodes, AstNode? node) =>
       nodes.contains(node);
 
   /// Returns `true` if [nodes] contains one of the [otherNodes].
@@ -232,4 +226,11 @@ class StatementAnalyzer extends SelectionAnalyzer {
     }
     return false;
   }
+}
+
+class _SourceMock implements Source {
+  static final Source instance = _SourceMock();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

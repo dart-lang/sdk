@@ -420,7 +420,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField',
-          expectedError: "Error: Getter not found: '_staticField'.");
+          expectedResult: '2');
     });
 
     test('access field', () async {
@@ -447,10 +447,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     test('async method call', () async {
       await driver.check(
           breakpointId: 'globalFunctionBP',
-          expression: 'c.asyncMethod(2)',
-          expectedResult: '_Future.new {Symbol(_state): 1, '
-              'Symbol(_resultOrListeners): null, '
-              'Symbol(_zone): _RootZone {}');
+          expression: 'c.asyncMethod(2).runtimeType.toString()',
+          expectedResult: '_Future<int>');
     });
 
     test('extension method call', () async {
@@ -478,7 +476,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField = 2',
-          expectedError: "Setter not found: '_staticField'.");
+          expectedResult: '2');
     });
 
     test('static field modification', () async {
@@ -580,10 +578,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     test('async method call', () async {
       await driver.check(
           breakpointId: 'constructorBP',
-          expression: 'asyncMethod(2)',
-          expectedResult: '_Future.new {Symbol(_state): 1, '
-              'Symbol(_resultOrListeners): null, '
-              'Symbol(_zone): _RootZone {}');
+          expression: 'asyncMethod(2).runtimeType.toString()',
+          expectedResult: '_Future<int>');
     });
 
     test('extension method call', () async {
@@ -679,10 +675,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     test('awaited method call', () async {
       await driver.check(
           breakpointId: 'bp1',
-          expression: 'c.asyncMethod(1)',
-          expectedResult: '_Future.new {Symbol(_state): 1, '
-              'Symbol(_resultOrListeners): null, '
-              'Symbol(_zone): _RootZone {}');
+          expression: 'c.asyncMethod(1).runtimeType.toString()',
+          expectedResult: '_Future<int>');
     }, skip: "'await' is not yet supported in expression evaluation.");
 
     test('awaited method call', () async {
@@ -961,6 +955,101 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     test('expression loop variable', () async {
       await driver.check(
           breakpointId: 'bp', expression: 'e', expectedResult: '1');
+    });
+  });
+
+  group('Expression compiler tests in generic method:', () {
+    var source = '''
+        class C<T1> {
+          void generic<T2>(T1 a, T2 b) {
+            // Breakpoint: bp
+            print(a);
+            print(b);
+          }
+        }
+
+        void main() => C<int>().generic<String>(0, 'hi');
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() {
+      driver.cleanupTest();
+    });
+
+    test('evaluate formals', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: "'\${a} \$b'",
+          expectedResult: '0 hi');
+    });
+
+    test('evaluate class type parameters', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: "'\$T1'", expectedResult: 'int');
+    });
+
+    test('evaluate method type parameters', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: "'\$T2'", expectedResult: 'String');
+    });
+  });
+
+  group('Expression compiler tests for interactions with module containers:',
+      () {
+    var source = '''
+        class A {
+          const A();
+        }
+        class B {
+          const B();
+        }
+        void foo() {
+          const a = A();
+          var check = a is int;
+          // Breakpoint: bp
+          return;
+        }
+
+        void main() => foo();
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() {
+      driver.cleanupTest();
+    });
+
+    test('evaluation that non-destructively appends to the type container',
+        () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'a is String',
+          expectedResult: 'false');
+    });
+
+    test('evaluation that reuses the type container', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: 'a is int', expectedResult: 'false');
+    });
+
+    test('evaluation that non-destructively appends to the constant container',
+        () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'const B() == const B()',
+          expectedResult: 'true');
+    });
+
+    test('evaluation that properly canonicalizes constants', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'a == const A()',
+          expectedResult: 'true');
     });
   });
 }

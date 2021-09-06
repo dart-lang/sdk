@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 
@@ -32,11 +33,13 @@ void main(List<String> args) async {
       }
 
       final errorsResult = await context.currentSession.getErrors(filePath);
-      for (final error in errorsResult.errors) {
-        if (error.errorCode.type != ErrorType.TODO) {
-          print(
-              '  \u001b[1m${error.source.shortName}\u001b[0m ${error.message}');
-          issueCount++;
+      if (errorsResult is ErrorsResult) {
+        for (final error in errorsResult.errors) {
+          if (error.errorCode.type != ErrorType.TODO) {
+            print(
+                '  \u001b[1m${error.source.shortName}\u001b[0m ${error.message}');
+            issueCount++;
+          }
         }
       }
     }

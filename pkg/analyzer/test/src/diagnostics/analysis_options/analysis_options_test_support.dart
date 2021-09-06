@@ -12,7 +12,7 @@ class AbstractAnalysisOptionsTest {
   Future<void> assertErrorsInCode(
       String code, List<ExpectedError> expectedErrors) async {
     var diagnostics =
-        analyzeAnalysisOptions(TestSource(), code, SourceFactory([]));
+        analyzeAnalysisOptions(TestSource(), code, SourceFactory([]), '/');
     var errorListener = GatheringErrorListener();
     errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);

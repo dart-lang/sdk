@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import '../fasta/kernel/late_lowering.dart';
 import '../fasta/source/source_extension_builder.dart' show extensionThisName;
@@ -28,6 +26,7 @@ import '../fasta/source/source_extension_builder.dart' show extensionThisName;
 /// The default value of this field is `null`.
 bool isLateLoweredField(Field node) {
   return node.isInternalImplementation &&
+      // ignore: unnecessary_null_comparison
       node.name != null &&
       node.name.text.startsWith(lateFieldPrefix) &&
       !node.name.text.endsWith(lateIsSetSuffix);
@@ -56,7 +55,7 @@ Name extractFieldNameFromLateLoweredField(Field node) {
   assert(isLateLoweredField(node));
   String prefix = lateFieldPrefix;
   if (node.isInstanceMember) {
-    prefix = '$prefix${node.enclosingClass.name}#';
+    prefix = '$prefix${node.enclosingClass!.name}#';
   }
   return new Name(node.name.text.substring(prefix.length), node.name.library);
 }
@@ -83,6 +82,7 @@ Name extractFieldNameFromLateLoweredField(Field node) {
 /// The default value of this field is `false`.
 bool isLateLoweredIsSetField(Field node) {
   return node.isInternalImplementation &&
+      // ignore: unnecessary_null_comparison
       node.name != null &&
       node.name.text.startsWith(lateFieldPrefix) &&
       node.name.text.endsWith(lateIsSetSuffix);
@@ -114,7 +114,7 @@ Name extractFieldNameFromLateLoweredIsSetField(Field node) {
   assert(isLateLoweredIsSetField(node));
   String prefix = lateFieldPrefix;
   if (node.isInstanceMember) {
-    prefix = '$prefix${node.enclosingClass.name}#';
+    prefix = '$prefix${node.enclosingClass!.name}#';
   }
   return new Name(
       node.name.text.substring(
@@ -143,7 +143,7 @@ Name extractFieldNameFromLateLoweredIsSetField(Field node) {
 /// result should be cached on the use site if queried repeatedly.
 bool isLateLoweredFieldGetter(Procedure node) {
   if (node.kind == ProcedureKind.Getter) {
-    TreeNode parent = node.parent;
+    TreeNode? parent = node.parent;
     if (parent is Class) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
@@ -202,7 +202,7 @@ Name extractFieldNameFromLateLoweredFieldGetter(Procedure node) {
 /// result should be cached on the use site if queried repeatedly.
 bool isLateLoweredFieldSetter(Procedure node) {
   if (node.kind == ProcedureKind.Setter) {
-    TreeNode parent = node.parent;
+    TreeNode? parent = node.parent;
     if (parent is Class) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
@@ -265,20 +265,22 @@ Name extractFieldNameFromLateLoweredFieldSetter(Procedure node) {
 /// If the original late field had no initializer, `null` is returned.
 ///
 /// If [node] is not part of a late field lowering, `null` is returned.
-Expression getLateFieldInitializer(Member node) {
-  Procedure lateFieldGetter = _getLateFieldTarget(node);
+Expression? getLateFieldInitializer(Member node) {
+  Procedure? lateFieldGetter = _getLateFieldTarget(node);
   if (lateFieldGetter != null) {
-    Statement body = lateFieldGetter.function.body;
+    Statement body = lateFieldGetter.function.body!;
+    // TODO(johnniwinther): Rewrite to avoid `as X`.
     if (body is Block &&
         body.statements.length == 2 &&
         body.statements.first is IfStatement) {
-      IfStatement ifStatement = body.statements.first;
+      IfStatement ifStatement = body.statements.first as IfStatement;
       if (ifStatement.then is Block) {
-        Block block = ifStatement.then;
+        Block block = ifStatement.then as Block;
         if (block.statements.isNotEmpty &&
             block.statements.first is ExpressionStatement) {
-          ExpressionStatement firstStatement = block.statements.first;
-          if (firstStatement.expression is PropertySet) {
+          ExpressionStatement firstStatement =
+              block.statements.first as ExpressionStatement;
+          if (firstStatement.expression is InstanceSet) {
             // We have
             //
             //    get field {
@@ -290,9 +292,9 @@ Expression getLateFieldInitializer(Member node) {
             //    }
             //
             // in case `<init>` is the initializer.
-            PropertySet propertySet = firstStatement.expression;
-            assert(propertySet.interfaceTarget == getLateFieldTarget(node));
-            return propertySet.value;
+            InstanceSet instanceSet = firstStatement.expression as InstanceSet;
+            assert(instanceSet.interfaceTarget == getLateFieldTarget(node));
+            return instanceSet.value;
           } else if (firstStatement.expression is StaticSet) {
             // We have
             //
@@ -305,7 +307,7 @@ Expression getLateFieldInitializer(Member node) {
             //    }
             //
             // in case `<init>` is the initializer.
-            StaticSet staticSet = firstStatement.expression;
+            StaticSet staticSet = firstStatement.expression as StaticSet;
             assert(staticSet.target == getLateFieldTarget(node));
             return staticSet.value;
           }
@@ -324,13 +326,14 @@ Expression getLateFieldInitializer(Member node) {
           //    }
           //
           // in case `<init>` is the initializer.
-          VariableDeclaration variableDeclaration = block.statements.first;
+          VariableDeclaration variableDeclaration =
+              block.statements.first as VariableDeclaration;
           return variableDeclaration.initializer;
         }
       }
       return null;
     } else if (body is ReturnStatement) {
-      Expression expression = body.expression;
+      Expression? expression = body.expression;
       if (expression is ConditionalExpression &&
           expression.otherwise is Throw) {
         // We have
@@ -350,7 +353,7 @@ Expression getLateFieldInitializer(Member node) {
             //
             // in which case there is no initializer.
             return null;
-          } else if (then is PropertySet) {
+          } else if (then is InstanceSet) {
             // We have
             //
             //    get field => let # = this._#field in <is-unset>
@@ -392,8 +395,8 @@ Expression getLateFieldInitializer(Member node) {
 /// either the field holding the value, the field holding the marker for whether
 /// it has been set or not, getter for reading the value, or the setter for
 /// setting the value of the field.
-Procedure _getLateFieldTarget(Member node) {
-  Name lateFieldName;
+Procedure? _getLateFieldTarget(Member node) {
+  Name? lateFieldName;
   if (node is Procedure) {
     if (isLateLoweredFieldGetter(node)) {
       return node;
@@ -408,14 +411,14 @@ Procedure _getLateFieldTarget(Member node) {
     }
   }
   if (lateFieldName != null) {
-    TreeNode parent = node.parent;
-    List<Procedure> procedures;
+    TreeNode? parent = node.parent;
+    List<Procedure>? procedures;
     if (parent is Class) {
       procedures = parent.procedures;
     } else if (parent is Library) {
       procedures = parent.procedures;
     }
-    return procedures.singleWhere((Procedure procedure) =>
+    return procedures!.singleWhere((Procedure procedure) =>
         isLateLoweredFieldGetter(procedure) &&
         extractFieldNameFromLateLoweredFieldGetter(procedure) == lateFieldName);
   }
@@ -445,8 +448,8 @@ Procedure _getLateFieldTarget(Member node) {
 /// field.
 ///
 /// If [node] is not part of a late field lowering, `null` is returned.
-Field getLateFieldTarget(Member node) {
-  Name lateFieldName;
+Field? getLateFieldTarget(Member node) {
+  Name? lateFieldName;
   if (node is Procedure) {
     if (isLateLoweredFieldGetter(node)) {
       lateFieldName = extractFieldNameFromLateLoweredFieldGetter(node);
@@ -461,14 +464,14 @@ Field getLateFieldTarget(Member node) {
     }
   }
   if (lateFieldName != null) {
-    TreeNode parent = node.parent;
-    List<Field> fields;
+    TreeNode? parent = node.parent;
+    List<Field>? fields;
     if (parent is Class) {
       fields = parent.fields;
     } else if (parent is Library) {
       fields = parent.fields;
     }
-    return fields.singleWhere((Field field) =>
+    return fields!.singleWhere((Field field) =>
         isLateLoweredField(field) &&
         extractFieldNameFromLateLoweredField(field) == lateFieldName);
   }
@@ -496,8 +499,8 @@ Field getLateFieldTarget(Member node) {
 bool isLateLoweredLocal(VariableDeclaration node) {
   assert(node.isLowered ||
       node.name == null ||
-      !isLateLoweredLocalName(node.name));
-  return node.isLowered && isLateLoweredLocalName(node.name);
+      !isLateLoweredLocalName(node.name!));
+  return node.isLowered && isLateLoweredLocalName(node.name!);
 }
 
 /// Returns `true` if [name] is the name of a local variable holding the value
@@ -541,8 +544,8 @@ String extractLocalNameFromLateLoweredLocal(String name) {
 bool isLateLoweredIsSetLocal(VariableDeclaration node) {
   assert(node.isLowered ||
       node.name == null ||
-      !isLateLoweredIsSetLocalName(node.name));
-  return node.isLowered && isLateLoweredIsSetLocalName(node.name);
+      !isLateLoweredIsSetLocalName(node.name!));
+  return node.isLowered && isLateLoweredIsSetLocalName(node.name!);
 }
 
 /// Returns `true` if [name] is the name of a local variable holding the marker
@@ -580,8 +583,8 @@ String extractLocalNameFromLateLoweredIsSet(String name) {
 bool isLateLoweredLocalGetter(VariableDeclaration node) {
   assert(node.isLowered ||
       node.name == null ||
-      !isLateLoweredLocalGetterName(node.name));
-  return node.isLowered && isLateLoweredLocalGetterName(node.name);
+      !isLateLoweredLocalGetterName(node.name!));
+  return node.isLowered && isLateLoweredLocalGetterName(node.name!);
 }
 
 /// Returns `true` if [name] is the name of the local variable for the local
@@ -621,8 +624,8 @@ String extractLocalNameFromLateLoweredGetter(String name) {
 bool isLateLoweredLocalSetter(VariableDeclaration node) {
   assert(node.isLowered ||
       node.name == null ||
-      !isLateLoweredLocalSetterName(node.name));
-  return node.isLowered && isLateLoweredLocalSetterName(node.name);
+      !isLateLoweredLocalSetterName(node.name!));
+  return node.isLowered && isLateLoweredLocalSetterName(node.name!);
 }
 
 /// Returns `true` if [name] is the name of the local variable for the local
@@ -664,7 +667,7 @@ bool isExtensionThis(VariableDeclaration node) {
 
 /// Returns `true` if [name] is the name of the synthetic parameter holding the
 /// `this` value in the encoding of extension instance members.
-bool isExtensionThisName(String name) {
+bool isExtensionThisName(String? name) {
   return name == extensionThisName;
 }
 
@@ -684,9 +687,9 @@ String extractLocalNameForExtensionThis(String name) {
 ///
 /// Note that the name can be `null` in case of a synthetic variable created
 /// for instance for encoding of `?.`.
-String extractLocalNameFromVariable(VariableDeclaration node) {
+String? extractLocalNameFromVariable(VariableDeclaration node) {
   if (node.isLowered) {
-    String name = _extractLocalName(node.name);
+    String? name = _extractLocalName(node.name!);
     if (name == null) {
       throw new UnsupportedError("Unrecognized lowered local $node");
     }
@@ -708,7 +711,7 @@ String extractLocalName(String name) {
 /// Returns the original name of a lowered variable by the given [name].
 ///
 /// If [name] doesn't correspond to a lowered name `null` is returned.
-String _extractLocalName(String name) {
+String? _extractLocalName(String name) {
   if (isExtensionThisName(name)) {
     return extractLocalNameForExtensionThis(name);
   } else if (isLateLoweredLocalName(name)) {

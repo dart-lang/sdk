@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -36,7 +36,8 @@ def GetBenchmarkFile(path):
 def ReadBenchmarkList(mode, path, core):
     filename = GetBenchmarkFile([path])
     benchmarks = dict()
-    execfile(filename, benchmarks)
+    with open(filename) as infile:
+        exec(infile.read(), benchmarks)
     if (mode == "release") and not core:
         return benchmarks['SUPPORTED_BENCHMARKS']
     else:
@@ -91,11 +92,11 @@ def ProcessOptions(options):
     options.arch = options.arch.split(',')
     for mode in options.mode:
         if not mode in ['debug', 'release']:
-            print "Unknown mode %s" % mode
+            print("Unknown mode %s" % mode)
             return False
     for arch in options.arch:
         if not arch in ['ia32', 'x64', 'simarm', 'arm', 'dartc']:
-            print "Unknown arch %s" % arch
+            print("Unknown arch %s" % arch)
             return False
     return True
 
@@ -138,7 +139,7 @@ def Main():
                     GetBenchmarkFile([benchmark, 'dart', benchmark + '.dart']),
                 ]
                 if options.verbose:
-                    print ' '.join(command)
+                    print(' '.join(command))
                 subprocess.call(command)
     return 0
 

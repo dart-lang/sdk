@@ -24,7 +24,7 @@ class CreateCommand extends DartdevCommand {
       generators.map((generator) => generator.id).toList();
 
   CreateCommand({bool verbose = false})
-      : super(cmdName, 'Create a new Dart project.') {
+      : super(cmdName, 'Create a new Dart project.', verbose) {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds,
@@ -138,8 +138,10 @@ class CreateCommand extends DartdevCommand {
         'Created project $projectName in ${p.relative(dir)}! In order to get '
         'started, run the following commands:');
     log.stdout('');
-    log.stdout(log.ansi.emphasized('  cd ${p.relative(dir)}'));
-    log.stdout(log.ansi.emphasized('  dart run'));
+    log.stdout(generator.getInstallInstructions(
+      dir,
+      projectName,
+    ));
     log.stdout('');
 
     return 0;

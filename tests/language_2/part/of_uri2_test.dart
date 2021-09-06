@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library part_of_uri2;
 
 part "of_uri2_part.dart"; // declares bar1, baz1, uses URI.

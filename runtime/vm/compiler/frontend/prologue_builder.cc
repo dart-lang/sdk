@@ -26,10 +26,11 @@ static CompileType ParameterType(LocalVariable* param,
                                  Representation representation = kTagged) {
   return param->was_type_checked_by_caller()
              ? CompileType::FromAbstractType(param->type(),
-                                             representation == kTagged)
+                                             representation == kTagged,
+                                             CompileType::kCannotBeSentinel)
              : ((representation == kTagged)
                     ? CompileType::Dynamic()
-                    : CompileType::FromCid(kDynamicCid).CopyNonNullable());
+                    : CompileType::Dynamic().CopyNonNullable());
 }
 
 bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
@@ -67,6 +68,11 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   if (expect_type_args) {
     Fragment f = BuildTypeArgumentsHandling();
     if (link) prologue += f;
+
+    if (function_.IsClosureFunction()) {
+      Fragment f = BuildClosureDelayedTypeArgumentsHandling();
+      if (!compiling_for_osr_) prologue += f;
+    }
   }
 
   const bool is_empty_prologue = prologue.entry == prologue.current;
@@ -226,7 +232,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     for (intptr_t i = 0; param < num_params; ++param, ++i) {
       copy_args_prologue += IntConstant(
           compiler::target::ArgumentsDescriptor::named_entry_size() /
-          compiler::target::kWordSize);
+          compiler::target::kCompressedWordSize);
       copy_args_prologue += LoadLocal(optional_count_vars_processed);
       copy_args_prologue += SmiBinaryOp(Token::kMUL, /* truncate= */ true);
       LocalVariable* tuple_diff = MakeTemporary();
@@ -246,10 +252,11 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
           good += IntConstant(
               (first_name_offset +
                compiler::target::ArgumentsDescriptor::position_offset()) /
-              compiler::target::kWordSize);
+              compiler::target::kCompressedWordSize);
           good += LoadLocal(tuple_diff);
           good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
-          good += LoadIndexed(kArrayCid);
+          good += LoadIndexed(
+              kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(
@@ -282,10 +289,11 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
         copy_args_prologue +=
             IntConstant((first_name_offset +
                          compiler::target::ArgumentsDescriptor::name_offset()) /
-                        compiler::target::kWordSize);
+                        compiler::target::kCompressedWordSize);
         copy_args_prologue += LoadLocal(tuple_diff);
         copy_args_prologue += SmiBinaryOp(Token::kADD, /* truncate= */ true);
-        copy_args_prologue += LoadIndexed(kArrayCid);
+        copy_args_prologue += LoadIndexed(
+            kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
 
         // first name in sorted list of all names
         const String& param_name = String::ZoneHandle(
@@ -357,7 +365,8 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling() {
   store_type_args += LoadFpRelativeSlot(
       compiler::target::kWordSize *
           (1 + compiler::target::frame_layout.param_end_from_fp),
-      CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
+      CompileType(CompileType::kCanBeNull, CompileType::kCannotBeSentinel,
+                  kTypeArgumentsCid, nullptr));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
 
@@ -368,27 +377,31 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling() {
 
   handling += TestTypeArgsLen(store_null, store_type_args, 0);
 
-  const auto& function = parsed_function_->function();
-  if (function.IsClosureFunction()) {
-    LocalVariable* closure = parsed_function_->ParameterVariable(0);
-
-    // Currently, delayed type arguments can only be introduced through type
-    // inference in the FE. So if they are present, we can assume they are
-    // correct in number and bound.
-    Fragment use_delayed_type_args;
-    use_delayed_type_args += LoadLocal(closure);
-    use_delayed_type_args +=
-        LoadNativeField(Slot::Closure_delayed_type_arguments());
-    use_delayed_type_args +=
-        StoreLocal(TokenPosition::kNoSource, type_args_var);
-    use_delayed_type_args += Drop();
-
-    handling += TestDelayedTypeArgs(closure,
-                                    /*present=*/use_delayed_type_args,
-                                    /*absent=*/Fragment());
-  }
-
   return handling;
+}
+
+Fragment PrologueBuilder::BuildClosureDelayedTypeArgumentsHandling() {
+  const auto& function = parsed_function_->function();
+  ASSERT(function.IsClosureFunction());
+  LocalVariable* const type_args_var =
+      parsed_function_->RawTypeArgumentsVariable();
+  ASSERT(type_args_var != nullptr);
+
+  LocalVariable* const closure = parsed_function_->ParameterVariable(0);
+
+  // Currently, delayed type arguments can only be introduced through type
+  // inference in the FE. So if they are present, we can assume they are
+  // correct in number and bound.
+  Fragment use_delayed_type_args;
+  use_delayed_type_args += LoadLocal(closure);
+  use_delayed_type_args +=
+      LoadNativeField(Slot::Closure_delayed_type_arguments());
+  use_delayed_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
+  use_delayed_type_args += Drop();
+
+  return TestDelayedTypeArgs(closure,
+                             /*present=*/use_delayed_type_args,
+                             /*absent=*/Fragment());
 }
 
 void PrologueBuilder::SortOptionalNamedParametersInto(int* opt_param_position,

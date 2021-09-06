@@ -156,7 +156,7 @@ void testBasicAuthenticateCallback() {
     HttpClient client = new HttpClient();
     bool passwordChanged = false;
 
-    client.authenticate = (Uri url, String scheme, String realm) {
+    client.authenticate = (Uri url, String scheme, String? realm) {
       Expect.equals("Basic", scheme);
       Expect.equals("realm", realm);
       String username = url.path.substring(1, 6);
@@ -165,7 +165,7 @@ void testBasicAuthenticateCallback() {
       final completer = new Completer<bool>();
       new Timer(const Duration(milliseconds: 10), () {
         client.addCredentials(
-            url, realm, new HttpClientBasicCredentials(username, password));
+            url, realm!, new HttpClientBasicCredentials(username, password));
         completer.complete(true);
       });
       return completer.future;
@@ -208,7 +208,7 @@ void testBasicAuthenticateCallback() {
 void testLocalServerBasic() {
   HttpClient client = new HttpClient();
 
-  client.authenticate = (Uri url, String scheme, String realm) {
+  client.authenticate = (Uri url, String scheme, String? realm) {
     client.addCredentials(Uri.parse("http://127.0.0.1/basic"), "test",
         new HttpClientBasicCredentials("test", "test"));
     return new Future.value(true);
@@ -228,7 +228,7 @@ void testLocalServerBasic() {
 void testLocalServerDigest() {
   HttpClient client = new HttpClient();
 
-  client.authenticate = (Uri url, String scheme, String realm) {
+  client.authenticate = (Uri url, String scheme, String? realm) {
     print("url: $url, scheme: $scheme, realm: $realm");
     client.addCredentials(Uri.parse("http://127.0.0.1/digest"), "test",
         new HttpClientDigestCredentials("test", "test"));

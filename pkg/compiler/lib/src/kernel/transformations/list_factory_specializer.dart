@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/type_algebra.dart';
 import 'factory_specializer.dart';
 
 /// Replaces invocation of List factory constructors.
@@ -25,11 +28,11 @@ class ListFactorySpecializer extends BaseSpecializer {
 
   ListFactorySpecializer(this.coreTypes, this.hierarchy)
       : _listGenerateFactory =
-            coreTypes.index.getMember('dart:core', 'List', 'generate'),
+            coreTypes.index.getProcedure('dart:core', 'List', 'generate'),
         _arrayAllocateFixedFactory = coreTypes.index
-            .getMember('dart:_interceptors', 'JSArray', 'allocateFixed'),
+            .getProcedure('dart:_interceptors', 'JSArray', 'allocateFixed'),
         _arrayAllocateGrowableFactory = coreTypes.index
-            .getMember('dart:_interceptors', 'JSArray', 'allocateGrowable'),
+            .getProcedure('dart:_interceptors', 'JSArray', 'allocateGrowable'),
         _jsArrayClass =
             coreTypes.index.getClass('dart:_interceptors', 'JSArray'),
         _intClass = coreTypes.index.getClass('dart:core', 'int') {
@@ -41,17 +44,14 @@ class ListFactorySpecializer extends BaseSpecializer {
     });
   }
 
-  Member _intPlus;
-  Member get intPlus =>
-      _intPlus ??= hierarchy.getInterfaceMember(_intClass, Name('+'));
+  late final Procedure intPlus =
+      hierarchy.getInterfaceMember(_intClass, Name('+')) as Procedure;
 
-  Member _intLess;
-  Member get intLess =>
-      _intLess ??= hierarchy.getInterfaceMember(_intClass, Name('<'));
+  late final Procedure intLess =
+      hierarchy.getInterfaceMember(_intClass, Name('<')) as Procedure;
 
-  Member _jsArrayIndexSet;
-  Member get jsArrayIndexSet => _jsArrayIndexSet ??=
-      hierarchy.getInterfaceMember(_jsArrayClass, Name('[]='));
+  late final Procedure jsArrayIndexSet =
+      hierarchy.getInterfaceMember(_jsArrayClass, Name('[]=')) as Procedure;
 
   /// Replace calls to `List.generate(length, (i) => e)` with an expansion
   ///
@@ -73,7 +73,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     assert(args.positional.length == 2);
     final length = args.positional[0];
     final generator = args.positional[1];
-    final bool growable =
+    final bool? growable =
         _getConstantNamedOptionalArgument(args, 'growable', true);
     if (growable == null) return node;
 
@@ -89,18 +89,18 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     // If the length is a constant, use the constant directly so that the
     // inferrer can see the constant length.
-    int /*?*/ lengthConstant = _getLengthArgument(args);
-    VariableDeclaration lengthVariable;
+    int? lengthConstant = _getLengthArgument(args);
+    VariableDeclaration? lengthVariable;
 
     Expression getLength() {
       if (lengthConstant != null) return IntLiteral(lengthConstant);
       lengthVariable ??= VariableDeclaration('_length',
           initializer: length, isFinal: true, type: intType)
         ..fileOffset = node.fileOffset;
-      return VariableGet(lengthVariable)..fileOffset = node.fileOffset;
+      return VariableGet(lengthVariable!)..fileOffset = node.fileOffset;
     }
 
-    TreeNode allocation = StaticInvocation(
+    Expression allocation = StaticInvocation(
         growable ? _arrayAllocateGrowableFactory : _arrayAllocateFixedFactory,
         Arguments(
           [getLength()],
@@ -121,30 +121,37 @@ class ListFactorySpecializer extends BaseSpecializer {
       initializer: IntLiteral(0),
       type: intType,
     )..fileOffset = node.fileOffset;
-    indexVariable.fileOffset = (generator as FunctionExpression)
-        .function
-        .positionalParameters
-        .first
-        .fileOffset;
+    indexVariable.fileOffset =
+        generator.function.positionalParameters.first.fileOffset;
 
     final loop = ForStatement(
       // initializers: _i = 0
       [indexVariable],
       // condition: _i < _length
-      MethodInvocation(
+      InstanceInvocation(
+        InstanceAccessKind.Instance,
         VariableGet(indexVariable)..fileOffset = node.fileOffset,
         Name('<'),
         Arguments([getLength()]),
-      )..interfaceTarget = intLess,
+        interfaceTarget: intLess,
+        functionType: intLess.getterType as FunctionType,
+      ),
       // updates: _i++
       [
         VariableSet(
           indexVariable,
-          MethodInvocation(
-            VariableGet(indexVariable)..fileOffset = node.fileOffset,
-            Name('+'),
-            Arguments([IntLiteral(1)]),
-          )..interfaceTarget = intPlus,
+          InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(indexVariable)..fileOffset = node.fileOffset,
+              Name('+'),
+              Arguments([IntLiteral(1)]),
+              interfaceTarget: intPlus,
+              functionType: FunctionType(
+                  [intType],
+                  intType,
+                  contextMember.isNonNullableByDefault
+                      ? Nullability.nonNullable
+                      : Nullability.legacy)),
         )..fileOffset = node.fileOffset,
       ],
       // body, e.g. _list[_i] = expression;
@@ -153,7 +160,7 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     return BlockExpression(
       Block([
-        if (lengthVariable != null) lengthVariable,
+        if (lengthVariable != null) lengthVariable!,
         listVariable,
         loop,
       ]),
@@ -174,7 +181,7 @@ class ListFactorySpecializer extends BaseSpecializer {
 
   /// Returns constant value of the first argument in [args], or null if it is
   /// not a constant.
-  int /*?*/ _getLengthArgument(Arguments args) {
+  int? _getLengthArgument(Arguments args) {
     if (args.positional.length < 1) return null;
     final value = args.positional.first;
     if (value is IntLiteral) {
@@ -191,7 +198,7 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// Returns constant value of the only named optional argument in [args], or
   /// null if it is not a bool constant. Returns [defaultValue] if optional
   /// argument is not passed. Argument is asserted to have the given [name].
-  bool /*?*/ _getConstantNamedOptionalArgument(
+  bool? _getConstantNamedOptionalArgument(
       Arguments args, String name, bool defaultValue) {
     if (args.named.isEmpty) {
       return defaultValue;
@@ -213,15 +220,15 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// Choose a name for the `_list` temporary. If the `List.generate` expression
   /// is an initializer for a variable, use that name so that dart2js can try to
   /// use one JavaScript variable with the source name for 'both' variables.
-  String _listNameFromContext(Expression node) {
-    TreeNode parent = node.parent;
+  String? _listNameFromContext(Expression node) {
+    TreeNode? parent = node.parent;
     if (parent is VariableDeclaration) return parent.name;
     return '_list';
   }
 
   String _indexNameFromContext(FunctionExpression generator) {
     final function = generator.function;
-    String /*?*/ candidate = function.positionalParameters.first.name;
+    String? candidate = function.positionalParameters.first.name;
     if (candidate == null || candidate == '' || candidate == '_') return '_i';
     return candidate;
   }
@@ -235,8 +242,8 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   final int constructorFileOffset;
   final VariableDeclaration listVariable;
   final FunctionNode function;
-  VariableDeclaration argument;
-  VariableDeclaration parameter;
+  late final VariableDeclaration argument;
+  late final VariableDeclaration parameter;
   int functionNestingLevel = 0;
 
   ListGenerateLoopBodyInliner(this.listFactorySpecializer,
@@ -287,7 +294,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   }
 
   Statement run() {
-    final body = cloneInContext(function.body);
+    Statement body = cloneInContext(function.body!);
     return Block([parameter, body]);
   }
 
@@ -315,15 +322,20 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     final value = expression == null ? NullLiteral() : clone(expression);
     // TODO(sra): Indicate that this indexed setter is safe.
     return ExpressionStatement(
-      MethodInvocation(
-        VariableGet(listVariable)..fileOffset = constructorFileOffset,
-        Name('[]='),
-        Arguments([
-          VariableGet(argument)..fileOffset = node.fileOffset,
-          value,
-        ]),
-      )
-        ..interfaceTarget = listFactorySpecializer.jsArrayIndexSet
+      InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(listVariable)..fileOffset = constructorFileOffset,
+          Name('[]='),
+          Arguments([
+            VariableGet(argument)..fileOffset = node.fileOffset,
+            value,
+          ]),
+          interfaceTarget: listFactorySpecializer.jsArrayIndexSet,
+          functionType:
+              Substitution.fromInterfaceType(listVariable.type as InterfaceType)
+                      .substituteType(
+                          listFactorySpecializer.jsArrayIndexSet.getterType)
+                  as FunctionType)
         ..isInvariant = true
         ..isBoundsSafe = true
         ..fileOffset = constructorFileOffset,
@@ -341,7 +353,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
 
   @override
   VariableDeclaration getVariableClone(VariableDeclaration variable) {
-    VariableDeclaration clone = super.getVariableClone(variable);
+    VariableDeclaration? clone = super.getVariableClone(variable);
     return clone ?? variable;
   }
 }

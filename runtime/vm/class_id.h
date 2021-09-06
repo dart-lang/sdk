@@ -17,10 +17,11 @@ namespace dart {
 // Size of the class-id part of the object header. See UntaggedObject.
 typedef uint16_t ClassIdTagType;
 
-#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
+#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                   \
   V(Class)                                                                     \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
+  V(TypeParameters)                                                            \
   V(ClosureData)                                                               \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
@@ -32,6 +33,7 @@ typedef uint16_t ClassIdTagType;
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(InstructionsSection)                                                       \
+  V(InstructionsTable)                                                         \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(CodeSourceMap)                                                             \
@@ -40,6 +42,7 @@ typedef uint16_t ClassIdTagType;
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(Sentinel)                                                                  \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(MonomorphicSmiableCall)                                                    \
@@ -85,10 +88,15 @@ typedef uint16_t ClassIdTagType;
   V(RegExp)                                                                    \
   V(WeakProperty)                                                              \
   V(MirrorReference)                                                           \
-  V(LinkedHashMap)                                                             \
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
   V(TransferableTypedData)
+
+// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashMap.
+#define CLASS_LIST_MAPS(V) V(LinkedHashMap)
+
+// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashSet.
+#define CLASS_LIST_SETS(V) V(LinkedHashSet)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -160,12 +168,16 @@ typedef uint16_t ClassIdTagType;
   V(Float64x2)
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                         \
+  V(LinkedHashMap)                                                             \
+  V(LinkedHashSet)                                                             \
   V(Array)                                                                     \
   V(String)
 
 #define CLASS_LIST_NO_OBJECT(V)                                                \
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                         \
+  CLASS_LIST_MAPS(V)                                                           \
+  CLASS_LIST_SETS(V)                                                           \
   CLASS_LIST_ARRAYS(V)                                                         \
   CLASS_LIST_STRINGS(V)
 
@@ -227,7 +239,6 @@ bool IsNumberClassId(intptr_t index);
 bool IsIntegerClassId(intptr_t index);
 bool IsStringClassId(intptr_t index);
 bool IsOneByteStringClassId(intptr_t index);
-bool IsTwoByteStringClassId(intptr_t index);
 bool IsExternalStringClassId(intptr_t index);
 bool IsBuiltinListClassId(intptr_t index);
 bool IsTypeClassId(intptr_t index);
@@ -235,19 +246,11 @@ bool IsTypedDataBaseClassId(intptr_t index);
 bool IsTypedDataClassId(intptr_t index);
 bool IsTypedDataViewClassId(intptr_t index);
 bool IsExternalTypedDataClassId(intptr_t index);
-bool IsFfiNativeTypeTypeClassId(intptr_t index);
 bool IsFfiPointerClassId(intptr_t index);
 bool IsFfiTypeClassId(intptr_t index);
-bool IsFfiTypeIntClassId(intptr_t index);
-bool IsFfiTypeDoubleClassId(intptr_t index);
-bool IsFfiTypeVoidClassId(intptr_t index);
-bool IsFfiTypeNativeFunctionClassId(intptr_t index);
 bool IsFfiDynamicLibraryClassId(intptr_t index);
-bool IsFfiClassId(intptr_t index);
 bool IsInternalVMdefinedClassId(intptr_t index);
-bool IsVariableSizeClassId(intptr_t index);
 bool IsImplicitFieldClassId(intptr_t index);
-intptr_t NumberOfTypedDataClasses();
 
 inline bool IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
@@ -271,39 +274,21 @@ inline bool IsIntegerClassId(intptr_t index) {
   return (index >= kIntegerCid && index <= kMintCid);
 }
 
+// Make sure this check is updated when new StringCid types are added.
+COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
+               kTwoByteStringCid == kStringCid + 2 &&
+               kExternalOneByteStringCid == kStringCid + 3 &&
+               kExternalTwoByteStringCid == kStringCid + 4);
+
 inline bool IsStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
   return (index >= kStringCid && index <= kExternalTwoByteStringCid);
 }
 
 inline bool IsOneByteStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
 }
 
-inline bool IsTwoByteStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
-  return (index == kTwoByteStringCid || index == kExternalTwoByteStringCid);
-}
-
 inline bool IsExternalStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kExternalOneByteStringCid ||
           index == kExternalTwoByteStringCid);
 }
@@ -353,10 +338,6 @@ inline bool IsExternalTypedDataClassId(intptr_t index) {
                                            3) == kTypedDataCidRemainderExternal;
 }
 
-inline bool IsFfiNativeTypeTypeClassId(intptr_t index) {
-  return index == kFfiNativeTypeCid;
-}
-
 inline bool IsFfiTypeClassId(intptr_t index) {
   switch (index) {
     case kFfiPointerCid:
@@ -383,28 +364,8 @@ inline bool IsFfiPredefinedClassId(classid_t class_id) {
   UNREACHABLE();
 }
 
-inline bool IsFfiTypeIntClassId(intptr_t index) {
-  return (index >= kFfiInt8Cid && index <= kFfiIntPtrCid);
-}
-
-inline bool IsFfiTypeDoubleClassId(intptr_t index) {
-  return (index >= kFfiFloatCid && index <= kFfiDoubleCid);
-}
-
 inline bool IsFfiPointerClassId(intptr_t index) {
   return index == kFfiPointerCid;
-}
-
-inline bool IsFfiTypeVoidClassId(intptr_t index) {
-  return index == kFfiVoidCid;
-}
-
-inline bool IsFfiTypeNativeFunctionClassId(intptr_t index) {
-  return index == kFfiNativeFunctionCid;
-}
-
-inline bool IsFfiClassId(intptr_t index) {
-  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
 }
 
 inline bool IsFfiDynamicLibraryClassId(intptr_t index) {
@@ -415,20 +376,6 @@ inline bool IsInternalVMdefinedClassId(intptr_t index) {
   return ((index < kNumPredefinedCids) && !IsImplicitFieldClassId(index));
 }
 
-inline bool IsVariableSizeClassId(intptr_t index) {
-  return (index == kArrayCid) || (index == kImmutableArrayCid) ||
-         IsOneByteStringClassId(index) || IsTwoByteStringClassId(index) ||
-         IsTypedDataClassId(index) || (index == kContextCid) ||
-         (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
-         (index == kInstructionsSectionCid) || (index == kObjectPoolCid) ||
-         (index == kPcDescriptorsCid) || (index == kCodeSourceMapCid) ||
-         (index == kCompressedStackMapsCid) ||
-         (index == kLocalVarDescriptorsCid) ||
-         (index == kExceptionHandlersCid) || (index == kCodeCid) ||
-         (index == kContextScopeCid) || (index == kInstanceCid) ||
-         (index == kRegExpCid);
-}
-
 // This is a set of classes that are not Dart classes whose representation
 // is defined by the VM but are used in the VM code by computing the
 // implicit field offsets of the various fields in the dart object.
@@ -436,35 +383,30 @@ inline bool IsImplicitFieldClassId(intptr_t index) {
   return index == kByteBufferCid;
 }
 
-inline intptr_t NumberOfTypedDataClasses() {
-  // Make sure this is updated when new TypedData types are added.
+// Make sure the following checks are updated when adding new TypedData types.
 
-  // Ensure that each typed data type comes in internal/view/external variants
-  // next to each other.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 == kTypedDataInt8ArrayViewCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 == kExternalTypedDataInt8ArrayCid);
+// Ensure that each typed data type comes in internal/view/external variants
+// next to each other.
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 == kTypedDataInt8ArrayViewCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 == kExternalTypedDataInt8ArrayCid);
 
-  // Ensure the order of the typed data members in 3-step.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 * 3 == kTypedDataUint8ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 * 3 ==
-                 kTypedDataUint8ClampedArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 * 3 == kTypedDataInt16ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 * 3 == kTypedDataUint16ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 5 * 3 == kTypedDataInt32ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 6 * 3 == kTypedDataUint32ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 7 * 3 == kTypedDataInt64ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 8 * 3 == kTypedDataUint64ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 9 * 3 == kTypedDataFloat32ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 10 * 3 == kTypedDataFloat64ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 11 * 3 ==
-                 kTypedDataFloat32x4ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 12 * 3 == kTypedDataInt32x4ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 13 * 3 ==
-                 kTypedDataFloat64x2ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 14 * 3 == kByteDataViewCid);
-  COMPILE_ASSERT(kByteBufferCid + 1 == kNullCid);
-  return (kNullCid - kTypedDataInt8ArrayCid);
-}
+// Ensure the order of the typed data members in 3-step.
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 * 3 == kTypedDataUint8ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 * 3 ==
+               kTypedDataUint8ClampedArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 * 3 == kTypedDataInt16ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 * 3 == kTypedDataUint16ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 5 * 3 == kTypedDataInt32ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 6 * 3 == kTypedDataUint32ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 7 * 3 == kTypedDataInt64ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 8 * 3 == kTypedDataUint64ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 9 * 3 == kTypedDataFloat32ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 10 * 3 == kTypedDataFloat64ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 11 * 3 == kTypedDataFloat32x4ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 12 * 3 == kTypedDataInt32x4ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 13 * 3 == kTypedDataFloat64x2ArrayCid);
+COMPILE_ASSERT(kTypedDataInt8ArrayCid + 14 * 3 == kByteDataViewCid);
+COMPILE_ASSERT(kByteBufferCid + 1 == kNullCid);
 
 }  // namespace dart
 

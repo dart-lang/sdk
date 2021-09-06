@@ -44,6 +44,9 @@ main() {
   _testFunctionDeclarationImpl();
   _testIfNullExpression();
   _testIntLiterals();
+  _testInternalMethodInvocation();
+  _testInternalPropertyGet();
+  _testInternalPropertySet();
   _testExpressionInvocation();
   _testNamedFunctionExpressionJudgment();
   _testNullAwareMethodInvocation();
@@ -284,7 +287,7 @@ void _testCascade() {
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {} => #0''');
 
-  cascade.addCascadeExpression(new PropertySet(
+  cascade.addCascadeExpression(new DynamicSet(DynamicAccessKind.Dynamic,
       new VariableGet(variable), new Name('foo'), new IntLiteral(1)));
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {
@@ -292,7 +295,7 @@ let final dynamic #0 = 0 in cascade {
 } => #0''', limited: '''
 let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''');
 
-  cascade.addCascadeExpression(new PropertySet(
+  cascade.addCascadeExpression(new DynamicSet(DynamicAccessKind.Dynamic,
       new VariableGet(variable), new Name('bar'), new IntLiteral(2)));
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {
@@ -303,7 +306,7 @@ let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''');
 }
 
 void _testDeferredCheck() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
   VariableDeclaration check =
@@ -313,11 +316,12 @@ let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
 }
 
 void _testFactoryConstructorInvocationJudgment() {
-  Library library = new Library(dummyUri);
-  Class cls = new Class(name: 'Class');
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Class', fileUri: dummyUri);
   library.addClass(cls);
   Procedure factoryConstructor = new Procedure(
-      new Name(''), ProcedureKind.Factory, new FunctionNode(null));
+      new Name(''), ProcedureKind.Factory, new FunctionNode(null),
+      fileUri: dummyUri);
   cls.addProcedure(factoryConstructor);
 
   testExpression(
@@ -371,6 +375,44 @@ void _testIntLiterals() {
   testExpression(new ShadowLargeIntLiteral('bar', TreeNode.noOffset), 'bar');
 }
 
+void _testInternalMethodInvocation() {
+  testExpression(
+      new MethodInvocation(
+          new IntLiteral(0), new Name('boz'), new ArgumentsImpl([])),
+      '''
+0.boz()''');
+  testExpression(
+      new MethodInvocation(
+          new IntLiteral(0),
+          new Name('boz'),
+          new ArgumentsImpl([
+            new IntLiteral(1)
+          ], types: [
+            const VoidType(),
+            const DynamicType()
+          ], named: [
+            new NamedExpression('foo', new IntLiteral(2)),
+            new NamedExpression('bar', new IntLiteral(3))
+          ])),
+      '''
+0.boz<void, dynamic>(1, foo: 2, bar: 3)''');
+}
+
+void _testInternalPropertyGet() {
+  testExpression(
+      new PropertyGet(new IntLiteral(0), new Name('boz')), '''
+0.boz''');
+}
+
+void _testInternalPropertySet() {
+  testExpression(
+      new PropertySet(
+          new IntLiteral(0), new Name('boz'), new IntLiteral(1),
+          forEffect: false, readOnlyReceiver: false),
+      '''
+0.boz = 1''');
+}
+
 void _testExpressionInvocation() {
   testExpression(
       new ExpressionInvocation(new IntLiteral(0), new ArgumentsImpl([])), '''
@@ -401,17 +443,23 @@ let dynamic foo = dynamic () {} in foo''');
 }
 
 void _testNullAwareMethodInvocation() {
-  VariableDeclaration variable =
-      new VariableDeclaration.forValue(new IntLiteral(0));
+  VariableDeclarationImpl variable =
+      new VariableDeclarationImpl.forValue(new IntLiteral(0));
 
   // The usual use of this node.
   testExpression(
       new NullAwareMethodInvocation(
           variable,
-          new MethodInvocation(new VariableGet(variable), new Name('foo'),
+          new DynamicInvocation(
+              DynamicAccessKind.Dynamic,
+              new VariableGet(variable),
+              new Name('foo'),
               new ArgumentsImpl([]))),
       '''
 0?.foo()''');
+
+  // TODO(johnniwinther): Add a test using InstanceInvocation instead of
+  // DynamicInvocation.
 
   // An unusual use of this node.
   testExpression(
@@ -422,8 +470,8 @@ let final dynamic #0 = 0 in null-aware #0.foo''');
 }
 
 void _testNullAwarePropertyGet() {
-  VariableDeclaration variable =
-      new VariableDeclaration.forValue(new IntLiteral(0));
+  VariableDeclarationImpl variable =
+      new VariableDeclarationImpl.forValue(new IntLiteral(0));
 
   // The usual use of this node.
   testExpression(
@@ -436,28 +484,36 @@ void _testNullAwarePropertyGet() {
   testExpression(
       new NullAwarePropertyGet(
           variable,
-          new MethodInvocation(new VariableGet(variable), new Name('foo'),
+          new DynamicInvocation(
+              DynamicAccessKind.Dynamic,
+              new VariableGet(variable),
+              new Name('foo'),
               new ArgumentsImpl([]))),
       '''
 let final dynamic #0 = 0 in null-aware #0.foo()''');
 }
 
 void _testNullAwarePropertySet() {
-  VariableDeclaration variable =
-      new VariableDeclaration.forValue(new IntLiteral(0));
+  VariableDeclarationImpl variable =
+      new VariableDeclarationImpl.forValue(new IntLiteral(0));
 
   testExpression(
       new NullAwarePropertySet(
           variable,
-          new PropertySet(
-              new VariableGet(variable), new Name('foo'), new IntLiteral(1))),
+          new DynamicSet(DynamicAccessKind.Dynamic, new VariableGet(variable),
+              new Name('foo'), new IntLiteral(1))),
       '''
 0?.foo = 1''');
 
+  // TODO(johnniwinther): Add a test using InstanceSet instead of DynamicSet.
+
   testExpression(
       new NullAwarePropertySet(
           variable,
-          new MethodInvocation(new VariableGet(variable), new Name('foo'),
+          new DynamicInvocation(
+              DynamicAccessKind.Dynamic,
+              new VariableGet(variable),
+              new Name('foo'),
               new ArgumentsImpl([]))),
       '''
 let final dynamic #0 = 0 in null-aware #0.foo()''');
@@ -510,22 +566,19 @@ late dynamic foo = 0;''');
 
 void _testVariableGetImpl() {
   VariableDeclaration variable = new VariableDeclaration('foo');
-  testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: false),
-      '''
+  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: false), '''
+foo''');
+  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: true), '''
 foo''');
   testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: true), '''
-foo''');
-  testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: false)
+      new VariableGetImpl(variable, forNullGuardedAccess: false)
         ..promotedType = const VoidType(),
       '''
 foo{void}''');
 }
 
 void _testLoadLibraryImpl() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
   testExpression(new LoadLibraryImpl(dependency, new ArgumentsImpl([])), '''
@@ -537,7 +590,7 @@ pre.loadLibrary(0)''');
 }
 
 void _testLoadLibraryTearOff() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
 
@@ -545,7 +598,8 @@ void _testLoadLibraryTearOff() {
 pre.loadLibrary''');
 
   Procedure procedure = new Procedure(new Name('get#loadLibrary'),
-      ProcedureKind.Getter, new FunctionNode(new Block([])));
+      ProcedureKind.Getter, new FunctionNode(new Block([])),
+      fileUri: dummyUri);
   testExpression(new LoadLibraryTearOff(dependency, procedure), ''' 
 pre.loadLibrary''');
 }
@@ -554,13 +608,13 @@ void _testIfNullPropertySet() {
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          forEffect: false),
+          readOffset: -1, writeOffset: -1, forEffect: false),
       '0.foo ??= 1');
 
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          forEffect: true),
+          readOffset: -1, writeOffset: -1, forEffect: true),
       '0.foo ??= 1');
 }
 
@@ -610,12 +664,15 @@ void _testIndexSet() {}
 void _testSuperIndexSet() {}
 
 void _testExtensionIndexSet() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
-      name: 'Extension', typeParameters: [new TypeParameter('T')]);
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
   library.addExtension(extension);
-  Procedure setter =
-      new Procedure(new Name(''), ProcedureKind.Method, new FunctionNode(null));
+  Procedure setter = new Procedure(
+      new Name(''), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
   library.addProcedure(setter);
 
   testExpression(
@@ -641,31 +698,51 @@ void _testCompoundIndexSet() {
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
           new IntLiteral(2),
-          forEffect: false, forPostIncDec: false),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: false),
       '''
 0[1] += 2''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
           new IntLiteral(1),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1]++''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('-'),
           new IntLiteral(1),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1]--''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('*'),
           new IntLiteral(1),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1] *= 1''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
           new IntLiteral(2),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1] += 2''');
 }
@@ -783,9 +860,9 @@ void _testParenthesizedExpression() {
 }
 
 void _testSpreadElement() {
-  testExpression(new SpreadElement(new IntLiteral(0), false), '''
+  testExpression(new SpreadElement(new IntLiteral(0), isNullAware: false), '''
 ...0''');
-  testExpression(new SpreadElement(new IntLiteral(0), true), '''
+  testExpression(new SpreadElement(new IntLiteral(0), isNullAware: true), '''
 ...?0''');
 }
 

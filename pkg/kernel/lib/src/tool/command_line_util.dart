@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:kernel/kernel.dart';
@@ -37,9 +35,9 @@ class CommandLineHelper {
   static Component tryLoadDill(String file) {
     try {
       return loadComponentFromBinary(file);
-    } catch (e) {
-      print("$file can't be loaded.");
-      print(e);
+    } catch (e, s) {
+      print("$file can't be loaded:");
+      print('$e\n$s');
       exit(1);
     }
   }

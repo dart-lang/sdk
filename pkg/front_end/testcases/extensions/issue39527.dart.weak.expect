@@ -25,10 +25,10 @@ extension Extension1 on self::C* {
 }
 static method Extension1|[](lowered final self::C* #this, core::int* index) → self::C*
   return let final self::C* #t1 = #this in block {
-    #t1.{self::C::value} = #t1.{self::C::value}.{core::num::+}(index.{core::num::+}(1));
+    #t1.{self::C::value} = #t1.{self::C::value}{core::int*}.{core::num::+}(index.{core::num::+}(1){(core::num*) →* core::int*}){(core::num*) →* core::int*};
   } =>#t1;
 static method Extension1|[]=(lowered final self::C* #this, core::int* index, self::C* other) → void
-  return #this.{self::C::value} = #this.{self::C::value}.{core::num::+}(other.{self::C::value}.{core::num::+}(index).{core::num::+}(1));
+  return #this.{self::C::value} = #this.{self::C::value}{core::int*}.{core::num::+}(other.{self::C::value}{core::int*}.{core::num::+}(index){(core::num*) →* core::int*}.{core::num::+}(1){(core::num*) →* core::int*}){(core::num*) →* core::int*};
 static method Extension1|-(lowered final self::C* #this, core::int* val) → self::C*
   return #this;
 static method main() → dynamic {

@@ -681,8 +681,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   bool typeChecksEnabled = false;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
-  int heapAllocatedMemoryUsage = 0;
-  int heapAllocationCount = 0;
+  int mallocUsed = 0;
+  int mallocCapacity = 0;
+  String mallocImplementation = 'unknown';
   int currentMemory;
   int maxRSS;
   int currentRSS;
@@ -1044,8 +1045,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
-    heapAllocationCount = map['_heapAllocationCount'];
+    mallocUsed = map['_mallocUsed'];
+    mallocCapacity = map['_mallocCapacity'];
+    mallocImplementation = map['_mallocImplementation'];
     embedder = map['_embedder'];
     currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];
@@ -2418,6 +2420,9 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   // Either SourceLocation or UnresolvedSourceLocation.
   Location location;
 
+  // Is the breakpoint enabled?
+  bool enabled;
+
   // The breakpoint is in a file which is not yet loaded.
   bool latent;
 
@@ -2436,6 +2441,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
     // number never changes.
     assert((number == null) || (number == newNumber));
     number = newNumber;
+    enabled = map['enabled'];
     resolved = map['resolved'];
 
     var oldLocation = location;
@@ -2457,6 +2463,15 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
     isSyntheticAsyncContinuation = map['isSyntheticAsyncContinuation'] != null;
 
     assert(resolved || location is UnresolvedSourceLocation);
+  }
+
+  Future<void> setState(bool enable) {
+    return location.script.isolate.invokeRpcNoUpgrade('setBreakpointState', {
+      'breakpointId': 'breakpoints/$number',
+      'enable': enable,
+    }).then((Map result) {
+      _update(result, false);
+    });
   }
 
   void remove() {
@@ -4750,7 +4765,7 @@ void _upgradeCollection(collection, ServiceObjectOwner owner) {
 
 void _upgradeMap(Map map, ServiceObjectOwner owner) {
   map.forEach((k, v) {
-    if ((v is Map) && _isServiceMap(v)) {
+    if ((v is Map) && owner != null && _isServiceMap(v)) {
       map[k] = owner.getFromMap(v);
     } else if (v is List) {
       _upgradeList(v, owner);
@@ -4769,7 +4784,7 @@ void _upgradeList(List list, ServiceObjectOwner owner) {
 
   for (var i = 0; i < list.length; i++) {
     var v = list[i];
-    if ((v is Map) && _isServiceMap(v)) {
+    if ((v is Map) && owner != null && _isServiceMap(v)) {
       list[i] = owner.getFromMap(v);
     } else if (v is List) {
       _upgradeList(v, owner);

@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -19,7 +18,7 @@ class FlutterWrap extends MultiCorrectionProducer {
   Iterable<CorrectionProducer> get producers sync* {
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr != null) {
-      var widgetType = widgetExpr.staticType;
+      var widgetType = widgetExpr.typeOrThrow;
       yield _FlutterWrapGeneric(widgetExpr);
       if (!flutter.isExactWidgetTypeCenter(widgetType)) {
         yield _FlutterWrapCenter(widgetExpr);
@@ -45,7 +44,8 @@ class FlutterWrap extends MultiCorrectionProducer {
     var widgetExpressions = <Expression>[];
     if (analyzer.hasSelectedNodes) {
       for (var selectedNode in analyzer.selectedNodes) {
-        if (!flutter.isWidgetExpression(selectedNode)) {
+        if (selectedNode is! Expression ||
+            !flutter.isWidgetExpression(selectedNode)) {
           return;
         }
         widgetExpressions.add(selectedNode);
@@ -249,9 +249,9 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
 
   List<String> get _leadingLines => const [];
 
-  String get _parentClassName => null;
+  String? get _parentClassName => null;
 
-  String get _parentLibraryUri => null;
+  String? get _parentLibraryUri => null;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -260,7 +260,7 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
     // If the wrapper class is specified, find its element.
     var parentLibraryUri = _parentLibraryUri;
     var parentClassName = _parentClassName;
-    ClassElement parentClassElement;
+    ClassElement? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
       parentClassElement =
           await sessionHelper.getClass(parentLibraryUri, parentClassName);

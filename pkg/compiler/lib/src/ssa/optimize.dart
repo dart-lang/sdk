@@ -34,6 +34,7 @@ import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
+import 'interceptor_finalizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -129,9 +130,9 @@ class SsaOptimizerTask extends CompilerTask {
       ];
       phases.forEach(runPhase);
 
-      // Simplifying interceptors is not strictly just an optimization, it is
-      // required for implementation correctness because the code generator
-      // assumes it is always performed.
+      // Simplifying interceptors is just an optimization, it is required for
+      // implementation correctness because the code generator assumes it is
+      // always performed to compute the intercepted classes sets.
       runPhase(new SsaSimplifyInterceptors(closedWorld, member.enclosingClass));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
@@ -163,6 +164,13 @@ class SsaOptimizerTask extends CompilerTask {
       }
       phases.forEach(runPhase);
     });
+
+    // SsaFinalizeInterceptors must always be run to ensure consistent calling
+    // conventions between SSA-generated code and other code fragments generated
+    // by the emitter.
+    // TODO(sra): Generate these other fragments via SSA, then this phase
+    // becomes an opt-in optimization.
+    runPhase(SsaFinalizeInterceptors(closedWorld));
   }
 }
 
@@ -713,7 +721,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     //     t1 = s.split(pattern);
     //     t2 = String;
     //     t3 = JSArray<t2>;
-    //     t4 = setRuntimeTypeInfo(t1, t3);
+    //     t4 = setArrayType(t1, t3);
     //
 
     AbstractValue resultMask = _abstractValueDomain.growableListType;
@@ -743,7 +751,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     node.block.addBefore(node, typeInfo);
 
     HInvokeStatic tagInstruction = new HInvokeStatic(
-        commonElements.setRuntimeTypeInfo,
+        commonElements.setArrayType,
         <HInstruction>[splitInstruction, typeInfo],
         resultMask,
         const <DartType>[]);
@@ -1360,8 +1368,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Can we find the length as an input to an allocation?
     HInstruction potentialAllocation = receiver;
     if (receiver is HInvokeStatic &&
-        receiver.element == commonElements.setRuntimeTypeInfo) {
-      // Look through `setRuntimeTypeInfo(new Array(), ...)`
+        receiver.element == commonElements.setArrayType) {
+      // Look through `setArrayType(new Array(), ...)`
       potentialAllocation = receiver.inputs.first;
     }
     if (_graph.allocatedFixedLists.contains(potentialAllocation)) {
@@ -1611,7 +1619,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             node.inputs[0], node.inputs[1], _abstractValueDomain.boolType)
           ..sourceInformation = node.sourceInformation;
       }
-    } else if (element == commonElements.setRuntimeTypeInfo) {
+    } else if (element == commonElements.setArrayType) {
       if (node.inputs.length == 2) {
         return handleArrayTypeInfo(node);
       }
@@ -2058,7 +2066,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     if (instance is HInvokeStatic &&
-        instance.element == commonElements.setRuntimeTypeInfo) {
+        instance.element == commonElements.setArrayType) {
       // TODO(sra): What is the 'instantiated type' we should be registering as
       // discussed above? Perhaps it should be carried on HLiteralList.
       return instance.inputs.last;
@@ -3519,7 +3527,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         // have it escape or store it into an object that escapes.
         return false;
         // TODO(sra): Handle library functions that we know do not modify or
-        // leak the inputs. For example `setRuntimeTypeInfo` is used to mark
+        // leak the inputs. For example `setArrayType` is used to mark
         // list literals with type information.
       }
       if (use is HPhi) {

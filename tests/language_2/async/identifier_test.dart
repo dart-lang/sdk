@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
+// VMOptions=
+// VMOptions=--dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
+
 import 'dart:async' as async;
 import 'lib.dart' as l; // Minimal library containing "int async;".
 

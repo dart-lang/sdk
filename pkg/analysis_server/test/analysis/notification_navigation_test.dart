@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -22,14 +20,14 @@ void main() {
 }
 
 class AbstractNavigationTest extends AbstractAnalysisTest {
-  List<NavigationRegion> regions;
-  List<NavigationTarget> targets;
-  List<String> targetFiles;
+  late List<NavigationRegion> regions;
+  late List<NavigationTarget> targets;
+  late List<String> targetFiles;
 
-  NavigationRegion testRegion;
-  List<int> testTargetIndexes;
-  List<NavigationTarget> testTargets;
-  NavigationTarget testTarget;
+  late NavigationRegion testRegion;
+  late List<int> testTargetIndexes;
+  late List<NavigationTarget> testTargets;
+  late NavigationTarget testTarget;
 
   /// Validates that there is a target in [testTargetIndexes] with [file],
   /// at [offset] and with the given [length].
@@ -391,6 +389,42 @@ class BBB {}
     assertHasTarget('A(BBB', 0);
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
+  }
+
+  Future<void> test_enum_constant() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('a;');
+    assertHasTarget('a,');
+  }
+
+  Future<void> test_enum_index() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a.index;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('index');
+    assertHasTarget('E {');
+  }
+
+  Future<void> test_enum_values() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.values;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('values');
+    assertHasTarget('E');
   }
 
   Future<void> test_extension_on() async {

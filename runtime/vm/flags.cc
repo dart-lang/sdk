@@ -473,7 +473,7 @@ char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   // graudally remove those restrictions.
 
 #if !defined(DART_PRCOMPILED_RUNTIME)
-  if (!FLAG_precompiled_mode && IsolateGroup::AreIsolateGroupsEnabled()) {
+  if (!FLAG_precompiled_mode && FLAG_enable_isolate_groups) {
     // Our compiler should not make rely on a global field being initialized at
     // compile-time, since that compiled code might be re-used in another
     // isolate that has not yet initialized the global field.

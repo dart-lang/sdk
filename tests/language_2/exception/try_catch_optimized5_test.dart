@@ -5,6 +5,8 @@
 // being thrown.
 // VMOptions=--optimization-counter-threshold=100 --no-background-compilation
 
+// @dart = 2.9
+
 // Test optional parameters updated inside try-catch
 
 import "package:expect/expect.dart";

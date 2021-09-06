@@ -41,6 +41,9 @@ template("compile_platform") {
   }
 
   prebuilt_dart_action(target_name) {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
     script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
 
     packages = "$_dart_root/.packages"

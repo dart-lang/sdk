@@ -1,0 +1,31 @@
+import "package:expect/expect.dart";
+
+const firstVar = firstFn();
+int firstFn() {}
+const firstCatchVar = firstCatchFn();
+int firstCatchFn() {}
+const isEmptyVar = isEmptyFn();
+bool isEmptyFn() {}
+const isNotEmptyVar = isNotEmptyFn();
+bool isNotEmptyFn() {}
+const lastVar = lastFn();
+int lastFn() {}
+const lastCatchVar = lastCatchFn();
+int lastCatchFn() {}
+const lengthVar = lengthFn();
+int lengthFn() {}
+const singleVar = singleFn();
+int singleFn() {}
+const singleCatchVar = singleCatchFn();
+int singleCatchFn() {}
+const singleCatchVar2 = singleCatchFn2();
+int singleCatchFn2() {}
+const getWithIndexVar = getWithIndexFn();
+int getWithIndexFn() {}
+const rangeErrorCatchVar = rangeErrorCatchFn();
+int rangeErrorCatchFn() {}
+const mutableListVar = mutableList();
+List<int> mutableList() {}
+const mutableListAddVar = mutableListAdd();
+List<int> mutableListAdd() {}
+void main() {}

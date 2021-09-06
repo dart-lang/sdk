@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -28,7 +29,7 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   _InstrumentationClient(this.test);
 
   @override
-  void changes(Source source, Map<int, List<AtomicEdit>> changes) {
+  void changes(Source source, Map<int?, List<AtomicEdit>> changes) {
     expect(test.changes, isNull);
     test.changes = {
       for (var entry in changes.entries)
@@ -38,8 +39,8 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
-  void explicitTypeNullability(
-      Source source, TypeAnnotation typeAnnotation, NullabilityNodeInfo node) {
+  void explicitTypeNullability(Source? source, TypeAnnotation typeAnnotation,
+      NullabilityNodeInfo? node) {
     expect(source, test.source);
     expect(test.explicitTypeNullability, isNot(contains(typeAnnotation)));
     test.explicitTypeNullability[typeAnnotation] = node;
@@ -79,7 +80,7 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 
   @override
   void implicitReturnType(
-      Source source, AstNode node, DecoratedTypeInfo decoratedReturnType) {
+      Source? source, AstNode node, DecoratedTypeInfo? decoratedReturnType) {
     expect(source, test.source);
     expect(test.implicitReturnType, isNot(contains(node)));
     test.implicitReturnType[node] = decoratedReturnType;
@@ -87,7 +88,7 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 
   @override
   void implicitType(
-      Source source, AstNode node, DecoratedTypeInfo decoratedType) {
+      Source? source, AstNode? node, DecoratedTypeInfo decoratedType) {
     expect(source, test.source);
     expect(test.implicitType, isNot(contains(node)));
     test.implicitType[node] = decoratedType;
@@ -95,7 +96,7 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 
   @override
   void implicitTypeArguments(
-      Source source, AstNode node, Iterable<DecoratedTypeInfo> types) {
+      Source? source, AstNode node, Iterable<DecoratedTypeInfo> types) {
     expect(source, test.source);
     expect(test.implicitTypeArguments, isNot(contains(node)));
     test.implicitTypeArguments[node] = types.toList();
@@ -111,9 +112,9 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 class _InstrumentationTest extends _InstrumentationTestBase {}
 
 abstract class _InstrumentationTestBase extends AbstractContextTest {
-  NullabilityNodeInfo always;
+  NullabilityNodeInfo? always;
 
-  final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
+  final Map<TypeAnnotation, NullabilityNodeInfo?> explicitTypeNullability = {};
 
   final Map<Element, DecoratedTypeInfo> externalDecoratedType = {};
 
@@ -122,21 +123,21 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   final List<EdgeInfo> edges = [];
 
-  Map<int, List<AtomicEdit>> changes;
+  Map<int?, List<AtomicEdit>>? changes;
 
-  final Map<AstNode, DecoratedTypeInfo> implicitReturnType = {};
+  final Map<AstNode, DecoratedTypeInfo?> implicitReturnType = {};
 
-  final Map<AstNode, DecoratedTypeInfo> implicitType = {};
+  final Map<AstNode?, DecoratedTypeInfo> implicitType = {};
 
   final Map<AstNode, List<DecoratedTypeInfo>> implicitTypeArguments = {};
 
-  NullabilityNodeInfo never;
+  NullabilityNodeInfo? never;
 
   final Map<EdgeInfo, EdgeOriginInfo> edgeOrigin = {};
 
-  FindNode findNode;
+  late FindNode findNode;
 
-  Source source;
+  Source? source;
 
   Future<void> analyze(String content,
       {bool removeViaComments = false, bool warnOnWeakCode = true}) async {
@@ -147,8 +148,9 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
         instrumentation: _InstrumentationClient(this),
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
-    var result = await session.getResolvedUnit(sourcePath);
-    source = result.unit.declaredElement.source;
+    var result =
+        await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
+    source = result.unit.declaredElement!.source;
     findNode = FindNode(content, result.unit);
     migration.prepareInput(result);
     expect(migration.unmigratedDependencies, isEmpty);
@@ -159,7 +161,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   void assertEdit(AtomicEdit edit,
       {dynamic description = anything, dynamic fixReasons = anything}) {
-    var info = edit.info;
+    var info = edit.info!;
     expect(info.description, description);
     expect(info.fixReasons, fixReasons);
   }
@@ -170,9 +172,11 @@ int x = 1;
 int y = null;
 ''';
     await analyze(content);
-    expect(explicitTypeNullability[findNode.typeAnnotation('int x')].isNullable,
+    expect(
+        explicitTypeNullability[findNode.typeAnnotation('int x')]!.isNullable,
         false);
-    expect(explicitTypeNullability[findNode.typeAnnotation('int y')].isNullable,
+    expect(
+        explicitTypeNullability[findNode.typeAnnotation('int y')]!.isNullable,
         true);
   }
 
@@ -183,8 +187,8 @@ main() {
 }
 ''');
     expect(
-        externalDecoratedType[findNode.simple('print').staticElement]
-            .type
+        externalDecoratedType[findNode.simple('print').staticElement!]!
+            .type!
             .getDisplayString(withNullability: false),
         'void Function(Object)');
   }
@@ -197,8 +201,8 @@ f(Point<int> x) {}
     var pointElement = findNode.simple('Point').staticElement as ClassElement;
     var pointElementTypeParameter = pointElement.typeParameters[0];
     expect(
-        externalDecoratedTypeParameterBound[pointElementTypeParameter]
-            .type
+        externalDecoratedTypeParameterBound[pointElementTypeParameter]!
+            .type!
             .getDisplayString(withNullability: false),
         'num');
   }
@@ -210,13 +214,13 @@ f(List<int> x) {}
     var listElement = findNode.simple('List').staticElement as ClassElement;
     var listElementTypeParameter = listElement.typeParameters[0];
     var typeParameterBoundNode =
-        externalDecoratedTypeParameterBound[listElementTypeParameter].node;
+        externalDecoratedTypeParameterBound[listElementTypeParameter]!.node;
     var edge = edges
         .where((e) =>
             e.sourceNode == always &&
             e.destinationNode == typeParameterBoundNode)
         .single;
-    var origin = edgeOrigin[edge];
+    var origin = edgeOrigin[edge]!;
     expect(origin.kind, EdgeOriginKind.alwaysNullableType);
     expect(origin.element, same(listElementTypeParameter));
     expect(origin.source, null);
@@ -229,8 +233,8 @@ f(List<int> x) {}
     var intAnnotation = findNode.typeAnnotation('int');
     var intPos = content.indexOf('int');
     var commentPos = content.indexOf('/*');
-    expect(changes.keys, unorderedEquals([intPos, commentPos]));
-    assertEdit(changes[intPos].single,
+    expect(changes!.keys, unorderedEquals([intPos, commentPos]));
+    assertEdit(changes![intPos]!.single,
         description: NullabilityFixDescription.addRequired(null, '_f', 'i'),
         fixReasons: {
           FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
@@ -243,8 +247,8 @@ f(List<int> x) {}
     var intAnnotation = findNode.typeAnnotation('int');
     var intPos = content.indexOf('int');
     var commentPos = content.indexOf('/*');
-    expect(changes.keys, unorderedEquals([intPos, commentPos]));
-    assertEdit(changes[intPos].single,
+    expect(changes!.keys, unorderedEquals([intPos, commentPos]));
+    assertEdit(changes![intPos]!.single,
         description: NullabilityFixDescription.addRequired('C', '_f', 'i'),
         fixReasons: {
           FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
@@ -264,14 +268,14 @@ _f(int/*!*/ i) {
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
     var afterReturnPos = content.indexOf('i;') + 2;
-    expect(changes.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
+    expect(changes!.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
     var expectedFixReasons = {
       FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
     };
-    assertEdit(changes[ifPos].single,
+    assertEdit(changes![ifPos]!.single,
         description: NullabilityFixDescription.discardCondition,
         fixReasons: expectedFixReasons);
-    assertEdit(changes[afterReturnPos].single,
+    assertEdit(changes![afterReturnPos]!.single,
         description: NullabilityFixDescription.discardCondition,
         fixReasons: expectedFixReasons);
   }
@@ -286,8 +290,8 @@ _f(int/*!*/ i) {
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
-    expect(changes.keys, unorderedEquals([commentPos, ifPos]));
-    assertEdit(changes[ifPos].single,
+    expect(changes!.keys, unorderedEquals([commentPos, ifPos]));
+    assertEdit(changes![ifPos]!.single,
         description: NullabilityFixDescription.discardCondition,
         fixReasons: {
           FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
@@ -309,14 +313,14 @@ _f(int/*!*/ i) {
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
     var afterReturnPos = content.indexOf('i;') + 2;
-    expect(changes.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
+    expect(changes!.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
     var expectedFixReasons = {
       FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
     };
-    assertEdit(changes[ifPos].single,
+    assertEdit(changes![ifPos]!.single,
         description: NullabilityFixDescription.discardCondition,
         fixReasons: expectedFixReasons);
-    assertEdit(changes[afterReturnPos].single,
+    assertEdit(changes![afterReturnPos]!.single,
         description: NullabilityFixDescription.discardElse,
         fixReasons: expectedFixReasons);
   }
@@ -333,8 +337,8 @@ _f(int/*!*/ i) {
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var bodyPos = content.indexOf('i) {') + 4;
-    expect(changes.keys, unorderedEquals([commentPos, bodyPos]));
-    assertEdit(changes[bodyPos].single,
+    expect(changes!.keys, unorderedEquals([commentPos, bodyPos]));
+    assertEdit(changes![bodyPos]!.single,
         description: NullabilityFixDescription.discardIf,
         fixReasons: {
           FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
@@ -356,14 +360,14 @@ _f(int/*!*/ i) {
     var commentPos = content.indexOf('/*');
     var ifPos = content.indexOf('if');
     var afterReturnPos = content.indexOf('i;') + 2;
-    expect(changes.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
+    expect(changes!.keys, unorderedEquals([commentPos, ifPos, afterReturnPos]));
     var expectedFixReasons = {
       FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
     };
-    assertEdit(changes[ifPos].single,
+    assertEdit(changes![ifPos]!.single,
         description: NullabilityFixDescription.discardThen,
         fixReasons: expectedFixReasons);
-    assertEdit(changes[afterReturnPos].single,
+    assertEdit(changes![afterReturnPos]!.single,
         description: NullabilityFixDescription.discardThen,
         fixReasons: expectedFixReasons);
   }
@@ -380,8 +384,8 @@ _f(int/*!*/ i) {
     var intAnnotation = findNode.typeAnnotation('int');
     var commentPos = content.indexOf('/*');
     var bodyPos = content.indexOf('i) {') + 4;
-    expect(changes.keys, unorderedEquals([commentPos, bodyPos]));
-    assertEdit(changes[bodyPos].single,
+    expect(changes!.keys, unorderedEquals([commentPos, bodyPos]));
+    assertEdit(changes![bodyPos]!.single,
         description: NullabilityFixDescription.discardIf,
         fixReasons: {
           FixReasonTarget.root: same(explicitTypeNullability[intAnnotation])
@@ -403,10 +407,10 @@ main() {
 }
 ''');
     var yUsage = findNode.simple('y);');
-    var edit = changes[yUsage.end].single;
+    var edit = changes![yUsage.end]!.single;
     expect(edit.isInsertion, true);
     expect(edit.replacement, '!');
-    var info = edit.info;
+    var info = edit.info!;
     expect(info.description, NullabilityFixDescription.checkExpression);
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
@@ -416,7 +420,7 @@ main() {
     expect(edge.destinationNode,
         same(explicitTypeNullability[findNode.typeAnnotation('int x')]));
     expect(edge.isSatisfied, false);
-    expect(edgeOrigin[edge].node, same(yUsage));
+    expect(edgeOrigin[edge]!.node, same(yUsage));
   }
 
   Future<void> test_fix_reason_node() async {
@@ -424,13 +428,13 @@ main() {
 int x = null;
 ''');
     var intAnnotation = findNode.typeAnnotation('int');
-    var entries = changes.entries.toList();
+    var entries = changes!.entries.toList();
     expect(entries, hasLength(1));
     expect(entries.single.key, intAnnotation.end);
     var edit = entries.single.value.single;
     expect(edit.isInsertion, true);
     expect(edit.replacement, '?');
-    var info = edit.info;
+    var info = edit.info!;
     expect(info.description, NullabilityFixDescription.makeTypeNullable('int'));
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
@@ -443,8 +447,8 @@ int x = null;
     await analyze(content, warnOnWeakCode: false);
     var commentPos = content.indexOf('/*');
     var questionDotPos = content.indexOf('?.');
-    expect(changes.keys, unorderedEquals([commentPos, questionDotPos]));
-    assertEdit(changes[questionDotPos].single,
+    expect(changes!.keys, unorderedEquals([commentPos, questionDotPos]));
+    assertEdit(changes![questionDotPos]!.single,
         description: NullabilityFixDescription.removeNullAwareness,
         fixReasons: isEmpty);
   }
@@ -455,8 +459,8 @@ int x = null;
     await analyze(content, warnOnWeakCode: false);
     var commentPos = content.indexOf('/*');
     var questionDotPos = content.indexOf('?.');
-    expect(changes.keys, unorderedEquals([commentPos, questionDotPos]));
-    assertEdit(changes[questionDotPos].single,
+    expect(changes!.keys, unorderedEquals([commentPos, questionDotPos]));
+    assertEdit(changes![questionDotPos]!.single,
         description: NullabilityFixDescription.removeNullAwareness,
         fixReasons: isEmpty);
   }
@@ -472,18 +476,18 @@ _f(Object x) {
     var asExpression = xRef.parent as Expression;
     expect(changes, hasLength(3));
     // Change #1: drop the `(` before the cast
-    var dropLeadingParen = changes[asExpression.offset - 1].single;
+    var dropLeadingParen = changes![asExpression.offset - 1]!.single;
     expect(dropLeadingParen.isDeletion, true);
     expect(dropLeadingParen.length, 1);
     expect(dropLeadingParen.info, null);
     // Change #2: drop the text ` as int`
-    var dropAsInt = changes[xRef.end].single;
+    var dropAsInt = changes![xRef.end]!.single;
     expect(dropAsInt.isDeletion, true);
     expect(dropAsInt.length, 7);
-    expect(dropAsInt.info.description, NullabilityFixDescription.removeAs);
-    expect(dropAsInt.info.fixReasons, isEmpty);
+    expect(dropAsInt.info!.description, NullabilityFixDescription.removeAs);
+    expect(dropAsInt.info!.fixReasons, isEmpty);
     // Change #3: drop the `)` after the cast
-    var dropTrailingParen = changes[asExpression.end].single;
+    var dropTrailingParen = changes![asExpression.end]!.single;
     expect(dropTrailingParen.isDeletion, true);
     expect(dropTrailingParen.length, 1);
     expect(dropTrailingParen.info, null);
@@ -497,10 +501,10 @@ _f({@required int i}) {}
 ''');
     var intAnnotation = findNode.typeAnnotation('int');
     expect(changes, isNotEmpty);
-    for (var change in changes.values) {
+    for (var change in changes!.values) {
       expect(change, isNotEmpty);
       for (var edit in change) {
-        var info = edit.info;
+        var info = edit.info!;
         expect(info.description,
             NullabilityFixDescription.addRequired(null, '_f', 'i'));
         expect(info.fixReasons[FixReasonTarget.root],
@@ -575,10 +579,10 @@ main() {
   f1(null, false);
 }
 ''');
-    var iNode = explicitTypeNullability[findNode.typeAnnotation('int i')];
-    var jNode = explicitTypeNullability[findNode.typeAnnotation('int j')];
-    var kNode = explicitTypeNullability[findNode.typeAnnotation('int k')];
-    var lNode = explicitTypeNullability[findNode.typeAnnotation('int l')];
+    var iNode = explicitTypeNullability[findNode.typeAnnotation('int i')]!;
+    var jNode = explicitTypeNullability[findNode.typeAnnotation('int j')]!;
+    var kNode = explicitTypeNullability[findNode.typeAnnotation('int k')]!;
+    var lNode = explicitTypeNullability[findNode.typeAnnotation('int l')]!;
     var iToJ = edges
         .where((e) => e.sourceNode == iNode && e.destinationNode == jNode)
         .single;
@@ -668,7 +672,7 @@ int f(int x) => x;
     var matchingEdges = edges
         .where((e) => e.sourceNode == xNode && e.destinationNode == returnNode)
         .toList();
-    var origin = edgeOrigin[matchingEdges.single];
+    var origin = edgeOrigin[matchingEdges.single]!;
     expect(origin.source, source);
     expect(origin.node, findNode.simple('x;'));
   }
@@ -682,7 +686,7 @@ int f(dynamic x) => x;
     var matchingEdges = edges
         .where((e) => e.sourceNode == xNode && e.destinationNode == returnNode)
         .toList();
-    var origin = edgeOrigin[matchingEdges.single];
+    var origin = edgeOrigin[matchingEdges.single]!;
     expect(origin.kind, EdgeOriginKind.dynamicAssignment);
     expect(origin.source, source);
     expect(origin.node, findNode.simple('x;'));
@@ -709,8 +713,8 @@ int f(int x, bool b) {
     await analyze('''
 int x = null;
 ''');
-    expect(always.isImmutable, true);
-    expect(always.isNullable, true);
+    expect(always!.isImmutable, true);
+    expect(always!.isNullable, true);
     var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
     var edge = edges.where((e) => e.destinationNode == xNode).single;
     var edgeSource = edge.sourceNode;
@@ -723,8 +727,8 @@ int x = null;
     await analyze('''
 bool f(int x) => x.isEven;
 ''');
-    expect(never.isImmutable, true);
-    expect(never.isNullable, false);
+    expect(never!.isImmutable, true);
+    expect(never!.isNullable, false);
     var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
     var edge = edges.where((e) => e.sourceNode == xNode).single;
     expect(edge.destinationNode, never);
@@ -738,7 +742,8 @@ class C {
 }
 C f(bool b) => b ? C.named() : null;
 ''');
-    var factoryReturnNode = implicitReturnType[findNode.constructor('C(')].node;
+    var factoryReturnNode =
+        implicitReturnType[findNode.constructor('C(')]!.node;
     var fReturnNode = explicitTypeNullability[findNode.typeAnnotation('C f')];
     expect(
         edges.where((e) =>
@@ -751,9 +756,9 @@ C f(bool b) => b ? C.named() : null;
     await analyze('''
 Object f(callback()) => callback();
 ''');
-    var paramReturnNode =
-        implicitReturnType[findNode.functionTypedFormalParameter('callback())')]
-            .node;
+    var paramReturnNode = implicitReturnType[
+            findNode.functionTypedFormalParameter('callback())')]!
+        .node;
     var fReturnNode =
         explicitTypeNullability[findNode.typeAnnotation('Object')];
     expect(
@@ -769,7 +774,7 @@ f() => 1;
 Object g() => f();
 ''');
     var fReturnNode =
-        implicitReturnType[findNode.functionDeclaration('f() =>')].node;
+        implicitReturnType[findNode.functionDeclaration('f() =>')]!.node;
     var gReturnNode =
         explicitTypeNullability[findNode.typeAnnotation('Object')];
     expect(
@@ -788,7 +793,7 @@ int g() => 1;
     var fReturnNode =
         explicitTypeNullability[findNode.typeAnnotation('int Function')];
     var functionExpressionReturnNode =
-        implicitReturnType[findNode.functionExpression('() => g()')].node;
+        implicitReturnType[findNode.functionExpression('() => g()')]!.node;
     var gReturnNode = explicitTypeNullability[findNode.typeAnnotation('int g')];
     expect(
         edges.where((e) =>
@@ -809,7 +814,7 @@ typedef F();
 Object f(F callback) => callback();
 ''');
     var typedefReturnNode =
-        implicitReturnType[findNode.functionTypeAlias('F()')].node;
+        implicitReturnType[findNode.functionTypeAlias('F()')]!.node;
     var fReturnNode =
         explicitTypeNullability[findNode.typeAnnotation('Object')];
     expect(
@@ -824,7 +829,7 @@ Object f(F callback) => callback();
 Object f(Function() callback) => callback();
 ''');
     var callbackReturnNode =
-        implicitReturnType[findNode.genericFunctionType('Function()')].node;
+        implicitReturnType[findNode.genericFunctionType('Function()')]!.node;
     var fReturnNode =
         explicitTypeNullability[findNode.typeAnnotation('Object')];
     expect(
@@ -846,7 +851,7 @@ abstract class Derived extends Base {
     var baseReturnNode =
         explicitTypeNullability[findNode.typeAnnotation('int')];
     var derivedReturnNode =
-        implicitReturnType[findNode.methodDeclaration('f /*derived*/')].node;
+        implicitReturnType[findNode.methodDeclaration('f /*derived*/')]!.node;
     expect(
         edges.where((e) =>
             e.sourceNode == derivedReturnNode &&
@@ -863,7 +868,7 @@ void f() {
 }
 ''');
     var oNode = explicitTypeNullability[findNode.typeAnnotation('Object')];
-    var eNode = implicitType[findNode.simple('e)')].node;
+    var eNode = implicitType[findNode.simple('e)')]!.node;
     expect(
         edges.where((e) => e.sourceNode == eNode && e.destinationNode == oNode),
         hasLength(1));
@@ -878,7 +883,7 @@ void f() {
 }
 ''');
     var oNode = explicitTypeNullability[findNode.typeAnnotation('Object')];
-    var stNode = implicitType[findNode.simple('st)')].node;
+    var stNode = implicitType[findNode.simple('st)')]!.node;
     expect(
         edges
             .where((e) => e.sourceNode == stNode && e.destinationNode == oNode),
@@ -896,7 +901,7 @@ void f(List<int> l) {
 ''');
     var xNode = implicitType[(findNode.forStatement('for').forLoopParts
                 as ForEachPartsWithDeclaration)
-            .loopVariable]
+            .loopVariable]!
         .node;
     var yNode = explicitTypeNullability[findNode.typeAnnotation('int y')];
     expect(
@@ -916,7 +921,7 @@ abstract class Derived extends Base {
     var baseParamNode =
         explicitTypeNullability[findNode.typeAnnotation('int i')];
     var derivedParamNode =
-        implicitType[findNode.simpleParameter('i); /*derived*/')].node;
+        implicitType[findNode.simpleParameter('i); /*derived*/')]!.node;
     expect(
         edges.where((e) =>
             e.sourceNode == baseParamNode &&
@@ -936,8 +941,8 @@ abstract class Derived extends Base {
     var baseParamParamNode =
         explicitTypeNullability[findNode.typeAnnotation('int i')];
     var derivedParamParamNode =
-        implicitType[findNode.simpleParameter('callback)')]
-            .namedParameter('i')
+        implicitType[findNode.simpleParameter('callback)')]!
+            .namedParameter('i')!
             .node;
     expect(
         edges.where((e) =>
@@ -958,8 +963,8 @@ abstract class Derived extends Base {
     var baseParamParamNode =
         explicitTypeNullability[findNode.typeAnnotation('int i')];
     var derivedParamParamNode =
-        implicitType[findNode.simpleParameter('callback)')]
-            .positionalParameter(0)
+        implicitType[findNode.simpleParameter('callback)')]!
+            .positionalParameter(0)!
             .node;
     expect(
         edges.where((e) =>
@@ -980,7 +985,7 @@ abstract class Derived extends Base {
     var baseParamReturnNode =
         explicitTypeNullability[findNode.typeAnnotation('int callback')];
     var derivedParamReturnNode =
-        implicitType[findNode.simpleParameter('callback)')].returnType.node;
+        implicitType[findNode.simpleParameter('callback)')]!.returnType!.node;
     expect(
         edges.where((e) =>
             e.sourceNode == baseParamReturnNode &&
@@ -1000,8 +1005,8 @@ abstract class Derived extends Base {
     var baseParamArgNode =
         explicitTypeNullability[findNode.typeAnnotation('int>')];
     var derivedParamArgNode =
-        implicitType[findNode.simpleParameter('x); /*derived*/')]
-            .typeArgument(0)
+        implicitType[findNode.simpleParameter('x); /*derived*/')]!
+            .typeArgument(0)!
             .node;
     expect(
         edges.where((e) =>
@@ -1017,7 +1022,7 @@ void f(int i) {
 }
 ''');
     var iNode = explicitTypeNullability[findNode.typeAnnotation('int')];
-    var jNode = implicitType[findNode.variableDeclarationList('j')].node;
+    var jNode = implicitType[findNode.variableDeclarationList('j')]!.node;
     expect(
         edges.where((e) => e.sourceNode == iNode && e.destinationNode == jNode),
         hasLength(1));
@@ -1029,7 +1034,9 @@ List<T> g<T>(T t) {}
 List<int> f() => g(null);
 ''');
     var implicitInvocationTypeArgumentNode =
-        implicitTypeArguments[findNode.methodInvocation('g(null)')].single.node;
+        implicitTypeArguments[findNode.methodInvocation('g(null)')]!
+            .single
+            .node;
     var returnElementNode =
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
@@ -1054,7 +1061,7 @@ class C {
 List<int> f(C c) => c.g(null);
 ''');
     var implicitInvocationTypeArgumentNode =
-        implicitTypeArguments[findNode.methodInvocation('c.g(null)')]
+        implicitTypeArguments[findNode.methodInvocation('c.g(null)')]!
             .single
             .node;
     var returnElementNode =
@@ -1081,7 +1088,9 @@ class C<T> {
 C<int> f() => C(null);
 ''');
     var implicitInvocationTypeArgumentNode =
-        implicitTypeArguments[findNode.instanceCreation('C(null)')].single.node;
+        implicitTypeArguments[findNode.instanceCreation('C(null)')]!
+            .single
+            .node;
     var returnElementNode =
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
@@ -1102,7 +1111,7 @@ C<int> f() => C(null);
 List<int> f() => [null];
 ''');
     var implicitListLiteralElementNode =
-        implicitTypeArguments[findNode.listLiteral('[null]')].single.node;
+        implicitTypeArguments[findNode.listLiteral('[null]')]!.single.node;
     var returnElementNode =
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(
@@ -1122,7 +1131,7 @@ List<int> f() => [null];
 Map<int, String> f() => {1: null};
 ''');
     var implicitMapLiteralTypeArguments =
-        implicitTypeArguments[findNode.setOrMapLiteral('{1: null}')];
+        implicitTypeArguments[findNode.setOrMapLiteral('{1: null}')]!;
     expect(implicitMapLiteralTypeArguments, hasLength(2));
     var implicitMapLiteralKeyNode = implicitMapLiteralTypeArguments[0].node;
     var implicitMapLiteralValueNode = implicitMapLiteralTypeArguments[1].node;
@@ -1156,7 +1165,7 @@ Map<int, String> f() => {1: null};
 Set<int> f() => {null};
 ''');
     var implicitSetLiteralElementNode =
-        implicitTypeArguments[findNode.setOrMapLiteral('{null}')].single.node;
+        implicitTypeArguments[findNode.setOrMapLiteral('{null}')]!.single.node;
     var returnElementNode =
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(
@@ -1176,7 +1185,7 @@ Set<int> f() => {null};
 List<Object> f(List l) => l;
 ''');
     var implicitListElementType =
-        implicitTypeArguments[findNode.typeAnnotation('List l')].single.node;
+        implicitTypeArguments[findNode.typeAnnotation('List l')]!.single.node;
     var implicitReturnElementType =
         explicitTypeNullability[findNode.typeAnnotation('Object')];
     expect(
@@ -1204,12 +1213,12 @@ void g(C<int> x, int y) {
         explicitTypeNullability[findNode.typeAnnotation('T t')]);
   }
 
-  bool _isPointedToByAlways(NullabilityNodeInfo node) {
+  bool _isPointedToByAlways(NullabilityNodeInfo? node) {
     return edges
         .any((e) => e.sourceNode == always && e.destinationNode == node);
   }
 
-  bool _pointsToNeverHard(NullabilityNodeInfo node) {
+  bool _pointsToNeverHard(NullabilityNodeInfo? node) {
     return edges.any(
         (e) => e.sourceNode == node && e.destinationNode == never && e.isHard);
   }

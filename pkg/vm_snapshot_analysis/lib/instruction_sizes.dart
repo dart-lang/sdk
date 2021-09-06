@@ -40,16 +40,20 @@ class SymbolInfo {
 
   /// If this instructions object originated from a function then [libraryUri]
   /// will contain uri of the library of that function.
-  final String libraryUri;
+  final String? libraryUri;
 
   /// If this instructions object originated from a function then [className]
   /// would contain name of the class owning that function.
-  final String className;
+  final String? className;
 
   /// Size of the instructions object in bytes.
   final int size;
 
-  SymbolInfo({String name, this.libraryUri, this.className, this.size})
+  SymbolInfo(
+      {required String name,
+      this.libraryUri,
+      this.className,
+      required this.size})
       : name = Name(name);
 
   static SymbolInfo _fromJson(Map<String, dynamic> map) {
@@ -74,37 +78,41 @@ ProgramInfo toProgramInfo(List<SymbolInfo> symbols,
   final program = ProgramInfo();
   for (var sym in symbols) {
     final scrubbed = sym.name.scrubbed;
-    if (sym.libraryUri == null) {
+    final libraryUri = sym.libraryUri;
+
+    // Handle stubs specially.
+    if (libraryUri == null) {
       assert(sym.name.isStub);
       final node = program.makeNode(
           name: scrubbed, parent: program.stubs, type: NodeType.functionNode);
       assert(node.size == null || sym.name.isTypeTestingStub);
       node.size = (node.size ?? 0) + sym.size;
-    } else {
-      // Split the name into components (names of individual functions).
-      final path = sym.name.components;
-
-      var node = program.root;
-      final package = packageOf(sym.libraryUri);
-      if (package != sym.libraryUri) {
-        node = program.makeNode(
-            name: package, parent: node, type: NodeType.packageNode);
-      }
-      node = program.makeNode(
-          name: sym.libraryUri, parent: node, type: NodeType.libraryNode);
-      node = program.makeNode(
-          name: sym.className, parent: node, type: NodeType.classNode);
-      node = program.makeNode(
-          name: path.first, parent: node, type: NodeType.functionNode);
-      for (var name in path.skip(1)) {
-        if (collapseAnonymousClosures) {
-          name = Name.collapse(name);
-        }
-        node = program.makeNode(
-            name: name, parent: node, type: NodeType.functionNode);
-      }
-      node.size = (node.size ?? 0) + sym.size;
+      continue;
     }
+
+    // Split the name into components (names of individual functions).
+    final path = sym.name.components;
+
+    var node = program.root;
+    final package = packageOf(libraryUri);
+    if (package != libraryUri) {
+      node = program.makeNode(
+          name: package, parent: node, type: NodeType.packageNode);
+    }
+    node = program.makeNode(
+        name: libraryUri, parent: node, type: NodeType.libraryNode);
+    node = program.makeNode(
+        name: sym.className!, parent: node, type: NodeType.classNode);
+    node = program.makeNode(
+        name: path.first, parent: node, type: NodeType.functionNode);
+    for (var name in path.skip(1)) {
+      if (collapseAnonymousClosures) {
+        name = Name.collapse(name);
+      }
+      node = program.makeNode(
+          name: name, parent: node, type: NodeType.functionNode);
+    }
+    node.size = (node.size ?? 0) + sym.size;
   }
 
   return program;

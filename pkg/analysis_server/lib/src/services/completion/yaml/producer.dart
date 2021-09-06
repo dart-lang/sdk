@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// An object that represents the location of a Boolean value.
@@ -117,8 +114,9 @@ abstract class KeyValueProducer extends Producer {
   /// Initialize a producer representing a key/value pair in a map.
   const KeyValueProducer();
 
-  /// Returns a producer for values of the given [key].
-  Producer producerForKey(String key);
+  /// Returns a producer for values of the given [key], or `null` if there is
+  /// no registered producer for the [key].
+  Producer? producerForKey(String key);
 }
 
 /// An object that represents the location of an element in a list.
@@ -155,7 +153,7 @@ class MapProducer extends KeyValueProducer {
   const MapProducer(this._children);
 
   @override
-  Producer producerForKey(String key) => _children[key];
+  Producer? producerForKey(String key) => _children[key];
 
   @override
   Iterable<CompletionSuggestion> suggestions(
@@ -178,9 +176,11 @@ abstract class Producer {
   const Producer();
 
   /// A utility method used to create a suggestion for the [identifier].
-  CompletionSuggestion identifier(String identifier, {int relevance = 1000}) =>
+  CompletionSuggestion identifier(String identifier,
+          {int relevance = 1000, String? docComplete}) =>
       CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, relevance,
-          identifier, identifier.length, 0, false, false);
+          identifier, identifier.length, 0, false, false,
+          docComplete: docComplete);
 
   /// A utility method used to create a suggestion for the package [packageName].
   CompletionSuggestion packageName(String packageName,
@@ -198,7 +198,7 @@ class YamlCompletionRequest {
   final ResourceProvider resourceProvider;
 
   /// The Pub package service used for looking up package names/versions.
-  final PubPackageService pubPackageService;
+  final PubPackageService? pubPackageService;
 
   /// The absolute path of the file in which completions are being requested.
   final String filePath;
@@ -208,8 +208,8 @@ class YamlCompletionRequest {
 
   /// Initialize a newly created completion request.
   YamlCompletionRequest(
-      {@required this.filePath,
-      @required this.precedingText,
-      @required this.resourceProvider,
-      @required this.pubPackageService});
+      {required this.filePath,
+      required this.precedingText,
+      required this.resourceProvider,
+      required this.pubPackageService});
 }

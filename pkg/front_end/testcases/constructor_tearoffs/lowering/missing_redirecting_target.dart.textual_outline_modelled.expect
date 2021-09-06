@@ -1,0 +1,9 @@
+class Class {
+  Class._();
+  factory Class.a() = Class.nonexisting;
+  factory Class.b() = Class.constructor;
+  static Class Function() field = () => new Class._();
+  static Class constructor() => new Class._();
+}
+
+main() {}

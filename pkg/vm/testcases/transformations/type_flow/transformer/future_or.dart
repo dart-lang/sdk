@@ -53,14 +53,14 @@ void foo2_a4(x) {
   use(x);
 }
 
-void foo2(Future<A> a1, A a2, FutureOr<A> a3, FutureOr<A> a4) {
+void foo2(Future<A>? a1, A? a2, FutureOr<A>? a3, FutureOr<A>? a4) {
   foo2_a1(a1);
   foo2_a2(a2);
   foo2_a3(a3);
   foo2_a4(a4);
 }
 
-Function unknown;
+late Function unknown;
 getDynamic() => unknown.call();
 
 main(List<String> args) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,6 +11,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceFinalWithConst extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_FINAL_WITH_CONST;
 
   @override
@@ -20,11 +24,14 @@ class ReplaceFinalWithConst extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    final node = this.node;
     if (node is VariableDeclarationList) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.token((node as VariableDeclarationList).keyword), 'const');
-      });
+      var keyword = node.keyword;
+      if (keyword != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.token(keyword), 'const');
+        });
+      }
     }
   }
 

@@ -34,8 +34,8 @@ class InstanceMemberInferrer {
   void inferCompilationUnit(CompilationUnitElement unit) {
     typeSystem = unit.library.typeSystem as TypeSystemImpl;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
+    _inferClasses(unit.classes);
     _inferClasses(unit.mixins);
-    _inferClasses(unit.types);
   }
 
   /// Return `true` if the elements corresponding to the [elements] have the
@@ -249,6 +249,7 @@ class InstanceMemberInferrer {
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
         field.type = combinedGetterType();
+        field.hasTypeInferred = true;
         return;
       }
 
@@ -257,7 +258,8 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        field.type = combinedSetterType();
+        var type = combinedSetterType();
+        _setFieldType(field, type);
         return;
       }
 
@@ -266,7 +268,8 @@ class InstanceMemberInferrer {
         // and a getter is inferred to be the return type of the combined
         // member signature of said getter in the direct superinterfaces.
         if (field.isFinal) {
-          field.type = combinedGetterType();
+          var type = combinedGetterType();
+          _setFieldType(field, type);
           return;
         }
 
@@ -284,7 +287,7 @@ class InstanceMemberInferrer {
           if (getterType == setterType) {
             var type = getterType;
             type = typeSystem.nonNullifyLegacy(type);
-            field.type = type;
+            _setFieldType(field, type);
           } else {
             field.typeInferenceError = TopLevelInferenceError(
               kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
@@ -591,6 +594,11 @@ class InstanceMemberInferrer {
       return parameters.isNotEmpty && parameters[0].isCovariant;
     }
     return false;
+  }
+
+  static void _setFieldType(FieldElementImpl field, DartType type) {
+    field.type = type;
+    field.hasTypeInferred = true;
   }
 }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // Test that 79cc54e51924cd5a6bdc2bd1771f2d0ee7af8899 works as intended.
 
 import 'dart:convert';
@@ -16,14 +14,14 @@ Uri uri1 = Uri.parse("foo://lib1.dart");
 Uri uri2 = Uri.parse("foo://lib2.dart");
 
 main() {
-  Library library1 = new Library(uri1)..fileUri = uri1;
-  Library library2 = new Library(uri2)..fileUri = uri2;
+  Library library1 = new Library(uri1, fileUri: uri1);
+  Library library2 = new Library(uri2, fileUri: uri2);
   Procedure p1 = new Procedure(new Name("p1"), ProcedureKind.Method,
-      new FunctionNode(new ReturnStatement()))
-    ..fileUri = uri2;
+      new FunctionNode(new ReturnStatement()),
+      fileUri: uri2);
   Procedure p2 = new Procedure(new Name("p2"), ProcedureKind.Method,
-      new FunctionNode(new ReturnStatement()))
-    ..fileUri = uri1;
+      new FunctionNode(new ReturnStatement()),
+      fileUri: uri1);
   library1.addProcedure(p1);
   library2.addProcedure(p2);
 
@@ -67,16 +65,16 @@ void expectSource(List<int> data, bool expect1, bool expect2) {
   builder.readComponent(tmp);
   if (tmp.uriToSource[uri1] == null) throw "No data for $uri1";
   if (tmp.uriToSource[uri2] == null) throw "No data for $uri2";
-  if (expect1 && tmp.uriToSource[uri1].source.isEmpty) {
+  if (expect1 && tmp.uriToSource[uri1]!.source.isEmpty) {
     throw "No data for $uri1";
   }
-  if (!expect1 && tmp.uriToSource[uri1].source.isNotEmpty) {
+  if (!expect1 && tmp.uriToSource[uri1]!.source.isNotEmpty) {
     throw "Unexpected data for $uri1";
   }
-  if (expect2 && tmp.uriToSource[uri2].source.isEmpty) {
+  if (expect2 && tmp.uriToSource[uri2]!.source.isEmpty) {
     throw "No data data for $uri2";
   }
-  if (!expect2 && tmp.uriToSource[uri2].source.isNotEmpty) {
+  if (!expect2 && tmp.uriToSource[uri2]!.source.isNotEmpty) {
     throw "Unexpected data for $uri2";
   }
 }

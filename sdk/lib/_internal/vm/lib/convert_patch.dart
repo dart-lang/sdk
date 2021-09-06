@@ -63,13 +63,13 @@ class Utf8Decoder {
   }
 }
 
-class _JsonUtf8Decoder extends Converter<List<int>, Object> {
+class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
   final Object? Function(Object? key, Object? value)? _reviver;
   final bool _allowMalformed;
 
   _JsonUtf8Decoder(this._reviver, this._allowMalformed);
 
-  Object convert(List<int> input) {
+  Object? convert(List<int> input) {
     var parser = _JsonUtf8DecoderSink._createParser(_reviver, _allowMalformed);
     parser.chunk = input;
     parser.chunkEnd = input.length;
@@ -231,11 +231,10 @@ class _ReviverJsonListener extends _BuildJsonListener {
  * These are all ASCII, so an [Uint8List] is used as backing store.
  *
  * This buffer is used when a JSON number is split between separate chunks.
- *
  */
 class _NumberBuffer {
   static const int minCapacity = 16;
-  static const int kDefaultOverhead = 5;
+  static const int defaultOverhead = 5;
   Uint8List list;
   int length = 0;
   _NumberBuffer(int initialCapacity)
@@ -246,12 +245,14 @@ class _NumberBuffer {
   // Pick an initial capacity greater than the first part's size.
   // The typical use case has two parts, this is the attempt at
   // guessing the size of the second part without overdoing it.
-  // The default estimate of the second part is [kDefaultOverhead],
+  // The default estimate of the second part is [defaultOverhead],
   // then round to multiplum of four, and return the result,
   // or [minCapacity] if that is greater.
   static int _initialCapacity(int minCapacity) {
-    minCapacity += kDefaultOverhead;
-    if (minCapacity < minCapacity) return minCapacity;
+    minCapacity += defaultOverhead;
+    if (minCapacity < _NumberBuffer.minCapacity) {
+      return _NumberBuffer.minCapacity;
+    }
     minCapacity = (minCapacity + 3) & ~3; // Round to multiple of four.
     return minCapacity;
   }
@@ -1214,7 +1215,7 @@ abstract class _ChunkedJsonParser<T> {
   // Continues an already chunked number across an entire chunk.
   int continueChunkNumber(int state, int start, _NumberBuffer buffer) {
     int end = chunkEnd;
-    addNumberChunk(buffer, start, end, _NumberBuffer.kDefaultOverhead);
+    addNumberChunk(buffer, start, end, _NumberBuffer.defaultOverhead);
     this.buffer = buffer;
     this.partialState = PARTIAL_NUMERAL | state;
     return end;

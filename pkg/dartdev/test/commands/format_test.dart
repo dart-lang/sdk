@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -62,6 +63,33 @@ void format() {
             'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
   });
 
+  test('formatted with exit code set', () {
+    p = project(mainSrc: 'int get foo =>       1;\n');
+    ProcessResult result = p.runSync([
+      'format',
+      '--set-exit-if-changed',
+      p.relativeFilePath,
+    ]);
+    expect(result.exitCode, isNot(0));
+    expect(result.stderr, isEmpty);
+    expect(
+        result.stdout,
+        startsWith(
+            'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
+  });
+
+  test('not formatted with exit code set', () {
+    p = project(mainSrc: 'int get foo => 1;\n');
+    ProcessResult result = p.runSync([
+      'format',
+      '--set-exit-if-changed',
+      p.relativeFilePath,
+    ]);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, startsWith('Formatted 1 file (0 changed) in '));
+  });
+
   test('unknown file', () {
     p = project(mainSrc: 'int get foo => 1;\n');
     var unknownFilePath = '${p.relativeFilePath}-unknown-file.dart';
@@ -70,5 +98,17 @@ void format() {
     expect(result.stderr,
         startsWith('No file or directory found at "$unknownFilePath".'));
     expect(result.stdout, startsWith('Formatted no files in '));
+  });
+
+  test('formats from stdin and exits', () async {
+    p = project(mainSrc: 'int get foo => 1;\n');
+    var process = await p.start(['format']);
+    process.stdin.writeln('main(   ) { }');
+
+    var result = process.stdout.reduce((a, b) => a + b);
+
+    await process.stdin.close();
+    expect(await process.exitCode, 0);
+    expect(utf8.decode(await result), 'main() {}\n');
   });
 }

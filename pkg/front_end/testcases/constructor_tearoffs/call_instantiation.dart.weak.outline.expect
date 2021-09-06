@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field <T extends core::Object? = dynamic>(T%) → T% funcValue;
+static field (core::int) → core::int f;
+static field (core::int) → core::int g;
+static method func<T extends core::Object? = dynamic>(self::func::T% value) → self::func::T%
+  ;
+static method test(core::Function f) → dynamic
+  ;
+static method main() → dynamic
+  ;

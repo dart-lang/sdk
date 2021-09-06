@@ -1,4 +1,4 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -6,3 +6,8 @@ import "dart:core" as core;
 abstract class AbstractEmptyClass extends core::Object {
 }
 static method main() → dynamic {}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

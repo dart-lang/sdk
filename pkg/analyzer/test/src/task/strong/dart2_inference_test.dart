@@ -347,8 +347,8 @@ main() {
   }
 
   void _assertTypeAnnotations() {
-    var code = result.content!;
-    var unit = result.unit!;
+    var code = result.content;
+    var unit = result.unit;
 
     var types = <int, String>{};
     {

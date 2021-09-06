@@ -28,14 +28,14 @@ main() {
   testSymbol(#[]=, ($[$] = $).lastMember, "[]=");
   testSymbol(Symbol.unaryMinus, -$, "unary-");
 
-  testSymbolThrows(">>>"); // //# 03: ok
-  testSymbolThrows("!"); //   //# 03: continued
-  testSymbolThrows("&&"); //  //# 03: continued
-  testSymbolThrows("||"); //  //# 03: continued
-  testSymbolThrows("?"); //   //# 03: continued
-  testSymbolThrows("?:"); //  //# 03: continued
-  testSymbolThrows("#"); //   //# 03: continued
-  testSymbolThrows("//"); //  //# 03: continued
+  testSymbolNotInstanceOperator(">>>");
+  testSymbolNotInstanceOperator("!");
+  testSymbolNotInstanceOperator("&&");
+  testSymbolNotInstanceOperator("||");
+  testSymbolNotInstanceOperator("?");
+  testSymbolNotInstanceOperator("?:");
+  testSymbolNotInstanceOperator("#");
+  testSymbolNotInstanceOperator("//");
 }
 
 void testSymbol(Symbol constSymbol, var mirrorSymbol, String name) {
@@ -63,16 +63,8 @@ void testSymbol(Symbol constSymbol, var mirrorSymbol, String name) {
   }
 }
 
-void testSymbolThrows(name) {
-  bool fails = false;
-  try {
-    new Symbol(name);
-  } catch (e) {
-    fails = true;
-  }
-  if (!fails) {
-    throw "Didn't throw: $name";
-  }
+void testSymbolNotInstanceOperator(name) {
+  new Symbol(name);
 }
 
 class Symbolize {

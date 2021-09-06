@@ -14,6 +14,7 @@
 #include "vm/globals.h"
 #include "vm/heap/safepoint.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/object_id_ring.h"
 #include "vm/os.h"
 #include "vm/port.h"
@@ -50,8 +51,7 @@ class ServiceTestMessageHandler : public MessageHandler {
       response_obj = message->raw_obj();
     } else {
       Thread* thread = Thread::Current();
-      MessageSnapshotReader reader(message.get(), thread);
-      response_obj = reader.ReadObject();
+      response_obj = ReadMessage(thread, message.get());
     }
     if (response_obj.IsString()) {
       String& response = String::Handle();

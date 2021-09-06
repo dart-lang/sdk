@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -28,7 +27,7 @@ class AssignmentExpressionResolver {
 
   AssignmentExpressionResolver({
     required ResolverVisitor resolver,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -74,7 +73,7 @@ class AssignmentExpressionResolver {
       var leftType = node.writeType;
       if (writeElement is VariableElement) {
         leftType = _resolver.localVariableTypeProvider
-            .getType(left as SimpleIdentifier);
+            .getType(left as SimpleIdentifier, isRead: false);
       }
       _setRhsContext(node, leftType!, operator, right);
     }
@@ -121,8 +120,7 @@ class AssignmentExpressionResolver {
       CompileTimeErrorCode.INVALID_ASSIGNMENT,
       right,
       [rightType, writeType],
-      _resolver.computeWhyNotPromotedMessages(
-          right, right, whyNotPromoted?.call()),
+      _resolver.computeWhyNotPromotedMessages(right, whyNotPromoted?.call()),
     );
   }
 
@@ -178,7 +176,10 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    var binaryOperatorType = operatorFromCompoundAssignment(operatorType);
+    var binaryOperatorType = operatorType.binaryOperatorOfCompoundAssignment;
+    if (binaryOperatorType == null) {
+      return;
+    }
     var methodName = binaryOperatorType.lexeme;
 
     var result = _typePropertyResolver.resolve(

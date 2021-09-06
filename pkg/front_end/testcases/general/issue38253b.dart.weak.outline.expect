@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue38253b.dart:6:3: Error: 'g' isn't a type.
+//   g f1() {
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253b.dart:10:3: Error: 'g' isn't a type.
+//   g f2() async {
+//   ^
+//
+import self as self;
+
+static field () → Null a;
+static method main() → dynamic
+  ;

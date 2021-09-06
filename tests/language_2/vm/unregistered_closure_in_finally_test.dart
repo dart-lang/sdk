@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--no-background-compilation
 
+// @dart = 2.9
+
 @pragma('vm:never-inline')
 doSomething() {
   print("Hello!");

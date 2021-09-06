@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
+// @dart = 2.9
+
 // Check that generic closures are properly instantiated.
 
 import 'package:expect/expect.dart';

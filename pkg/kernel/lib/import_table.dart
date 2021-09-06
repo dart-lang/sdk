@@ -125,6 +125,34 @@ class _ImportTableBuilder extends RecursiveVisitor {
   }
 }
 
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/file1.dart"),
+///     Uri.parse("file:///path/to/file2.dart"),
+///   ),
+///   "file1.dart"
+/// )
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/a/file1.dart"),
+///     Uri.parse("file:///path/to/file2.dart"),
+///   ),
+///   "a/file1.dart"
+/// )
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/file1.dart"),
+///     Uri.parse("file:///path/to/b/file2.dart"),
+///   ),
+///   "../file1.dart"
+/// )
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/file1.dart"),
+///     Uri.parse("file:///different/path/to/file2.dart"),
+///   ),
+///   "../../../path/to/file1.dart"
+/// )
 String relativeUriPath(Uri target, Uri ref) {
   List<String> targetSegments = target.pathSegments;
   List<String> refSegments = ref.pathSegments;

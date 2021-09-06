@@ -232,6 +232,10 @@ abstract class AstFactory {
   ConstructorName constructorName(
       TypeName type, Token? period, SimpleIdentifier? name);
 
+  /// Returns a newly created constructor reference.
+  ConstructorReference constructorReference(
+      {required ConstructorName constructorName});
+
   /// Returns a newly created continue statement. The [label] can be `null` if
   /// there is no label associated with the statement.
   ContinueStatement continueStatement(
@@ -335,7 +339,8 @@ abstract class AstFactory {
       {Comment? comment,
       List<Annotation>? metadata,
       required Token extensionKeyword,
-      required SimpleIdentifier? name,
+      Token? typeKeyword,
+      SimpleIdentifier? name,
       TypeParameterList? typeParameters,
       required Token onKeyword,
       required TypeAnnotation extendedType,
@@ -469,6 +474,11 @@ abstract class AstFactory {
   /// Returns a newly created function expression invocation.
   FunctionExpressionInvocation functionExpressionInvocation(Expression function,
       TypeArgumentList? typeArguments, ArgumentList argumentList);
+
+  /// Returns a newly created function reference.  The [typeArguments] can be
+  /// `null` if there are no type arguments being applied to the function.
+  FunctionReference functionReference(
+      {required Expression function, TypeArgumentList? typeArguments});
 
   /// Returns a newly created function type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
@@ -865,6 +875,9 @@ abstract class AstFactory {
   /// Returns a newly created list of type arguments.
   TypeArgumentList typeArgumentList(
       Token leftBracket, List<TypeAnnotation> arguments, Token rightBracket);
+
+  /// Returns a newly created type literal.
+  TypeLiteral typeLiteral({required TypeName typeName});
 
   /// Returns a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments. The [question] can be `null` if there is no

@@ -9,12 +9,12 @@ static method add(core::int* x) → void {}
 static method add2(core::int* y) → dynamic {}
 static method test() → dynamic {
   asy::Future<core::int*>* f;
-  asy::Future<void>* a = f.{asy::Future::then}<void>(#C1);
-  asy::Future<dynamic>* b = f.{asy::Future::then}<dynamic>(#C2);
+  asy::Future<void>* a = f.{asy::Future::then}<void>(#C1){((core::int*) →* FutureOr<void>*, {onError: core::Function*}) →* asy::Future<void>*};
+  asy::Future<dynamic>* b = f.{asy::Future::then}<dynamic>(#C2){((core::int*) →* FutureOr<dynamic>*, {onError: core::Function*}) →* asy::Future<dynamic>*};
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::add
-  #C2 = tearoff self::add2
+  #C1 = static-tearoff self::add
+  #C2 = static-tearoff self::add2
 }

@@ -14,32 +14,32 @@ import 'package:nnbd_migration/src/utilities/type_name_tracker.dart';
 /// Mixing in this class should have very low overhead when assertions are
 /// disabled.
 mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
-  AnnotationTracker _annotationTracker;
-  TypeNameTracker _typeNameTracker;
+  AnnotationTracker? _annotationTracker;
+  TypeNameTracker? _typeNameTracker;
 
   @override
-  T visitAnnotation(Annotation node) {
+  T? visitAnnotation(Annotation node) {
     annotationVisited(node);
     return super.visitAnnotation(node);
   }
 
   void annotationVisited(Annotation node) {
     assert(() {
-      _annotationTracker.nodeVisited(node);
+      _annotationTracker!.nodeVisited(node);
       return true;
     }());
   }
 
   void typeNameVisited(TypeName node) {
     assert(() {
-      _typeNameTracker.nodeVisited(node);
+      _typeNameTracker!.nodeVisited(node);
       return true;
     }());
   }
 
   @override
-  T visitCompilationUnit(CompilationUnit node) {
-    T result;
+  T? visitCompilationUnit(CompilationUnit node) {
+    T? result;
     reportExceptionsIfPermissive(node, () {
       assert(() {
         assert(_annotationTracker == null);
@@ -51,8 +51,8 @@ mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
       try {
         result = super.visitCompilationUnit(node);
         assert(() {
-          _annotationTracker.finalize();
-          _typeNameTracker.finalize();
+          _annotationTracker!.finalize();
+          _typeNameTracker!.finalize();
           return true;
         }());
       } finally {

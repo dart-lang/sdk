@@ -7,7 +7,6 @@
 // inlined.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 class A {
   var field;
@@ -24,14 +23,16 @@ main() {
   bar();
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 doIt() {
   () => 42;
   var c = new A(null);
   Expect.throwsNoSuchMethodError(() => c.field + 42);
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 bar() {
   () => 42;
   return inlineLevel1();

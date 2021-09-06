@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -16,6 +14,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 final _manager = _RefactorManager();
 
@@ -26,7 +26,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+  Future<ErrorOr<void>> handle(List<Object?>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
@@ -45,12 +45,12 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    String kind = arguments[0];
-    String path = arguments[1];
-    int docVersion = arguments[2];
-    int offset = arguments[3];
-    int length = arguments[4];
-    Map<String, dynamic> options = arguments[5];
+    final kind = arguments[0] as String;
+    final path = arguments[1] as String;
+    final docVersion = arguments[2] as int?;
+    final offset = arguments[3] as int;
+    final length = arguments[4] as int;
+    final options = arguments[5] as Map<String, Object?>?;
 
     final result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
@@ -60,27 +60,34 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         // If the token we were given is not cancellable, replace it with one that
         // is for the rest of this request, as a future refactor may need to cancel
         // this request.
-        if (cancellationToken is! CancelableToken) {
-          cancellationToken = CancelableToken();
-        }
-        _manager.begin(cancellationToken);
+        // The original token should be kept and also checked for cancellation.
+        final cancelableToken = cancellationToken is CancelableToken
+            ? cancellationToken
+            : CancelableToken();
+        _manager.begin(cancelableToken);
 
         try {
           reporter.begin('Refactoring…');
           final status = await refactoring.checkAllConditions();
 
           if (status.hasError) {
-            return error(ServerErrorCodes.RefactorFailed, status.message);
+            return error(ServerErrorCodes.RefactorFailed, status.message!);
           }
 
-          if (cancellationToken.isCancellationRequested) {
+          if (cancellationToken.isCancellationRequested ||
+              cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 
           final change = await refactoring.createChange();
 
-          if (cancellationToken.isCancellationRequested) {
+          if (cancellationToken.isCancellationRequested ||
+              cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+          }
+
+          if (change.edits.isEmpty) {
+            return success(null);
           }
 
           // If the file changed while we were validating and preparing the change,
@@ -94,7 +101,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         } on InconsistentAnalysisException {
           return fileModifiedError;
         } finally {
-          _manager.end(cancellationToken);
+          _manager.end(cancelableToken);
           reporter.end();
         }
       });
@@ -106,7 +113,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
     ResolvedUnitResult result,
     int offset,
     int length,
-    Map<String, dynamic> options,
+    Map<String, dynamic>? options,
   ) async {
     switch (kind) {
       case RefactoringKind.EXTRACT_METHOD:
@@ -158,6 +165,42 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
             (options != null ? options['name'] : null) ?? 'NewWidget';
         return success(refactor);
 
+      case RefactoringKind.INLINE_LOCAL_VARIABLE:
+        final refactor =
+            InlineLocalRefactoring(server.searchEngine, result, offset);
+        return success(refactor);
+
+      case RefactoringKind.INLINE_METHOD:
+        final refactor =
+            InlineMethodRefactoring(server.searchEngine, result, offset);
+        return success(refactor);
+
+      case RefactoringKind.CONVERT_GETTER_TO_METHOD:
+        final node = NodeLocator(offset).searchWithin(result.unit);
+        final element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is PropertyAccessorElement) {
+            final refactor = ConvertGetterToMethodRefactoring(
+                server.searchEngine, result.session, element);
+            return success(refactor);
+          }
+        }
+        return error(ServerErrorCodes.InvalidCommandArguments,
+            'Location supplied to $commandName $kind is not longer valid');
+
+      case RefactoringKind.CONVERT_METHOD_TO_GETTER:
+        final node = NodeLocator(offset).searchWithin(result.unit);
+        final element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is ExecutableElement) {
+            final refactor = ConvertMethodToGetterRefactoring(
+                server.searchEngine, result.session, element);
+            return success(refactor);
+          }
+        }
+        return error(ServerErrorCodes.InvalidCommandArguments,
+            'Location supplied to $commandName $kind is not longer valid');
+
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,
             'Unknown RefactoringKind $kind was supplied to $commandName');
@@ -168,7 +211,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 /// Manages a running refactor to help ensure only one refactor runs at a time.
 class _RefactorManager {
   /// The cancellation token for the current in-progress refactor (or null).
-  CancelableToken _currentRefactoringCancellationToken;
+  CancelableToken? _currentRefactoringCancellationToken;
 
   /// Begins a new refactor, cancelling any other in-progress refactors.
   void begin(CancelableToken cancelToken) {

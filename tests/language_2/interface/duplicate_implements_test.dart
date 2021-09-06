@@ -4,6 +4,8 @@
 // Check that duplicate types in implements/extends list are
 // compile-time errors.
 
+// @dart = 2.9
+
 abstract class I {}
 
 abstract class J {}

@@ -1,0 +1,14 @@
+import "package:expect/expect.dart";
+const printString = "print";
+const var1 = Simple(printString);
+class Simple {
+  final String name;
+  const Simple(this.name) {}
+}
+const var2 = A();
+class A {
+  const A() {}
+}
+const var3 = fn();
+A fn() => A();
+void main() {}

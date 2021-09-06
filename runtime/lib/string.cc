@@ -257,35 +257,6 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 0, 3) {
   return OneByteString::New(receiver, start, end - start, Heap::kNew);
 }
 
-// This is high-performance code.
-DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 0, 2) {
-  const String& receiver =
-      String::CheckedHandle(zone, arguments->NativeArgAt(0));
-  ASSERT(receiver.IsOneByteString());
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
-  const intptr_t len = receiver.Length();
-  const intptr_t split_code = smi_split_code.Value();
-  const GrowableObjectArray& result = GrowableObjectArray::Handle(
-      zone, GrowableObjectArray::New(16, Heap::kNew));
-  String& str = String::Handle(zone);
-  intptr_t start = 0;
-  intptr_t i = 0;
-  for (; i < len; i++) {
-    if (split_code == OneByteString::CharAt(receiver, i)) {
-      str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
-                                              Heap::kNew);
-      result.Add(str);
-      start = i + 1;
-    }
-  }
-  str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
-                                          Heap::kNew);
-  result.Add(str);
-  result.SetTypeArguments(TypeArguments::Handle(
-      zone, isolate->group()->object_store()->type_argument_string()));
-  return result.ptr();
-}
-
 DEFINE_NATIVE_ENTRY(Internal_allocateOneByteString, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
   const int64_t length = length_obj.AsInt64Value();
@@ -322,57 +293,28 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
   intptr_t start = start_obj.Value();
   intptr_t end = end_obj.Value();
   if (start < 0) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, start_obj);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(start_obj);
   }
   intptr_t length = end - start;
   if (length < 0) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, end_obj);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(end_obj);
   }
   ASSERT(length >= 0);
 
   Heap::Space space = Heap::kNew;
-  if (list.IsTypedData()) {
-    const TypedData& array = TypedData::Cast(list);
-    if (end > array.LengthInBytes()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, end_obj);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
+  if (list.IsTypedDataBase()) {
+    const TypedDataBase& array = TypedDataBase::Cast(list);
+    if (array.ElementType() != kUint8ArrayElement) {
+      Exceptions::ThrowArgumentError(list);
+    }
+    if (end > array.Length()) {
+      Exceptions::ThrowArgumentError(end_obj);
     }
     return OneByteString::New(array, start, length, space);
-  } else if (list.IsExternalTypedData()) {
-    const ExternalTypedData& array = ExternalTypedData::Cast(list);
-    if (end > array.LengthInBytes()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, end_obj);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
-    }
-    return OneByteString::New(array, start, length, space);
-  } else if (list.IsTypedDataView()) {
-    const auto& view = TypedDataView::Cast(list);
-    if (end > Smi::Value(view.length())) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, end_obj);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
-    }
-    const Instance& data_obj = Instance::Handle(view.typed_data());
-    intptr_t data_offset = Smi::Value(view.offset_in_bytes());
-    if (data_obj.IsTypedData()) {
-      const TypedData& array = TypedData::Cast(data_obj);
-      return OneByteString::New(array, data_offset + start, length, space);
-    } else if (data_obj.IsExternalTypedData()) {
-      const ExternalTypedData& array = ExternalTypedData::Cast(data_obj);
-      return OneByteString::New(array, data_offset + start, length, space);
-    }
   } else if (list.IsArray()) {
     const Array& array = Array::Cast(list);
     if (end > array.Length()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, end_obj);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
+      Exceptions::ThrowArgumentError(end_obj);
     }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
@@ -383,9 +325,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
   } else if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& array = GrowableObjectArray::Cast(list);
     if (end > array.Length()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, end_obj);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
+      Exceptions::ThrowArgumentError(end_obj);
     }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
@@ -434,8 +374,8 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
   }
 
   Heap::Space space = Heap::kNew;
-  if (list.IsTypedData()) {
-    const TypedData& array = TypedData::Cast(list);
+  if (list.IsTypedDataBase()) {
+    const TypedDataBase& array = TypedDataBase::Cast(list);
     if (array.ElementType() != kUint16ArrayElement) {
       Exceptions::ThrowArgumentError(list);
     }
@@ -443,35 +383,6 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
       Exceptions::ThrowArgumentError(end_obj);
     }
     return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
-  } else if (list.IsExternalTypedData()) {
-    const ExternalTypedData& array = ExternalTypedData::Cast(list);
-    if (array.ElementType() != kUint16ArrayElement) {
-      Exceptions::ThrowArgumentError(list);
-    }
-    if (end > array.Length()) {
-      Exceptions::ThrowArgumentError(end_obj);
-    }
-    return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
-  } else if (IsTypedDataViewClassId(list.GetClassId())) {
-    const auto& view = TypedDataView::Cast(list);
-    const intptr_t cid = list.GetClassId();
-    if (cid != kTypedDataUint16ArrayViewCid) {
-      Exceptions::ThrowArgumentError(list);
-    }
-    if (end > Smi::Value(view.length())) {
-      Exceptions::ThrowArgumentError(end_obj);
-    }
-    const auto& data_obj = Instance::Handle(zone, view.typed_data());
-    const intptr_t data_offset = Smi::Value(view.offset_in_bytes());
-    if (data_obj.IsTypedData()) {
-      const TypedData& array = TypedData::Cast(data_obj);
-      return TwoByteString::New(array, data_offset + start * sizeof(uint16_t),
-                                length, space);
-    } else if (data_obj.IsExternalTypedData()) {
-      const ExternalTypedData& array = ExternalTypedData::Cast(data_obj);
-      return TwoByteString::New(array, data_offset + start * sizeof(uint16_t),
-                                length, space);
-    }
   } else if (list.IsArray()) {
     const Array& array = Array::Cast(list);
     if (end > array.Length()) {

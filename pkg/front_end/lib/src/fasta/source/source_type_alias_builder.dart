@@ -2,20 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.source_type_alias_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DynamicType,
-        InvalidType,
-        TypeParameter,
-        Typedef,
-        TypedefType,
-        VariableDeclaration,
-        getAsTypeArguments;
+import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart';
 
@@ -34,6 +24,7 @@ import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -41,23 +32,34 @@ import '../builder/type_alias_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 
+import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/kernel_helper.dart';
+
 import '../util/helpers.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
-  final TypeBuilder type;
+  final TypeBuilder? type;
 
-  final List<TypeVariableBuilder> _typeVariables;
+  final List<TypeVariableBuilder>? _typeVariables;
 
   /// The [Typedef] built by this builder.
   final Typedef typedef;
 
-  DartType thisType;
+  DartType? thisType;
 
-  SourceTypeAliasBuilder(List<MetadataBuilder> metadata, String name,
-      this._typeVariables, this.type, LibraryBuilder parent, int charOffset,
-      {Typedef typedef, Typedef referenceFrom})
+  Map<Name, Procedure>? tearOffs;
+
+  SourceTypeAliasBuilder(
+      List<MetadataBuilder>? metadata,
+      String name,
+      this._typeVariables,
+      this.type,
+      SourceLibraryBuilder parent,
+      int charOffset,
+      {Typedef? typedef,
+      Typedef? referenceFrom})
       : typedef = typedef ??
             (new Typedef(name, null,
                 typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
@@ -68,13 +70,13 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         super(metadata, name, parent, charOffset);
 
   @override
-  SourceLibraryBuilder get library => super.library;
+  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
 
   @override
-  List<TypeVariableBuilder> get typeVariables => _typeVariables;
+  List<TypeVariableBuilder>? get typeVariables => _typeVariables;
 
   @override
-  int varianceAt(int index) => typeVariables[index].parameter.variance;
+  int varianceAt(int index) => typeVariables![index].parameter.variance;
 
   @override
   bool get fromDill => false;
@@ -84,7 +86,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   bool get isNullAlias {
-    TypeDeclarationBuilder typeDeclarationBuilder = type.declaration;
+    TypeDeclarationBuilder? typeDeclarationBuilder = type?.declaration;
     return typeDeclarationBuilder is ClassBuilder &&
         typeDeclarationBuilder.isNullClass;
   }
@@ -92,14 +94,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Typedef build(SourceLibraryBuilder libraryBuilder) {
     typedef.type ??= buildThisType();
 
-    TypeBuilder type = this.type;
+    TypeBuilder? type = this.type;
     if (type is FunctionTypeBuilder) {
-      List<TypeParameter> typeParameters =
-          new List<TypeParameter>.filled(type.typeVariables?.length ?? 0, null);
-      for (int i = 0; i < typeParameters.length; ++i) {
-        TypeVariableBuilder typeVariable = type.typeVariables[i];
-        typeParameters[i] = typeVariable.parameter;
-      }
+      List<TypeParameter> typeParameters = new List<TypeParameter>.generate(
+          type.typeVariables?.length ?? 0,
+          (int i) => type.typeVariables![i].parameter,
+          growable: false);
       FreshTypeParameters freshTypeParameters =
           getFreshTypeParameters(typeParameters);
       for (int i = 0; i < freshTypeParameters.freshTypeParameters.length; i++) {
@@ -110,7 +110,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       }
 
       if (type.formals != null) {
-        for (FormalParameterBuilder formal in type.formals) {
+        for (FormalParameterBuilder formal in type.formals!) {
           VariableDeclaration parameter = formal.build(libraryBuilder, 0);
           parameter.type = freshTypeParameters.substitute(parameter.type);
           if (formal.isNamed) {
@@ -123,6 +123,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       }
     } else if (type is NamedTypeBuilder || type is FixedTypeBuilder) {
       // No error, but also no additional setup work.
+      // ignore: unnecessary_null_comparison
     } else if (type != null) {
       unhandled("${type.fullNameForErrors}", "build", charOffset, fileUri);
     }
@@ -140,19 +141,21 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();
       }
-      return thisType;
+      return thisType!;
     }
     // It is a compile-time error for an alias (typedef) to refer to itself. We
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = pendingTypeAliasMarker;
-    TypeBuilder type = this.type;
+    TypeBuilder? type = this.type;
+    // ignore: unnecessary_null_comparison
     if (type != null) {
       DartType builtType =
-          type.build(library, thisTypedefType(typedef, library));
+          type.build(library, origin: thisTypedefType(typedef, library));
+      // ignore: unnecessary_null_comparison
       if (builtType != null) {
         if (typeVariables != null) {
-          for (TypeVariableBuilder tv in typeVariables) {
+          for (TypeVariableBuilder tv in typeVariables!) {
             // Follow bound in order to find all cycles
             tv.bound?.build(library);
           }
@@ -176,27 +179,29 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // for the bound of all boundless variables and add them to the list for
     // being recomputed later, when the bounds are assigned.
     List<DartType> bounds =
-        new List<DartType>.filled(typedef.typeParameters.length, null);
-    for (int i = 0; i < bounds.length; ++i) {
-      bounds[i] = typedef.typeParameters[i].bound;
-      if (bounds[i] == null) {
+        new List<DartType>.generate(typedef.typeParameters.length, (int i) {
+      DartType bound = typedef.typeParameters[i].bound;
+      if (identical(bound, TypeParameter.unsetBoundSentinel)) {
         typedef.typeParameters[i].bound = const DynamicType();
       }
-    }
+      return bound;
+    }, growable: false);
+    for (int i = 0; i < bounds.length; ++i) {}
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedef.typeParameters, clientLibrary.library);
     TypedefType result =
         new TypedefType(typedef, clientLibrary.nonNullable, asTypeArguments);
     for (int i = 0; i < bounds.length; ++i) {
-      if (bounds[i] == null) {
+      if (identical(bounds[i], TypeParameter.unsetBoundSentinel)) {
         // If the bound is not assigned yet, put the corresponding
         // type-parameter type into the list for the nullability re-computation.
         // At this point, [parent] should be a [SourceLibraryBuilder] because
         // otherwise it's a compiled library loaded from a dill file, and the
         // bounds should have been assigned.
-        SourceLibraryBuilder parentLibrary = parent;
-        parentLibrary.registerPendingNullability(_typeVariables[i].fileUri,
-            _typeVariables[i].charOffset, asTypeArguments[i]);
+        library.registerPendingNullability(
+            _typeVariables![i].fileUri!,
+            _typeVariables![i].charOffset,
+            asTypeArguments[i] as TypeParameterType);
       }
     }
     return result;
@@ -204,18 +209,16 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      LibraryBuilder library, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
 
     if (arguments == null && typeVariables != null) {
-      List<DartType> result =
-          new List<DartType>.filled(typeVariables.length, null, growable: true);
-      for (int i = 0; i < result.length; ++i) {
-        result[i] = typeVariables[i].defaultType.build(library);
-      }
+      List<DartType> result = new List<DartType>.generate(typeVariables!.length,
+          (int i) => typeVariables![i].defaultType!.build(library),
+          growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
       }
@@ -234,32 +237,71 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     // arguments.length == typeVariables.length
-    List<DartType> result =
-        new List<DartType>.filled(arguments.length, null, growable: true);
-    for (int i = 0; i < result.length; ++i) {
-      result[i] = arguments[i].build(library);
-    }
-    return result;
+    return new List<DartType>.generate(
+        arguments!.length, (int i) => arguments[i].build(library),
+        growable: true);
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     library.checkBoundsInTypeParameters(
         typeEnvironment, typedef.typeParameters, fileUri);
     library.checkBoundsInType(
-        typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
+        typedef.type!, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
         allowSuperBounded: false);
   }
 
-  @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(
         typedef, metadata, library, null, null, fileUri);
     if (typeVariables != null) {
-      for (int i = 0; i < typeVariables.length; i++) {
-        typeVariables[i].buildOutlineExpressions(
+      for (int i = 0; i < typeVariables!.length; i++) {
+        typeVariables![i].buildOutlineExpressions(
             library, null, null, coreTypes, delayedActionPerformers);
       }
+    }
+    _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
+      InterfaceType targetType = typedef.type as InterfaceType;
+      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+          new Map<TypeParameter, DartType>.fromIterables(
+              target.enclosingClass!.typeParameters, targetType.typeArguments),
+          target.function!,
+          tearOff.function));
+    });
+  }
+
+  Map<Procedure, Member>? _tearOffDependencies;
+
+  void buildTypedefTearOffs(
+      SourceLibraryBuilder library, void Function(Procedure) f) {
+    TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
+    if (declaration is ClassBuilder &&
+        typedef.typeParameters.isNotEmpty &&
+        !isProperRenameForClass(library.loader.typeEnvironment, typedef)) {
+      tearOffs = {};
+      _tearOffDependencies = {};
+      declaration
+          .forEachConstructor((String constructorName, MemberBuilder builder) {
+        Member? target = builder.invokeTarget;
+        if (target != null) {
+          if (target is Procedure && target.isRedirectingFactory) {
+            target = builder.readTarget!;
+          }
+          Name targetName =
+              new Name(constructorName, declaration.library.library);
+          Procedure tearOff = tearOffs![targetName] =
+              createTypedefTearOffProcedure(
+                  name, constructorName, library, fileUri, charOffset);
+          _tearOffDependencies![tearOff] = target;
+          InterfaceType targetType = typedef.type as InterfaceType;
+          buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
+              typedef.typeParameters, targetType.typeArguments, library);
+          f(tearOff);
+        }
+      });
     }
   }
 }

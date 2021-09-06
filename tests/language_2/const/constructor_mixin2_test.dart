@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class Mixin {
   var nonFinalField;
 }
@@ -14,8 +16,6 @@ class B extends A
     with Mixin
 {
   const B(foo) : super(foo);
-//      ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
 //      ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD
 //               ^

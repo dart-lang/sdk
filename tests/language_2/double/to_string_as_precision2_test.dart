@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test basic integer operations.
 
+// @dart = 2.9
+
 // [NNBD non-migrated]: This test has no language/ counterpart. The static
 // errors are just redundant tests of the static type system, and the runtime
 // errors are redundant with to_string_as_precision2_runtime_test.dart.

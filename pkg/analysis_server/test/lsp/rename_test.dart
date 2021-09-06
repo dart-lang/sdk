@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -93,8 +90,8 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error.code, ServerErrorCodes.RenameNotValid);
-    expect(response.error.message, contains('is defined in the SDK'));
+    expect(response.error!.code, ServerErrorCodes.RenameNotValid);
+    expect(response.error!.message, contains('is defined in the SDK'));
   }
 
   Future<void> test_prepare_variable() async {
@@ -174,11 +171,13 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       action: UserPromptActions.renameAnyway,
     );
 
-    if (response.error != null) {
-      throw response.error;
+    final error = response.error;
+    if (error != null) {
+      throw error;
     }
 
-    final result = WorkspaceEdit.fromJson(response.result);
+    final result =
+        WorkspaceEdit.fromJson(response.result as Map<String, Object?>);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
@@ -186,7 +185,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     };
     applyDocumentChanges(
       contents,
-      result.documentChanges,
+      result.documentChanges!,
     );
     expect(contents[mainFilePath], equals(expectedContent));
   }
@@ -207,7 +206,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     // Expect a successful empty response if cancelled.
     expect(response.error, isNull);
     expect(
-      WorkspaceEdit.fromJson(response.result),
+      WorkspaceEdit.fromJson(response.result as Map<String, Object?>),
       equals(emptyWorkspaceEdit),
     );
   }
@@ -284,12 +283,12 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     await openFile(referencedFileUri, withoutMarkers(referencedContent),
         version: referencedVersion);
 
-    final result = await rename(
+    final result = (await rename(
       mainFileUri,
       mainVersion,
       positionFromMarker(mainContent),
       'MyNewClass',
-    );
+    ))!;
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
@@ -302,7 +301,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     };
     applyDocumentChanges(
       contents,
-      result.documentChanges,
+      result.documentChanges!,
       expectedVersions: documentVersions,
     );
     expect(contents[mainFilePath], equals(expectedMainContent));
@@ -377,8 +376,8 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error.code, ServerErrorCodes.RenameNotValid);
-    expect(response.error.message, contains('is defined in the SDK'));
+    expect(response.error!.code, ServerErrorCodes.RenameNotValid);
+    expect(response.error!.message, contains('is defined in the SDK'));
   }
 
   Future<void> test_rename_usingLegacyChangeInterface() async {
@@ -396,18 +395,18 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content), version: 222);
 
-    final result = await rename(
+    final result = (await rename(
       mainFileUri,
       222,
       positionFromMarker(content),
       'MyNewClass',
-    );
+    ))!;
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, result.changes);
+    applyChanges(contents, result.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -444,7 +443,8 @@ class RenameTest extends AbstractLspAnalysisServerTest {
         sendRenameVersion: false);
   }
 
-  Future<void> _test_prepare(String content, String expectedPlaceholder) async {
+  Future<void> _test_prepare(
+      String content, String? expectedPlaceholder) async {
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
 
@@ -454,7 +454,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     if (expectedPlaceholder == null) {
       expect(result, isNull);
     } else {
-      expect(result.range, equals(rangeFromMarkers(content)));
+      expect(result!.range, equals(rangeFromMarkers(content)));
       expect(result.placeholder, equals(expectedPlaceholder));
     }
   }
@@ -481,7 +481,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
 
     expect(result.result, isNull);
     expect(result.error, isNotNull);
-    return result.error;
+    return result.error!;
   }
 
   /// Tests a rename that is expected to cause an error, which will trigger
@@ -490,9 +490,9 @@ class RenameTest extends AbstractLspAnalysisServerTest {
   Future<ResponseMessage> _test_rename_prompt(
     String content,
     String newName, {
-    @required String expectedMessage,
-    Future<void> Function() beforeResponding,
-    @required String action,
+    required String expectedMessage,
+    Future<void> Function()? beforeResponding,
+    required String action,
     int openFileVersion = 222,
     int renameRequestFileVersion = 222,
   }) async {
@@ -519,9 +519,9 @@ class RenameTest extends AbstractLspAnalysisServerTest {
         expect(params.type, equals(MessageType.Warning));
         expect(params.message, equals(expectedMessage));
         expect(params.actions, hasLength(2));
-        expect(params.actions[0],
+        expect(params.actions![0],
             equals(MessageActionItem(title: UserPromptActions.renameAnyway)));
-        expect(params.actions[1],
+        expect(params.actions![1],
             equals(MessageActionItem(title: UserPromptActions.cancel)));
 
         // Allow the test to run some code before we send the response.
@@ -536,8 +536,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
   Future<void> _test_rename_withDocumentChanges(
     String content,
     String newName,
-    String expectedContent, {
-    sendDocumentVersion = true,
+    String? expectedContent, {
     sendRenameVersion = true,
   }) async {
     // The specific number doesn't matter here, it's just a placeholder to confirm
@@ -548,7 +547,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
     await openFile(mainFileUri, withoutMarkers(content),
-        version: sendDocumentVersion ? documentVersion : null);
+        version: documentVersion);
 
     final result = await rename(
       mainFileUri,
@@ -568,7 +567,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       };
       applyDocumentChanges(
         contents,
-        result.documentChanges,
+        result!.documentChanges!,
         expectedVersions: documentVersions,
       );
       expect(contents[mainFilePath], equals(expectedContent));

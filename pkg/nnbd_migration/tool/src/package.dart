@@ -12,16 +12,16 @@ import 'package:path/path.dart' as path;
 /// Return a resolved path including the home directory in place of tilde
 /// references.
 String resolveTildePath(String originalPath) {
-  if (originalPath == null || !originalPath.startsWith('~/')) {
+  if (!originalPath.startsWith('~/')) {
     return originalPath;
   }
 
   String homeDir;
 
   if (Platform.isWindows) {
-    homeDir = path.absolute(Platform.environment['USERPROFILE']);
+    homeDir = path.absolute(Platform.environment['USERPROFILE']!);
   } else {
-    homeDir = path.absolute(Platform.environment['HOME']);
+    homeDir = path.absolute(Platform.environment['HOME']!);
   }
 
   return path.join(homeDir, originalPath.substring(2));
@@ -81,17 +81,17 @@ class ManualPackage extends Package {
 /// Abstraction for a package fetched via Git.
 class GitPackage extends Package {
   final String _clonePath;
-  final bool _keepUpdated;
+  final bool? _keepUpdated;
   final String label;
   final Playground _playground;
 
   GitPackage._(this._clonePath, this._playground, this._keepUpdated,
-      {String name, this.label = 'master'})
+      {String? name, this.label = 'master'})
       : super(name ?? _buildName(_clonePath));
 
   static Future<GitPackage> gitPackageFactory(
-      String clonePath, Playground playground, bool keepUpdated,
-      {String name, String label = 'master'}) async {
+      String clonePath, Playground playground, bool? keepUpdated,
+      {String? name, String label = 'master'}) async {
     GitPackage gitPackage = GitPackage._(clonePath, playground, keepUpdated,
         name: name, label: label);
     await gitPackage._init();
@@ -118,7 +118,7 @@ class GitPackage extends Package {
   /// Initialize the package with a shallow clone.  Run only once per
   /// [GitPackage] instance.
   Future<void> _init() async {
-    if (_keepUpdated || !await Directory(packagePath).exists()) {
+    if (_keepUpdated! || !await Directory(packagePath).exists()) {
       // Clone or update.
       if (await Directory(packagePath).exists()) {
         await launcher.runStreamed('git', ['pull'],
@@ -139,27 +139,27 @@ class GitPackage extends Package {
     }
   }
 
-  SubprocessLauncher _launcher;
+  SubprocessLauncher? _launcher;
   SubprocessLauncher get launcher =>
       _launcher ??= SubprocessLauncher('$name-$label', _playground.env);
 
-  String _packagePath;
+  String? _packagePath;
   String get packagePath =>
       // TODO(jcollins-g): allow packages from subdirectories of clones
       _packagePath ??= path.join(_playground.playgroundPath, '$name-$label');
 
   @override
-  List<String> get migrationPaths => [_packagePath];
+  List<String?> get migrationPaths => [_packagePath];
 
   @override
   String toString() {
-    return '$_clonePath ($label)' + (_keepUpdated ? ' [synced]' : '');
+    return '$_clonePath ($label)' + (_keepUpdated! ? ' [synced]' : '');
   }
 }
 
 /// Abstraction for a package fetched via pub.
 class PubPackage extends Package {
-  PubPackage(String name, [String version]) : super(name) {
+  PubPackage(String name, [String? version]) : super(name) {
     throw UnimplementedError();
   }
 
@@ -183,12 +183,9 @@ class SdkPackage extends Package {
         _packagePath = potentialPath;
       }
     }
-    if (_packagePath == null) {
-      throw ArgumentError('Package $name not found in SDK');
-    }
   }
 
-  /* late final */ String _packagePath;
+  late final String _packagePath;
   @override
   List<String> get migrationPaths => [_packagePath];
 
@@ -203,7 +200,7 @@ abstract class Package {
   Package(this.name);
 
   /// Returns the set of directories for this package.
-  List<String> get migrationPaths;
+  List<String?> get migrationPaths;
 
   @override
   String toString() => name;
@@ -212,7 +209,7 @@ abstract class Package {
 /// Abstraction for compiled Dart SDKs (not this repository).
 class Sdk {
   /// The root of the compiled SDK.
-  /* late final */ String sdkPath;
+  late final String sdkPath;
 
   Sdk(String sdkPath) {
     this.sdkPath = path.canonicalize(sdkPath);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -34,8 +32,7 @@ class ChangeTest {
     change.addEdit('/a.dart', 0, edit2);
     expect(change.edits, hasLength(1));
     {
-      var fileEdit = change.getFileEdit('/a.dart');
-      expect(fileEdit, isNotNull);
+      var fileEdit = change.getFileEdit('/a.dart')!;
       expect(fileEdit.edits, unorderedEquals([edit1, edit2]));
     }
   }

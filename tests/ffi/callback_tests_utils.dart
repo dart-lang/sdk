@@ -17,13 +17,19 @@ class CallbackTest {
   final String name;
   final Pointer callback;
   final void Function() afterCallbackChecks;
+  final bool isLeaf;
 
-  CallbackTest(this.name, this.callback) : afterCallbackChecks = noChecks {}
-  CallbackTest.withCheck(this.name, this.callback, this.afterCallbackChecks) {}
+  CallbackTest(this.name, this.callback, {this.isLeaf: false})
+      : afterCallbackChecks = noChecks {}
+  CallbackTest.withCheck(this.name, this.callback, this.afterCallbackChecks,
+      {this.isLeaf: false}) {}
 
   void run() {
-    final NativeCallbackTestFn tester = ffiTestFunctions
-        .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>("Test$name");
+    final NativeCallbackTestFn tester = isLeaf
+        ? ffiTestFunctions.lookupFunction<NativeCallbackTest,
+            NativeCallbackTestFn>("Test$name", isLeaf: true)
+        : ffiTestFunctions.lookupFunction<NativeCallbackTest,
+            NativeCallbackTestFn>("Test$name", isLeaf: false);
 
     final int testCode = tester(callback);
 

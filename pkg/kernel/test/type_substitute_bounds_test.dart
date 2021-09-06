@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.type_substitute_bounds_test;
 
 import 'package:kernel/kernel.dart';
@@ -45,7 +43,7 @@ class TestCase {
 
   String toString() {
     var substitution = bounds.keys.map((key) {
-      var bound = bounds[key];
+      var bound = bounds[key]!;
       return '${bound.lower} <: $key <: ${bound.upper}';
     }).join(',');
     return '$type [$substitution] <: $expected';
@@ -72,7 +70,7 @@ main() {
       var upperBounds = <TypeParameter, DartType>{};
       var lowerBounds = <TypeParameter, DartType>{};
       testCase.bounds.forEach((String name, TypeBound bounds) {
-        var parameter = environment.getTypeParameter(name);
+        var parameter = environment.getTypeParameter(name)!;
         upperBounds[parameter] = environment.parse(bounds.upper);
         lowerBounds[parameter] = environment.parse(bounds.lower);
       });

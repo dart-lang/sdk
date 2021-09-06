@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 enum E1 { a, b }
 enum E2 { a, b }
+enum E3 { a, b }
 
 var v = [E1.a, E2.b];
 
 main() {
-  // Test that v is `List<Object>`, so any of these assignemnts are OK.
-  v[0] = 0;
-  v[1] = '1';
+  // Test that v is `List<Enum>`, so these assignments are OK.
+  v[0] = E3.a;
+  List<Enum> w = v;
 }

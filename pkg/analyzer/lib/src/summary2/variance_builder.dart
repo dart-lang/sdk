@@ -13,13 +13,16 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 
 class VarianceBuilder {
+  final Linker _linker;
   final Set<TypeAlias> _pending = Set.identity();
   final Set<TypeAlias> _visit = Set.identity();
 
-  void perform(Linker linker) {
-    for (var builder in linker.builders.values) {
-      for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit!.declarations) {
+  VarianceBuilder(this._linker);
+
+  void perform() {
+    for (var builder in _linker.builders.values) {
+      for (var linkingUnit in builder.units) {
+        for (var node in linkingUnit.node.declarations) {
           if (node is FunctionTypeAlias) {
             _pending.add(node);
           } else if (node is GenericTypeAlias) {
@@ -29,9 +32,9 @@ class VarianceBuilder {
       }
     }
 
-    for (var builder in linker.builders.values) {
-      for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit!.declarations) {
+    for (var builder in _linker.builders.values) {
+      for (var linkingUnit in builder.units) {
+        for (var node in linkingUnit.node.declarations) {
           if (node is ClassTypeAlias) {
             _typeParameters(node.typeParameters);
           } else if (node is ClassDeclaration) {
@@ -50,13 +53,10 @@ class VarianceBuilder {
 
   Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
-      var element = type.element;
-      if (element is TypeParameterElement) {
-        if (element == variable) {
-          return Variance.covariant;
-        } else {
-          return Variance.unrelated;
-        }
+      if (type.element == variable) {
+        return Variance.covariant;
+      } else {
+        return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
       var element = type.element;
@@ -217,8 +217,10 @@ class VarianceBuilder {
   }
 
   void _typeAliasElement(TypeAliasElementImpl element) {
-    var node = element.linkedNode;
-    if (node is GenericTypeAlias) {
+    var node = _linker.getLinkingNode(element);
+    if (node == null) {
+      // Not linking.
+    } else if (node is GenericTypeAlias) {
       _genericTypeAlias(node);
     } else if (node is FunctionTypeAlias) {
       _functionTypeAlias(node);

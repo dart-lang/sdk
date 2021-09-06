@@ -5,8 +5,10 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Abstract superclass of classes that provide information about the workspace
@@ -15,11 +17,24 @@ abstract class Workspace {
   /// Return true iff this [Workspace] is a [BazelWorkspace].
   bool get isBazel => false;
 
+  /// Return `true` if the read state of configuration files is consistent
+  /// with their current state on the file system.
+  @internal
+  bool get isConsistentWithFileSystem => true;
+
   /// The [UriResolver] that can resolve `package` URIs.
   UriResolver get packageUriResolver;
 
   /// The absolute workspace root path.
   String get root;
+
+  /// If this workspace has any configuration that affects resolution
+  /// (for example diagnostics), then this configuration should be included
+  /// into the result key.
+  ///
+  /// The resolution salt is later added to the key of every file.
+  @internal
+  void contributeToResolutionSalt(ApiSignature buffer) {}
 
   /// Create the source factory that should be used to resolve Uris to
   /// [Source]s. The [sdk] may be `null`. The [summaryData] can also be `null`.

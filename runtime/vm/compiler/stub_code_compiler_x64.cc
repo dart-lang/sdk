@@ -28,14 +28,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, precompiled_mode);
-
 namespace compiler {
 
 // Ensures that [RAX] is a new object, if not it will be added to the remembered
@@ -43,8 +35,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [RAX], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -129,7 +121,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset),
           RAX);  // Set retval in target::NativeArguments.
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
   ASSERT(target::NativeArguments::StructSize() >
          CallingConventions::kRegisterTransferLimit);
   __ movq(CallingConventions::kArg1Reg, RSP);
@@ -367,15 +359,18 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Load the target from the thread.
   __ movq(TMP, compiler::Address(
                    THR, compiler::target::Thread::callback_code_offset()));
-  __ movq(TMP, compiler::FieldAddress(
-                   TMP, compiler::target::GrowableObjectArray::data_offset()));
-  __ movq(TMP, __ ElementAddressForRegIndex(
-                   /*external=*/false,
-                   /*array_cid=*/kArrayCid,
-                   /*index, smi-tagged=*/compiler::target::kWordSize * 2,
-                   /*index_unboxed=*/false,
-                   /*array=*/TMP,
-                   /*index=*/RAX));
+  __ LoadCompressed(
+      TMP, compiler::FieldAddress(
+               TMP, compiler::target::GrowableObjectArray::data_offset()));
+  __ LoadCompressed(
+      TMP,
+      __ ElementAddressForRegIndex(
+          /*external=*/false,
+          /*array_cid=*/kArrayCid,
+          /*index_scale, smi-tagged=*/compiler::target::kCompressedWordSize * 2,
+          /*index_unboxed=*/false,
+          /*array=*/TMP,
+          /*index=*/RAX));
   __ movq(TMP, compiler::FieldAddress(
                    TMP, compiler::target::Code::entry_point_offset()));
 
@@ -383,8 +378,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // the saved THR and the return address. The target will know to skip them.
   __ call(TMP);
 
-  // EnterSafepoint takes care to not clobber *any* registers (besides TMP).
-  __ EnterSafepoint();
+  // Takes care to not clobber *any* registers (besides TMP).
+  __ EnterFullSafepoint();
 
   // Restore THR (callee-saved).
   __ popq(THR);
@@ -408,8 +403,9 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 // RDX: The type_arguments_field_offset (or 0)
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
-    const Object& closure_allocation_stub,
-    const Object& context_allocation_stub) {
+    const Code& closure_allocation_stub,
+    const Code& context_allocation_stub,
+    bool generic) {
   const intptr_t kReceiverOffsetInWords =
       target::frame_layout.param_end_from_fp + 1;
 
@@ -451,37 +447,45 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     __ Bind(&done);
   }
 
+  // Put context in right register for AllocateClosure call.
+  __ MoveRegister(AllocateClosureABI::kContextReg, RAX);
+
   // Store receiver in context
-  __ movq(RSI, Address(RBP, target::kWordSize * kReceiverOffsetInWords));
-  __ StoreIntoObject(
-      RAX, FieldAddress(RAX, target::Context::variable_offset(0)), RSI);
+  __ movq(AllocateClosureABI::kScratchReg,
+          Address(RBP, target::kWordSize * kReceiverOffsetInWords));
+  __ StoreIntoObject(AllocateClosureABI::kContextReg,
+                     FieldAddress(AllocateClosureABI::kContextReg,
+                                  target::Context::variable_offset(0)),
+                     AllocateClosureABI::kScratchReg);
 
-  // Push context.
-  __ pushq(RAX);
+  // Pop function.
+  __ popq(AllocateClosureABI::kFunctionReg);
 
-  // Allocate closure.
+  // Allocate closure. After this point, we only use the registers in
+  // AllocateClosureABI.
   __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ call(FieldAddress(
-      CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kUnchecked)));
+  __ call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 
   // Populate closure object.
-  __ popq(RCX);  // Pop context.
-  __ StoreIntoObject(RAX, FieldAddress(RAX, target::Closure::context_offset()),
-                     RCX);
-  __ popq(RCX);  // Pop extracted method.
-  __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Closure::function_offset()), RCX);
-  __ popq(RCX);  // Pop type argument vector.
-  __ StoreIntoObjectNoBarrier(
-      RAX,
-      FieldAddress(RAX, target::Closure::instantiator_type_arguments_offset()),
-      RCX);
-  __ LoadObject(RCX, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Closure::delayed_type_arguments_offset()),
-      RCX);
+  __ popq(AllocateClosureABI::kScratchReg);  // Pop type argument vector.
+  __ StoreCompressedIntoObjectNoBarrier(
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::instantiator_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
+  // Keep delayed_type_arguments as null if non-generic (see Closure::New).
+  if (generic) {
+    __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
+    __ StoreCompressedIntoObjectNoBarrier(
+        AllocateClosureABI::kResultReg,
+        FieldAddress(AllocateClosureABI::kResultReg,
+                     target::Closure::delayed_type_arguments_offset()),
+        AllocateClosureABI::kScratchReg);
+  }
 
   __ LeaveStubFrame();
+  // No-op if the two are the same.
+  __ MoveRegister(RAX, AllocateClosureABI::kResultReg);
   __ Ret();
 }
 
@@ -722,13 +726,13 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ movq(CODE_REG,
           Address(THR, target::Thread::fix_callers_target_code_offset()));
   __ EnterStubFrame();
-  __ pushq(RBX);           // Preserve cache (guarded CID as Smi).
-  __ pushq(RDX);           // Preserve receiver.
   __ pushq(Immediate(0));  // Result slot.
-  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
-  __ popq(CODE_REG);  // Get Code object.
+  __ pushq(RDX);           // Preserve receiver.
+  __ pushq(RBX);           // Old cache value (also 2nd return value).
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
+  __ popq(RBX);       // Get target cache object.
   __ popq(RDX);       // Restore receiver.
-  __ popq(RBX);       // Restore cache (guarded CID as Smi).
+  __ popq(CODE_REG);  // Get target Code object.
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ LeaveStubFrame();
@@ -784,8 +788,8 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ Bind(&loop);
   __ movq(RDI, Address(R12, 0));
   // Generational barrier is needed, array is not necessarily in new space.
-  __ StoreIntoObject(RAX, Address(RBX, 0), RDI);
-  __ addq(RBX, Immediate(target::kWordSize));
+  __ StoreCompressedIntoObject(RAX, Address(RBX, 0), RDI);
+  __ addq(RBX, Immediate(target::kCompressedWordSize));
   __ subq(R12, Immediate(target::kWordSize));
   __ Bind(&loop_condition);
   __ decq(R10);
@@ -994,13 +998,14 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler,
   __ pushq(R10);           // Arguments descriptor array.
 
   // Adjust arguments count.
-  __ cmpq(
+  __ OBJ(cmp)(
       FieldAddress(R10, target::ArgumentsDescriptor::type_args_len_offset()),
       Immediate(0));
-  __ movq(R10, RDI);
+  __ OBJ(mov)(R10, RDI);
   Label args_count_ok;
   __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ addq(R10, Immediate(target::ToRawSmi(1)));  // Include the type arguments.
+  // Include the type arguments.
+  __ OBJ(add)(R10, Immediate(target::ToRawSmi(1)));
   __ Bind(&args_count_ok);
 
   // R10: Smi-tagged arguments array length.
@@ -1026,7 +1031,8 @@ static void GenerateDispatcherCode(Assembler* assembler,
 
   __ EnterStubFrame();
   // Load the receiver.
-  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
+  __ OBJ(mov)(RDI,
+              FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   __ movq(RAX,
           Address(RBP, RDI, TIMES_HALF_WORD_SIZE,
                   target::frame_layout.param_end_from_fp * target::kWordSize));
@@ -1043,25 +1049,29 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 
   __ movq(R10, FieldAddress(
                    RBX, target::CallSiteData::arguments_descriptor_offset()));
-  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
+  __ OBJ(mov)(RDI,
+              FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
 
   GenerateNoSuchMethodDispatcherBody(assembler, /*receiver_reg=*/RDX);
 }
 
 // Called for inline allocation of arrays.
-// Input parameters:
-//   R10 : Array length as Smi.
-//   RBX : array element type (either NULL or an instantiated type).
-// NOTE: R10 cannot be clobbered here as the caller relies on it being saved.
-// The newly allocated object is returned in RAX.
+// Input registers (preserved):
+//   AllocateArrayABI::kLengthReg: array length as Smi.
+//   AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+// Output registers:
+//   AllocateArrayABI::kResultReg: newly allocated array.
+// Clobbered:
+//   RCX, RDI, R12
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
     // RoundedAllocationSize(
-    //     (array_length * target::kwordSize) + target::Array::header_size()).
-    __ movq(RDI, R10);  // Array Length.
+    //     (array_length * target::kCompressedWordSize) +
+    //         target::Array::header_size()).
+    __ movq(RDI, AllocateArrayABI::kLengthReg);  // Array Length.
     // Check that length is Smi.
     __ testq(RDI, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
@@ -1080,20 +1090,22 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
     // RDI is a Smi.
-    __ OBJ(lea)(RDI, Address(RDI, TIMES_4, fixed_size_plus_alignment_padding));
+    __ OBJ(lea)(RDI, Address(RDI, TIMES_COMPRESSED_HALF_WORD_SIZE,
+                             fixed_size_plus_alignment_padding));
     ASSERT(kSmiTagShift == 1);
     __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
     const intptr_t cid = kArrayCid;
-    __ movq(RAX, Address(THR, target::Thread::top_offset()));
+    __ movq(AllocateArrayABI::kResultReg,
+            Address(THR, target::Thread::top_offset()));
 
     // RDI: allocation size.
-    __ movq(RCX, RAX);
+    __ movq(RCX, AllocateArrayABI::kResultReg);
     __ addq(RCX, RDI);
     __ j(CARRY, &slow_case);
 
     // Check if the allocation fits into the remaining space.
-    // RAX: potential new object start.
+    // AllocateArrayABI::kResultReg: potential new object start.
     // RCX: potential next object start.
     // RDI: allocation size.
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
@@ -1102,10 +1114,10 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ movq(Address(THR, target::Thread::top_offset()), RCX);
-    __ addq(RAX, Immediate(kHeapObjectTag));
+    __ addq(AllocateArrayABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the tags.
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // RDI: allocation size.
     {
       Label size_tag_overflow, done;
@@ -1125,23 +1137,30 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
     }
 
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // Store the type argument field.
     // No generational barrier needed, since we store into a new object.
-    __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, target::Array::type_arguments_offset()), RBX);
+    __ StoreCompressedIntoObjectNoBarrier(
+        AllocateArrayABI::kResultReg,
+        FieldAddress(AllocateArrayABI::kResultReg,
+                     target::Array::type_arguments_offset()),
+        AllocateArrayABI::kTypeArgumentsReg);
 
     // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, target::Array::length_offset()), R10);
+    __ StoreCompressedIntoObjectNoBarrier(
+        AllocateArrayABI::kResultReg,
+        FieldAddress(AllocateArrayABI::kResultReg,
+                     target::Array::length_offset()),
+        AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // RCX: new object end address.
     // RDI: iterator which initially points to the start of the variable
     // data area to be initialized.
     __ LoadObject(R12, NullObject());
-    __ leaq(RDI, FieldAddress(RAX, target::Array::header_size()));
+    __ leaq(RDI, FieldAddress(AllocateArrayABI::kResultReg,
+                              target::Array::header_size()));
     Label done;
     Label init_loop;
     __ Bind(&init_loop);
@@ -1153,11 +1172,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 #endif  // DEBUG
     __ j(ABOVE_EQUAL, &done, kJumpLength);
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
-    __ addq(RDI, Immediate(target::kWordSize));
+    __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                          Address(RDI, 0), R12);
+    __ addq(RDI, Immediate(target::kCompressedWordSize));
     __ jmp(&init_loop, kJumpLength);
     __ Bind(&done);
-    __ ret();  // returns the newly allocated object in RAX.
+    __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
     // into the runtime.
@@ -1166,14 +1186,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  // Setup space on stack for return value.
-  __ pushq(Immediate(0));
-  __ pushq(R10);  // Array length as Smi.
-  __ pushq(RBX);  // Element type.
+  __ pushq(Immediate(0));                         // Space for return value.
+  __ pushq(AllocateArrayABI::kLengthReg);         // Array length as Smi.
+  __ pushq(AllocateArrayABI::kTypeArgumentsReg);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popq(RAX);  // Pop element type argument.
-  __ popq(R10);  // Pop array length argument.
-  __ popq(RAX);  // Pop return value from return slot.
+  __ popq(AllocateArrayABI::kTypeArgumentsReg);  // Pop element type argument.
+  __ popq(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popq(AllocateArrayABI::kResultReg);         // Pop allocated object.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
@@ -1231,7 +1250,7 @@ static const RegisterSet kCalleeSavedRegisterSet(
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   RSP : points to return address.
-//   RDI : target code
+//   RDI : target code or entry point (in bare instructions mode).
 //   RSI : arguments descriptor array.
 //   RDX : arguments array.
 //   RCX : current thread.
@@ -1239,7 +1258,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
-  const Register kTargetCodeReg = CallingConventions::kArg1Reg;
+  const Register kTargetReg = CallingConventions::kArg1Reg;
   const Register kArgDescReg = CallingConventions::kArg2Reg;
   const Register kArgsReg = CallingConventions::kArg3Reg;
   const Register kThreadReg = CallingConventions::kArg4Reg;
@@ -1304,12 +1323,13 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Push arguments. At this point we only need to preserve kTargetCodeReg.
-  ASSERT(kTargetCodeReg != RDX);
+  // Push arguments. At this point we only need to preserve kTargetReg.
+  ASSERT(kTargetReg != RDX);
 
   // Load number of arguments into RBX and adjust count for type arguments.
-  __ movq(RBX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
-  __ cmpq(
+  __ OBJ(mov)(RBX,
+              FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ OBJ(cmp)(
       FieldAddress(R10, target::ArgumentsDescriptor::type_args_len_offset()),
       Immediate(0));
   Label args_count_ok;
@@ -1330,7 +1350,12 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
   __ LoadImmediate(RAX, Immediate(0));
   __ Bind(&push_arguments);
+#if defined(DART_COMPRESSED_POINTERS)
+  __ LoadCompressed(TMP, Address(RDX, RAX, TIMES_COMPRESSED_WORD_SIZE, 0));
+  __ pushq(TMP);
+#else
   __ pushq(Address(RDX, RAX, TIMES_8, 0));
+#endif
   __ incq(RAX);
   __ cmpq(RAX, RBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
@@ -1339,14 +1364,14 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the Dart code entrypoint.
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    __ xorq(CODE_REG, CODE_REG);  // GC-safe value into CODE_REG.
   } else {
     __ xorq(PP, PP);  // GC-safe value into PP.
+    __ movq(CODE_REG, Address(kTargetReg, VMHandles::kOffsetOfRawPtrInHandle));
+    __ movq(kTargetReg,
+            FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ movq(CODE_REG,
-          Address(kTargetCodeReg, VMHandles::kOffsetOfRawPtrInHandle));
-  __ movq(kTargetCodeReg,
-          FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ call(kTargetCodeReg);  // R10 is the arguments descriptor array.
+  __ call(kTargetReg);  // R10 is the arguments descriptor array.
 
   // Read the saved number of passed arguments as Smi.
   __ movq(RDX, Address(RBP, kArgumentsDescOffset));
@@ -1782,7 +1807,6 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
   // Note: Keep in sync with calling function.
-  // kAllocationStubTypeArgumentsReg = RDX
   const Register kTagsReg = R8;
 
   {
@@ -1796,8 +1820,10 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       __ ExtractInstanceSizeFromTags(kInstanceSizeReg, kTagsReg);
 
-      __ movq(RAX, Address(THR, target::Thread::top_offset()));
-      __ leaq(kNewTopReg, Address(RAX, kInstanceSizeReg, TIMES_1, 0));
+      __ movq(AllocateObjectABI::kResultReg,
+              Address(THR, target::Thread::top_offset()));
+      __ leaq(kNewTopReg, Address(AllocateObjectABI::kResultReg,
+                                  kInstanceSizeReg, TIMES_1, 0));
       // Check if the allocation fits into the remaining space.
       __ cmpq(kNewTopReg, Address(THR, target::Thread::end_offset()));
       __ j(ABOVE_EQUAL, &slow_case);
@@ -1807,15 +1833,18 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
     // Set the tags.
     // 64 bit store also zeros the identity hash field.
-    __ movq(Address(RAX, target::Object::tags_offset()), kTagsReg);
+    __ movq(
+        Address(AllocateObjectABI::kResultReg, target::Object::tags_offset()),
+        kTagsReg);
 
-    __ addq(RAX, Immediate(kHeapObjectTag));
+    __ addq(AllocateObjectABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
     {
       const Register kNextFieldReg = RDI;
       __ leaq(kNextFieldReg,
-              FieldAddress(RAX, target::Instance::first_field_offset()));
+              FieldAddress(AllocateObjectABI::kResultReg,
+                           target::Instance::first_field_offset()));
 
       const Register kNullReg = R10;
       __ LoadObject(kNullReg, NullObject());
@@ -1831,8 +1860,9 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ j(ABOVE_EQUAL, &done, kJumpLength);
-      __ StoreIntoObjectNoBarrier(RAX, Address(kNextFieldReg, 0), kNullReg);
-      __ addq(kNextFieldReg, Immediate(target::kWordSize));
+      __ StoreCompressedIntoObjectNoBarrier(
+          AllocateObjectABI::kResultReg, Address(kNextFieldReg, 0), kNullReg);
+      __ addq(kNextFieldReg, Immediate(target::kCompressedWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
     }  // kNextFieldReg = RDI, kNullReg = R10
@@ -1854,8 +1884,11 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
                            host_type_arguments_field_offset_in_words_offset()));
 
       // Set the type arguments in the new object.
-      __ StoreIntoObject(RAX, FieldAddress(RAX, kTypeOffsetReg, TIMES_8, 0),
-                         kAllocationStubTypeArgumentsReg);
+      __ StoreCompressedIntoObject(
+          AllocateObjectABI::kResultReg,
+          FieldAddress(AllocateObjectABI::kResultReg, kTypeOffsetReg,
+                       TIMES_COMPRESSED_WORD_SIZE, 0),
+          AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kTypeOffsetReg = RDI;
@@ -1867,7 +1900,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
   // Fall back on slow case:
   if (!is_cls_parameterized) {
-    __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
+    __ LoadObject(AllocateObjectABI::kTypeArgumentsReg, NullObject());
   }
   // Tail call to generic allocation stub.
   __ jmp(
@@ -1885,8 +1918,6 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  // Note: Keep in sync with calling stub.
-  // kAllocationStubTypeArgumentsReg = RDX
   const Register kTagsToClsIdReg = R8;
 
   if (!FLAG_use_bare_instructions) {
@@ -1901,27 +1932,27 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Setup space on stack for return value.
-  __ LoadObject(RAX, NullObject());
-  __ pushq(RAX);
+  __ LoadObject(AllocateObjectABI::kResultReg, NullObject());
+  __ pushq(AllocateObjectABI::kResultReg);
 
   // Push class of object to be allocated.
-  __ LoadClassById(RAX, kTagsToClsIdReg);
-  __ pushq(RAX);
+  __ LoadClassById(AllocateObjectABI::kResultReg, kTagsToClsIdReg);
+  __ pushq(AllocateObjectABI::kResultReg);
 
   // Must be Object::null() if non-parameterized class.
-  __ pushq(kAllocationStubTypeArgumentsReg);
+  __ pushq(AllocateObjectABI::kTypeArgumentsReg);
 
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);
 
-  __ popq(RAX);  // Pop argument (type arguments of object).
-  __ popq(RAX);  // Pop argument (class of object).
-  __ popq(RAX);  // Pop result (newly allocated object).
+  __ popq(AllocateObjectABI::kResultReg);  // Drop type arguments.
+  __ popq(AllocateObjectABI::kResultReg);  // Drop class.
+  __ popq(AllocateObjectABI::kResultReg);  // Pop newly allocated object.
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
   EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
-  // RAX: new object
+  // AllocateObjectABI::kResultReg: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
 
@@ -1935,9 +1966,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     const Class& cls,
     const Code& allocate_object,
     const Code& allocat_object_parametrized) {
-  static_assert(kAllocationStubTypeArgumentsReg == RDX,
-                "Adjust register allocation in the AllocationStub");
-
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
@@ -1959,8 +1987,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
-  // Note: Keep in sync with helper function.
-  // kAllocationStubTypeArgumentsReg = RDX
   const Register kTagsReg = R8;
 
   __ movq(kTagsReg, Immediate(tags));
@@ -1996,7 +2022,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     }
   } else {
     if (!is_cls_parameterized) {
-      __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
+      __ LoadObject(AllocateObjectABI::kTypeArgumentsReg, NullObject());
     }
     __ jmp(Address(THR,
                    target::Thread::allocate_object_slow_entry_point_offset()));
@@ -2015,13 +2041,16 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ movq(R13, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
+  // Note: In compressed pointer mode LoadCompressedSmi zero extends R13,
+  // rather than sign extending it. This is ok since it's an unsigned value.
+  __ LoadCompressedSmi(
+      R13, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   __ movq(RAX,
           Address(RBP, R13, TIMES_4,
                   target::frame_layout.param_end_from_fp * target::kWordSize));
 
   // Load the function.
-  __ movq(RBX, FieldAddress(RAX, target::Closure::function_offset()));
+  __ LoadCompressed(RBX, FieldAddress(RAX, target::Closure::function_offset()));
 
   __ pushq(Immediate(0));  // Result slot.
   __ pushq(RAX);           // Receiver.
@@ -2029,7 +2058,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ pushq(R10);           // Arguments descriptor array.
 
   // Adjust arguments count.
-  __ cmpq(
+  __ OBJ(cmp)(
       FieldAddress(R10, target::ArgumentsDescriptor::type_args_len_offset()),
       Immediate(0));
   __ movq(R10, R13);
@@ -2145,9 +2174,9 @@ static void EmitFastSmiOp(Assembler* assembler,
   // Check that first entry is for Smi/Smi.
   Label error, ok;
   const Immediate& imm_smi_cid = Immediate(target::ToRawSmi(kSmiCid));
-  __ cmpq(Address(R13, 0 * target::kWordSize), imm_smi_cid);
+  __ OBJ(cmp)(Address(R13, 0 * target::kCompressedWordSize), imm_smi_cid);
   __ j(NOT_EQUAL, &error, Assembler::kNearJump);
-  __ cmpq(Address(R13, 1 * target::kWordSize), imm_smi_cid);
+  __ OBJ(cmp)(Address(R13, 1 * target::kCompressedWordSize), imm_smi_cid);
   __ j(EQUAL, &ok, Assembler::kNearJump);
   __ Bind(&error);
   __ Stop("Incorrect IC data");
@@ -2156,9 +2185,9 @@ static void EmitFastSmiOp(Assembler* assembler,
 
   if (FLAG_optimization_counter_threshold >= 0) {
     const intptr_t count_offset =
-        target::ICData::CountIndexFor(num_args) * target::kWordSize;
+        target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
     // Update counter, ignore overflow.
-    __ addq(Address(R13, count_offset), Immediate(target::ToRawSmi(1)));
+    __ OBJ(add)(Address(R13, count_offset), Immediate(target::ToRawSmi(1)));
   }
 
   __ ret();
@@ -2260,16 +2289,16 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ movq(R10, FieldAddress(
                      RBX, target::CallSiteData::arguments_descriptor_offset()));
     if (num_args == 2) {
-      __ movq(RCX,
-              FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+      __ OBJ(mov)(
+          RCX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
       __ movq(R9, Address(RSP, RCX, TIMES_4, -target::kWordSize));
       __ LoadTaggedClassIdMayBeSmi(RCX, R9);
     }
   } else {
     __ movq(R10, FieldAddress(
                      RBX, target::CallSiteData::arguments_descriptor_offset()));
-    __ movq(RCX,
-            FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+    __ OBJ(mov)(RCX,
+                FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
     __ movq(RDX, Address(RSP, RCX, TIMES_4, 0));
     __ LoadTaggedClassIdMayBeSmi(RAX, RDX);
     if (num_args == 2) {
@@ -2288,20 +2317,20 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // We unroll the generic one that is generated once more than the others.
   const bool optimize = kind == Token::kILLEGAL;
   const intptr_t target_offset =
-      target::ICData::TargetIndexFor(num_args) * target::kWordSize;
+      target::ICData::TargetIndexFor(num_args) * target::kCompressedWordSize;
   const intptr_t count_offset =
-      target::ICData::CountIndexFor(num_args) * target::kWordSize;
+      target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
   const intptr_t exactness_offset =
-      target::ICData::ExactnessIndexFor(num_args) * target::kWordSize;
+      target::ICData::ExactnessIndexFor(num_args) * target::kCompressedWordSize;
 
   __ Bind(&loop);
   for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
     Label update;
-    __ movq(R9, Address(R13, 0));
+    __ OBJ(mov)(R9, Address(R13, 0));
     __ cmpq(RAX, R9);  // Class id match?
     if (num_args == 2) {
       __ j(NOT_EQUAL, &update);  // Continue.
-      __ movq(R9, Address(R13, target::kWordSize));
+      __ OBJ(mov)(R9, Address(R13, target::kCompressedWordSize));
       // R9: next class ID to check (smi).
       __ cmpq(RCX, R9);  // Class id match?
     }
@@ -2311,7 +2340,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 
     const intptr_t entry_size = target::ICData::TestEntryLengthFor(
                                     num_args, exactness == kCheckExactness) *
-                                target::kWordSize;
+                                target::kCompressedWordSize;
     __ addq(R13, Immediate(entry_size));  // Next entry.
 
     __ cmpq(R9, Immediate(target::ToRawSmi(kIllegalCid)));  // Done?
@@ -2326,7 +2355,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Comment("IC miss");
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
-  __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ OBJ(mov)(RAX,
+              FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterStubFrame();
   if (save_entry_point) {
@@ -2369,9 +2399,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   if (exactness == kCheckExactness) {
     Label exactness_ok;
     ASSERT(num_args == 1);
-    __ movq(RAX, Address(R13, exactness_offset));
-    __ cmpq(RAX, Immediate(target::ToRawSmi(
-                     StaticTypeExactnessState::HasExactSuperType().Encode())));
+    __ OBJ(mov)(RAX, Address(R13, exactness_offset));
+    __ OBJ(cmp)(RAX,
+                Immediate(target::ToRawSmi(
+                    StaticTypeExactnessState::HasExactSuperType().Encode())));
     __ j(LESS, &exactness_ok);
     __ j(EQUAL, &call_target_function_through_unchecked_entry);
 
@@ -2384,21 +2415,25 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     // RAX contains an offset to type arguments in words as a smi,
     // hence TIMES_4. RDX is guaranteed to be non-smi because it is expected
     // to have type arguments.
-    __ cmpq(RCX, FieldAddress(RDX, RAX, TIMES_4, 0));
+#if defined(DART_COMPRESSED_POINTERS)
+    __ movsxd(RAX, RAX);
+#endif
+    __ OBJ(cmp)(RCX,
+                FieldAddress(RDX, RAX, TIMES_COMPRESSED_HALF_WORD_SIZE, 0));
     __ j(EQUAL, &call_target_function_through_unchecked_entry);
 
     // Update exactness state (not-exact anymore).
-    __ movq(Address(R13, exactness_offset),
-            Immediate(target::ToRawSmi(
-                StaticTypeExactnessState::NotExact().Encode())));
+    __ OBJ(mov)(Address(R13, exactness_offset),
+                Immediate(target::ToRawSmi(
+                    StaticTypeExactnessState::NotExact().Encode())));
     __ Bind(&exactness_ok);
   }
-  __ movq(RAX, Address(R13, target_offset));
+  __ LoadCompressed(RAX, Address(R13, target_offset));
 
   if (FLAG_optimization_counter_threshold >= 0) {
     __ Comment("Update ICData counter");
     // Ignore overflow.
-    __ addq(Address(R13, count_offset), Immediate(target::ToRawSmi(1)));
+    __ OBJ(add)(Address(R13, count_offset), Immediate(target::ToRawSmi(1)));
   }
 
   __ Comment("Call target (via specified entry point)");
@@ -2421,7 +2456,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ addq(Address(R13, count_offset), Immediate(target::ToRawSmi(1)));
     }
     __ Comment("Call target (via unchecked entry point)");
-    __ movq(RAX, Address(R13, target_offset));
+    __ LoadCompressed(RAX, Address(R13, target_offset));
     __ LoadCompressed(CODE_REG,
                       FieldAddress(RAX, target::Function::code_offset()));
     __ jmp(FieldAddress(
@@ -2589,13 +2624,13 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
   __ leaq(R12, FieldAddress(R12, target::Array::data_offset()));
   // R12: points directly to the first ic data array element.
   const intptr_t target_offset =
-      target::ICData::TargetIndexFor(0) * target::kWordSize;
+      target::ICData::TargetIndexFor(0) * target::kCompressedWordSize;
   const intptr_t count_offset =
-      target::ICData::CountIndexFor(0) * target::kWordSize;
+      target::ICData::CountIndexFor(0) * target::kCompressedWordSize;
 
   if (FLAG_optimization_counter_threshold >= 0) {
     // Increment count for this call, ignore overflow.
-    __ addq(Address(R12, count_offset), Immediate(target::ToRawSmi(1)));
+    __ OBJ(add)(Address(R12, count_offset), Immediate(target::ToRawSmi(1)));
   }
 
   // Load arguments descriptor into R10.
@@ -2603,7 +2638,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
                    RBX, target::CallSiteData::arguments_descriptor_offset()));
 
   // Get function and call it, if possible.
-  __ movq(RAX, Address(R12, target_offset));
+  __ LoadCompressed(RAX, Address(R12, target_offset));
   __ LoadCompressed(CODE_REG,
                     FieldAddress(RAX, target::Function::code_offset()));
 
@@ -2792,33 +2827,38 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrSignatureReg,
                            TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrSignatureReg,
                    TypeTestABI::kInstanceReg);
   }
-  __ cmpq(STCInternalRegs::kInstanceCidOrFunctionReg, Immediate(kClosureCid));
+  __ cmpq(STCInternalRegs::kInstanceCidOrSignatureReg, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movq(STCInternalRegs::kInstanceCidOrFunctionReg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::function_offset()));
+    __ Comment("Closure");
+    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
+                      FieldAddress(TypeTestABI::kInstanceReg,
+                                   target::Closure::function_offset()));
+    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
+                      FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
+                                   target::Function::signature_offset()));
     if (n >= 3) {
-      __ movq(
+      __ LoadCompressed(
           STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
       if (n >= 7) {
-        __ movq(
+        __ LoadCompressed(
             kInstanceParentFunctionTypeArgumentsReg,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_type_arguments_offset()));
-        __ movq(kInstanceDelayedFunctionTypeArgumentsReg,
-                FieldAddress(TypeTestABI::kInstanceReg,
-                             target::Closure::delayed_type_arguments_offset()));
+        __ LoadCompressed(
+            kInstanceDelayedFunctionTypeArgumentsReg,
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::delayed_type_arguments_offset()));
       }
     }
     __ jmp(&loop, Assembler::kNearJump);
@@ -2826,10 +2866,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Non-Closure handling.
   {
+    __ Comment("Non-Closure");
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+      __ LoadClassById(kScratchReg,
+                       STCInternalRegs::kInstanceCidOrSignatureReg);
       __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ movl(
           kScratchReg,
@@ -2839,55 +2881,59 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
       __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_8, 0));
+              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg,
+                           TIMES_COMPRESSED_WORD_SIZE, 0));
       __ Bind(&has_no_type_arguments);
+      __ Comment("No type arguments");
 
       if (n >= 7) {
         __ movq(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
         __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
     }
-    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrSignatureReg);
   }
 
   Label found, not_found, next_iteration;
 
   // Loop header.
   __ Bind(&loop);
-  __ movq(kScratchReg,
-          Address(STCInternalRegs::kCacheEntryReg,
-                  target::kWordSize *
-                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
-  __ cmpq(kScratchReg, kNullReg);
+  __ Comment("Loop");
+  __ OBJ(mov)(kScratchReg,
+              Address(STCInternalRegs::kCacheEntryReg,
+                      target::kCompressedWordSize *
+                          target::SubtypeTestCache::kInstanceCidOrSignature));
+  __ OBJ(cmp)(kScratchReg, kNullReg);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpq(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+  __ OBJ(cmp)(kScratchReg, STCInternalRegs::kInstanceCidOrSignatureReg);
   if (n == 1) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ cmpq(TypeTestABI::kDstTypeReg,
-            Address(STCInternalRegs::kCacheEntryReg,
-                    target::kWordSize *
-                        target::SubtypeTestCache::kDestinationType));
+    __ OBJ(cmp)(TypeTestABI::kDstTypeReg,
+                Address(STCInternalRegs::kCacheEntryReg,
+                        target::kCompressedWordSize *
+                            target::SubtypeTestCache::kDestinationType));
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ cmpq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-            Address(STCInternalRegs::kCacheEntryReg,
-                    target::kWordSize *
-                        target::SubtypeTestCache::kInstanceTypeArguments));
+    __ OBJ(cmp)(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
+                Address(STCInternalRegs::kCacheEntryReg,
+                        target::kCompressedWordSize *
+                            target::SubtypeTestCache::kInstanceTypeArguments));
     if (n == 3) {
       __ j(EQUAL, &found, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ cmpq(
+      __ OBJ(cmp)(
           TypeTestABI::kInstantiatorTypeArgumentsReg,
           Address(STCInternalRegs::kCacheEntryReg,
-                  target::kWordSize *
+                  target::kCompressedWordSize *
                       target::SubtypeTestCache::kInstantiatorTypeArguments));
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ cmpq(TypeTestABI::kFunctionTypeArgumentsReg,
-              Address(STCInternalRegs::kCacheEntryReg,
-                      target::kWordSize *
-                          target::SubtypeTestCache::kFunctionTypeArguments));
+      __ OBJ(cmp)(
+          TypeTestABI::kFunctionTypeArgumentsReg,
+          Address(STCInternalRegs::kCacheEntryReg,
+                  target::kCompressedWordSize *
+                      target::SubtypeTestCache::kFunctionTypeArguments));
 
       if (n == 5) {
         __ j(EQUAL, &found, Assembler::kNearJump);
@@ -2895,34 +2941,38 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         ASSERT(n == 7);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
-        __ cmpq(kInstanceParentFunctionTypeArgumentsReg,
-                Address(STCInternalRegs::kCacheEntryReg,
-                        target::kWordSize *
-                            target::SubtypeTestCache::
-                                kInstanceParentFunctionTypeArguments));
+        __ OBJ(cmp)(kInstanceParentFunctionTypeArgumentsReg,
+                    Address(STCInternalRegs::kCacheEntryReg,
+                            target::kCompressedWordSize *
+                                target::SubtypeTestCache::
+                                    kInstanceParentFunctionTypeArguments));
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ cmpq(kInstanceDelayedFunctionTypeArgumentsReg,
-                Address(STCInternalRegs::kCacheEntryReg,
-                        target::kWordSize *
-                            target::SubtypeTestCache::
-                                kInstanceDelayedFunctionTypeArguments));
+        __ OBJ(cmp)(kInstanceDelayedFunctionTypeArgumentsReg,
+                    Address(STCInternalRegs::kCacheEntryReg,
+                            target::kCompressedWordSize *
+                                target::SubtypeTestCache::
+                                    kInstanceDelayedFunctionTypeArguments));
         __ j(EQUAL, &found, Assembler::kNearJump);
       }
     }
   }
 
   __ Bind(&next_iteration);
+  __ Comment("Next iteration");
   __ addq(STCInternalRegs::kCacheEntryReg,
-          Immediate(target::kWordSize *
+          Immediate(target::kCompressedWordSize *
                     target::SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&found);
-  __ movq(TypeTestABI::kSubtypeTestCacheResultReg,
-          Address(STCInternalRegs::kCacheEntryReg,
-                  target::kWordSize * target::SubtypeTestCache::kTestResult));
+  __ Comment("Found");
+  __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
+                    Address(STCInternalRegs::kCacheEntryReg,
+                            target::kCompressedWordSize *
+                                target::SubtypeTestCache::kTestResult));
 
   __ Bind(&not_found);
+  __ Comment("Not found");
   if (n >= 7) {
     __ popq(kInstanceDelayedFunctionTypeArgumentsReg);
     __ popq(kInstanceParentFunctionTypeArgumentsReg);
@@ -3197,7 +3247,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   const intptr_t base = target::Array::data_offset();
   // RCX is smi tagged, but table entries are two words, so TIMES_8.
   Label probe_failed;
-  __ cmpq(RAX, FieldAddress(RDI, RCX, TIMES_8, base));
+  __ OBJ(cmp)(RAX, FieldAddress(RDI, RCX, TIMES_COMPRESSED_WORD_SIZE, base));
   __ j(NOT_EQUAL, &probe_failed, Assembler::kNearJump);
 
   Label load_target;
@@ -3206,26 +3256,21 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  const auto target_address =
-      FieldAddress(RDI, RCX, TIMES_8, base + target::kWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ movq(R10, FieldAddress(
-                     RBX, target::CallSiteData::arguments_descriptor_offset()));
-    __ jmp(target_address);
-  } else {
-    __ movq(RAX, target_address);
-    __ movq(R10, FieldAddress(
-                     RBX, target::CallSiteData::arguments_descriptor_offset()));
-    __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
+  __ LoadCompressed(RAX, FieldAddress(RDI, RCX, TIMES_COMPRESSED_WORD_SIZE,
+                                      base + target::kCompressedWordSize));
+  __ movq(R10, FieldAddress(
+                   RBX, target::CallSiteData::arguments_descriptor_offset()));
+  __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     __ LoadCompressed(CODE_REG,
                       FieldAddress(RAX, target::Function::code_offset()));
-    __ jmp(RCX);
   }
+  __ jmp(RCX);
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
-  __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base),
-          Immediate(target::ToRawSmi(kIllegalCid)));
+  __ OBJ(cmp)(FieldAddress(RDI, RCX, TIMES_COMPRESSED_WORD_SIZE, base),
+              Immediate(target::ToRawSmi(kIllegalCid)));
   Label miss;
   __ j(ZERO, &miss, Assembler::kNearJump);
 
@@ -3256,29 +3301,32 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   // RAX: receiver cid as Smi
 
   __ Bind(&loop);
-  __ movq(R9, Address(R13, 0));
-  __ cmpq(RAX, R9);
+  __ OBJ(mov)(R9, Address(R13, 0));
+  __ OBJ(cmp)(RAX, R9);
   __ j(EQUAL, &found, Assembler::kNearJump);
 
   ASSERT(target::ToRawSmi(kIllegalCid) == 0);
-  __ testq(R9, R9);
+  __ OBJ(test)(R9, R9);
   __ j(ZERO, &miss, Assembler::kNearJump);
 
   const intptr_t entry_length =
       target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
-      target::kWordSize;
+      target::kCompressedWordSize;
   __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);
 
   __ Bind(&found);
-  const intptr_t code_offset =
-      target::ICData::CodeIndexFor(1) * target::kWordSize;
-  const intptr_t entry_offset =
-      target::ICData::EntryPointIndexFor(1) * target::kWordSize;
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ movq(CODE_REG, Address(R13, code_offset));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    const intptr_t entry_offset =
+        target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(RCX, Address(R13, entry_offset));
+    __ jmp(FieldAddress(RCX, target::Function::entry_point_offset()));
+  } else {
+    const intptr_t code_offset =
+        target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(CODE_REG, Address(R13, code_offset));
+    __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ jmp(Address(R13, entry_offset));
 
   __ Bind(&miss);
   __ LoadIsolate(RAX);
@@ -3380,12 +3428,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ jmp(RCX);
 }
 
-void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
-  __ int3();
-}
-
 // Instantiate type arguments from instantiator and function type args.
 // RBX: uninstantiated type arguments.
 // RDX: instantiator type arguments.
@@ -3394,9 +3436,9 @@ void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
     Assembler* assembler) {
   // Lookup cache before calling runtime.
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::instantiations_offset()));
+  __ LoadCompressed(RAX, compiler::FieldAddress(
+                             InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::instantiations_offset()));
   __ leaq(RAX, compiler::FieldAddress(RAX, Array::data_offset()));
 
   // The instantiations cache is initialized with Object::zero_array() and is
@@ -3406,22 +3448,25 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
 
   // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
   // to access the other entries. If we found a sentinel we go to runtime.
-  __ LoadAcquire(RDI, RAX,
-                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                     target::kWordSize);
-  __ CompareImmediate(RDI, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ LoadAcquireCompressed(
+      RDI, RAX,
+      TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+          target::kCompressedWordSize);
+  __ CompareImmediate(RDI, Smi::RawValue(TypeArguments::kNoInstantiator),
+                      kObjectBytes);
   __ j(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
 
   __ cmpq(RDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
-  __ movq(R10, compiler::Address(
-                   RAX, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
-                            target::kWordSize));
+  __ LoadCompressed(
+      R10, compiler::Address(
+               RAX, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+                        target::kCompressedWordSize));
   __ cmpq(R10, InstantiationABI::kFunctionTypeArgumentsReg);
   __ j(EQUAL, &found, compiler::Assembler::kNearJump);
   __ Bind(&next);
   __ addq(RAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
-                                   target::kWordSize));
+                                   target::kCompressedWordSize));
   __ jmp(&loop);
 
   // Instantiate non-null type arguments.
@@ -3439,10 +3484,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ ret();
 
   __ Bind(&found);
-  __ movq(InstantiationABI::kResultTypeArgumentsReg,
-          compiler::Address(
-              RAX, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-                       target::kWordSize));
+  __ LoadCompressed(
+      InstantiationABI::kResultTypeArgumentsReg,
+      compiler::Address(
+          RAX, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
+                   target::kCompressedWordSize));
   __ ret();
 }
 
@@ -3452,12 +3498,13 @@ void StubCodeCompiler::
   // Return the instantiator type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movq(RDI, compiler::FieldAddress(
-                   InstantiationABI::kInstantiatorTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RAX,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(RDI, compiler::FieldAddress(
+                                InstantiationABI::kInstantiatorTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
   __ andq(RDI, RAX);
   __ cmpq(RDI, RAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
@@ -3474,12 +3521,13 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   // Return the function type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movq(RDI,
-          compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
-                                 target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RAX,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RDI, compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
+                                  target::TypeArguments::nullability_offset()));
   __ andq(RDI, RAX);
   __ cmpq(RDI, RAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
@@ -3543,7 +3591,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
       scale_factor = TIMES_8;
     }
     const intptr_t fixed_size_plus_alignment_padding =
-        target::TypedData::InstanceSize() +
+        target::TypedData::HeaderSize() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ leaq(RDI, Address(RDI, scale_factor, fixed_size_plus_alignment_padding));
     __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
@@ -3602,7 +3650,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* RBX: scratch register. */
     /* data area to be initialized. */
     __ xorq(RBX, RBX); /* Zero. */
-    __ leaq(RDI, FieldAddress(RAX, target::TypedData::InstanceSize()));
+    __ leaq(RDI, FieldAddress(RAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         RAX, FieldAddress(RAX, target::TypedDataBase::data_field_offset()),
         RDI);

@@ -12,7 +12,7 @@
 #include "vm/simulator.h"
 
 #if !defined(USING_SIMULATOR)
-#if !defined(HOST_OS_FUCHSIA)
+#if !defined(DART_HOST_OS_FUCHSIA)
 #include <sys/syscall.h>
 #else
 #include <zircon/syscalls.h>
@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-#if defined(HOST_OS_MACOS) || defined(HOST_OS_IOS)
+#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
 #endif
 
@@ -42,14 +42,14 @@ void CPU::FlushICache(uword start, uword size) {
 // On iOS we use sys_icache_invalidate from Darwin. See:
 //
 // https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sys_icache_invalidate.3.html
-#if defined(HOST_OS_MACOS) || defined(HOST_OS_IOS)
+#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
   sys_icache_invalidate(reinterpret_cast<void*>(start), size);
-#elif defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+#elif defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   extern void __clear_cache(char*, char*);
   char* beg = reinterpret_cast<char*>(start);
   char* end = reinterpret_cast<char*>(start + size);
   ::__clear_cache(beg, end);
-#elif defined(HOST_OS_FUCHSIA)
+#elif defined(DART_HOST_OS_FUCHSIA)
   zx_status_t result = zx_cache_flush(reinterpret_cast<const void*>(start),
                                       size, ZX_CACHE_FLUSH_INSN);
   ASSERT(result == ZX_OK);

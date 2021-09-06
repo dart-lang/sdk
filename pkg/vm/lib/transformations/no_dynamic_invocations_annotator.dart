@@ -46,7 +46,6 @@ class Selector {
       case Action.invoke:
         return '${target}';
     }
-    return '?';
   }
 }
 
@@ -176,49 +175,61 @@ class DynamicSelectorsCollector extends RecursiveVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    Selector selector;
-    if (node.interfaceTarget == null) {
-      dynamicSelectors.add(new Selector.doInvoke(node.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(selector ??= new Selector.doInvoke(node.name));
-      }
+  visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doInvoke(node.name));
     }
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    super.visitPropertyGet(node);
+  visitDynamicInvocation(DynamicInvocation node) {
+    super.visitDynamicInvocation(node);
+    dynamicSelectors.add(new Selector.doInvoke(node.name));
+  }
 
-    Selector selector;
-    if (node.interfaceTarget == null) {
-      dynamicSelectors.add(selector = new Selector.doGet(node.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(selector ??= new Selector.doGet(node.name));
-      }
-
-      final target = node.interfaceTarget;
-      if (target is Procedure && target.kind == ProcedureKind.Method) {
-        tearOffSelectors.add(new Selector.doInvoke(node.name));
-      }
+  @override
+  visitEqualsCall(EqualsCall node) {
+    super.visitEqualsCall(node);
+    if (node.left is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doInvoke(Name('==')));
     }
   }
 
   @override
-  visitPropertySet(PropertySet node) {
-    super.visitPropertySet(node);
-
-    Selector selector;
-    if (node.interfaceTarget == null) {
-      dynamicSelectors.add(selector = new Selector.doSet(node.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(selector ??= new Selector.doSet(node.name));
-      }
+  visitInstanceGet(InstanceGet node) {
+    super.visitInstanceGet(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doGet(node.name));
     }
+  }
+
+  @override
+  visitDynamicGet(DynamicGet node) {
+    super.visitDynamicGet(node);
+    dynamicSelectors.add(new Selector.doGet(node.name));
+  }
+
+  @override
+  visitInstanceTearOff(InstanceTearOff node) {
+    super.visitInstanceTearOff(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doGet(node.name));
+    }
+    tearOffSelectors.add(new Selector.doInvoke(node.name));
+  }
+
+  @override
+  visitInstanceSet(InstanceSet node) {
+    super.visitInstanceSet(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doSet(node.name));
+    }
+  }
+
+  @override
+  visitDynamicSet(DynamicSet node) {
+    super.visitDynamicSet(node);
+    dynamicSelectors.add(new Selector.doSet(node.name));
   }
 }

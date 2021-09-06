@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -16,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
     as api;
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -158,15 +158,13 @@ class LintDriver {
 
     PerformanceLog log = PerformanceLog(null);
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
-    AnalysisDriver analysisDriver = AnalysisDriver(
-      scheduler,
-      log,
-      resourceProvider,
-      MemoryByteStore(),
-      FileContentOverlay(),
-      null,
-      sourceFactory,
-      _buildAnalyzerOptions(options),
+    AnalysisDriver analysisDriver = AnalysisDriver.tmp1(
+      scheduler: scheduler,
+      logger: log,
+      resourceProvider: resourceProvider,
+      byteStore: MemoryByteStore(),
+      sourceFactory: sourceFactory,
+      analysisOptions: _buildAnalyzerOptions(options),
       packages: Packages.empty,
     );
 
@@ -201,10 +199,16 @@ class LintDriver {
 
     List<AnalysisErrorInfo> errors = [];
     for (Source source in sources) {
-      var errorsResult = await analysisDriver.getErrors(source.fullName);
-      errors.add(
-          AnalysisErrorInfoImpl(errorsResult.errors, errorsResult.lineInfo));
-      _sourcesAnalyzed.add(source);
+      var errorsResult = await analysisDriver.getErrors2(source.fullName);
+      if (errorsResult is ErrorsResult) {
+        errors.add(
+          AnalysisErrorInfoImpl(
+            errorsResult.errors,
+            errorsResult.lineInfo,
+          ),
+        );
+        _sourcesAnalyzed.add(source);
+      }
     }
 
     return errors;

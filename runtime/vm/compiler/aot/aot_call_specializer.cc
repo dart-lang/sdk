@@ -757,7 +757,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
       instr->ArgumentValueAt(receiver_idx)->Type()->ToCid();
-  if (receiver_cid != kDynamicCid) {
+  if (receiver_cid != kDynamicCid && receiver_cid != kSentinelCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate_group()->class_table()->At(receiver_cid));
     const Function& function =
@@ -781,7 +781,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         const intptr_t cid = class_ids[i];
         // Skip sentinel cid. It may appear in the unreachable code after
         // inlining a method which doesn't return.
-        if (cid == kNeverCid) continue;
+        if (cid == kSentinelCid) continue;
         const Class& cls =
             Class::Handle(Z, isolate_group()->class_table()->At(cid));
         const Function& target =
@@ -1051,7 +1051,7 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
   const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
   const intptr_t receiver_cid =
       call->ArgumentValueAt(receiver_idx)->Type()->ToCid();
-  if (receiver_cid != kDynamicCid) {
+  if (receiver_cid != kDynamicCid && receiver_cid != kSentinelCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate_group()->class_table()->At(receiver_cid));
     const Function& function =

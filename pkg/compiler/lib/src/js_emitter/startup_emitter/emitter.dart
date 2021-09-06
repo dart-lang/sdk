@@ -8,7 +8,7 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../common/codegen.dart';
 import '../../constants/values.dart';
-import '../../deferred_load.dart' show OutputUnit;
+import '../../deferred_load/deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../io/source_information.dart';
@@ -35,13 +35,6 @@ abstract class ModularEmitterBase implements ModularEmitter {
     js.Name name = _namer.globalPropertyNameForClass(element);
     js.PropertyAccess pa =
         new js.PropertyAccess(_namer.readGlobalObjectForClass(element), name);
-    return pa;
-  }
-
-  js.PropertyAccess globalPropertyAccessForType(Entity element) {
-    js.Name name = _namer.globalPropertyNameForType(element);
-    js.PropertyAccess pa =
-        new js.PropertyAccess(_namer.readGlobalObjectForType(element), name);
     return pa;
   }
 
@@ -74,21 +67,14 @@ abstract class ModularEmitterBase implements ModularEmitter {
   }
 
   @override
-  js.PropertyAccess prototypeAccess(ClassEntity element,
-      {bool hasBeenInstantiated}) {
-    js.Expression constructor =
-        hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
+  js.PropertyAccess prototypeAccess(ClassEntity element) {
+    js.Expression constructor = constructorAccess(element);
     return js.js('#.prototype', constructor);
   }
 
   @override
-  js.Expression typeAccess(Entity element) {
-    return globalPropertyAccessForType(element);
-  }
-
-  @override
-  js.Name typeAccessNewRti(Entity element) {
-    return _namer.globalPropertyNameForType(element);
+  js.Name typeAccessNewRti(ClassEntity element) {
+    return _namer.className(element);
   }
 
   @override

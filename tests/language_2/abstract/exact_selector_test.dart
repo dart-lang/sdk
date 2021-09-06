@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js that used to duplicate some `Object`
 // methods to handle `noSuchMethod`.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
-abstract
-    class Foo {
+abstract class Foo {
   noSuchMethod(im) => 42;
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 returnFoo() {
   (() => 42)();
   return new Foo();

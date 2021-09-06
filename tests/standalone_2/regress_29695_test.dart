@@ -5,6 +5,8 @@
 // Test that type tests are not misoptimized.
 // VMOptions=--optimization-counter-threshold=1000 --optimization-filter=IsAnInt
 
+// @dart = 2.9
+
 main() {
   train();
   if (IsAnInt("This is not an int")) throw "oops";

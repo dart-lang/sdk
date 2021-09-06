@@ -676,7 +676,9 @@ class CompilerTest : public AllStatic {
     }                                                                          \
   } while (0)
 
-// Elide a substring which starts with some prefix and ends with a ".
+// Elide a substring which starts with some prefix and ends with some postfix.
+//
+// Prefix is inclusive, postfix is exclusive.
 //
 // This is used to remove non-deterministic or fragile substrings from
 // JSON output.
@@ -690,7 +692,18 @@ class CompilerTest : public AllStatic {
 //
 //    out = "\"id\":\"\""
 //
-void ElideJSONSubstring(const char* prefix, const char* in, char* out);
+// WARNING: This function is not safe to use if `in` is bigger than `out`!
+void ElideJSONSubstring(const char* prefix,
+                        const char* in,
+                        char* out,
+                        const char* postfix = "\"");
+
+// Elide a substrings such as ",\"tokenPos\":4372,\"endTokenPos\":4430".
+//
+// Substring to be followed by "}".
+//
+// Modifies buffer in place.
+void StripTokenPositions(char* buffer);
 
 template <typename T>
 class SetFlagScope : public ValueObject {

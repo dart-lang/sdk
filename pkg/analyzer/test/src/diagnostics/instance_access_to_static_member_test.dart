@@ -102,6 +102,19 @@ f(A a) {
     ]);
   }
 
+  test_method_reference_typeInstantiation() async {
+    await assertErrorsInCode(r'''
+class A {
+  static m<T>() {}
+}
+f(A a) {
+  a.m<int>;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+    ]);
+  }
+
   test_propertyAccess_field() async {
     await assertErrorsInCode(r'''
 class A {

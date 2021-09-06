@@ -27,7 +27,9 @@ static ObjectPtr ExecuteScript(const char* script, bool allow_errors = false) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "main() {\n"
       "}";
@@ -40,7 +42,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("libraries", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("libraries", json_str, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":"
 
@@ -55,7 +59,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -76,7 +82,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -99,7 +107,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -120,7 +130,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
 
   EXPECT_STREQ(
@@ -145,7 +157,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "class Unused {\n"
@@ -164,7 +178,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -187,7 +203,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "class Unused {\n"
@@ -206,7 +224,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -230,7 +250,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "class Unused {\n"
@@ -249,7 +271,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -278,7 +302,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {\n"
       "  nestedHelper0() {}\n"
@@ -303,7 +329,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
 
   EXPECT_STREQ(
@@ -311,7 +339,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
 
       // One range compiled with one hit (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":73,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[0,69],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":75,\"endPos\":86,\"compiled\":false},"
@@ -334,7 +362,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {\n"
       "  nestedHelper0() {}\n"
@@ -362,7 +392,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   JSONStream js;
   // Restrict the report to only helper0 and it's nested functions.
   report.PrintJSON(&js, script, helper.token_pos(), helper.end_token_pos());
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
 
   EXPECT_STREQ(
@@ -370,7 +402,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
 
       // One range compiled with one hit (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":73,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[0,69],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // Nested range compiled (nestedHelper0).
       "{\"scriptIndex\":0,\"startPos\":14,\"endPos\":31,\"compiled\":true,"
@@ -464,7 +496,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 2048;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -481,7 +515,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
   SourceReport report(SourceReport::kCallSites);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -501,7 +537,11 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
       "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
-      "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}]}],"
+      "\"implicit\":false,"
+      "\"_intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
+      "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
+      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}]}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -510,7 +550,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 4096;
+  char buffer[kBufferSize];
   const char* kScript =
       "class Common {\n"
       "  func() {}\n"
@@ -540,7 +582,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
   SourceReport report(SourceReport::kCallSites);
   JSONStream js;
   report.PrintJSON(&js, script, helper.token_pos(), helper.end_token_pos());
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -553,27 +597,67 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
 
       // First receiver: "Common", called twice.
       "{\"receiver\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Common\"},"
+      "\"name\":\"Common\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
       "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"func\","
       "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Common\"},\"_kind\":\"RegularFunction\","
-      "\"static\":false,\"const\":false,\"_intrinsic\":false,"
-      "\"_native\":false},"
+      "\"name\":\"Common\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
+      "},\"_kind\":\"RegularFunction\","
+      "\"static\":false,\"const\":false,\"implicit\":false,\"_intrinsic\":"
+      "false,"
+      "\"_native\":false,"
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":17,\"endTokenPos\":25}},"
 
       "\"count\":2},"
 
       // Second receiver: "Uncommon", called once.
       "{\"receiver\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Uncommon\"},"
+      "\"name\":\"Uncommon\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
       "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"func\","
       "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Uncommon\"},\"_kind\":\"RegularFunction\","
-      "\"static\":false,\"const\":false,\"_intrinsic\":false,"
-      "\"_native\":false},"
+      "\"name\":\"Uncommon\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
+      "},\"_kind\":\"RegularFunction\","
+      "\"static\":false,\"const\":false,\"implicit\":false,\"_intrinsic\":"
+      "false,"
+      "\"_native\":false,"
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":48,\"endTokenPos\":56}},"
 
       "\"count\":1}]}]}],"
 
@@ -584,7 +668,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 2048;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -601,7 +687,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
   SourceReport report(SourceReport::kCallSites | SourceReport::kCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -614,16 +702,19 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
 
-      // One range compiled with one callsite (main).
+      // One range compiled with one callsite (main)m
       "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":48,\"compiled\":true,"
-      "\"callSites\":["
-      "{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":["
-      "{\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
+      "\"callSites\":[{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":[{"
+      "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
-      "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
-      "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}],"
-      "\"coverage\":{\"hits\":[26,37],\"misses\":[]}}],"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},\"_"
+      "kind\":\"RegularFunction\",\"static\":true,\"const\":false,\"implicit\":"
+      "false,\"_"
+      "intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
+      "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
+      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}],\"coverage\":{"
+      "\"hits\":[26,37],\"misses\":[]}}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -632,7 +723,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -653,7 +746,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
   SourceReport report(SourceReport::kPossibleBreakpoints);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
@@ -676,7 +771,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   const char* kScript =
       "class Foo {\n"
       "  void bar() {}\n"
@@ -697,7 +794,9 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
   report.PrintJSON(&js, script);
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["

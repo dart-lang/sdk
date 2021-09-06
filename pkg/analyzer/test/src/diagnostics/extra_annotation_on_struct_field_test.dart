@@ -19,7 +19,8 @@ class ExtraAnnotationOnStructFieldTest extends PubPackageResolutionTest {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() int x;
+  @Int32()
+  external int x;
 }
 ''');
   }
@@ -28,10 +29,12 @@ class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() @Int16() int x;
+  @Int32()
+  @Int16()
+  external int x;
 }
 ''', [
-      error(FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD, 55, 8),
+      error(FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD, 57, 8),
     ]);
   }
 }

@@ -125,6 +125,20 @@ class SharedClassTable {
     trace_allocation_table_.load()[cid] = trace ? 1 : 0;
   }
   bool TraceAllocationFor(intptr_t cid);
+  void SetCollectInstancesFor(intptr_t cid, bool trace) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    if (trace) {
+      trace_allocation_table_.load()[cid] |= 2;
+    } else {
+      trace_allocation_table_.load()[cid] &= ~2;
+    }
+  }
+  bool CollectInstancesFor(intptr_t cid) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    return (trace_allocation_table_.load()[cid] & 2) != 0;
+  }
 #endif  // !defined(PRODUCT)
 
   void CopyBeforeHotReload(intptr_t** copy, intptr_t* copy_num_cids) {
@@ -215,8 +229,6 @@ class SharedClassTable {
   friend class MarkingWeakVisitor;
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
-
-  static bool ShouldUpdateSizeForClassId(intptr_t cid);
 
 #ifndef PRODUCT
   // Copy-on-write is used for trace_allocation_table_, with old copies stored
@@ -342,6 +354,7 @@ class ClassTable {
   }
 
   void SetAt(intptr_t index, ClassPtr raw_cls);
+  void UpdateClassSize(intptr_t cid, ClassPtr raw_cls);
 
   bool IsValidIndex(intptr_t cid) const {
     if (IsTopLevelCid(cid)) {

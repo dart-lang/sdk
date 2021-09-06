@@ -66,9 +66,10 @@ const char* VMTag::RuntimeEntryTagName(uword id) {
   return nullptr;
 }
 
-VMTag::TagEntry VMTag::entries_[] = {
+const VMTag::TagEntry VMTag::entries_[] = {
     {
-        "InvalidTag", kInvalidTagId,
+        "InvalidTag",
+        kInvalidTagId,
     },
 #define DEFINE_VM_TAG_ENTRY(tag) {"" #tag, k##tag##TagId},
     VM_TAG_LIST(DEFINE_VM_TAG_ENTRY)

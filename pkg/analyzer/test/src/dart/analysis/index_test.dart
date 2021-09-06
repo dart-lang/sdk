@@ -1327,7 +1327,7 @@ class X extends A {
   int get getter1 => null;
   void set setter1(_) {}
   void method1() {}
-  
+
   static int staticField;
   static void staticMethod() {}
 }
@@ -1734,7 +1734,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
   Future<void> _indexTestUnit(String code) async {
     await resolveTestCode(code);
 
-    var indexBuilder = indexUnit(result.unit!);
+    var indexBuilder = indexUnit(result.unit);
     var indexBytes = indexBuilder.toBuffer();
     index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
   }

@@ -89,7 +89,7 @@ bool _isNativeAnnotation(Expression value) {
 ///
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).
-Class _annotationClass(Expression node) {
+Class? _annotationClass(Expression node) {
   if (node is ConstantExpression) {
     var constant = node.constant;
     if (constant is InstanceConstant) return constant.classNode;

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX)
 
 #include "bin/socket.h"
 
@@ -223,7 +223,7 @@ intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
                                                   intptr_t backlog) {
   intptr_t fd = Create(addr);
   if (NO_RETRY_EXPECTED(bind(fd, (struct sockaddr*)&addr.un,
-                             sizeof(struct sockaddr_un))) < 0) {
+                             SocketAddress::GetAddrLength(addr))) < 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
@@ -277,4 +277,4 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX)

@@ -1,0 +1,21 @@
+import 'issue45626.dart' as self;
+
+class C {}
+
+class D implements C, C {}
+
+class D2 implements C, CAlias {}
+
+class D3 implements CAlias, C {}
+
+class D4 implements C, self.C {}
+
+class D5 implements self.C, C {}
+
+main() {}
+mixin CM on C, C {}
+mixin CM2 on C, CAlias {}
+mixin CM3 on CAlias, C {}
+mixin CM4 on self.C, C {}
+mixin CM5 on C, self.C {}
+typedef CAlias = C;

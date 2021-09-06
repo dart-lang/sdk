@@ -16,6 +16,7 @@
 #include "vm/hash_table.h"
 #include "vm/object.h"
 #include "vm/symbols.h"
+#include "vm/timer.h"
 
 namespace dart {
 
@@ -42,7 +43,7 @@ class TableSelectorKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key; }
+  static inline uword Hash(Key key) { return key; }
 
   static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
 };
@@ -60,7 +61,7 @@ class SymbolKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -92,7 +93,7 @@ class FieldKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     const TokenPosition token_pos = key->token_pos();
     if (token_pos.IsReal()) {
       return token_pos.Hash();
@@ -118,7 +119,7 @@ class ClassKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
+  static inline uword Hash(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -138,7 +139,7 @@ class AbstractTypeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -158,7 +159,7 @@ class FunctionTypeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -178,7 +179,7 @@ class TypeParameterKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -198,7 +199,7 @@ class TypeArgumentsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -218,7 +219,7 @@ class InstanceKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->GetClassId(); }
+  static inline uword Hash(Key key) { return key->GetClassId(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -267,6 +268,10 @@ class Precompiler : public ValueObject {
 
   bool is_tracing() const { return is_tracing_; }
 
+  Thread* thread() const { return thread_; }
+  Zone* zone() const { return zone_; }
+  Isolate* isolate() const { return isolate_; }
+
  private:
   static Precompiler* singleton_;
 
@@ -289,6 +294,8 @@ class Precompiler : public ValueObject {
   explicit Precompiler(Thread* thread);
   ~Precompiler();
 
+  void ReportStats();
+
   void DoCompileAll();
   void AddRoots();
   void AddAnnotatedRoots();
@@ -298,6 +305,7 @@ class Precompiler : public ValueObject {
   void AddType(const AbstractType& type);
   void AddTypesOf(const Class& cls);
   void AddTypesOf(const Function& function);
+  void AddTypeParameters(const TypeParameters& params);
   void AddTypeArguments(const TypeArguments& args);
   void AddCalleesOf(const Function& function, intptr_t gop_offset);
   void AddCalleesOfHelper(const Object& entry,
@@ -326,10 +334,6 @@ class Precompiler : public ValueObject {
   void DropFunctions();
   void DropFields();
   void TraceTypesFromRetainedClasses();
-  void DropTypes();
-  void DropFunctionTypes();
-  void DropTypeParameters();
-  void DropTypeArguments();
   void DropMetadata();
   void DropLibraryEntries();
   void DropClasses();
@@ -347,9 +351,6 @@ class Precompiler : public ValueObject {
 
   void FinalizeAllClasses();
 
-  Thread* thread() const { return thread_; }
-  Zone* zone() const { return zone_; }
-  Isolate* isolate() const { return isolate_; }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
   Thread* thread_;
@@ -374,8 +375,8 @@ class Precompiler : public ValueObject {
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;
-  FunctionSet entry_point_functions_;
   FunctionSet functions_called_dynamically_;
+  FunctionSet functions_with_entry_point_pragmas_;
   FunctionSet seen_functions_;
   FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;

@@ -2,36 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.transformations.scanner;
 
 import '../ast.dart';
 import '../kernel.dart';
 
-abstract class Scanner<X extends TreeNode, Y extends TreeNode> {
-  final Scanner<Y, TreeNode> next;
+abstract class Scanner<X extends TreeNode?, Y extends TreeNode?> {
+  final Scanner<Y, TreeNode?>? next;
   Scanner(this.next);
   bool predicate(X x);
   ScanResult<X, Y> scan(TreeNode node);
 }
 
-class ScanResult<X extends TreeNode, Y extends TreeNode> {
-  Map<X, ScanResult<Y, TreeNode>> targets = new Map();
-  Map<X, ScanError> errors;
+class ScanResult<X extends TreeNode?, Y extends TreeNode?> {
+  Map<X, ScanResult<Y, TreeNode?>?> targets = new Map();
+  Map<X, ScanError>? errors;
+
+  String toString() => 'ScanResult<$X,$Y>';
 }
 
 class ScanError {}
 
-abstract class ClassScanner<Y extends TreeNode> implements Scanner<Class, Y> {
-  final Scanner<Y, TreeNode> next;
+abstract class ClassScanner<Y extends TreeNode?> implements Scanner<Class, Y> {
+  final Scanner<Y, TreeNode?>? next;
 
   ClassScanner(this.next);
 
   bool predicate(Class node);
 
   ScanResult<Class, Y> scan(TreeNode node) {
-    ScanResult<Class, Y> result = new ScanResult();
+    ScanResult<Class, Y> result = new ScanResult<Class, Y>();
 
     if (node is Class) {
       if (predicate(node)) {
@@ -64,14 +64,14 @@ abstract class ClassScanner<Y extends TreeNode> implements Scanner<Class, Y> {
 }
 
 abstract class FieldScanner<Y extends TreeNode> implements Scanner<Field, Y> {
-  final Scanner<Y, TreeNode> next;
+  final Scanner<Y, TreeNode>? next;
 
   FieldScanner(this.next);
 
   bool predicate(Field node);
 
   ScanResult<Field, Y> scan(TreeNode node) {
-    ScanResult<Field, Y> result = new ScanResult();
+    ScanResult<Field, Y> result = new ScanResult<Field, Y>();
 
     if (node is Field) {
       _scanField(node, result);
@@ -115,14 +115,14 @@ abstract class FieldScanner<Y extends TreeNode> implements Scanner<Field, Y> {
 }
 
 abstract class MemberScanner<Y extends TreeNode> implements Scanner<Member, Y> {
-  final Scanner<Y, TreeNode> next;
+  final Scanner<Y, TreeNode?>? next;
 
   MemberScanner(this.next);
 
   bool predicate(Member node);
 
   ScanResult<Member, Y> scan(TreeNode node) {
-    ScanResult<Member, Y> result = new ScanResult();
+    ScanResult<Member, Y> result = new ScanResult<Member, Y>();
 
     if (node is Member) {
       _scanMember(node, result);
@@ -165,16 +165,16 @@ abstract class MemberScanner<Y extends TreeNode> implements Scanner<Member, Y> {
   }
 }
 
-abstract class ProcedureScanner<Y extends TreeNode>
+abstract class ProcedureScanner<Y extends TreeNode?>
     implements Scanner<Procedure, Y> {
-  final Scanner<Y, TreeNode> next;
+  final Scanner<Y, TreeNode>? next;
 
   ProcedureScanner(this.next);
 
   bool predicate(Procedure node);
 
   ScanResult<Procedure, Y> scan(TreeNode node) {
-    ScanResult<Procedure, Y> result = new ScanResult();
+    ScanResult<Procedure, Y> result = new ScanResult<Procedure, Y>();
 
     if (node is Procedure) {
       _scanProcedure(node, result);
@@ -219,15 +219,16 @@ abstract class ProcedureScanner<Y extends TreeNode>
 
 abstract class ExpressionScanner<Y extends TreeNode>
     extends RecursiveResultVisitor<void> implements Scanner<Expression, Y> {
-  final Scanner<Y, TreeNode> next;
-  ScanResult<Expression, Y> _result;
+  final Scanner<Y, TreeNode>? next;
+  ScanResult<Expression, Y>? _result;
 
   ExpressionScanner(this.next);
 
   bool predicate(Expression node);
 
   ScanResult<Expression, Y> scan(TreeNode node) {
-    ScanResult<Expression, Y> result = _result = new ScanResult();
+    ScanResult<Expression, Y> result =
+        _result = new ScanResult<Expression, Y>();
     node.accept(this);
     _result = null;
     return result;
@@ -235,31 +236,33 @@ abstract class ExpressionScanner<Y extends TreeNode>
 
   void visitExpression(Expression node) {
     if (predicate(node)) {
-      _result.targets[node] = next?.scan(node);
+      _result!.targets[node] = next?.scan(node);
       // TODO: Update result.errors.
     }
   }
 }
 
-abstract class MethodInvocationScanner<Y extends TreeNode>
-    extends RecursiveVisitor implements Scanner<MethodInvocation, Y> {
-  final Scanner<Y, TreeNode> next;
-  ScanResult<MethodInvocation, Y> _result;
+abstract class MethodInvocationScanner<Y extends TreeNode?>
+    extends RecursiveVisitor
+    implements Scanner<InstanceInvocationExpression, Y> {
+  final Scanner<Y, TreeNode>? next;
+  ScanResult<InstanceInvocationExpression, Y>? _result;
 
   MethodInvocationScanner(this.next);
 
-  bool predicate(MethodInvocation node);
+  bool predicate(InstanceInvocationExpression node);
 
-  ScanResult<MethodInvocation, Y> scan(TreeNode node) {
-    ScanResult<MethodInvocation, Y> result = _result = new ScanResult();
+  ScanResult<InstanceInvocationExpression, Y> scan(TreeNode node) {
+    ScanResult<InstanceInvocationExpression, Y> result =
+        _result = new ScanResult<InstanceInvocationExpression, Y>();
     node.accept(this);
     _result = null;
     return result;
   }
 
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitInstanceInvocation(InstanceInvocation node) {
     if (predicate(node)) {
-      _result.targets[node] = next?.scan(node);
+      _result!.targets[node] = next?.scan(node);
       // TODO: Update result.errors.
     }
   }

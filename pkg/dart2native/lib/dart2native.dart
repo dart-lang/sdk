@@ -5,7 +5,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-const appSnapshotPageSize = 4096;
+// Maximum page size across all supported architectures (arm64 macOS has 16K
+// pages, the rest are all 4k pages).
+const elfPageSize = 16384;
 const appjitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
 
 enum Kind { aot, exe }
@@ -15,8 +17,7 @@ Future writeAppendedExecutable(
   final dartaotruntime = File(dartaotruntimePath);
   final int dartaotruntimeLength = dartaotruntime.lengthSync();
 
-  final padding =
-      ((appSnapshotPageSize - dartaotruntimeLength) % appSnapshotPageSize);
+  final padding = ((elfPageSize - dartaotruntimeLength) % elfPageSize);
   final padBytes = Uint8List(padding);
   final offset = dartaotruntimeLength + padding;
 
@@ -51,10 +52,10 @@ Future<ProcessResult> generateAotKernel(
     genKernel,
     '--platform',
     platformDill,
-    if (enableExperiment.isNotEmpty) '--enable-experiment=${enableExperiment}',
+    if (enableExperiment.isNotEmpty) '--enable-experiment=$enableExperiment',
     '--aot',
     '-Ddart.vm.product=true',
-    ...(defines.map((d) => '-D${d}')),
+    ...(defines.map((d) => '-D$d')),
     if (packages != null) ...['--packages', packages],
     '-o',
     kernelFile,
@@ -72,7 +73,7 @@ Future generateAotSnapshot(
     List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
-    '--elf=${snapshotFile}',
+    '--elf=$snapshotFile',
     if (debugFile != null) '--save-debugging-info=$debugFile',
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',

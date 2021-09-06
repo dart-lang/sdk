@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
@@ -183,16 +184,24 @@ GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
                                                        : &reverse_postorder_;
 }
 
-ConstantInstr* FlowGraph::GetExistingConstant(const Object& object) const {
-  return constant_instr_pool_.LookupValue(object);
+ConstantInstr* FlowGraph::GetExistingConstant(
+    const Object& object,
+    Representation representation) const {
+  return constant_instr_pool_.LookupValue(
+      ConstantAndRepresentation{object, representation});
 }
 
-ConstantInstr* FlowGraph::GetConstant(const Object& object) {
-  ConstantInstr* constant = GetExistingConstant(object);
+ConstantInstr* FlowGraph::GetConstant(const Object& object,
+                                      Representation representation) {
+  ConstantInstr* constant = GetExistingConstant(object, representation);
   if (constant == nullptr) {
     // Otherwise, allocate and add it to the pool.
-    constant =
-        new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.ptr()));
+    const Object& zone_object = Object::ZoneHandle(zone(), object.ptr());
+    if (representation == kTagged) {
+      constant = new (zone()) ConstantInstr(zone_object);
+    } else {
+      constant = new (zone()) UnboxedConstantInstr(zone_object, representation);
+    }
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
     if (NeedsPairLocation(constant->representation())) {
       alloc_ssa_temp_index();
@@ -236,28 +245,21 @@ bool FlowGraph::IsConstantRepresentable(const Object& value,
 Definition* FlowGraph::TryCreateConstantReplacementFor(Definition* op,
                                                        const Object& value) {
   // Check that representation of the constant matches expected representation.
+  const auto representation = op->representation();
   if (!IsConstantRepresentable(
-          value, op->representation(),
+          value, representation,
           /*tagged_value_must_be_smi=*/op->Type()->IsNullableSmi())) {
     return op;
   }
 
-  Definition* result = GetConstant(value);
-  if (op->representation() != kTagged) {
-    // We checked above that constant can be safely unboxed.
-    result = UnboxInstr::Create(op->representation(), new Value(result),
-                                DeoptId::kNone, Instruction::kNotSpeculative);
-    // If the current instruction is a phi we need to insert the replacement
-    // into the block which contains this phi - because phis exist separately
-    // from all other instructions.
-    if (auto phi = op->AsPhi()) {
-      InsertAfter(phi->GetBlock(), result, nullptr, FlowGraph::kValue);
-    } else {
-      InsertBefore(op, result, nullptr, FlowGraph::kValue);
-    }
+  if (representation == kUnboxedDouble && value.IsInteger()) {
+    // Convert the boxed constant from int to double.
+    return GetConstant(Double::Handle(Double::NewCanonical(
+                           Integer::Cast(value).AsDoubleValue())),
+                       kUnboxedDouble);
   }
 
-  return result;
+  return GetConstant(value, representation);
 }
 
 void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {
@@ -272,13 +274,6 @@ void FlowGraph::AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
     par->set_block(entry);  // set cached block
   }
   entry->initial_definitions()->Add(defn);
-}
-
-void FlowGraph::InsertBefore(Instruction* next,
-                             Instruction* instr,
-                             Environment* env,
-                             UseKind use_kind) {
-  InsertAfter(next->previous(), instr, env, use_kind);
 }
 
 void FlowGraph::InsertAfter(Instruction* prev,
@@ -296,6 +291,16 @@ void FlowGraph::InsertAfter(Instruction* prev,
   }
 }
 
+void FlowGraph::InsertSpeculativeAfter(Instruction* prev,
+                                       Instruction* instr,
+                                       Environment* env,
+                                       UseKind use_kind) {
+  InsertAfter(prev, instr, env, use_kind);
+  if (instr->env() != nullptr) {
+    instr->env()->MarkAsLazyDeoptToBeforeDeoptId();
+  }
+}
+
 Instruction* FlowGraph::AppendTo(Instruction* prev,
                                  Instruction* instr,
                                  Environment* env,
@@ -309,6 +314,16 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
     env->DeepCopyTo(zone(), instr);
   }
   return prev->AppendInstruction(instr);
+}
+Instruction* FlowGraph::AppendSpeculativeTo(Instruction* prev,
+                                            Instruction* instr,
+                                            Environment* env,
+                                            UseKind use_kind) {
+  auto result = AppendTo(prev, instr, env, use_kind);
+  if (instr->env() != nullptr) {
+    instr->env()->MarkAsLazyDeoptToBeforeDeoptId();
+  }
+  return result;
 }
 
 // A wrapper around block entries including an index of the next successor to
@@ -335,6 +350,8 @@ class BlockTraversalState {
 };
 
 void FlowGraph::DiscoverBlocks() {
+  COMPILER_TIMINGS_TIMER_SCOPE(thread(), DiscoverBlocks);
+
   StackZone zone(thread());
 
   // Initialize state.
@@ -947,7 +964,7 @@ void FlowGraph::ComputeDominators(
   //
   // The algorithm is described in Georgiadis, Tarjan, and Werneck's
   // "Finding Dominators in Practice".
-  // See http://www.cs.princeton.edu/~rwerneck/dominators/ .
+  // https://renatowerneck.files.wordpress.com/2016/06/gtw06-dominators.pdf
 
   // All arrays are maps between preorder basic-block numbers.
   intptr_t size = parent_.length();
@@ -1114,7 +1131,10 @@ void FlowGraph::AddSyntheticPhis(BlockEntryInstr* block) {
   ASSERT(IsCompiledForOsr());
   if (auto join = block->AsJoinEntry()) {
     const intptr_t local_phi_count = variable_count() + join->stack_depth();
-    for (intptr_t i = variable_count(); i < local_phi_count; ++i) {
+    // Never insert more phi's than that we had osr variables.
+    const intptr_t osr_phi_count =
+        Utils::Minimum(local_phi_count, osr_variable_count());
+    for (intptr_t i = variable_count(); i < osr_phi_count; ++i) {
       if (join->phis() == nullptr || (*join->phis())[i] == nullptr) {
         join->InsertPhi(i, local_phi_count)->mark_alive();
       }
@@ -1149,15 +1169,23 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // These phis are synthetic since they are not driven by live variable
   // analysis, but merely serve the purpose of merging stack slots from
   // parameters and other predecessors at the block in which OSR occurred.
+  // The original definition could flow into a join via multiple predecessors
+  // but with the same definition, not requiring a phi. However, with an OSR
+  // entry in a different block, phis are required to merge the OSR variable
+  // and original definition where there was no phi. Therefore, we need
+  // synthetic phis in all (reachable) blocks, not just in the first join.
   if (IsCompiledForOsr()) {
-    AddSyntheticPhis(entry->osr_entry()->last_instruction()->SuccessorAt(0));
-    for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n; ++i) {
-      AddSyntheticPhis(entry->dominated_blocks()[i]);
+    for (intptr_t i = 0, n = preorder().length(); i < n; ++i) {
+      AddSyntheticPhis(preorder()[i]);
     }
   }
 
   RenameRecursive(entry, &env, live_phis, variable_liveness,
                   inlining_parameters);
+
+#if defined(DEBUG)
+  ValidatePhis();
+#endif  // defined(DEBUG)
 }
 
 void FlowGraph::PopulateEnvironmentFromFunctionEntry(
@@ -1464,8 +1492,9 @@ void FlowGraph::RenameRecursive(
             // Check if phi corresponds to the same slot.
             auto* phis = phi->block()->phis();
             if ((index < phis->length()) && (*phis)[index] == phi) {
-              phi->UpdateType(
-                  CompileType::FromAbstractType(load->local().type()));
+              phi->UpdateType(CompileType::FromAbstractType(
+                  load->local().type(), CompileType::kCanBeNull,
+                  /*can_be_sentinel=*/load->local().is_late()));
             } else {
               ASSERT(IsCompiledForOsr() && (phi->block()->stack_depth() > 0));
             }
@@ -1593,6 +1622,50 @@ void FlowGraph::RenameRecursive(
     }
   }
 }
+
+#if defined(DEBUG)
+void FlowGraph::ValidatePhis() {
+  if (!FLAG_prune_dead_locals) {
+    // We can only check if dead locals are pruned.
+    return;
+  }
+
+  // Current_context_var is never pruned, it is artificially kept alive, so
+  // it should not be checked here.
+  const intptr_t current_context_var_index = CurrentContextEnvIndex();
+
+  for (intptr_t i = 0, n = preorder().length(); i < n; ++i) {
+    BlockEntryInstr* block_entry = preorder()[i];
+    Instruction* last_instruction = block_entry->last_instruction();
+
+    if ((last_instruction->SuccessorCount() == 1) &&
+        last_instruction->SuccessorAt(0)->IsJoinEntry()) {
+      JoinEntryInstr* successor =
+          last_instruction->SuccessorAt(0)->AsJoinEntry();
+      if (successor->phis() != NULL) {
+        for (intptr_t j = 0; j < successor->phis()->length(); ++j) {
+          PhiInstr* phi = (*successor->phis())[j];
+          if (phi == nullptr && j != current_context_var_index) {
+            // We have no phi node for the this variable.
+            // Double check we do not have a different value in our env.
+            // If we do, we would have needed a phi-node in the successsor.
+            ASSERT(last_instruction->env() != nullptr);
+            Definition* current_definition =
+                last_instruction->env()->ValueAt(j)->definition();
+            ASSERT(successor->env() != nullptr);
+            Definition* successor_definition =
+                successor->env()->ValueAt(j)->definition();
+            if (!current_definition->IsConstant() &&
+                !successor_definition->IsConstant()) {
+              ASSERT(current_definition == successor_definition);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+#endif  // defined(DEBUG)
 
 void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   // Augment live_phis with those that have implicit real used at
@@ -1808,6 +1881,7 @@ void FlowGraph::InsertConversion(Representation from,
                                  Representation to,
                                  Value* use,
                                  bool is_environment_use) {
+  ASSERT(from != to);
   Instruction* insert_before;
   PhiInstr* phi = use->instruction()->AsPhi();
   if (phi != NULL) {
@@ -1946,7 +2020,8 @@ static void UnboxPhi(PhiInstr* phi, bool is_aot) {
     }
   }
 
-  if ((unboxed == kTagged) && phi->Type()->IsInt()) {
+  if ((unboxed == kTagged) && phi->Type()->IsInt() &&
+      !phi->Type()->can_be_sentinel()) {
     // Conservatively unbox phis that:
     //   - are proven to be of type Int;
     //   - fit into 64bits range;
@@ -1999,6 +2074,7 @@ static void UnboxPhi(PhiInstr* phi, bool is_aot) {
   // to how we treat doubles and other boxed numeric types).
   // In JIT mode only unbox phis which are not fully known to be Smi.
   if ((unboxed == kTagged) && phi->Type()->IsInt() &&
+      !phi->Type()->can_be_sentinel() &&
       (is_aot || phi->Type()->ToCid() != kSmiCid)) {
     unboxed = kUnboxedInt64;
   }

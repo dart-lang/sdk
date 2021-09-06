@@ -19,6 +19,7 @@
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/profiler.h"
+#include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
@@ -27,8 +28,7 @@
 
 namespace dart {
 
-static const intptr_t kSampleSize = 8;
-static const intptr_t kMaxSamplesPerTick = 16;
+static const intptr_t kMaxSamplesPerTick = 4;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
@@ -38,7 +38,7 @@ DEFINE_FLAG(int,
             "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int,
             max_profile_depth,
-            kSampleSize* kMaxSamplesPerTick,
+            Sample::kPCArraySizeInWords* kMaxSamplesPerTick,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 #if defined(USING_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
@@ -62,14 +62,13 @@ DEFINE_FLAG(
 #ifndef PRODUCT
 
 RelaxedAtomic<bool> Profiler::initialized_ = false;
-SampleBuffer* Profiler::sample_buffer_ = NULL;
-AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = NULL;
+SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;
+AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = nullptr;
 ProfilerCounters Profiler::counters_ = {};
 
 void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
   SetSampleDepth(FLAG_max_profile_depth);
-  Sample::Init();
   if (!FLAG_profiler) {
     return;
   }
@@ -77,9 +76,9 @@ void Profiler::Init() {
   SetSamplePeriod(FLAG_profile_period);
   // The profiler may have been shutdown previously, in which case the sample
   // buffer will have already been initialized.
-  if (sample_buffer_ == NULL) {
-    intptr_t capacity = CalculateSampleBufferCapacity();
-    sample_buffer_ = new SampleBuffer(capacity);
+  if (sample_block_buffer_ == nullptr) {
+    intptr_t num_blocks = CalculateSampleBufferCapacity();
+    sample_block_buffer_ = new SampleBlockBuffer(num_blocks);
     Profiler::InitAllocationSampleBuffer();
   }
   ThreadInterrupter::Init();
@@ -94,14 +93,28 @@ void Profiler::InitAllocationSampleBuffer() {
   }
 }
 
+class SampleBlockCleanupVisitor : public IsolateVisitor {
+ public:
+  SampleBlockCleanupVisitor() = default;
+  virtual ~SampleBlockCleanupVisitor() = default;
+
+  void VisitIsolate(Isolate* isolate) {
+    isolate->set_current_allocation_sample_block(nullptr);
+    {
+      MutexLocker ml(isolate->current_sample_block_lock());
+      isolate->set_current_sample_block(nullptr);
+    }
+  }
+};
+
 void Profiler::Cleanup() {
   if (!FLAG_profiler) {
     return;
   }
   ASSERT(initialized_);
   ThreadInterrupter::Cleanup();
-  delete sample_buffer_;
-  sample_buffer_ = NULL;
+  SampleBlockCleanupVisitor visitor;
+  Isolate::VisitIsolates(&visitor);
   initialized_ = false;
 }
 
@@ -132,16 +145,16 @@ static intptr_t SamplesPerSecond() {
 
 intptr_t Profiler::CalculateSampleBufferCapacity() {
   if (FLAG_sample_buffer_duration <= 0) {
-    return SampleBuffer::kDefaultBufferCapacity;
+    return SampleBlockBuffer::kDefaultBlockCount;
   }
   // Deeper stacks require more than a single Sample object to be represented
   // correctly. These samples are chained, so we need to determine the worst
   // case sample chain length for a single stack.
   const intptr_t max_sample_chain_length =
       FLAG_max_profile_depth / kMaxSamplesPerTick;
-  const intptr_t buffer_size = FLAG_sample_buffer_duration *
-                               SamplesPerSecond() * max_sample_chain_length;
-  return buffer_size;
+  const intptr_t sample_count = FLAG_sample_buffer_duration *
+                                SamplesPerSecond() * max_sample_chain_length;
+  return (sample_count / SampleBlock::kSamplesPerBlock) + 1;
 }
 
 void Profiler::SetSamplePeriod(intptr_t period) {
@@ -158,110 +171,205 @@ void Profiler::UpdateSamplePeriod() {
   SetSamplePeriod(FLAG_profile_period);
 }
 
-intptr_t Sample::pcs_length_ = 0;
-intptr_t Sample::instance_size_ = 0;
-
-void Sample::Init() {
-  pcs_length_ = kSampleSize;
-  instance_size_ = sizeof(Sample) + (sizeof(uword) * pcs_length_);  // NOLINT.
-}
-
-uword* Sample::GetPCArray() const {
-  return reinterpret_cast<uword*>(reinterpret_cast<uintptr_t>(this) +
-                                  sizeof(*this));
-}
-
-SampleBuffer::SampleBuffer(intptr_t capacity) {
-  ASSERT(Sample::instance_size() > 0);
-
-  const intptr_t size = Utils::RoundUp(capacity * Sample::instance_size(),
-                                       VirtualMemory::PageSize());
+SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
+                                     intptr_t samples_per_block) {
+  const intptr_t size = Utils::RoundUp(
+      blocks * samples_per_block * sizeof(Sample), VirtualMemory::PageSize());
   const bool kNotExecutable = false;
   memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
-
-  samples_ = reinterpret_cast<Sample*>(memory_->address());
-  capacity_ = capacity;
+  sample_buffer_ = reinterpret_cast<Sample*>(memory_->address());
+  blocks_ = new SampleBlock[blocks];
+  for (intptr_t i = 0; i < blocks; ++i) {
+    blocks_[i].Init(&sample_buffer_[i * samples_per_block], samples_per_block);
+  }
+  capacity_ = blocks;
   cursor_ = 0;
-
-  if (FLAG_trace_profiler) {
-    OS::PrintErr("Profiler holds %" Pd " samples\n", capacity);
-    OS::PrintErr("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
-    OS::PrintErr("Profiler memory usage = %" Pd " bytes\n", size);
-  }
-  if (FLAG_sample_buffer_duration != 0) {
-    OS::PrintErr(
-        "** WARNING ** Custom sample buffer size provided via "
-        "--sample-buffer-duration\n");
-    OS::PrintErr(
-        "The sample buffer can hold at least %ds worth of "
-        "samples with stacks depths of up to %d, collected at "
-        "a sample rate of %" Pd "Hz.\n",
-        FLAG_sample_buffer_duration, FLAG_max_profile_depth,
-        SamplesPerSecond());
-    OS::PrintErr("The resulting sample buffer size is %" Pd " bytes.\n", size);
-  }
+  free_list_head_ = nullptr;
+  free_list_tail_ = nullptr;
 }
 
-AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity)
-    : SampleBuffer(capacity), mutex_(), free_sample_list_(NULL) {}
-
-SampleBuffer::~SampleBuffer() {
+SampleBlockBuffer::~SampleBlockBuffer() {
+  delete[] blocks_;
+  blocks_ = nullptr;
   delete memory_;
+  memory_ = nullptr;
+  capacity_ = 0;
+  cursor_ = 0;
 }
 
-AllocationSampleBuffer::~AllocationSampleBuffer() {
+SampleBlock* SampleBlockBuffer::ReserveSampleBlock() {
+  // Don't increment right away to avoid unlikely wrap-around errors.
+  if (cursor_.load() < capacity_) {
+    intptr_t index = cursor_.fetch_add(1u);
+    // Check the index again to make sure the last block hasn't been snatched
+    // from underneath us.
+    if (index < capacity_) {
+      return &blocks_[index];
+    }
+  }
+  // Try to re-use a previously freed SampleBlock once we've handed out each
+  // block at least once. Freed blocks aren't cleared immediately and are still
+  // valid until they're re-allocated, similar to how a ring buffer would clear
+  // the oldest samples.
+  SampleBlock* block = GetFreeBlock();
+  if (block != nullptr) {
+    block->Clear();
+  }
+  return block;
 }
 
-Sample* SampleBuffer::At(intptr_t idx) const {
-  ASSERT(idx >= 0);
-  ASSERT(idx < capacity_);
-  intptr_t offset = idx * Sample::instance_size();
-  uint8_t* samples = reinterpret_cast<uint8_t*>(samples_);
-  return reinterpret_cast<Sample*>(samples + offset);
+void SampleBlockBuffer::ProcessCompletedBlocks() {
+  Thread* thread = Thread::Current();
+  int64_t start = Dart_TimelineGetMicros();
+  for (intptr_t i = 0; i < capacity_; ++i) {
+    SampleBlock* block = &blocks_[i];
+    if (block->is_full() && !block->evictable()) {
+      if (Service::profiler_stream.enabled()) {
+        Profile profile(block->owner());
+        profile.Build(thread, nullptr, block);
+        ServiceEvent event(block->owner(), ServiceEvent::kCpuSamples);
+        event.set_cpu_profile(&profile);
+        Service::HandleEvent(&event);
+      }
+      block->evictable_ = true;
+      FreeBlock(block);
+    }
+  }
+  int64_t end = Dart_TimelineGetMicros();
+  Dart_TimelineEvent("SampleBlockBuffer::ProcessCompletedBlocks", start, end,
+                     Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
 }
 
-intptr_t SampleBuffer::ReserveSampleSlot() {
-  ASSERT(samples_ != NULL);
-  uintptr_t cursor = cursor_.fetch_add(1u);
-  // Map back into sample buffer range.
-  cursor = cursor % capacity_;
-  return cursor;
+ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
+    SampleFilter* filter,
+    ProcessedSampleBuffer* buffer) {
+  ASSERT(filter != NULL);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  if (buffer == nullptr) {
+    buffer = new (zone) ProcessedSampleBuffer();
+  }
+
+  for (intptr_t i = 0; i < capacity_; ++i) {
+    (&blocks_[i])->BuildProcessedSampleBuffer(filter, buffer);
+  }
+
+  return buffer;
 }
 
-Sample* SampleBuffer::ReserveSample() {
-  return At(ReserveSampleSlot());
+Sample* SampleBlock::ReserveSample() {
+  if (full_.load()) {
+    return nullptr;
+  }
+  intptr_t slot = cursor_.fetch_add(1u);
+  if (slot + 1 == capacity_) {
+    full_ = true;
+  }
+  return (slot < capacity_) ? At(slot) : nullptr;
 }
 
-Sample* SampleBuffer::ReserveSampleAndLink(Sample* previous) {
-  ASSERT(previous != NULL);
-  intptr_t next_index = ReserveSampleSlot();
-  Sample* next = At(next_index);
+Sample* SampleBlock::ReserveSampleAndLink(Sample* previous) {
+  ASSERT(previous != nullptr);
+  SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
+  Isolate* isolate = owner_;
+  ASSERT(isolate != nullptr);
+  Sample* next = previous->is_allocation_sample()
+                     ? buffer->ReserveAllocationSample(isolate)
+                     : buffer->ReserveCPUSample(isolate);
+  if (next == nullptr) {
+    return nullptr;  // No blocks left, so drop sample.
+  }
   next->Init(previous->port(), previous->timestamp(), previous->tid());
   next->set_head_sample(false);
   // Mark that previous continues at next.
-  previous->SetContinuationIndex(next_index);
+  previous->SetContinuation(next);
   return next;
+}
+
+Sample* SampleBlockBuffer::ReserveCPUSample(Isolate* isolate) {
+  return ReserveSampleImpl(isolate, false);
+}
+
+Sample* SampleBlockBuffer::ReserveAllocationSample(Isolate* isolate) {
+  return ReserveSampleImpl(isolate, true);
+}
+
+Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
+                                             bool allocation_sample) {
+  SampleBlock* block = allocation_sample
+                           ? isolate->current_allocation_sample_block()
+                           : isolate->current_sample_block();
+  Sample* sample = nullptr;
+  if (block != nullptr) {
+    sample = block->ReserveSample();
+    if (sample != nullptr && block->is_full()) {
+      // TODO(bkonyi): remove once streaming is re-enabled.
+      // https://github.com/dart-lang/sdk/issues/46825
+      block->evictable_ = true;
+      FreeBlock(block);
+    }
+  }
+  if (sample != nullptr) {
+    return sample;
+  }
+  SampleBlock* next = nullptr;
+  if (allocation_sample) {
+    // We only need to be locked while accessing the CPU sample block since
+    // Dart allocations can only occur on the mutator thread.
+    next = ReserveSampleBlock();
+    if (next == nullptr) {
+      // We're out of blocks to reserve. Drop the sample.
+      return nullptr;
+    }
+    isolate->set_current_allocation_sample_block(next);
+  } else {
+    MutexLocker locker(isolate->current_sample_block_lock());
+    next = ReserveSampleBlock();
+    if (next == nullptr) {
+      // We're out of blocks to reserve. Drop the sample.
+      return nullptr;
+    }
+    isolate->set_current_sample_block(next);
+  }
+  next->set_is_allocation_block(allocation_sample);
+
+  can_process_block_.store(true);
+  // TODO(bkonyi): re-enable after block streaming is fixed.
+  // See https://github.com/dart-lang/sdk/issues/46825
+  // isolate->mutator_thread()->ScheduleInterrupts(Thread::kVMInterrupt);
+  return ReserveSampleImpl(isolate, allocation_sample);
+}
+
+AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity) {
+  const intptr_t size =
+      Utils::RoundUp(capacity * sizeof(Sample), VirtualMemory::PageSize());
+  const bool kNotExecutable = false;
+  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  if (memory_ == NULL) {
+    OUT_OF_MEMORY();
+  }
+  Init(reinterpret_cast<Sample*>(memory_->address()), capacity);
+  free_sample_list_ = nullptr;
+  cursor_ = 0;
+}
+
+AllocationSampleBuffer::~AllocationSampleBuffer() {
+  delete memory_;
+  memory_ = nullptr;
 }
 
 void AllocationSampleBuffer::FreeAllocationSample(Sample* sample) {
   MutexLocker ml(&mutex_);
-  while (sample != NULL) {
-    intptr_t continuation_index = -1;
-    if (sample->is_continuation_sample()) {
-      continuation_index = sample->continuation_index();
-    }
+  while (sample != nullptr) {
+    Sample* next = sample->continuation_sample();
     sample->Clear();
     sample->set_next_free(free_sample_list_);
     free_sample_list_ = sample;
-
-    if (continuation_index != -1) {
-      sample = At(continuation_index);
-    } else {
-      sample = NULL;
-    }
+    sample = next;
   }
 }
 
@@ -273,8 +381,8 @@ intptr_t AllocationSampleBuffer::ReserveSampleSlotLocked() {
     uint8_t* samples_array_ptr = reinterpret_cast<uint8_t*>(samples_);
     uint8_t* free_sample_ptr = reinterpret_cast<uint8_t*>(free_sample);
     return static_cast<intptr_t>((free_sample_ptr - samples_array_ptr) /
-                                 Sample::instance_size());
-  } else if (cursor_ < static_cast<uintptr_t>(capacity_ - 1)) {
+                                 sizeof(Sample));
+  } else if (cursor_ < static_cast<intptr_t>(capacity_ - 1)) {
     return cursor_ += 1;
   } else {
     return -1;
@@ -296,7 +404,7 @@ Sample* AllocationSampleBuffer::ReserveSampleAndLink(Sample* previous) {
       previous->native_allocation_size_bytes());
   next->set_head_sample(false);
   // Mark that previous continues at next.
-  previous->SetContinuationIndex(next_index);
+  previous->SetContinuation(next);
   return next;
 }
 
@@ -510,7 +618,7 @@ class ProfilerStackWalker : public ValueObject {
       return false;
     }
     ASSERT(sample_ != NULL);
-    if (frame_index_ == kSampleSize) {
+    if (frame_index_ == Sample::kPCArraySizeInWords) {
       Sample* new_sample = sample_buffer_->ReserveSampleAndLink(sample_);
       if (new_sample == NULL) {
         // Could not reserve new sample- mark this as truncated.
@@ -520,7 +628,7 @@ class ProfilerStackWalker : public ValueObject {
       frame_index_ = 0;
       sample_ = new_sample;
     }
-    ASSERT(frame_index_ < kSampleSize);
+    ASSERT(frame_index_ < Sample::kPCArraySizeInWords);
     sample_->SetAt(frame_index_, pc);
     frame_index_++;
     total_frames_++;
@@ -816,7 +924,7 @@ static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   }
 }
 
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 // On Windows this code is synchronously executed from the thread interrupter
 // thread. This means we can safely have a static fault_address.
 static uword fault_address = 0;
@@ -845,7 +953,7 @@ static void CollectSample(Isolate* isolate,
                           uword sp,
                           ProfilerCounters* counters) {
   ASSERT(counters != NULL);
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
 #endif
@@ -873,7 +981,7 @@ static void CollectSample(Isolate* isolate,
       sample->SetAt(0, pc);
     }
 
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
     // Use structured exception handling to trap guard page access.
   } __except (GuardPageExceptionFilter(GetExceptionInformation())) {  // NOLINT
     // Sample collection triggered a guard page fault:
@@ -976,12 +1084,16 @@ static bool InitialRegisterCheck(uintptr_t pc, uintptr_t fp, uintptr_t sp) {
 }
 
 static Sample* SetupSample(Thread* thread,
-                           SampleBuffer* sample_buffer,
+                           bool allocation_sample,
                            ThreadId tid) {
   ASSERT(thread != NULL);
   Isolate* isolate = thread->isolate();
-  ASSERT(sample_buffer != NULL);
-  Sample* sample = sample_buffer->ReserveSample();
+  SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
+  Sample* sample = allocation_sample ? buffer->ReserveAllocationSample(isolate)
+                                     : buffer->ReserveCPUSample(isolate);
+  if (sample == nullptr) {
+    return nullptr;
+  }
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
 #if defined(USING_SIMULATOR)
@@ -999,7 +1111,8 @@ static Sample* SetupSample(Thread* thread,
   return sample;
 }
 
-static Sample* SetupSampleNative(SampleBuffer* sample_buffer, ThreadId tid) {
+static Sample* SetupSampleNative(AllocationSampleBuffer* sample_buffer,
+                                 ThreadId tid) {
   Sample* sample = sample_buffer->ReserveSample();
   if (sample == NULL) {
     return NULL;
@@ -1032,14 +1145,15 @@ void Profiler::DumpStackTrace(void* context) {
     DumpStackTrace(/*for_crash=*/true);
     return;
   }
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID)
   ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
   mcontext_t mcontext = ucontext->uc_mcontext;
   uword pc = SignalHandler::GetProgramCounter(mcontext);
   uword fp = SignalHandler::GetFramePointer(mcontext);
   uword sp = SignalHandler::GetCStackPointer(mcontext);
   DumpStackTrace(sp, fp, pc, /*for_crash=*/true);
-#elif defined(HOST_OS_WINDOWS)
+#elif defined(DART_HOST_OS_WINDOWS)
   CONTEXT* ctx = reinterpret_cast<CONTEXT*>(context);
 #if defined(HOST_ARCH_IA32)
   uword pc = static_cast<uword>(ctx->Eip);
@@ -1147,11 +1261,10 @@ void Profiler::SampleAllocation(Thread* thread,
   if (!CheckIsolate(isolate)) {
     return;
   }
-
   const bool exited_dart_code = thread->HasExitedDartCode();
 
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
-  if (sample_buffer == NULL) {
+  SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
+  if (buffer == nullptr) {
     // Profiler not initialized.
     return;
   }
@@ -1175,24 +1288,30 @@ void Profiler::SampleAllocation(Thread* thread,
     return;
   }
 
-  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
+  Sample* sample =
+      SetupSample(thread, /*allocation_block*/ true, os_thread->trace_id());
+  if (sample == nullptr) {
+    // We were unable to assign a sample for this allocation.
+    counters_.sample_allocation_failure++;
+    return;
+  }
   sample->SetAllocationCid(cid);
   sample->set_allocation_identity_hash(identity_hash);
 
   if (FLAG_profile_vm_allocation) {
     ProfilerNativeStackWalker native_stack_walker(
         &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
-        sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+        sample, isolate->current_allocation_sample_block(), stack_lower,
+        stack_upper, pc, fp, sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
     ProfilerDartStackWalker dart_exit_stack_walker(
-        thread, sample, sample_buffer, pc, fp, /* allocation_sample*/ true);
+        thread, sample, isolate->current_allocation_sample_block(), pc, fp,
+        /* allocation_sample*/ true);
     dart_exit_stack_walker.walk();
   } else {
     // Fall back.
     uintptr_t pc = OS::GetProgramCounter();
-    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
-    sample->SetAllocationCid(cid);
     sample->SetAt(0, pc);
   }
 }
@@ -1249,20 +1368,16 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
   return sample;
 }
 
-void Profiler::SampleThreadSingleFrame(Thread* thread, uintptr_t pc) {
+void Profiler::SampleThreadSingleFrame(Thread* thread,
+                                       Sample* sample,
+                                       uintptr_t pc) {
   ASSERT(thread != NULL);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
 
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
-  if (sample_buffer == NULL) {
-    // Profiler not initialized.
-    return;
-  }
+  ASSERT(Profiler::sample_block_buffer() != nullptr);
 
-  // Setup sample.
-  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
@@ -1324,22 +1439,37 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
+  SampleBlockBuffer* sample_block_buffer = Profiler::sample_block_buffer();
+  if (sample_block_buffer == nullptr) {
+    // Profiler not initialized.
+    return;
+  }
+
+  // Setup sample.
+  Sample* sample =
+      SetupSample(thread, /*allocation_block*/ false, os_thread->trace_id());
+  if (sample == nullptr) {
+    // We were unable to assign a sample for this profiler tick.
+    counters_.sample_allocation_failure++;
+    return;
+  }
+
   if (thread->IsMutatorThread()) {
     if (isolate->IsDeoptimizing()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
-      SampleThreadSingleFrame(thread, pc);
+      SampleThreadSingleFrame(thread, sample, pc);
       return;
     }
     if (isolate->group()->compaction_in_progress()) {
       // The Dart stack isn't fully walkable.
-      SampleThreadSingleFrame(thread, pc);
+      SampleThreadSingleFrame(thread, sample, pc);
       return;
     }
   }
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     counters_.single_frame_sample_register_check.fetch_add(1);
-    SampleThreadSingleFrame(thread, pc);
+    SampleThreadSingleFrame(thread, sample, pc);
     return;
   }
 
@@ -1349,20 +1479,13 @@ void Profiler::SampleThread(Thread* thread,
                                        &stack_upper)) {
     counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
     // Could not get stack boundary.
-    SampleThreadSingleFrame(thread, pc);
+    SampleThreadSingleFrame(thread, sample, pc);
     return;
   }
 
   // At this point we have a valid stack boundary for this isolate and
   // know that our initial stack and frame pointers are within the boundary.
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
-  if (sample_buffer == NULL) {
-    // Profiler not initialized.
-    return;
-  }
 
-  // Setup sample.
-  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
@@ -1372,9 +1495,11 @@ void Profiler::SampleThread(Thread* thread,
 
   ProfilerNativeStackWalker native_stack_walker(
       &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
-      sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+      sample, isolate->current_sample_block(), stack_lower, stack_upper, pc, fp,
+      sp);
   const bool exited_dart_code = thread->HasExitedDartCode();
-  ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer, pc,
+  ProfilerDartStackWalker dart_stack_walker(thread, sample,
+                                            isolate->current_sample_block(), pc,
                                             fp, /* allocation_sample*/ false);
 
   // All memory access is done inside CollectSample.
@@ -1498,12 +1623,14 @@ const CodeDescriptor* CodeLookupTable::FindCode(uword pc) const {
 }
 
 ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
-    SampleFilter* filter) {
-  ASSERT(filter != NULL);
+    SampleFilter* filter,
+    ProcessedSampleBuffer* buffer) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  ProcessedSampleBuffer* buffer = new (zone) ProcessedSampleBuffer();
+  if (buffer == nullptr) {
+    buffer = new (zone) ProcessedSampleBuffer();
+  }
 
   const intptr_t length = capacity();
   for (intptr_t i = 0; i < length; i++) {
@@ -1516,12 +1643,6 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
       // An inner sample in a chain of samples.
       continue;
     }
-    // If we're requesting all the native allocation samples, we don't care
-    // whether or not we're in the same isolate as the sample.
-    if (sample->port() != filter->port()) {
-      // Another isolate.
-      continue;
-    }
     if (sample->timestamp() == 0) {
       // Empty.
       continue;
@@ -1530,17 +1651,25 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
       // No frames.
       continue;
     }
-    if (!filter->TimeFilterSample(sample)) {
-      // Did not pass time filter.
-      continue;
-    }
-    if (!filter->TaskFilterSample(sample)) {
-      // Did not pass task filter.
-      continue;
-    }
-    if (!filter->FilterSample(sample)) {
-      // Did not pass filter.
-      continue;
+    if (filter != nullptr) {
+      // If we're requesting all the native allocation samples, we don't care
+      // whether or not we're in the same isolate as the sample.
+      if (sample->port() != filter->port()) {
+        // Another isolate.
+        continue;
+      }
+      if (!filter->TimeFilterSample(sample)) {
+        // Did not pass time filter.
+        continue;
+      }
+      if (!filter->TaskFilterSample(sample)) {
+        // Did not pass task filter.
+        continue;
+      }
+      if (!filter->FilterSample(sample)) {
+        // Did not pass filter.
+        continue;
+      }
     }
     buffer->Add(BuildProcessedSample(sample, buffer->code_lookup_table()));
   }
@@ -1573,7 +1702,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   bool truncated = false;
   Sample* current = sample;
   while (current != NULL) {
-    for (intptr_t i = 0; i < kSampleSize; i++) {
+    for (intptr_t i = 0; i < Sample::kPCArraySizeInWords; i++) {
       if (current->At(i) == 0) {
         break;
       }
@@ -1585,7 +1714,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   }
 
   if (!sample->exit_frame_sample()) {
-    processed_sample->FixupCaller(clt, sample->pc_marker(),
+    processed_sample->FixupCaller(clt, /* pc_marker */ 0,
                                   sample->GetStackBuffer());
   }
 
@@ -1595,7 +1724,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 
 Sample* SampleBuffer::Next(Sample* sample) {
   if (!sample->is_continuation_sample()) return NULL;
-  Sample* next_sample = At(sample->continuation_index());
+  Sample* next_sample = sample->continuation_sample();
   // Sanity check.
   ASSERT(sample != next_sample);
   // Detect invalid chaining.
@@ -1612,7 +1741,7 @@ Sample* SampleBuffer::Next(Sample* sample) {
 }
 
 ProcessedSample::ProcessedSample()
-    : pcs_(kSampleSize),
+    : pcs_(Sample::kPCArraySizeInWords),
       timestamp_(0),
       vm_tag_(0),
       user_tag_(0),

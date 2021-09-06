@@ -9,10 +9,9 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/terminal_color_support.dart';
-import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
@@ -280,33 +279,6 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   void visitDynamicInvocation(DynamicInvocation node) {
     registerError(node, "Dynamic invocation of '${node.name}'.");
     super.visitDynamicInvocation(node);
-  }
-
-  @override
-  void visitPropertyGet(PropertyGet node) {
-    DartType receiverType = node.receiver.getStaticType(staticTypeContext);
-    if (receiverType is DynamicType && node.interfaceTarget == null) {
-      registerError(node, "Dynamic access of '${node.name}'.");
-    }
-    super.visitPropertyGet(node);
-  }
-
-  @override
-  void visitPropertySet(PropertySet node) {
-    DartType receiverType = node.receiver.getStaticType(staticTypeContext);
-    if (receiverType is DynamicType) {
-      registerError(node, "Dynamic update to '${node.name}'.");
-    }
-    super.visitPropertySet(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    DartType receiverType = node.receiver.getStaticType(staticTypeContext);
-    if (receiverType is DynamicType && node.interfaceTarget == null) {
-      registerError(node, "Dynamic invocation of '${node.name}'.");
-    }
-    super.visitMethodInvocation(node);
   }
 
   @override

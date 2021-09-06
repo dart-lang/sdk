@@ -421,8 +421,13 @@ class _HttpHeaders implements HttpHeaders {
 
   void _addHost(String name, value) {
     if (value is String) {
-      int pos = value.indexOf(":");
-      if (pos == -1) {
+      // value.indexOf will only work for ipv4, ipv6 which has multiple : in its
+      // host part needs lastIndexOf
+      int pos = value.lastIndexOf(":");
+      // According to RFC 3986, section 3.2.2, host part of ipv6 address must be
+      // enclosed by square brackets.
+      // https://serverfault.com/questions/205793/how-can-one-distinguish-the-host-and-the-port-in-an-ipv6-url
+      if (pos == -1 || value.startsWith("[") && value.endsWith("]")) {
         _host = value;
         _port = HttpClient.defaultHttpPort;
       } else {
@@ -503,8 +508,19 @@ class _HttpHeaders implements HttpHeaders {
     _mutable = false;
   }
 
-  void _build(BytesBuilder builder) {
+  void _build(BytesBuilder builder, {bool skipZeroContentLength = false}) {
+    // per https://tools.ietf.org/html/rfc7230#section-3.3.2
+    // A user agent SHOULD NOT send a
+    // Content-Length header field when the request message does not
+    // contain a payload body and the method semantics do not anticipate
+    // such a body.
+    String? ignoreHeader = _contentLength == 0 && skipZeroContentLength
+        ? HttpHeaders.contentLengthHeader
+        : null;
     _headers.forEach((String name, List<String> values) {
+      if (ignoreHeader == name) {
+        return;
+      }
       String originalName = _originalHeaderName(name);
       bool fold = _foldHeader(name);
       var nameData = originalName.codeUnits;

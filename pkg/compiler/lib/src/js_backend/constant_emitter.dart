@@ -148,7 +148,7 @@ class ModularConstantEmitter
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
     String value = constant.stringValue;
     if (value.length < StringReferencePolicy.minimumLength) {
-      return js.escapedString(value, ascii: true);
+      return js.string(value);
     }
     return StringReference(constant);
   }
@@ -161,7 +161,7 @@ class ModularConstantEmitter
 
   @override
   jsAst.Expression visitLateSentinel(LateSentinelConstantValue constant, [_]) =>
-      js('#', _namer.staticStateHolder);
+      _namer.globalObjectForStaticState();
 
   @override
   jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
@@ -288,8 +288,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         }
 
         // Keys in literal maps must be emitted in place.
-        jsAst.Literal keyExpression =
-            js.escapedString(key.stringValue, ascii: true);
+        jsAst.Literal keyExpression = js.string(key.stringValue);
         jsAst.Expression valueExpression =
             _constantReferenceGenerator(constant.values[i]);
         properties.add(new jsAst.Property(keyExpression, valueExpression));
@@ -331,10 +330,6 @@ class ConstantEmitter extends ModularConstantEmitter {
           constant_system.JavaScriptMapConstant.KEYS_NAME) {
         arguments.add(_constantReferenceGenerator(constant.keyList));
       } else if (field.name ==
-          constant_system.JavaScriptMapConstant.PROTO_VALUE) {
-        assert(constant.protoValue != null);
-        arguments.add(_constantReferenceGenerator(constant.protoValue));
-      } else if (field.name ==
           constant_system.JavaScriptMapConstant.JS_DATA_NAME) {
         arguments.add(jsGeneralMap());
       } else {
@@ -345,8 +340,6 @@ class ConstantEmitter extends ModularConstantEmitter {
     });
     if ((className == constant_system.JavaScriptMapConstant.DART_STRING_CLASS &&
             emittedArgumentCount != 3) ||
-        (className == constant_system.JavaScriptMapConstant.DART_PROTO_CLASS &&
-            emittedArgumentCount != 4) ||
         (className ==
                 constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS &&
             emittedArgumentCount != 1)) {
@@ -437,8 +430,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     assert(type.element == _commonElements.jsArrayClass);
     if (_rtiNeed.classNeedsTypeArguments(type.element)) {
-      return new jsAst.Call(
-          getHelperProperty(_commonElements.setRuntimeTypeInfo),
+      return new jsAst.Call(getHelperProperty(_commonElements.setArrayType),
           [value, _reifiedTypeNewRti(type)]);
     }
     return value;

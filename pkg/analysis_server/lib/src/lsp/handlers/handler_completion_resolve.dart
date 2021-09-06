@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -11,6 +9,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/util/comment.dart' as analyzer;
@@ -23,7 +22,7 @@ class CompletionResolveHandler
   /// Used to abort previous requests in async handlers if another resolve request
   /// arrives while the previous is being processed (for clients that don't send
   /// cancel events).
-  CompletionItem _latestCompletionItem;
+  CompletionItem? _latestCompletionItem;
 
   CompletionResolveHandler(LspAnalysisServer server) : super(server);
 
@@ -42,6 +41,8 @@ class CompletionResolveHandler
 
     if (resolutionInfo is DartCompletionItemResolutionInfo) {
       return resolveDartCompletion(item, resolutionInfo, token);
+    } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
+      return resolvePubPackageCompletion(item, resolutionInfo, token);
     } else {
       return success(item);
     }
@@ -52,6 +53,13 @@ class CompletionResolveHandler
     DartCompletionItemResolutionInfo data,
     CancellationToken token,
   ) async {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
     final lineInfo = server.getLineInfo(data.file);
     if (lineInfo == null) {
       return error(
@@ -65,7 +73,7 @@ class CompletionResolveHandler
     // extracting (with support for the different types of responses between
     // the servers). Where is an appropriate place to put it?
 
-    var library = server.declarationsTracker.getLibrary(data.libId);
+    var library = server.declarationsTracker?.getLibrary(data.libId);
     if (library == null) {
       return error(
         ErrorCodes.InvalidParams,
@@ -91,24 +99,28 @@ class CompletionResolveHandler
     _latestCompletionItem = item;
     while (item == _latestCompletionItem && timer.elapsed < timeout) {
       try {
-        var analysisDriver = server.getAnalysisDriver(data.file);
-        var session = analysisDriver.currentSession;
+        final analysisDriver = server.getAnalysisDriver(data.file);
+        final session = analysisDriver?.currentSession;
 
-        if (token.isCancellationRequested) {
+        // We shouldn't not get a driver/session, but if we did perhaps the file
+        // was removed from the analysis set so assume the request is no longer
+        // valid.
+        if (session == null || token.isCancellationRequested) {
           return cancelled();
         }
 
         analyzer.LibraryElement requestedLibraryElement;
-        try {
-          requestedLibraryElement = await session.getLibraryByUri(
-            library.uriStr,
-          );
-        } on ArgumentError catch (e) {
-          return error(
-            ErrorCodes.InvalidParams,
-            'Invalid library URI: ${library.uriStr}',
-            '$e',
-          );
+        {
+          final result = await session.getLibraryByUri(library.uriStr);
+          if (result is LibraryElementResult) {
+            requestedLibraryElement = result.element;
+          } else {
+            return error(
+              ErrorCodes.InvalidParams,
+              'Invalid library URI: ${library.uriStr}',
+              '${result.runtimeType}',
+            );
+          }
         }
 
         if (token.isCancellationRequested) {
@@ -146,7 +158,7 @@ class CompletionResolveHandler
 
         // If this completion involves editing other files, we'll need to build
         // a command that the client will call to apply those edits later.
-        Command command;
+        Command? command;
         if (otherFilesChanges.isNotEmpty) {
           final workspaceEdit =
               createPlainWorkspaceEdit(server, otherFilesChanges);
@@ -157,19 +169,19 @@ class CompletionResolveHandler
         }
 
         // Documentation is added on during resolve for LSP.
-        final formats =
-            server.clientCapabilities.completionDocumentationFormats;
+        final formats = clientCapabilities.completionDocumentationFormats;
         final supportsInsertReplace =
-            server.clientCapabilities.insertReplaceCompletionRanges;
+            clientCapabilities.insertReplaceCompletionRanges;
         final dartDoc =
             analyzer.getDartDocPlainText(requestedElement.documentationComment);
-        final documentation = asStringOrMarkupContent(formats, dartDoc);
+        final documentation =
+            dartDoc != null ? asStringOrMarkupContent(formats, dartDoc) : null;
 
         return success(CompletionItem(
           label: item.label,
           kind: item.kind,
           tags: item.tags,
-          detail: data.displayUri != null && thisFilesChanges.isNotEmpty
+          detail: thisFilesChanges.isNotEmpty
               ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
@@ -214,5 +226,42 @@ class CompletionResolveHandler
       'Request was cancelled for taking too long or another request being received',
       null,
     );
+  }
+
+  Future<ErrorOr<CompletionItem>> resolvePubPackageCompletion(
+    CompletionItem item,
+    PubPackageCompletionItemResolutionInfo data,
+    CancellationToken token,
+  ) async {
+    // Fetch details for this package. This may come from the cache or trigger
+    // a real web request to the Pub API.
+    final packageDetails =
+        await server.pubPackageService.packageDetails(data.packageName);
+
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
+
+    final description = packageDetails?.description;
+    return success(CompletionItem(
+      label: item.label,
+      kind: item.kind,
+      tags: item.tags,
+      detail: item.detail,
+      documentation: description != null
+          ? Either2<String, MarkupContent>.t1(description)
+          : null,
+      deprecated: item.deprecated,
+      preselect: item.preselect,
+      sortText: item.sortText,
+      filterText: item.filterText,
+      insertText: item.insertText,
+      insertTextFormat: item.insertTextFormat,
+      textEdit: item.textEdit,
+      additionalTextEdits: item.additionalTextEdits,
+      commitCharacters: item.commitCharacters,
+      command: item.command,
+      data: item.data,
+    ));
   }
 }

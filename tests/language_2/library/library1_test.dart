@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing libraries.
 
+// @dart = 2.9
+
 library Library1Test.dart;
 
 import "package:expect/expect.dart";

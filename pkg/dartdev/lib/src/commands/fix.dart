@@ -26,7 +26,7 @@ This tool looks for and fixes analysis issues that have associated automated fix
 
 To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed changes for a project, or ['dart fix --apply'] to apply the changes.''';
 
-  FixCommand({bool verbose = false}) : super(cmdName, cmdDescription) {
+  FixCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag('dry-run',
         abbr: 'n',
         defaultsTo: false,
@@ -91,7 +91,9 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
     var server = AnalysisServer(
       io.Directory(sdk.sdkPath),
-      dir,
+      [dir],
+      commandName: 'fix',
+      argResults: argResults,
     );
 
     await server.start();
@@ -127,12 +129,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       var fileCount = 0;
       var fixCount = 0;
 
-      details.forEach((d) {
+      for (var d in details) {
         ++fileCount;
-        d.fixes.forEach((f) {
+        for (var f in d.fixes) {
           fixCount += f.occurrences;
-        });
-      });
+        }
+      }
 
       if (dryRun) {
         log.stdout('');

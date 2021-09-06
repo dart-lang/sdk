@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class C<T extends core::num* = core::num*> extends core::Object /*hasConstConstructor*/  {
+class C<T extends core::num*> extends core::Object /*hasConstConstructor*/  {
   final field self::C::T* x;
   const constructor •(self::C::T* x) → self::C<self::C::T*>*
     : self::C::x = x, super core::Object::•()
@@ -18,7 +18,7 @@ class C<T extends core::num* = core::num*> extends core::Object /*hasConstConstr
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class D<T extends core::num* = core::num*> extends core::Object /*hasConstConstructor*/  {
+class D<T extends core::num*> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::D<self::D::T*>*
     : super core::Object::•()
     ;

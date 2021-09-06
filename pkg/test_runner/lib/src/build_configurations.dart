@@ -49,8 +49,8 @@ Future buildConfigurations(List<TestConfiguration> configurations) async {
     ...osFlags,
     ...buildTargets
   ];
-  print('Running command: python ${command.join(' ')}');
-  final process = await Process.start('python', command);
+  print('Running command: python3 ${command.join(' ')}');
+  final process = await Process.start('python3', command);
   stdout.nonBlocking.addStream(process.stdout);
   stderr.nonBlocking.addStream(process.stderr);
   final exitCode = await process.exitCode;

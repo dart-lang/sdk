@@ -351,6 +351,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    safelyVisitNode(node.constructorName);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     sink.write("continue");
     safelyVisitNodeWithPrefix(" ", node.label);
@@ -461,6 +466,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     safelyVisitTokenWithSuffix(node.extensionKeyword, ' ');
+    safelyVisitTokenWithSuffix(node.typeKeyword, ' ');
     safelyVisitNode(node.name);
     safelyVisitNode(node.typeParameters);
     sink.write(' ');
@@ -492,6 +498,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.requiredKeyword, " ");
     safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitTokenWithSuffix(node.keyword, " ");
     safelyVisitNodeWithSuffix(node.type, " ");
@@ -614,6 +621,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    safelyVisitNode(node.function);
+    safelyVisitNode(node.typeArguments);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     sink.write("typedef ");
@@ -627,6 +640,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.requiredKeyword, ' ');
     safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitNodeWithSuffix(node.returnType, " ");
     safelyVisitNode(node.identifier);
@@ -1081,6 +1095,11 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('<');
     safelyVisitNodeListWithSeparator(node.arguments, ", ");
     sink.write('>');
+  }
+
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    safelyVisitNode(node.typeName);
   }
 
   @override

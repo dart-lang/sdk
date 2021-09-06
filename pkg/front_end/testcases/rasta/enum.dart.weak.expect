@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Foo extends core::Object /*isEnum*/  {
+class Foo extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Foo*>* values = #C7;
@@ -12,7 +12,7 @@ class Foo extends core::Object /*isEnum*/  {
     : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{self::Foo::_name};
+    return this.{self::Foo::_name}{core::String*};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

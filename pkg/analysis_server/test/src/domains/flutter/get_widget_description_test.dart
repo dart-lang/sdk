@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -34,7 +32,7 @@ void main() {
     expect(property.expression, "'aaa'");
     expect(property.isRequired, isTrue);
     expect(property.editor, isNotNull);
-    expect(property.value.stringValue, 'aaa');
+    expect(property.value!.stringValue, 'aaa');
   }
 
   Future<void> test_notInstanceCreation() async {
@@ -46,7 +44,7 @@ void main() {
 
     var response = await getWidgetDescriptionResponse('42');
     expect(
-      response.error.code,
+      response.error!.code,
       RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }
@@ -60,7 +58,7 @@ void main() {
 
     var response = await getWidgetDescriptionResponse('new Foo');
     expect(
-      response.error.code,
+      response.error!.code,
       RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }

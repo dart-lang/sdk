@@ -6,12 +6,14 @@
 #define RUNTIME_BIN_PLATFORM_H_
 
 #include "bin/builtin.h"
+
+#include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/utils.h"
 
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 #include "bin/platform_macos.h"
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)
 
 namespace dart {
 namespace bin {
@@ -83,14 +85,19 @@ class Platform {
   }
   static const char* GetExecutableName();
   static const char* GetResolvedExecutableName() {
-    if (resolved_executable_name_ == NULL) {
+    if (resolved_executable_name_.load() == nullptr) {
       // Try to resolve the executable path using platform specific APIs.
       const char* resolved_name = Platform::ResolveExecutablePath();
-      if (resolved_name != NULL) {
-        resolved_executable_name_ = Utils::StrDup(resolved_name);
+      if (resolved_name != nullptr) {
+        char* resolved_name_copy = Utils::StrDup(resolved_name);
+        const char* expect_old_is_null = nullptr;
+        if (!resolved_executable_name_.compare_exchange_strong(
+                expect_old_is_null, resolved_name_copy)) {
+          free(resolved_name_copy);
+        }
       }
     }
-    return resolved_executable_name_;
+    return resolved_executable_name_.load();
   }
 
   // Stores and gets the flags passed to the executable.
@@ -108,8 +115,12 @@ class Platform {
  private:
   // The path to the executable.
   static const char* executable_name_;
+
   // The path to the resolved executable.
-  static char* resolved_executable_name_;
+  //
+  // We use require-release semantics to ensure initializing stores to the
+  // string are visible when the string becomes visible.
+  static AcqRelAtomic<const char*> resolved_executable_name_;
 
   static int script_index_;
   static char** argv_;  // VM flags are argv_[1 ... script_index_ - 1]

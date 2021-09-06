@@ -28,7 +28,7 @@ struct ScriptIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.index_; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     return String::Handle(key->url()).Hash();
   }
 
@@ -61,7 +61,7 @@ struct FunctionIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.index_; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
+  static inline uword Hash(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair.function_->ptr() == key->ptr();
@@ -110,9 +110,9 @@ struct DwarfCodeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv.value; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     // Instructions are always allocated in old space, so they don't move.
-    return FinalizeHash(key->PayloadStart(), 32);
+    return Utils::WordHash(key->PayloadStart());
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -211,19 +211,48 @@ class DwarfWriteStream : public ValueObject {
   virtual void u8(uint64_t value) = 0;
   virtual void string(const char* cstr) = 0;  // NOLINT
 
-  // Returns the position (if any) to fix up in SetSize().
-  virtual intptr_t ReserveSize(const char* prefix, intptr_t* start) = 0;
-  virtual void SetSize(intptr_t position,
-                       const char* prefix,
-                       intptr_t start) = 0;
+  class EncodedPosition : public ValueObject {
+   public:
+    explicit EncodedPosition(intptr_t position)
+        : type_(Type::kPosition), position_(position) {}
+    explicit EncodedPosition(const char* symbol)
+        : type_(Type::kSymbol), symbol_(symbol) {}
+
+    enum class Type {
+      kPosition,
+      kSymbol,
+    };
+
+    bool IsPosition() const { return type_ == Type::kPosition; }
+    intptr_t position() const {
+      ASSERT(IsPosition());
+      return position_;
+    }
+    bool IsSymbol() const { return type_ == Type::kSymbol; }
+    const char* symbol() const {
+      ASSERT(IsSymbol());
+      return symbol_;
+    }
+
+   private:
+    const Type type_;
+    union {
+      intptr_t position_;
+      const char* symbol_;
+    };
+
+    DISALLOW_COPY_AND_ASSIGN(EncodedPosition);
+  };
+
+  // Prefixes the content added by body with its length. Returns an
+  // appropriately encoded representation of the start of the content added by
+  // the body (including the length prefix).
+  //
+  // symbol_prefix is used when a local symbol is created for the length.
+  virtual EncodedPosition WritePrefixedLength(const char* symbol_prefix,
+                                              std::function<void()> body) = 0;
 
   virtual void OffsetFromSymbol(const char* symbol, intptr_t offset) = 0;
-  // Returns the difference between the relocated address at offset1 from
-  // symbol1 and the relocated address at offset2 from symbol2.
-  virtual void DistanceBetweenSymbolOffsets(const char* symbol1,
-                                            intptr_t offset1,
-                                            const char* symbol2,
-                                            intptr_t offset2) = 0;
 
   virtual void InitializeAbstractOrigins(intptr_t size) = 0;
   virtual void RegisterAbstractOrigin(intptr_t index) = 0;
@@ -269,6 +298,7 @@ class Dwarf : public ZoneAllocated {
   static const intptr_t DW_AT_inline = 0x20;
   static const intptr_t DW_AT_producer = 0x25;
   static const intptr_t DW_AT_abstract_origin = 0x31;
+  static const intptr_t DW_AT_artificial = 0x34;
   static const intptr_t DW_AT_decl_column = 0x39;
   static const intptr_t DW_AT_decl_file = 0x3a;
   static const intptr_t DW_AT_decl_line = 0x3b;
@@ -278,6 +308,7 @@ class Dwarf : public ZoneAllocated {
 
   static const intptr_t DW_FORM_addr = 0x01;
   static const intptr_t DW_FORM_string = 0x08;
+  static const intptr_t DW_FORM_flag = 0x0c;
   static const intptr_t DW_FORM_udata = 0x0f;
   static const intptr_t DW_FORM_ref4 = 0x13;
   static const intptr_t DW_FORM_ref_udata = 0x15;
@@ -295,6 +326,13 @@ class Dwarf : public ZoneAllocated {
   static const intptr_t DW_LNE_end_sequence = 0x01;
   static const intptr_t DW_LNE_set_address = 0x02;
 
+ public:
+  // Public because they're also used in constructing .eh_frame ELF sections.
+  static const intptr_t DW_CFA_offset = 0x80;
+  static const intptr_t DW_CFA_val_offset = 0x14;
+  static const intptr_t DW_CFA_def_cfa = 0x0c;
+
+ private:
   enum {
     kCompilationUnit = 1,
     kAbstractFunction,

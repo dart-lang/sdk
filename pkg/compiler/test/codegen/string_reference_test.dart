@@ -11,6 +11,7 @@ import 'package:compiler/src/js_backend/string_reference.dart'
     show StringReference, StringReferenceResource, StringReferenceFinalizerImpl;
 
 import 'package:compiler/src/js/js.dart' show prettyPrint;
+import 'package:js_ast/js_ast.dart' as js;
 
 void test(List<String> strings, String expected, {bool minified: false}) {
   var finalizer =
@@ -24,7 +25,8 @@ void test(List<String> strings, String expected, {bool minified: false}) {
   finalizer.registerStringReferenceResource(resource);
   finalizer.finalize();
 
-  Expect.equals(expected.trim(), prettyPrint(resource).trim());
+  // Wrap the resource in a block, as they would print in actual code.
+  Expect.equals(expected.trim(), prettyPrint(js.Block([resource])).trim());
 }
 
 extension on List<String> {
@@ -37,20 +39,26 @@ extension on List<String> {
 
 void main() {
   // No strings yields an empty pool.
-  test([], '0');
+  test([], r'''
+{
+}''');
 
   // Single occurrence strings are not pooled.
   test(
     ['Yellow', 'Blue', 'Crimson'],
-    '0',
+    r'''
+{
+}''',
   );
 
   // Repeated strings that are long enough are pooled.
   test(
     ['Yellow', 'Blue', 'Blue', 'Crimson', 'Crimson'],
     r'''
-var string$ = {
-  Crimso: "Crimson"
+{
+  var string$ = {
+    Crimso: "Crimson"
+  };
 }''',
   );
 
@@ -65,11 +73,13 @@ var string$ = {
   test(
     greets * 2,
     r'''
-var string$ = {
-  Great_: "Great work!",
-  GreetiA: "Greetings Alice",
-  GreetiBH: "Greetings Bob Henry",
-  GreetiBS: "Greetings Bob Smith"
+{
+  var string$ = {
+    Great_: "Great work!",
+    GreetiA: "Greetings Alice",
+    GreetiBH: "Greetings Bob Henry",
+    GreetiBS: "Greetings Bob Smith"
+  };
 }''',
   );
 
@@ -77,9 +87,11 @@ var string$ = {
   test(
     ['xylograph', '!pingpong'] * 2,
     r'''
-var string$ = {
-  _pingp: "!pingpong",
-  xylogr: "xylograph"
+{
+  var string$ = {
+    _pingp: "!pingpong",
+    xylogr: "xylograph"
+  };
 }''',
   );
 
@@ -94,20 +106,24 @@ var string$ = {
   test(
     strings1,
     r'''
-var string$ = {
-  a_x21pin: "a !pingpong",
-  a_x25per: "a %percent",
-  a_x78ylo: "a xylograph"
+{
+  var string$ = {
+    a_x21pin: "a !pingpong",
+    a_x25per: "a %percent",
+    a_x78ylo: "a xylograph"
+  };
 }''',
   );
 
   // Minified version keeps the strings in the same order as unminified, and
   // tries to allocate the same minified name.
   const minified1 = r'''
-var string$ = {
-  l: "a !pingpong",
-  o: "a %percent",
-  n: "a xylograph"
+{
+  var string$ = {
+    l: "a !pingpong",
+    o: "a %percent",
+    n: "a xylograph"
+  };
 }''';
 
   final strings2 = [

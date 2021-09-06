@@ -6,19 +6,15 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler;
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Code, Message, PlainAndColorizedString;
-
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/js_names.dart' as js_ast;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
-
 import 'package:front_end/src/api_unstable/ddc.dart';
-
 import 'package:kernel/ast.dart'
     show
         Block,
@@ -32,7 +28,7 @@ import 'package:kernel/ast.dart'
         Member,
         Node,
         Procedure,
-        RedirectingFactoryConstructor,
+        RedirectingFactory,
         TreeNode,
         TypeParameter,
         VariableDeclaration,
@@ -257,7 +253,7 @@ class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
     if (node is Constructor) return node.fileEndOffset;
     if (node is Procedure) return node.fileEndOffset;
     if (node is Field) return node.fileEndOffset;
-    if (node is RedirectingFactoryConstructor) return node.fileEndOffset;
+    if (node is RedirectingFactory) return node.fileEndOffset;
     if (node is FunctionNode) return node.fileEndOffset;
     return noOffset;
   }

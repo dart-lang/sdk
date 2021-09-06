@@ -169,6 +169,6 @@ static method ok() → dynamic {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::C::staticFunction
-  #C2 = tearoff self::topLevelFunction
+  #C1 = static-tearoff self::C::staticFunction
+  #C2 = static-tearoff self::topLevelFunction
 }

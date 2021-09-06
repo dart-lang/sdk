@@ -4,6 +4,8 @@
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import 'dylib_utils.dart';

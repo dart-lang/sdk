@@ -313,7 +313,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     }
     List<TypeParameter> typeParams = [];
     for (String name in test.typeDefinitions) {
-      typeParams.add(new TypeParameter(name, new DynamicType()));
+      typeParams
+          .add(new TypeParameter(name, new DynamicType(), new DynamicType()));
     }
 
     Procedure compiledProcedure = await compiler.compileExpression(

@@ -3,17 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// The location of a character represented as a line and column pair.
-// ignore: deprecated_member_use_from_same_package
-class CharacterLocation extends LineInfo_Location {
-  // TODO(brianwilkerson) Replace the body of this class with the body of
-  // LineInfo_Location and remove LineInfo_Location.
+class CharacterLocation {
+  /// The one-based index of the line containing the character.
+  final int lineNumber;
+
+  /// The one-based index of the column containing the character.
+  final int columnNumber;
+
   /// Initialize a newly created location to represent the location of the
   /// character at the given [lineNumber] and [columnNumber].
-  CharacterLocation(int lineNumber, int columnNumber)
-      : super(lineNumber, columnNumber);
+  CharacterLocation(this.lineNumber, this.columnNumber);
+
+  @override
+  String toString() => '$lineNumber:$columnNumber';
 }
 
 /// Information about line and column information within a source file.
@@ -43,12 +47,7 @@ class LineInfo {
   int get lineCount => lineStarts.length;
 
   /// Return the location information for the character at the given [offset].
-  ///
-  /// A future version of this API will return a [CharacterLocation] rather than
-  // ignore: deprecated_member_use_from_same_package
-  /// a [LineInfo_Location].
-  // ignore: deprecated_member_use_from_same_package
-  LineInfo_Location getLocation(int offset) {
+  CharacterLocation getLocation(int offset) {
     var min = 0;
     var max = lineStarts.length - 1;
 

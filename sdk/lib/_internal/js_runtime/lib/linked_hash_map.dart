@@ -204,7 +204,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
       V value = JS('', '#', cell.hashMapCellValue);
       action(key, value);
       if (modifications != _modifications) {
-        throw new ConcurrentModificationError(this);
+        throw ConcurrentModificationError(this);
       }
       cell = cell._next;
     }
@@ -385,7 +385,7 @@ class LinkedHashMapCell {
 }
 
 class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
-  final dynamic _map;
+  final JsLinkedHashMap _map;
   LinkedHashMapKeyIterable(this._map);
 
   int get length => _map._length;
@@ -405,7 +405,7 @@ class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
     while (cell != null) {
       f(JS('', '#', cell.hashMapCellKey));
       if (modifications != _map._modifications) {
-        throw new ConcurrentModificationError(_map);
+        throw ConcurrentModificationError(_map);
       }
       cell = cell._next;
     }
@@ -413,7 +413,7 @@ class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
 }
 
 class LinkedHashMapKeyIterator<E> implements Iterator<E> {
-  final dynamic _map;
+  final JsLinkedHashMap _map;
   final int _modifications;
   LinkedHashMapCell? _cell;
   E? _current;
@@ -422,11 +422,12 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
     _cell = _map._first;
   }
 
+  @pragma('dart2js:as:trust')
   E get current => _current as E;
 
   bool moveNext() {
     if (_modifications != _map._modifications) {
-      throw new ConcurrentModificationError(_map);
+      throw ConcurrentModificationError(_map);
     }
     var cell = _cell;
     if (cell == null) {

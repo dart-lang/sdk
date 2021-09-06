@@ -71,7 +71,7 @@ static get Extension1|staticProperty() → dynamic {
 }
 static set Extension1|staticProperty(core::int* value) → void {
   core::print("Extension1.staticProperty(${value})");
-  value = value.{core::num::+}(1);
+  value = value.{core::num::+}(1){(core::num*) →* core::int*};
 }
 static method main() → dynamic {
   self::Class1* c = new self::Class1::•();

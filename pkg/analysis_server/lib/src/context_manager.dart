@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
@@ -16,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -31,8 +30,7 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/bazel_watcher.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
-import 'package:meta/meta.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 import 'package:yaml/yaml.dart';
 
@@ -49,18 +47,6 @@ var experimentalEnableBazelWatching = true;
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 abstract class ContextManager {
-  // TODO(brianwilkerson) Support:
-  //   setting the default analysis options
-  //   setting the default content cache
-  //   setting the default SDK
-  //   telling server when a context has been added or removed
-  //       (see onContextsChanged)
-  //   telling server when a context needs to be re-analyzed
-  //   notifying the client when results should be flushed
-  //   using analyzeFileFunctions to determine which files to analyze
-  //
-  // TODO(brianwilkerson) Move this class to a public library.
-
   /// Get the callback interface used to create, destroy, and update contexts.
   ContextManagerCallbacks get callbacks;
 
@@ -81,7 +67,7 @@ abstract class ContextManager {
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or `null` if the [path] is not analyzed in any of the
   /// created analysis contexts.
-  DriverBasedAnalysisContext getContextFor(String path);
+  DriverBasedAnalysisContext? getContextFor(String path);
 
   /// Return the [AnalysisDriver] for the "innermost" context whose associated
   /// folder is or contains the given path.  ("innermost" refers to the nesting
@@ -90,7 +76,7 @@ abstract class ContextManager {
   /// the context for /foo/bar.)
   ///
   /// If no driver contains the given path, `null` is returned.
-  AnalysisDriver getDriverFor(String path);
+  AnalysisDriver? getDriverFor(String path);
 
   /// Return `true` if the file or directory with the given [path] will be
   /// analyzed in one of the analysis contexts.
@@ -136,6 +122,12 @@ abstract class ContextManagerCallbacks {
   /// TODO(scheglov) Just pass results in here?
   void listenAnalysisDriver(AnalysisDriver driver);
 
+  /// The `pubspec.yaml` at [path] was added/modified.
+  void pubspecChanged(String path);
+
+  /// The `pubspec.yaml` at [path] was removed.
+  void pubspecRemoved(String path);
+
   /// Record error information for the file with the given [path].
   void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors);
 }
@@ -153,17 +145,21 @@ class ContextManagerImpl implements ContextManager {
   /// The storage for cached results.
   final ByteStore _byteStore;
 
+  /// The cache of file contents shared between context of the collection.
+  final FileContentCache _fileContentCache;
+
   /// The logger used to create analysis contexts.
   final PerformanceLog _performanceLog;
 
   /// The scheduler used to create analysis contexts, and report status.
   final AnalysisDriverScheduler _scheduler;
 
-  /// The current set of analysis contexts.
-  AnalysisContextCollectionImpl _collection;
+  /// The current set of analysis contexts, or `null` if the context roots have
+  /// not yet been set.
+  AnalysisContextCollectionImpl? _collection;
 
   /// The context used to work with file system paths.
-  pathos.Context pathContext;
+  path.Context pathContext;
 
   /// The list of excluded paths (folders and files) most recently passed to
   /// [setRoots].
@@ -179,11 +175,15 @@ class ContextManagerImpl implements ContextManager {
   final InstrumentationService _instrumentationService;
 
   @override
-  ContextManagerCallbacks callbacks;
+  ContextManagerCallbacks callbacks = NoopContextManagerCallbacks();
 
   @override
   final Map<Folder, AnalysisDriver> driverMap =
       HashMap<Folder, AnalysisDriver>();
+
+  /// The timer that is started after creating analysis contexts, to check
+  /// for in-between changes to configuration files.
+  Timer? _collectionConsistencyCheckTimer;
 
   /// Stream subscription we are using to watch each analysis root directory for
   /// changes.
@@ -199,30 +199,36 @@ class ContextManagerImpl implements ContextManager {
   /// to files generated by Bazel.
   ///
   /// Might be `null` if watching Bazel files is not enabled.
-  BazelFileWatcherService bazelWatcherService;
+  BazelFileWatcherService? bazelWatcherService;
 
   /// The subscription to changes in the files watched by [bazelWatcherService].
   ///
   /// Might be `null` if watching Bazel files is not enabled.
-  StreamSubscription<List<WatchEvent>> bazelWatcherSubscription;
+  StreamSubscription<List<WatchEvent>>? bazelWatcherSubscription;
 
   /// For each [Folder] store which files are being watched. This allows us to
   /// clean up when we destroy a context.
   final bazelWatchedPathsPerFolder = <Folder, _BazelWatchedFiles>{};
 
-  ContextManagerImpl(this.resourceProvider, this.sdkManager, this._byteStore,
-      this._performanceLog, this._scheduler, this._instrumentationService,
-      {@required enableBazelWatcher}) {
-    pathContext = resourceProvider.pathContext;
+  ContextManagerImpl(
+      this.resourceProvider,
+      this.sdkManager,
+      this._byteStore,
+      this._fileContentCache,
+      this._performanceLog,
+      this._scheduler,
+      this._instrumentationService,
+      {required enableBazelWatcher})
+      : pathContext = resourceProvider.pathContext {
     if (enableBazelWatcher) {
       bazelWatcherService = BazelFileWatcherService(_instrumentationService);
-      bazelWatcherSubscription = bazelWatcherService.events
+      bazelWatcherSubscription = bazelWatcherService!.events
           .listen((events) => _handleBazelWatchEvents(events));
     }
   }
 
   @override
-  DriverBasedAnalysisContext getContextFor(String path) {
+  DriverBasedAnalysisContext? getContextFor(String path) {
     try {
       return _collection?.contextFor(path);
     } on StateError {
@@ -231,7 +237,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   @override
-  AnalysisDriver getDriverFor(String path) {
+  AnalysisDriver? getDriverFor(String path) {
     return getContextFor(path)?.driver;
   }
 
@@ -272,9 +278,11 @@ class ContextManagerImpl implements ContextManager {
       var content = _readFile(path);
       var lineInfo = _computeLineInfo(content);
       var errors = analyzeAnalysisOptions(
-          resourceProvider.getFile(path).createSource(),
-          content,
-          driver.sourceFactory);
+        resourceProvider.getFile(path).createSource(),
+        content,
+        driver.sourceFactory,
+        driver.currentSession.analysisContext.contextRoot.root.path,
+      );
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
           lineInfo: lineInfo, options: driver.analysisOptions);
@@ -368,7 +376,6 @@ class ContextManagerImpl implements ContextManager {
               pubspecAst.accept(entry.value);
             }
             if (listener.errors.isNotEmpty) {
-              convertedErrors ??= <protocol.AnalysisError>[];
               convertedErrors.addAll(converter.convertAnalysisErrors(
                   listener.errors,
                   lineInfo: lineInfo,
@@ -411,7 +418,7 @@ class ContextManagerImpl implements ContextManager {
   void _createAnalysisContexts() {
     _destroyAnalysisContexts();
 
-    _collection = AnalysisContextCollectionImpl(
+    var collection = _collection = AnalysisContextCollectionImpl(
       includedPaths: includedPaths,
       excludedPaths: excludedPaths,
       byteStore: _byteStore,
@@ -421,9 +428,10 @@ class ContextManagerImpl implements ContextManager {
       resourceProvider: resourceProvider,
       scheduler: _scheduler,
       sdkPath: sdkManager.defaultSdkDirectory,
+      fileContentCache: _fileContentCache,
     );
 
-    for (var analysisContext in _collection.contexts) {
+    for (var analysisContext in collection.contexts) {
       var driver = analysisContext.driver;
 
       callbacks.listenAnalysisDriver(driver);
@@ -463,6 +471,7 @@ class ContextManagerImpl implements ContextManager {
     }
 
     callbacks.afterContextsCreated();
+    _scheduleCollectionConsistencyCheck(collection);
   }
 
   /// Clean up and destroy the context associated with the given folder.
@@ -473,20 +482,29 @@ class ContextManagerImpl implements ContextManager {
     var watched = bazelWatchedPathsPerFolder.remove(rootFolder);
     if (watched != null) {
       for (var path in watched.paths) {
-        bazelWatcherService.stopWatching(watched.workspace, path);
+        bazelWatcherService!.stopWatching(watched.workspace, path);
       }
+      _stopWatchingBazelBinPaths(watched);
     }
+    bazelSearchSubscriptions.remove(rootFolder)?.cancel();
     driverMap.remove(rootFolder);
   }
 
   void _destroyAnalysisContexts() {
-    if (_collection != null) {
-      for (var analysisContext in _collection.contexts) {
+    var collection = _collection;
+    if (collection != null) {
+      _collectionConsistencyCheckTimer?.cancel();
+      for (var analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }
       callbacks.afterContextsDestroyed();
     }
   }
+
+  List<String> _getPossibelBazelBinPaths(_BazelWatchedFiles watched) => [
+        pathContext.join(watched.workspace, 'bazel-bin'),
+        pathContext.join(watched.workspace, 'blaze-bin'),
+      ];
 
   /// Establishes watch(es) for the Bazel generated files provided in
   /// [notification].
@@ -495,6 +513,11 @@ class ContextManagerImpl implements ContextManager {
   /// to creation/modification of files that were generated by Bazel.
   void _handleBazelSearchInfo(
       Folder folder, String workspace, BazelSearchInfo info) {
+    final bazelWatcherService = this.bazelWatcherService;
+    if (bazelWatcherService == null) {
+      return;
+    }
+
     var watched = bazelWatchedPathsPerFolder.putIfAbsent(
         folder, () => _BazelWatchedFiles(workspace));
     var added = watched.paths.add(info.requestedPath);
@@ -502,10 +525,23 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Notifies the drivers that a generated Bazel file has changed.
-  void _handleBazelWatchEvents(List<WatchEvent> events) {
+  void _handleBazelWatchEvents(List<WatchEvent> allEvents) {
+    // First check if we have any changes to the bazel-*/blaze-* paths.  If
+    // we do, we'll simply recreate all contexts to make sure that we follow the
+    // correct paths.
+    var bazelSymlinkPaths = bazelWatchedPathsPerFolder.values
+        .expand((watched) => _getPossibelBazelBinPaths(watched))
+        .toSet();
+    if (allEvents.any((event) => bazelSymlinkPaths.contains(event.path))) {
+      refresh();
+      return;
+    }
+
+    var fileEvents =
+        allEvents.where((event) => !bazelSymlinkPaths.contains(event.path));
     for (var driver in driverMap.values) {
       var needsUriReset = false;
-      for (var event in events) {
+      for (var event in fileEvents) {
         if (event.type == ChangeType.ADD) {
           driver.addFile(event.path);
           needsUriReset = true;
@@ -536,17 +572,27 @@ class ContextManagerImpl implements ContextManager {
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
 
+    final isPubpsec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isDotPackages(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
-        file_paths.isPubspecYaml(pathContext, path) ||
+        isPubpsec ||
         false) {
       _createAnalysisContexts();
+
+      if (isPubpsec) {
+        if (type == ChangeType.REMOVE) {
+          callbacks.pubspecRemoved(path);
+        } else {
+          callbacks.pubspecChanged(path);
+        }
+      }
       return;
     }
 
-    if (file_paths.isDart(pathContext, path)) {
-      for (var analysisContext in _collection.contexts) {
+    var collection = _collection;
+    if (collection != null && file_paths.isDart(pathContext, path)) {
+      for (var analysisContext in collection.contexts) {
         switch (type) {
           case ChangeType.ADD:
             if (analysisContext.contextRoot.isAnalyzed(path)) {
@@ -607,6 +653,50 @@ class ContextManagerImpl implements ContextManager {
         existingExcludedSet.containsAll(excludedPaths);
   }
 
+  /// We create analysis contexts, and then start watching the file system
+  /// for modifications to Dart files, and to configuration files, e.g.
+  /// `pubspec.yaml` file Pub workspaces.
+  ///
+  /// So, it is possible that one of these files will be changed between the
+  /// moment when we read it, and the moment when we started watching for
+  /// changes. Using `package:watcher` before creating analysis contexts
+  /// was still not reliable enough.
+  ///
+  /// To work around this we check after a short timeout, and hope that
+  /// any subsequent changes will be noticed by `package:watcher`.
+  void _scheduleCollectionConsistencyCheck(
+    AnalysisContextCollectionImpl collection,
+  ) {
+    _collectionConsistencyCheckTimer = Timer(Duration(seconds: 1), () {
+      _collectionConsistencyCheckTimer = null;
+      if (!collection.areWorkspacesConsistent) {
+        _createAnalysisContexts();
+      }
+    });
+  }
+
+  /// Starts watching for the `bazel-bin` and `blaze-bin` symlinks.
+  ///
+  /// This is important since these symlinks might not be present when the
+  /// server starts up, in which case `BazelWorkspace` assumes by default the
+  /// Bazel ones.  So we want to detect if the symlinks get created to reset
+  /// everything and repeat the search for the folders.
+  void _startWatchingBazelBinPaths(_BazelWatchedFiles watched) {
+    var watcherService = bazelWatcherService;
+    if (watcherService == null) return;
+    var paths = _getPossibelBazelBinPaths(watched);
+    watcherService.startWatching(
+        watched.workspace, BazelSearchInfo(paths[0], paths));
+  }
+
+  /// Stops watching for the `bazel-bin` and `blaze-bin` symlinks.
+  void _stopWatchingBazelBinPaths(_BazelWatchedFiles watched) {
+    var watcherService = bazelWatcherService;
+    if (watcherService == null) return;
+    var paths = _getPossibelBazelBinPaths(watched);
+    watcherService.stopWatching(watched.workspace, paths[0]);
+  }
+
   /// Listens to files generated by Bazel that were found or searched for.
   ///
   /// This is handled specially because the files are outside the package
@@ -615,15 +705,50 @@ class ContextManagerImpl implements ContextManager {
   /// Does nothing if the [driver] is not in a Bazel workspace.
   void _watchBazelFilesIfNeeded(Folder folder, AnalysisDriver analysisDriver) {
     if (!experimentalEnableBazelWatching) return;
-    var workspace = analysisDriver.analysisContext.contextRoot.workspace;
+    var watcherService = bazelWatcherService;
+    if (watcherService == null) return;
+
+    var workspace = analysisDriver.analysisContext?.contextRoot.workspace;
     if (workspace is BazelWorkspace &&
         !bazelSearchSubscriptions.containsKey(folder)) {
-      var searchSubscription = workspace.bazelCandidateFiles.listen(
+      bazelSearchSubscriptions[folder] = workspace.bazelCandidateFiles.listen(
           (notification) =>
               _handleBazelSearchInfo(folder, workspace.root, notification));
-      bazelSearchSubscriptions[folder] = searchSubscription;
+
+      var watched = _BazelWatchedFiles(workspace.root);
+      bazelWatchedPathsPerFolder[folder] = watched;
+      _startWatchingBazelBinPaths(watched);
     }
   }
+}
+
+class NoopContextManagerCallbacks implements ContextManagerCallbacks {
+  @override
+  void afterContextsCreated() {}
+
+  @override
+  void afterContextsDestroyed() {}
+
+  @override
+  void afterWatchEvent(WatchEvent event) {}
+
+  @override
+  void applyFileRemoved(String file) {}
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {}
+
+  @override
+  void listenAnalysisDriver(AnalysisDriver driver) {}
+
+  @override
+  void pubspecChanged(String pubspecPath) {}
+
+  @override
+  void pubspecRemoved(String pubspecPath) {}
+
+  @override
+  void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {}
 }
 
 class _BazelWatchedFiles {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -115,7 +113,7 @@ class B {
   test() {}
 }
 class C extends A {
-  main() {
+  void f() {
     print(newName);
   }
 }
@@ -204,7 +202,7 @@ void f(A a) {
     await indexTestUnit('''
 class A {
   test() {}
-  main() {
+  void f() {
     newName() {}
     test(); // marker
   }
@@ -225,7 +223,7 @@ class A {
     await indexTestUnit('''
 class A {
   test() {}
-  main() {
+  void f() {
     var newName;
     test(); // marker
   }
@@ -248,7 +246,7 @@ class A {
   test() {}
 }
 class B extends A {
-  main() {
+  void f() {
     var newName;
     test(); // marker
   }
@@ -269,7 +267,7 @@ class B extends A {
     await indexTestUnit('''
 class A {
   test() {}
-  main() {
+  void f() {
     var newName;
     this.test(); // marker
   }
@@ -287,7 +285,7 @@ class A {
     await indexTestUnit('''
 class A {
   test() {}
-  main() {
+  void f() {
     var newName;
   }
 }
@@ -304,7 +302,7 @@ class A {
     await indexTestUnit('''
 class A {
   test() {}
-  main(newName) {
+  void f(newName) {
     test(); // marker
   }
 }
@@ -326,7 +324,7 @@ class A {
 }
 class B extends A {
   newName() {} // marker
-  main() {
+  void f() {
     test();
   }
 }
@@ -350,7 +348,7 @@ class B extends A {
   test() {}
 }
 class C extends B {
-  main() {
+  void f() {
     print(newName);
   }
 }
@@ -408,7 +406,7 @@ class B extends A {
 
   Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
-main() {
+void f() {
   'abc'.toUpperCase();
 }
 ''');
@@ -441,11 +439,6 @@ class A {
 }
 ''');
     createRenameRefactoringAtString('test = 0;');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Field name must not be null.');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -458,11 +451,6 @@ class A {
 }
 ''');
     createRenameRefactoringAtString('test() {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Method name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -483,7 +471,7 @@ class A {
     await indexTestUnit('''
 class A {
   int test = 0; // marker
-  main() {
+  void f() {
     print(test);
     test = 1;
     test += 2;
@@ -495,7 +483,7 @@ class C extends B {
   get test => 1;
   set test(x) {}
 }
-main() {
+void f() {
   A a = new A();
   B b = new B();
   C c = new C();
@@ -518,7 +506,7 @@ main() {
     return assertSuccessfulRefactoring('''
 class A {
   int newName = 0; // marker
-  main() {
+  void f() {
     print(newName);
     newName = 1;
     newName += 2;
@@ -530,7 +518,7 @@ class C extends B {
   get newName => 1;
   set newName(x) {}
 }
-main() {
+void f() {
   A a = new A();
   B b = new B();
   C c = new C();
@@ -595,7 +583,7 @@ class A {
   final test;
   A({this.test});
 }
-main() {
+void f() {
   new A(test: 42);
 }
 ''');
@@ -610,7 +598,7 @@ class A {
   final newName;
   A({this.newName});
 }
-main() {
+void f() {
   new A(newName: 42);
 }
 ''');
@@ -622,7 +610,7 @@ typedef F(a);
 class A {
   final F test;
   A(this.test);
-  main() {
+  void f() {
     test(1);
   }
 }
@@ -641,7 +629,7 @@ typedef F(a);
 class A {
   final F newName;
   A(this.newName);
-  main() {
+  void f() {
     newName(1);
   }
 }
@@ -668,7 +656,7 @@ class D implements A {
 class E {
   test() {}
 }
-main() {
+void f() {
   A a = new A();
   B b = new B();
   C c = new C();
@@ -704,7 +692,7 @@ class D implements A {
 class E {
   test() {}
 }
-main() {
+void f() {
   A a = new A();
   B b = new B();
   C c = new C();
@@ -724,7 +712,7 @@ main() {
 class A {
   test() {}
 }
-main(var a) {
+void f(var a) {
   a.test(); // 1
   new A().test();
   a.test(); // 2
@@ -740,7 +728,7 @@ main(var a) {
 class A {
   newName() {}
 }
-main(var a) {
+void f(var a) {
   a.newName(); // 1
   new A().newName();
   a.newName(); // 2
@@ -769,7 +757,7 @@ class A {
   test() {}
 }
 
-main(var a) {
+void f(var a) {
   a.test();
 }
 ''');
@@ -786,7 +774,7 @@ class A {
   newName() {}
 }
 
-main(var a) {
+void f(var a) {
   a.newName();
 }
 ''');
@@ -798,7 +786,7 @@ main(var a) {
       test_createChange_MethodElement_potential_private_otherLibrary() async {
     await indexUnit('/lib.dart', '''
 library lib;
-main(p) {
+void f(p) {
   p._test();
 }
 ''');
@@ -806,7 +794,7 @@ main(p) {
 class A {
   _test() {}
 }
-main(var a) {
+void f(var a) {
   a._test();
   new A()._test();
 }
@@ -821,7 +809,7 @@ main(var a) {
 class A {
   newName() {}
 }
-main(var a) {
+void f(var a) {
   a.newName();
   new A().newName();
 }
@@ -928,7 +916,7 @@ void f(A a) {
 class A {
   get test {} // marker
   set test(x) {}
-  main() {
+  void f() {
     print(test);
     test = 1;
   }
@@ -937,7 +925,7 @@ class B extends A {
   get test {}
   set test(x) {}
 }
-main() {
+void f() {
   A a = new A();
   print(a.test);
   a.test = 2;
@@ -957,7 +945,7 @@ main() {
 class A {
   get newName {} // marker
   set newName(x) {}
-  main() {
+  void f() {
     print(newName);
     newName = 1;
   }
@@ -966,7 +954,7 @@ class B extends A {
   get newName {}
   set newName(x) {}
 }
-main() {
+void f() {
   A a = new A();
   print(a.newName);
   a.newName = 2;
@@ -983,7 +971,7 @@ main() {
 class A {
   get test {}
   set test(x) {} // marker
-  main() {
+  void f() {
     print(test);
     test = 1;
   }
@@ -992,7 +980,7 @@ class B extends A {
   get test {}
   set test(x) {}
 }
-main() {
+void f() {
   A a = new A();
   print(a.test);
   a.test = 2;
@@ -1012,7 +1000,7 @@ main() {
 class A {
   get newName {}
   set newName(x) {} // marker
-  main() {
+  void f() {
     print(newName);
     newName = 1;
   }
@@ -1021,7 +1009,7 @@ class B extends A {
   get newName {}
   set newName(x) {}
 }
-main() {
+void f() {
   A a = new A();
   print(a.newName);
   a.newName = 2;

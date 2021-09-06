@@ -673,10 +673,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             "Must be a string or native InternetAddress");
       }
     }
+
+    final stackTrace = StackTrace.current;
+
     return new Future.value(host).then<ConnectionTask<_NativeSocket>>((host) {
       if (host is _InternetAddress) {
-        return tryConnectToResolvedAddresses(
-            host, port, source, Stream.value(<_InternetAddress>[host]));
+        return tryConnectToResolvedAddresses(host, port, source,
+            Stream.value(<_InternetAddress>[host]), stackTrace);
       }
       final hostname = host as String;
       final staggeredLookupOverride = bool.fromEnvironment(
@@ -692,7 +695,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               ? staggeredLookup(hostname)
               : lookupAsStream(hostname);
 
-      return tryConnectToResolvedAddresses(host, port, source, stream);
+      return tryConnectToResolvedAddresses(
+          host, port, source, stream, stackTrace);
     });
   }
 
@@ -700,7 +704,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       dynamic host,
       int port,
       _InternetAddress? source,
-      Stream<List<InternetAddress>> addresses) {
+      Stream<List<InternetAddress>> addresses,
+      StackTrace callerStackTrace) {
     // Completer for result.
     final result = new Completer<_NativeSocket>();
     // Error, set if an error occurs.
@@ -780,7 +785,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         assert(error != null);
         if (!result.isCompleted) {
           // Might be already completed via onCancel
-          result.completeError(error);
+          result.completeError(error, callerStackTrace);
         }
         return;
       }
@@ -884,7 +889,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (!result.isCompleted) {
         error ??= createError(
             null, "Connection attempt cancelled, host: ${host}, port: ${port}");
-        result.completeError(error);
+        result.completeError(error, callerStackTrace);
       }
     }
 
@@ -1484,7 +1489,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       InternetAddress addr, NetworkInterface? interface) {
     // On Mac OS using the interface index for joining IPv4 multicast groups
     // is not supported. Here the IP address of the interface is needed.
-    if (Platform.isMacOS && addr.type == InternetAddressType.IPv4) {
+    if ((Platform.isMacOS || Platform.isIOS) &&
+        addr.type == InternetAddressType.IPv4) {
       if (interface != null) {
         for (int i = 0; i < interface.addresses.length; i++) {
           if (interface.addresses[i].type == InternetAddressType.IPv4) {

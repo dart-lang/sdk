@@ -40,7 +40,7 @@ static method main() → dynamic {
     return i;
   core::print(self::_extension#0|get#returnType<core::int*, core::int*>(local1));
   core::print(self::_extension#0|get#parameterType<core::int*, core::int*>(local1));
-  function local2<S extends self::Subclass* = self::Subclass*>(self::Subclass* a, S* b) → self::Subclass*
+  function local2<S extends self::Subclass*>(self::Subclass* a, S* b) → self::Subclass*
     return a;
   core::print(self::_extension#1|get#parameterType<self::Subclass*>(local2));
 }

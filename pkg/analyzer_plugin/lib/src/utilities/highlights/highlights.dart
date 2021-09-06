@@ -21,7 +21,7 @@ class DartHighlightsRequestImpl implements DartHighlightsRequest {
   DartHighlightsRequestImpl(this.resourceProvider, this.result);
 
   @override
-  String get path => result.path!;
+  String get path => result.path;
 }
 
 /// A concrete implementation of [HighlightsCollector].

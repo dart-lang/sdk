@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -30,7 +28,7 @@ class StaticMemberContributor extends DartCompletionContributor {
     if (targetId is Identifier && !request.target.isCascade) {
       var element = targetId.staticElement;
       if (element is TypeAliasElement) {
-        var aliasedType = (element as TypeAliasElement).aliasedType;
+        var aliasedType = element.aliasedType;
         element = aliasedType.element;
       }
       if (element is ClassElement) {

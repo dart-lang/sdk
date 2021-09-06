@@ -218,29 +218,19 @@ class CodeGeneratorSettings {
       this.indent = '  '});
 }
 
-/// A utility class for invoking dartfmt.
+/// A utility class for invoking 'dart format'.
 class DartFormat {
-  static String get _dartfmtPath {
-    var binName = Platform.isWindows ? 'dartfmt.bat' : 'dartfmt';
-    for (var loc in [binName, join('dart-sdk', 'bin', binName)]) {
-      var candidatePath = join(dirname(Platform.resolvedExecutable), loc);
-      if (File(candidatePath).existsSync()) {
-        return candidatePath;
-      }
-    }
-    throw StateError('Could not find dartfmt executable');
-  }
+  static String get _dartPath => Platform.resolvedExecutable;
 
   static void formatFile(File file) {
-    var result = Process.runSync(_dartfmtPath, ['-w', file.path]);
+    var result = Process.runSync(_dartPath, ['format', file.path]);
     _throwIfExitCode(result);
   }
 
   static String formatText(String text) {
     var file = File(join(Directory.systemTemp.path, 'gen.dart'));
     file.writeAsStringSync(text);
-    var result = Process.runSync(_dartfmtPath, ['-w', file.path]);
-    _throwIfExitCode(result);
+    formatFile(file);
     return file.readAsStringSync();
   }
 

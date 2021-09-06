@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that initializers of static const fields are compile time constants.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Point {

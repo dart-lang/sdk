@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Catch illegal access to 'this' in initialized instance fields.
 
 class A {
@@ -10,8 +12,6 @@ class A {
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] Can't access 'this' in a field initializer to read 'x'.
-  //         ^
-  // [analyzer] STATIC_WARNING.TOP_LEVEL_INSTANCE_GETTER
 }
 
 void main() {

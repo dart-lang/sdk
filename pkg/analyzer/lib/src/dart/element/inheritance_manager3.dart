@@ -187,16 +187,17 @@ class InheritanceManager3 {
   /// corresponding name will not be included.
   Map<Name, ExecutableElement> getInheritedMap2(ClassElement element) {
     var interface = getInterface(element);
-    if (interface._inheritedMap == null) {
-      interface._inheritedMap = {};
+    var inheritedMap = interface._inheritedMap;
+    if (inheritedMap == null) {
+      inheritedMap = interface._inheritedMap = {};
       _findMostSpecificFromNamedCandidates(
         element,
-        interface._inheritedMap!,
+        inheritedMap,
         interface._overridden,
         doTopMerge: false,
       );
     }
-    return interface._inheritedMap!;
+    return inheritedMap;
   }
 
   /// Return the interface of the given [element].  It might include
@@ -388,26 +389,6 @@ class InheritanceManager3 {
       Name name, List<ExecutableElement> candidates) {
     assert(candidates.length > 1);
 
-    bool allGetters = true;
-    bool allMethods = true;
-    bool allSetters = true;
-    for (var candidate in candidates) {
-      var kind = candidate.kind;
-      if (kind != ElementKind.GETTER) {
-        allGetters = false;
-      }
-      if (kind != ElementKind.METHOD) {
-        allMethods = false;
-      }
-      if (kind != ElementKind.SETTER) {
-        allSetters = false;
-      }
-    }
-
-    if (allGetters || allMethods || allSetters) {
-      return null;
-    }
-
     ExecutableElement? getter;
     ExecutableElement? method;
     for (var candidate in candidates) {
@@ -419,7 +400,10 @@ class InheritanceManager3 {
         method ??= candidate;
       }
     }
-    return GetterMethodConflict(name: name, getter: getter!, method: method!);
+
+    if (getter != null && method != null) {
+      return GetterMethodConflict(name: name, getter: getter, method: method);
+    }
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -515,9 +499,10 @@ class InheritanceManager3 {
       // And there are individual override conflicts for each mixin.
       var candidatesFromSuperAndMixin = <Name, List<ExecutableElement>>{};
       var mixinConflicts = <Conflict>[];
-      for (var name in mixinInterface.map.keys) {
+      for (var entry in mixinInterface.map.entries) {
+        var name = entry.key;
         var candidate = ExecutableMember.from2(
-          mixinInterface.map[name]!,
+          entry.value,
           substitution,
         );
 
@@ -743,18 +728,11 @@ class InheritanceManager3 {
       return first;
     }
 
-    FunctionType? resultType;
-    for (var executable in validOverrides) {
-      var type = executable.type;
-      var normalizedType = typeSystem.normalize(type) as FunctionType;
-      if (resultType == null) {
-        resultType = normalizedType;
-      } else {
-        resultType =
-            typeSystem.topMerge(resultType, normalizedType) as FunctionType;
-      }
-    }
-    resultType!;
+    var resultType = validOverrides.map((e) {
+      return typeSystem.normalize(e.type) as FunctionType;
+    }).reduce((previous, next) {
+      return typeSystem.topMerge(previous, next) as FunctionType;
+    });
 
     for (var executable in validOverrides) {
       if (executable.type == resultType) {

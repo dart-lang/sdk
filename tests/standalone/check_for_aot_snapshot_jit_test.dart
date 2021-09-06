@@ -6,22 +6,38 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
+final _execSuffix = Platform.isWindows ? '.exe' : '';
+final _batchSuffix = Platform.isWindows ? '.bat' : '';
+
 main() {
   final buildDir = path.dirname(Platform.executable);
   final sdkDir = path.dirname(path.dirname(buildDir));
   final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
-  final genSnapshot = path.join(buildDir, 'gen_snapshot');
+  final genKernel =
+      path.join(sdkDir, 'pkg', 'vm', 'tool', 'gen_kernel$_batchSuffix');
+  Expect.isTrue(File(genKernel).existsSync(),
+      "Can't locate gen_kernel$_batchSuffix on this platform");
+  Expect.isTrue(File(genKernel).existsSync(),
+      "Can't locate gen_kernel$_batchSuffix on this platform");
+  // Currently gen_snapshot is only in buildDir/clang_x64 on Mac ARM64.
+  final genSnapshot = Platform.isMacOS && buildDir.endsWith('XARM64')
+      ? path.join(buildDir, 'clang_x64', 'gen_snapshot$_execSuffix')
+      : path.join(buildDir, 'gen_snapshot$_execSuffix');
+  Expect.isTrue(File(genSnapshot).existsSync(),
+      "Can't locate gen_snapshot$_execSuffix on this platform");
 
-  final exePath = Platform.resolvedExecutable;
-  final genSnapshotPath =
-      Uri.parse(Platform.executable).resolve('gen_snapshot').path;
-  final powTest = Platform.script.resolve('pow_test.dart').path;
+  final exePath = path.join(buildDir, 'dart$_execSuffix');
+  Expect.isTrue(File(exePath).existsSync(),
+      "Can't locate dart$_execSuffix on this platform");
+  final powTest = path.join(sdkDir, 'tests', 'standalone_2', 'pow_test.dart');
+  Expect.isTrue(File(powTest).existsSync(),
+      "Can't locate dart$_execSuffix on this platform");
   final d = Directory.systemTemp.createTempSync('aot_tmp');
   final kernelOutput = d.uri.resolve('pow_test.dill').path;
   final aotOutput = d.uri.resolve('pow_test.aot').path;
 
   final genKernelResult = runAndPrintOutput(
-    'pkg/vm/tool/gen_kernel',
+    genKernel,
     [
       '--aot',
       '--platform=$platformDill',
@@ -44,20 +60,32 @@ main() {
   Expect.equals(genAotResult.exitCode, 0);
   print("Ran successfully.\n");
 
-  final runAotResult = runAndPrintOutput(
+  final runAotDirectlyResult = runAndPrintOutput(
+    exePath,
+    [
+      aotOutput,
+    ],
+  );
+  Expect.equals(runAotDirectlyResult.exitCode, 255);
+  Expect.contains(
+      "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",
+      runAotDirectlyResult.stderr);
+  print('Got expected error result.');
+
+  final runAotUsingCommandResult = runAndPrintOutput(
     exePath,
     [
       'run',
       aotOutput,
     ],
   );
-  Expect.equals(runAotResult.exitCode, 255);
-  Expect.stringContainsInOrder(
-    runAotResult.stderr,
-    [
-      "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",
-    ],
-  );
+  Expect.equals(runAotUsingCommandResult.exitCode, 255);
+  Expect.containsOneOf(<String>[
+    "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",
+    // If dartdev itself failed, can happen on SIMARM as not enough is built
+    // to run it.
+    "Failed to start the Dart CLI isolate",
+  ], runAotUsingCommandResult.stderr);
   print('Got expected error result.');
 }
 

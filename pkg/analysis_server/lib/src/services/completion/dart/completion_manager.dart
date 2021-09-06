@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -11,6 +9,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -23,6 +22,7 @@ import 'package:analysis_server/src/services/completion/dart/local_library_contr
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/redirecting_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -50,27 +50,27 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 /// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager {
   /// The object used to resolve macros in Dartdoc comments.
-  final DartdocDirectiveInfo dartdocDirectiveInfo;
+  final DartdocDirectiveInfo? dartdocDirectiveInfo;
 
   /// If not `null`, then instead of using [ImportedReferenceContributor],
   /// fill this set with kinds of elements that are applicable at the
   /// completion location, so should be suggested from available suggestion
   /// sets.
-  final Set<protocol.ElementKind> includedElementKinds;
+  final Set<protocol.ElementKind>? includedElementKinds;
 
   /// If [includedElementKinds] is not null, must be also not `null`, and
   /// will be filled with names of all top-level declarations from all
   /// included suggestion sets.
-  final Set<String> includedElementNames;
+  final Set<String>? includedElementNames;
 
   /// If [includedElementKinds] is not null, must be also not `null`, and
   /// will be filled with tags for suggestions that should be given higher
   /// relevance than other included suggestions.
-  final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+  final List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
 
   /// The listener to be notified at certain points in the process of building
   /// suggestions, or `null` if no notification should occur.
-  final SuggestionListener listener;
+  final SuggestionListener? listener;
 
   /// Initialize a newly created completion manager. The parameters
   /// [includedElementKinds], [includedElementNames], and
@@ -92,9 +92,11 @@ class DartCompletionManager {
   Future<List<CompletionSuggestion>> computeSuggestions(
     OperationPerformanceImpl performance,
     CompletionRequest request, {
+    bool enableImportedReferenceContributor = true,
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
-    CompletionPreference completionPreference,
+    CompletionPreference? completionPreference,
+    DocumentationCache? documentationCache,
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
@@ -107,6 +109,7 @@ class DartCompletionManager {
       request,
       dartdocDirectiveInfo,
       completionPreference: completionPreference,
+      documentationCache: documentationCache,
     );
 
     // Don't suggest in comments.
@@ -128,6 +131,7 @@ class DartCompletionManager {
       CombinatorContributor(),
       ExtensionMemberContributor(),
       FieldFormalContributor(),
+      if (enableImportedReferenceContributor) ImportedReferenceContributor(),
       KeywordContributor(),
       LabelContributor(),
       LibraryMemberContributor(),
@@ -136,6 +140,7 @@ class DartCompletionManager {
       LocalReferenceContributor(),
       NamedConstructorContributor(),
       if (enableOverrideContributor) OverrideContributor(),
+      RedirectingContributor(),
       StaticMemberContributor(),
       TypeMemberContributor(),
       if (enableUriContributor) UriContributor(),
@@ -145,8 +150,6 @@ class DartCompletionManager {
     if (includedElementKinds != null) {
       _addIncludedElementKinds(dartRequest);
       _addIncludedSuggestionRelevanceTags(dartRequest);
-    } else {
-      contributors.add(ImportedReferenceContributor());
     }
 
     try {
@@ -201,6 +204,8 @@ class DartCompletionManager {
   }
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
+    final includedSuggestionRelevanceTags =
+        this.includedSuggestionRelevanceTags!;
     var location = request.opType.completionLocation;
     if (location != null) {
       var locationTable = elementKindRelevance[location];
@@ -266,15 +271,15 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final int offset;
 
   @override
-  Expression dotTarget;
+  Expression? dotTarget;
 
   @override
   final Source librarySource;
 
   @override
-  CompletionTarget target;
+  late CompletionTarget target;
 
-  OpType _opType;
+  OpType? _opType;
 
   @override
   final FeatureComputer featureComputer;
@@ -286,16 +291,18 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   bool _hasComputedContextType = false;
 
   /// The context type associated with the target's `containingNode`.
-  DartType _contextType;
+  DartType? _contextType;
 
   final CompletionRequest _originalRequest;
 
   final CompletionPerformance performance;
 
-  SourceRange _replacementRange;
+  SourceRange? _replacementRange;
 
   @override
   final CompletionPreference completionPreference;
+
+  final DocumentationCache? documentationCache;
 
   DartCompletionRequestImpl._(
       this.result,
@@ -308,7 +315,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.dartdocDirectiveInfo,
       this._originalRequest,
       this.performance,
-      {CompletionPreference completionPreference})
+      {CompletionPreference? completionPreference,
+      this.documentationCache})
       : featureComputer =
             FeatureComputer(result.typeSystem, result.typeProvider),
         completionPreference =
@@ -317,7 +325,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  DartType get contextType {
+  DartType? get contextType {
     if (!_hasComputedContextType) {
       _contextType = featureComputer.computeContextType(
           target.containingNode, target.offset);
@@ -345,24 +353,34 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   @override
   OpType get opType {
-    _opType ??= OpType.forCompletion(target, offset);
-    return _opType;
+    var opType = _opType;
+    if (opType == null) {
+      opType = OpType.forCompletion(target, offset);
+      var contextType = this.contextType;
+      if (contextType is FunctionType) {
+        contextType = contextType.returnType;
+      }
+      if (contextType != null && contextType.isVoid) {
+        opType.includeVoidReturnSuggestions = true;
+      }
+      _opType = opType;
+    }
+    return opType;
   }
 
   /// The source range that represents the region of text that should be
   /// replaced when a suggestion is selected.
   @override
   SourceRange get replacementRange {
-    _replacementRange ??= target.computeReplacementRange(offset);
-    return _replacementRange;
+    return _replacementRange ??= target.computeReplacementRange(offset);
   }
 
   @override
-  String get sourceContents => result.content;
+  String? get sourceContents => result.content;
 
   @override
   SourceFactory get sourceFactory {
-    DriverBasedAnalysisContext context = result.session.analysisContext;
+    var context = result.session.analysisContext as DriverBasedAnalysisContext;
     return context.driver.sourceFactory;
   }
 
@@ -372,7 +390,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     if (entity is Token) {
       var prev = entity.previous;
-      if (prev?.end == offset && prev.isKeywordOrIdentifier) {
+      if (prev != null && prev.end == offset && prev.isKeywordOrIdentifier) {
         return prev.lexeme;
       }
     }
@@ -386,7 +404,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
           return identifier;
         }
       }
-      var children = (entity as AstNode).childEntities;
+      var children = entity.childEntities;
       entity = children.isEmpty ? null : children.first;
     }
     return '';
@@ -407,7 +425,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     if (node is MethodInvocation) {
       if (identical(node.methodName, target.entity)) {
         dotTarget = node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
+      } else if (node.isCascaded &&
+          node.operator!.offset + 1 == target.offset) {
         dotTarget = node.realTarget;
       }
     }
@@ -428,18 +447,19 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /// Return a [Future] that completes with a newly created completion request
   /// based on the given [request]. This method will throw [AbortCompletion]
   /// if the completion request has been aborted.
-  static Future<DartCompletionRequest> from(
+  static Future<DartCompletionRequestImpl> from(
       OperationPerformanceImpl performance,
       CompletionRequest request,
-      DartdocDirectiveInfo dartdocDirectiveInfo,
-      {CompletionPreference completionPreference}) async {
+      DartdocDirectiveInfo? dartdocDirectiveInfo,
+      {CompletionPreference? completionPreference,
+      DocumentationCache? documentationCache}) async {
     request.checkAborted();
 
     return performance.run(
       'build DartCompletionRequest',
       (_) {
         var unit = request.result.unit;
-        var libSource = unit.declaredElement.library.source;
+        var libSource = unit.declaredElement!.library.source;
         var objectType = request.result.typeProvider.objectType;
 
         return DartCompletionRequestImpl._(
@@ -450,10 +470,11 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
           request.source,
           request.offset,
           unit,
-          dartdocDirectiveInfo,
+          dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
           request,
           (request as CompletionRequestImpl).performance,
           completionPreference: completionPreference,
+          documentationCache: documentationCache,
         );
       },
     );

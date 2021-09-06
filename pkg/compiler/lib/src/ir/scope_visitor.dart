@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../ir/constants.dart';
@@ -17,6 +18,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     with VariableCollectorMixin, ir.VisitorNullMixin<EvaluationComplexity> {
   final Dart2jsConstantEvaluator _constantEvaluator;
   ir.StaticTypeContext _staticTypeContext;
+
+  ir.TypeEnvironment get _typeEnvironment => _constantEvaluator.typeEnvironment;
+  ir.CoreTypes get _coreTypes => _typeEnvironment.coreTypes;
 
   final ClosureScopeModel _model = new ClosureScopeModel();
 
@@ -87,8 +91,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
           initializerComplexity: const EvaluationComplexity.lazy());
     }
 
-    _staticTypeContext =
-        new ir.StaticTypeContext(node, _constantEvaluator.typeEnvironment);
+    _staticTypeContext = new ir.StaticTypeContext(node, _typeEnvironment);
     if (node is ir.Constructor) {
       _hasThisLocal = true;
     } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
@@ -876,7 +879,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitMapEntry(ir.MapEntry node) {
+  EvaluationComplexity visitMapLiteralEntry(ir.MapLiteralEntry node) {
     node.key = _handleExpression(node.key);
     EvaluationComplexity keyComplexity = _lastExpressionComplexity;
 
@@ -958,9 +961,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     }
 
     EvaluationComplexity complexity = visitArguments(node.arguments);
-    if (complexity.isConstant &&
-        node.target ==
-            _staticTypeContext.typeEnvironment.coreTypes.identicalProcedure) {
+    if (complexity.isConstant && node.target == _coreTypes.identicalProcedure) {
       return _evaluateImplicitConstant(node);
     }
     return node.isConst
@@ -982,9 +983,20 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitConstructorInvocation(
       ir.ConstructorInvocation node) {
+    ir.Constructor target = node.target;
+    ir.Class enclosingClass = target.enclosingClass;
+
+    // TODO(45681): Investigate if other initializers should be made eager.
+
+    // Lazily constructing cells pessimizes certain uses of late variables, so
+    // we ensure they get constructed eagerly.
+    if (enclosingClass == _coreTypes.cellClass) {
+      return EvaluationComplexity.eager();
+    }
+
     if (node.arguments.types.isNotEmpty) {
       visitNodesInContext(node.arguments.types,
-          new VariableUse.constructorTypeArgument(node.target));
+          new VariableUse.constructorTypeArgument(target));
     }
     visitArguments(node.arguments);
     return node.isConst
@@ -1011,35 +1023,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     }
     // Don't visit `node.staticType`.
     return complexity;
-  }
-
-  @override
-  EvaluationComplexity visitMethodInvocation(ir.MethodInvocation node) {
-    node.receiver = _handleExpression(node.receiver);
-    EvaluationComplexity receiverComplexity = _lastExpressionComplexity;
-    ir.TreeNode receiver = node.receiver;
-    if (node.arguments.types.isNotEmpty) {
-      VariableUse usage;
-      if (receiver is ir.VariableGet &&
-          (receiver.variable.parent is ir.LocalFunction)) {
-        usage =
-            new VariableUse.localTypeArgument(receiver.variable.parent, node);
-      } else {
-        usage = new VariableUse.instanceTypeArgument(node);
-      }
-      visitNodesInContext(node.arguments.types, usage);
-    }
-    EvaluationComplexity complexity = visitArguments(node.arguments);
-    ir.Member interfaceTarget = node.interfaceTarget;
-    if (receiverComplexity.combine(complexity).isConstant &&
-        interfaceTarget is ir.Procedure &&
-        interfaceTarget.kind == ir.ProcedureKind.Operator) {
-      // Only operator invocations can be part of constant expressions so we
-      // only try to compute an implicit constant when the receiver and all
-      // arguments are constant - and are used in an operator call.
-      return _evaluateImplicitConstant(node);
-    }
-    return const EvaluationComplexity.lazy();
   }
 
   @override
@@ -1157,16 +1140,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitPropertyGet(ir.PropertyGet node) {
-    node.receiver = _handleExpression(node.receiver);
-    EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.text == 'length') {
-      return _evaluateImplicitConstant(node);
-    }
-    return const EvaluationComplexity.lazy();
-  }
-
-  @override
   EvaluationComplexity visitInstanceGet(ir.InstanceGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
@@ -1195,13 +1168,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitFunctionTearOff(ir.FunctionTearOff node) {
     node.receiver = _handleExpression(node.receiver);
-    return const EvaluationComplexity.lazy();
-  }
-
-  @override
-  EvaluationComplexity visitPropertySet(ir.PropertySet node) {
-    node.receiver = _handleExpression(node.receiver);
-    node.value = _handleExpression(node.value);
     return const EvaluationComplexity.lazy();
   }
 

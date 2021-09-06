@@ -4,10 +4,10 @@ description: Helper package for analyzing the syntax of Dart programs.
 publish_to: none
 
 environment:
-  sdk: ^2.10.0
+  sdk: ^2.13.0
 
 dependencies:
-  args: ^1.6.0
+  args: ^2.1.1
   analyzer:
     path: ../analyzer
   path: ^1.7.0

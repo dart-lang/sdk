@@ -15,7 +15,7 @@ void use(dynamic object) {
 class X {}
 
 void takePositional(
-    int unboxedSmi,
+    int? unboxedSmi,
     dynamic unboxedInt,
     dynamic unboxedDouble,
     dynamic boxedNullableInt,
@@ -35,7 +35,7 @@ void takePositional(
 }
 
 void takeOptional(
-    [int unboxedSmi,
+    [int? unboxedSmi,
     dynamic unboxedInt,
     dynamic unboxedDouble,
     dynamic boxedNullableInt,
@@ -55,7 +55,7 @@ void takeOptional(
 }
 
 void takeNamed(
-    {int unboxedSmi,
+    {int? unboxedSmi,
     dynamic unboxedInt,
     dynamic unboxedDouble,
     dynamic boxedNullableInt,

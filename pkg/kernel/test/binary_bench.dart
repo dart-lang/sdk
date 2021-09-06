@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // This files contains methods for benchmarking Kernel binary serialization
 // and deserialization routines.
 
@@ -16,7 +14,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 final usage = '''
-Usage: binary_bench.dart [--golem] <Benchmark> <SourceDill>
+Usage: binary_bench.dart [--golem|--raw] <Benchmark> <SourceDill>
 
 Benchmark can be one of: ${benchmarks.keys.join(', ')}
 ''';
@@ -35,9 +33,10 @@ final benchmarks = <String, Benchmark>{
   },
 };
 
-Benchmark benchmark;
-File sourceDill;
+Benchmark? benchmark;
+late File sourceDill;
 bool forGolem = false;
+bool forRaw = false;
 
 main(List<String> args) async {
   if (!_parseArgs(args)) {
@@ -46,7 +45,7 @@ main(List<String> args) async {
   }
 
   final bytes = sourceDill.readAsBytesSync();
-  benchmark(bytes);
+  benchmark!(bytes);
 }
 
 const warmupIterations = 100;
@@ -63,7 +62,8 @@ void _benchmarkAstFromBinary(Uint8List bytes, {bool eager: true}) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs = new List<int>.filled(benchmarkIterations, null);
+  final runsUs =
+      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _fromBinary(bytes, eager: eager);
@@ -87,7 +87,8 @@ void _benchmarkAstToBinary(Uint8List bytes) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs = new List<int>.filled(benchmarkIterations, null);
+  final runsUs =
+      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _toBinary(p);
@@ -105,7 +106,7 @@ class BenchmarkResult {
 
   BenchmarkResult(this.name, this.coldRunUs, this.warmupUs, this.runsUs);
 
-  static T add<T extends num>(T x, T y) => x + y;
+  static T add<T extends num>(T x, T y) => x + y as T;
 
   void report() {
     runsUs.sort();
@@ -119,7 +120,13 @@ class BenchmarkResult {
     final std =
         sqrt(runsUs.map((v) => pow(v - avg, 2)).reduce(add) / runsUs.length);
 
-    if (!forGolem) {
+    if (forGolem) {
+      print('${name}(RunTimeRaw): ${avg} us.');
+      print('${name}P50(RunTimeRaw): ${P(50)} us.');
+      print('${name}P90(RunTimeRaw): ${P(90)} us.');
+    } else if (forRaw) {
+      runsUs.forEach(print);
+    } else {
       print('${name}Cold: ${coldRunUs} us');
       print('${name}Warmup: ${warmupUs} us');
       print('${name}: ${avg} us.');
@@ -128,10 +135,6 @@ class BenchmarkResult {
       print('${prefix}> Std Dev: ${std.toStringAsFixed(2)}');
       print('${prefix}> 50th percentile: ${P(50)} us.');
       print('${prefix}> 90th percentile: ${P(90)} us.');
-    } else {
-      print('${name}(RunTimeRaw): ${avg} us.');
-      print('${name}P50(RunTimeRaw): ${P(50)} us.');
-      print('${name}P90(RunTimeRaw): ${P(90)} us.');
     }
   }
 }
@@ -146,6 +149,12 @@ bool _parseArgs(List<String> args) {
       return false;
     }
     forGolem = true;
+    args = args.skip(1).toList(growable: false);
+  } else if (args[0] == '--raw') {
+    if (args.length != 3) {
+      return false;
+    }
+    forRaw = true;
     args = args.skip(1).toList(growable: false);
   }
 

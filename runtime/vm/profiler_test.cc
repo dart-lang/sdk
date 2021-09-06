@@ -22,6 +22,12 @@ DECLARE_FLAG(bool, profile_vm_allocation);
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
+// SampleVisitor ignores samples with timestamp == 0.
+const int64_t kValidTimeStamp = 1;
+
+// SampleVisitor ignores samples with pc == 0.
+const uword kValidPc = 0xFF;
+
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
  public:
@@ -71,87 +77,123 @@ class MaxProfileDepthScope : public ValueObject {
   const intptr_t FLAG_max_profile_depth_;
 };
 
-class ProfileSampleBufferTestHelper {
+class ProfileSampleBufferTestHelper : public SampleVisitor {
  public:
-  static intptr_t IterateCount(const Dart_Port port,
-                               const SampleBuffer& sample_buffer) {
-    intptr_t c = 0;
-    for (intptr_t i = 0; i < sample_buffer.capacity(); i++) {
-      Sample* sample = sample_buffer.At(i);
-      if (sample->port() != port) {
-        continue;
-      }
-      c++;
-    }
-    return c;
+  explicit ProfileSampleBufferTestHelper(Dart_Port port)
+      : SampleVisitor(port) {}
+
+  void VisitSample(Sample* sample) { sum_ += sample->At(0); }
+
+  void Reset() {
+    sum_ = 0;
+    SampleVisitor::Reset();
   }
 
-  static intptr_t IterateSumPC(const Dart_Port port,
-                               const SampleBuffer& sample_buffer) {
-    intptr_t c = 0;
-    for (intptr_t i = 0; i < sample_buffer.capacity(); i++) {
-      Sample* sample = sample_buffer.At(i);
-      if (sample->port() != port) {
-        continue;
-      }
-      c += sample->At(0);
-    }
-    return c;
-  }
+  intptr_t sum() const { return sum_; }
+
+ private:
+  intptr_t sum_ = 0;
 };
 
+void VisitSamples(SampleBlockBuffer* buffer, SampleVisitor* visitor) {
+  // Mark the completed blocks as free so they can be re-used.
+  buffer->ProcessCompletedBlocks();
+  visitor->Reset();
+  buffer->VisitSamples(visitor);
+}
+
 TEST_CASE(Profiler_SampleBufferWrapTest) {
-  SampleBuffer* sample_buffer = new SampleBuffer(3);
+  Isolate* isolate = Isolate::Current();
+  SampleBlockBuffer* sample_buffer = new SampleBlockBuffer(3, 1);
   Dart_Port i = 123;
-  EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
+  ProfileSampleBufferTestHelper visitor(i);
+
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(0, visitor.sum());
   Sample* s;
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
+
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 2);
-  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(2, visitor.sum());
+
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 4);
-  EXPECT_EQ(6, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(6, visitor.sum());
+
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 6);
-  EXPECT_EQ(12, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(12, visitor.sum());
+
+  // Mark the completed blocks as free so they can be re-used.
+  sample_buffer->ProcessCompletedBlocks();
+
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
   s->SetAt(0, 8);
-  EXPECT_EQ(18, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(18, visitor.sum());
+  {
+    MutexLocker ml(isolate->current_sample_block_lock());
+    isolate->set_current_sample_block(nullptr);
+  }
   delete sample_buffer;
 }
 
 TEST_CASE(Profiler_SampleBufferIterateTest) {
-  SampleBuffer* sample_buffer = new SampleBuffer(3);
+  Isolate* isolate = Isolate::Current();
+  SampleBlockBuffer* sample_buffer = new SampleBlockBuffer(3, 1);
   Dart_Port i = 123;
-  EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
+  ProfileSampleBufferTestHelper visitor(i);
+
+  sample_buffer->VisitSamples(&visitor);
+  EXPECT_EQ(0, visitor.visited());
   Sample* s;
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
-  EXPECT_EQ(1, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
-  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
-  EXPECT_EQ(3, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
-  s = sample_buffer->ReserveSample();
-  s->Init(i, 0, 0);
-  EXPECT_EQ(3, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
+  s->SetAt(0, kValidPc);
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(1, visitor.visited());
+
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
+  s->SetAt(0, kValidPc);
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(2, visitor.visited());
+
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
+  s->SetAt(0, kValidPc);
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(3, visitor.visited());
+
+  s = sample_buffer->ReserveCPUSample(isolate);
+  s->Init(i, kValidTimeStamp, 0);
+  s->SetAt(0, kValidPc);
+  VisitSamples(sample_buffer, &visitor);
+  EXPECT_EQ(3, visitor.visited());
+
+  {
+    MutexLocker ml(isolate->current_sample_block_lock());
+    isolate->set_current_sample_block(nullptr);
+  }
   delete sample_buffer;
 }
 
 TEST_CASE(Profiler_AllocationSampleTest) {
   Isolate* isolate = Isolate::Current();
-  SampleBuffer* sample_buffer = new SampleBuffer(3);
-  Sample* sample = sample_buffer->ReserveSample();
+  SampleBlockBuffer* sample_buffer = new SampleBlockBuffer(1, 1);
+  Sample* sample = sample_buffer->ReserveAllocationSample(isolate);
   sample->Init(isolate->main_port(), 0, 0);
   sample->set_metadata(99);
   sample->set_is_allocation_sample(true);
   EXPECT_EQ(99, sample->allocation_cid());
+  isolate->set_current_allocation_sample_block(nullptr);
   delete sample_buffer;
 }
 
@@ -443,7 +485,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             before_allocations_micros,
                             allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -471,15 +513,15 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             Dart_TimelineGetMicros(), 16000);
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples because none occured within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
   }
 }
 
-#if defined(DART_USE_TCMALLOC) && defined(HOST_OS_LINUX) && defined(DEBUG) &&  \
-    defined(HOST_ARCH_X64)
+#if defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&               \
+    defined(DEBUG) && defined(HOST_ARCH_X64)
 
 DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
   ASSERT(result != NULL);
@@ -561,7 +603,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     // Filter for the class in the time range.
     NativeAllocationSampleFilter filter(before_allocations_micros,
                                         allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have 0 allocation samples since we freed the memory.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -574,7 +616,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     NativeAllocationSampleFilter filter(Dart_TimelineGetMicros(), 16000);
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples because none occured within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
@@ -584,7 +626,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
       stack_trace_collection_enabled);
   FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
-#endif  // defined(DART_USE_TCMALLOC) && defined(HOST_OS_LINUX) &&             \
+#endif  // defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&        \
         // defined(DEBUG) && defined(HOST_ARCH_X64)
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
@@ -620,7 +662,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -637,7 +679,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -667,7 +709,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -705,7 +747,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -725,7 +767,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -780,7 +822,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -800,7 +842,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
@@ -850,7 +892,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -863,7 +905,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -885,7 +927,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -912,7 +954,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -925,7 +967,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -947,7 +989,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -969,7 +1011,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples, since empty
     // growable lists use a shared backing.
     EXPECT_EQ(0, profile.sample_count());
@@ -999,7 +1041,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1012,7 +1054,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -1032,7 +1074,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1073,17 +1115,13 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
 
-    EXPECT_SUBSTRING("DRT_AllocateObject", walker.VMTagName());
-#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate _Closure", walker.CurrentName());
-#else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
-#endif
+    EXPECT_SUBSTRING("DRT_AllocateClosure", walker.VMTagName());
+    EXPECT_STREQ("[Stub] AllocateClosure", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1101,7 +1139,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1131,7 +1169,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1144,7 +1182,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -1166,7 +1204,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1179,7 +1217,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
@@ -1211,7 +1249,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1224,7 +1262,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -1244,7 +1282,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1257,7 +1295,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
@@ -1289,7 +1327,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1302,7 +1340,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -1328,7 +1366,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1341,7 +1379,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
@@ -1397,7 +1435,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1415,7 +1453,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have 50,000 allocation samples.
     EXPECT_EQ(50000, profile.sample_count());
     {
@@ -1544,7 +1582,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1561,7 +1599,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
 
@@ -1637,7 +1675,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
@@ -1732,7 +1770,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
@@ -1814,7 +1852,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
@@ -1892,7 +1930,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
@@ -2002,7 +2040,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
@@ -2097,7 +2135,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
@@ -2215,7 +2253,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::sample_block_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile, true);
@@ -2260,10 +2298,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   }
 }
 
-static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
-  ASSERT(sample_buffer != NULL);
+static void InsertFakeSample(uword* pc_offsets) {
   Isolate* isolate = Isolate::Current();
-  Sample* sample = sample_buffer->ReserveSample();
+  ASSERT(Profiler::sample_block_buffer() != nullptr);
+  Sample* sample = Profiler::sample_block_buffer()->ReserveCPUSample(isolate);
   ASSERT(sample != NULL);
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(),
                OSThread::Current()->trace_id());
@@ -2323,8 +2361,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
 
   DisableBackgroundCompilationScope dbcs;
 
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
-  EXPECT(sample_buffer != NULL);
+  SampleBlockBuffer* sample_block_buffer = Profiler::sample_block_buffer();
+  ASSERT(sample_block_buffer != nullptr);
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
 
@@ -2334,7 +2372,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   {
     // Clear the profile for this isolate.
     ClearProfileVisitor cpv(Isolate::Current());
-    sample_buffer->VisitSamples(&cpv);
+    sample_block_buffer->VisitSamples(&cpv);
   }
 
   // Query the code object for main and determine the PC at some token
@@ -2394,9 +2432,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
                      callPositionPc,  // main.
                      0};
 
-  InsertFakeSample(sample_buffer, &sample1[0]);
-  InsertFakeSample(sample_buffer, &sample2[0]);
-  InsertFakeSample(sample_buffer, &sample3[0]);
+  InsertFakeSample(&sample1[0]);
+  InsertFakeSample(&sample2[0]);
+  InsertFakeSample(&sample3[0]);
 
   // Generate source report for main.
   JSONStream js;

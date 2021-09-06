@@ -43,6 +43,7 @@ bool _waitForDdsToAdvertiseService = false;
 // HTTP server.
 Server? server;
 Future<Server>? serverFuture;
+_DebuggingSession? ddsInstance;
 
 Server _lazyServerBoot() {
   var localServer = server;
@@ -56,6 +57,90 @@ Server _lazyServerBoot() {
       _authCodesDisabled, _serviceInfoFilename, _enableServicePortFallback);
   server = localServer;
   return localServer;
+}
+
+/// Responsible for launching a DevTools instance when the service is started
+/// via SIGQUIT.
+class _DebuggingSession {
+  Future<bool> start(
+    String host,
+    String port,
+    bool disableServiceAuthCodes,
+    bool enableDevTools,
+  ) async {
+    final dartPath = Uri.parse(Platform.resolvedExecutable);
+    final dartDir = [
+      '', // Include leading '/'
+      ...dartPath.pathSegments.sublist(
+        0,
+        dartPath.pathSegments.length - 1,
+      ),
+    ].join('/');
+
+    final fullSdk = dartDir.endsWith('bin');
+
+    final ddsSnapshot = [
+      dartDir,
+      fullSdk ? 'snapshots' : 'gen',
+      'dds.dart.snapshot',
+    ].join('/');
+
+    final devToolsBinaries = [
+      dartDir,
+      if (fullSdk) 'resources',
+      'devtools',
+    ].join('/');
+
+    const enableLogging = false;
+    _process = await Process.start(
+      dartPath.toString(),
+      [
+        ddsSnapshot,
+        server!.serverAddress!.toString(),
+        host,
+        port,
+        disableServiceAuthCodes.toString(),
+        enableDevTools.toString(),
+        devToolsBinaries,
+        enableLogging.toString(),
+      ],
+      mode: ProcessStartMode.detachedWithStdio,
+    );
+    final completer = Completer<void>();
+    late StreamSubscription stderrSub;
+    stderrSub = _process!.stderr.transform(utf8.decoder).listen((event) {
+      final result = json.decode(event) as Map<String, dynamic>;
+      final state = result['state'];
+      if (state == 'started') {
+        if (result.containsKey('devToolsUri')) {
+          // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
+          // is changed to ensure consistency.
+          const devToolsMessagePrefix =
+              'The Dart DevTools debugger and profiler is available at:';
+          final devToolsUri = result['devToolsUri'];
+          print('$devToolsMessagePrefix $devToolsUri');
+        }
+        stderrSub.cancel();
+        completer.complete();
+      } else {
+        stderrSub.cancel();
+        completer.completeError(
+          'Could not start Observatory HTTP server',
+        );
+      }
+    });
+    try {
+      await completer.future;
+      return true;
+    } catch (e) {
+      stderr.write(e);
+      return false;
+    }
+  }
+
+  void shutdown() => _process!.kill();
+
+  Process? _process;
 }
 
 Future cleanupCallback() async {
@@ -221,10 +306,6 @@ void webServerAcceptNewWebSocketConnections(bool enable) {
   _server.acceptNewWebSocketConnections = enable;
 }
 
-void _clearFuture(_) {
-  serverFuture = null;
-}
-
 _onSignal(ProcessSignal signal) {
   if (serverFuture != null) {
     // Still waiting.
@@ -233,9 +314,21 @@ _onSignal(ProcessSignal signal) {
   final _server = _lazyServerBoot();
   // Toggle HTTP server.
   if (_server.running) {
-    _server.shutdown(true).then(_clearFuture);
+    _server.shutdown(true).then((_) async {
+      ddsInstance?.shutdown();
+      await VMService().clearState();
+      serverFuture = null;
+    });
   } else {
-    _server.startup().then(_clearFuture);
+    _server.startup().then((_) {
+      ddsInstance = _DebuggingSession()
+        ..start(
+          _server._ip,
+          _server._port.toString(),
+          false,
+          true,
+        );
+    });
   }
 }
 

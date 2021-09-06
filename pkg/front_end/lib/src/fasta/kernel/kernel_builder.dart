@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.kernel_builder;
 
 import 'package:kernel/ast.dart'
@@ -37,22 +35,19 @@ bool isRedirectingGenerativeConstructorImplementation(Constructor constructor) {
       initializers.single is RedirectingInitializer;
 }
 
-List<Combinator> toKernelCombinators(List<fasta.Combinator> fastaCombinators) {
+List<Combinator>? toKernelCombinators(
+    List<fasta.Combinator>? fastaCombinators) {
   if (fastaCombinators == null) {
     // Note: it's safe to return null here as Kernel's LibraryDependency will
     // convert null to an empty list.
     return null;
   }
 
-  List<Combinator> result = new List<Combinator>.filled(
-      fastaCombinators.length, null,
-      growable: true);
-  for (int i = 0; i < fastaCombinators.length; i++) {
+  return new List<Combinator>.generate(fastaCombinators.length, (int i) {
     fasta.Combinator combinator = fastaCombinators[i];
     List<String> nameList = combinator.names.toList();
-    result[i] = combinator.isShow
+    return combinator.isShow
         ? new Combinator.show(nameList)
         : new Combinator.hide(nameList);
-  }
-  return result;
+  }, growable: true);
 }

@@ -86,13 +86,13 @@ static method main() → void {
   self::C::staticMember;
   self::C::staticMember = 42;
   self::C::staticMethod();
-  self::C::staticMember.{core::int::isEven};
-  self::C::staticMember.{core::int::toString}();
-  self::C::property.{core::List::[]}(0);
-  self::C::property.{core::List::[]=}(0, 0);
-  let final core::Map<core::int, core::int?> #t1 = self::C::property2 in let final core::int #t2 = 0 in #t1.{core::Map::[]}(#t2).{core::num::==}(null) ?{core::int} #t1.{core::Map::[]=}(#t2, 0) : null;
-  self::C::staticMember2.{core::num::==}(null) ?{core::int} self::C::staticMember2 = 42 : null;
-  self::C::staticMember = self::C::staticMember.{core::num::+}(2);
-  self::C::staticMember = self::C::staticMember.{core::num::+}(1);
-  self::C::staticMember = self::C::staticMember.{core::num::-}(1);
+  self::C::staticMember.{core::int::isEven}{core::bool};
+  self::C::staticMember.{core::int::toString}(){() → core::String};
+  self::C::property.{core::List::[]}(0){(core::int) → core::int};
+  self::C::property.{core::List::[]=}(0, 0){(core::int, core::int) → void};
+  let final core::Map<core::int, core::int?> #t1 = self::C::property2 in let final core::int #t2 = 0 in #t1.{core::Map::[]}(#t2){(core::Object?) → core::int?} == null ?{core::int} #t1.{core::Map::[]=}(#t2, 0){(core::int, core::int?) → void} : null;
+  self::C::staticMember2 == null ?{core::int} self::C::staticMember2 = 42 : null;
+  self::C::staticMember = self::C::staticMember.{core::num::+}(2){(core::num) → core::int};
+  self::C::staticMember = self::C::staticMember.{core::num::+}(1){(core::num) → core::int};
+  self::C::staticMember = self::C::staticMember.{core::num::-}(1){(core::num) → core::int};
 }

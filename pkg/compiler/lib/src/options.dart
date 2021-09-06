@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library dart2js.src.options;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -13,6 +15,91 @@ enum NullSafetyMode {
   unspecified,
   unsound,
   sound,
+}
+
+enum FeatureStatus {
+  shipping,
+  canary,
+}
+
+/// A [FeatureOption] is both a set of flags and an option. By default, creating
+/// a [FeatureOption] will create two flags, [--$flag] and [--no-$flag]. The
+/// default behavior for a [FeatureOption] in the [canary] set is to be
+/// disabled by default unless explicity enabled or [--canary] is passed.
+/// When the [FeatureOption] is moved to [staging], the behavior flips, and by
+/// default it is enabled unless explicitly disabled or [--no-shipping] is
+/// passed. The [isNegativeFlag] bool flips things around so while in [canary]
+/// the [FeatureOption] is enabled unless explicitly disabled, and while in
+/// [staging] it is disabled unless explicitly enabled.
+class FeatureOption {
+  final String flag;
+  final bool isNegativeFlag;
+  bool? _state;
+  bool get isEnabled => _state!;
+  bool get isDisabled => !isEnabled;
+  void set state(bool value) {
+    assert(_state == null);
+    _state = value;
+  }
+
+  void set override(bool value) {
+    assert(_state != null);
+    _state = value;
+  }
+
+  FeatureOption(this.flag, {this.isNegativeFlag = false});
+}
+
+/// A class to simplify management of features which will end up being enabled
+/// by default. New features should be added as properties, and then to the
+/// [canary] list. Features in [canary] default to disabled unless they are
+/// explicitly enabled or unless `--canary` is passed on the commandline. When
+/// a feature is ready to ship, it should be moved to the [shipping] list,
+/// whereupon it will immediately default to enabled but can still be disabled.
+/// Once a feature is shipped, it can be deleted from this class entirely.
+class FeatureOptions {
+  /// Whether to restrict the generated JavaScript to features that work on the
+  /// oldest supported versions of JavaScript. This currently means IE11. If
+  /// `true`, the generated code runs on the legacy JavaScript platform. If
+  /// `false`, the code will fail on the legacy JavaScript platform.
+  FeatureOption legacyJavaScript =
+      FeatureOption('legacy-javascript', isNegativeFlag: true);
+
+  /// Whether to use optimized holders.
+  FeatureOption newHolders = FeatureOption('new-holders');
+
+  /// [FeatureOption]s which default to enabled.
+  late final List<FeatureOption> shipping = [legacyJavaScript];
+
+  /// [FeatureOption]s which default to disabled.
+  late final List<FeatureOption> canary = [newHolders];
+
+  /// Forces canary feature on. This must run after [Option].parse.
+  void forceCanary() {
+    for (var feature in canary) {
+      feature.override = feature.isNegativeFlag ? false : true;
+    }
+  }
+
+  /// Returns a list of enabled features as a comma separated string.
+  String flavorString() {
+    bool _shouldPrint(FeatureOption feature) {
+      return feature.isNegativeFlag ? feature.isDisabled : feature.isEnabled;
+    }
+    String _toString(FeatureOption feature) {
+      return feature.isNegativeFlag ? 'no-${feature.flag}' : feature.flag;
+    }
+    Iterable<String> _listToString(List<FeatureOption> options) {
+      return options.where(_shouldPrint).map(_toString);
+    }
+    return _listToString(shipping).followedBy(_listToString(canary)).join(', ');
+  }
+
+  /// Parses a [List<String>] and enables / disables features as necessary.
+  void parse(List<String> options) {
+    _extractFeatures(options, shipping, FeatureStatus.shipping);
+    _extractFeatures(options, canary, FeatureStatus.canary);
+  }
 }
 
 /// Options used for controlling diagnostic messages.
@@ -46,12 +133,12 @@ abstract class DiagnosticOptions {
 /// as few as possible.
 class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
-  Uri entryPoint;
+  Uri? entryPoint;
 
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
-  Uri packageConfig;
+  Uri? packageConfig;
 
   /// List of kernel files to load.
   ///
@@ -64,18 +151,18 @@ class CompilerOptions implements DiagnosticOptions {
   /// At this time, this list points to full kernel files. In the future, we may
   /// use a list of outline files for modular compiles, and only use full kernel
   /// files for linking.
-  List<Uri> dillDependencies;
+  List<Uri>? dillDependencies;
 
   /// Location from which serialized inference data is read.
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
   /// frontend work is skipped.
-  Uri readDataUri;
+  Uri? readDataUri;
 
   /// Location to which inference data is serialized.
   ///
   /// If this is set, the compilation stops after type inference.
-  Uri writeDataUri;
+  Uri? writeDataUri;
 
   /// Serialize data without the closed world.
   /// TODO(joshualitt) make this the default right after landing in Google3 and
@@ -86,22 +173,22 @@ class CompilerOptions implements DiagnosticOptions {
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
   /// frontend work is skipped.
-  Uri readClosedWorldUri;
+  Uri? readClosedWorldUri;
 
   /// Location to which inference data is serialized.
   ///
   /// If this is set, the compilation stops after computing the closed world.
-  Uri writeClosedWorldUri;
+  Uri? writeClosedWorldUri;
 
   /// Location from which codegen data is read.
   ///
   /// If this is set, the compilation starts at codegen enqueueing.
-  Uri readCodegenUri;
+  Uri? readCodegenUri;
 
   /// Location to which codegen data is serialized.
   ///
   /// If this is set, the compilation stops after code generation.
-  Uri writeCodegenUri;
+  Uri? writeCodegenUri;
 
   /// Whether to run only the CFE and emit the generated kernel file in
   /// [outputUri].
@@ -128,18 +215,8 @@ class CompilerOptions implements DiagnosticOptions {
       fe.isExperimentEnabled(fe.ExperimentalFlag.variance,
           explicitExperimentalFlags: explicitExperimentalFlags);
 
-  /// Whether `--enable-experiment=non-nullable` is provided.
-  bool get enableNonNullable =>
-      fe.isExperimentEnabled(fe.ExperimentalFlag.nonNullable,
-          explicitExperimentalFlags: explicitExperimentalFlags);
-
-  /// Whether `--enable-experiment=triple-shift` is provided.
-  bool get enableTripleShift =>
-      fe.isExperimentEnabled(fe.ExperimentalFlag.tripleShift,
-          explicitExperimentalFlags: explicitExperimentalFlags);
-
   /// A possibly null state object for kernel compilation.
-  fe.InitializedCompilerState kernelInitializedCompilerState;
+  fe.InitializedCompilerState? kernelInitializedCompilerState;
 
   /// Whether we allow mocking compilation of libraries such as dart:io and
   /// dart:html for unit testing purposes.
@@ -164,11 +241,11 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
-  Uri deferredMapUri;
+  Uri? deferredMapUri;
 
   /// Location where to generate an internal format representing the deferred
   /// graph.
-  Uri deferredGraphUri;
+  Uri? deferredGraphUri;
 
   /// The maximum number of deferred fragments to generate. If the number of
   /// fragments exceeds this amount, then they may be merged.
@@ -176,8 +253,8 @@ class CompilerOptions implements DiagnosticOptions {
   /// will not merge fragments with unrelated dependencies and thus we may
   /// generate more fragments than the 'mergeFragmentsThreshold' under some
   /// situations.
-  int mergeFragmentsThreshold = null; // default value, no max.
-  int _mergeFragmentsThreshold;
+  int? mergeFragmentsThreshold = null; // default value, no max.
+  int? _mergeFragmentsThreshold;
 
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
@@ -187,6 +264,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Note: the resulting program still correctly checks that loadLibrary &
   /// checkLibrary calls are correct.
   bool disableProgramSplit = false;
+
+  // Whether or not to stop compilation after splitting the
+  bool stopAfterProgramSplit = false;
 
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
   @override
@@ -207,7 +287,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Diagnostic option: List of packages for which warnings and hints are
   /// reported. If `null`, no package warnings or hints are reported. If
   /// empty, all warnings and hints are reported.
-  List<String> shownPackageWarnings; // &&&&&
+  List<String>? shownPackageWarnings;
 
   /// Whether to disable global type inference.
   bool disableTypeInference = false;
@@ -235,7 +315,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// If set, SSA intermediate form is dumped for methods with names matching
   /// this RegExp pattern.
-  String dumpSsaPattern = null;
+  String? dumpSsaPattern = null;
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
@@ -252,6 +332,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// -O2. Both [enableMinification] and [_disableMinification] can be true, in
   /// which case [_disableMinification] wins.
   bool _disableMinification = false;
+
+  /// Whether to omit names of late variables from error messages.
+  bool omitLateNames = false;
+
+  /// Flag to turn off `omitLateNames` even if enabled elsewhere, e.g. via
+  /// `-O2`. Both [omitLateNames] and [_noOmitLateNames] can be true, in which
+  /// case [_noOmitLateNames] wins.
+  bool _noOmitLateNames = false;
 
   /// Whether to model which native classes are live based on annotations on the
   /// core libraries. If false, all native classes will be included by default.
@@ -277,19 +365,19 @@ class CompilerOptions implements DiagnosticOptions {
   bool generateSourceMap = true;
 
   /// URI of the main output of the compiler.
-  Uri outputUri;
+  Uri? outputUri;
 
   /// Location of the libraries specification file.
-  Uri librariesSpecificationUri;
+  Uri? librariesSpecificationUri;
 
   /// Location of the kernel platform `.dill` files.
-  Uri platformBinaries;
+  Uri? platformBinaries;
 
   /// Whether to print legacy types as T* rather than T.
   bool printLegacyStars = false;
 
   /// URI where the compiler should generate the output source map file.
-  Uri sourceMapUri;
+  Uri? sourceMapUri;
 
   /// The compiler is run from the build bot.
   bool testMode = false;
@@ -307,40 +395,32 @@ class CompilerOptions implements DiagnosticOptions {
   /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
 
-  /// Whether to restrict the generated JavaScript to features that work on the
-  /// oldest supported versions of JavaScript. This currently means IE11. If
-  /// `true`, the generated code runs on the legacy JavaScript platform. If
-  /// `false`, the code will fail on the legacy JavaScript platform.
-  bool legacyJavaScript = true; // default value.
-  bool _legacyJavaScript = false;
-  bool _noLegacyJavaScript = false;
-
   /// What should the compiler do with parameter type assertions.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultParameterCheckPolicy;
+  late CheckPolicy defaultParameterCheckPolicy;
 
   /// What should the compiler do with implicit downcasts.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultImplicitDowncastCheckPolicy;
+  late CheckPolicy defaultImplicitDowncastCheckPolicy;
 
   /// What the compiler should do with a boolean value in a condition context
   /// when the language specification says it is a runtime error for it to be
   /// null.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultConditionCheckPolicy;
+  late CheckPolicy defaultConditionCheckPolicy;
 
   /// What should the compiler do with explicit casts.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultExplicitCastCheckPolicy;
+  late CheckPolicy defaultExplicitCastCheckPolicy;
 
   /// What should the compiler do with List index bounds checks.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultIndexBoundsCheckPolicy;
+  late CheckPolicy defaultIndexBoundsCheckPolicy;
 
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
@@ -356,6 +436,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to use the new source-information implementation for source-maps.
   /// (experimental)
   bool useNewSourceInfo = false;
+
+  /// Whether or not use simple load ids.
+  bool useSimpleLoadIds = false;
 
   /// Enable verbose printing during compilation. Includes a time-breakdown
   /// between phases at the end.
@@ -394,6 +477,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
+  /// Use the dart2js lowering of late instance variables rather than the CFE
+  /// lowering.
+  bool experimentLateInstanceVariables = false;
+
   /// When null-safety is enabled, whether the compiler should emit code with
   /// unsound or sound semantics.
   ///
@@ -412,26 +499,18 @@ class CompilerOptions implements DiagnosticOptions {
   bool get useLegacySubtyping {
     assert(nullSafetyMode != NullSafetyMode.unspecified,
         "Null safety mode unspecified");
-    return !enableNonNullable || (nullSafetyMode == NullSafetyMode.unsound);
+    return nullSafetyMode == NullSafetyMode.unsound;
   }
 
-  /// The path to the file that contains the profiled allocations.
-  ///
-  /// The file must contain the Map that was produced by using
-  /// [experimentalTrackAllocations] encoded as a JSON map.
-  ///
-  /// This is an experimental feature.
-  String experimentalAllocationsPath;
-
   /// If specified, a bundle of optimizations to enable (or disable).
-  int optimizationLevel = null;
+  int? optimizationLevel = null;
 
   /// The shard to serialize when using [writeCodegenUri].
-  int codegenShard;
+  int? codegenShard;
 
   /// The number of shards to serialize when using [writeCodegenUri] or to
   /// deserialize when using [readCodegenUri].
-  int codegenShards;
+  int? codegenShards;
 
   /// Arguments passed to the front end about how it is invoked.
   ///
@@ -447,16 +526,21 @@ class CompilerOptions implements DiagnosticOptions {
   /// Verbosity level used for filtering messages during compilation.
   fe.Verbosity verbosity = fe.Verbosity.all;
 
+  late FeatureOptions features;
+
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
 
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
-      {Uri librariesSpecificationUri,
-      Uri platformBinaries,
-      void Function(String) onError,
-      void Function(String) onWarning}) {
+      {FeatureOptions? featureOptions,
+      Uri? librariesSpecificationUri,
+      Uri? platformBinaries,
+      void Function(String)? onError,
+      void Function(String)? onWarning}) {
+    if (featureOptions == null) featureOptions = FeatureOptions();
+    featureOptions.parse(options);
     Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
 
@@ -464,7 +548,7 @@ class CompilerOptions implements DiagnosticOptions {
     // for compiling user code vs. the sdk. To simplify things, we prebuild the
     // sdk with the correct flags.
     platformBinaries ??= fe.computePlatformBinariesLocation();
-    return new CompilerOptions()
+    return CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =
@@ -472,7 +556,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..benchmarkingExperiment =
           _hasOption(options, Flags.benchmarkingExperiment)
       ..buildId =
-          _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
+          _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)!
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
       ..deferredGraphUri =
@@ -486,6 +570,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
+      ..stopAfterProgramSplit = _hasOption(options, Flags.stopAfterProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)
@@ -500,6 +585,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '${Flags.dumpSsa}=', null)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
+      ..omitLateNames = _hasOption(options, Flags.omitLateNames)
+      .._noOmitLateNames = _hasOption(options, Flags.noOmitLateNames)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
@@ -511,8 +598,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.noNativeNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
-      ..experimentalAllocationsPath = _extractStringOption(
-          options, "${Flags.experimentalAllocationsPath}=", null)
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
@@ -520,6 +605,8 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
+      ..experimentLateInstanceVariables =
+          _hasOption(options, Flags.experimentLateInstanceVariables)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -529,8 +616,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
-      .._legacyJavaScript = _hasOption(options, Flags.legacyJavaScript)
-      .._noLegacyJavaScript = _hasOption(options, Flags.noLegacyJavaScript)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useContentSecurityPolicy =
@@ -539,6 +624,7 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
+      ..useSimpleLoadIds = _hasOption(options, Flags.useSimpleLoadIds)
       ..verbose = _hasOption(options, Flags.verbose)
       ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
       ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
@@ -563,12 +649,13 @@ class CompilerOptions implements DiagnosticOptions {
       .._mergeFragmentsThreshold =
           _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
       ..cfeInvocationModes = fe.InvocationMode.parseArguments(
-          _extractStringOption(options, '${Flags.cfeInvocationModes}=', ''),
+          _extractStringOption(options, '${Flags.cfeInvocationModes}=', '')!,
           onError: onError)
       ..verbosity = fe.Verbosity.parseArgument(
           _extractStringOption(
-              options, '${Flags.verbosity}=', fe.Verbosity.defaultValue),
-          onError: onError);
+              options, '${Flags.verbosity}=', fe.Verbosity.defaultValue)!,
+          onError: onError)
+      ..features = featureOptions;
   }
 
   void validate() {
@@ -578,7 +665,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (librariesSpecificationUri == null) {
       throw new ArgumentError("[librariesSpecificationUri] is null.");
     }
-    if (librariesSpecificationUri.path.endsWith('/')) {
+    if (librariesSpecificationUri!.path.endsWith('/')) {
       throw new ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
@@ -589,17 +676,9 @@ class CompilerOptions implements DiagnosticOptions {
         equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
-    if (_legacyJavaScript && _noLegacyJavaScript) {
-      throw ArgumentError("'${Flags.legacyJavaScript}' incompatible with "
-          "'${Flags.noLegacyJavaScript}'");
-    }
     if (_soundNullSafety && _noSoundNullSafety) {
       throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
           "'${Flags.noSoundNullSafety}'");
-    }
-    if (!enableNonNullable && _soundNullSafety) {
-      throw ArgumentError("'${Flags.soundNullSafety}' requires the "
-          "'non-nullable' experiment to be enabled");
     }
     if (nativeNullAssertions && _noNativeNullAssertions) {
       throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "
@@ -617,10 +696,8 @@ class CompilerOptions implements DiagnosticOptions {
       // Set flags implied by '--benchmarking-x'.
       // TODO(sra): Use this for some NNBD variant.
       useContentSecurityPolicy = true;
+      features.forceCanary();
     }
-
-    if (_noLegacyJavaScript) legacyJavaScript = false;
-    if (_legacyJavaScript) legacyJavaScript = true;
 
     if (_soundNullSafety) nullSafetyMode = NullSafetyMode.sound;
     if (_noSoundNullSafety) nullSafetyMode = NullSafetyMode.unsound;
@@ -631,11 +708,12 @@ class CompilerOptions implements DiagnosticOptions {
         disableTypeInference = true;
         disableRtiOptimization = true;
       }
-      if (optimizationLevel >= 2) {
+      if (optimizationLevel! >= 2) {
         enableMinification = true;
         laxRuntimeTypeToString = true;
+        omitLateNames = true;
       }
-      if (optimizationLevel >= 3) {
+      if (optimizationLevel! >= 3) {
         omitImplicitChecks = true;
       }
       if (optimizationLevel == 4) {
@@ -669,6 +747,10 @@ class CompilerOptions implements DiagnosticOptions {
       enableMinification = false;
     }
 
+    if (_noOmitLateNames) {
+      omitLateNames = false;
+    }
+
     if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {
       nativeNullAssertions = false;
     }
@@ -681,7 +763,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Returns `true` if warnings and hints are shown for all packages.
   @override
   bool get showAllPackageWarnings {
-    return shownPackageWarnings != null && shownPackageWarnings.isEmpty;
+    return shownPackageWarnings != null && shownPackageWarnings!.isEmpty;
   }
 
   /// Returns `true` if warnings and hints are hidden for all packages.
@@ -696,7 +778,7 @@ class CompilerOptions implements DiagnosticOptions {
     }
     if (shownPackageWarnings != null) {
       return uri.scheme == 'package' &&
-          shownPackageWarnings.contains(uri.pathSegments.first);
+          shownPackageWarnings!.contains(uri.pathSegments.first);
     }
     return false;
   }
@@ -723,8 +805,8 @@ class CheckPolicy {
       'isEmitted=$isEmitted)';
 }
 
-String _extractStringOption(
-    List<String> options, String prefix, String defaultValue) {
+String? _extractStringOption(
+    List<String> options, String prefix, String? defaultValue) {
   for (String option in options) {
     if (option.startsWith(prefix)) {
       return option.substring(prefix.length);
@@ -733,13 +815,13 @@ String _extractStringOption(
   return defaultValue;
 }
 
-Uri _extractUriOption(List<String> options, String prefix) {
-  String option = _extractStringOption(options, prefix, null);
+Uri? _extractUriOption(List<String> options, String prefix) {
+  String? option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : Uri.parse(option);
 }
 
-int _extractIntOption(List<String> options, String prefix) {
-  String option = _extractStringOption(options, prefix, null);
+int? _extractIntOption(List<String> options, String prefix) {
+  String? option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : int.parse(option);
 }
 
@@ -750,7 +832,7 @@ bool _hasOption(List<String> options, String option) {
 /// Extract list of comma separated values provided for [flag]. Returns an
 /// empty list if [option] contain [flag] without arguments. Returns `null` if
 /// [option] doesn't contain [flag] with or without arguments.
-List<String> _extractOptionalCsvOption(List<String> options, String flag) {
+List<String>? _extractOptionalCsvOption(List<String> options, String flag) {
   String prefix = '$flag=';
   for (String option in options) {
     if (option == flag) {
@@ -766,20 +848,41 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
 /// Extract list of comma separated Uris provided for [flag]. Returns an
 /// empty list if [option] contain [flag] without arguments. Returns `null` if
 /// [option] doesn't contain [flag] with or without arguments.
-List<Uri> _extractUriListOption(List<String> options, String flag) {
-  List<String> stringUris = _extractOptionalCsvOption(options, flag);
+List<Uri>? _extractUriListOption(List<String> options, String flag) {
+  List<String>? stringUris = _extractOptionalCsvOption(options, flag);
   if (stringUris == null) return null;
   return stringUris.map(Uri.parse).toList();
 }
 
 Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options,
-    {void Function(String) onError, void Function(String) onWarning}) {
-  List<String> experiments =
+    {void Function(String)? onError, void Function(String)? onWarning}) {
+  List<String>? experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
   onError ??= (String error) => throw new ArgumentError(error);
   onWarning ??= (String warning) => print(warning);
   return fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
       onError: onError, onWarning: onWarning);
+}
+
+void _extractFeatures(
+    List<String> options, List<FeatureOption> features, FeatureStatus status) {
+  bool hasCanaryFlag = _hasOption(options, Flags.canary);
+  bool hasNoShippingFlag = _hasOption(options, Flags.noShipping);
+  for (var feature in features) {
+    String featureFlag = feature.flag;
+    String enableFeatureFlag = '--${featureFlag}';
+    String disableFeatureFlag = '--no-$featureFlag';
+    bool enableFeature = _hasOption(options, enableFeatureFlag);
+    bool disableFeature = _hasOption(options, disableFeatureFlag);
+    if (enableFeature && disableFeature) {
+      throw ArgumentError("'$enableFeatureFlag' incompatible with "
+          "'$disableFeatureFlag'");
+    }
+    bool globalEnable = hasCanaryFlag ||
+        (status == FeatureStatus.shipping && !hasNoShippingFlag);
+    globalEnable = feature.isNegativeFlag ? !globalEnable : globalEnable;
+    feature.state = (enableFeature || globalEnable) && !disableFeature;
+  }
 }
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

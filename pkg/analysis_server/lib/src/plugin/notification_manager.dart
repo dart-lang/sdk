@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
@@ -39,7 +37,10 @@ abstract class AbstractNotificationManager {
       <server.AnalysisService, Set<String>>{};
 
   /// The collector being used to collect the analysis errors from the plugins.
-  ResultCollector<List<AnalysisError>> errors;
+  // TODO(brianwilkerson) Consider the possibility of not passing the predicate
+  //  in to the collector, but instead to the testing in this class.
+  late ResultCollector<List<AnalysisError>> errors =
+      ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded);
 
   /// The collector being used to collect the folding regions from the plugins.
   ResultCollector<List<FoldingRegion>> folding;
@@ -65,15 +66,15 @@ abstract class AbstractNotificationManager {
   final ResultMerger merger = ResultMerger();
 
   /// Initialize a newly created notification manager.
-  AbstractNotificationManager(this.pathContext) {
-    errors =
-        ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded);
-    folding = ResultCollector<List<FoldingRegion>>(serverId);
-    highlights = ResultCollector<List<HighlightRegion>>(serverId);
-    navigation = ResultCollector<server.AnalysisNavigationParams>(serverId);
-    occurrences = ResultCollector<List<Occurrences>>(serverId);
-    outlines = ResultCollector<List<Outline>>(serverId);
-  }
+  AbstractNotificationManager(this.pathContext)
+      :
+        // errors =
+        //     ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded),
+        folding = ResultCollector<List<FoldingRegion>>(serverId),
+        highlights = ResultCollector<List<HighlightRegion>>(serverId),
+        navigation = ResultCollector<server.AnalysisNavigationParams>(serverId),
+        occurrences = ResultCollector<List<Occurrences>>(serverId),
+        outlines = ResultCollector<List<Outline>>(serverId);
 
   /// Handle the given [notification] from the plugin with the given [pluginId].
   void handlePluginNotification(
@@ -160,7 +161,9 @@ abstract class AbstractNotificationManager {
       navigation.putResults(filePath, pluginId, navigationData);
       var unmergedNavigations = navigation.getResults(filePath);
       var mergedNavigations = merger.mergeNavigation(unmergedNavigations);
-      sendNavigations(mergedNavigations);
+      if (mergedNavigations != null) {
+        sendNavigations(mergedNavigations);
+      }
     }
   }
 
@@ -221,7 +224,7 @@ abstract class AbstractNotificationManager {
       Map<server.AnalysisService, Set<String>> newSubscriptions) {
     /// Return the collector associated with the given service, or `null` if the
     /// service is not handled by this manager.
-    ResultCollector collectorFor(server.AnalysisService service) {
+    ResultCollector? collectorFor(server.AnalysisService service) {
       switch (service) {
         case server.AnalysisService.FOLDING:
           return folding;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io' as io;
 
@@ -29,7 +27,6 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
@@ -123,7 +120,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');
@@ -195,7 +192,7 @@ class RelevanceData {
         if (key.startsWith('e')) {
           kind = _ElementKind(ElementKind(key.substring(1)));
         } else if (key.startsWith('k')) {
-          kind = _Keyword(Keyword.keywords[key.substring(1)]);
+          kind = _Keyword(Keyword.keywords[key.substring(1)]!);
         } else {
           throw StateError('Invalid initial character in unique key "$key"');
         }
@@ -298,21 +295,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   final RelevanceData data;
 
   /// The compilation unit in which data is currently being collected.
-  CompilationUnit unit;
+  late CompilationUnit unit;
 
-  InheritanceManager3 inheritanceManager = InheritanceManager3();
+  late InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
-  LibraryElement enclosingLibrary;
+  late LibraryElement enclosingLibrary;
 
   /// The type provider associated with the current compilation unit.
-  TypeProvider typeProvider;
+  late TypeProvider typeProvider;
 
   /// The type system associated with the current compilation unit.
-  TypeSystem typeSystem;
+  late TypeSystem typeSystem;
 
   /// The object used to compute the values of features.
-  FeatureComputer featureComputer;
+  late FeatureComputer featureComputer;
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
@@ -468,10 +465,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitClassTypeAlias(ClassTypeAlias node) {
     _recordDataForNode('ClassTypeAlias_superclass', node.superclass);
     var context = 'superclass';
-    if (node.withClause != null) {
-      _recordKeyword('ClassTypeAlias_$context', node.withClause);
-      context = 'with';
-    }
+    _recordKeyword('ClassTypeAlias_$context', node.withClause);
+    context = 'with';
     _recordKeyword('ClassTypeAlias_$context', node.implementsClause);
     super.visitClassTypeAlias(node);
   }
@@ -490,7 +485,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    enclosingLibrary = node.declaredElement.library;
+    enclosingLibrary = node.declaredElement!.library;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
@@ -505,12 +500,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: declarationKeywords);
     }
     super.visitCompilationUnit(node);
-
-    featureComputer = null;
-    inheritanceManager = null;
-    typeSystem = null;
-    typeProvider = null;
-    enclosingLibrary = null;
   }
 
   @override
@@ -839,12 +828,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     var context = 'uri';
-    if (node.deferredKeyword != null) {
-      data.recordKeyword('ImportDirective_$context', node.deferredKeyword.type);
+    var deferredKeyword = node.deferredKeyword;
+    if (deferredKeyword != null) {
+      data.recordKeyword('ImportDirective_$context', deferredKeyword.keyword!);
       context = 'deferred';
     }
-    if (node.asKeyword != null) {
-      data.recordKeyword('ImportDirective_$context', node.asKeyword.type);
+    var asKeyword = node.asKeyword;
+    if (asKeyword != null) {
+      data.recordKeyword('ImportDirective_$context', asKeyword.keyword!);
       context = 'prefix';
     }
     if (node.configurations.isNotEmpty) {
@@ -1192,8 +1183,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: [Keyword.ON]);
       context = 'catch';
     }
-    if (node.finallyKeyword != null) {
-      data.recordKeyword('TryStatement_$context', node.finallyKeyword.type);
+    var finallyKeyword = node.finallyKeyword;
+    if (finallyKeyword != null) {
+      data.recordKeyword('TryStatement_$context', finallyKeyword.keyword!);
     }
     super.visitTryStatement(node);
   }
@@ -1228,7 +1220,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var keywords = node.parent.parent is FieldDeclaration
+    var keywords = node.parent?.parent is FieldDeclaration
         ? [Keyword.COVARIANT, ...expressionKeywords]
         : expressionKeywords;
     _recordDataForNode('VariableDeclaration_initializer', node.initializer,
@@ -1309,7 +1301,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the first child of the [node] that is neither a comment nor an
   /// annotation.
-  SyntacticEntity _firstChild(AstNode node) {
+  SyntacticEntity? _firstChild(AstNode node) {
     var children = node.childEntities.toList();
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -1322,14 +1314,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the element associated with the left-most identifier that is a
   /// child of the [node].
-  Element _leftMostElement(AstNode node) =>
+  Element? _leftMostElement(AstNode node) =>
       _leftMostIdentifier(node)?.staticElement;
 
   /// Return the left-most child of the [node] if it is a simple identifier, or
   /// `null` if the left-most child is not a simple identifier. Comments and
   /// annotations are ignored for this purpose.
-  SimpleIdentifier _leftMostIdentifier(AstNode node) {
-    var currentNode = node;
+  SimpleIdentifier? _leftMostIdentifier(AstNode node) {
+    AstNode? currentNode = node;
     while (currentNode != null && currentNode is! SimpleIdentifier) {
       var firstChild = _firstChild(currentNode);
       if (firstChild is AstNode) {
@@ -1338,18 +1330,19 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         currentNode = null;
       }
     }
-    if (currentNode is SimpleIdentifier && currentNode.inDeclarationContext()) {
-      return null;
+    if (currentNode is SimpleIdentifier &&
+        !currentNode.inDeclarationContext()) {
+      return currentNode;
     }
-    return currentNode;
+    return null;
   }
 
   /// Return the element kind of the element associated with the left-most
   /// identifier that is a child of the [node].
-  ElementKind _leftMostKind(AstNode node) {
+  ElementKind? _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
       return featureComputer
-          .computeElementKind(node.constructorName.staticElement);
+          .computeElementKind(node.constructorName.staticElement!);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1358,17 +1351,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element is ClassElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element;
+        element = parent.element!;
       }
     }
     return featureComputer.computeElementKind(element);
   }
 
   /// Return the left-most token that is a child of the [node].
-  Token _leftMostToken(AstNode node) {
-    SyntacticEntity entity = node;
+  Token? _leftMostToken(AstNode node) {
+    SyntacticEntity? entity = node;
     while (entity is AstNode) {
-      entity = _firstChild(entity as AstNode);
+      entity = _firstChild(entity);
     }
     if (entity is Token) {
       return entity;
@@ -1378,7 +1371,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record information about the given [node] occurring in the given
   /// [context].
-  void _recordDataForNode(String context, AstNode node,
+  void _recordDataForNode(String context, AstNode? node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
     _recordKeyword(context, node, allowedKeywords: allowedKeywords);
@@ -1386,7 +1379,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the element kind of the element associated with the left-most
   /// identifier that is a child of the [node] in the given [context].
-  void _recordElementKind(String context, AstNode node) {
+  void _recordElementKind(String context, AstNode? node) {
     if (node != null) {
       var kind = _leftMostKind(node);
       if (kind != null) {
@@ -1402,18 +1395,18 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// If the left-most token of the [node] is a keyword, then record that it
   /// occurred in the given [context].
-  void _recordKeyword(String context, AstNode node,
+  void _recordKeyword(String context, AstNode? node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     if (node != null) {
       var token = _leftMostToken(node);
-      if (token.isKeyword) {
-        var keyword = token.type;
+      if (token != null && token.isKeyword) {
+        var keyword = token.keyword!;
         if (keyword == Keyword.NEW) {
           // We don't suggest `new`, so we don't care about the frequency with
           // which it is used.
           return;
-        } else if (token.keyword.isBuiltInOrPseudo &&
-            !allowedKeywords.contains(token.keyword)) {
+        } else if (keyword.isBuiltInOrPseudo &&
+            !allowedKeywords.contains(keyword)) {
           // These keywords can be used as identifiers, so determine whether
           // it is being used as a keyword or an identifier.
           return;
@@ -1436,7 +1429,7 @@ class RelevanceMetricsComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  Future<void> compute(String rootPath, {@required bool verbose}) async {
+  Future<void> compute(String rootPath, {required bool verbose}) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -1453,7 +1446,7 @@ class RelevanceMetricsComputer {
   /// output if [verbose] is `true`.
   Future<void> _computeInContext(
       ContextRoot root, RelevanceDataCollector collector,
-      {@required bool verbose}) async {
+      {required bool verbose}) async {
     // Create a new collection to avoid consuming large quantities of memory.
     final collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
@@ -1470,13 +1463,7 @@ class RelevanceMetricsComputer {
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult == null) {
-            print('File $filePath skipped because resolved unit was null.');
-            if (verbose) {
-              print('');
-            }
-            continue;
-          } else if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult is! ResolvedUnitResult) {
             print('File $filePath skipped because it could not be analyzed.');
             if (verbose) {
               print('');
@@ -1539,9 +1526,11 @@ const defaultElementKindRelevance = {
 ''');
 
     var byKind = data.byKind;
-    var completionLocations = byKind.keys.toList()..sort();
-    for (var completionLocation in completionLocations) {
-      var counts = byKind[completionLocation];
+    var entries = byKind.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
+    for (var entry in entries) {
+      var completionLocation = entry.key;
+      var counts = entry.value;
       if (_hasElementKind(counts)) {
         var totalCount = _totalCount(counts);
         // TODO(brianwilkerson) If two element kinds have the same count they
@@ -1613,9 +1602,11 @@ const defaultKeywordRelevance = {
 ''');
 
     var byKind = data.byKind;
-    var completionLocations = byKind.keys.toList()..sort();
-    for (var completionLocation in completionLocations) {
-      var counts = byKind[completionLocation];
+    var entries = byKind.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
+    for (var entry in entries) {
+      var completionLocation = entry.key;
+      var counts = entry.value;
       if (_hasKeyword(counts)) {
         var totalCount = _totalCount(counts);
         // TODO(brianwilkerson) If two keywords have the same count they ought to

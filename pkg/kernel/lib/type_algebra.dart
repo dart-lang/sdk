@@ -40,7 +40,7 @@ Map<TypeParameter, DartType> getUpperBoundSubstitutionMap(Class host) {
     result[parameter] = const DynamicType();
   }
   for (TypeParameter parameter in host.typeParameters) {
-    result[parameter] = substitute(parameter.bound!, result);
+    result[parameter] = substitute(parameter.bound, result);
   }
   return result;
 }
@@ -111,33 +111,40 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
       typeParameters.length, (i) => new TypeParameter(typeParameters[i].name),
       growable: true);
-  Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
-  for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
+  List<DartType> freshTypeArguments =
+      new List<DartType>.generate(typeParameters.length, (int i) {
+    return new TypeParameterType.forAlphaRenaming(
         typeParameters[i], freshParameters[i]);
-  }
+  }, growable: true);
+  Substitution substitution =
+      Substitution.fromPairs(typeParameters, freshTypeArguments);
   for (int i = 0; i < typeParameters.length; ++i) {
     TypeParameter typeParameter = typeParameters[i];
     TypeParameter freshTypeParameter = freshParameters[i];
 
-    freshTypeParameter.bound = substitute(typeParameter.bound!, map);
-    freshTypeParameter.defaultType = typeParameter.defaultType != null
-        ? substitute(typeParameter.defaultType!, map)
-        : null;
+    freshTypeParameter.bound = substitution.substituteType(typeParameter.bound);
+    freshTypeParameter.defaultType =
+        substitution.substituteType(typeParameter.defaultType);
     freshTypeParameter.variance =
         typeParameter.isLegacyCovariant ? null : typeParameter.variance;
     // Annotations on a type parameter are specific to the declaration of the
     // type parameter, rather than the type parameter as such, and therefore
     // should not be copied here.
   }
-  return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
+  return new FreshTypeParameters(
+      freshParameters, freshTypeArguments, substitution);
 }
 
 class FreshTypeParameters {
+  /// The newly created type parameters.
   final List<TypeParameter> freshTypeParameters;
+  /// List of [TypeParameterType]s for [TypeParameter].
+  final List<DartType> freshTypeArguments;
+  /// Substitution from the original type parameters to [freshTypeArguments].
   final Substitution substitution;
 
-  FreshTypeParameters(this.freshTypeParameters, this.substitution);
+  FreshTypeParameters(
+      this.freshTypeParameters, this.freshTypeArguments, this.substitution);
 
   FunctionType applyToFunctionType(FunctionType type) {
     return new FunctionType(type.positionalParameters.map(substitute).toList(),
@@ -169,6 +176,8 @@ abstract class Substitution {
   const Substitution();
 
   static const Substitution empty = _NullSubstitution.instance;
+
+  bool get isEmpty => identical(this, empty);
 
   /// Substitutes each parameter to the type it maps to in [map].
   static Substitution fromMap(Map<TypeParameter, DartType> map) {
@@ -249,7 +258,7 @@ abstract class Substitution {
       upper[parameter] = const DynamicType();
     }
     for (TypeParameter parameter in class_.typeParameters) {
-      upper[parameter] = substitute(parameter.bound!, upper);
+      upper[parameter] = substitute(parameter.bound, upper);
     }
     return fromUpperAndLowerBounds(upper, {});
   }
@@ -383,9 +392,10 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
     TypeParameter fresh = new TypeParameter(node.name);
     TypeParameterType typeParameterType = substitution[node] =
         new TypeParameterType.forAlphaRenaming(node, fresh);
-    fresh.bound = visit(node.bound!);
+    fresh.bound = visit(node.bound);
+    // ignore: unnecessary_null_comparison
     if (node.defaultType != null) {
-      fresh.defaultType = visit(node.defaultType!);
+      fresh.defaultType = visit(node.defaultType);
     }
     // If the bound was changed from substituting the bound we need to update
     // implicit nullability to be based on the new bound. If the bound wasn't
@@ -418,8 +428,86 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 ///
 /// Here `!` denotes `Nullability.nonNullable`, `?` denotes
 /// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
-/// `Nullability.neither`.  The table elements marked with N/A denote the
+/// `Nullability.undetermined`.  The table elements marked with N/A denote the
 /// cases that should yield a type error before the substitution is performed.
+///
+/// a is nonNullable:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.nonNullable),
+///   Nullability.nonNullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.legacy),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.undetermined),
+///   Nullability.nonNullable
+/// )
+///
+/// a is nullable:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nullable, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nullable, Nullability.legacy),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nullable, Nullability.undetermined),
+///   Nullability.nullable
+/// )
+///
+/// a is legacy:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.nonNullable),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.legacy),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.undetermined),
+///   Nullability.legacy
+/// )
+///
+/// a is undetermined:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.undetermined, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.undetermined, Nullability.legacy),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.undetermined, Nullability.undetermined),
+///   Nullability.undetermined
+/// )
 Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   // In the table above we may extend the function given by it, replacing N/A
   // with whatever is easier to implement.  In this implementation, we extend
@@ -700,9 +788,10 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
 
   bool handleTypeParameter(TypeParameter node) {
     assert(!variables.contains(node));
-    if (node.bound!.accept(this)) return true;
+    if (node.bound.accept(this)) return true;
+    // ignore: unnecessary_null_comparison
     if (node.defaultType == null) return false;
-    return node.defaultType!.accept(this);
+    return node.defaultType.accept(this);
   }
 }
 
@@ -759,9 +848,10 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   bool handleTypeParameter(TypeParameter node) {
     assert(variables.contains(node));
-    if (node.bound!.accept(this)) return true;
+    if (node.bound.accept(this)) return true;
+    // ignore: unnecessary_null_comparison
     if (node.defaultType == null) return false;
-    return node.defaultType!.accept(this);
+    return node.defaultType.accept(this);
   }
 }
 
@@ -818,9 +908,10 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   bool handleTypeParameter(TypeParameter node) {
     assert(variables.contains(node));
-    if (node.bound!.accept(this)) return true;
+    if (node.bound.accept(this)) return true;
+    // ignore: unnecessary_null_comparison
     if (node.defaultType == null) return false;
-    return node.defaultType!.accept(this);
+    return node.defaultType.accept(this);
   }
 }
 
@@ -1068,7 +1159,7 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
     //  - The greatest closure of `S` with respect to `L` is `Function`
     if (node.typeParameters.isNotEmpty) {
       for (TypeParameter typeParameter in node.typeParameters) {
-        if (containsTypeVariable(typeParameter.bound!, eliminationTargets,
+        if (containsTypeVariable(typeParameter.bound, eliminationTargets,
             unhandledTypeHandler: unhandledTypeHandler)) {
           return getFunctionReplacement(variance);
         }

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
-import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' as impl;
 
@@ -43,12 +42,6 @@ class EnclosedScope implements Scope {
     }
 
     return _parent.lookup(id);
-  }
-
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
   }
 
   void _addGetter(Element element) {
@@ -110,38 +103,6 @@ class LibraryScope extends EnclosedScope {
     _element.units.forEach(_addUnitElements);
   }
 
-  bool shouldIgnoreUndefined({
-    required String? prefix,
-    required String name,
-  }) {
-    for (var importElement in _element.imports) {
-      if (importElement.prefix?.name == prefix &&
-          importElement.importedLibrary?.isSynthetic != false) {
-        var showCombinators = importElement.combinators
-            .whereType<ShowElementCombinator>()
-            .toList();
-        if (prefix != null && showCombinators.isEmpty) {
-          return true;
-        }
-        for (var combinator in showCombinators) {
-          if (combinator.shownNames.contains(name)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    if (prefix == null && name.startsWith(r'_$')) {
-      for (var partElement in _element.parts) {
-        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
   void _addExtension(ExtensionElement element) {
     _addGetter(element);
     if (!extensions.contains(element)) {
@@ -156,7 +117,7 @@ class LibraryScope extends EnclosedScope {
     compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);
-    compilationUnit.types.forEach(_addGetter);
+    compilationUnit.classes.forEach(_addGetter);
   }
 }
 
@@ -197,12 +158,6 @@ class PrefixScope implements Scope {
     var getter = _getters[id];
     var setter = _setters[id];
     return ScopeLookupResult(getter, setter);
-  }
-
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
   }
 
   void _add(Element element) {
@@ -305,11 +260,5 @@ class _LibraryImportScope implements Scope {
   @override
   ScopeLookupResult lookup(String id) {
     return _nullPrefixScope.lookup(id);
-  }
-
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
   }
 }

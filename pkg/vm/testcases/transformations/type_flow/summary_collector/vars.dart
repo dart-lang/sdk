@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-bool someStatic;
+late bool someStatic;
 
 class A {}
 
 class B {}
 
-Object foo(Object a1, [Object a2]) {
+Object? foo(Object a1, [Object? a2]) {
   if (someStatic) {
     a1 = new A();
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// A reference to a named parameter.
@@ -16,7 +14,7 @@ class NamedParameterReference extends ParameterReference {
   NamedParameterReference(this.name) : assert(name.isNotEmpty);
 
   @override
-  Expression argumentFrom(ArgumentList argumentList) {
+  Expression? argumentFrom(ArgumentList argumentList) {
     for (var argument in argumentList.arguments) {
       if (argument is NamedExpression && argument.name.label.name == name) {
         return argument.expression;
@@ -35,7 +33,7 @@ abstract class ParameterReference {
   /// parameter, or `null` if there is no argument corresponding to the
   /// parameter. Note that for named parameters this will be an expression whose
   /// parent is a named expression.
-  Expression argumentFrom(ArgumentList argumentList);
+  Expression? argumentFrom(ArgumentList argumentList);
 }
 
 /// A reference to a positional parameter.
@@ -48,7 +46,7 @@ class PositionalParameterReference extends ParameterReference {
   PositionalParameterReference(this.index) : assert(index >= 0);
 
   @override
-  Expression argumentFrom(ArgumentList argumentList) {
+  Expression? argumentFrom(ArgumentList argumentList) {
     var arguments = argumentList.arguments;
     if (index >= arguments.length) {
       return null;

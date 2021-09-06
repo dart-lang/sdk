@@ -20,6 +20,8 @@ dependencies:
   status_file:
     path: ../status_file
 dev_dependencies:
+  analyzer:
+    path: ../../pkg/analyzer
   expect:
     path: ../expect
   file: any
@@ -27,6 +29,8 @@ dev_dependencies:
 dependency_overrides:
   # Other packages in the dependency graph have normal hosted dependencies on
   # this, so just override it to force the local one.
+  analyzer:
+    path: ../../pkg/analyzer
   args:
     path: ../../third_party/pkg/args
   file:

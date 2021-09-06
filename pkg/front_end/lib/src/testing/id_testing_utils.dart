@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 
 import '../fasta/builder/class_builder.dart';
@@ -29,15 +27,15 @@ String getMemberName(Member member) {
 /// Returns a canonical qualified name for [member].
 String getQualifiedMemberName(Member member) {
   if (member.enclosingClass != null) {
-    return '${member.enclosingClass.name}.${getMemberName(member)}';
+    return '${member.enclosingClass!.name}.${getMemberName(member)}';
   }
   return getMemberName(member);
 }
 
 /// Returns the enclosing [Member] for [node].
-Member getEnclosingMember(TreeNode node) {
+Member getEnclosingMember(TreeNode? node) {
   while (node is! Member) {
-    node = node.parent;
+    node = node!.parent;
   }
   return node;
 }
@@ -45,78 +43,88 @@ Member getEnclosingMember(TreeNode node) {
 /// Finds the first [Library] in [component] with the given import [uri].
 ///
 /// If [required] is `true` an error is thrown if no library was found.
-Library lookupLibrary(Component component, Uri uri, {bool required: true}) {
-  return component.libraries
-      .firstWhere((Library library) => library.importUri == uri, orElse: () {
-    if (required) {
-      throw new ArgumentError("Library '$uri' not found.");
+Library? lookupLibrary(Component component, Uri uri, {bool required: true}) {
+  for (Library library in component.libraries) {
+    if (library.importUri == uri) {
+      return library;
     }
-    return null;
-  });
+  }
+  if (required) {
+    throw new ArgumentError("Library '$uri' not found.");
+  }
+  return null;
 }
 
 /// Finds the first [Class] in [library] with the given [className].
 ///
 /// If [required] is `true` an error is thrown if no class was found.
-Class lookupClass(Library library, String className, {bool required: true}) {
-  return library.classes.firstWhere((Class cls) => cls.name == className,
-      orElse: () {
-    if (required) {
-      throw new ArgumentError("Class '$className' not found in '$library'.");
+Class? lookupClass(Library library, String className, {bool required: true}) {
+  for (Class cls in library.classes) {
+    if (cls.name == className) {
+      return cls;
     }
-    return null;
-  });
+  }
+  if (required) {
+    throw new ArgumentError("Class '$className' not found in '$library'.");
+  }
+  return null;
 }
 
 /// Finds the first [Extension] in [library] with the given [className].
 ///
 /// If [required] is `true` an error is thrown if no class was found.
-Extension lookupExtension(Library library, String extensionName,
+Extension? lookupExtension(Library library, String extensionName,
     {bool required: true}) {
-  return library.extensions.firstWhere(
-      (Extension extension) => extension.name == extensionName, orElse: () {
-    if (required) {
-      throw new ArgumentError(
-          "Extension '$extensionName' not found in '${library.importUri}'.");
+  for (Extension extension in library.extensions) {
+    if (extension.name == extensionName) {
+      return extension;
     }
-    return null;
-  });
+  }
+  if (required) {
+    throw new ArgumentError(
+        "Extension '$extensionName' not found in '${library.importUri}'.");
+  }
+  return null;
 }
 
 /// Finds the first [Member] in [library] with the given canonical simple
 /// [memberName] as computed by [getMemberName].
 ///
 /// If [required] is `true` an error is thrown if no member was found.
-Member lookupLibraryMember(Library library, String memberName,
+Member? lookupLibraryMember(Library library, String memberName,
     {bool required: true}) {
-  return library.members.firstWhere(
-      (Member member) => getMemberName(member) == memberName, orElse: () {
-    if (required) {
-      throw new ArgumentError("Member '$memberName' not found in '$library'.");
+  for (Member member in library.members) {
+    if (getMemberName(member) == memberName) {
+      return member;
     }
-    return null;
-  });
+  }
+  if (required) {
+    throw new ArgumentError("Member '$memberName' not found in '$library'.");
+  }
+  return null;
 }
 
 /// Finds the first [Member] in [cls] with the given canonical simple
 /// [memberName] as computed by [getMemberName].
 ///
 /// If [required] is `true` an error is thrown if no member was found.
-Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
-  return cls.members.firstWhere(
-      (Member member) => getMemberName(member) == memberName, orElse: () {
-    if (required) {
-      throw new ArgumentError("Member '$memberName' not found in '$cls'.");
+Member? lookupClassMember(Class cls, String memberName, {bool required: true}) {
+  for (Member member in cls.members) {
+    if (getMemberName(member) == memberName) {
+      return member;
     }
-    return null;
-  });
+  }
+  if (required) {
+    throw new ArgumentError("Member '$memberName' not found in '$cls'.");
+  }
+  return null;
 }
 
-LibraryBuilder lookupLibraryBuilder(
+LibraryBuilder? lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
-  SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
-  SourceLibraryBuilder builder = loader.builders[library.importUri];
+  SourceLoader loader = compilerResult.kernelTargetForTesting!.loader;
+  LibraryBuilder? builder = loader.builders[library.importUri];
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }
@@ -127,30 +135,32 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLibraryBuilder builder =
-      lookupLibraryBuilder(compilerResult, library, required: required);
+      lookupLibraryBuilder(compilerResult, library, required: required)
+          as SourceLibraryBuilder;
   return builder.libraryDeclaration;
 }
 
-ClassBuilder lookupClassBuilder(
+ClassBuilder? lookupClassBuilder(
     InternalCompilerResult compilerResult, Class cls,
     {bool required: true}) {
   TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required);
-  ClassBuilder clsBuilder = libraryBuilder.members[cls.name];
+  ClassBuilder? clsBuilder = libraryBuilder.members![cls.name] as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
   }
   return clsBuilder;
 }
 
-ExtensionBuilder lookupExtensionBuilder(
+ExtensionBuilder? lookupExtensionBuilder(
     InternalCompilerResult compilerResult, Extension extension,
     {bool required: true}) {
   TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, extension.enclosingLibrary,
       required: required);
-  ExtensionBuilder extensionBuilder = libraryBuilder.members[extension.name];
+  ExtensionBuilder? extensionBuilder =
+      libraryBuilder.members![extension.name] as ExtensionBuilder?;
   if (extensionBuilder == null && required) {
     throw new ArgumentError("ExtensionBuilder for $extension not found.");
   }
@@ -159,18 +169,18 @@ ExtensionBuilder lookupExtensionBuilder(
 
 /// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
 /// [cls] using [memberName] as its name.
-MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
+MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
     Class cls, Member member, String memberName,
     {bool required: true}) {
-  ClassBuilder classBuilder =
+  ClassBuilder? classBuilder =
       lookupClassBuilder(compilerResult, cls, required: required);
-  MemberBuilder memberBuilder;
+  MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
       memberBuilder = classBuilder.constructors.local[memberName];
     } else {
       memberBuilder = classBuilder.scope.lookupLocalMember(memberName,
-          setter: member is Procedure && member.isSetter);
+          setter: member is Procedure && member.isSetter) as MemberBuilder?;
     }
   }
   if (memberBuilder == null && required) {
@@ -179,10 +189,10 @@ MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   return memberBuilder;
 }
 
-MemberBuilder lookupMemberBuilder(
+MemberBuilder? lookupMemberBuilder(
     InternalCompilerResult compilerResult, Member member,
     {bool required: true}) {
-  MemberBuilder memberBuilder;
+  MemberBuilder? memberBuilder;
   if (member.isExtensionMember) {
     String memberName = member.name.text;
     String extensionName = memberName.substring(0, memberName.indexOf('|'));
@@ -194,23 +204,25 @@ MemberBuilder lookupMemberBuilder(
     } else if (memberName.startsWith('get#')) {
       memberName = memberName.substring(4);
     }
-    Extension extension =
-        lookupExtension(member.enclosingLibrary, extensionName);
+    Extension extension = lookupExtension(
+        member.enclosingLibrary, extensionName,
+        required: true)!;
     memberBuilder = lookupExtensionMemberBuilder(
         compilerResult, extension, member, memberName,
         isSetter: isSetter, required: required);
   } else if (member.enclosingClass != null) {
     memberBuilder = lookupClassMemberBuilder(
-        compilerResult, member.enclosingClass, member, member.name.text,
+        compilerResult, member.enclosingClass!, member, member.name.text,
         required: required);
   } else {
     TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
         compilerResult, member.enclosingLibrary,
         required: required);
     if (member is Procedure && member.isSetter) {
-      memberBuilder = libraryBuilder.setters[member.name.text];
+      memberBuilder = libraryBuilder.setters![member.name.text];
     } else {
-      memberBuilder = libraryBuilder.members[member.name.text];
+      memberBuilder =
+          libraryBuilder.members![member.name.text] as MemberBuilder?;
     }
   }
   if (memberBuilder == null && required) {
@@ -221,19 +233,19 @@ MemberBuilder lookupMemberBuilder(
 
 /// Look up the [MemberBuilder] for [member] through the [ExtensionBuilder] for
 /// [extension] using [memberName] as its name.
-MemberBuilder lookupExtensionMemberBuilder(
+MemberBuilder? lookupExtensionMemberBuilder(
     InternalCompilerResult compilerResult,
     Extension extension,
     Member member,
     String memberName,
     {bool isSetter: false,
     bool required: true}) {
-  ExtensionBuilder extensionBuilder =
+  ExtensionBuilder? extensionBuilder =
       lookupExtensionBuilder(compilerResult, extension, required: required);
-  MemberBuilder memberBuilder;
+  MemberBuilder? memberBuilder;
   if (extensionBuilder != null) {
-    memberBuilder =
-        extensionBuilder.scope.lookupLocalMember(memberName, setter: isSetter);
+    memberBuilder = extensionBuilder.scope
+        .lookupLocalMember(memberName, setter: isSetter) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");
@@ -276,10 +288,10 @@ Set<Class> computeAllSuperclasses(Class node) {
 void _getAllSuperclasses(Class node, Set<Class> set) {
   if (set.add(node)) {
     if (node.supertype != null) {
-      _getAllSuperclasses(node.supertype.classNode, set);
+      _getAllSuperclasses(node.supertype!.classNode, set);
     }
     if (node.mixedInType != null) {
-      _getAllSuperclasses(node.mixedInType.classNode, set);
+      _getAllSuperclasses(node.mixedInType!.classNode, set);
     }
     for (Supertype interface in node.implementedTypes) {
       _getAllSuperclasses(interface.classNode, set);
@@ -389,11 +401,11 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     if (node.fieldValues.isNotEmpty) {
       sb.write(',{');
       String comma = '';
-      for (Reference ref in node.fieldValues.keys) {
+      for (MapEntry<Reference, Constant> entry in node.fieldValues.entries) {
         sb.write(comma);
-        sb.write(getMemberName(ref.asField));
+        sb.write(getMemberName(entry.key.asField));
         sb.write(':');
-        visit(node.fieldValues[ref]);
+        visit(entry.value);
         comma = ',';
       }
       sb.write('}');
@@ -401,17 +413,63 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write(')');
   }
 
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+  void visitInstantiationConstant(InstantiationConstant node) {
     sb.write('Instantiation(');
-    sb.write(getMemberName(node.tearOffConstant.procedure));
+    Constant tearOffConstant = node.tearOffConstant;
+    if (tearOffConstant is TearOffConstant) {
+      sb.write(getMemberName(tearOffConstant.target));
+    } else {
+      visit(tearOffConstant);
+    }
     sb.write('<');
     typeToText.visitList(node.types);
     sb.write('>)');
   }
 
-  void visitTearOffConstant(TearOffConstant node) {
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    sb.write('TypedefTearOff(');
+    sb.write(getMemberName(node.tearOffConstant.target));
+    if (node.parameters.isNotEmpty) {
+      sb.write('<');
+      for (int i = 0; i < node.parameters.length; i++) {
+        if (i > 0) {
+          sb.write(',');
+          if (typeToText.typeRepresentation ==
+              TypeRepresentation.analyzerNonNullableByDefault) {
+            sb.write(' ');
+          }
+        }
+        TypeParameter typeParameter = node.parameters[i];
+        sb.write(typeParameter.name);
+        DartType bound = typeParameter.bound;
+        if (!(bound is InterfaceType && bound.classNode.name == 'Object')) {
+          sb.write(' extends ');
+          typeToText.visit(bound);
+        }
+      }
+      sb.write('>');
+    }
+    sb.write('<');
+    typeToText.visitList(node.types);
+    sb.write('>)');
+  }
+
+  void visitStaticTearOffConstant(StaticTearOffConstant node) {
     sb.write('Function(');
-    sb.write(getMemberName(node.procedure));
+    sb.write(getMemberName(node.target));
+    sb.write(')');
+  }
+
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    sb.write('Constructor(');
+    sb.write(getMemberName(node.target));
+    sb.write(')');
+  }
+
+  void visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    sb.write('RedirectingFactory(');
+    sb.write(getMemberName(node.target));
     sb.write(')');
   }
 
@@ -557,7 +615,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
     if (node.promotedBound != null) {
       sb.write(' & ');
-      visit(node.promotedBound);
+      visit(node.promotedBound!);
     }
   }
 
@@ -595,7 +653,7 @@ bool isNull(DartType type) => type is NullType;
 /// Returns a textual representation of the [typeParameter] to be used in
 /// testing.
 String typeParameterToText(TypeParameter typeParameter) {
-  String name = typeParameter.name;
+  String name = typeParameter.name!;
   if (!isObject(typeParameter.bound)) {
     return '$name extends ${typeToText(typeParameter.bound)}';
   }
@@ -612,9 +670,9 @@ String typeBuilderToText(TypeBuilder type) {
 void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
   if (type is NamedTypeBuilder) {
     sb.write(type.name);
-    if (type.arguments != null && type.arguments.isNotEmpty) {
+    if (type.arguments != null && type.arguments!.isNotEmpty) {
       sb.write('<');
-      _typeBuildersToText(type.arguments, sb);
+      _typeBuildersToText(type.arguments!, sb);
       sb.write('>');
     }
   } else {
@@ -636,7 +694,7 @@ void _typeBuildersToText(Iterable<TypeBuilder> types, StringBuffer sb) {
 String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
   String name = typeVariable.name;
   if (typeVariable.bound != null) {
-    return '$name extends ${typeBuilderToText(typeVariable.bound)}';
+    return '$name extends ${typeBuilderToText(typeVariable.bound!)}';
   }
   return name;
 }
@@ -699,7 +757,6 @@ String nullabilityToText(
         case TypeRepresentation.analyzerNonNullableByDefault:
           return '';
       }
-      break;
     case Nullability.nullable:
       return '?';
     case Nullability.undetermined:
@@ -709,7 +766,6 @@ String nullabilityToText(
         default:
           return '%';
       }
-      break;
     case Nullability.legacy:
       switch (typeRepresentation) {
         case TypeRepresentation.legacy:
@@ -718,7 +774,5 @@ String nullabilityToText(
         case TypeRepresentation.analyzerNonNullableByDefault:
           return '*';
       }
-      break;
   }
-  throw new UnsupportedError('Unexpected nullability: $nullability.');
 }

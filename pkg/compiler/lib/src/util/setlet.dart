@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library dart2js.util.setlet;
 
 import 'dart:collection' show SetBase;
 
 class Setlet<E> extends SetBase<E> {
-  static const _SetletMarker _MARKER = const _SetletMarker();
+  static const _SetletMarker _MARKER = _SetletMarker();
   static const int CAPACITY = 8;
 
   // The setlet can be in one of four states:
@@ -23,22 +25,24 @@ class Setlet<E> extends SetBase<E> {
   var _extra;
 
   Setlet();
+
   Setlet.from(Iterable<E> elements) {
     addAll(elements);
   }
 
-  static Set<R> _newSet<R>() => new Setlet<R>();
+  static Set<R> _newSet<R>() => Setlet<R>();
 
   @override
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
+
   @override
   Iterator<E> get iterator {
     if (_extra == null) {
-      return new _SetletSingleIterator<E>(_contents);
+      return _SetletSingleIterator<E>(_contents);
     } else if (_MARKER == _extra) {
       return _contents.iterator;
     } else {
-      return new _SetletListIterator<E>(_contents, _extra);
+      return _SetletListIterator<E>(_contents, _extra);
     }
   }
 
@@ -65,7 +69,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  bool contains(Object element) {
+  bool contains(Object? element) {
     if (_extra == null) {
       return _contents == element;
     } else if (_MARKER == _extra) {
@@ -91,7 +95,7 @@ class Setlet<E> extends SetBase<E> {
         // Do nothing.
         return false;
       } else {
-        List list = new List.filled(CAPACITY, null);
+        List<Object?> list = List.filled(CAPACITY, null);
         list[0] = _contents;
         list[1] = element;
         _contents = list;
@@ -103,7 +107,8 @@ class Setlet<E> extends SetBase<E> {
     } else {
       int remaining = _extra;
       int index = 0;
-      int copyTo, copyFrom;
+      int copyTo = 0;
+      int copyFrom = 0;
       while (remaining > 0 && index < CAPACITY) {
         var candidate = _contents[index++];
         if (_MARKER == candidate) {
@@ -139,7 +144,7 @@ class Setlet<E> extends SetBase<E> {
         // make sure we don't keep extra stuff alive.
         while (copyTo < CAPACITY) _contents[copyTo++] = null;
       } else {
-        _contents = new Set<E>()
+        _contents = Set<E>()
           ..addAll((_contents as List).cast<E>())
           ..add(element);
         _extra = _MARKER;
@@ -154,7 +159,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  E lookup(Object element) {
+  E? lookup(Object? element) {
     if (_extra == null) {
       return _contents == element ? _contents : null;
     } else if (_MARKER == _extra) {
@@ -171,7 +176,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  bool remove(Object element) {
+  bool remove(Object? element) {
     if (_extra == null) {
       if (_contents == element) {
         _contents = _MARKER;
@@ -197,7 +202,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  void removeAll(Iterable<Object> other) {
+  void removeAll(Iterable<Object?> other) {
     other.forEach(remove);
   }
 
@@ -228,7 +233,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  void retainAll(Iterable<Object> elements) {
+  void retainAll(Iterable<Object?> elements) {
     Set set = elements is Set ? elements : elements.toSet();
     removeWhere((E element) => !set.contains(element));
   }
@@ -250,8 +255,8 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  bool containsAll(Iterable<Object> other) {
-    for (E e in other) {
+  bool containsAll(Iterable<Object?> other) {
+    for (final e in other) {
       if (!this.contains(e)) return false;
     }
     return true;
@@ -264,19 +269,19 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  Set<E> union(Set<E> other) => new Set<E>.from(this)..addAll(other);
+  Set<E> union(Set<E> other) => Set<E>.from(this)..addAll(other);
 
   @override
-  Setlet<E> intersection(Set<Object> other) =>
-      new Setlet<E>.from(this.where((e) => other.contains(e)));
+  Setlet<E> intersection(Set<Object?> other) =>
+      Setlet<E>.from(this.where((e) => other.contains(e)));
 
   @override
-  Setlet<E> difference(Set<Object> other) =>
-      new Setlet<E>.from(this.where((e) => !other.contains(e)));
+  Setlet<E> difference(Set<Object?> other) =>
+      Setlet<E>.from(this.where((e) => !other.contains(e)));
 
   @override
   Setlet<E> toSet() {
-    Setlet<E> result = new Setlet<E>();
+    Setlet<E> result = Setlet<E>();
     if (_extra == null) {
       result._contents = _contents;
     } else if (_extra == _MARKER) {
@@ -298,11 +303,11 @@ class _SetletMarker {
 
 class _SetletSingleIterator<E> implements Iterator<E> {
   var _element;
-  E _current;
+  E? _current;
   _SetletSingleIterator(this._element);
 
   @override
-  E get current => _current;
+  E get current => _current as E;
 
   @override
   bool moveNext() {
@@ -320,11 +325,11 @@ class _SetletListIterator<E> implements Iterator<E> {
   final List _list;
   int _remaining;
   int _index = 0;
-  E _current;
+  E? _current;
   _SetletListIterator(this._list, this._remaining);
 
   @override
-  E get current => _current;
+  E get current => _current as E;
 
   @override
   bool moveNext() {

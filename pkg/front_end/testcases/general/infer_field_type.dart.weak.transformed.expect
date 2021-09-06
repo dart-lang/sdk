@@ -32,7 +32,7 @@ class A extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::int* topLevelFieldFromA = new self::A::•().{self::A::field};
-static field core::int* topLevelFieldFromB = new self::B::•().{self::B::field};
-static field core::int* topLevelFieldFromC = new self::C::•().{self::C::field};
+static field core::int* topLevelFieldFromA = new self::A::•().{self::A::field}{core::int*};
+static field core::int* topLevelFieldFromB = new self::B::•().{self::B::field}{core::int*};
+static field core::int* topLevelFieldFromC = new self::C::•().{self::C::field}{core::int*};
 static method main() → dynamic {}

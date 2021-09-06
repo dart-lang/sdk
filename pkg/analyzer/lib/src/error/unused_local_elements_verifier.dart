@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/error/codes.dart';
@@ -85,7 +86,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      usedElements.addElement(node.declaredElement!);
+      usedElements.addElement(node.declaredElement);
     }
     super.visitFunctionExpression(node);
   }
@@ -432,6 +433,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (element.isSynthetic) {
       return true;
     }
+    if (_hasPragmaVmEntryPoint(element)) {
+      return true;
+    }
     if (element is LocalVariableElement ||
         element is FunctionElement && !element.isStatic) {
       // local variable or function
@@ -468,6 +472,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
     if (element.isSynthetic) {
+      return true;
+    }
+    if (_hasPragmaVmEntryPoint(element)) {
       return true;
     }
     if (_usedElements.members.contains(element)) {
@@ -625,6 +632,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
+
+  static bool _hasPragmaVmEntryPoint(Element element) {
+    return element is ElementImpl && element.hasPragmaVmEntryPoint;
+  }
 }
 
 /// A container with sets of used [Element]s.
@@ -687,6 +698,11 @@ class UsedLocalElements {
   }
 
   void addMember(Element? element) {
+    // Store un-parameterized members.
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+
     if (element != null) {
       members.add(element);
     }

@@ -14,21 +14,61 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
-    defineReflectiveTests(ExtensionMethodsDeclarationWithNullSafetyTest);
+    defineReflectiveTests(ExtensionMethodsDeclarationWithoutNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
-    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNullSafetyTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeWithoutNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
-    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNullSafetyTest);
+    defineReflectiveTests(
+        ExtensionMethodsExternalReferenceWithoutNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
-    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNullSafetyTest);
+    defineReflectiveTests(
+        ExtensionMethodsInternalReferenceWithoutNullSafetyTest);
   });
 }
 
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest {
+  test_this_type_interface() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'int');
+  }
+
+  test_this_type_typeParameter() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
+  }
+
+  test_this_type_typeParameter_withBound() async {
+    await assertNoErrorsInCode('''
+extension E<T extends Object> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
+  }
+}
+
+/// Tests that show that extension declarations and the members inside them are
+/// resolved correctly.
+@reflectiveTest
+class ExtensionMethodsDeclarationWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
@@ -314,50 +354,11 @@ f(p.C c) {
   }
 }
 
-/// Tests that show that extension declarations and the members inside them are
-/// resolved correctly.
-@reflectiveTest
-class ExtensionMethodsDeclarationWithNullSafetyTest
-    extends PubPackageResolutionTest {
-  test_this_type_interface() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  void foo() {
-    this;
-  }
-}
-''');
-    assertType(findNode.this_('this;'), 'int');
-  }
-
-  test_this_type_typeParameter() async {
-    await assertNoErrorsInCode('''
-extension E<T> on T {
-  void foo() {
-    this;
-  }
-}
-''');
-    assertType(findNode.this_('this;'), 'T');
-  }
-
-  test_this_type_typeParameter_withBound() async {
-    await assertNoErrorsInCode('''
-extension E<T extends Object> on T {
-  void foo() {
-    this;
-  }
-}
-''');
-    assertType(findNode.this_('this;'), 'T');
-  }
-}
-
-/// Tests that show that extension declarations support all of the possible
-/// types in the `on` clause.
 @reflectiveTest
 class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ExtensionMethodsExtendedTypeTestCases {}
+
+mixin ExtensionMethodsExtendedTypeTestCases on PubPackageResolutionTest {
   test_named_generic() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -477,15 +478,287 @@ extension on M {}
   }
 }
 
+/// Tests that show that extension declarations support all of the possible
+/// types in the `on` clause.
 @reflectiveTest
-class ExtensionMethodsExtendedTypeWithNullSafetyTest
-    extends ExtensionMethodsExtendedTypeTest with WithNullSafetyMixin {}
+class ExtensionMethodsExtendedTypeWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with ExtensionMethodsExtendedTypeTestCases, WithoutNullSafetyMixin {}
 
-/// Tests that extension members can be correctly resolved when referenced
-/// by code external to the extension declaration.
 @reflectiveTest
 class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ExtensionMethodsExternalReferenceTestCases {
+  test_instance_getter_fromInstance_Never() async {
+    await assertNoErrorsInCode('''
+extension E on Never {
+  int get foo => 0;
+}
+
+f(Never a) {
+  a.foo;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElementNull(access);
+    assertType(access, 'Never');
+  }
+
+  test_instance_getter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a.foo;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElement(access, findElement.getter('foo', of: 'E'));
+    assertType(access, 'int');
+  }
+
+  test_instance_getter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a?.foo;
+}
+''');
+    var identifier = findNode.simple('foo;');
+    assertElement(identifier, findElement.getter('foo', of: 'E'));
+    assertType(identifier, 'int');
+  }
+
+  test_instance_method_fromInstance_Never() async {
+    await assertErrorsInCode('''
+extension E on Never {
+  void foo() {}
+}
+
+f(Never a) {
+  a.foo();
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
+      error(HintCode.DEAD_CODE, 62, 3),
+    ]);
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'Never',
+    );
+  }
+
+  test_instance_method_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  a.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullable_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {}
+}
+
+f(int? a) {
+  a?.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a?.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {}
+}
+
+f() {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertMember(
+      invocation,
+      findElement.method('foo', of: 'E'),
+      {'T': 'Null'},
+    );
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_operator_binary_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  int operator +(int _) => 0;
+}
+
+f(A? a) {
+  a + 1;
+}
+''');
+    var binary = findNode.binary('a + 1');
+    assertElement(binary, findElement.method('+'));
+    assertType(binary, 'int');
+  }
+
+  test_instance_operator_index_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a[0];
+}
+''');
+    var index = findNode.index('a[0]');
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_index_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a?[0];
+}
+''');
+    var index = findNode.index('a?[0]');
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_postfixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  a++;
+}
+''');
+    var expression = findNode.postfix('a++');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_prefixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  ++a;
+}
+''');
+    var expression = findNode.prefix('++a');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_unaryMinus_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator -() => this;
+}
+
+f(A? a) {
+  -a;
+}
+''');
+    var expression = findNode.prefix('-a');
+    assertElement(expression, findElement.method('unary-'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_setter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a.foo = 1;
+}
+''');
+    assertAssignment(
+      findNode.assignment('foo = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+  }
+
+  test_instance_setter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a?.foo = 1;
+}
+''');
+    assertAssignment(
+      findNode.assignment('foo = 1'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int?',
+    );
+  }
+}
+
+mixin ExtensionMethodsExternalReferenceTestCases on PubPackageResolutionTest {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
     await assertNoErrorsInCode(r'''
@@ -1474,284 +1747,18 @@ extension E on Function {
   }
 }
 
-@reflectiveTest
-class ExtensionMethodsExternalReferenceWithNullSafetyTest
-    extends ExtensionMethodsExternalReferenceTest with WithNullSafetyMixin {
-  test_instance_getter_fromInstance_Never() async {
-    await assertNoErrorsInCode('''
-extension E on Never {
-  int get foo => 0;
-}
-
-f(Never a) {
-  a.foo;
-}
-''');
-    var access = findNode.prefixed('a.foo');
-    assertElementNull(access);
-    assertType(access, 'Never');
-  }
-
-  test_instance_getter_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-extension E on int? {
-  int get foo => 0;
-}
-
-f(int? a) {
-  a.foo;
-}
-''');
-    var access = findNode.prefixed('a.foo');
-    assertElement(access, findElement.getter('foo', of: 'E'));
-    assertType(access, 'int');
-  }
-
-  test_instance_getter_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  int get foo => 0;
-}
-
-f(int? a) {
-  a?.foo;
-}
-''');
-    var identifier = findNode.simple('foo;');
-    assertElement(identifier, findElement.getter('foo', of: 'E'));
-    assertType(identifier, 'int');
-  }
-
-  test_instance_method_fromInstance_Never() async {
-    await assertErrorsInCode('''
-extension E on Never {
-  void foo() {}
-}
-
-f(Never a) {
-  a.foo();
-}
-''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
-      error(HintCode.DEAD_CODE, 62, 3),
-    ]);
-    assertMethodInvocation2(
-      findNode.methodInvocation('a.foo()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'dynamic',
-      type: 'Never',
-    );
-  }
-
-  test_instance_method_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-extension E on int? {
-  void foo() {}
-}
-
-f(int? a) {
-  a.foo();
-}
-''');
-    var invocation = findNode.methodInvocation('a.foo()');
-    assertElement(invocation, findElement.method('foo', of: 'E'));
-    assertInvokeType(invocation, 'void Function()');
-  }
-
-  test_instance_method_fromInstance_nullable_nullLiteral() async {
-    await assertNoErrorsInCode('''
-extension E on int? {
-  void foo() {}
-}
-
-f(int? a) {
-  null.foo();
-}
-''');
-    var invocation = findNode.methodInvocation('null.foo()');
-    assertElement(invocation, findElement.method('foo', of: 'E'));
-    assertInvokeType(invocation, 'void Function()');
-  }
-
-  test_instance_method_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  void foo() {}
-}
-
-f(int? a) {
-  a?.foo();
-}
-''');
-    var invocation = findNode.methodInvocation('a?.foo()');
-    assertElement(invocation, findElement.method('foo', of: 'E'));
-    assertInvokeType(invocation, 'void Function()');
-  }
-
-  test_instance_method_fromInstance_nullLiteral() async {
-    await assertNoErrorsInCode('''
-extension E<T> on T {
-  void foo() {}
-}
-
-f() {
-  null.foo();
-}
-''');
-    var invocation = findNode.methodInvocation('null.foo()');
-    assertMember(
-      invocation,
-      findElement.method('foo', of: 'E'),
-      {'T': 'Null'},
-    );
-    assertInvokeType(invocation, 'void Function()');
-  }
-
-  test_instance_operator_binary_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-class A {}
-
-extension E on A? {
-  int operator +(int _) => 0;
-}
-
-f(A? a) {
-  a + 1;
-}
-''');
-    var binary = findNode.binary('a + 1');
-    assertElement(binary, findElement.method('+'));
-    assertType(binary, 'int');
-  }
-
-  test_instance_operator_index_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-extension E on int? {
-  int operator [](int index) => 0;
-}
-
-f(int? a) {
-  a[0];
-}
-''');
-    var index = findNode.index('a[0]');
-    assertElement(index, findElement.method('[]'));
-  }
-
-  test_instance_operator_index_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  int operator [](int index) => 0;
-}
-
-f(int? a) {
-  a?[0];
-}
-''');
-    var index = findNode.index('a?[0]');
-    assertElement(index, findElement.method('[]'));
-  }
-
-  test_instance_operator_postfixInc_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-class A {}
-
-extension E on A? {
-  A? operator +(int _) => this;
-}
-
-f(A? a) {
-  a++;
-}
-''');
-    var expression = findNode.postfix('a++');
-    assertElement(expression, findElement.method('+'));
-    assertType(expression, 'A?');
-  }
-
-  test_instance_operator_prefixInc_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-class A {}
-
-extension E on A? {
-  A? operator +(int _) => this;
-}
-
-f(A? a) {
-  ++a;
-}
-''');
-    var expression = findNode.prefix('++a');
-    assertElement(expression, findElement.method('+'));
-    assertType(expression, 'A?');
-  }
-
-  test_instance_operator_unaryMinus_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-class A {}
-
-extension E on A? {
-  A? operator -() => this;
-}
-
-f(A? a) {
-  -a;
-}
-''');
-    var expression = findNode.prefix('-a');
-    assertElement(expression, findElement.method('unary-'));
-    assertType(expression, 'A?');
-  }
-
-  test_instance_setter_fromInstance_nullable() async {
-    await assertNoErrorsInCode('''
-extension E on int? {
-  set foo(int _) {}
-}
-
-f(int? a) {
-  a.foo = 1;
-}
-''');
-    assertAssignment(
-      findNode.assignment('foo = 1'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
-  }
-
-  test_instance_setter_fromInstance_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  set foo(int _) {}
-}
-
-f(int? a) {
-  a?.foo = 1;
-}
-''');
-    assertAssignment(
-      findNode.assignment('foo = 1'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int?',
-    );
-  }
-}
-
 /// Tests that extension members can be correctly resolved when referenced
-/// by code internal to (within) the extension declaration.
+/// by code external to the extension declaration.
+@reflectiveTest
+class ExtensionMethodsExternalReferenceWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with ExtensionMethodsExternalReferenceTestCases, WithoutNullSafetyMixin {}
+
 @reflectiveTest
 class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ExtensionMethodsInternalReferenceTestCases {}
+
+mixin ExtensionMethodsInternalReferenceTestCases on PubPackageResolutionTest {
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -2350,6 +2357,9 @@ extension E on C {
   }
 }
 
+/// Tests that extension members can be correctly resolved when referenced
+/// by code internal to (within) the extension declaration.
 @reflectiveTest
-class ExtensionMethodsInternalReferenceWithNullSafetyTest
-    extends ExtensionMethodsInternalReferenceTest with WithNullSafetyMixin {}
+class ExtensionMethodsInternalReferenceWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with ExtensionMethodsInternalReferenceTestCases, WithoutNullSafetyMixin {}

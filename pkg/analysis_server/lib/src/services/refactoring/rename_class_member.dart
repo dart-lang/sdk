@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -30,7 +28,7 @@ Future<RefactoringStatus> validateCreateMethod(
     AnalysisSessionHelper sessionHelper,
     ClassElement classElement,
     String name) {
-  return _ClassMemberValidator.forCreate(
+  return _CreateClassMemberValidator(
           searchEngine, sessionHelper, classElement, name)
       .validate();
 }
@@ -38,11 +36,12 @@ Future<RefactoringStatus> validateCreateMethod(
 /// A [Refactoring] for renaming class member [Element]s.
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
+  final ClassElement classElement;
 
-  _ClassMemberValidator _validator;
+  late _RenameClassMemberValidator _validator;
 
-  RenameClassMemberRefactoringImpl(
-      RefactoringWorkspace workspace, AnalysisSession session, Element element)
+  RenameClassMemberRefactoringImpl(RefactoringWorkspace workspace,
+      AnalysisSession session, this.classElement, Element element)
       : sessionHelper = AnalysisSessionHelper(session),
         super(workspace, element);
 
@@ -59,8 +58,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    _validator = _ClassMemberValidator.forRename(
-        searchEngine, sessionHelper, element, newName);
+    _validator = _RenameClassMemberValidator(
+        searchEngine, sessionHelper, classElement, element, newName);
     return _validator.validate();
   }
 
@@ -126,37 +125,27 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-/// Helper to check if the created or renamed [Element] will cause any
-/// conflicts.
-class _ClassMemberValidator {
+/// The base class for the create and rename validators.
+class _BaseClassMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
-  final LibraryElement library;
-  final Element element;
   final ClassElement elementClass;
   final ElementKind elementKind;
   final String name;
-  final bool isRename;
 
   final RefactoringStatus result = RefactoringStatus();
-  Set<Element> elements = <Element>{};
-  List<SearchMatch> references = <SearchMatch>[];
 
-  _ClassMemberValidator.forCreate(
-      this.searchEngine, this.sessionHelper, this.elementClass, this.name)
-      : isRename = false,
-        library = null,
-        element = null,
-        elementKind = ElementKind.METHOD;
+  _BaseClassMemberValidator(
+    this.searchEngine,
+    this.sessionHelper,
+    this.elementClass,
+    this.elementKind,
+    this.name,
+  );
 
-  _ClassMemberValidator.forRename(
-      this.searchEngine, this.sessionHelper, this.element, this.name)
-      : isRename = true,
-        library = element.library,
-        elementClass = element.enclosingElement,
-        elementKind = element.kind;
+  LibraryElement get library => elementClass.library;
 
-  Future<RefactoringStatus> validate() async {
+  void _checkClassAlreadyDeclares() {
     // check if there is a member with "newName" in the same ClassElement
     for (var newNameMember in getChildren(elementClass, name)) {
       result.addError(
@@ -167,47 +156,13 @@ class _ClassMemberValidator {
               name),
           newLocation_fromElement(newNameMember));
     }
-    // do chained computations
-    var superClasses = getSuperClasses(elementClass);
-    await _prepareReferences();
-    var subClasses = await searchEngine.searchAllSubtypes(elementClass);
-    // check shadowing of class names
-    if (element != null) {
-      for (var element in elements) {
-        ClassElement clazz = element.enclosingElement;
-        if (clazz.name == name) {
-          result.addError(
-              format(
-                  "Renamed {0} has the same name as the declaring class '{1}'.",
-                  elementKind.displayName,
-                  name),
-              newLocation_fromElement(element));
-        }
-      }
-    } else {
-      if (elementClass.name == name) {
-        result.addError(
-            format(
-                "Created {0} has the same name as the declaring class '{1}'.",
-                elementKind.displayName,
-                name),
-            newLocation_fromElement(elementClass));
-      }
-    }
-    // usage of the renamed Element is shadowed by a local element
-    {
-      var conflict = await _getShadowingLocalElement();
-      if (conflict != null) {
-        var localElement = conflict.localElement;
-        result.addError(
-            format(
-                "Usage of renamed {0} will be shadowed by {1} '{2}'.",
-                elementKind.displayName,
-                getElementKindName(localElement),
-                localElement.displayName),
-            newLocation_fromMatch(conflict.match));
-      }
-    }
+  }
+
+  Future<void> _checkHierarchy({
+    required bool isRename,
+    required Set<ClassElement> superClasses,
+    required Set<ClassElement> subClasses,
+  }) async {
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -236,24 +191,148 @@ class _ClassMemberValidator {
             newLocation_fromElement(nameElement));
       }
     }
-    // visibility
-    if (isRename) {
-      _validateWillBeInvisible();
+  }
+}
+
+/// Helper to check if the created element will cause any conflicts.
+class _CreateClassMemberValidator extends _BaseClassMemberValidator {
+  _CreateClassMemberValidator(
+      SearchEngine searchEngine,
+      AnalysisSessionHelper sessionHelper,
+      ClassElement elementClass,
+      String name)
+      : super(
+          searchEngine,
+          sessionHelper,
+          elementClass,
+          ElementKind.METHOD,
+          name,
+        );
+
+  Future<RefactoringStatus> validate() async {
+    _checkClassAlreadyDeclares();
+    // do chained computations
+    var superClasses = getSuperClasses(elementClass);
+    var subClasses = await searchEngine.searchAllSubtypes(elementClass);
+    // check shadowing of class names
+    if (elementClass.name == name) {
+      result.addError(
+          format("Created {0} has the same name as the declaring class '{1}'.",
+              elementKind.displayName, name),
+          newLocation_fromElement(elementClass));
     }
+    // check shadowing in the hierarchy
+    await _checkHierarchy(
+      isRename: false,
+      superClasses: superClasses,
+      subClasses: subClasses,
+    );
+    // done
+    return result;
+  }
+}
+
+class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
+  final String name;
+  final List<LocalElement> elements = [];
+
+  _LocalElementsCollector(this.name);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
+    if (element is LocalElement && element.name == name) {
+      elements.add(element);
+    }
+  }
+}
+
+class _MatchShadowedByLocal {
+  final SearchMatch match;
+  final LocalElement localElement;
+
+  _MatchShadowedByLocal(this.match, this.localElement);
+}
+
+/// Helper to check if the renamed [element] will cause any conflicts.
+class _RenameClassMemberValidator extends _BaseClassMemberValidator {
+  final Element element;
+
+  Set<Element> elements = <Element>{};
+  List<SearchMatch> references = <SearchMatch>[];
+
+  _RenameClassMemberValidator(
+    SearchEngine searchEngine,
+    AnalysisSessionHelper sessionHelper,
+    ClassElement elementClass,
+    this.element,
+    String name,
+  ) : super(searchEngine, sessionHelper, elementClass, element.kind, name);
+
+  Future<RefactoringStatus> validate() async {
+    _checkClassAlreadyDeclares();
+    // do chained computations
+    var superClasses = getSuperClasses(elementClass);
+    await _prepareReferences();
+    var subClasses = await searchEngine.searchAllSubtypes(elementClass);
+    // check shadowing of class names
+    for (var element in elements) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is ClassElement && enclosingElement.name == name) {
+        result.addError(
+          format(
+            "Renamed {0} has the same name as the declaring class '{1}'.",
+            elementKind.displayName,
+            name,
+          ),
+          newLocation_fromElement(element),
+        );
+      }
+    }
+    // usage of the renamed Element is shadowed by a local element
+    {
+      var conflict = await _getShadowingLocalElement();
+      if (conflict != null) {
+        var localElement = conflict.localElement;
+        result.addError(
+            format(
+                "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+                elementKind.displayName,
+                getElementKindName(localElement),
+                localElement.displayName),
+            newLocation_fromMatch(conflict.match));
+      }
+    }
+    // check shadowing in the hierarchy
+    await _checkHierarchy(
+      isRename: true,
+      superClasses: superClasses,
+      subClasses: subClasses,
+    );
+    // visibility
+    _validateWillBeInvisible();
     // done
     return result;
   }
 
-  Future<_MatchShadowedByLocal> _getShadowingLocalElement() async {
+  Future<_MatchShadowedByLocal?> _getShadowingLocalElement() async {
     var localElementMap = <CompilationUnitElement, List<LocalElement>>{};
     var visibleRangeMap = <LocalElement, SourceRange>{};
 
     Future<List<LocalElement>> getLocalElements(Element element) async {
       var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
+      if (unitElement == null) {
+        return const [];
+      }
+
       var localElements = localElementMap[unitElement];
 
       if (localElements == null) {
         var result = await sessionHelper.getResolvedUnitByElement(element);
+        if (result == null) {
+          return const [];
+        }
+
         var unit = result.unit;
 
         var collector = _LocalElementsCollector(name);
@@ -287,6 +366,7 @@ class _ClassMemberValidator {
 
   /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
+    final element = this.element;
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
@@ -296,9 +376,6 @@ class _ClassMemberValidator {
 
   /// Fills [references] with all references to [elements].
   Future _prepareReferences() async {
-    if (!isRename) {
-      return Future.value();
-    }
     await _prepareElements();
     await Future.forEach(elements, (Element element) async {
       var elementReferences = await searchEngine.searchReferences(element);
@@ -313,7 +390,7 @@ class _ClassMemberValidator {
     }
     for (var reference in references) {
       var refElement = reference.element;
-      var refLibrary = refElement.library;
+      var refLibrary = refElement.library!;
       if (refLibrary != library) {
         var message = format("Renamed {0} will be invisible in '{1}'.",
             getElementKindName(element), getElementQualifiedName(refLibrary));
@@ -321,26 +398,4 @@ class _ClassMemberValidator {
       }
     }
   }
-}
-
-class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
-  final String name;
-  final List<LocalElement> elements = [];
-
-  _LocalElementsCollector(this.name);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is LocalElement && element.name == name) {
-      elements.add(element);
-    }
-  }
-}
-
-class _MatchShadowedByLocal {
-  final SearchMatch match;
-  final LocalElement localElement;
-
-  _MatchShadowedByLocal(this.match, this.localElement);
 }

@@ -6,6 +6,8 @@
 // when the other end is already closed, does not discard unread data
 // that remains in the connection.
 
+// @dart = 2.9
+
 import "dart:io";
 import "dart:async";
 import "package:expect/expect.dart";

@@ -232,18 +232,15 @@ class OptimizationTestLog {
   }
 
   void registerSubstring(HInvokeDynamic original) {
-    Features features = new Features();
-    entries.add(new OptimizationLogEntry('Substring', features));
+    _registerSpecializer(original, null, null, 'substring');
   }
 
   void registerTrim(HInvokeDynamic original) {
-    Features features = new Features();
-    entries.add(new OptimizationLogEntry('Trim', features));
+    _registerSpecializer(original, null, null, 'trim');
   }
 
   void registerPatternMatch(HInvokeDynamic original) {
-    Features features = new Features();
-    entries.add(new OptimizationLogEntry('PatternMatch', features));
+    _registerSpecializer(original, null, null, original.selector.name);
   }
 
   void registerRound(HInvokeDynamic original) {

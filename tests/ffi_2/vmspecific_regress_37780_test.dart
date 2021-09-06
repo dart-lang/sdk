@@ -4,6 +4,8 @@
 //
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import 'dylib_utils.dart';

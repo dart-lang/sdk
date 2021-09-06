@@ -954,9 +954,9 @@ class _Base extends AbstractContextTest {
     newFile(path, content: content);
 
     var result = await resolveFile(path);
-    findElement = FindElement(result.unit!);
+    findElement = FindElement(result.unit);
 
-    target = CompletionTarget.forOffset(result.unit!, offset!);
+    target = CompletionTarget.forOffset(result.unit, offset!);
   }
 
   static String _executableNameStr(ExecutableElement executable) {

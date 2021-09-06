@@ -17,7 +17,7 @@ export 'package:front_end/src/testing/id_extractor.dart';
 
 SourceSpan computeSourceSpanFromUriOffset(Uri uri, int offset) {
   if (uri != null) {
-    if (offset != null) {
+    if (offset != null && offset != -1) {
       return new SourceSpan(uri, offset, offset + 1);
     } else {
       return new SourceSpan(uri, 0, 0);

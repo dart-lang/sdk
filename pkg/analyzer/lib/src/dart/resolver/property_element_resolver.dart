@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -203,8 +202,8 @@ class PropertyElementResolver {
       readElementRequested = readLookup.requested;
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
-        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(
-            node, node.name, readElementRequested.returnType);
+        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(node, node.name,
+            readElementRequested, readElementRequested.returnType);
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
     }
@@ -373,7 +372,11 @@ class PropertyElementResolver {
       nameErrorEntity: propertyName,
     );
 
-    _resolver.flowAnalysis?.flow?.propertyGet(node, target, propertyName.name,
+    _resolver.flowAnalysis?.flow?.propertyGet(
+        node,
+        target,
+        propertyName.name,
+        result.getter,
         result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType);
 
     if (hasRead && result.needsGetterError) {
@@ -586,7 +589,7 @@ class PropertyElementResolver {
 
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
       if (!forAnnotation &&
-          !_resolver.nameScope.shouldIgnoreUndefined2(
+          !_resolver.definingLibrary.shouldIgnoreUndefined(
             prefix: target.name,
             name: identifier.name,
           )) {
@@ -653,6 +656,7 @@ class PropertyElementResolver {
             node,
             target,
             propertyName.name,
+            readElement,
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType);
       }
 

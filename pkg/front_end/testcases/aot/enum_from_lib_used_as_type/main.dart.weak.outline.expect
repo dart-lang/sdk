@@ -10,7 +10,7 @@ library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-class Enum extends core::Object /*isEnum*/  {
+class Enum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<self2::Enum> values = #C4;
@@ -19,7 +19,7 @@ class Enum extends core::Object /*isEnum*/  {
     : self2::Enum::index = index, self2::Enum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self2::Enum::_name};
+    return this.{self2::Enum::_name}{core::String};
 }
 class Class extends core::Object {
   synthetic constructor •() → self2::Class

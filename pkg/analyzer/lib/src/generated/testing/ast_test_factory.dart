@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 
 /// The class `AstTestFactory` defines utility methods that can be used to
 /// create AST nodes. The nodes that are created are complete in the sense that
@@ -26,6 +27,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 /// second is places where a shorter name seemed unambiguous and easier to read,
 /// such as using 'identifier' rather than 'prefixedIdentifier', or 'integer'
 /// rather than 'integerLiteral'.
+@internal
 class AstTestFactory {
   static AdjacentStringsImpl adjacentStrings(List<StringLiteral> strings) =>
       astFactory.adjacentStrings(strings);
@@ -498,6 +500,7 @@ class AstTestFactory {
 
   static ExtensionDeclarationImpl extensionDeclaration(
           {required String name,
+          required bool isExtensionTypeDeclaration,
           TypeParameterList? typeParameters,
           required TypeAnnotation extendedType,
           List<ClassMember> members = const []}) =>
@@ -505,6 +508,9 @@ class AstTestFactory {
           comment: null,
           metadata: null,
           extensionKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTENSION),
+          typeKeyword: isExtensionTypeDeclaration
+              ? TokenFactory.tokenFromString('type')
+              : null,
           name: identifier3(name),
           typeParameters: typeParameters,
           onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),

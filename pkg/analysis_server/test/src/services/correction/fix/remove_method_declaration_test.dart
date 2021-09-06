@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,8 +11,40 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveMethodDeclarationBulkTest);
     defineReflectiveTests(RemoveMethodDeclarationTest);
   });
+}
+
+@reflectiveTest
+class RemoveMethodDeclarationBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_overrides;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  int foo;
+  int bar() => 0;
+}
+
+class B extends A {
+  @override
+  int get foo => super.foo;
+  @override
+  int bar() => super.bar();
+}
+''');
+    await assertHasFix('''
+class A {
+  int foo;
+  int bar() => 0;
+}
+
+class B extends A {
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -29,7 +58,7 @@ class RemoveMethodDeclarationTest extends FixProcessorLintTest {
   Future<void> test_getter() async {
     await resolveTestCode('''
 class A {
-  int foo;
+  int foo = 0;
 }
 
 class B extends A {
@@ -39,7 +68,7 @@ class B extends A {
 ''');
     await assertHasFix('''
 class A {
-  int foo;
+  int foo = 0;
 }
 
 class B extends A {
@@ -94,11 +123,9 @@ class B extends A<int> {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_nullSafety_optIn_fromOptOut() async {
-    createAnalysisOptionsFile(
-      experiments: [EnableString.non_nullable],
-      lints: [lintCode],
-    );
+    createAnalysisOptionsFile(lints: [lintCode]);
     newFile('/home/test/lib/a.dart', content: r'''
 class A {
   int foo() => 0;
@@ -122,7 +149,6 @@ class B extends A {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_toString() async {
     await resolveTestCode('''
 class A {

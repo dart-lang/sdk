@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program calculating the Fibonacci sequence.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Helper {

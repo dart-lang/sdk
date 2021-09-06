@@ -6,21 +6,27 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+constructor_tearoffs/call_instantiation: TypeCheckError
+constructor_tearoffs/const_tear_off: RuntimeError
+constructor_tearoffs/redirecting_constructors: RuntimeError
+constructor_tearoffs/redirecting_factory_tear_off: RuntimeError
+extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
+extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
-extensions/call_methods: TypeCheckError
+extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
-extensions/issue40713: TypeCheckError
 extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError
 general/await_in_non_async: RuntimeError
+general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: TypeCheckError
@@ -30,7 +36,7 @@ general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
 general/crashes/crash_02/main: Crash
-general/crashes/crash_04/main: Crash
+general/crashes/crash_06/main: Crash
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
@@ -55,6 +61,7 @@ general/error_recovery/issue_39024.crash: RuntimeError
 general/error_recovery/issue_39026.crash: RuntimeError
 general/error_recovery/issue_39026_prime.crash: RuntimeError
 general/error_recovery/issue_39033.crash: RuntimeError
+general/error_recovery/issue_39033b.crash: RuntimeError
 general/error_recovery/issue_39058.crash: RuntimeError
 general/error_recovery/issue_39058_prime.crash: RuntimeError
 general/error_recovery/issue_39202.crash: RuntimeError
@@ -66,7 +73,6 @@ general/error_recovery/issue_39958_04: RuntimeError
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/external_import: RuntimeError
-general/function_invocation_bounds: TypeCheckError
 general/getter_vs_setter_type: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
@@ -80,6 +86,7 @@ general/issue38961: RuntimeError
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
+general/issue44733: TypeCheckError
 general/issue45204: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
@@ -94,6 +101,7 @@ general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
+general/redirecting_factory_invocation_in_invalid: TypeCheckError
 general/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general/type_parameter_type_named_int: RuntimeError
 general/type_variable_as_super: RuntimeError

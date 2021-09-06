@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -48,9 +46,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
     result.addStatus(validateConstructorName(newName));
-    if (newName != null) {
-      _analyzePossibleConflicts(result);
-    }
+    _analyzePossibleConflicts(result);
     return result;
   }
 
@@ -90,10 +86,11 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   SourceReference _createDeclarationReference() {
     SourceRange sourceRange;
     var offset = element.periodOffset;
+    var nameEnd = element.nameEnd!;
     if (offset != null) {
-      sourceRange = range.startOffsetEndOffset(offset, element.nameEnd);
+      sourceRange = range.startOffsetEndOffset(offset, nameEnd);
     } else {
-      sourceRange = SourceRange(element.nameEnd, 0);
+      sourceRange = SourceRange(nameEnd, 0);
     }
     return SourceReference(SearchMatchImpl(
         element.source.fullName,
@@ -112,17 +109,36 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
     var result = await AnalysisSessionHelper(session)
         .getElementDeclaration(classElement);
-    ClassDeclaration classNode = result.node;
-    var utils = CorrectionUtils(result.resolvedUnit);
-    var location = utils.prepareNewConstructorLocation(classNode);
+    if (result == null) {
+      return;
+    }
+
+    var classNode = result.node;
+    if (classNode is! ClassDeclaration) {
+      return;
+    }
+
+    var resolvedUnit = result.resolvedUnit;
+    if (resolvedUnit == null) {
+      return;
+    }
+
+    var utils = CorrectionUtils(resolvedUnit);
+    var location =
+        utils.prepareNewConstructorLocation(resolvedUnit.session, classNode);
+    if (location == null) {
+      return;
+    }
+
+    var header = '${classElement.name}.$newName();';
     doSourceChange_addElementEdit(
-        change,
-        classElement,
-        SourceEdit(
-            location.offset,
-            0,
-            location.prefix +
-                '${classElement.name}.$newName();' +
-                location.suffix));
+      change,
+      classElement,
+      SourceEdit(
+        location.offset,
+        0,
+        location.prefix + header + location.suffix,
+      ),
+    );
   }
 }

@@ -1,0 +1,11 @@
+extension E1 on int {}
+
+extension E2 on int {}
+
+extension E3 on int {}
+
+hide ceil() {}
+hide isEven() {}
+main() {}
+show num() {}
+show num;

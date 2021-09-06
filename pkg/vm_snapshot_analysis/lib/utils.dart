@@ -4,19 +4,20 @@
 library vm_snapshot_analysis.utils;
 
 import 'package:vm_snapshot_analysis/ascii_table.dart';
-import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
+import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
 ProgramInfo loadProgramInfoFromJson(Object json,
     {bool collapseAnonymousClosures = false}) {
   if (v8_profile.Snapshot.isV8HeapSnapshot(json)) {
-    return v8_profile.toProgramInfo(v8_profile.Snapshot.fromJson(json),
+    return v8_profile.toProgramInfo(
+        v8_profile.Snapshot.fromJson(json as Map<String, dynamic>),
         collapseAnonymousClosures: collapseAnonymousClosures);
   } else {
-    return instruction_sizes.loadProgramInfo(json,
+    return instruction_sizes.loadProgramInfo(json as List<dynamic>,
         collapseAnonymousClosures: collapseAnonymousClosures);
   }
 }
@@ -43,7 +44,7 @@ Map<String, dynamic> compareProgramInfo(
 String formatPercent(int value, int total, {bool withSign = false}) {
   final p = value / total * 100.0;
   final sign = (withSign && value > 0) ? '+' : '';
-  return '${sign}${p.toStringAsFixed(2)}%';
+  return '$sign${p.toStringAsFixed(2)}%';
 }
 
 void printHistogram(ProgramInfo info, Histogram histogram,
@@ -62,7 +63,7 @@ void printHistogram(ProgramInfo info, Histogram histogram,
 
   final visibleRows = [prefix, suffix].expand((l) => l).toList();
   final visibleSize =
-      visibleRows.fold(0, (sum, key) => sum + histogram.buckets[key]);
+      visibleRows.fold<int>(0, (sum, key) => sum + histogram.buckets[key]!);
   final numRestRows = histogram.length - (suffix.length + prefix.length);
   final hiddenRows = Set<String>.from(histogram.bySize)
       .difference(Set<String>.from(visibleRows));
@@ -71,7 +72,7 @@ void printHistogram(ProgramInfo info, Histogram histogram,
 
   if (prefix.isNotEmpty) {
     for (var key in prefix) {
-      final size = histogram.buckets[key];
+      final size = histogram.buckets[key]!;
       table.addRow([
         ...histogram.bucketInfo.namesFromBucket(key),
         size.toString(),
@@ -79,19 +80,19 @@ void printHistogram(ProgramInfo info, Histogram histogram,
         if (wasFiltered) formatPercent(size, totalSize),
       ]);
     }
-    table.addSeparator(interestingHiddenRows ? Separator.Wave : Separator.Line);
+    table.addSeparator(interestingHiddenRows ? Separator.wave : Separator.line);
   }
 
   if (interestingHiddenRows) {
     final totalRestBytes = histogram.totalSize - visibleSize;
     table.addTextSeparator(
-        '$numRestRows more rows accounting for ${totalRestBytes}'
+        '$numRestRows more rows accounting for $totalRestBytes'
         ' (${formatPercent(totalRestBytes, totalSize)} of total) bytes');
     final avg = (totalRestBytes / numRestRows).round();
     table.addTextSeparator(
-        'on average that is ${avg} (${formatPercent(avg, histogram.totalSize)})'
+        'on average that is $avg (${formatPercent(avg, histogram.totalSize)})'
         ' bytes per row');
-    table.addSeparator(suffix.isNotEmpty ? Separator.Wave : Separator.Line);
+    table.addSeparator(suffix.isNotEmpty ? Separator.wave : Separator.line);
   }
 
   if (suffix.isNotEmpty) {
@@ -99,19 +100,19 @@ void printHistogram(ProgramInfo info, Histogram histogram,
       table.addRow([
         ...histogram.bucketInfo.namesFromBucket(key),
         histogram.buckets[key].toString(),
-        formatPercent(histogram.buckets[key], histogram.totalSize),
+        formatPercent(histogram.buckets[key]!, histogram.totalSize),
       ]);
     }
-    table.addSeparator(Separator.Line);
+    table.addSeparator(Separator.line);
   }
 
   table.render();
 
   if (wasFiltered || visibleSize != histogram.totalSize) {
-    print('In visible rows: ${visibleSize}'
+    print('In visible rows: $visibleSize'
         ' (${formatPercent(visibleSize, totalSize)} of total)');
   }
-  print('Total: ${totalSize} bytes');
+  print('Total: $totalSize bytes');
 }
 
 List<String> partsForPath(String path) {

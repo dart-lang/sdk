@@ -58,11 +58,10 @@ constexpr bool FLAG_support_il_printer = false;
 //
 // The syntax used is the same as that for FLAG_LIST below, as these flags are
 // automatically included in FLAG_LIST.
-// TODO(cskau): Remove causal_async_stacks when deprecated.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
+  P(code_comments, bool, false, "Include comments into code and disassembly.") \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(causal_async_stacks, bool, false, "DEPRECATED: Improved async stacks")     \
   P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
@@ -98,8 +97,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
     "Check validity of token positions while compiling flow graphs")           \
-  P(code_comments, bool, false, "Include comments into code and disassembly.") \
-  P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \
   P(compactor_tasks, int, 2,                                                   \
@@ -112,18 +109,16 @@ constexpr bool FLAG_support_il_printer = false;
     "Deoptimize on every N stack overflow checks")                             \
   P(deoptimize_on_runtime_call_every, int, 0,                                  \
     "Deoptimize functions on every runtime call.")                             \
-  R(disable_alloc_stubs_after_gc, false, bool, false, "Stress testing flag.")  \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  P(inline_alloc, bool, true, "Whether to use inline allocation fast paths.")  \
   R(null_assertions, false, bool, false,                                       \
     "Enable null assertions for parameters.")                                  \
   R(strict_null_safety_checks, false, bool, false,                             \
     "Enable strict type checks for non-nullable types and required "           \
     "parameters.")                                                             \
-  P(enable_kernel_expression_compilation, bool, true,                          \
-    "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
@@ -201,10 +196,6 @@ constexpr bool FLAG_support_il_printer = false;
     "needed in the precompiled runtime.")                                      \
   P(enable_isolate_groups, bool, false,                                        \
     "Enable isolate group support in AOT.")                                    \
-  P(experimental_enable_isolate_groups_jit, bool, false,                       \
-    "As an experimental feature enable isolate group support in JIT"           \
-    "(goes into effect only when enable_isolate_groups is turned on as "       \
-    "well).")                                                                  \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
@@ -239,6 +230,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, true, "Use field guards and track field types")    \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
+  P(use_slow_path, bool, false, "Whether to avoid inlined fast paths.")        \
   R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \
   R(verbose_gc_hdr, 40, int, 40, "Print verbose GC header interval.")          \
   R(verify_after_gc, false, bool, false,                                       \

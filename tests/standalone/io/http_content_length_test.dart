@@ -16,8 +16,8 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
   int count = 0;
   HttpServer.bind("127.0.0.1", 0, backlog: totalConnections).then((server) {
     server.listen((HttpRequest request) {
-      Expect.equals("0", request.headers.value('content-length'));
-      Expect.equals(0, request.contentLength);
+      Expect.equals(null, request.headers.value('content-length'));
+      Expect.equals(-1, request.contentLength);
       var response = request.response;
       response.contentLength = 0;
       response.done.then((_) {

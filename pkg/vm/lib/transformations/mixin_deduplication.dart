@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
-library vm.transformations.mixin_deduplication;
-
 import 'package:kernel/ast.dart';
 
 /// De-duplication of identical mixin applications.
@@ -166,21 +162,36 @@ class ReferenceUpdater extends RecursiveVisitor {
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    super.visitPropertyGet(node);
+  visitInstanceGet(InstanceGet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
+    super.visitInstanceGet(node);
   }
 
   @override
-  visitPropertySet(PropertySet node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    super.visitPropertySet(node);
+  visitInstanceTearOff(InstanceTearOff node) {
+    node.interfaceTarget =
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure;
+    super.visitInstanceTearOff(node);
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    super.visitMethodInvocation(node);
+  visitInstanceSet(InstanceSet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
+    super.visitInstanceSet(node);
+  }
+
+  @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    node.interfaceTarget =
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure;
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    node.interfaceTarget =
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure;
+    super.visitEqualsCall(node);
   }
 
   @override

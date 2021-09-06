@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::Set<core::int> a;
+static field core::Map<core::int, core::int> b;
+static field Never c;
+static method main() → dynamic
+  ;

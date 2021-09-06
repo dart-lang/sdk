@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/deferred_load.dart';
+import 'package:compiler/src/deferred_load/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
@@ -132,23 +132,6 @@ class LibraryData {
         assert(!_methodMap.containsKey(method.element));
         _methodMap[method.element] = method;
       }
-    }
-
-    void addField(Field field) {
-      ClassEntity enclosingClass = field.element?.enclosingClass;
-      if (enclosingClass != null) {
-        ClassData data =
-            _classMap.putIfAbsent(enclosingClass, () => new ClassData(null));
-        assert(!data._fieldMap.containsKey(field.element));
-        data._fieldMap[field.element] = field;
-      } else if (field.element != null) {
-        assert(!_fieldMap.containsKey(field.element));
-        _fieldMap[field.element] = field;
-      }
-    }
-
-    for (Field field in library.staticFieldsForReflection) {
-      addField(field);
     }
 
     void addStaticField(StaticField field) {

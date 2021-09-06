@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library front_end.compiler_options;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
@@ -51,7 +49,7 @@ class CompilerOptions {
   ///
   /// If `null`, the SDK will be searched for using
   /// [Platform.resolvedExecutable] as a starting point.
-  Uri sdkRoot;
+  Uri? sdkRoot;
 
   /// Uri to a platform libraries specification file.
   ///
@@ -63,9 +61,9 @@ class CompilerOptions {
   /// If a value is not specified and `compileSdk = true`, the compiler will
   /// infer at a default location under [sdkRoot], typically under
   /// `lib/libraries.json`.
-  Uri librariesSpecificationUri;
+  Uri? librariesSpecificationUri;
 
-  DiagnosticMessageHandler onDiagnostic;
+  DiagnosticMessageHandler? onDiagnostic;
 
   /// URI of the ".dart_tool/package_config.json" or ".packages" file
   /// (typically a "file:" URI).
@@ -79,7 +77,7 @@ class CompilerOptions {
   ///
   /// If the URI's path component is empty (e.g. `new Uri()`), no packages file
   /// will be used.
-  Uri packagesFileUri;
+  Uri? packagesFileUri;
 
   /// URIs of additional dill files.
   ///
@@ -97,11 +95,11 @@ class CompilerOptions {
   ///
   /// If `null` and [compileSdk] is false, the SDK summary will be searched for
   /// at a default location within [sdkRoot].
-  Uri sdkSummary;
+  Uri? sdkSummary;
 
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
-  Map<String, String> declaredVariables;
+  Map<String, String>? declaredVariables;
 
   /// The [FileSystem] which should be used by the front end to access files.
   ///
@@ -117,42 +115,22 @@ class CompilerOptions {
   /// When this option is `true`, [sdkSummary] must be null.
   bool compileSdk = false;
 
-  @Deprecated("Unused internally.")
-  bool chaseDependencies;
-
-  /// Patch files to apply on the core libraries for a specific target platform.
-  ///
-  /// Keys in the map are the name of the library with no `dart:` prefix, for
-  /// example:
-  ///
-  ///      {'core': [
-  ///         'file:///location/of/core/patch_file1.dart',
-  ///         'file:///location/of/core/patch_file2.dart',
-  ///         ]}
-  ///
-  /// The values can be either absolute or relative URIs. Absolute URIs are read
-  /// directly, while relative URIs are resolved from the [sdkRoot].
-  // TODO(sigmund): provide also a flag to load this data from a file (like
-  // libraries.json)
-  @Deprecated("Unused internally.")
-  Map<String, List<Uri>> targetPatches = <String, List<Uri>>{};
-
   /// Enable or disable experimental features. Features mapping to `true` are
   /// explicitly enabled. Features mapping to `false` are explicitly disabled.
   /// Features not mentioned in the map will have their default value.
   Map<ExperimentalFlag, bool> explicitExperimentalFlags =
       <ExperimentalFlag, bool>{};
 
-  Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting;
-  AllowedExperimentalFlags allowedExperimentalFlagsForTesting;
-  Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting;
-  Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting;
+  Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting;
+  AllowedExperimentalFlags? allowedExperimentalFlagsForTesting;
+  Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
+  Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
   /// evaluation. If the map is `null`, all environment constants will be left
   /// unevaluated and can be evaluated by a constant evaluator later.
-  Map<String, String> environmentDefines = null;
+  Map<String, String>? environmentDefines = null;
 
   /// Report an error if a constant could not be evaluated (either because it
   /// is an environment constant and no environment was specified, or because
@@ -171,12 +149,7 @@ class CompilerOptions {
   ///   * how to deal with non-standard features like `native` extensions.
   ///
   /// If not specified, the default target is the VM.
-  Target target;
-
-  /// Deprecated. Has no affect on front-end.
-  // TODO(dartbug.com/37514) Remove this field once DDK removes its uses of it.
-  @Deprecated("Unused internally.")
-  bool enableAsserts = false;
+  Target? target;
 
   /// Whether to show verbose messages (mainly for debugging and performance
   /// tracking).
@@ -270,18 +243,23 @@ class CompilerOptions {
   /// Verbosity level used for filtering emitted messages.
   Verbosity verbosity = Verbosity.all;
 
-  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
-  }
-
-  /// Returns
+  /// Returns `true` if the experiment with the given [flag] is enabled, either
+  /// explicitly or implicitly.
+  ///
+  /// Note that libraries can still opt out of the experiment by having a lower
+  /// language version than required for the experiment.
   bool isExperimentEnabled(ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
         explicitExperimentalFlags: explicitExperimentalFlags,
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
   }
 
+  /// Returns `true` if the experiment with the given [flag] is enabled either
+  /// explicitly or implicitly for the library with the given [importUri].
+  ///
+  /// Note that the library can still opt out of the experiment by having a
+  /// lower language version than required for the experiment. See
+  /// [getExperimentEnabledVersionInLibrary].
   bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
     return flags.isExperimentEnabledInLibrary(flag, importUri,
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
@@ -289,6 +267,11 @@ class CompilerOptions {
         allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
   }
 
+  /// Returns the minimum language version needed for a library with the given
+  /// [importUri] to opt in to the experiment with the given [flag].
+  ///
+  /// Note that the experiment might not be enabled at all for the library, as
+  /// computed by [isExperimentEnabledInLibrary].
   Version getExperimentEnabledVersionInLibrary(
       ExperimentalFlag flag, Uri importUri) {
     return flags.getExperimentEnabledVersionInLibrary(
@@ -300,6 +283,8 @@ class CompilerOptions {
             experimentReleasedVersionForTesting);
   }
 
+  /// Return `true` if the experiment with the given [flag] is enabled for the
+  /// library with the given [importUri] and language [version].
   bool isExperimentEnabledInLibraryByVersion(
       ExperimentalFlag flag, Uri importUri, Version version) {
     return flags.isExperimentEnabledInLibraryByVersion(flag, importUri, version,
@@ -341,8 +326,8 @@ class CompilerOptions {
     }
     if (target != other.target) {
       if (target.runtimeType != other.target.runtimeType) return false;
-      if (target.name != other.target.name) return false;
-      if (target.flags != other.target.flags) return false;
+      if (target?.name != other.target?.name) return false;
+      if (target?.flags != other.target?.flags) return false;
     }
     // enableAsserts is not used anywhere, so ignored here.
     if (!ignoreVerbose) {
@@ -379,7 +364,7 @@ class CompilerOptions {
 
 /// Parse experimental flag arguments of the form 'flag' or 'no-flag' into a map
 /// from 'flag' to `true` or `false`, respectively.
-Map<String, bool> parseExperimentalArguments(List<String> arguments) {
+Map<String, bool> parseExperimentalArguments(Iterable<String>? arguments) {
   Map<String, bool> result = {};
   if (arguments != null) {
     for (String argument in arguments) {
@@ -407,14 +392,14 @@ Map<String, bool> parseExperimentalArguments(List<String> arguments) {
 /// If an expired flag is set to its default value the supplied warning
 /// handler is called with a warning message.
 Map<ExperimentalFlag, bool> parseExperimentalFlags(
-    Map<String, bool> experiments,
-    {void onError(String message),
-    void onWarning(String message)}) {
+    Map<String, bool>? experiments,
+    {required void Function(String message) onError,
+    void Function(String message)? onWarning}) {
   Map<ExperimentalFlag, bool> flags = <ExperimentalFlag, bool>{};
   if (experiments != null) {
     for (String experiment in experiments.keys) {
-      bool value = experiments[experiment];
-      ExperimentalFlag flag = parseExperimentalFlag(experiment);
+      bool value = experiments[experiment]!;
+      ExperimentalFlag? flag = parseExperimentalFlag(experiment);
       if (flag == null) {
         onError("Unknown experiment: " + experiment);
       } else if (flags.containsKey(flag)) {
@@ -423,7 +408,7 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
               "Experiment specified with conflicting values: " + experiment);
         }
       } else {
-        if (expiredExperimentalFlags[flag]) {
+        if (expiredExperimentalFlags[flag]!) {
           if (value != defaultExperimentalFlags[flag]) {
             /// Produce an error when the value is not the default value.
             if (value) {
@@ -435,7 +420,7 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
                   experiment +
                   " is no longer supported.");
             }
-            value = defaultExperimentalFlags[flag];
+            value = defaultExperimentalFlags[flag]!;
           } else if (onWarning != null) {
             /// Produce a warning when the value is the default value.
             if (value) {
@@ -480,11 +465,11 @@ class InvocationMode {
   /// If a name isn't recognized and [onError] isn't provided, an error is
   /// thrown.
   static Set<InvocationMode> parseArguments(String arg,
-      {void Function(String) onError}) {
+      {void Function(String)? onError}) {
     Set<InvocationMode> result = {};
     for (String name in arg.split(',')) {
       if (name.isNotEmpty) {
-        InvocationMode mode = fromName(name);
+        InvocationMode? mode = fromName(name);
         if (mode == null) {
           String message = "Unknown invocation mode '$name'.";
           if (onError != null) {
@@ -501,7 +486,7 @@ class InvocationMode {
   }
 
   /// Returns the [InvocationMode] with the given [name].
-  static InvocationMode fromName(String name) {
+  static InvocationMode? fromName(String name) {
     for (InvocationMode invocationMode in values) {
       if (name == invocationMode.name) {
         return invocationMode;
@@ -548,7 +533,7 @@ class Verbosity {
   /// If [name] isn't recognized and [onError] isn't provided, an error is
   /// thrown.
   static Verbosity parseArgument(String name,
-      {void Function(String) onError, Verbosity defaultValue: Verbosity.all}) {
+      {void Function(String)? onError, Verbosity defaultValue: Verbosity.all}) {
     for (Verbosity verbosity in values) {
       if (name == verbosity.name) {
         return verbosity;
@@ -576,7 +561,6 @@ class Verbosity {
           case Severity.ignored:
             return false;
         }
-        break;
       case Verbosity.warning:
         switch (severity) {
           case Severity.internalProblem:
@@ -588,7 +572,6 @@ class Verbosity {
           case Severity.ignored:
             return false;
         }
-        break;
       case Verbosity.info:
         switch (severity) {
           case Severity.internalProblem:
@@ -600,7 +583,6 @@ class Verbosity {
           case Severity.ignored:
             return false;
         }
-        break;
       case Verbosity.all:
         return true;
     }

@@ -45,6 +45,7 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -67,7 +68,6 @@ class LibraryAnalyzer {
   final FileState _library;
 
   final InheritanceManager3 _inheritance;
-  final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
 
   final LibraryElementImpl _libraryElement;
@@ -87,7 +87,6 @@ class LibraryAnalyzer {
       this._analysisOptions,
       this._declaredVariables,
       this._sourceFactory,
-      this._isLibraryUri,
       this._context,
       this._libraryElement,
       this._inheritance,
@@ -175,15 +174,13 @@ class LibraryAnalyzer {
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
     for (var file in _library.libraryFiles) {
-      if (file.source != null) {
-        IgnoreValidator(
-          _getErrorReporter(file),
-          _getErrorListener(file).errors,
-          _fileToIgnoreInfo[file]!,
-          _fileToLineInfo[file]!,
-          _analysisOptions.unignorableNames,
-        ).reportErrors();
-      }
+      IgnoreValidator(
+        _getErrorReporter(file),
+        _getErrorListener(file).errors,
+        _fileToIgnoreInfo[file]!,
+        _fileToLineInfo[file]!,
+        _analysisOptions.unignorableNames,
+      ).reportErrors();
     }
 
     timerLibraryAnalyzerVerify.stop();
@@ -255,10 +252,6 @@ class LibraryAnalyzer {
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
-    if (file.source == null) {
-      return;
-    }
-
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
@@ -306,6 +299,9 @@ class LibraryAnalyzer {
       verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
+      // TODO(srawlins): Re-enable this check once Flutter engine path is clear.
+      // verifier.generateUnnecessaryImportHints(
+      //     errorReporter, _usedImportedElementsList);
     }
 
     // Unused local elements.
@@ -332,14 +328,10 @@ class LibraryAnalyzer {
   void _computeLints(FileState file, LinterContextUnit currentUnit,
       List<LinterContextUnit> allUnits) {
     var unit = currentUnit.unit;
-    if (file.source == null) {
-      return;
-    }
+    var errorReporter = _getErrorReporter(file);
 
-    ErrorReporter errorReporter = _getErrorReporter(file);
-
-    var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
-    var visitors = <AstVisitor>[];
+    var enableTiming = _analysisOptions.enableTiming;
+    var nodeRegistry = NodeLintRegistry(enableTiming);
 
     var context = LinterContextImpl(
       allUnits,
@@ -351,28 +343,22 @@ class LibraryAnalyzer {
       _analysisOptions,
       file.workspacePackage,
     );
-    for (Linter linter in _analysisOptions.lintRules) {
+    for (var linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
+      var timer = enableTiming ? lintRegistry.getTimer(linter) : null;
+      timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
+      timer?.stop();
     }
 
     // Run lints that handle specific node types.
     unit.accept(LinterVisitor(
-        nodeRegistry, ExceptionHandlingDelegatingAstVisitor.logException));
-
-    // Run visitor based lints.
-    if (visitors.isNotEmpty) {
-      AstVisitor visitor = ExceptionHandlingDelegatingAstVisitor(
-          visitors, ExceptionHandlingDelegatingAstVisitor.logException);
-      unit.accept(visitor);
-    }
+        nodeRegistry,
+        LinterExceptionHandler(_analysisOptions.propagateLinterExceptions)
+            .logException));
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
-    if (file.source == null) {
-      return;
-    }
-
     RecordingErrorListener errorListener = _getErrorListener(file);
 
     CodeChecker checker = CodeChecker(
@@ -477,7 +463,7 @@ class LibraryAnalyzer {
       RecordingErrorListener listener = _getErrorListener(file);
       return ErrorReporter(
         listener,
-        file.source!,
+        file.source,
         isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
       );
     });
@@ -507,6 +493,9 @@ class LibraryAnalyzer {
   }
 
   bool _isExistingSource(Source source) {
+    if (source is InSummarySource) {
+      return true;
+    }
     for (var file in _library.directReferencedFiles) {
       if (file.uri == source.uri) {
         return file.exists;
@@ -514,11 +503,6 @@ class LibraryAnalyzer {
     }
     // A library can refer to itself with an empty URI.
     return source == _library.source;
-  }
-
-  /// Return `true` if the given [source] is a library.
-  bool _isLibrarySource(Source source) {
-    return _isLibraryUri(source.uri);
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
@@ -558,12 +542,14 @@ class LibraryAnalyzer {
           if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
             directive.prefix?.staticElement = importElement.prefix;
-            Source? source = importElement.importedLibrary?.source;
-            if (source != null && !_isLibrarySource(source)) {
-              libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [directive.uri]);
+            var importedLibrary = importElement.importedLibrary;
+            if (importedLibrary is LibraryElementImpl) {
+              if (importedLibrary.hasPartOfDirective) {
+                libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [directive.uri]);
+              }
             }
           }
         }
@@ -571,12 +557,14 @@ class LibraryAnalyzer {
         for (ExportElement exportElement in _libraryElement.exports) {
           if (matchNodeElement(directive, exportElement)) {
             directive.element = exportElement;
-            Source? source = exportElement.exportedLibrary?.source;
-            if (source != null && !_isLibrarySource(source)) {
-              libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [directive.uri]);
+            var exportedLibrary = exportElement.exportedLibrary;
+            if (exportedLibrary is LibraryElementImpl) {
+              if (exportedLibrary.hasPartOfDirective) {
+                libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [directive.uri]);
+              }
             }
           }
         }
@@ -661,10 +649,6 @@ class LibraryAnalyzer {
 
   void _resolveFile(FileState file, CompilationUnit unit) {
     var source = file.source;
-    if (source == null) {
-      return;
-    }
-
     RecordingErrorListener errorListener = _getErrorListener(file);
 
     var unitElement = unit.declaredElement as CompilationUnitElementImpl;
@@ -686,7 +670,11 @@ class LibraryAnalyzer {
         errorListener: errorListener,
         featureSet: unit.featureSet,
         nameScope: _libraryElement.scope,
-        elementWalker: ElementWalker.forCompilationUnit(unitElement),
+        elementWalker: ElementWalker.forCompilationUnit(
+          unitElement,
+          libraryFilePath: _library.path,
+          unitFilePath: file.path,
+        ),
       ),
     );
 
@@ -698,13 +686,10 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper? flowAnalysisHelper;
-    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      flowAnalysisHelper =
-          FlowAnalysisHelper(_typeSystem, _testingData != null);
-      _testingData?.recordFlowAnalysisDataForTesting(
-          file.uri, flowAnalysisHelper.dataForTesting!);
-    }
+    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(_typeSystem,
+        _testingData != null, unit.featureSet.isEnabled(Feature.non_nullable));
+    _testingData?.recordFlowAnalysisDataForTesting(
+        file.uri, flowAnalysisHelper.dataForTesting!);
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,

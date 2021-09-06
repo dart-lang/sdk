@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//@dart=2.13
+//@dart=2.14
 
 /*member: main:ignore*/
 void main() {
@@ -30,13 +30,19 @@ Object? sink;
 /*prod.member: cannotRecognize:function(thing) {
   return J.$shru$n(thing, 1);
 }*/
+/*canary.member: cannotRecognize:function(thing) {
+  return B._asInt(J.$shru$n(thing, 1));
+}*/
 int cannotRecognize(dynamic thing) {
   return thing >>> 1;
 }
 
 @pragma('dart2js:noInline')
-/*member: cannotConstantFold:function() {
+/*spec|prod.member: cannotConstantFold:function() {
   return C.JSInt_methods.$shru(1, -1);
+}*/
+/*canary.member: cannotConstantFold:function() {
+  return A.JSInt_methods.$shru(1, -1);
 }*/
 int cannotConstantFold() {
   var a = 1;
@@ -62,16 +68,22 @@ int constantFoldNegative() {
 }
 
 @pragma('dart2js:noInline')
-/*member: unspecialized:function(a) {
+/*spec|prod.member: unspecialized:function(a) {
   return C.JSInt_methods.$shru(1, a);
+}*/
+/*canary.member: unspecialized:function(a) {
+  return A.JSInt_methods.$shru(1, a);
 }*/
 int unspecialized(int a) {
   return 1 >>> a;
 }
 
 @pragma('dart2js:noInline')
-/*member: otherPositive2:function(param) {
+/*spec|prod.member: otherPositive2:function(param) {
   return C.JSInt_methods._shruOtherPositive$1(1, param ? 1 : 2);
+}*/
+/*canary.member: otherPositive2:function(param) {
+  return A.JSInt_methods._shruOtherPositive$1(1, param ? 1 : 2);
 }*/
 int otherPositive2(bool param) {
   var a = param ? 1 : 2;
@@ -98,8 +110,11 @@ int shiftByMasked(bool param1, int shift) {
 }
 
 @pragma('dart2js:noInline')
-/*member: otherPositive6:function(a, b) {
+/*spec|prod.member: otherPositive6:function(a, b) {
   return C.JSInt_methods._shruOtherPositive$1(a, b);
+}*/
+/*canary.member: otherPositive6:function(a, b) {
+  return A.JSInt_methods._shruOtherPositive$1(a, b);
 }*/
 int otherPositive6(int a, int b) {
   return a >>> b;

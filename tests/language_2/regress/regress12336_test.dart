@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js that used to generate wrong code for
 // [foo].
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 main() {
   var result = foo(1, 2);
@@ -18,7 +19,8 @@ main() {
   Expect.listEquals([], result[1]);
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 foo(a, b) {
   () => 42;
   if (a is List) {

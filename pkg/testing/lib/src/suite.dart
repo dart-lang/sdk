@@ -14,7 +14,7 @@ abstract class Suite {
 
   final String kind;
 
-  final Uri statusFile;
+  final Uri? statusFile;
 
   Suite(this.name, this.kind, this.statusFile);
 

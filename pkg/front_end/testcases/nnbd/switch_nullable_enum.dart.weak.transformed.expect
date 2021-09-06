@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-class Enum extends core::Object /*isEnum*/  {
+class Enum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<self::Enum> values = #C7;
@@ -20,7 +20,7 @@ class Enum extends core::Object /*isEnum*/  {
     : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self::Enum::_name};
+    return this.{self::Enum::_name}{core::String};
 }
 static method method1(self::Enum? e) → core::int {
   switch(e) {
@@ -99,7 +99,7 @@ static method main() → dynamic {
   self::expect(1, self::method4(null));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual)) {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
     throw "Expected ${expected}, actual ${actual}.";
   }
 }

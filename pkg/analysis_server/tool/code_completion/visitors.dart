@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
@@ -21,15 +19,15 @@ class ExpectedCompletion {
   /// Some completions are special cased from the DAS "import" for instance is
   /// suggested as a completion "import '';", the completion string here in this
   /// instance would have the value "import '';".
-  final String _completionString;
+  final String? _completionString;
 
-  final protocol.CompletionSuggestionKind _kind;
+  final protocol.CompletionSuggestionKind? _kind;
 
   final int _lineNumber;
 
   final int _columnNumber;
 
-  final protocol.ElementKind _elementKind;
+  final protocol.ElementKind? _elementKind;
 
   ExpectedCompletion(this._filePath, this._entity, this._lineNumber,
       this._columnNumber, this._kind, this._elementKind)
@@ -74,11 +72,11 @@ class ExpectedCompletion {
 
   String get completion => _completionString ?? _entity.toString();
 
-  protocol.ElementKind get elementKind => _elementKind;
+  protocol.ElementKind? get elementKind => _elementKind;
 
   String get filePath => _filePath;
 
-  protocol.CompletionSuggestionKind get kind => _kind;
+  protocol.CompletionSuggestionKind? get kind => _kind;
 
   int get lineNumber => _lineNumber;
 
@@ -90,9 +88,7 @@ class ExpectedCompletion {
 
   bool matches(protocol.CompletionSuggestion completionSuggestion) {
     if (completionSuggestion.completion == completion) {
-      if (kind != null &&
-          completionSuggestion.kind != null &&
-          completionSuggestion.kind != kind) {
+      if (kind != null && completionSuggestion.kind != kind) {
         return false;
       }
       if (elementKind != null &&
@@ -107,14 +103,16 @@ class ExpectedCompletion {
 
   /// Return a map used to represent this expected completion in a JSON structure.
   Map<String, dynamic> toJson() {
+    var kind = _kind;
+    var elementKind = _elementKind;
     return {
       'filePath': _filePath,
       'offset': _entity.offset,
       'lineNumber': _lineNumber,
       'columnNumber': _columnNumber,
       'completionString': _completionString,
-      if (_kind != null) 'kind': _kind.toJson(),
-      if (_elementKind != null) 'elementKind': _elementKind.toJson(),
+      if (kind != null) 'kind': kind.toJson(),
+      if (elementKind != null) 'elementKind': elementKind.toJson(),
     };
   }
 
@@ -128,7 +126,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
   final String filePath;
 
-  CompilationUnit _enclosingCompilationUnit;
+  late CompilationUnit _enclosingCompilationUnit;
 
   /// This boolean is set to enable whether or not we should assert that some
   /// found keyword in Dart syntax should be in the completion set returned from
@@ -144,26 +142,28 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   final bool _doExpectCommentRefs = false;
 
   ExpectedCompletionsVisitor(this.filePath)
-      : expectedCompletions = <ExpectedCompletion>[],
-        assert(filePath != null);
+      : expectedCompletions = <ExpectedCompletion>[];
 
-  void safelyRecordEntity(SyntacticEntity entity,
-      {protocol.CompletionSuggestionKind kind,
-      protocol.ElementKind elementKind}) {
+  void safelyRecordEntity(SyntacticEntity? entity,
+      {protocol.CompletionSuggestionKind? kind,
+      protocol.ElementKind? elementKind}) {
     // Only record if this entity is not null, has a length, etc.
     if (entity != null && entity.offset > 0 && entity.length > 0) {
       // Compute the line number at this offset
-      var lineNumber = _enclosingCompilationUnit.lineInfo
+      var lineNumber = _enclosingCompilationUnit.lineInfo!
           .getLocation(entity.offset)
           .lineNumber;
 
-      var columnNumber = _enclosingCompilationUnit.lineInfo
+      var columnNumber = _enclosingCompilationUnit.lineInfo!
           .getLocation(entity.offset)
           .columnNumber;
 
+      bool isKeyword() => kind == protocol.CompletionSuggestionKind.KEYWORD;
+
       // Some special cases in the if and if-else blocks, 'import' from the
       // DAS is "import '';" which we want to be sure to match.
-      if (entity.toString() == 'async') {
+      var lexeme = entity.toString();
+      if (lexeme == 'async') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -172,7 +172,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             ASYNC_STAR,
             kind,
             elementKind));
-      } else if (entity.toString() == 'default') {
+      } else if (lexeme == 'default') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -181,7 +181,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             DEFAULT_COLON,
             kind,
             elementKind));
-      } else if (entity.toString() == 'deferred') {
+      } else if (lexeme == 'deferred') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -190,7 +190,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             DEFERRED_AS,
             kind,
             elementKind));
-      } else if (entity.toString() == 'export') {
+      } else if (lexeme == 'export' && isKeyword()) {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -199,7 +199,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             EXPORT_STATEMENT,
             kind,
             elementKind));
-      } else if (entity.toString() == 'import') {
+      } else if (lexeme == 'import' && isKeyword()) {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -208,7 +208,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             IMPORT_STATEMENT,
             kind,
             elementKind));
-      } else if (entity.toString() == 'part') {
+      } else if (lexeme == 'part' && isKeyword()) {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -217,7 +217,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             PART_STATEMENT,
             kind,
             elementKind));
-      } else if (entity.toString() == 'sync') {
+      } else if (lexeme == 'sync') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -226,7 +226,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             SYNC_STAR,
             kind,
             elementKind));
-      } else if (entity.toString() == 'yield') {
+      } else if (lexeme == 'yield') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -242,7 +242,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  void safelyRecordKeywordCompletion(SyntacticEntity entity) {
+  void safelyRecordKeywordCompletion(SyntacticEntity? entity) {
     if (_doExpectKeywordCompletions) {
       safelyRecordEntity(entity,
           kind: protocol.CompletionSuggestionKind.KEYWORD);
@@ -617,9 +617,10 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (_doIncludeSimpleIdentifier(node)) {
-      protocol.ElementKind elementKind;
-      if (node.staticElement?.kind != null) {
-        elementKind = protocol.convertElementKind(node.staticElement.kind);
+      protocol.ElementKind? elementKind;
+      var kind = node.staticElement?.kind;
+      if (kind != null) {
+        elementKind = protocol.convertElementKind(kind);
 
         // If the completed element kind is a getter or setter set the element
         // kind to null as the exact kind from the DAS is unknown at this
@@ -651,8 +652,8 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
         //      constructor invocation in which case the "Foo" above is
         //      considered a constructor still
         if (elementKind == protocol.ElementKind.CLASS) {
-          if (node.parent?.parent is ConstructorName) {
-            var constructorName = node.parent.parent as ConstructorName;
+          var constructorName = node.parent?.parent;
+          if (constructorName is ConstructorName) {
             var instanceCreationExpression = constructorName.parent;
             if (instanceCreationExpression is InstanceCreationExpression &&
                 constructorName.type.name == node) {
@@ -759,12 +760,13 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   bool _doIncludeSimpleIdentifier(SimpleIdentifier node) {
     // Do not continue if this node is synthetic, or if the node is in a
     // declaration context
-    if (node == null || node.isSynthetic || node.inDeclarationContext()) {
+    if (node.isSynthetic || node.inDeclarationContext()) {
       return false;
     }
 
     // If the type of the SimpleIdentifier is dynamic, don't include.
-    if (node.staticType != null && node.staticType.isDynamic) {
+    var staticType = node.staticType;
+    if (staticType != null && staticType.isDynamic) {
       return false;
     }
 
@@ -776,6 +778,11 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
     // Ignore the SimpleIdentifiers that make up library directives.
     if (node.thisOrAncestorOfType<LibraryDirective>() != null) {
+      return false;
+    }
+    // Ignore identifiers in hide and show combinators because we don't suggest
+    // names that are already in the list.
+    if (node.parent is HideCombinator || node.parent is ShowCombinator) {
       return false;
     }
 

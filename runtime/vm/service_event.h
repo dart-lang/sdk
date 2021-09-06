@@ -7,6 +7,7 @@
 
 #include "vm/globals.h"
 #include "vm/heap/heap.h"
+#include "vm/profiler_service.h"
 
 namespace dart {
 
@@ -44,6 +45,7 @@ class ServiceEvent {
     kBreakpointAdded,
     kBreakpointResolved,
     kBreakpointRemoved,
+    kBreakpointUpdated,
     kInspect,
     kDebuggerSettingsUpdate,
 
@@ -58,6 +60,10 @@ class ServiceEvent {
     kTimelineEvents,
     // Sent when SetVMTimelineFlags is called.
     kTimelineStreamSubscriptionsUpdate,
+
+    kUserTagChanged,
+
+    kCpuSamples,
 
     kIllegal,
   };
@@ -110,6 +116,14 @@ class ServiceEvent {
   const char* flag_new_value() const { return flag_new_value_; }
   void set_flag_new_value(const char* value) { flag_new_value_ = value; }
 
+  const char* previous_tag() const { return previous_tag_; }
+  void set_previous_tag(const char* previous_tag) {
+    previous_tag_ = previous_tag;
+  }
+
+  const char* updated_tag() const { return updated_tag_; }
+  void set_updated_tag(const char* updated_tag) { updated_tag_ = updated_tag; }
+
   const char* embedder_kind() const { return embedder_kind_; }
 
   const char* KindAsCString() const;
@@ -128,7 +142,8 @@ class ServiceEvent {
   Breakpoint* breakpoint() const { return breakpoint_; }
   void set_breakpoint(Breakpoint* bpt) {
     ASSERT(kind() == kPauseBreakpoint || kind() == kBreakpointAdded ||
-           kind() == kBreakpointResolved || kind() == kBreakpointRemoved);
+           kind() == kBreakpointResolved || kind() == kBreakpointRemoved ||
+           kind() == kBreakpointUpdated);
     breakpoint_ = bpt;
   }
 
@@ -201,6 +216,9 @@ class ServiceEvent {
     timeline_event_block_ = block;
   }
 
+  Profile* cpu_profile() const { return cpu_profile_; }
+  void set_cpu_profile(Profile* profile) { cpu_profile_ = profile; }
+
   void PrintJSON(JSONStream* js) const;
 
   void PrintJSONHeader(JSONObject* jsobj) const;
@@ -215,6 +233,8 @@ class ServiceEvent {
   EventKind kind_;
   const char* flag_name_;
   const char* flag_new_value_;
+  const char* previous_tag_;
+  const char* updated_tag_;
   const char* embedder_kind_;
   const char* embedder_stream_id_;
   Breakpoint* breakpoint_;
@@ -232,6 +252,7 @@ class ServiceEvent {
   intptr_t bytes_length_;
   LogRecord log_record_;
   ExtensionEvent extension_event_;
+  Profile* cpu_profile_;
   int64_t timestamp_;
 };
 

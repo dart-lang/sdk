@@ -18,19 +18,10 @@
     "Dynamic access of 'name'.": 2,
     "Dynamic access of 'type'.": 1
   },
-  "pkg/front_end/lib/src/fasta/crash.dart": {
-    "Dynamic access of 'trace'.": 1,
-    "Dynamic access of 'uri'.": 1,
-    "Dynamic access of 'charOffset'.": 1,
-    "Dynamic access of 'error'.": 1
-  },
   "pkg/front_end/lib/src/fasta/dill/dill_member_builder.dart": {
     "Dynamic access of 'fileUri'.": 1
   },
   "pkg/_fe_analyzer_shared/lib/src/scanner/string_canonicalizer.dart": {
     "Dynamic invocation of '[]'.": 2
-  },
-  "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": {
-    "Dynamic invocation of 'buildForEffect'.": 1
   }
 }

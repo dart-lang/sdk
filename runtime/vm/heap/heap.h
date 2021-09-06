@@ -211,8 +211,8 @@ class Heap {
 #if !defined(HASH_IN_OBJECT_HEADER)
   // Associate an identity hashCode with an object. An non-existent hashCode
   // is equal to 0.
-  void SetHash(ObjectPtr raw_obj, intptr_t hash) {
-    SetWeakEntry(raw_obj, kIdentityHashes, hash);
+  intptr_t SetHashIfNotSet(ObjectPtr raw_obj, intptr_t hash) {
+    return SetWeakEntryIfNonExistent(raw_obj, kIdentityHashes, hash);
   }
   intptr_t GetHash(ObjectPtr raw_obj) const {
     return GetWeakEntry(raw_obj, kIdentityHashes);
@@ -251,6 +251,9 @@ class Heap {
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const;
   void SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val);
+  intptr_t SetWeakEntryIfNonExistent(ObjectPtr raw_obj,
+                                     WeakSelector sel,
+                                     intptr_t val);
 
   WeakTable* GetWeakTable(Space space, WeakSelector selector) const {
     if (space == kNew) {

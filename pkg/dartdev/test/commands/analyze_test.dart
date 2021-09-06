@@ -19,6 +19,9 @@ const String _analyzeDescriptionText = 'Analyze Dart code in a directory.';
 const String _analyzeUsageText =
     'Usage: dart analyze [arguments] [<directory>]';
 
+const String _analyzeVerboseUsageText =
+    'Usage: dart [vm-options] analyze [arguments] [<directory>]';
+
 const String _unusedImportAnalysisOptions = '''
 analyzer:
   errors:
@@ -53,6 +56,119 @@ void defineAnalysisError() {
       expect(error.contextMessages, hasLength(2));
     });
   });
+
+  group('sorting', () {
+    test('severity', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'a.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'WARNING',
+          'location': {
+            'file': 'a.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'ERROR',
+          'location': {
+            'file': 'a.dart',
+          }
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].isError, isTrue);
+      expect(errors[1].isWarning, isTrue);
+      expect(errors[2].isInfo, isTrue);
+    });
+
+    test('file', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'c.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'b.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'a.dart',
+          }
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].file, equals('a.dart'));
+      expect(errors[1].file, equals('b.dart'));
+      expect(errors[2].file, equals('c.dart'));
+    });
+
+    test('offset', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 8}
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 6}
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 4}
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].offset, equals(4));
+      expect(errors[1].offset, equals(6));
+      expect(errors[2].offset, equals(8));
+    });
+
+    test('message', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 8},
+          'message': 'C'
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 6},
+          'message': 'B'
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 4},
+          'message': 'A'
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].message, equals('A'));
+      expect(errors[1].message, equals('B'));
+      expect(errors[2].message, equals('C'));
+    });
+  });
 }
 
 void defineAnalyze() {
@@ -72,14 +188,46 @@ void defineAnalyze() {
     expect(result.stdout, contains(_analyzeUsageText));
   });
 
-  test('multiple directories', () {
+  test('--help --verbose', () {
     p = project();
-    var result = p.runSync(['analyze', '/no/such/dir1/', '/no/such/dir2/']);
+    var result = p.runSync(['analyze', '--help', '--verbose']);
 
-    expect(result.exitCode, 64);
-    expect(result.stdout, isEmpty);
-    expect(result.stderr, contains('Only one directory or file is expected.'));
-    expect(result.stderr, contains(_analyzeUsageText));
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(_analyzeDescriptionText));
+    expect(result.stdout, contains(_analyzeVerboseUsageText));
+  });
+
+  group('multiple items', () {
+    TestProject secondProject;
+
+    tearDown(() => secondProject?.dispose());
+
+    test('folder and file', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      secondProject = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath, secondProject.mainPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('lib/main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('2 issues found.'));
+    });
+
+    test('two folders', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      secondProject = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath, secondProject.dirPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('2 issues found.'));
+    });
   });
 
   test('no such directory', () {
@@ -260,8 +408,7 @@ int f() {
       'correction':
           "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
       'code': 'referenced_before_declaration',
-      'url':
-          'https:://dart.dev/tools/diagnostic-messages#referenced_before_declaration',
+      'url': 'https:://dart.dev/diagnostics/referenced_before_declaration',
       'contextMessages': [
         {
           'message': "The declaration of 's' is on line 3.",
@@ -330,7 +477,7 @@ int f() {
             '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
             '"message":"The declaration of \'s\' is on line 3."}],'
             '"documentation":'
-            '"https:://dart.dev/tools/diagnostic-messages#referenced_before_declaration"}]}');
+            '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}');
       });
     });
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -25,15 +23,16 @@ void main() {
 
 @reflectiveTest
 class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
-  Folder flutterFolder;
+  late Folder flutterFolder;
 
   final Map<FlutterService, List<String>> flutterSubscriptions = {};
 
   final Completer<void> _outlineReceived = Completer();
-  FlutterOutline outline;
+  late FlutterOutline outline;
 
   FlutterDomainHandler get flutterHandler =>
-      server.handlers.singleWhere((handler) => handler is FlutterDomainHandler);
+      server.handlers.singleWhere((handler) => handler is FlutterDomainHandler)
+          as FlutterDomainHandler;
 
   void addFlutterSubscription(FlutterService service, String file) {
     // add file to subscription
@@ -73,10 +72,10 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_children() async {
-    newFile('$projectPath/.packages', content: '''
+    newDotPackagesFile(projectPath, content: '''
 flutter:${flutterFolder.toUri()}
 ''');
-    newFile('$projectPath/analysis_options.yaml', content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   strong-mode: true
 ''');
@@ -97,25 +96,25 @@ class MyWidget extends StatelessWidget {
     await prepareOutline();
     var unitOutline = outline;
 
-    var myWidgetOutline = unitOutline.children[0];
+    var myWidgetOutline = unitOutline.children![0];
     expect(myWidgetOutline.kind, FlutterOutlineKind.DART_ELEMENT);
-    expect(myWidgetOutline.dartElement.name, 'MyWidget');
+    expect(myWidgetOutline.dartElement!.name, 'MyWidget');
 
-    var buildOutline = myWidgetOutline.children[0];
+    var buildOutline = myWidgetOutline.children![0];
     expect(buildOutline.kind, FlutterOutlineKind.DART_ELEMENT);
-    expect(buildOutline.dartElement.name, 'build');
+    expect(buildOutline.dartElement!.name, 'build');
 
-    var columnOutline = buildOutline.children[0];
+    var columnOutline = buildOutline.children![0];
     expect(columnOutline.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(columnOutline.className, 'Column');
     expect(columnOutline.children, hasLength(2));
 
-    var textOutlineA = columnOutline.children[0];
+    var textOutlineA = columnOutline.children![0];
     expect(textOutlineA.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textOutlineA.className, 'Text');
     expect(textOutlineA.offset, code.indexOf("const Text('aaa')"));
 
-    var textOutlineB = columnOutline.children[1];
+    var textOutlineB = columnOutline.children![1];
     expect(textOutlineB.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textOutlineB.className, 'Text');
     expect(textOutlineB.offset, code.indexOf("const Text('bbb')"));

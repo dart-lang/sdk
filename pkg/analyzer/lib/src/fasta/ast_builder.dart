@@ -140,6 +140,12 @@ class AstBuilder extends StackListener {
   /// `true` if variance behavior is enabled
   final bool enableVariance;
 
+  /// `true` if constructor tearoffs are enabled
+  final bool enableConstructorTearoffs;
+
+  /// `true` if extension types are enabled;
+  final bool enableExtensionTypes;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
@@ -155,6 +161,9 @@ class AstBuilder extends StackListener {
         enableNonFunctionTypeAliases =
             _featureSet.isEnabled(Feature.nonfunction_type_aliases),
         enableVariance = _featureSet.isEnabled(Feature.variance),
+        enableConstructorTearoffs =
+            _featureSet.isEnabled(Feature.constructor_tearoffs),
+        enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -241,15 +250,16 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       extensionKeyword: extensionKeyword,
+      typeKeyword: null,
       name: name,
       typeParameters: typeParameters,
-      onKeyword: Tokens.ON,
+      onKeyword: Tokens.on_(),
       extendedType: ast.typeName(
         _tmpSimpleIdentifier(),
         null,
       ), // extendedType is set in [endExtensionDeclaration]
-      leftBracket: Tokens.OPEN_CURLY_BRACKET,
-      rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+      leftBracket: Tokens.openCurlyBracket(),
+      rightBracket: Tokens.closeCurlyBracket(),
       members: [],
     );
 
@@ -467,10 +477,10 @@ class AstBuilder extends StackListener {
         target = target.function;
       } else if (target is MethodInvocation) {
         argumentList = target.argumentList;
-        target = target.target!;
+        target = target.target;
       } else if (target is PropertyAccess) {
         argumentList = null;
-        target = target.target!;
+        target = target.target;
       } else {
         break;
       }
@@ -480,15 +490,15 @@ class AstBuilder extends StackListener {
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidSuperInInitializer,
           target.superKeyword, target.superKeyword);
-      return ast.superConstructorInvocation(
-          target.superKeyword, null, null, argumentList!);
+      return ast.superConstructorInvocation(target.superKeyword, null, null,
+          argumentList ?? _syntheticArgumentList(target.superKeyword));
     } else if (target is ThisExpression) {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidThisInInitializer,
           target.thisKeyword, target.thisKeyword);
-      return ast.redirectingConstructorInvocation(
-          target.thisKeyword, null, null, argumentList!);
+      return ast.redirectingConstructorInvocation(target.thisKeyword, null,
+          null, argumentList ?? _syntheticArgumentList(target.thisKeyword));
     }
     return null;
   }
@@ -1181,12 +1191,23 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token token) {
+    if (typeKeyword != null && !enableExtensionTypes) {
+      var feature = ExperimentalFeatures.extension_types;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          typeKeyword,
+          typeKeyword);
+    }
     var type = pop() as TypeAnnotation;
     extensionDeclaration!
       ..extendedType = type
-      ..onKeyword = onKeyword;
+      ..onKeyword = onKeyword
+      ..typeKeyword = typeKeyword;
     extensionDeclaration = null;
   }
 
@@ -1665,7 +1686,7 @@ class AstBuilder extends StackListener {
         asKeyword,
         prefix,
         combinators,
-        semicolon ?? Tokens.SEMICOLON));
+        semicolon ?? Tokens.semicolon()));
   }
 
   @override
@@ -2339,7 +2360,7 @@ class AstBuilder extends StackListener {
           type: type,
           variables: variables,
         ),
-        semicolon ?? Tokens.SEMICOLON));
+        semicolon ?? Tokens.semicolon()));
   }
 
   @override
@@ -2523,9 +2544,9 @@ class AstBuilder extends StackListener {
       extendsClause,
       withClause,
       implementsClause,
-      Tokens.OPEN_CURLY_BRACKET, // leftBracket
+      Tokens.openCurlyBracket(), // leftBracket
       <ClassMember>[],
-      Tokens.CLOSE_CURLY_BRACKET, // rightBracket
+      Tokens.closeCurlyBracket(), // rightBracket
     );
 
     classDeclaration!.nativeClause = nativeClause;
@@ -3014,9 +3035,7 @@ class AstBuilder extends StackListener {
 
       List<Expression> expressions = <Expression>[];
       for (var elem in elements) {
-        if (elem is Expression) {
-          expressions.add(elem);
-        }
+        expressions.add(elem);
       }
 
       push(ast.listLiteral(
@@ -3161,9 +3180,9 @@ class AstBuilder extends StackListener {
       typeParameters,
       onClause,
       implementsClause,
-      Tokens.OPEN_CURLY_BRACKET, // leftBracket
+      Tokens.openCurlyBracket(), // leftBracket
       <ClassMember>[],
-      Tokens.CLOSE_CURLY_BRACKET, // rightBracket
+      Tokens.closeCurlyBracket(), // rightBracket
     );
     declarations.add(mixinDeclaration!);
   }
@@ -3219,6 +3238,20 @@ class AstBuilder extends StackListener {
     pop(); // star
     pop(); // async
     push(ast.nativeFunctionBody(nativeToken, nativeName, semicolon));
+  }
+
+  @override
+  void handleNewAsIdentifier(Token token) {
+    if (!enableConstructorTearoffs) {
+      var feature = ExperimentalFeatures.constructor_tearoffs;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          token,
+          token);
+    }
   }
 
   @override
@@ -3511,6 +3544,25 @@ class AstBuilder extends StackListener {
     var arguments = pop() as TypeArgumentList?;
     var name = pop() as Identifier;
     push(ast.typeName(name, arguments, question: questionMark));
+  }
+
+  @override
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    var typeArguments = pop() as TypeArgumentList;
+    var receiver = pop() as Expression;
+    if (!enableConstructorTearoffs) {
+      var feature = ExperimentalFeatures.constructor_tearoffs;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        typeArguments.leftBracket,
+        typeArguments.rightBracket,
+      );
+    }
+    push(ast.functionReference(
+        function: receiver, typeArguments: typeArguments));
   }
 
   @override
@@ -3831,6 +3883,14 @@ class AstBuilder extends StackListener {
   VariableDeclaration _makeVariableDeclaration(
       SimpleIdentifier name, Token? equals, Expression? initializer) {
     return ast.variableDeclaration(name, equals, initializer);
+  }
+
+  ArgumentList _syntheticArgumentList(Token precedingToken) {
+    int syntheticOffset = precedingToken.end;
+    return ast.argumentList(
+        SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset),
+        [],
+        SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset));
   }
 
   SimpleIdentifier _tmpSimpleIdentifier() {

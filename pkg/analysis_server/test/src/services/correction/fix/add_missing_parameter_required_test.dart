@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -64,13 +62,13 @@ main() {
 
   Future<void> test_function_hasNamed() async {
     await resolveTestCode('''
-test({int a}) {}
+test({int a = 0}) {}
 main() {
   test(1);
 }
 ''');
     await assertHasFix('''
-test(int i, {int a}) {}
+test(int i, {int a = 0}) {}
 main() {
   test(1);
 }
@@ -160,7 +158,7 @@ class A {
 @reflectiveTest
 class AddMissingParameterRequiredTest_Workspace
     extends AddMissingParameterRequiredTest {
-  ChangeWorkspace _workspace;
+  ChangeWorkspace? _workspace;
 
   @override
   ChangeWorkspace get workspace {

@@ -28,22 +28,24 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
     : isolate_(isolate),
       isolate_group_(isolate_group),
       kind_(event_kind),
-      flag_name_(NULL),
-      flag_new_value_(NULL),
-      embedder_kind_(NULL),
-      embedder_stream_id_(NULL),
-      breakpoint_(NULL),
-      top_frame_(NULL),
-      timeline_event_block_(NULL),
-      extension_rpc_(NULL),
-      exception_(NULL),
-      reload_error_(NULL),
-      spawn_token_(NULL),
-      spawn_error_(NULL),
+      flag_name_(nullptr),
+      flag_new_value_(nullptr),
+      previous_tag_(nullptr),
+      updated_tag_(nullptr),
+      embedder_kind_(nullptr),
+      embedder_stream_id_(nullptr),
+      breakpoint_(nullptr),
+      top_frame_(nullptr),
+      timeline_event_block_(nullptr),
+      extension_rpc_(nullptr),
+      exception_(nullptr),
+      reload_error_(nullptr),
+      spawn_token_(nullptr),
+      spawn_error_(nullptr),
       at_async_jump_(false),
-      inspectee_(NULL),
-      gc_stats_(NULL),
-      bytes_(NULL),
+      inspectee_(nullptr),
+      gc_stats_(nullptr),
+      bytes_(nullptr),
       bytes_length_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
   // We should never generate events for the vm isolate as it is never reported
@@ -62,7 +64,8 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
            event_kind == ServiceEvent::kNone ||
            // VM service can print Observatory information to Stdout or Stderr
            // which are embedder streams.
-           event_kind == ServiceEvent::kEmbedder)));
+           event_kind == ServiceEvent::kEmbedder ||
+           event_kind == ServiceEvent::kCpuSamples)));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
@@ -117,6 +120,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "BreakpointResolved";
     case kBreakpointRemoved:
       return "BreakpointRemoved";
+    case kBreakpointUpdated:
+      return "BreakpointUpdated";
     case kGC:
       return "GC";  // TODO(koda): Change to GarbageCollected.
     case kInspect:
@@ -135,6 +140,10 @@ const char* ServiceEvent::KindAsCString() const {
       return "TimelineEvents";
     case kTimelineStreamSubscriptionsUpdate:
       return "TimelineStreamSubscriptionsUpdate";
+    case kUserTagChanged:
+      return "UserTagChanged";
+    case kCpuSamples:
+      return "CpuSamples";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -166,6 +175,7 @@ const StreamInfo* ServiceEvent::stream_info() const {
     case kBreakpointAdded:
     case kBreakpointResolved:
     case kBreakpointRemoved:
+    case kBreakpointUpdated:
     case kInspect:
     case kDebuggerSettingsUpdate:
       return &Service::debug_stream;
@@ -184,11 +194,15 @@ const StreamInfo* ServiceEvent::stream_info() const {
       return &Service::timeline_stream;
 
     case kEmbedder:
-      return NULL;
+      return nullptr;
+
+    case kCpuSamples:
+    case kUserTagChanged:
+      return &Service::profiler_stream;
 
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -209,6 +223,10 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     jsobj.AddProperty("flag", flag_name());
     // For backwards compatibility, "new_value" is also provided.
     jsobj.AddProperty("newValue", flag_new_value());
+  }
+  if (kind() == kUserTagChanged) {
+    jsobj.AddProperty("previousTag", previous_tag());
+    jsobj.AddProperty("updatedTag", updated_tag());
   }
   if (kind() == kIsolateReload) {
     if (reload_error_ == NULL) {
@@ -285,6 +303,11 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (kind() == kExtension) {
     js->AppendSerializedObject("extensionData",
                                extension_event_.event_data->ToCString());
+  }
+
+  if (kind() == kCpuSamples) {
+    JSONObject cpu_profile(&jsobj, "cpuSamples");
+    cpu_profile_->PrintProfileJSON(&cpu_profile, false);
   }
 }
 

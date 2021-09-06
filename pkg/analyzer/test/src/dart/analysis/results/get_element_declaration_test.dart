@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,7 +42,7 @@ class A {} // 2
       expect(node.name.name, 'A');
       expect(
         node.name.offset,
-        this.result.content!.indexOf('A {} // 1'),
+        this.result.content.indexOf('A {} // 1'),
       );
     }
 
@@ -54,7 +53,7 @@ class A {} // 2
       expect(node.name.name, 'A');
       expect(
         node.name.offset,
-        this.result.content!.indexOf('A {} // 2'),
+        this.result.content.indexOf('A {} // 2'),
       );
     }
   }
@@ -67,7 +66,7 @@ class A {}
     await resolveTestCode(r'''
 part 'a.dart';
 ''');
-    var library = this.result.unit!.declaredElement!.library;
+    var library = this.result.unit.declaredElement!.library;
     var element = library.getType('A')!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
@@ -140,7 +139,7 @@ class A {
       expect(node.name!.name, 'named');
       expect(
         node.name!.offset,
-        this.result.content!.indexOf('named(); // 1'),
+        this.result.content.indexOf('named(); // 1'),
       );
     }
 
@@ -151,7 +150,7 @@ class A {
       expect(node.name!.name, 'named');
       expect(
         node.name!.offset,
-        this.result.content!.indexOf('named(); // 2'),
+        this.result.content.indexOf('named(); // 2'),
       );
     }
   }
@@ -170,7 +169,7 @@ class A {
       expect(node.name, isNull);
       expect(
         node.returnType.offset,
-        this.result.content!.indexOf('A(); // 1'),
+        this.result.content.indexOf('A(); // 1'),
       );
     }
 
@@ -181,7 +180,7 @@ class A {
       expect(node.name, isNull);
       expect(
         node.returnType.offset,
-        this.result.content!.indexOf('A(); // 2'),
+        this.result.content.indexOf('A(); // 2'),
       );
     }
   }
@@ -438,9 +437,9 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
     return library.getElementDeclaration(element);
   }
 
-  ParsedLibraryResultImpl _getParsedLibrary(String path) {
+  ParsedLibraryResult _getParsedLibrary(String path) {
     var session = contextFor(path).currentSession;
-    return session.getParsedLibrary(path) as ParsedLibraryResultImpl;
+    return session.getParsedLibrary(path) as ParsedLibraryResult;
   }
 }
 
@@ -455,8 +454,8 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     return library.getElementDeclaration(element);
   }
 
-  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) {
+  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
     var session = contextFor(path).currentSession;
-    return session.getResolvedLibrary(path);
+    return await session.getResolvedLibrary(path) as ResolvedLibraryResult;
   }
 }

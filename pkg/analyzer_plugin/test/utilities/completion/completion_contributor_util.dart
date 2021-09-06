@@ -67,7 +67,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   void assertNoSuggestions({CompletionSuggestionKind? kind}) {
     if (kind == null) {
-      var suggestions = this.suggestions;
+      final suggestions = this.suggestions;
       if (suggestions != null && suggestions.isNotEmpty) {
         failedCompletion('Expected no suggestions', suggestions);
       }
@@ -418,7 +418,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         DartCompletionRequestImpl(resourceProvider, completionOffset!, result);
 
     var target =
-        CompletionTarget.forOffset(request!.result.unit!, request!.offset);
+        CompletionTarget.forOffset(request!.result.unit, request!.offset);
     var range = target.computeReplacementRange(request!.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -16,14 +14,14 @@ import 'package:kernel/kernel.dart' show Component;
 class InitializedCompilerState {
   final CompilerOptions options;
   final ProcessedOptions processedOpts;
-  final Map<Uri, WorkerInputComponent> workerInputCache;
+  final Map<Uri, WorkerInputComponent>? workerInputCache;
 
   /// A map from library import uri to dill uri, i.e. where a library came from,
   /// for all cached libraries.
-  final Map<Uri, Uri> workerInputCacheLibs;
-  final IncrementalCompiler incrementalCompiler;
-  final Set<String> tags;
-  final Map<Uri, Uri> libraryToInputDill;
+  final Map<Uri, Uri>? workerInputCacheLibs;
+  final IncrementalCompiler? incrementalCompiler;
+  final Set<String>? tags;
+  final Map<Uri, Uri>? libraryToInputDill;
 
   InitializedCompilerState(this.options, this.processedOpts,
       {this.workerInputCache,
@@ -43,7 +41,7 @@ class WorkerInputComponent {
   WorkerInputComponent(this.digest, this.component);
 }
 
-bool digestsEqual(List<int> a, List<int> b) {
+bool digestsEqual(List<int>? a, List<int>? b) {
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;
   for (int i = 0; i < a.length; i++) {

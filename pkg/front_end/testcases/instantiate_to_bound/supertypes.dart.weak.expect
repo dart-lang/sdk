@@ -20,7 +20,7 @@ class B extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class X<T extends self::B* = self::B*> extends core::Object {
+class X<T extends self::B*> extends core::Object {
   synthetic constructor •() → self::X<self::X::T*>*
     : super core::Object::•()
     ;

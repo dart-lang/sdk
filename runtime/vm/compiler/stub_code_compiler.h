@@ -53,10 +53,13 @@ class StubCodeCompiler : public AllStatic {
 #if !defined(TARGET_ARCH_IA32)
   static void GenerateBuildMethodExtractorStub(
       Assembler* assembler,
-      const Object& closure_allocation_stub,
-      const Object& context_allocation_stub);
+      const Code& closure_allocation_stub,
+      const Code& context_allocation_stub,
+      bool generic);
 #endif
 
+  static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                      bool preserve_registers = true);
   static ArrayPtr BuildStaticCallsTable(
       Zone* zone,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls);
@@ -108,7 +111,11 @@ class StubCodeCompiler : public AllStatic {
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
+#if defined(DART_COMPRESSED_POINTERS)
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 225;
+#else
   static constexpr intptr_t kNativeCallbackSharedStubSize = 217;
+#endif
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
@@ -120,7 +127,11 @@ class StubCodeCompiler : public AllStatic {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
+#if defined(DART_COMPRESSED_POINTERS)
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 276;
+#else
   static constexpr intptr_t kNativeCallbackSharedStubSize = 268;
+#endif
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #endif
 

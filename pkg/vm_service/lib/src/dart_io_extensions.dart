@@ -485,7 +485,7 @@ class HttpProfileRequestData {
   HttpProfileRequestData.buildErrorRequest({
     required this.error,
     required this.events,
-  })   : _connectionInfo = null,
+  })  : _connectionInfo = null,
         _contentLength = null,
         _cookies = [],
         _followRedirects = null,

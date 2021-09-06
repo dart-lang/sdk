@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 
 import '../../../tool/code_completion/metrics_util.dart';
@@ -75,6 +73,36 @@ void main() {
       expect(counter.getCountOf('bucket-1'), equals(1));
       expect(counter.getCountOf('bucket-2'), equals(2));
       expect(counter.getCountOf('bucket-3'), equals(3));
+    });
+  });
+
+  group('DistributionComputer', () {
+    test('displayString', () {
+      var computer = DistributionComputer();
+      expect(
+          computer.displayString(),
+          '[0] 0 [10] 0 [20] 0 [30] 0 [40] 0 [50] 0 '
+          '[60] 0 [70] 0 [80] 0 [90] 0 [100] 0');
+
+      for (var value in [
+        3, // 0-9
+        12, 15, // 10-19
+        23, 24, 26, // 20-29
+        30, 31, 31, 35, // 30-39
+        42, 42, 42, 42, 42, // 40-49
+        52, 53, 54, 55, 56, 57, // 50-59
+        63, // 60-69
+        72, 79, // 70-79
+        83, 84, 86, // 80-89
+        90, 91, 91, 99, // 90-99
+        100, 110, 120, 5000, // 100+
+      ]) {
+        computer.addValue(value);
+      }
+      expect(
+          computer.displayString(),
+          '[0] 1 [10] 2 [20] 3 [30] 4 [40] 5 [50] 6 '
+          '[60] 1 [70] 2 [80] 3 [90] 4 [100] 4');
     });
   });
 
@@ -172,8 +200,6 @@ class _DoubleEquals extends Matcher {
   @override
   bool matches(item, Map matchState) {
     return item is num &&
-        item != null &&
-        _value != null &&
         num.parse(item.toStringAsFixed(fractionDigits)) ==
             num.parse(_value.toStringAsFixed(fractionDigits));
   }

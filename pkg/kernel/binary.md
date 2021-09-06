@@ -36,7 +36,7 @@ type UInt7 extends UInt {
 
 type UInt14 extends UInt {
   Byte byte1(10xxxxxx); // most significant byte, discard the high bit
-  Byte byte2(xxxxxxxx); // least signficant byte
+  Byte byte2(xxxxxxxx); // least significant byte
 }
 
 type UInt30 extends UInt {
@@ -87,7 +87,7 @@ type StringReference {
 }
 
 type ConstantReference {
-  UInt offset; // Byte offset into the Component's constants.
+  UInt index; // Index into [constantsMapping] and [constants].
 }
 
 type SourceInfo {
@@ -147,16 +147,17 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 60;
+  UInt32 formatVersion = 69;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
+  List<Constant> constants;
+  RList<UInt32> constantsMapping; // Byte offset into the Component's constants.
   List<CanonicalName> canonicalNames;
   MetadataPayload[] metadataPayloads;
   RList<MetadataMapping> metadataMappings;
   StringTable strings;
-  List<Constant> constants;
   ComponentIndex componentIndex;
 }
 
@@ -179,11 +180,13 @@ type MetadataMapping {
 type ComponentIndex {
   Byte[] 8bitAlignment; // 0-bytes to make the entire component (!) 8-byte aligned.
   UInt32 binaryOffsetForSourceTable;
+  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForConstantTableIndex;
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForMetadataPayloads;
   UInt32 binaryOffsetForMetadataMappings;
   UInt32 binaryOffsetForStringTable;
-  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForStartOfComponentIndex;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32 compilationMode; // enum NonNullableByDefaultCompiledMode { Disabled = 0, Weak = 1, Strong = 2, Agnostic = 3 } with a fixed-size integer.
   UInt32[libraryCount + 1] libraryOffsets;
@@ -325,7 +328,7 @@ type Class extends Node {
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
-  List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
+  List<RedirectingFactory> redirectingFactories;
 
   // Class index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
   // a specific procedure. Note the "+1" to account for needing the end of the last entry.
@@ -340,6 +343,7 @@ type Extension extends Node {
   List<Expression> annotations;
   UriReference fileUri;
   FileOffset fileOffset;
+  Byte flags (isExtensionTypeDeclaration);
   List<TypeParameter> typeParameters;
   DartType onType;
   List<ExtensionMemberDescriptor> members;
@@ -420,16 +424,15 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
-              isRedirectingFactoryConstructor, isExtensionMember,
+              isRedirectingFactory, isExtensionMember,
               isNonNullableByDefault);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
-  // Can only be absent if abstract, but tag is there anyway.
-  Option<FunctionNode> function;
+  FunctionNode function;
 }
 
-type RedirectingFactoryConstructor extends Member {
+type RedirectingFactory extends Member {
   Byte tag = 108;
   CanonicalNameReference canonicalName;
   UriReference fileUri;
@@ -581,25 +584,6 @@ type SpecializedVariableSet extends Expression {
   // Equivalent to VariableSet with index N.
 }
 
-type PropertyGet extends Expression {
-  Byte tag = 22;
-  FileOffset fileOffset;
-  Expression receiver;
-  Name name;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
-}
-
-type PropertySet extends Expression {
-  Byte tag = 23;
-  FileOffset fileOffset;
-  Expression receiver;
-  Name name;
-  Expression value;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
-}
-
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
   FileOffset fileOffset;
@@ -697,6 +681,25 @@ type StaticTearOff extends Expression {
   MemberReference target;
 }
 
+type ConstructorTearOff extends Expression {
+  Byte tag = 60;
+  FileOffset fileOffset;
+  MemberReference target;
+}
+
+type RedirectingFactoryTearOff extends Expression {
+  Byte tag = 84;
+  FileOffset fileOffset;
+  MemberReference target;
+}
+
+type TypedefTearOff extends Expression {
+  Byte tag = 83;
+  List<TypeParameter> typeParameters;
+  Expression expression;
+  List<DartType> typeArguments;
+}
+
 type StaticSet extends Expression {
   Byte tag = 27;
   FileOffset fileOffset;
@@ -716,17 +719,6 @@ type NamedExpression {
   // Note: there is no tag on NamedExpression.
   StringReference name;
   Expression value;
-}
-
-type MethodInvocation extends Expression {
-  Byte tag = 28;
-  Byte flags (isInvariant, isBoundsSafe);
-  FileOffset fileOffset;
-  Expression receiver;
-  Name name;
-  Arguments arguments;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type InstanceInvocation extends Expression {
@@ -786,7 +778,6 @@ type FunctionTearOff extends Expression {
   Byte tag = 126;
   FileOffset fileOffset;
   Expression receiver;
-  DartType functionType;
 }
 
 type LocalFunctionInvocation extends Expression {
@@ -1170,13 +1161,13 @@ type InstanceConstant extends Constant {
   List<Pair<FieldReference, ConstantReference>> values;
 }
 
-type PartialInstantiationConstant extends Constant {
+type InstantiationConstant extends Constant {
   Byte tag = 9;
   ConstantReference tearOffConstant;
   List<DartType> typeArguments;
 }
 
-type TearOffConstant extends Constant {
+type StaticTearOffConstant extends Constant {
   Byte tag = 10;
   CanonicalNameReference staticProcedureReference;
 }
@@ -1189,6 +1180,23 @@ type TypeLiteralConstant extends Constant {
 type UnevaluatedConstant extends Constant {
   Byte tag = 12;
   Expression expression;
+}
+
+type TypedefTearOffConstant extends Constant {
+  Byte tag = 14;
+  List<TypeParameter> parameters;
+  CanonicalNameReference staticProcedureReference;
+  List<DartType> types;
+}
+
+type ConstructorTearOffConstant extends Constant {
+  Byte tag = 15;
+  CanonicalNameReference constructorReference;
+}
+
+type RedirectingFactoryTearOffConstant extends Constant {
+  Byte tag = 16;
+  CanonicalNameReference constructorReference;
 }
 
 abstract type Statement extends Node {}
@@ -1497,7 +1505,7 @@ type TypeParameter {
   Byte variance; // Index into the Variance enum above
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
-  Option<DartType> defaultType; // type used when the parameter is not passed
+  DartType defaultType; // type used when the parameter is not passed
 }
 
 ```

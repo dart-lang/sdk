@@ -58,6 +58,8 @@ main(List<String> arguments) async {
           settings.targetString = "flutter";
         } else if (arg.startsWith("--target=ddc")) {
           settings.targetString = "ddc";
+        } else if (arg.startsWith("--target=dart2js")) {
+          settings.targetString = "dart2js";
         } else if (arg == "--noTryToDeleteEmptyFilesUpFront") {
           settings.noTryToDeleteEmptyFilesUpFront = true;
         } else if (arg.startsWith("--wantErrorOnReload=")) {

@@ -25,7 +25,7 @@ For more information about the server's capabilities and configuration, see:
   https://github.com/dart-lang/sdk/tree/master/pkg/analysis_server''';
 
   LanguageServerCommand({bool verbose = false})
-      : super(commandName, commandDescription, hidden: !verbose);
+      : super(commandName, commandDescription, verbose, hidden: !verbose);
 
   @override
   ArgParser createArgParser() {

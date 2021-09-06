@@ -38,6 +38,7 @@ class double {}
 class int {}
 class num {}
 class Object {}
+class Enum {}
 class Iterable<E> {}
 class Map<K, V> {}
 class Null {}
@@ -52,7 +53,7 @@ class Future<T> {}
 ''');
 
     File(path.join(sdkPath, 'lib', 'fake', 'fake.dart')).writeAsStringSync(r'''
-class Fake {} 
+class Fake {}
 ''');
 
     var libsInternalDir = path.join(sdkPath, 'lib', '_internal');

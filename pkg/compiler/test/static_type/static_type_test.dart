@@ -86,9 +86,6 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
   String computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableGet) {
       return typeToText(node.accept(staticTypeCache));
-    } else if (node is ir.MethodInvocation) {
-      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
     } else if (node is ir.InstanceInvocation) {
       return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
           '${typeToText(node.accept(staticTypeCache))}';
@@ -106,11 +103,6 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
           '${typeToText(node.accept(staticTypeCache))}';
     } else if (node is ir.EqualsCall) {
       return '[${typeToText(node.left.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
-    } else if (node is ir.EqualsNull) {
-      // TODO(johnniwinther): Remove this after the new method invocation has
-      // landed stably. This is only included to make the transition a no-op.
-      return '[${typeToText(node.expression.accept(staticTypeCache))}]->'
           '${typeToText(node.accept(staticTypeCache))}';
     }
     return null;

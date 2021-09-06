@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases,non-nullable
+// SharedOptions=--enable-experiment=non-nullable
 
 typedef T0 = Function?;
 typedef T1<X> = List<X?>?;

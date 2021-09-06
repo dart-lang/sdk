@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/cider/assists.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -24,8 +22,8 @@ void main() {
 
 @reflectiveTest
 class CiderAssistsComputerTest extends CiderServiceTest {
-  _CorrectionContext _correctionContext;
-  List<Assist> _assists;
+  late _CorrectionContext _correctionContext;
+  late List<Assist> _assists;
 
   void assertHasAssist(AssistKind kind, String expected) {
     var assist = _getAssist(kind);

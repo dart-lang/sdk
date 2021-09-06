@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ChangeToStaticAccess extends CorrectionProducer {
-  String _className;
+  String _className = '';
 
   @override
   List<Object> get fixArguments => [_className];
@@ -23,31 +21,48 @@ class ChangeToStaticAccess extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    Expression target;
-    Element invokedElement;
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-      var invocation = node.parent as MethodInvocation;
-      if (invocation.methodName == node) {
-        target = invocation.target;
-        invokedElement = invocation.methodName.staticElement;
-      }
-    } else if (node is SimpleIdentifier && node.parent is PrefixedIdentifier) {
-      var prefixed = node.parent as PrefixedIdentifier;
-      if (prefixed.identifier == node) {
-        target = prefixed.prefix;
-        invokedElement = prefixed.identifier.staticElement;
+    Expression? target;
+    Element? invokedElement;
+    var identifier = node;
+    if (identifier is SimpleIdentifier) {
+      var parent = identifier.parent;
+      if (parent is MethodInvocation) {
+        if (parent.methodName == identifier) {
+          target = parent.target;
+          invokedElement = identifier.staticElement;
+        }
+      } else if (parent is PrefixedIdentifier) {
+        if (parent.identifier == identifier) {
+          target = parent.prefix;
+          invokedElement = identifier.staticElement;
+        }
       }
     }
-    if (target == null) {
+    if (target == null || invokedElement is! ExecutableElement) {
       return;
     }
+
+    final target_final = target;
     var declaringElement = invokedElement.enclosingElement;
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addReplacement(range.node(target), (builder) {
-        builder.writeReference(declaringElement);
+
+    if (declaringElement is ClassElement) {
+      _className = declaringElement.name;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addReplacement(range.node(target_final), (builder) {
+          builder.writeReference(declaringElement);
+        });
       });
-    });
-    _className = declaringElement.name;
+    } else if (declaringElement is ExtensionElement) {
+      var extensionName = declaringElement.name;
+      if (extensionName != null) {
+        _className = extensionName;
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addReplacement(range.node(target_final), (builder) {
+            builder.writeReference(declaringElement);
+          });
+        });
+      }
+    }
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

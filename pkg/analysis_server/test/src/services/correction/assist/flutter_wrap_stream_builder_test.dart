@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -33,10 +31,10 @@ class FlutterWrapStreamBuilderTest extends AssistProcessorTest {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f(Stream<int> s) {
   /*caret*/StreamBuilder(
-    stream: null,
-    builder: (context, snapshot) => null,
+    stream: s,
+    builder: (context, snapshot) => Text(''),
   );
 }
 ''');

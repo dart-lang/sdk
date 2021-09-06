@@ -91,9 +91,6 @@ Thread::Thread(bool is_vm_isolate)
       no_safepoint_scope_depth_(0),
 #endif
       reusable_handles_(),
-      defer_oob_messages_count_(0),
-      deferred_interrupts_mask_(0),
-      deferred_interrupts_(0),
       stack_overflow_count_(0),
       hierarchy_info_(NULL),
       type_usage_info_(NULL),
@@ -398,7 +395,7 @@ void Thread::SetStackLimit(uword limit) {
   MonitorLocker ml(&thread_lock_);
   if (!HasScheduledInterrupts()) {
     // No interrupt pending, set stack_limit_ too.
-    stack_limit_ = limit;
+    stack_limit_.store(limit);
   }
   saved_stack_limit_ = limit;
 }
@@ -407,94 +404,38 @@ void Thread::ClearStackLimit() {
   SetStackLimit(~static_cast<uword>(0));
 }
 
-void Thread::ScheduleInterrupts(uword interrupt_bits) {
-  MonitorLocker ml(&thread_lock_);
-  ScheduleInterruptsLocked(interrupt_bits);
+static bool IsInterruptLimit(uword limit) {
+  return (limit & ~Thread::kInterruptsMask) ==
+         (kInterruptStackLimit & ~Thread::kInterruptsMask);
 }
 
-void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
-  ASSERT(thread_lock_.IsOwnedByCurrentThread());
+void Thread::ScheduleInterrupts(uword interrupt_bits) {
   ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
 
-  // Check to see if any of the requested interrupts should be deferred.
-  uword defer_bits = interrupt_bits & deferred_interrupts_mask_;
-  if (defer_bits != 0) {
-    deferred_interrupts_ |= defer_bits;
-    interrupt_bits &= ~deferred_interrupts_mask_;
-    if (interrupt_bits == 0) {
-      return;
+  uword old_limit = stack_limit_.load();
+  uword new_limit;
+  do {
+    if (IsInterruptLimit(old_limit)) {
+      new_limit = old_limit | interrupt_bits;
+    } else {
+      new_limit = (kInterruptStackLimit & ~kInterruptsMask) | interrupt_bits;
     }
-  }
-
-  if (stack_limit_ == saved_stack_limit_) {
-    stack_limit_ = (kInterruptStackLimit & ~kInterruptsMask) | interrupt_bits;
-  } else {
-    stack_limit_ = stack_limit_ | interrupt_bits;
-  }
+  } while (!stack_limit_.compare_exchange_weak(old_limit, new_limit));
 }
 
 uword Thread::GetAndClearInterrupts() {
-  MonitorLocker ml(&thread_lock_);
-  if (stack_limit_ == saved_stack_limit_) {
-    return 0;  // No interrupt was requested.
-  }
-  uword interrupt_bits = stack_limit_ & kInterruptsMask;
-  stack_limit_ = saved_stack_limit_;
+  uword interrupt_bits = 0;
+  uword old_limit = stack_limit_.load();
+  uword new_limit = saved_stack_limit_;
+  do {
+    if (IsInterruptLimit(old_limit)) {
+      interrupt_bits = interrupt_bits | (old_limit & kInterruptsMask);
+    } else {
+      return interrupt_bits;
+    }
+  } while (!stack_limit_.compare_exchange_weak(old_limit, new_limit));
+
   return interrupt_bits;
-}
-
-void Thread::DeferOOBMessageInterrupts() {
-  MonitorLocker ml(&thread_lock_);
-  defer_oob_messages_count_++;
-  if (defer_oob_messages_count_ > 1) {
-    // OOB message interrupts are already deferred.
-    return;
-  }
-  ASSERT(deferred_interrupts_mask_ == 0);
-  deferred_interrupts_mask_ = kMessageInterrupt;
-
-  if (stack_limit_ != saved_stack_limit_) {
-    // Defer any interrupts which are currently pending.
-    deferred_interrupts_ = stack_limit_ & deferred_interrupts_mask_;
-
-    // Clear deferrable interrupts, if present.
-    stack_limit_ = stack_limit_ & ~deferred_interrupts_mask_;
-
-    if ((stack_limit_ & kInterruptsMask) == 0) {
-      // No other pending interrupts.  Restore normal stack limit.
-      stack_limit_ = saved_stack_limit_;
-    }
-  }
-#if !defined(PRODUCT)
-  if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::PrintErr("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
-                 Dart::UptimeMillis(), isolate()->name());
-  }
-#endif  // !defined(PRODUCT)
-}
-
-void Thread::RestoreOOBMessageInterrupts() {
-  MonitorLocker ml(&thread_lock_);
-  defer_oob_messages_count_--;
-  if (defer_oob_messages_count_ > 0) {
-    return;
-  }
-  ASSERT(defer_oob_messages_count_ == 0);
-  ASSERT(deferred_interrupts_mask_ == kMessageInterrupt);
-  deferred_interrupts_mask_ = 0;
-  if (deferred_interrupts_ != 0) {
-    if (stack_limit_ == saved_stack_limit_) {
-      stack_limit_ = kInterruptStackLimit & ~kInterruptsMask;
-    }
-    stack_limit_ = stack_limit_ | deferred_interrupts_;
-    deferred_interrupts_ = 0;
-  }
-#if !defined(PRODUCT)
-  if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::PrintErr("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
-                 Dart::UptimeMillis(), isolate()->name());
-  }
-#endif  // !defined(PRODUCT)
 }
 
 ErrorPtr Thread::HandleInterrupts() {
@@ -507,6 +448,15 @@ ErrorPtr Thread::HandleInterrupts() {
       }
       heap()->CollectGarbage(Heap::kNew);
     }
+
+#if !defined(PRODUCT)
+    // Processes completed SampleBlocks and sends CPU sample events over the
+    // service protocol when applicable.
+    SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
+    if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
+      sample_buffer->ProcessCompletedBlocks();
+    }
+#endif  // !defined(PRODUCT)
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =
@@ -1163,10 +1113,11 @@ void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
   }
 
   if (entry != 0) {
-    ObjectPtr* const code_array =
+    CompressedObjectPtr* const code_array =
         Array::DataOf(GrowableObjectArray::NoSafepointData(array));
     // RawCast allocates handles in ASSERTs.
-    const CodePtr code = static_cast<CodePtr>(code_array[callback_id]);
+    const CodePtr code = static_cast<CodePtr>(
+        code_array[callback_id].Decompress(array.heap_base()));
     if (!Code::ContainsInstructionAt(code, entry)) {
       FATAL("Cannot invoke callback on incorrect isolate.");
     }

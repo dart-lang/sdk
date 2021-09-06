@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/flutter/class_description.dart';
 import 'package:analysis_server/src/services/flutter/property.dart';
@@ -19,10 +17,10 @@ import 'package:dart_style/dart_style.dart';
 /// The result of [WidgetDescriptions.setPropertyValue] invocation.
 class SetPropertyValueResult {
   /// The error to report to the client, or `null` if OK.
-  final protocol.RequestErrorCode errorCode;
+  final protocol.RequestErrorCode? errorCode;
 
   /// The change to apply, or `null` if [errorCode] is not `null`.
-  final protocol.SourceChange change;
+  final protocol.SourceChange? change;
 
   SetPropertyValueResult._({this.errorCode, this.change});
 }
@@ -42,7 +40,7 @@ class WidgetDescriptions {
   /// Return the description of the widget with [InstanceCreationExpression] in
   /// the [resolvedUnit] at the [offset], or `null` if the location does not
   /// correspond to a widget.
-  Future<protocol.FlutterGetWidgetDescriptionResult> getDescription(
+  Future<protocol.FlutterGetWidgetDescriptionResult?> getDescription(
     ResolvedUnitResult resolvedUnit,
     int offset,
   ) async {
@@ -65,7 +63,7 @@ class WidgetDescriptions {
 
   Future<SetPropertyValueResult> setPropertyValue(
     int id,
-    protocol.FlutterWidgetPropertyValue value,
+    protocol.FlutterWidgetPropertyValue? value,
   ) async {
     var property = _properties[id];
     if (property == null) {
@@ -132,10 +130,10 @@ class _WidgetDescriptionComputer {
   /// The offset of the widget expression.
   final int widgetOffset;
 
-  ClassElement _classAlignment;
-  ClassElement _classAlignmentDirectional;
-  ClassElement _classContainer;
-  ClassElement _classEdgeInsets;
+  ClassElement? _classAlignment;
+  ClassElement? _classAlignmentDirectional;
+  ClassElement? _classContainer;
+  ClassElement? _classEdgeInsets;
 
   _WidgetDescriptionComputer(
     this.classRegistry,
@@ -145,8 +143,11 @@ class _WidgetDescriptionComputer {
 
   Flutter get _flutter => Flutter.instance;
 
-  Future<_WidgetDescription> compute() async {
+  Future<_WidgetDescription?> compute() async {
     var node = NodeLocator2(widgetOffset).searchWithin(resolvedUnit.unit);
+    if (node == null) {
+      return null;
+    }
     var instanceCreation = _flutter.identifyNewExpression(node);
     if (instanceCreation == null) {
       return null;
@@ -177,12 +178,12 @@ class _WidgetDescriptionComputer {
       return;
     }
 
-    InstanceCreationExpression parentCreation;
+    InstanceCreationExpression? parentCreation;
     var childArgument = widgetCreation.parent;
     if (childArgument is NamedExpression &&
         childArgument.name.label.name == 'child') {
       var argumentList = childArgument.parent;
-      var argumentListParent = argumentList.parent;
+      var argumentListParent = argumentList?.parent;
       if (argumentList is ArgumentList &&
           argumentListParent is InstanceCreationExpression) {
         parentCreation = argumentListParent;
@@ -213,7 +214,11 @@ class _WidgetDescriptionComputer {
         (property) => property.name == 'child',
       );
     } else {
-      var containerDescription = classRegistry.get(_classContainer);
+      var classContainer = _classContainer;
+      if (classContainer == null) {
+        return;
+      }
+      var containerDescription = classRegistry.get(classContainer);
       containerProperty = PropertyDescription(
         resolvedUnit: resolvedUnit,
         classDescription: containerDescription,
@@ -224,7 +229,7 @@ class _WidgetDescriptionComputer {
           'Container',
         ),
         virtualContainer: VirtualContainerProperty(
-          _classContainer,
+          classContainer,
           widgetCreation,
         ),
       );
@@ -236,7 +241,8 @@ class _WidgetDescriptionComputer {
         classDescription: containerDescription,
       );
 
-      if (_flutter.isExactlyAlignCreation(parentCreation) &&
+      if (parentCreation != null &&
+          _flutter.isExactlyAlignCreation(parentCreation) &&
           _flutter.findNamedArgument(parentCreation, 'widthFactor') == null &&
           _flutter.findNamedArgument(parentCreation, 'heightFactor') == null) {
         _replaceNestedContainerProperty(
@@ -246,7 +252,8 @@ class _WidgetDescriptionComputer {
         );
       }
 
-      if (_flutter.isExactlyPaddingCreation(parentCreation)) {
+      if (parentCreation != null &&
+          _flutter.isExactlyPaddingCreation(parentCreation)) {
         _replaceNestedContainerProperty(
           containerProperty,
           parentCreation,
@@ -261,13 +268,13 @@ class _WidgetDescriptionComputer {
   }
 
   void _addProperties({
-    List<PropertyDescription> properties,
-    PropertyDescription parent,
-    ClassDescription classDescription,
-    InstanceCreationExpression instanceCreation,
-    ConstructorElement constructorElement,
+    required List<PropertyDescription> properties,
+    PropertyDescription? parent,
+    ClassDescription? classDescription,
+    InstanceCreationExpression? instanceCreation,
+    ConstructorElement? constructorElement,
   }) {
-    constructorElement ??= instanceCreation?.constructorName?.staticElement;
+    constructorElement ??= instanceCreation?.constructorName.staticElement;
     constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 
@@ -317,17 +324,17 @@ class _WidgetDescriptionComputer {
   }
 
   void _addProperty({
-    List<PropertyDescription> properties,
-    PropertyDescription parent,
-    ParameterElement parameter,
-    ClassDescription classDescription,
-    InstanceCreationExpression instanceCreation,
-    Expression argumentExpression,
-    Expression valueExpression,
+    required List<PropertyDescription> properties,
+    PropertyDescription? parent,
+    required ParameterElement parameter,
+    ClassDescription? classDescription,
+    InstanceCreationExpression? instanceCreation,
+    Expression? argumentExpression,
+    Expression? valueExpression,
   }) {
     var documentation = getParameterDocumentation(parameter);
 
-    String valueExpressionCode;
+    String? valueExpressionCode;
     if (valueExpression != null) {
       valueExpressionCode = resolvedUnit.content.substring(
         valueExpression.offset,
@@ -336,7 +343,7 @@ class _WidgetDescriptionComputer {
     }
 
     var isSafeToUpdate = false;
-    protocol.FlutterWidgetPropertyValue value;
+    protocol.FlutterWidgetPropertyValue? value;
     if (valueExpression != null) {
       value = _toValue(valueExpression);
       isSafeToUpdate = value != null;
@@ -366,11 +373,13 @@ class _WidgetDescriptionComputer {
     );
     properties.add(propertyDescription);
 
-    if (_flutter.isExactEdgeInsetsGeometryType(parameter.type)) {
-      propertyDescription.addEdgeInsetsNestedProperties(_classEdgeInsets);
+    var classEdgeInsets = _classEdgeInsets;
+    if (classEdgeInsets != null &&
+        _flutter.isExactEdgeInsetsGeometryType(parameter.type)) {
+      propertyDescription.addEdgeInsetsNestedProperties(classEdgeInsets);
     } else if (valueExpression is InstanceCreationExpression) {
       var type = valueExpression.staticType;
-      if (classRegistry.hasNestedProperties(type)) {
+      if (type != null && classRegistry.hasNestedProperties(type)) {
         _addProperties(
           properties: propertyDescription.children,
           parent: propertyDescription,
@@ -431,7 +440,7 @@ class _WidgetDescriptionComputer {
     );
   }
 
-  protocol.FlutterWidgetPropertyEditor _getEditor(DartType type) {
+  protocol.FlutterWidgetPropertyEditor? _getEditor(DartType type) {
     if (type.isDartCoreBool) {
       return protocol.FlutterWidgetPropertyEditor(
         protocol.FlutterWidgetPropertyEditorKind.BOOL,
@@ -462,12 +471,14 @@ class _WidgetDescriptionComputer {
       }
       if (_flutter.isExactAlignmentGeometry(classElement)) {
         var items = <protocol.FlutterWidgetPropertyValueEnumItem>[];
-        items.addAll(
-          _enumItemsForStaticFields(_classAlignment),
-        );
-        items.addAll(
-          _enumItemsForStaticFields(_classAlignmentDirectional),
-        );
+        var classAlignment = _classAlignment;
+        if (classAlignment != null) {
+          items.addAll(_enumItemsForStaticFields(classAlignment));
+        }
+        var classAlignmentDirectional = _classAlignmentDirectional;
+        if (classAlignmentDirectional != null) {
+          items.addAll(_enumItemsForStaticFields(classAlignmentDirectional));
+        }
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM_LIKE,
           enumItems: items,
@@ -486,20 +497,21 @@ class _WidgetDescriptionComputer {
   ) {
     var argument = _flutter.findNamedArgument(parentCreation, name);
     if (argument != null) {
-      var replacements = <PropertyDescription>[];
-      _addProperty(
-        properties: replacements,
-        parent: containerProperty,
-        parameter: argument.staticParameterElement,
-        instanceCreation: parentCreation,
-        argumentExpression: argument,
-        valueExpression: argument.expression,
-      );
+      var staticParameterElement = argument.staticParameterElement;
+      if (staticParameterElement != null) {
+        var replacements = <PropertyDescription>[];
+        _addProperty(
+          properties: replacements,
+          parent: containerProperty,
+          parameter: staticParameterElement,
+          instanceCreation: parentCreation,
+          argumentExpression: argument,
+          valueExpression: argument.expression,
+        );
 
-      var replacement = replacements[0];
-      if (replacement != null) {
+        var replacement = replacements[0];
         containerProperty.replaceChild(name, replacement);
-        containerProperty.virtualContainer.setParentCreation(
+        containerProperty.virtualContainer?.setParentCreation(
           parentCreation,
           argument,
         );
@@ -520,7 +532,7 @@ class _WidgetDescriptionComputer {
     );
   }
 
-  protocol.FlutterWidgetPropertyValue _toValue(Expression valueExpression) {
+  protocol.FlutterWidgetPropertyValue? _toValue(Expression valueExpression) {
     if (valueExpression is BooleanLiteral) {
       return protocol.FlutterWidgetPropertyValue(
         boolValue: valueExpression.value,

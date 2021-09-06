@@ -24,13 +24,8 @@ class OverlayResourceProvider implements ResourceProvider {
   /// do not have an overlay.
   final ResourceProvider baseProvider;
 
-  /// A map from the paths of files for which there is an overlay to the
-  /// contents of the files.
-  final Map<String, String> _overlayContent = <String, String>{};
-
-  /// A map from the paths of files for which there is an overlay to the
-  /// modification stamps of the files.
-  final Map<String, int> _overlayModificationStamps = <String, int>{};
+  /// A map from the paths of files for to the overlay data.
+  final Map<String, _OverlayFileData> _overlays = {};
 
   /// Initialize a newly created resource provider to represent an overlay on
   /// the given [baseProvider].
@@ -50,7 +45,7 @@ class OverlayResourceProvider implements ResourceProvider {
   Future<List<int>> getModificationTimes(List<Source> sources) async {
     return sources.map((source) {
       String path = source.fullName;
-      return _overlayModificationStamps[path] ??
+      return _overlays[path]?.modificationStamp ??
           baseProvider.getFile(path).modificationStamp;
     }).toList();
   }
@@ -73,15 +68,12 @@ class OverlayResourceProvider implements ResourceProvider {
 
   /// Return `true` if there is an overlay associated with the file at the given
   /// [path].
-  bool hasOverlay(String path) => _overlayContent.containsKey(path);
+  bool hasOverlay(String path) => _overlays.containsKey(path);
 
   /// Remove any overlay of the file at the given [path]. The state of the file
   /// in the base resource provider will not be affected.
   bool removeOverlay(String path) {
-    bool hadOverlay = _overlayContent.containsKey(path);
-    _overlayContent.remove(path);
-    _overlayModificationStamps.remove(path);
-    return hadOverlay;
+    return _overlays.remove(path) != null;
   }
 
   /// Overlay the content of the file at the given [path]. The file will appear
@@ -89,40 +81,47 @@ class OverlayResourceProvider implements ResourceProvider {
   /// modified in the base resource provider.
   void setOverlay(String path,
       {required String content, required int modificationStamp}) {
-    _overlayContent[path] = content;
-    _overlayModificationStamps[path] = modificationStamp;
+    _overlays[path] = _OverlayFileData(content, modificationStamp);
   }
 
   /// Copy any overlay for the file at the [oldPath] to be an overlay for the
   /// file with the [newPath].
   void _copyOverlay(String oldPath, String newPath) {
-    if (hasOverlay(oldPath)) {
-      _overlayContent[newPath] = _overlayContent[oldPath]!;
-      _overlayModificationStamps[newPath] =
-          _overlayModificationStamps[oldPath]!;
+    var data = _overlays[oldPath];
+    if (data != null) {
+      _overlays[newPath] = data;
     }
   }
 
   /// Return the content of the overlay of the file at the given [path], or
   /// `null` if there is no overlay for the specified file.
   String? _getOverlayContent(String path) {
-    return _overlayContent[path];
+    return _overlays[path]?.content;
   }
 
   /// Return the modification stamp of the overlay of the file at the given
   /// [path], or `null` if there is no overlay for the specified file.
   int? _getOverlayModificationStamp(String path) {
-    return _overlayModificationStamps[path];
+    return _overlays[path]?.modificationStamp;
   }
 
   /// Return `true` if there is an overlay associated with at least one file
   /// contained inside the folder with the given [folderPath].
-  bool _hasOverlayIn(String folderPath) => _overlayContent.keys
+  bool _hasOverlayIn(String folderPath) => _overlays.keys
       .any((filePath) => pathContext.isWithin(folderPath, filePath));
+
+  /// Move any overlay for the file at the [oldPath] to be an overlay for the
+  /// file with the [newPath].
+  void _moveOverlay(String oldPath, String newPath) {
+    var data = _overlays.remove(oldPath);
+    if (data != null) {
+      _overlays[newPath] = data;
+    }
+  }
 
   /// Return the paths of all of the overlaid files that are children of the
   /// given [folder], either directly or indirectly.
-  Iterable<String> _overlaysInFolder(String folderPath) => _overlayContent.keys
+  Iterable<String> _overlaysInFolder(String folderPath) => _overlays.keys
       .where((filePath) => pathContext.isWithin(folderPath, filePath));
 }
 
@@ -210,14 +209,7 @@ class _OverlayFile extends _OverlayResource implements File {
   @override
   File renameSync(String newPath) {
     File newFile = _file.renameSync(newPath);
-    if (provider.hasOverlay(path)) {
-      provider.setOverlay(
-        newPath,
-        content: provider._getOverlayContent(path)!,
-        modificationStamp: provider._getOverlayModificationStamp(path)!,
-      );
-      provider.removeOverlay(path);
-    }
+    provider._moveOverlay(path, newPath);
     return _OverlayFile(provider, newFile);
   }
 
@@ -233,6 +225,14 @@ class _OverlayFile extends _OverlayResource implements File {
     }
     _file.writeAsStringSync(content);
   }
+}
+
+/// Overlay data for a file.
+class _OverlayFileData {
+  final String content;
+  final int modificationStamp;
+
+  _OverlayFileData(this.content, this.modificationStamp);
 }
 
 /// A folder from an [OverlayResourceProvider].

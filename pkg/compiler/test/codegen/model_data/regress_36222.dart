@@ -14,7 +14,12 @@ class A {
     return x + y;
   }
 
-  /*member: A.foo:elided,stubCalls=[foo$2:call$2(arg0,arg1),foo$2:main_A_defaultFoo$closure(0)]*/
+  /*member: A.foo:
+   elided,
+   stubCalls=[
+    foo$2:call$2(2),
+    foo$2:main_A_defaultFoo$closure(0)]
+  */
   final BinaryFunc foo;
 }
 

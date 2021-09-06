@@ -61,6 +61,8 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
 
   Fragment BuildTypeArgumentsHandling();
 
+  Fragment BuildClosureDelayedTypeArgumentsHandling();
+
   LocalVariable* ParameterVariable(intptr_t index) {
     return parsed_function_->RawParameterVariable(index);
   }

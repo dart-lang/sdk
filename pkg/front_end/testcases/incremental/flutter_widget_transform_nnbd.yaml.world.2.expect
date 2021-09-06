@@ -7,7 +7,7 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
       ;
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
-    final field wid::_Location? _location /*isLegacy, from null */;
+    final field wid::_Location? _location /*isLegacy*/;
     const constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
       : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
       ;
@@ -54,7 +54,7 @@ constants  {
   #C2 = "org-dartlang-test:///main.dart"
   #C3 = 3.0
   #C4 = 17.0
-  #C5 = <wid::_Location*>[]
-  #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C1, parameterLocations:#C5}
+  #C5 = "Foo"
+  #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C5, parameterLocations:#C1}
   #C7 = foo::Foo {_location:#C6}
 }

@@ -15,9 +15,6 @@ class Name {
   /// Raw textual representation of the name as it occurred in the output
   /// of the AOT compiler.
   final String raw;
-  String _scrubbed;
-
-  Name(this.raw);
 
   /// Pretty version of the name, with some of the irrelevant information
   /// removed from it.
@@ -26,8 +23,10 @@ class Name {
   /// so we are not removing any details that are used for disambiguation.
   /// The only exception are type testing stubs, these refer to type names
   /// and types names are not bound to be unique between compilations.
-  String get scrubbed => _scrubbed ??=
+  late final String scrubbed =
       raw.replaceAll(isStub ? _stubScrubbingRe : _scrubbingRe, '');
+
+  Name(this.raw);
 
   /// Returns true if this name refers to a stub.
   bool get isStub => raw.startsWith('[Stub] ');
@@ -35,7 +34,7 @@ class Name {
   /// Returns true if this name refers to an allocation stub.
   bool get isAllocationStub => raw.startsWith('[Stub] Allocate ');
 
-  /// Returns ture if this name refers to a type testing stub.
+  /// Returns true if this name refers to a type testing stub.
   bool get isTypeTestingStub => raw.startsWith('[Stub] Type Test ');
 
   /// Split this name into individual '.' separated components (e.g. names of

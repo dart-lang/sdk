@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 void testList() {
-  File script = new File.fromUri(Platform.script);
-  // tests/standalone/io/../..
-  Directory startingDir = script.parent.parent.parent;
+  final startingDir =
+      Directory(path.normalize(path.join(Platform.executable, '../../../')));
   print("Recursively listing entries in directory ${startingDir.path} ...");
   List<FileSystemEntity> each =
       startingDir.listSync(recursive: true, followLinks: false);

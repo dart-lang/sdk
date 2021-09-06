@@ -108,7 +108,7 @@ class BackendImpacts {
 
   BackendImpact get computeSignature {
     return _computeSignature ??= new BackendImpact(globalUses: [
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
     ], otherImpacts: [
       listValues
     ]);
@@ -284,7 +284,6 @@ class BackendImpacts {
   BackendImpact get constantMapLiteral {
     return _constantMapLiteral ??= new BackendImpact(instantiatedClasses: [
       _commonElements.constantMapClass,
-      _commonElements.constantProtoMapClass,
       _commonElements.constantStringMapClass,
       _commonElements.generalConstantMapClass,
     ]);
@@ -298,13 +297,6 @@ class BackendImpacts {
       ], otherImpacts: [
         constantMapLiteral
       ]);
-
-  BackendImpact _symbolConstructor;
-
-  BackendImpact get symbolConstructor {
-    return _symbolConstructor ??= new BackendImpact(
-        staticUses: [_commonElements.symbolValidatedConstructor]);
-  }
 
   BackendImpact _constSymbol;
 
@@ -407,7 +399,7 @@ class BackendImpacts {
   BackendImpact get lazyField {
     return _lazyField ??= new BackendImpact(staticUses: [
       _commonElements.cyclicThrowHelper,
-      _commonElements.throwLateInitializationError
+      _commonElements.throwLateFieldADI,
     ]);
   }
 
@@ -443,7 +435,7 @@ class BackendImpacts {
 
   BackendImpact get typeVariableExpression {
     return _typeVariableExpression ??= new BackendImpact(staticUses: [
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
       _commonElements.createRuntimeType
     ], otherImpacts: [
       listValues,
@@ -464,7 +456,7 @@ class BackendImpacts {
   BackendImpact get genericTypeCheck {
     return _genericTypeCheck ??= new BackendImpact(staticUses: [
       // TODO(johnniwinther): Investigate why this is needed.
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
     ], otherImpacts: [
       listValues,
       getRuntimeTypeArgument,
@@ -574,8 +566,11 @@ class BackendImpacts {
   BackendImpact _functionClass;
 
   BackendImpact get functionClass {
-    return _functionClass ??=
-        new BackendImpact(globalClasses: [_commonElements.closureClass]);
+    return _functionClass ??= new BackendImpact(globalClasses: [
+      _commonElements.closureClass,
+      _commonElements.closureClass0Args,
+      _commonElements.closureClass2Args,
+    ]);
   }
 
   BackendImpact _mapClass;
@@ -654,7 +649,7 @@ class BackendImpacts {
         // Literal lists can be translated into calls to these functions:
         globalUses: [
           _commonElements.jsArrayTypedConstructor,
-          _commonElements.setRuntimeTypeInfo,
+          _commonElements.setArrayType,
         ]);
   }
 
@@ -688,7 +683,7 @@ class BackendImpacts {
     return _runtimeTypeSupport ??= new BackendImpact(globalClasses: [
       _commonElements.listClass
     ], globalUses: [
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
     ], otherImpacts: [
       getRuntimeTypeArgument,
       computeSignature

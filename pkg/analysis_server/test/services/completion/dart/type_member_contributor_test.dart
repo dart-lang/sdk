@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -60,7 +58,7 @@ class A {
   bool a(int b, bool c) => false;
 }
 
-void main() {new A().a^}''');
+void f() {new A().a^}''');
     await computeSuggestions();
 
     assertSuggestMethod('a', 'A', 'bool', defaultArgListString: 'b, c');
@@ -72,7 +70,7 @@ class A {
   bool a() => false;
 }
 
-void main() {new A().a^}''');
+void f() {new A().a^}''');
     await computeSuggestions();
 
     assertSuggestMethod('a', 'A', 'bool', defaultArgListString: null);
@@ -87,7 +85,7 @@ class A {
   bool foo(int bar, [bool boo, int baz]) => false;
 }
 
-void main() {new A().f^}''');
+void f() {new A().f^}''');
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool', defaultArgListString: 'bar');
@@ -102,7 +100,7 @@ class A {
   bool foo(int bar, {bool boo, @required int baz}) => false;
 }
 
-void main() {new A().f^}''');
+void f() {new A().f^}''');
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
@@ -119,7 +117,7 @@ void main() {new A().f^}''');
         import 'a.dart';
         class B { }
         String bar() => true;
-        void main() {expect(^)}''');
+        void f() {expect(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -128,7 +126,7 @@ void main() {new A().f^}''');
     assertNotSuggested('identical');
     assertNotSuggested('B');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -144,7 +142,7 @@ void main() {new A().f^}''');
         import 'a.dart';
         class B { }
         String bar() => true;
-        void main() {expect(^)}''');
+        void f() {expect(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -153,7 +151,7 @@ void main() {new A().f^}''');
     assertNotSuggested('identical');
     assertNotSuggested('B');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -171,7 +169,7 @@ void main() {new A().f^}''');
         import 'a.dart';
         class B { }
         String bar() => true;
-        void main() {new A(^)}''');
+        void f() {new A(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -181,7 +179,7 @@ void main() {new A().f^}''');
     assertNotSuggested('B');
     assertNotSuggested('A');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -199,7 +197,7 @@ void main() {new A().f^}''');
         import 'a.dart';
         class B { }
         String bar() => true;
-        void main() {new A(^)}''');
+        void f() {new A(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -209,7 +207,7 @@ void main() {new A().f^}''');
     assertNotSuggested('B');
     assertNotSuggested('A');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -225,7 +223,7 @@ void main() {new A().f^}''');
         expect(arg) { }
         class B { }
         String bar() => true;
-        void main() {expect(^)}''');
+        void f() {expect(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -234,7 +232,7 @@ void main() {new A().f^}''');
     assertNotSuggested('identical');
     assertNotSuggested('B');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -259,7 +257,7 @@ void main() {new A().f^}''');
     assertNotSuggested('identical');
     assertNotSuggested('B');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -276,7 +274,7 @@ void main() {new A().f^}''');
         import 'a.dart';
         class B { }
         String bar(f()) => true;
-        void main() {bar(^);}''');
+        void f() {bar(^);}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -286,7 +284,7 @@ void main() {new A().f^}''');
     assertNotSuggested('B');
     assertNotSuggested('A');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -302,7 +300,7 @@ void main() {new A().f^}''');
         import 'dart:async';
         import 'a.dart';
         class B { String bar(f()) => true; }
-        void main() {new B().bar(^);}''');
+        void f() {new B().bar(^);}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -311,7 +309,7 @@ void main() {new A().f^}''');
     assertNotSuggested('B');
     assertNotSuggested('A');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }
@@ -325,13 +323,13 @@ void main() {new A().f^}''');
     addTestSource('''
         import 'a.dart';
         String bar() => true;
-        void main() {expect(foo: ^)}''');
+        void f() {expect(foo: ^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
   }
 
   Future<void> test_AsExpression() async {
@@ -351,7 +349,7 @@ void main() {new A().f^}''');
   Future<void> test_AssignmentExpression_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
-    addTestSource('class A {} main() {int a; int ^b = 1;}');
+    addTestSource('class A {} void f() {int a; int ^b = 1;}');
     await computeSuggestions();
     assertNoSuggestions();
   }
@@ -359,12 +357,12 @@ void main() {new A().f^}''');
   Future<void> test_AssignmentExpression_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
-    addTestSource('class A {} main() {int a; int b = ^}');
+    addTestSource('class A {} void f() {int a; int b = ^}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('A');
     assertNotSuggested('Object');
   }
@@ -373,7 +371,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
-        class A {} main() {
+        class A {} void f() {
           int a;
           ^ b = 1;}''');
     await computeSuggestions();
@@ -387,7 +385,7 @@ void main() {new A().f^}''');
     // Consider suggesting only types
     // if only spaces separates the 1st and 2nd identifiers.
     //assertNotSuggested('a');
-    //assertNotSuggested('main');
+    //assertNotSuggested('f');
     //assertNotSuggested('identical');
   }
 
@@ -395,7 +393,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
-        class A {} main() {
+        class A {} void f() {
           int a;
           ^
           b = 1;}''');
@@ -408,7 +406,7 @@ void main() {new A().f^}''');
     // if newline follows first identifier
     // because user is probably starting a new statement
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('identical');
   }
 
@@ -416,7 +414,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
-        class A {} main() {
+        class A {} void f() {
           int a;
           int^ b = 1;}''');
     await computeSuggestions();
@@ -430,7 +428,7 @@ void main() {new A().f^}''');
     // Consider suggesting only types
     // if only spaces separates the 1st and 2nd identifiers.
     //assertNotSuggested('a');
-    //assertNotSuggested('main');
+    //assertNotSuggested('f');
     //assertNotSuggested('identical');
   }
 
@@ -438,7 +436,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
-        class A {} main() {
+        class A {} void f() {
           int a;
           i^
           b = 1;}''');
@@ -451,7 +449,7 @@ void main() {new A().f^}''');
     // if newline follows first identifier
     // because user is probably starting a new statement
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('identical');
   }
 
@@ -459,12 +457,12 @@ void main() {new A().f^}''');
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
     addTestSource('''
         class A {int x; int y() => 0;}
-        main() async {A a; await ^}''');
+        void f() async {A a; await ^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('A');
     assertNotSuggested('Object');
   }
@@ -472,7 +470,7 @@ void main() {new A().f^}''');
   Future<void> test_BinaryExpression_LHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
-    addTestSource('main() {int a = 1, b = ^ + 2;}');
+    addTestSource('void f() {int a = 1, b = ^ + 2;}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -484,7 +482,7 @@ void main() {new A().f^}''');
   Future<void> test_BinaryExpression_RHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
-    addTestSource('main() {int a = 1, b = 2 + ^;}');
+    addTestSource('void f() {int a = 1, b = 2 + ^;}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -685,14 +683,14 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_final2() async {
-    addTestSource('main() {final S^ v;}');
+    addTestSource('void f() {final S^ v;}');
     await computeSuggestions();
 
     assertNotSuggested('String');
   }
 
   Future<void> test_Block_final3() async {
-    addTestSource('main() {final ^ v;}');
+    addTestSource('void f() {final ^ v;}');
     await computeSuggestions();
 
     assertNotSuggested('String');
@@ -1077,7 +1075,7 @@ void main() {new A().f^}''');
 
   Future<void> test_Block_unimported() async {
     newFile('$testPackageLibPath/a.dart', content: 'class A {}');
-    addTestSource('main() { ^ }');
+    addTestSource('void f() { ^ }');
 
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -1098,7 +1096,7 @@ void main() {new A().f^}''');
         class X{}
         // looks like a cascade to the parser
         // but the user is trying to get completions for a non-cascade
-        main() {A a; a.^.z()}''');
+        void f() {A a; a.^.z()}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1122,7 +1120,7 @@ void main() {new A().f^}''');
         class X{}
         // looks like a cascade to the parser
         // but the user is trying to get completions for a non-cascade
-        main() {A a; a.^.z}''');
+        void f() {A a; a.^.z}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1144,7 +1142,7 @@ void main() {new A().f^}''');
         import "b.dart";
         class A {var b; X _c;}
         class X{}
-        main() {A a; a..^z}''');
+        void f() {A a; a..^z}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 1);
@@ -1166,7 +1164,7 @@ void main() {new A().f^}''');
         import "b.dart";
         class A {var b; X _c;}
         class X{}
-        main() {A a; a..^ return}''');
+        void f() {A a; a..^ return}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1185,7 +1183,7 @@ void main() {new A().f^}''');
     addTestSource('''
         class A {var b; X _c;}
         class X{}
-        main() {A a; a^..b}''');
+        void f() {A a; a^..b}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
@@ -1527,7 +1525,7 @@ void main() {new A().f^}''');
     addTestSource('''
         import "b.dart";
         var m;
-        main() {new X.^}''');
+        void f() {new X.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1551,7 +1549,7 @@ void main() {new A().f^}''');
     addTestSource('''
         import "b.dart";
         var m;
-        main() {new X.^}''');
+        void f() {new X.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1568,7 +1566,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
-        main() {new String.fr^omCharCodes([]);}''');
+        void f() {new String.fr^omCharCodes([]);}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 2);
     expect(replacementLength, 13);
@@ -1588,7 +1586,7 @@ void main() {new A().f^}''');
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}
-        main() {new X.^}''');
+        void f() {new X.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1608,7 +1606,7 @@ void main() {new A().f^}''');
         int T1;
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}
-        main() {new X.^}''');
+        void f() {new X.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1639,7 +1637,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_enumConst() async {
-    addTestSource('enum E { one, two } main() {E.^}');
+    addTestSource('enum E { one, two } void f() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
     // Suggested by StaticMemberContributor
@@ -1650,7 +1648,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_enumConst2() async {
-    addTestSource('enum E { one, two } main() {E.o^}');
+    addTestSource('enum E { one, two } void f() {E.o^}');
     await computeSuggestions();
     assertNotSuggested('E');
     // Suggested by StaticMemberContributor
@@ -1661,7 +1659,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_enumConst3() async {
-    addTestSource('enum E { one, two } main() {E.^ int g;}');
+    addTestSource('enum E { one, two } void f() {E.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
     // Suggested by StaticMemberContributor
@@ -1672,7 +1670,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_enumConst_index() async {
-    addTestSource('enum E { one, two } main() {E.one.^}');
+    addTestSource('enum E { one, two } void f() {E.one.^}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertNotSuggested('one');
@@ -1682,7 +1680,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_enumConst_index2() async {
-    addTestSource('enum E { one, two } main() {E.one.i^}');
+    addTestSource('enum E { one, two } void f() {E.one.i^}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertNotSuggested('one');
@@ -1692,7 +1690,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_enumConst_index3() async {
-    addTestSource('enum E { one, two } main() {E.one.^ int g;}');
+    addTestSource('enum E { one, two } void f() {E.one.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertNotSuggested('one');
@@ -1786,7 +1784,7 @@ void f() {
 
   Future<void> test_ForEachStatement_body_typed() async {
     // Block  ForEachStatement
-    addTestSource('main(args) {for (int foo in bar) {^}}');
+    addTestSource('void f(args) {for (int foo in bar) {^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1797,7 +1795,7 @@ void f() {
 
   Future<void> test_ForEachStatement_body_untyped() async {
     // Block  ForEachStatement
-    addTestSource('main(args) {for (foo in bar) {^}}');
+    addTestSource('void f(args) {for (foo in bar) {^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1808,7 +1806,7 @@ void f() {
 
   Future<void> test_ForEachStatement_iterable() async {
     // SimpleIdentifier  ForEachStatement  Block
-    addTestSource('main(args) {for (int foo in ^) {}}');
+    addTestSource('void f(args) {for (int foo in ^) {}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1818,7 +1816,7 @@ void f() {
 
   Future<void> test_ForEachStatement_loopVariable() async {
     // SimpleIdentifier  ForEachStatement  Block
-    addTestSource('main(args) {for (^ in args) {}}');
+    addTestSource('void f(args) {for (^ in args) {}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1828,7 +1826,7 @@ void f() {
 
   Future<void> test_ForEachStatement_loopVariable_type() async {
     // SimpleIdentifier  ForEachStatement  Block
-    addTestSource('main(args) {for (^ foo in args) {}}');
+    addTestSource('void f(args) {for (^ foo in args) {}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1839,7 +1837,7 @@ void f() {
 
   Future<void> test_ForEachStatement_loopVariable_type2() async {
     // DeclaredIdentifier  ForEachStatement  Block
-    addTestSource('main(args) {for (S^ foo in args) {}}');
+    addTestSource('void f(args) {for (S^ foo in args) {}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
@@ -1867,7 +1865,7 @@ void f() {
 
   Future<void> test_ForStatement_body() async {
     // Block  ForStatement
-    addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
+    addTestSource('void f(args) {for (int i; i < 10; ++i) {^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1877,7 +1875,7 @@ void f() {
 
   Future<void> test_ForStatement_condition() async {
     // SimpleIdentifier  ForStatement
-    addTestSource('main() {for (int index = 0; i^)}');
+    addTestSource('void f() {for (int index = 0; i^)}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
@@ -1886,7 +1884,7 @@ void f() {
 
   Future<void> test_ForStatement_initializer() async {
     // SimpleIdentifier  ForStatement
-    addTestSource('main() {List a; for (^)}');
+    addTestSource('void f() {List a; for (^)}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -1897,7 +1895,7 @@ void f() {
 
   Future<void> test_ForStatement_updaters() async {
     // SimpleIdentifier  ForStatement
-    addTestSource('main() {for (int index = 0; index < 10; i^)}');
+    addTestSource('void f() {for (int index = 0; index < 10; i^)}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
@@ -1908,12 +1906,12 @@ void f() {
     // SimpleIdentifier  PrefixExpression  ForStatement
     addTestSource('''
         void bar() { }
-        main() {for (int index = 0; index < 10; ++i^)}''');
+        void f() {for (int index = 0; index < 10; ++i^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('index');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('bar');
   }
 
@@ -2075,9 +2073,9 @@ void f(C<int> c) {
 ''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'int');
-    expect(suggestion.parameterTypes[0], 'int');
-    expect(suggestion.element.returnType, 'int');
-    expect(suggestion.element.parameters, '(int t)');
+    expect(suggestion.parameterTypes![0], 'int');
+    expect(suggestion.element!.returnType, 'int');
+    expect(suggestion.element!.parameters, '(int t)');
   }
 
   Future<void> test_generic_setter() async {
@@ -2094,7 +2092,7 @@ void f(C<int> c) {
     // as a parmeter to it, and it will check the appropriate field in
     // the suggestion object.
     var suggestion = assertSuggestSetter('t');
-    expect(suggestion.element.parameters, '(int value)');
+    expect(suggestion.element!.parameters, '(int value)');
   }
 
   Future<void> test_genericTypeAlias_noFunctionType() async {
@@ -2123,12 +2121,12 @@ g(F.^
     // SimpleIdentifier  IfStatement  Block  BlockFunctionBody
     addTestSource('''
         class A {int x; int y() => 0;}
-        main(){var a; if (^)}''');
+        void f(){var a; if (^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('A');
     assertNotSuggested('Object');
   }
@@ -2150,7 +2148,7 @@ g(F.^
   Future<void> test_IfStatement_invocation() async {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('''
-        main() {var a; if (a.^) something}''');
+        void f() {var a; if (a.^) something}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -2164,7 +2162,7 @@ g(F.^
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
         import "dart^";
-        main() {}''');
+        void f() {}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
@@ -2312,7 +2310,7 @@ void f() {
         F2() { }
         typedef D2();
         class C2 { }
-        main() {String name; print("hello \$^");}''');
+        void f() {String name; print("hello \$^");}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -2341,7 +2339,7 @@ void f() {
         F2() { }
         typedef D2();
         class C2 { }
-        main() {String name; print("hello \${^}");}''');
+        void f() {String name; print("hello \${^}");}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -2358,7 +2356,7 @@ void f() {
 
   Future<void> test_InterpolationExpression_block2() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addTestSource('main() {String name; print("hello \${n^}");}');
+    addTestSource('void f() {String name; print("hello \${n^}");}');
     await computeSuggestions();
     assertNotSuggested('name');
     // top level results are partially filtered
@@ -2367,7 +2365,7 @@ void f() {
 
   Future<void> test_InterpolationExpression_prefix_selector() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \${name.^}");}');
+    addTestSource('void f() {String name; print("hello \${name.^}");}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -2379,14 +2377,14 @@ void f() {
 
   Future<void> test_InterpolationExpression_prefix_selector2() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \$name.^");}');
+    addTestSource('void f() {String name; print("hello \$name.^");}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
   Future<void> test_InterpolationExpression_prefix_target() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
+    addTestSource('void f() {String name; print("hello \${nam^e.length}");}');
     await computeSuggestions();
     assertNotSuggested('name');
     // top level results are partially filtered
@@ -2403,14 +2401,14 @@ void f() {
     addTestSource('''
         import "b.dart";
         class Y {Y.c(); Y._d(); z() {}}
-        main() {var x; if (x is ^) { }}''');
+        void f() {var x; if (x is ^) { }}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('X');
     assertNotSuggested('Y');
     assertNotSuggested('x');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('foo');
   }
 
@@ -2420,12 +2418,12 @@ void f() {
         foo() { }
         void bar() { }
         class A {int x; int y() => 0;}
-        main(){var a; if (^ is A)}''');
+        void f(){var a; if (^ is A)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('foo');
     assertNotSuggested('bar');
     assertNotSuggested('A');
@@ -2436,12 +2434,12 @@ void f() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
         class A {int x; int y() => 0;}
-        main(){var a; if (a is ^)}''');
+        void f(){var a; if (a is ^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('A');
     assertNotSuggested('Object');
   }
@@ -2450,18 +2448,19 @@ void f() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
         class A {int x; int y() => 0;}
-        main(){var a; if (a is Obj^)}''');
+        void f(){var a; if (a is Obj^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
     assertNotSuggested('a');
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('A');
     assertNotSuggested('Object');
   }
 
   Future<void> test_keyword() async {
-    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    addTestSource(
+        'class C { static C get instance => null; } void f() {C.in^}');
     await computeSuggestions();
     // Suggested by StaticMemberContributor
     assertNotSuggested('instance');
@@ -2478,7 +2477,7 @@ void f() {
         import "b.dart";
         String newer() {}
         var m;
-        main() {new^ X.c();}''');
+        void f() {new^ X.c();}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
@@ -2530,7 +2529,7 @@ void f() {
   Future<void> test_libraryPrefix_with_exports() async {
     addSource('/home/test/lib/a.dart', 'class A { }');
     addSource('/home/test/lib/b.dart', 'export "a.dart"; class B { }');
-    addTestSource('import "b.dart" as foo; main() {foo.^} class C { }');
+    addTestSource('import "b.dart" as foo; void f() {foo.^} class C { }');
     await computeSuggestions();
     // Suggested by LibraryMemberContributor
     assertNotSuggested('B');
@@ -2539,7 +2538,7 @@ void f() {
 
   Future<void> test_Literal_list() async {
     // ']'  ListLiteral  ArgumentList  MethodInvocation
-    addTestSource('main() {var Some; print([^]);}');
+    addTestSource('void f() {var Some; print([^]);}');
     await computeSuggestions();
     assertNotSuggested('Some');
     assertNotSuggested('String');
@@ -2547,7 +2546,7 @@ void f() {
 
   Future<void> test_Literal_list2() async {
     // SimpleIdentifier ListLiteral  ArgumentList  MethodInvocation
-    addTestSource('main() {var Some; print([S^]);}');
+    addTestSource('void f() {var Some; print([S^]);}');
     await computeSuggestions();
     assertNotSuggested('Some');
     assertNotSuggested('String');
@@ -2579,9 +2578,9 @@ void f() {
   }
 
   Future<void> test_localVariableDeclarationName() async {
-    addTestSource('main() {String m^}');
+    addTestSource('void f() {String m^}');
     await computeSuggestions();
-    assertNotSuggested('main');
+    assertNotSuggested('f');
     assertNotSuggested('min');
   }
 
@@ -2658,7 +2657,7 @@ class C {
   void f(int x, void Function(int a, int b) closure, int y) {}
 }
 
-void main() {
+void f() {
   new C().^
 }
 ''');
@@ -2678,7 +2677,7 @@ class C {
   void f(bool Function(int a, int b) closure) {}
 }
 
-void main() {
+void f() {
   new C().^
 }
 ''');
@@ -2698,7 +2697,7 @@ class C {
   void f(Object Function(int a, int b) closure) {}
 }
 
-void main() {
+void f() {
   new C().^
 }
 ''');
@@ -2718,7 +2717,7 @@ class C {
   void f(void Function(int a, int b) closure) {}
 }
 
-void main() {
+void f() {
   new C().^
 }
 ''');
@@ -2737,14 +2736,16 @@ void main() {
 class C {
   void m(x, {int y}) {}
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -2754,14 +2755,16 @@ void main() {new C().^}''');
 class C {
   void m(x, [int y]) {}
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -2771,14 +2774,16 @@ void main() {new C().^}''');
 class C {
   void m({x, int y}) {}
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -2788,7 +2793,7 @@ void main() {new C().^}''');
 class C {
   void m() {}
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, isEmpty);
@@ -2802,14 +2807,16 @@ void main() {new C().^}''');
 class C {
   void m([x, int y]) {}
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -2819,14 +2826,16 @@ void main() {new C().^}''');
 class C {
   void m(x, int y) {}
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -3038,7 +3047,7 @@ void main() {new C().^}''');
   Future<void> test_MethodInvocation_no_semicolon() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource(r'''
-        main() { }
+        void f() { }
         class I {X get f => new A();get _g => new A(); F $p; void $q(){}}
         class A implements I {
           var b; X _c;
@@ -3124,7 +3133,7 @@ void f(X x) {
 class C {
   int x;
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestField('x', 'int');
     assertHasNoParameterInfo(suggestion);
@@ -3135,7 +3144,7 @@ void main() {new C().^}''');
 class C {
   int get x => null;
 }
-void main() {int y = new C().^}''');
+void f() {int y = new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
@@ -3146,7 +3155,7 @@ void main() {int y = new C().^}''');
 class C {
   set x(int value) {};
 }
-void main() {int y = new C().^}''');
+void f() {int y = new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
@@ -3157,7 +3166,7 @@ void main() {int y = new C().^}''');
 class C {
   set x() {};
 }
-void main() {int y = new C().^}''');
+void f() {int y = new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
@@ -3172,7 +3181,7 @@ class C {
   m1() {}
   static m2() {}
 }
-void main() {new C().^}''');
+void f() {new C().^}''');
     await computeSuggestions();
     assertSuggestField('f1', 'int');
     assertNotSuggested('f2');
@@ -3189,7 +3198,7 @@ class C {
   m1() {}
   static m2() {}
 }
-void main() {new C().^ print("something");}''');
+void f() {new C().^ print("something");}''');
     await computeSuggestions();
     assertSuggestField('f1', 'int');
     assertNotSuggested('f2');
@@ -3206,7 +3215,7 @@ class C {
   m1() {}
   static m2() {}
 }
-void main() {C.^}''');
+void f() {C.^}''');
     await computeSuggestions();
     assertNotSuggested('f1');
     // Suggested by StaticMemberContributor
@@ -3224,7 +3233,7 @@ class C {
   m1() {}
   static m2() {}
 }
-void main() {C.^ print("something");}''');
+void f() {C.^ print("something");}''');
     await computeSuggestions();
     assertNotSuggested('f1');
     // Suggested by StaticMemberContributor
@@ -3268,7 +3277,7 @@ void main() {C.^ print("something");}''');
     addTestSource('''
         part of libA;
         class B { B.bar(int x); }
-        main() {new ^}''');
+        void f() {new ^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -3299,7 +3308,7 @@ void main() {C.^ print("something");}''');
         import "b.dart";
         part "a.dart";
         class A { A({String boo: 'hoo'}) { } }
-        main() {new ^}
+        void f() {new ^}
         var m;''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -3336,7 +3345,7 @@ void main() {C.^ print("something");}''');
         class A extends B {
           static const String scA = 'foo';
           w() { }}
-        main() {A.^}''');
+        void f() {A.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -3376,7 +3385,7 @@ void main() {C.^ print("something");}''');
         class X{}''');
     addTestSource('''
         import "b.dart";
-        main() {A a; a.^}''');
+        void f() {A a; a.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -3401,7 +3410,7 @@ void main() {C.^ print("something");}''');
   Future<void> test_PrefixedIdentifier_class_local() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
-        main() {A a; a.^}
+        void f() {A a; a.^}
         class I {X get f => new A();get _g => new A();}
         class A implements I {
           static const int sc = 12;
@@ -3449,7 +3458,7 @@ void main() {C.^ print("something");}''');
         import "b.dart" as b;
         var T2;
         class A { }
-        main() {b.^}''');
+        void f() {b.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -3681,7 +3690,7 @@ void main() {C.^ print("something");}''');
   Future<void> test_PropertyAccess_noTarget2() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addSource('/testAB.dart', 'class Foo { }');
-    addTestSource('main() {.^}');
+    addTestSource('void f() {.^}');
     await computeSuggestions();
     assertNoSuggestions();
   }
@@ -3905,7 +3914,7 @@ class C with M {
   Future<void> test_ThisExpression_block() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-        main() { }
+        void f() { }
         class I {X get f => new A();get _g => new A();}
         class A implements I {
           A() {}
@@ -3940,7 +3949,7 @@ class C with M {
   Future<void> test_ThisExpression_constructor() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-        main() { }
+        void f() { }
         class I {X get f => new A();get _g => new A();}
         class A implements I {
           A() {this.^}
@@ -3975,7 +3984,7 @@ class C with M {
   Future<void> test_ThisExpression_constructor_param() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
-        main() { }
+        void f() { }
         class I {X get f => new A();get _g => new A();}
         class A implements I {
           A(this.^) {}
@@ -4012,7 +4021,7 @@ class C with M {
   Future<void> test_ThisExpression_constructor_param2() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
-        main() { }
+        void f() { }
         class I {X get f => new A();get _g => new A();}
         class A implements I {
           A(this.b^) {}
@@ -4048,7 +4057,7 @@ class C with M {
   Future<void> test_ThisExpression_constructor_param3() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
-        main() { }
+        void f() { }
         class I {X get f => new A();get _g => new A();}
         class A implements I {
           A(this.^b) {}
@@ -4084,7 +4093,7 @@ class C with M {
   Future<void> test_ThisExpression_constructor_param4() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
-        main() { }
+        void f() { }
         class I {X get f => new A();get _g => new A();}
         class A implements I {
           A(this.b, this.^) {}
@@ -4145,7 +4154,7 @@ class C with M {
         F2() => 0;
         typedef int T2(int blat);
         class C<E> {}
-        main() { C<^> c; }''');
+        void f() { C<^> c; }''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -4170,7 +4179,7 @@ class C with M {
         F2() => 0;
         typedef int T2(int blat);
         class C<E> {}
-        main() { C<C^> c; }''');
+        void f() { C<C^> c; }''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
@@ -4185,7 +4194,7 @@ class C with M {
           Func f;
           void a() => f.^;
         }
-        main() {}''');
+        void f() {}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -4212,14 +4221,14 @@ class C with M {
     addTestSource('''
         import "b.dart";
         class Y {Y.c(); Y._d(); z() {}}
-        main() {var ^}''');
+        void f() {var ^}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
   Future<void> test_VariableDeclarationList_final() async {
     // VariableDeclarationList  VariableDeclarationStatement  Block
-    addTestSource('main() {final ^} class C { }');
+    addTestSource('void f() {final ^} class C { }');
     await computeSuggestions();
     assertNotSuggested('Object');
     assertNotSuggested('C');

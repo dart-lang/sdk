@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -24,34 +24,37 @@ DART_DIR = abspath(join(__file__, '..', '..', '..'))
 
 
 def listFiles(path):
-  allFiles = []
-  for dirpath, dirs, files in os.walk(join(DART_DIR, path)):
-    allFiles += [relpath(abspath(join(dirpath, p)), DART_DIR) for p in files]
-  return allFiles
+    allFiles = []
+    for dirpath, dirs, files in os.walk(join(DART_DIR, path)):
+        allFiles += [
+            relpath(abspath(join(dirpath, p)), DART_DIR) for p in files
+        ]
+    return allFiles
 
 
 def printOutput(files):
-  print('[')
-  print(',\n'.join([
-    '  {\n    "path": "%s",\n    "dest": "data/%s"\n  }' % (f, f) for f in files
-  ]))
-  print(']')
+    print('[')
+    print(',\n'.join([
+        '  {\n    "path": "%s",\n    "dest": "data/%s"\n  }' % (f, f)
+        for f in files
+    ]))
+    print(']')
 
 
 def main():
-  if len(sys.argv) < 2:
-    print('Expected at least 1 arg, the paths to search.')
-    return 1
-  allFiles = []
-  for directory in sys.argv[1:]:
-    files = listFiles(directory)
-    if len(files) == 0:
-      print('Did not find any files in the directory: ' + directory)
-      return 2
-    allFiles += files
-  printOutput(sorted(allFiles))
-  return 0
+    if len(sys.argv) < 2:
+        print('Expected at least 1 arg, the paths to search.')
+        return 1
+    allFiles = []
+    for directory in sys.argv[1:]:
+        files = listFiles(directory)
+        if len(files) == 0:
+            print('Did not find any files in the directory: ' + directory)
+            return 2
+        allFiles += files
+    printOutput(sorted(allFiles))
+    return 0
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+    sys.exit(main())

@@ -5,7 +5,7 @@
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX)
 
 #include "bin/security_context.h"
 
@@ -40,21 +40,27 @@ void SSLCertContext::TrustBuiltinRoots() {
     return;
   }
 
-  // On Linux, we use the compiled-in trusted certs as a last resort. First,
-  // we try to find the trusted certs in various standard locations. A good
-  // discussion of the complexities of this endeavor can be found here:
-  //
-  // https://www.happyassassin.net/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
-  const char* bundle = "/etc/pki/tls/certs/ca-bundle.crt";
-  const char* cachedir = "/etc/ssl/certs";
-  if (File::Exists(NULL, bundle)) {
-    LoadRootCertFile(bundle);
-    return;
-  }
+  if (bypass_trusting_system_roots()) {
+    if (SSL_LOG_STATUS) {
+      Syslog::Print("Bypass trusting Linux built-in roots\n");
+    }
+  } else {
+    // On Linux, we use the compiled-in trusted certs as a last resort. First,
+    // we try to find the trusted certs in various standard locations. A good
+    // discussion of the complexities of this endeavor can be found here:
+    //
+    // https://www.happyassassin.net/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
+    const char* bundle = "/etc/pki/tls/certs/ca-bundle.crt";
+    const char* cachedir = "/etc/ssl/certs";
+    if (File::Exists(NULL, bundle)) {
+      LoadRootCertFile(bundle);
+      return;
+    }
 
-  if (Directory::Exists(NULL, cachedir) == Directory::EXISTS) {
-    LoadRootCertCache(cachedir);
-    return;
+    if (Directory::Exists(NULL, cachedir) == Directory::EXISTS) {
+      LoadRootCertCache(cachedir);
+      return;
+    }
   }
 
   // Fall back on the compiled-in certs if the standard locations don't exist,
@@ -77,6 +83,6 @@ TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX)
 
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

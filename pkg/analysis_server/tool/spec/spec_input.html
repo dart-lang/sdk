@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.32.5</version>
+  <version>1.32.7</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -134,6 +134,18 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.7</h4>
+<ul>
+  <li><tt>HoverInformation.elementDescription</tt> may now include linebreaks to
+  improve formatting of functions and methods with many parameters. This is not
+  an API change but may be useful as a signal for clients that previously did their
+  own formatting.</li>
+</ul>
+<h4>1.32.6</h4>
+<ul>
+  <li>Added <tt>FoldingKind.PARAMETERS</tt> for folding regions for parameters
+  that span multiple lines.</li>
+</ul>
 <h4>1.32.5</h4>
 <ul>
   <li>Added optional <tt>replacementOffset</tt> and <tt>replacementLength</tt> on
@@ -2142,26 +2154,6 @@
       </field>
     </result>
   </request>
-  <request method="getDartfixInfo" experimental="true">
-    <p>
-      Request information about edit.dartfix
-      such as the list of known fixes that can be specified
-      in an edit.dartfix request.
-    </p>
-    <params>
-    </params>
-    <result>
-      <field name="fixes">
-        <list>
-          <ref>DartFix</ref>
-        </list>
-        <p>
-          A list of fixes that can be specified
-          in an edit.dartfix request.
-        </p>
-      </field>
-    </result>
-  </request>
   <request method="bulkFixes" experimental="true">
     <p>
       Analyze the specified sources for fixes that can be applied in bulk
@@ -2217,148 +2209,6 @@
         <p>
           Details that summarize the fixes associated with the recommended
           changes.
-        </p>
-      </field>
-    </result>
-  </request>
-  <request method="dartfix" experimental="true">
-    <p>
-      Analyze the specified sources for recommended changes
-      and return a set of suggested edits for those sources.
-      These edits may include changes to sources outside the set
-      of specified sources if a change in a specified source requires it.
-    </p>
-    <p>
-      If includedFixes is specified, then those fixes will be applied. If
-      includePedanticFixes is specified, then fixes associated with the pedantic
-      rule set will be applied in addition to whatever fixes are specified in
-      includedFixes if any. If neither includedFixes nor includePedanticFixes is
-      specified, then no fixes will be applied. If excludedFixes is specified,
-      then those fixes will not be applied regardless of whether they are
-      specified in includedFixes.
-    </p>
-    <params>
-      <field name="included">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          A list of the files and directories for which edits should be
-          suggested.
-        </p>
-        <p>
-          If a request is made with a path that is invalid, e.g. is not absolute
-          and normalized, an error of type <tt>INVALID_FILE_PATH_FORMAT</tt>
-          will be generated. If a request is made for a file which does not
-          exist, or which is not currently subject to analysis (e.g. because it
-          is not associated with any analysis root specified to
-          analysis.setAnalysisRoots), an error of type
-          <tt>FILE_NOT_ANALYZED</tt> will be generated.
-        </p>
-      </field>
-      <field name="includedFixes" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          A list of names indicating which fixes should be applied.
-        </p>
-        <p>
-          If a name is specified that does not match the name of a known fix, an
-          error of type <tt>UNKNOWN_FIX</tt> will be generated.
-        </p>
-      </field>
-      <field name="includePedanticFixes" optional="true">
-        <ref>bool</ref>
-        <p>
-          A flag indicating whether "pedantic" fixes should be applied.
-        </p>
-      </field>
-      <field name="excludedFixes" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          A list of names indicating which fixes should not be applied.
-        </p>
-        <p>
-          If a name is specified that does not match the name of a known fix, an
-          error of type <tt>UNKNOWN_FIX</tt> will be generated.
-        </p>
-      </field>
-      <field name="port" optional="true" deprecated="true">
-        <ref>int</ref>
-        <p>
-          <b>Deprecated:</b> This field is now ignored by server.
-        </p>
-      </field>
-      <field name="outputDir" optional="true" deprecated="true">
-        <ref>FilePath</ref>
-        <p>
-          <b>Deprecated:</b> This field is now ignored by server.
-        </p>
-      </field>
-    </params>
-    <result>
-      <field name="suggestions">
-        <list>
-          <ref>DartFixSuggestion</ref>
-        </list>
-        <p>
-          A list of recommended changes that can be automatically made
-          by applying the 'edits' included in this response.
-        </p>
-      </field>
-      <field name="otherSuggestions">
-        <list>
-          <ref>DartFixSuggestion</ref>
-        </list>
-        <p>
-          A list of recommended changes that could not be automatically made.
-        </p>
-      </field>
-      <field name="hasErrors">
-        <ref>bool</ref>
-        <p>
-          True if the analyzed source contains errors that might impact the correctness
-          of the recommended changes that can be automatically applied.
-        </p>
-      </field>
-      <field name="edits">
-        <list>
-          <ref>SourceFileEdit</ref>
-        </list>
-        <p>
-          A list of source edits to apply the recommended changes.
-        </p>
-      </field>
-      <field name="details" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          Messages that should be displayed to the user that describe details of
-          the fix generation. For example, the messages might (a) point out
-          details that users might want to explore before committing the changes
-          or (b) describe exceptions that were thrown but that did not stop the
-          fixes from being produced. The list will be omitted if it is empty.
-        </p>
-      </field>
-      <field name="port" optional="true">
-        <ref>int</ref>
-        <p>
-          The port on which the preview tool will respond to GET requests. The
-          field is omitted if a preview was not requested.
-        </p>
-      </field>
-      <field name="urls" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          The URLs that users can visit in a browser to see a preview of the
-          proposed changes. There is one URL for each of the included file
-          paths. The field is omitted if a preview was not requested.
         </p>
       </field>
     </result>
@@ -5194,13 +5044,6 @@
         </p>
       </value>
       <value>
-        <code>UNKNOWN_FIX</code>
-        <p>
-          A dartfix request was received containing the name of a fix
-          which does not match the name of any known fixes.
-        </p>
-      </value>
-      <value>
         <code>UNKNOWN_REQUEST</code>
         <p>
           A request was received which the analysis server does
@@ -5229,44 +5072,6 @@
       An identifier used to associate search results with a search
       request.
     </p>
-  </type>
-  <type name="DartFix" experimental="true">
-    <p>
-      A "fix" that can be specified in an edit.dartfix request.
-    </p>
-    <object>
-      <field name="name">
-        <ref>String</ref>
-        <p>
-          The name of the fix.
-        </p>
-      </field>
-      <field name="description" optional="true">
-        <ref>String</ref>
-        <p>
-          A human readable description of the fix.
-        </p>
-      </field>
-    </object>
-  </type>
-  <type name="DartFixSuggestion" experimental="true">
-    <p>
-      A suggestion from an edit.dartfix request.
-    </p>
-    <object>
-      <field name="description">
-        <ref>String</ref>
-        <p>
-          A human readable description of the suggested change.
-        </p>
-      </field>
-      <field name="location" optional="true">
-        <ref>Location</ref>
-        <p>
-          The location of the suggested change.
-        </p>
-      </field>
-    </object>
   </type>
   <type name="SearchResult">
     <p>

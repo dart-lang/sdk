@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/file.h"
 
@@ -82,6 +82,7 @@ MappedMemory* File::Map(MapType type,
                         void* start) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
+  void* hint = nullptr;
   int prot = PROT_NONE;
   int map_flags = MAP_PRIVATE;
   switch (type) {
@@ -89,6 +90,8 @@ MappedMemory* File::Map(MapType type,
       prot = PROT_READ;
       break;
     case kReadExecute:
+      // Try to allocate near the VM's binary.
+      hint = reinterpret_cast<void*>(&Dart_Initialize);
       prot = PROT_READ | PROT_EXEC;
       if (IsAtLeastOS10_14()) {
         map_flags |= (MAP_JIT | MAP_ANONYMOUS);
@@ -99,6 +102,7 @@ MappedMemory* File::Map(MapType type,
       break;
   }
   if (start != nullptr) {
+    hint = start;
     map_flags |= MAP_FIXED;
   }
   void* addr = start;
@@ -107,7 +111,7 @@ MappedMemory* File::Map(MapType type,
     // directly. We must first copy it into an anonymous mapping and then mark
     // the mapping as executable.
     if (addr == nullptr) {
-      addr = mmap(nullptr, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
+      addr = mmap(hint, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
       if (addr == MAP_FAILED) {
         Syslog::PrintErr("mmap failed %s\n", strerror(errno));
         return nullptr;
@@ -139,7 +143,7 @@ MappedMemory* File::Map(MapType type,
       return nullptr;
     }
   } else {
-    addr = mmap(addr, length, prot, map_flags, handle_->fd(), position);
+    addr = mmap(hint, length, prot, map_flags, handle_->fd(), position);
     if (addr == MAP_FAILED) {
       Syslog::PrintErr("mmap failed %s\n", strerror(errno));
       return nullptr;
@@ -646,4 +650,4 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)

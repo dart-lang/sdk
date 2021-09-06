@@ -12,37 +12,24 @@ class ConstantMapView<K, V> extends UnmodifiableMapView<K, V>
 abstract class ConstantMap<K, V> implements Map<K, V> {
   // Used to create unmodifiable maps from other maps.
   factory ConstantMap.from(Map other) {
-    var keys = new List<K>.from(other.keys);
+    final keys = List<K>.from(other.keys);
     bool allStrings = true;
     for (var k in keys) {
-      if (k is! String) {
+      if (k is! String || '__proto__' == k) {
         allStrings = false;
         break;
       }
     }
     if (allStrings) {
-      bool containsProto = false;
-      var protoValue = null;
       var object = JS('=Object', '{}');
-      int length = 0;
-      for (var k in keys) {
+      for (final k in keys) {
         V v = other[k];
-        if (k != '__proto__') {
-          if (!jsHasOwnProperty(object, k as String)) length++;
-          JS('void', '#[#] = #', object, k, v);
-        } else {
-          containsProto = true;
-          protoValue = v;
-        }
+        JS('void', '#[#] = #', object, k, v);
       }
-      if (containsProto) {
-        length++;
-        return new ConstantProtoMap<K, V>._(length, object, keys, protoValue);
-      }
-      return new ConstantStringMap<K, V>._(length, object, keys);
+      return ConstantStringMap<K, V>._(keys.length, object, keys);
     }
     // TODO(lrn): Make a proper unmodifiable map implementation.
-    return new ConstantMapView<K, V>(new Map.from(other));
+    return ConstantMapView<K, V>(Map.from(other));
   }
 
   const ConstantMap._();
@@ -55,7 +42,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   String toString() => MapBase.mapToString(this);
 
   static Never _throwUnmodifiable() {
-    throw new UnsupportedError('Cannot modify unmodifiable Map');
+    throw UnsupportedError('Cannot modify unmodifiable Map');
   }
 
   void operator []=(K key, V val) {
@@ -70,11 +57,19 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
     _throwUnmodifiable();
   }
 
-  void clear() => _throwUnmodifiable();
-  void addAll(Map<K, V> other) => _throwUnmodifiable();
+  void clear() {
+    _throwUnmodifiable();
+  }
+
+  void addAll(Map<K, V> other) {
+    _throwUnmodifiable();
+  }
 
   Iterable<MapEntry<K, V>> get entries sync* {
-    for (var key in keys) yield new MapEntry<K, V>(key, this[key]!);
+    // `this[key]` has static type `V?` but is always `V`. Rather than `as V`,
+    // we use `as dynamic` so the upcast requires no checking and the implicit
+    // downcast to `V` will be discarded in production.
+    for (var key in keys) yield MapEntry<K, V>(key, this[key] as dynamic);
   }
 
   void addEntries(Iterable<MapEntry<K, V>> entries) {
@@ -148,30 +143,12 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
   }
 
   Iterable<K> get keys {
-    return new _ConstantMapKeyIterable<K>(this);
+    return _ConstantMapKeyIterable<K>(this);
   }
 
   Iterable<V> get values {
-    return new MappedIterable<K, V>(_keysArray, (key) => _fetch(key));
+    return MappedIterable<K, V>(_keysArray, (key) => _fetch(key));
   }
-}
-
-class ConstantProtoMap<K, V> extends ConstantStringMap<K, V> {
-  // This constructor is not used.  The instantiation is shortcut by the
-  // compiler. It is here to make the uninitialized final fields legal.
-  ConstantProtoMap._(length, jsObject, keys, this._protoValue)
-      : super._(length, jsObject, keys);
-
-  final V _protoValue;
-
-  bool containsKey(Object? key) {
-    if (key is! String) return false;
-    if ('__proto__' == key) return true;
-    return jsHasOwnProperty(_jsObject, key);
-  }
-
-  _fetch(key) =>
-      '__proto__' == key ? _protoValue : jsPropertyAccess(_jsObject, key);
 }
 
 class _ConstantMapKeyIterable<K> extends Iterable<K> {
@@ -196,12 +173,34 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   Map<K, V> _getMap() {
     LinkedHashMap<K, V>? backingMap = JS('LinkedHashMap|Null', r'#.$map', this);
     if (backingMap == null) {
-      backingMap = new JsLinkedHashMap<K, V>();
+      backingMap = LinkedHashMap<K, V>(
+          hashCode: _constantMapHashCode,
+          // In legacy mode (--no-sound-null-safety), `null` keys are
+          // permitted. In sound mode, `null` keys are permitted only if [K] is
+          // nullable.
+          isValidKey: JS_GET_FLAG('LEGACY') ? _typeTest<K?>() : _typeTest<K>());
       fillLiteralMap(_jsData, backingMap);
       JS('', r'#.$map = #', this, backingMap);
     }
     return backingMap;
   }
+
+  static int _constantMapHashCode(Object? key) {
+    // Types are tested here one-by-one so that each call to get:hashCode can be
+    // resolved differently.
+
+    // Some common primitives in a GeneralConstantMap.
+    if (key is num) return key.hashCode; // One method on JSNumber.
+
+    // Specially handled known types.
+    if (key is Symbol) return key.hashCode;
+    if (key is Type) return key.hashCode;
+
+    // Everything else, including less common primitives.
+    return identityHashCode(key);
+  }
+
+  static bool Function(Object?) _typeTest<T>() => (Object? o) => o is T;
 
   bool containsValue(Object? needle) {
     return _getMap().containsValue(needle);

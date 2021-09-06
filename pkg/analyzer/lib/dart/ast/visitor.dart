@@ -226,6 +226,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitConstructorName(ConstructorName node) => visitNode(node);
 
   @override
+  R? visitConstructorReference(ConstructorReference node) =>
+      visitExpression(node);
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => visitStatement(node);
 
   R? visitDeclaration(Declaration node) => visitAnnotatedNode(node);
@@ -326,8 +330,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionBody(FunctionBody node) => visitNode(node);
 
   @override
-  R? visitFunctionDeclaration(FunctionDeclaration node) =>
-      visitNamedCompilationUnitMember(node);
+  R? visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.parent is FunctionDeclarationStatement) {
+      return visitNode(node);
+    }
+    return visitNamedCompilationUnitMember(node);
+  }
 
   @override
   R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
@@ -339,6 +347,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       visitInvocationExpression(node);
+
+  @override
+  R? visitFunctionReference(FunctionReference node) => visitExpression(node);
 
   @override
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitTypeAlias(node);
@@ -570,6 +581,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitTypedLiteral(TypedLiteral node) => visitLiteral(node);
 
   @override
+  R? visitTypeLiteral(TypeLiteral node) => visitExpression(node);
+
+  @override
   R? visitTypeName(TypeName node) => visitNode(node);
 
   @override
@@ -767,6 +781,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitConstructorReference(ConstructorReference node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitContinueStatement(ContinueStatement node) {
     node.visitChildren(this);
     return null;
@@ -936,6 +956,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitFunctionReference(FunctionReference node) {
     node.visitChildren(this);
     return null;
   }
@@ -1290,6 +1316,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitTypeLiteral(TypeLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitTypeName(TypeName node) {
     node.visitChildren(this);
     return null;
@@ -1430,6 +1462,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitConstructorName(ConstructorName node) => null;
 
   @override
+  R? visitConstructorReference(ConstructorReference node) => null;
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => null;
 
   @override
@@ -1517,6 +1552,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       null;
+
+  @override
+  R? visitFunctionReference(FunctionReference node) => null;
 
   @override
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => null;
@@ -1696,6 +1734,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitTypeArgumentList(TypeArgumentList node) => null;
 
   @override
+  R? visitTypeLiteral(TypeLiteral node) => null;
+
+  @override
   R? visitTypeName(TypeName node) => null;
 
   @override
@@ -1812,6 +1853,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitConstructorName(ConstructorName node) => _throw(node);
 
   @override
+  R? visitConstructorReference(ConstructorReference node) => _throw(node);
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => _throw(node);
 
   @override
@@ -1902,6 +1946,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       _throw(node);
+
+  @override
+  R? visitFunctionReference(FunctionReference node) => _throw(node);
 
   @override
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => _throw(node);
@@ -2082,6 +2129,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitTypeArgumentList(TypeArgumentList node) => _throw(node);
+
+  @override
+  R? visitTypeLiteral(TypeLiteral node) => _throw(node);
 
   @override
   R? visitTypeName(TypeName node) => _throw(node);
@@ -2332,6 +2382,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitConstructorReference(ConstructorReference node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitConstructorReference(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitContinueStatement(ContinueStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitContinueStatement(node);
@@ -2559,6 +2617,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFunctionExpressionInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitFunctionReference(FunctionReference node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitFunctionReference(node);
     stopwatch.stop();
     return result;
   }
@@ -3029,6 +3095,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitTypeLiteral(TypeLiteral node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitTypeLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitTypeName(TypeName node) {
     stopwatch.start();
     T? result = _baseVisitor.visitTypeName(node);
@@ -3194,6 +3268,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitConstructorName(ConstructorName node) => visitNode(node);
 
   @override
+  R? visitConstructorReference(ConstructorReference node) => visitNode(node);
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => visitNode(node);
 
   @override
@@ -3288,6 +3365,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       visitNode(node);
+
+  @override
+  R? visitFunctionReference(FunctionReference node) => visitNode(node);
 
   @override
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
@@ -3475,6 +3555,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
+
+  @override
+  R? visitTypeLiteral(TypeLiteral node) => visitNode(node);
 
   @override
   R? visitTypeName(TypeName node) => visitNode(node);

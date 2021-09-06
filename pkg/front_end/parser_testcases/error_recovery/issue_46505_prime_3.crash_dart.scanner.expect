@@ -1,0 +1,7 @@
+class A {
+Stream<List<Set<>>>
+}
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]>>>[SimpleToken]
+}[SimpleToken][SimpleToken]

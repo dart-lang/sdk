@@ -25,8 +25,10 @@
 namespace dart {
 
 // Forward declarations.
+class BitsContainer;
 class Code;
 class Dwarf;
+class Elf;
 class Instructions;
 class Object;
 
@@ -136,6 +138,7 @@ class Image : ValueObject {
 
   // For access to private constants.
   friend class AssemblyImageWriter;
+  friend class BitsContainer;
   friend class BlobImageWriter;
   friend class ImageWriter;
 
@@ -178,7 +181,7 @@ class ObjectOffsetTrait {
 
   static Key KeyOf(Pair kv) { return kv.object; }
   static Value ValueOf(Pair kv) { return kv.offset; }
-  static intptr_t Hashcode(Key key);
+  static uword Hash(Key key);
   static inline bool IsKeyEqual(Pair pair, Key key);
 };
 
@@ -238,11 +241,8 @@ class ImageWriter : public ValueObject {
   // ROData sections contain objects wrapped in an Image object.
   static constexpr intptr_t kRODataAlignment = kMaxObjectAlignment;
   // Text sections contain objects (even in bare instructions mode) wrapped
-  // in an Image object, and for now we also align them to the same page
-  // size assumed by Elf objects.
-  static_assert(Elf::kPageSize >= kMaxObjectAlignment,
-                "Page alignment must be consistent with max object alignment");
-  static constexpr intptr_t kTextAlignment = Elf::kPageSize;
+  // in an Image object.
+  static constexpr intptr_t kTextAlignment = kMaxObjectAlignment;
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
@@ -269,10 +269,10 @@ class ImageWriter : public ValueObject {
   void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
 
   bool IsROSpace() const {
-    return offset_space_ == V8SnapshotProfileWriter::kVmData ||
-           offset_space_ == V8SnapshotProfileWriter::kVmText ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateData ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateText;
+    return offset_space_ == IdSpace::kVmData ||
+           offset_space_ == IdSpace::kVmText ||
+           offset_space_ == IdSpace::kIsolateData ||
+           offset_space_ == IdSpace::kIsolateText;
   }
   int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
   uint32_t GetDataOffsetFor(ObjectPtr raw_object);
@@ -401,11 +401,11 @@ class ImageWriter : public ValueObject {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend) = 0;
-  // Returns the final relocated address for the section represented by the
-  // symbol. May not be supported by some writers.
-  virtual uword RelocatedAddress(const char* symbol) = 0;
+                              intptr_t target_offset) = 0;
+  // Writes a target word-sized value that contains the relocated address
+  // pointed to by the given symbol.
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* symbol) = 0;
   // Creates a static symbol for the given Code object when appropriate.
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
@@ -418,7 +418,7 @@ class ImageWriter : public ValueObject {
   intptr_t Relocation(intptr_t section_offset,
                       const char* source_symbol,
                       const char* target_symbol) {
-    return Relocation(section_offset, source_symbol, 0, target_symbol, 0, 0);
+    return Relocation(section_offset, source_symbol, 0, target_symbol, 0);
   }
 #endif
   // Writes a fixed-sized value of type T to the section contents.
@@ -430,14 +430,14 @@ class ImageWriter : public ValueObject {
   // instruction for the target architecture is used.
   intptr_t AlignWithBreakInstructions(intptr_t alignment, intptr_t offset);
 
-  Heap* heap_;  // Used for mapping InstructionsPtr to object ids.
+  Thread* const thread_;
+  Zone* const zone_;
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;
   GrowableArray<InstructionsData> instructions_;
 
-  V8SnapshotProfileWriter::IdSpace offset_space_ =
-      V8SnapshotProfileWriter::kSnapshot;
+  IdSpace offset_space_ = IdSpace::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
   const char* const image_type_;
   const char* const instructions_section_type_;
@@ -472,13 +472,14 @@ class TraceImageObjectScope : ValueObject {
         stream_(ASSERT_NOTNULL(stream)),
         section_offset_(section_offset),
         start_offset_(stream_->Position() - section_offset),
-        object_type_(writer->ObjectTypeForProfile(object)) {}
+        object_type_(writer->ObjectTypeForProfile(object)),
+        object_name_(object.IsString() ? object.ToCString() : nullptr) {}
 
   ~TraceImageObjectScope() {
     if (writer_->profile_writer_ == nullptr) return;
     ASSERT(writer_->IsROSpace());
     writer_->profile_writer_->SetObjectTypeAndName(
-        {writer_->offset_space_, start_offset_}, object_type_, nullptr);
+        {writer_->offset_space_, start_offset_}, object_type_, object_name_);
     writer_->profile_writer_->AttributeBytesTo(
         {writer_->offset_space_, start_offset_},
         stream_->Position() - section_offset_ - start_offset_);
@@ -490,6 +491,7 @@ class TraceImageObjectScope : ValueObject {
   const intptr_t section_offset_;
   const intptr_t start_offset_;
   const char* const object_type_;
+  const char* const object_name_;
 
   DISALLOW_COPY_AND_ASSIGN(TraceImageObjectScope);
 };
@@ -543,12 +545,11 @@ class AssemblyImageWriter : public ImageWriter {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend);
-  // We can't generate the relocated address in assembly, so it'll be
-  // retrieved and stored in the BSS during BSS initialization instead.
-  virtual uword RelocatedAddress(const char* symbol) {
-    return Image::kNoRelocatedAddress;
+                              intptr_t target_offset);
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* symbol) {
+    // Cannot calculate snapshot-relative addresses in assembly snapshots.
+    return WriteTargetWord(Image::kNoRelocatedAddress);
   }
   virtual void FrameUnwindPrologue();
   virtual void FrameUnwindEpilogue();
@@ -563,6 +564,9 @@ class AssemblyImageWriter : public ImageWriter {
   // Used in Relocation to output "(.)" for relocations involving the current
   // section position and creating local symbols in AddCodeSymbol.
   const char* current_section_symbol_ = nullptr;
+  // Used for creating local symbols for code objects in the debugging info,
+  // if separately written.
+  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
@@ -596,12 +600,23 @@ class BlobImageWriter : public ImageWriter {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend);
-  virtual uword RelocatedAddress(const char* symbol);
+                              intptr_t target_offset);
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* target_symbol) {
+    // ELF symbol tables always have a reserved symbol with name "" and value 0.
+    return ImageWriter::Relocation(section_offset, "", target_symbol);
+  }
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
                              intptr_t offset);
+
+  // Set on section entrance to a new array containing the relocations for the
+  // current section.
+  ZoneGrowableArray<Elf::Relocation>* current_relocations_ = nullptr;
+  // Set on section entrance to a new array containing the local symbol data
+  // for the current section.
+  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
+
 #endif
 
   NonStreamingWriteStream* const vm_instructions_;

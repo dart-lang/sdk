@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -15,8 +15,6 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
-import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -28,9 +26,9 @@ class DevCompilerTarget extends Target {
   @override
   final TargetFlags flags;
 
-  WidgetCreatorTracker _widgetTracker;
+  WidgetCreatorTracker? _widgetTracker;
 
-  Map<String, Class> _nativeClasses;
+  Map<String, Class>? _nativeClasses;
 
   @override
   bool get enableSuperMixins => true;
@@ -50,7 +48,7 @@ class DevCompilerTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => true;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
 
   @override
   String get name => 'dartdevc';
@@ -93,6 +91,7 @@ class DevCompilerTarget extends Target {
         'dart:collection',
         'dart:html',
         'dart:indexed_db',
+        'dart:js',
         'dart:js_util',
         'dart:math',
         'dart:svg',
@@ -108,8 +107,11 @@ class DevCompilerTarget extends Target {
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
-      uri.scheme == 'dart' &&
-      (uri.path == 'core' || uri.path == '_interceptors');
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_interceptors' ||
+          uri.path == '_native_typed_data');
 
   /// Returns [true] if [uri] represents a test script has been whitelisted to
   /// import private platform libraries.
@@ -149,20 +151,20 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
-      {void Function(String msg) logger,
-      ChangedStructureNotifier changedStructureNotifier}) {
+      ReferenceFromIndex? referenceFromIndex,
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              _nativeClasses)
+              _nativeClasses!)
           .visitLibrary(library);
     }
   }
@@ -173,11 +175,11 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void Function(String msg) logger,
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();
-      _widgetTracker.transform(component, libraries, changedStructureNotifier);
+      _widgetTracker!.transform(component, libraries, changedStructureNotifier);
     }
   }
 
@@ -217,7 +219,7 @@ class DevCompilerTarget extends Target {
       if (arguments.named.isNotEmpty)
         MapLiteral([
           for (var n in arguments.named)
-            MapEntry(SymbolLiteral(n.name), n.value)
+            MapLiteralEntry(SymbolLiteral(n.name), n.value)
         ], keyType: coreTypes.symbolLegacyRawType),
     ];
     return createInvocation('method', ctorArgs);
@@ -345,7 +347,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
   /// If the member needs a check it will be stored in [_checkedMembers].
   ///
   /// See [transform] for more information.
-  void _checkTarget(Expression receiver, Member target) {
+  void _checkTarget(Expression receiver, Member? target) {
     if (target != null &&
         target.name.isPrivate &&
         target.isInstanceMember &&
@@ -363,7 +365,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
   /// escape, and it also has a different runtime type.
   ///
   /// See [transform] for more information.
-  void _checkTearoff(Member target) {
+  void _checkTearoff(Member? target) {
     if (target != null &&
         target.name.isPrivate &&
         target.isInstanceMember &&
@@ -404,33 +406,15 @@ class _CovarianceTransformer extends RecursiveVisitor {
   }
 
   @override
-  void visitPropertyGet(PropertyGet node) {
-    _checkTearoff(node.interfaceTarget);
-    super.visitPropertyGet(node);
-  }
-
-  @override
   void visitInstanceGet(InstanceGet node) {
     _checkTearoff(node.interfaceTarget);
     super.visitInstanceGet(node);
   }
 
   @override
-  void visitPropertySet(PropertySet node) {
-    _checkTarget(node.receiver, node.interfaceTarget);
-    super.visitPropertySet(node);
-  }
-
-  @override
   void visitInstanceSet(InstanceSet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitInstanceSet(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _checkTarget(node.receiver, node.interfaceTarget);
-    super.visitMethodInvocation(node);
   }
 
   @override

@@ -84,8 +84,8 @@ void main() {
 
       test('defined variables', () {
         var options = parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
-        expect(options.definedVariables['foo'], equals('bar'));
-        expect(options.definedVariables['bar'], isNull);
+        expect(options.declaredVariables['foo'], equals('bar'));
+        expect(options.declaredVariables['bar'], isNull);
       });
 
       test('disable cache flushing', () {
@@ -210,7 +210,7 @@ void main() {
       test('options', () {
         var options =
             parse(['--dart-sdk', '.', '--options', 'options.yaml', 'foo.dart']);
-        expect(options.analysisOptionsFile, endsWith('options.yaml'));
+        expect(options.defaultAnalysisOptionsPath, endsWith('options.yaml'));
       });
 
       test('lints', () {
@@ -284,8 +284,7 @@ class ArgumentsTest with ResourceProviderMixin {
   void test_declaredVariables() {
     _parse(['-Da=0', '-Db=', 'a.dart']);
 
-    var options = commandLineOptions.contextBuilderOptions;
-    var definedVariables = options.declaredVariables;
+    var definedVariables = commandLineOptions.declaredVariables;
 
     expect(definedVariables['a'], '0');
     expect(definedVariables['b'], '');
@@ -296,9 +295,8 @@ class ArgumentsTest with ResourceProviderMixin {
     var expected = 'my_options.yaml';
     _parse(['--options=$expected', 'a.dart']);
 
-    var builderOptions = commandLineOptions.contextBuilderOptions;
     expect(
-      builderOptions.defaultAnalysisOptionsFilePath,
+      commandLineOptions.defaultAnalysisOptionsPath,
       endsWith(expected),
     );
   }
@@ -307,21 +305,17 @@ class ArgumentsTest with ResourceProviderMixin {
     var expected = 'my_package_config.json';
     _parse(['--packages=$expected', 'a.dart']);
 
-    var builderOptions = commandLineOptions.contextBuilderOptions;
     expect(
-      builderOptions.defaultPackageFilePath,
+      commandLineOptions.defaultPackagesPath,
       endsWith(expected),
     );
   }
 
   void test_defaults() {
     _parse(['a.dart']);
-    var builderOptions = commandLineOptions.contextBuilderOptions;
-    expect(builderOptions, isNotNull);
-    expect(builderOptions.dartSdkSummaryPath, isNull);
-    expect(builderOptions.declaredVariables, isEmpty);
-    expect(builderOptions.defaultAnalysisOptionsFilePath, isNull);
-    expect(builderOptions.defaultPackageFilePath, isNull);
+    expect(commandLineOptions.declaredVariables, isEmpty);
+    expect(commandLineOptions.defaultAnalysisOptionsPath, isNull);
+    expect(commandLineOptions.defaultPackagesPath, isNull);
   }
 
   void test_filterUnknownArguments() {

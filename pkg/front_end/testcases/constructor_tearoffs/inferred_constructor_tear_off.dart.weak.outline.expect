@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int field;
+  constructor •(core::int field) → self::Class1
+    ;
+}
+abstract class Interface2 extends core::Object {
+  synthetic constructor •() → self::Interface2
+    ;
+  abstract get field() → core::int;
+}
+class Class2 extends core::Object implements self::Interface2 {
+  final field core::int field;
+  constructor •(core::int field) → self::Class2
+    ;
+}
+static final field core::bool inSoundMode;
+static field (core::int) → self::Class1 Class1_new;
+static field (core::int) → self::Class2 Class2_new;
+static method main() → dynamic
+  ;
+static method testInferred() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+  ;

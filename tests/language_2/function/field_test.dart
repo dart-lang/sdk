@@ -5,6 +5,8 @@
 //
 // Test of calling Function, which is field of some class.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Wrapper {

@@ -22,7 +22,7 @@ main() {
 
   // To ensure resources are freed, call free manually.
   //
-  // For automatic management use a Pool.
+  // For automatic management use a Arena.
   final p = calloc<Int64>(2);
   p[0] = 24;
   memMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());

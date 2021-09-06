@@ -5,9 +5,9 @@
 // Tests elimination of null tests.
 
 class A {
-  String nonNullable;
-  String nullable;
-  String alwaysNull;
+  String? nonNullable;
+  String? nullable;
+  String? alwaysNull;
   A({this.nonNullable, this.nullable, this.alwaysNull});
 }
 

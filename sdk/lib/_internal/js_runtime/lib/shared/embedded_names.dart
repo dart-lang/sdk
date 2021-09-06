@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
 ///
@@ -39,12 +41,6 @@ const METADATA = 'metadata';
 ///
 /// Use [JsBuiltin.getType] instead of directly accessing this embedded global.
 const TYPES = 'types';
-
-/// Returns a function that maps a name of a class to its type.
-///
-/// This embedded global is used by the runtime when computing the internal
-/// runtime-type-information (rti) object.
-const GET_TYPE_FROM_NAME = 'getTypeFromName';
 
 /// A JS map from mangled global names to their unmangled names.
 ///
@@ -201,9 +197,6 @@ enum JsGetName {
   CALL_NAME_PROPERTY,
   DEFERRED_ACTION_PROPERTY,
 
-  /// Prefix used for generated type argument substitutions on classes.
-  OPERATOR_AS_PREFIX,
-
   /// Prefix used for generated type test property on classes.
   OPERATOR_IS_PREFIX,
 
@@ -226,6 +219,9 @@ enum JsGetName {
 
   /// String representation of the type of the object class.
   OBJECT_CLASS_TYPE_NAME,
+
+  /// String representation of the type of the List class.
+  LIST_CLASS_TYPE_NAME,
 
   /// Property name for Rti._as field.
   RTI_FIELD_AS,
@@ -278,4 +274,23 @@ class RtiUniverseFieldNames {
   static String erasedTypes = 'eT';
   static String typeParameterVariances = 'tPV';
   static String sharedEmptyArray = 'sEA';
+}
+
+/// Names of fields of collected tear-off parameters object.
+///
+/// Tear-off getters are created before the Dart classes are initialized, so a
+/// plain JavaScript object is used to group the parameters. The object has a
+/// fixed shape, with the following properties. The names are short since there
+/// is no minifier for these property names.
+class TearOffParametersPropertyNames {
+  static const String container = 'co';
+  static const String isStatic = 'iS';
+  static const String isIntercepted = 'iI';
+  static const String requiredParameterCount = 'rC';
+  static const String optionalParameterDefaultValues = 'dV';
+  static const String callNames = 'cs';
+  static const String funsOrNames = 'fs';
+  static const String funType = 'fT';
+  static const String applyIndex = 'aI';
+  static const String needsDirectAccess = 'nDA';
 }

@@ -212,7 +212,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
 
-  if (IsolateGroup::AreIsolateGroupsEnabled()) {
+  if (FLAG_enable_isolate_groups) {
     // Another isolate's mutator thread may have created [function] and
     // published it via an ICData, MegamorphicCache etc. Entering the lock below
     // is an acquire operation that pairs with the release operation when the
@@ -225,7 +225,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   // there's no existing code. In multi-isolate scenarios with shared JITed code
   // we can end up in the lazy compile runtime entry here with code being
   // installed.
-  ASSERT(!function.HasCode() || IsolateGroup::AreIsolateGroupsEnabled());
+  ASSERT(!function.HasCode() || FLAG_enable_isolate_groups);
 
   // Will throw if compilation failed (e.g. with compile-time error).
   function.EnsureHasCode();
@@ -386,7 +386,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     function.SetWasCompiled(true);
   } else if (optimized()) {
     // We cannot execute generated code while installing code.
-    ASSERT(Thread::Current()->IsAtSafepoint() ||
+    ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt) ||
            (Thread::Current()->IsMutatorThread() &&
             IsolateGroup::Current()->ContainsOnlyOneIsolate()));
     // We are validating our CHA / field guard / ... assumptions. To prevent
@@ -514,14 +514,6 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                    CompilerState::ShouldTrace(function));
 
       {
-        if (optimized()) {
-          // In background compilation the deoptimization counter may have
-          // already reached the limit.
-          ASSERT(Compiler::IsBackgroundCompilation() ||
-                 (function.deoptimization_counter() <
-                  FLAG_max_deoptimization_counter_threshold));
-        }
-
         // Extract type feedback before the graph is built, as the graph
         // builder uses it to attach it to nodes.
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
@@ -704,7 +696,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
         FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
-    Timer per_compile_timer(trace_compiler, "Compilation time");
+    Timer per_compile_timer;
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new (zone)
@@ -1203,7 +1195,7 @@ void BackgroundCompiler::Run() {
 bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   if (disabled_depth_ > 0) return false;
@@ -1239,7 +1231,7 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 void BackgroundCompiler::Stop() {
   Thread* thread = Thread::Current();
   ASSERT(thread->isolate() == nullptr || thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   StopLocked(thread, &ml_done);
@@ -1262,7 +1254,7 @@ void BackgroundCompiler::StopLocked(Thread* thread,
 void BackgroundCompiler::Enable() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   disabled_depth_--;
@@ -1274,7 +1266,7 @@ void BackgroundCompiler::Enable() {
 void BackgroundCompiler::Disable() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   disabled_depth_++;

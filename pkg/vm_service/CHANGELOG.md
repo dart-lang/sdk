@@ -1,5 +1,22 @@
 # Changelog
 
+## 7.1.1
+- Update to version `3.48` of the spec.
+- Added `shows` and `hides` properties to `LibraryDependency`.
+- Added `Profiler` stream, `UserTagChanged` event kind, and `updatedTag` and
+  `previousTag` properties to `Event`.
+- Fixed bug where a response without a type would cause a null type failure
+  (dart-lang/sdk#46559).
+
+## 7.1.0
+- Update to version `3.46` of the spec.
+- Move `sourcePosition` properties into `ClassRef`, `FieldRef`, and `FuncRef`.
+
+## 7.0.0
+- *breaking bug fix*: Fixed issue where response parsing could fail for `Context`.
+- Add support for `setBreakpointState` RPC and updated `Breakpoint` class to include
+  `enabled` property.
+
 ## 6.2.0
 - Added support for `getHttpProfile` and `clearHttpProfile` `dart:io` service extensions.
 

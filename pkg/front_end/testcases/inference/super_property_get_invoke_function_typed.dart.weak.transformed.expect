@@ -23,7 +23,7 @@ class D extends self::C {
     : super self::C::•()
     ;
   method g() → void {
-    core::int* y = super.{self::C::f}.call();
+    core::int* y = super.{self::C::f}(){() →* core::int*};
   }
 }
 static method main() → dynamic {}

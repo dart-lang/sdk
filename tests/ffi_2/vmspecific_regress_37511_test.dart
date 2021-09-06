@@ -4,9 +4,11 @@
 //
 // Dart test program for testing dart:ffi struct pointers.
 //
-// VMOptions=--deterministic --enable-testing-pragmas
+// VMOptions=--deterministic
 //
 // SharedObjects=ffi_test_functions
+
+// @dart = 2.9
 
 import 'dart:ffi';
 

@@ -46,16 +46,6 @@ library /*isNonNullableByDefault*/;
 // const fromDeferredLib = lib.x;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:44: Error: Constant evaluation error:
-// const Symbol symbolWithInvalidName = const Symbol("42");
-//                                            ^
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:51: Context: The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '"42"'.
-// const Symbol symbolWithInvalidName = const Symbol("42");
-//                                                   ^
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:14: Context: While analyzing:
-// const Symbol symbolWithInvalidName = const Symbol("42");
-//              ^
-//
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -93,7 +83,7 @@ class C extends core::Object implements self::A /*hasConstConstructor*/  {
   operator unary-() → self::C
     return this;
 }
-class Class<T extends self::A = self::A> extends core::Object /*hasConstConstructor*/  {
+class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
   const constructor •(self::Class::T t) → self::Class<self::Class::T>
     : super core::Object::•()
     ;
@@ -107,7 +97,7 @@ class Class<T extends self::A = self::A> extends core::Object /*hasConstConstruc
                                  ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
     ;
 }
-class Subclass<T extends self::A = self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
+class Subclass<T extends self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
   const constructor •(dynamic t) → self::Subclass<self::Subclass::T>
     : super self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Subclass::T)
     ;
@@ -159,37 +149,37 @@ static const field dynamic mapOfMapOfInt2 = #C30;
 static const field core::bool isMapOfMapOfInt1 = #C8;
 static const field core::bool isMapOfMapOfInt2 = #C8;
 static const field core::Symbol symbolWithUnevaluatedParameter = #C31;
-static const field core::Symbol symbolWithInvalidName = invalid-expression "The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '\"42\"'.";
-static const field self::Class<self::B>? c0 = #C33;
+static const field core::Symbol symbolWithInvalidName = #C32;
+static const field self::Class<self::B>? c0 = #C34;
 static const field self::Class<self::A>? c1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^";
-static const field self::Subclass<self::B>? c2 = #C34;
-static const field self::Class<self::A>? c3 = #C35;
-static const field self::Class<self::B>? c4 = #C36;
-static const field self::Subclass<self::A>? c5 = #C37;
-static const field self::Subclass<self::B>? c6 = #C38;
-static const field core::Type f = #C39;
-static field self::ConstClassWithF constClassWithF1 = #C41;
-static const field self::ConstClassWithF constClassWithF2 = #C41;
-static const field core::bool unevaluatedBool = #C42;
-static const field core::bool notUnevaluatedBool = #C43;
-static const field core::bool? unevaluatedBoolOrNull = #C44;
-static const field core::bool unevaluatedBoolNotNull = #C45;
+static const field self::Subclass<self::B>? c2 = #C35;
+static const field self::Class<self::A>? c3 = #C36;
+static const field self::Class<self::B>? c4 = #C37;
+static const field self::Subclass<self::A>? c5 = #C38;
+static const field self::Subclass<self::B>? c6 = #C39;
+static const field core::Type f = #C40;
+static field self::ConstClassWithF constClassWithF1 = #C42;
+static const field self::ConstClassWithF constClassWithF2 = #C42;
+static const field core::bool unevaluatedBool = #C43;
+static const field core::bool notUnevaluatedBool = #C44;
+static const field core::bool? unevaluatedBoolOrNull = #C45;
+static const field core::bool unevaluatedBoolNotNull = #C46;
 static method procedure(core::int i, {core::int named = #C9}) → core::int
   return i;
 static method main() → dynamic {
-  core::print(#C33);
+  core::print(#C34);
   core::print(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^");
-  core::print(#C34);
   core::print(#C35);
   core::print(#C36);
   core::print(#C37);
   core::print(#C38);
+  core::print(#C39);
   core::print(#C20);
   core::print((#C20).{self::Foo::saved}{core::bool});
   core::print((#C20).{self::Foo::value}{core::int});
@@ -233,20 +223,21 @@ constants  {
   #C29 = <core::Map<core::int*, core::int*>*, core::int*>{#C26:#C19)
   #C30 = <core::int*, core::Map<core::int*, core::int*>*>{#C19:#C26)
   #C31 = eval const _in::Symbol::•(const core::String::fromEnvironment(#C1))
-  #C32 = "x"
-  #C33 = eval const core::bool::fromEnvironment(#C32) ?{self::Class<self::B>?} #C9 : self::Class<self::B*>{(self::C{}) as{ForNonNullableByDefault} self::B*}
-  #C34 = eval const core::bool::fromEnvironment(#C32) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::C{}) as{ForNonNullableByDefault} self::B*}
-  #C35 = eval const core::bool::fromEnvironment(#C32) ?{self::Class<self::A>?} #C9 : self::Class<self::A*>{self::A{}}
-  #C36 = eval const core::bool::fromEnvironment(#C32) ?{self::Class<self::B>?} #C9 : self::Class<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
-  #C37 = eval const core::bool::fromEnvironment(#C32) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A*>{(self::A{}) as{ForNonNullableByDefault} self::A*}
-  #C38 = eval const core::bool::fromEnvironment(#C32) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
-  #C39 = TypeLiteralConstant((core::int*, {named: core::int*}) →* core::int*)
-  #C40 = tearoff self::procedure
-  #C41 = self::ConstClassWithF {foo:#C40}
-  #C42 = eval const core::bool::fromEnvironment(#C1)
-  #C43 = eval !const core::bool::fromEnvironment(#C1)
-  #C44 = eval const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9
-  #C45 = eval (const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9)!
+  #C32 = #42
+  #C33 = "x"
+  #C34 = eval const core::bool::fromEnvironment(#C33) ?{self::Class<self::B>?} #C9 : self::Class<self::B*>{(self::C{}) as{ForNonNullableByDefault} self::B*}
+  #C35 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::C{}) as{ForNonNullableByDefault} self::B*}
+  #C36 = eval const core::bool::fromEnvironment(#C33) ?{self::Class<self::A>?} #C9 : self::Class<self::A*>{self::A{}}
+  #C37 = eval const core::bool::fromEnvironment(#C33) ?{self::Class<self::B>?} #C9 : self::Class<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
+  #C38 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A*>{(self::A{}) as{ForNonNullableByDefault} self::A*}
+  #C39 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
+  #C40 = TypeLiteralConstant((core::int*, {named: core::int*}) →* core::int*)
+  #C41 = static-tearoff self::procedure
+  #C42 = self::ConstClassWithF {foo:#C41}
+  #C43 = eval const core::bool::fromEnvironment(#C1)
+  #C44 = eval !const core::bool::fromEnvironment(#C1)
+  #C45 = eval const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9
+  #C46 = eval (const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9)!
 }
 
 

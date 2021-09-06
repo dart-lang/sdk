@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,16 +22,18 @@ class AddMissingParameterNamedTest extends FixProcessorTest {
   Future<void> test_constructor_hasNamed() async {
     await resolveTestCode('''
 class A {
-  A(int a, {int b}) {}
+  A(int a, {int b = 0}) {}
 }
 
 main() {
   new A(1, b: 2, named: 3.0);
 }
 ''');
+    // TODO(brianwilkerson) The fix should make added named parameters be
+    //  `required`. I'm leaving it as is to match the current behavior.
     await assertHasFix('''
 class A {
-  A(int a, {int b, double named}) {}
+  A(int a, {int b = 0, double named}) {}
 }
 
 main() {
@@ -180,7 +180,7 @@ class A {
   Future<void> test_method_hasOptionalPositional() async {
     await resolveTestCode('''
 class A {
-  test(int a, [int b]) {}
+  test(int a, [int b = 0]) {}
 
   main() {
     test(1, 2, named: 3.0);

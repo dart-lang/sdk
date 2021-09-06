@@ -3,7 +3,7 @@
 ```
 A command-line utility for Dart development.
 
-Usage: dart [<vm-flags>] <command|dart-file> [<arguments>]
+Usage: dart [vm-options] <command|dart-file> [arguments]
 
 Global options:
 -h, --help                 Print this usage information.

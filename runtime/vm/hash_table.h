@@ -33,6 +33,24 @@ struct ArrayStorageTraits {
   static bool IsImmutable(const ArrayHandle& handle) {
     return handle.ptr()->untag()->InVMIsolateHeap();
   }
+
+  static ObjectPtr At(ArrayHandle* array, intptr_t index) {
+    return array->At(index);
+  }
+
+  static void SetAt(ArrayHandle* array, intptr_t index, const Object& value) {
+    array->SetAt(index, value);
+  }
+};
+
+struct AcqRelStorageTraits : ArrayStorageTraits {
+  static ObjectPtr At(ArrayHandle* array, intptr_t index) {
+    return array->AtAcquire(index);
+  }
+
+  static void SetAt(ArrayHandle* array, intptr_t index, const Object& value) {
+    array->SetAtRelease(index, value);
+  }
 };
 
 class HashTableBase : public ValueObject {
@@ -162,19 +180,19 @@ class HashTable : public HashTableBase {
   void Initialize() const {
     ASSERT(data_->Length() >= ArrayLengthForNumOccupied(0));
     *smi_handle_ = Smi::New(0);
-    data_->SetAt(kOccupiedEntriesIndex, *smi_handle_);
-    data_->SetAt(kDeletedEntriesIndex, *smi_handle_);
+    StorageTraits::SetAt(data_, kOccupiedEntriesIndex, *smi_handle_);
+    StorageTraits::SetAt(data_, kDeletedEntriesIndex, *smi_handle_);
 
 #if !defined(PRODUCT)
-    data_->SetAt(kNumGrowsIndex, *smi_handle_);
-    data_->SetAt(kNumLT5LookupsIndex, *smi_handle_);
-    data_->SetAt(kNumLT25LookupsIndex, *smi_handle_);
-    data_->SetAt(kNumGT25LookupsIndex, *smi_handle_);
-    data_->SetAt(kNumProbesIndex, *smi_handle_);
+    StorageTraits::SetAt(data_, kNumGrowsIndex, *smi_handle_);
+    StorageTraits::SetAt(data_, kNumLT5LookupsIndex, *smi_handle_);
+    StorageTraits::SetAt(data_, kNumLT25LookupsIndex, *smi_handle_);
+    StorageTraits::SetAt(data_, kNumGT25LookupsIndex, *smi_handle_);
+    StorageTraits::SetAt(data_, kNumProbesIndex, *smi_handle_);
 #endif  // !defined(PRODUCT)
 
     for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
-      data_->SetAt(i, UnusedMarker());
+      StorageTraits::SetAt(data_, i, UnusedMarker());
     }
   }
 
@@ -298,14 +316,14 @@ class HashTable : public HashTableBase {
   ObjectPtr GetPayload(intptr_t entry, intptr_t component) const {
     ASSERT(IsOccupied(entry));
     return WeakSerializationReference::Unwrap(
-        data_->At(PayloadIndex(entry, component)));
+        StorageTraits::At(data_, PayloadIndex(entry, component)));
   }
   void UpdatePayload(intptr_t entry,
                      intptr_t component,
                      const Object& value) const {
     ASSERT(IsOccupied(entry));
     ASSERT(0 <= component && component < kPayloadSize);
-    data_->SetAt(PayloadIndex(entry, component), value);
+    StorageTraits::SetAt(data_, PayloadIndex(entry, component), value);
   }
   // Deletes both the key and payload of the specified entry.
   void DeleteEntry(intptr_t entry) const {
@@ -411,22 +429,23 @@ class HashTable : public HashTableBase {
   }
 
   ObjectPtr InternalGetKey(intptr_t entry) const {
-    return WeakSerializationReference::Unwrap(data_->At(KeyIndex(entry)));
+    return WeakSerializationReference::Unwrap(
+        StorageTraits::At(data_, KeyIndex(entry)));
   }
 
   void InternalSetKey(intptr_t entry, const Object& key) const {
-    data_->SetAt(KeyIndex(entry), key);
+    StorageTraits::SetAt(data_, KeyIndex(entry), key);
   }
 
   intptr_t GetSmiValueAt(intptr_t index) const {
     ASSERT(!data_->IsNull());
-    ASSERT(!data_->At(index)->IsHeapObject());
-    return Smi::Value(Smi::RawCast(data_->At(index)));
+    ASSERT(!StorageTraits::At(data_, index)->IsHeapObject());
+    return Smi::Value(Smi::RawCast(StorageTraits::At(data_, index)));
   }
 
   void SetSmiValueAt(intptr_t index, intptr_t value) const {
     *smi_handle_ = Smi::New(value);
-    data_->SetAt(index, *smi_handle_);
+    StorageTraits::SetAt(data_, index, *smi_handle_);
   }
 
   void AdjustSmiValueAt(intptr_t index, intptr_t delta) const {
@@ -450,10 +469,13 @@ class HashTable : public HashTableBase {
 };
 
 // Table with unspecified iteration order. No payload overhead or metadata.
-template <typename KeyTraits, intptr_t kUserPayloadSize>
-class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
+template <typename KeyTraits,
+          intptr_t kUserPayloadSize,
+          typename StorageTraits = ArrayStorageTraits>
+class UnorderedHashTable
+    : public HashTable<KeyTraits, kUserPayloadSize, 0, StorageTraits> {
  public:
-  typedef HashTable<KeyTraits, kUserPayloadSize, 0> BaseTable;
+  typedef HashTable<KeyTraits, kUserPayloadSize, 0, StorageTraits> BaseTable;
   static const intptr_t kPayloadSize = kUserPayloadSize;
   explicit UnorderedHashTable(ArrayPtr data)
       : BaseTable(Thread::Current()->zone(), data) {}
@@ -776,10 +798,13 @@ class HashSet : public BaseIterTable {
   }
 };
 
-template <typename KeyTraits>
-class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
+template <typename KeyTraits, typename TableStorageTraits = ArrayStorageTraits>
+class UnorderedHashSet
+    : public HashSet<UnorderedHashTable<KeyTraits, 0, TableStorageTraits>> {
+  using UnderlyingTable = UnorderedHashTable<KeyTraits, 0, TableStorageTraits>;
+
  public:
-  typedef HashSet<UnorderedHashTable<KeyTraits, 0> > BaseSet;
+  typedef HashSet<UnderlyingTable> BaseSet;
   explicit UnorderedHashSet(ArrayPtr data)
       : BaseSet(Thread::Current()->zone(), data) {
     ASSERT(data != Array::null());
@@ -791,7 +816,8 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
   void Dump() const {
     Object& entry = Object::Handle();
     for (intptr_t i = 0; i < this->data_->Length(); i++) {
-      entry = WeakSerializationReference::Unwrap(this->data_->At(i));
+      entry = WeakSerializationReference::Unwrap(
+          TableStorageTraits::At(this->data_, i));
       if (entry.ptr() == BaseSet::UnusedMarker().ptr() ||
           entry.ptr() == BaseSet::DeletedMarker().ptr() || entry.IsSmi()) {
         // empty, deleted, num_used/num_deleted

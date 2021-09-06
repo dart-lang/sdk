@@ -4,6 +4,8 @@
 // Test division by power of two.
 // Test that results before and after optimization are the same.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Foo {

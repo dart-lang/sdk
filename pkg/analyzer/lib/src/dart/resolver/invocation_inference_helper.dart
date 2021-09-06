@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -71,7 +70,7 @@ class InvocationInferenceHelper {
     required ErrorReporter errorReporter,
     required TypeSystemImpl typeSystem,
     required MigrationResolutionHooks? migrationResolutionHooks,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
         _migrationResolutionHooks = migrationResolutionHooks,
@@ -110,6 +109,10 @@ class InvocationInferenceHelper {
         } else {
           var name = constructorIdentifier.name;
           rawElement = typeElement.getNamedConstructor(name);
+          if (rawElement != null &&
+              !rawElement.isAccessibleIn(definingLibrary)) {
+            rawElement = null;
+          }
         }
       }
     } else if (typeElement is TypeAliasElement) {
@@ -291,8 +294,7 @@ class InvocationInferenceHelper {
   void resolveFunctionExpressionInvocation({
     required FunctionExpressionInvocationImpl node,
     required FunctionType rawType,
-    required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -316,8 +318,7 @@ class InvocationInferenceHelper {
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
     required FunctionType rawType,
-    required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -416,7 +417,7 @@ class InvocationInferenceHelper {
   }
 
   void _resolveArguments(ArgumentList argumentList,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _resolver.visitArgumentList(argumentList,
         isIdentical: _isCallToIdentical(argumentList.parent),
         whyNotPromotedList: whyNotPromotedList);
@@ -429,8 +430,7 @@ class InvocationInferenceHelper {
     required ArgumentListImpl argumentList,
     required bool isConst,
     required AstNode errorNode,
-    required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
     if (typeArgumentList != null) {
       _resolveInvocationWithTypeArguments(
@@ -458,8 +458,7 @@ class InvocationInferenceHelper {
     required ArgumentList argumentList,
     required bool isConst,
     required AstNode errorNode,
-    required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
     var typeParameters = rawType.typeFormals;
 
@@ -499,8 +498,7 @@ class InvocationInferenceHelper {
     required FunctionType rawType,
     required TypeArgumentList typeArgumentList,
     required ArgumentList argumentList,
-    required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
     var typeParameters = rawType.typeFormals;
 

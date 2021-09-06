@@ -199,29 +199,49 @@ const _MustCallSuper mustCallSuper = _MustCallSuper();
 ///   overriding member `m`.
 const _NonVirtual nonVirtual = _NonVirtual();
 
-/// Used to annotate a class, mixin, or extension declaration `C`. Indicates
-/// that any type arguments declared on `C` are to be treated as optional.
+/// Used to annotate a class, mixin, extension, function, method, or typedef
+/// declaration `C`. Indicates that any type arguments declared on `C` are to
+/// be treated as optional.
+///
 /// Tools such as the analyzer and linter can use this information to suppress
 /// warnings that would otherwise require type arguments on `C` to be provided.
 const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 
-/// Used to annotate an instance member (method, getter, setter, operator, or
-/// field) `m` in a class `C`. If the annotation is on a field it applies to the
-/// getter, and setter if appropriate, that are induced by the field. Indicates
-/// that `m` should only be invoked from instance methods of `C` or classes that
-/// extend, implement or mix in `C`, either directly or indirectly. Additionally
-/// indicates that `m` should only be invoked on `this`, whether explicitly or
-/// implicitly.
+/// Used to annotate an instance member in a class or mixin which is meant to
+/// be visible only within the declaring library, and to other instance members
+/// of the class or mixin, and their subtypes.
+///
+/// If the annotation is on a field it applies to the getter, and setter if
+/// appropriate, that are induced by the field.
+///
+/// Indicates that the annotated instance member (method, getter, setter,
+/// operator, or field) `m` in a class or mixin `C` should only be referenced
+/// in specific locations. A reference from within the library in which `C` is
+/// declared is valid. Additionally, a reference from within an instance member
+/// in `C`, or a class that extends, implements, or mixes in `C` (either
+/// directly or indirectly) or a mixin that uses `C` as a superclass constraint
+/// is valid. Additionally a reference from within an instance member in an
+/// extension that applies to `C` is valid.
+///
+/// Additionally restricts the instance of `C` on which `m` is referenced: a
+/// reference to `m` should either be in the same library in which `C` is
+/// declared, or should refer to `this.m` (explicitly or implicitly), and not
+/// `m` on any other instance of `C`.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than an instance member,
 ///   or
-/// * an invocation of a member that has this annotation is used outside of an
-///   instance member defined on a class that extends or mixes in (or a mixin
-///   constrained to) the class in which the protected member is defined.
-/// * an invocation of a member that has this annotation is used within an
-///   instance method, but the receiver is something other than `this`.
+/// * a reference to a member `m` which has this annotation, declared in a
+///   class or mixin `C`, is found outside of the declaring library and outside
+///   of an instance member in any class that extends, implements, or mixes in
+///   `C` or any mixin that uses `C` as a superclass constraint, or
+/// * a reference to a member `m` which has this annotation, declared in a
+///   class or mixin `C`, is found outside of the declaring library and the
+///   receiver is something other than `this`.
+// TODO(srawlins): Add a sentence which defines "referencing" and explicitly
+// mentions tearing off, here and on the other annotations which use the word
+// "referenced."
 const _Protected protected = _Protected();
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
@@ -251,6 +271,20 @@ const Required required = Required();
 ///   mixin `D`, which extends, implements, mixes in, or constrains to `C`, and
 ///   `C` and `D` are declared in different packages.
 const _Sealed sealed = _Sealed();
+
+/// Used to annotate a method, field, or getter within a class, mixin, or
+/// extension, or a or top-level getter, variable or function to indicate that
+/// the value obtained by invoking it should be use. A value is considered used
+/// if it is assigned to a variable, passed to a function, or used as the target
+/// of an invocation, or invoked (if the result is itself a function).
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than a method, field or
+///   getter, top-level variable, getter or function or
+/// * the value obtained by a method, field, getter or top-level getter,
+///   variable or function annotated with `@useResult` is not used.
+const UseResult useResult = UseResult();
 
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
 ///
@@ -313,6 +347,23 @@ class Required {
   const Required([this.reason = '']);
 }
 
+/// See [useResult] for more details.
+@Target({
+  TargetKind.field,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.topLevelVariable,
+})
+class UseResult {
+  /// A human-readable explanation of the reason why the value returned by
+  /// accessing this member should be checked.
+  final String reason;
+
+  /// Initialize a newly created instance to have the given [reason].
+  const UseResult([this.reason = '']);
+}
+
 class _AlwaysThrows {
   const _AlwaysThrows();
 }
@@ -364,6 +415,14 @@ class _NonVirtual {
   const _NonVirtual();
 }
 
+@Target({
+  TargetKind.classType,
+  TargetKind.extension,
+  TargetKind.function,
+  TargetKind.method,
+  TargetKind.mixinType,
+  TargetKind.typedefType,
+})
 class _OptionalTypeArgs {
   const _OptionalTypeArgs();
 }

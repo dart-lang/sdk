@@ -8,6 +8,8 @@
 // SharedObjects=ffi_test_functions
 // VMOptions=--deterministic --optimization-counter-threshold=50
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:ffi/ffi.dart";

@@ -1,0 +1,82 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  constructor _() → self::Class1
+    ;
+  static method _#_#tearOff() → self::Class1
+    return new self::Class1::_();
+  static factory •() → self::Class1
+    ;
+  static method _#new#tearOff() → self::Class1
+    return self::Class1::•();
+}
+class Class2 extends core::Object {
+  constructor _() → self::Class2
+    ;
+  static method _#_#tearOff() → self::Class2
+    return new self::Class2::_();
+  static factory named() → self::Class2
+    ;
+  static method _#named#tearOff() → self::Class2
+    return self::Class2::named();
+}
+class Class3 extends core::Object {
+  final field core::int field;
+  constructor _(core::int field) → self::Class3
+    ;
+  static method _#_#tearOff(core::int field) → self::Class3
+    return new self::Class3::_(field);
+  static factory •(core::int field) → self::Class3
+    ;
+  static method _#new#tearOff(core::int field) → self::Class3
+    return self::Class3::•(field);
+}
+class Class4 extends core::Object {
+  final field core::int? field;
+  constructor _([core::int? field]) → self::Class4
+    ;
+  static method _#_#tearOff([core::int? field]) → self::Class4
+    return new self::Class4::_(field);
+  static factory •([core::int? field]) → self::Class4
+    ;
+  static method _#new#tearOff([core::int? field]) → self::Class4
+    return self::Class4::•(field);
+}
+class Class5 extends core::Object {
+  final field core::int field1;
+  final field core::int? field2;
+  constructor _(core::int field1, [core::int? field2]) → self::Class5
+    ;
+  static method _#_#tearOff(core::int field1, [core::int? field2]) → self::Class5
+    return new self::Class5::_(field1, field2);
+  static factory •(core::int field1, [core::int? field2]) → self::Class5
+    ;
+  static method _#new#tearOff(core::int field1, [core::int? field2]) → self::Class5
+    return self::Class5::•(field1, field2);
+}
+class Class6 extends core::Object {
+  final field core::int field1;
+  final field core::int? field2;
+  final field core::int field3;
+  constructor _(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
+    ;
+  static method _#_#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
+    return new self::Class6::_(field1, field2: field2, field3: field3);
+  static factory •(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
+    ;
+  static method _#new#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
+    return self::Class6::•(field1, field2: field2, field3: field3);
+}
+static final field core::bool inSoundMode;
+static method main() → dynamic
+  ;
+static method testNoArgs() → dynamic
+  ;
+static method testArgs() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+  ;

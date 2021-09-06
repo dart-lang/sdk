@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class ConcreteClass extends core::Object {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+abstract class AbstractClass extends core::Object {
+  synthetic constructor •() → self::AbstractClass
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+class NamedMixinApplication = core::Object with self::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::NamedMixinApplication
+    : super core::Object::•()
+    ;
+}
+abstract class AbstractNamedMixinApplication = core::Object with self::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::AbstractNamedMixinApplication
+    : super core::Object::•()
+    ;
+}
+extension Extension on core::int {
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

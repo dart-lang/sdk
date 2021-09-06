@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,8 +11,44 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveEmptyCatchBulkTest);
     defineReflectiveTests(RemoveEmptyCatchTest);
   });
+}
+
+@reflectiveTest
+class RemoveEmptyCatchBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.empty_catches;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f() {
+  try {
+    try {
+      1;
+    } catch (e) {} finally {}
+  } catch (e) {} finally {}
+}
+
+void f2() {
+  try {} catch (e) {} finally {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  try {
+    try {
+      1;
+    } finally {}
+  } finally {}
+}
+
+void f2() {
+  try {} finally {}
+}
+''');
+  }
 }
 
 @reflectiveTest

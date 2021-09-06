@@ -21,12 +21,12 @@ library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-typedef B<unrelated X extends core::String = core::String> = self2::A;
+typedef B<unrelated X extends core::String> = self2::A;
 class A extends core::Object {
   synthetic constructor •() → self2::A
     ;
 }
-class C<Y extends self2::A = self2::A> extends core::Object {
+class C<Y extends self2::A> extends core::Object {
   synthetic constructor •() → self2::C<self2::C::Y>
     ;
 }

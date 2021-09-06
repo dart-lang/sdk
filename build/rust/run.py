@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -15,9 +15,9 @@ def run(cmd):
     bindir = os.path.dirname(cmd[0]);
     env = os.environ
     if 'PATH' in env:
-      env['PATH'] += os.pathsep + bindir
+        env['PATH'] += os.pathsep + bindir
     else:
-      env['PATH'] = bindir
+        env['PATH'] = bindir
     out = ''
     err = ''
     proc = subprocess.Popen(
@@ -29,7 +29,7 @@ def run(cmd):
         err += stderr
         proc.poll()
     if proc.returncode == 0:
-      return 0
+        return 0
     print(out)
     print(err)
     return proc.returncode

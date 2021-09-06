@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 library fasta.tool.command_line;
 
 import 'dart:io' show exit;
@@ -13,8 +11,6 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -55,7 +51,13 @@ import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 
 import 'package:kernel/target/targets.dart'
-    show LateLowering, Target, getTarget, TargetFlags, targets;
+    show
+        ConstructorTearOffLowering,
+        LateLowering,
+        Target,
+        TargetFlags,
+        getTarget,
+        targets;
 
 class CommandLineProblem {
   final Message message;
@@ -106,7 +108,7 @@ class ParsedArguments {
   /// All other options require an option value, either on the form `--option
   /// value` or `--option=value`.
   static ParsedArguments parse(
-      List<String> arguments, Map<String, ValueSpecification> specification) {
+      List<String> arguments, Map<String, ValueSpecification>? specification) {
     specification ??= const <String, ValueSpecification>{};
     ParsedArguments result = new ParsedArguments();
     int index = arguments.indexOf("--");
@@ -119,7 +121,7 @@ class ParsedArguments {
     while (iterator.moveNext()) {
       String argument = iterator.current;
       if (argument.startsWith("-") || argument == "/?" || argument == "/h") {
-        String value;
+        String? value;
         if (argument.startsWith("-D")) {
           value = argument.substring("-D".length);
           argument = "-D";
@@ -130,14 +132,14 @@ class ParsedArguments {
             argument = argument.substring(0, index);
           }
         }
-        ValueSpecification valueSpecification = specification[argument];
+        ValueSpecification? valueSpecification = specification[argument];
         if (valueSpecification == null) {
           throw new CommandLineProblem.deprecated(
               "Unknown option '$argument'.");
         }
         String canonicalArgument = argument;
         if (valueSpecification.alias != null) {
-          canonicalArgument = valueSpecification.alias;
+          canonicalArgument = valueSpecification.alias as String;
           valueSpecification = specification[valueSpecification.alias];
         }
         if (valueSpecification == null) {
@@ -183,6 +185,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.forceLateLowering: const BoolValue(false),
   Flags.forceStaticFieldLowering: const BoolValue(false),
   Flags.forceNoExplicitGetterCalls: const BoolValue(false),
+  Flags.forceConstructorTearOffLowering: const BoolValue(false),
   Flags.help: const BoolValue(false),
   Flags.librariesJson: const UriValue(),
   Flags.noDefines: const BoolValue(false),
@@ -256,10 +259,14 @@ ProcessedOptions analyzeCommandLine(String programName,
           options[Flags.forceStaticFieldLowering],
       forceNoExplicitGetterCallsForTesting:
           options[Flags.forceNoExplicitGetterCalls],
+      forceConstructorTearOffLoweringForTesting:
+          options[Flags.forceConstructorTearOffLowering]
+              ? ConstructorTearOffLowering.all
+              : ConstructorTearOffLowering.none,
       enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags));
 
-  final Target target = getTarget(targetName, flags);
+  final Target? target = getTarget(targetName, flags);
   if (target == null) {
     return throw new CommandLineProblem.deprecated(
         "Target '${targetName}' not recognized. "
@@ -293,7 +300,7 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final bool compileSdk = options.containsKey(Flags.compileSdk);
 
-  final String singleRootScheme = options[Flags.singleRootScheme];
+  final String? singleRootScheme = options[Flags.singleRootScheme];
   final Uri singleRootBase = options[Flags.singleRootBase];
 
   final bool nnbdStrongMode = options[Flags.nnbdStrongMode];
@@ -409,7 +416,7 @@ ProcessedOptions analyzeCommandLine(String programName,
             throwCommandLineProblem(
                 "Target '${target.name}' requires an explicit "
                 "'${Flags.platform}' option.");
-          })));
+          })!));
   compilerOptions
     ..sdkRoot = sdk
     ..sdkSummary = platform
@@ -430,9 +437,9 @@ Future<T> withGlobalOptions<T>(
     List<String> arguments,
     bool areRestArgumentsInputs,
     Future<T> f(CompilerContext context, List<String> restArguments)) {
-  ParsedArguments parsedArguments;
+  ParsedArguments? parsedArguments;
   ProcessedOptions options;
-  CommandLineProblem problem;
+  CommandLineProblem? problem;
   try {
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
     options = analyzeCommandLine(
@@ -457,13 +464,13 @@ Future<T> withGlobalOptions<T>(
       exit(1);
     }
 
-    return f(c, parsedArguments.arguments);
+    return f(c, parsedArguments!.arguments);
   }, errorOnMissingInput: problem == null);
 }
 
 Message computeUsage(String programName, bool verbose) {
   String basicUsage = "Usage: $programName [options] dartfile\n";
-  String summary;
+  String? summary;
   String options =
       (verbose ? messageFastaUsageLong.message : messageFastaUsageShort.message)
           .trim();
@@ -499,7 +506,7 @@ Message computeUsage(String programName, bool verbose) {
 }
 
 Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
-    [T failingValue]) async {
+    [T? failingValue]) async {
   if (CompilerContext.isActive) {
     throw "runProtectedFromAbort should be called from 'main',"
         " that is, outside a compiler context.";
@@ -518,14 +525,14 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
 abstract class ValueSpecification {
   const ValueSpecification();
 
-  String get alias => null;
+  String? get alias => null;
 
   dynamic get defaultValue => null;
 
   bool get requiresValue => true;
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value);
+      String argument, String? value);
 }
 
 class AliasValue extends ValueSpecification {
@@ -537,7 +544,7 @@ class AliasValue extends ValueSpecification {
       throw new UnsupportedError("AliasValue.requiresValue");
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
+      String argument, String? value) {
     throw new UnsupportedError("AliasValue.processValue");
   }
 }
@@ -546,7 +553,7 @@ class UriValue extends ValueSpecification {
   const UriValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
+      String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
           "Multiple values for '$argument': "
@@ -554,7 +561,7 @@ class UriValue extends ValueSpecification {
     }
     // TODO(ahe): resolve Uris lazily, so that schemes provided by
     // other flags can be used for parsed command-line arguments too.
-    result.options[canonicalArgument] = resolveInputUri(value);
+    result.options[canonicalArgument] = resolveInputUri(value!);
   }
 }
 
@@ -562,13 +569,13 @@ class StringValue extends ValueSpecification {
   const StringValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
+      String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
           "Multiple values for '$argument': "
           "'${result.options[canonicalArgument]}' and '$value'.");
     }
-    result.options[canonicalArgument] = value;
+    result.options[canonicalArgument] = value!;
   }
 }
 
@@ -580,7 +587,7 @@ class BoolValue extends ValueSpecification {
   bool get requiresValue => false;
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
+      String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
           "Multiple values for '$argument': "
@@ -604,13 +611,13 @@ class IntValue extends ValueSpecification {
   const IntValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
+      String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
           "Multiple values for '$argument': "
           "'${result.options[canonicalArgument]}' and '$value'.");
     }
-    int parsedValue = int.tryParse(value);
+    int? parsedValue = int.tryParse(value!);
     if (parsedValue == null) {
       throw new CommandLineProblem.deprecated(
           "Value for '$argument', '$value', isn't an int.");
@@ -623,8 +630,8 @@ class DefineValue extends ValueSpecification {
   const DefineValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
-    int index = value.indexOf('=');
+      String argument, String? value) {
+    int index = value!.indexOf('=');
     String name;
     String expression;
     if (index != -1) {
@@ -642,10 +649,10 @@ class StringListValue extends ValueSpecification {
   const StringListValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
+      String argument, String? value) {
     result.options
         .putIfAbsent(canonicalArgument, () => <String>[])
-        .addAll(value.split(","));
+        .addAll(value!.split(","));
   }
 }
 
@@ -653,9 +660,9 @@ class UriListValue extends ValueSpecification {
   const UriListValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String value) {
+      String argument, String? value) {
     result.options
         .putIfAbsent(canonicalArgument, () => <Uri>[])
-        .addAll(value.split(",").map(resolveInputUri));
+        .addAll(value!.split(",").map(resolveInputUri));
   }
 }

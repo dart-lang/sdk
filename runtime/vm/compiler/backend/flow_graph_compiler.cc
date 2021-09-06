@@ -207,9 +207,7 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
   // The `field.is_non_nullable_integer()` is set in the kernel loader and can
   // only be set if we consume a AOT kernel (annotated with inferred types).
   ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
-  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
   const bool valid_class =
-      (FLAG_precompiled_mode || !IsolateGroup::AreIsolateGroupsEnabled()) &&
       ((SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
@@ -224,9 +222,7 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
     // proven to be correct.
     return IsUnboxedField(field);
   }
-  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
-  return !IsolateGroup::AreIsolateGroupsEnabled() &&
-         field.is_unboxing_candidate() &&
+  return field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
 }
@@ -449,7 +445,6 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
 void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
                                               intptr_t try_index) {
 #if defined(DART_PRECOMPILER)
-  env = env ? env : pending_deoptimization_env_;
   try_index = try_index != kInvalidTryIndex ? try_index : CurrentTryIndex();
   if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
@@ -506,10 +501,20 @@ void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
   if ((deopt_id != DeoptId::kNone) && !FLAG_precompiled_mode) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, env);
+      ASSERT(env != nullptr);
+      // Note that we may lazy-deopt to the same IR instruction in unoptimized
+      // code or to another IR instruction (e.g. if LICM hoisted an instruction
+      // it will lazy-deopt to a Goto).
+      // If we happen to deopt to the beginning of an instruction in unoptimized
+      // code, we'll use the before deopt-id, otherwise the after deopt-id.
+      const intptr_t dest_deopt_id = env->LazyDeoptToBeforeDeoptId()
+                                         ? deopt_id
+                                         : DeoptId::ToDeoptAfter(deopt_id);
+      AddDeoptIndexAtCall(dest_deopt_id, env);
     } else {
+      ASSERT(env == nullptr);
+      const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
       AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
@@ -907,9 +912,6 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   ASSERT(!FLAG_precompiled_mode);
-  if (env == nullptr) {
-    env = pending_deoptimization_env_;
-  }
   if (env != nullptr) {
     env = env->GetLazyDeoptEnv(zone());
   }
@@ -947,36 +949,16 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     ASSERT(registers != NULL);
     const intptr_t kFpuRegisterSpillFactor =
         kFpuRegisterSize / compiler::target::kWordSize;
-    intptr_t saved_registers_size = 0;
     const bool using_shared_stub = locs->call_on_shared_slow_path();
-    if (using_shared_stub) {
-      saved_registers_size =
-          Utils::CountOneBitsWord(kDartAvailableCpuRegs) +
-          (registers->FpuRegisterCount() > 0
-               ? kFpuRegisterSpillFactor * kNumberOfFpuRegisters
-               : 0) +
-          1 /*saved PC*/;
-    } else {
-      saved_registers_size =
-          registers->CpuRegisterCount() +
-          (registers->FpuRegisterCount() * kFpuRegisterSpillFactor);
-    }
 
-    BitmapBuilder* bitmap = locs->stack_bitmap();
+    BitmapBuilder bitmap(locs->stack_bitmap());
 
-    // An instruction may have two safepoints in deferred code. The
-    // call to RecordSafepoint has the side-effect of appending the live
-    // registers to the bitmap. This is why the second call to RecordSafepoint
-    // with the same instruction (and same location summary) sees a bitmap that
-    // is larger that StackSize(). It will never be larger than StackSize() +
-    // unboxed_arg_bits_count + live_registers_size.
-    // The first safepoint will grow the bitmap to be the size of
-    // spill_area_size but the second safepoint will truncate the bitmap and
-    // append the bits for arguments and live registers to it again.
-    const intptr_t bitmap_previous_length = bitmap->Length();
-    bitmap->SetLength(spill_area_size);
-
-    intptr_t unboxed_arg_bits_count = 0;
+    // Expand the bitmap to cover the whole area reserved for spill slots.
+    // (register allocator takes care of marking slots containing live tagged
+    // values but it does not do the same for other slots so length might be
+    // below spill_area_size at this point).
+    RELEASE_ASSERT(bitmap.Length() <= spill_area_size);
+    bitmap.SetLength(spill_area_size);
 
     auto instr = current_instruction();
     const intptr_t args_count = instr->ArgumentCount();
@@ -987,18 +969,16 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
           instr->ArgumentValueAt(i)->instruction()->AsPushArgument();
       switch (push_arg->representation()) {
         case kUnboxedInt64:
-          bitmap->SetRange(
-              bitmap->Length(),
-              bitmap->Length() + compiler::target::kIntSpillFactor - 1, false);
-          unboxed_arg_bits_count += compiler::target::kIntSpillFactor;
+          bitmap.SetRange(
+              bitmap.Length(),
+              bitmap.Length() + compiler::target::kIntSpillFactor - 1, false);
           pushed_unboxed = true;
           break;
         case kUnboxedDouble:
-          bitmap->SetRange(
-              bitmap->Length(),
-              bitmap->Length() + compiler::target::kDoubleSpillFactor - 1,
+          bitmap.SetRange(
+              bitmap.Length(),
+              bitmap.Length() + compiler::target::kDoubleSpillFactor - 1,
               false);
-          unboxed_arg_bits_count += compiler::target::kDoubleSpillFactor;
           pushed_unboxed = true;
           break;
         case kTagged:
@@ -1010,17 +990,13 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
             // postfix.
             continue;
           }
-          bitmap->Set(bitmap->Length(), true);
-          unboxed_arg_bits_count++;
+          bitmap.Set(bitmap.Length(), true);
           break;
         default:
           UNREACHABLE();
           break;
       }
     }
-    ASSERT(bitmap_previous_length <=
-           (spill_area_size + unboxed_arg_bits_count + saved_registers_size));
-
     ASSERT(slow_path_argument_count == 0 || !using_shared_stub);
 
     // Mark the bits in the stack map in the same order we push registers in
@@ -1041,7 +1017,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
           FpuRegister reg = static_cast<FpuRegister>(i);
           if (regs->ContainsFpuRegister(reg)) {
             for (intptr_t j = 0; j < kFpuRegisterSpillFactor; ++j) {
-              bitmap->Set(bitmap->Length(), false);
+              bitmap.Set(bitmap.Length(), false);
             }
           }
         }
@@ -1052,7 +1028,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
         Register reg = static_cast<Register>(i);
         if (locs->live_registers()->ContainsRegister(reg)) {
-          bitmap->Set(bitmap->Length(), locs->live_registers()->IsTagged(reg));
+          bitmap.Set(bitmap.Length(), locs->live_registers()->IsTagged(reg));
         }
       }
     }
@@ -1061,29 +1037,28 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       // To simplify the code in the shared stub, we create an untagged hole
       // in the stack frame where the shared stub can leave the return address
       // before saving registers.
-      bitmap->Set(bitmap->Length(), false);
+      bitmap.Set(bitmap.Length(), false);
       if (registers->FpuRegisterCount() > 0) {
-        bitmap->SetRange(bitmap->Length(),
-                         bitmap->Length() +
-                             kNumberOfFpuRegisters * kFpuRegisterSpillFactor -
-                             1,
-                         false);
+        bitmap.SetRange(bitmap.Length(),
+                        bitmap.Length() +
+                            kNumberOfFpuRegisters * kFpuRegisterSpillFactor - 1,
+                        false);
       }
       for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
         if ((kReservedCpuRegisters & (1 << i)) != 0) continue;
         const Register reg = static_cast<Register>(i);
-        bitmap->Set(bitmap->Length(),
-                    locs->live_registers()->ContainsRegister(reg) &&
-                        locs->live_registers()->IsTagged(reg));
+        bitmap.Set(bitmap.Length(),
+                   locs->live_registers()->ContainsRegister(reg) &&
+                       locs->live_registers()->IsTagged(reg));
       }
     }
 
     // Arguments pushed after live registers in the slow path are tagged.
     for (intptr_t i = 0; i < slow_path_argument_count; ++i) {
-      bitmap->Set(bitmap->Length(), true);
+      bitmap.Set(bitmap.Length(), true);
     }
 
-    compressed_stackmaps_builder_->AddEntry(assembler()->CodeSize(), bitmap,
+    compressed_stackmaps_builder_->AddEntry(assembler()->CodeSize(), &bitmap,
                                             spill_area_size);
   }
 }
@@ -1405,8 +1380,19 @@ void FlowGraphCompiler::GenerateStubCall(const InstructionSource& source,
                                          LocationSummary* locs,
                                          intptr_t deopt_id,
                                          Environment* env) {
+  ASSERT(FLAG_precompiled_mode ||
+         (deopt_id != DeoptId::kNone && (!is_optimizing() || env != nullptr)));
   EmitCallToStub(stub);
   EmitCallsiteMetadata(source, deopt_id, kind, locs, env);
+}
+
+void FlowGraphCompiler::GenerateNonLazyDeoptableStubCall(
+    const InstructionSource& source,
+    const Code& stub,
+    UntaggedPcDescriptors::Kind kind,
+    LocationSummary* locs) {
+  EmitCallToStub(stub);
+  EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs, /*env=*/nullptr);
 }
 
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
@@ -2706,7 +2692,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, is_instance_lbl);
-    __ LoadFieldFromOffset(
+    __ LoadCompressedFieldFromOffset(
         kScratchReg, kTypeArgumentsReg,
         compiler::target::TypeArguments::type_at_offset(type_param.index()));
     // kScratchReg: Concrete type of type.
@@ -2767,6 +2753,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 // - true or false in kInstanceOfResultReg.
 void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
                                            intptr_t deopt_id,
+                                           Environment* env,
                                            const AbstractType& type,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
@@ -2803,7 +2790,8 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
     __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
     __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, test_cache);
     GenerateStubCall(source, StubCode::InstanceOf(),
-                     /*kind=*/UntaggedPcDescriptors::kOther, locs, deopt_id);
+                     /*kind=*/UntaggedPcDescriptors::kOther, locs, deopt_id,
+                     env);
     __ Jump(&done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
@@ -2868,6 +2856,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     CompileType* receiver_type,
     const InstructionSource& source,
     intptr_t deopt_id,
+    Environment* env,
     const String& dst_name,
     LocationSummary* locs) {
   ASSERT(!source.token_pos.IsClassifying());
@@ -2900,7 +2889,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     }
   }
 
-  GenerateTTSCall(source, deopt_id, type_reg, dst_type, dst_name, locs);
+  GenerateTTSCall(source, deopt_id, env, type_reg, dst_type, dst_name, locs);
   __ Bind(&done);
 }
 
@@ -2909,6 +2898,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
 // time.
 void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
                                         intptr_t deopt_id,
+                                        Environment* env,
                                         Register reg_with_type,
                                         const AbstractType& dst_type,
                                         const String& dst_name,
@@ -2940,7 +2930,8 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
     GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
   }
 
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs,
+                       env);
 }
 
 // Optimize assignable type check by adding inlined tests for:
@@ -3040,7 +3031,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     __ BranchIf(EQUAL, done);
     // Put the instantiated type parameter into the scratch register, so its
     // TTS can be called by the caller.
-    __ LoadField(
+    __ LoadCompressedField(
         TypeTestABI::kScratchReg,
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
@@ -3124,16 +3115,15 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
     rep = kTagged;
   }
   ASSERT(!is_optimizing());
-  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32) ||
-         (rep == kUnboxedUint8));
+  ASSERT((rep == kTagged) || (rep == kUntagged) ||
+         RepresentationUtils::IsUnboxedInteger(rep));
   ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
   const auto& function = flow_graph_.parsed_function().function();
-  // Currently, we only allow unboxed uint8 and uint32 on the stack in
-  // unoptimized code  when building a dynamic closure call dispatcher, where
-  // any unboxed values on the stack are consumed before possible
-  // FrameStateIsSafeToCall() checks.
+  // Currently, we only allow unboxed integers on the stack in unoptimized code
+  // when building a dynamic closure call dispatcher, where any unboxed values
+  // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
   // See FlowGraphBuilder::BuildDynamicCallVarsInit().
-  ASSERT((rep != kUnboxedUint32 && rep != kUnboxedUint8) ||
+  ASSERT(!RepresentationUtils::IsUnboxedInteger(rep) ||
          function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }

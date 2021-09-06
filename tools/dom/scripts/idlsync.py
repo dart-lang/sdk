@@ -10,14 +10,14 @@
 #
 # To update all *.idl, *.py, LICENSE files, and IDLExtendedAttributes.txt:
 #      > cd sdk
-#      > python tools/dom/scripts/idlsync.py
+#      > python3 tools/dom/scripts/idlsync.py
 #
 # Display blink files to delete, copy, update, and collisions to review:
-#      > python tools/dom/scripts/idlsync.py --check
+#      > python3 tools/dom/scripts/idlsync.py --check
 #
 # Bring over all blink files to dart/third_party/WebCore (*.py, *.idl, and
 # IDLExtendedAttributes.txt):
-#      > python tools/dom/scripts/idlsync.py
+#      > python3 tools/dom/scripts/idlsync.py
 #
 # Update the DEPS file SHA for "WebCore_rev" with the committed changes of files
 # in WebCore e.g.,   "WebCore_rev": "@NNNNNNNNNNNNNNNNNNNNNNNNN"
@@ -117,14 +117,14 @@ def chromiumDirectory():
 def RunCommand(cmd, valid_exits=[0]):
     """Executes a shell command and return its stdout."""
     if isVerbose():
-        print ' '.join(cmd)
+        print(' '.join(cmd))
     pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = pipe.communicate()
     if pipe.returncode in valid_exits:
         return output[0]
     else:
-        print output[1]
-        print 'FAILED. RET_CODE=%d' % pipe.returncode
+        print(output[1])
+        print('FAILED. RET_CODE=%d' % pipe.returncode)
         sys.exit(pipe.returncode)
 
 
@@ -298,7 +298,8 @@ def ValidateGitRemotes():
             remotes_list[1] == GIT_REMOTES_CHROMIUM):
         return True
 
-    print 'ERROR: Unable to find dart/dartium/src repository %s' % GIT_REMOTES_CHROMIUM
+    print('ERROR: Unable to find dart/dartium/src repository %s' %
+          GIT_REMOTES_CHROMIUM)
     return False
 
 
@@ -348,25 +349,25 @@ def GetDEPSWebCoreGitRevision(deps, component):
     # Get the SHA for the Chromium/WebKit changes for Dartium.
     #revision = url[len(url_base):]
     revision = foundIt.group(1)[1:]
-    print '%s' % revision
+    print('%s' % revision)
     return revision
 
 
 def copy_subdir(src, src_prefix, dest, subdir):
     idls_deleted = remove_obsolete_webcore_files(dest, src, subdir)
-    print "%s files removed in WebCore %s" % (idls_deleted.__len__(), subdir)
+    print("%s files removed in WebCore %s" % (idls_deleted.__len__(), subdir))
     if isVerbose():
         for delete_file in idls_deleted:
-            print "    %s" % delete_file
+            print("    %s" % delete_file)
 
     idls_copied, py_copied, other_copied = copy_files(
         os.path.join(src, subdir), src_prefix, dest)
     if idls_copied > 0:
-        print "Copied %s IDLs to %s" % (idls_copied, subdir)
+        print("Copied %s IDLs to %s" % (idls_copied, subdir))
     if py_copied > 0:
-        print "Copied %s PYs to %s" % (py_copied, subdir)
+        print("Copied %s PYs to %s" % (py_copied, subdir))
     if other_copied > 0:
-        print "Copied %s other to %s\n" % (other_copied, subdir)
+        print("Copied %s other to %s\n" % (other_copied, subdir))
 
 
 def main():
@@ -375,7 +376,8 @@ def main():
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if not current_dir.endswith(SOURCE_FILE_DIR):
-        print 'ERROR: idlsync.py not run in proper directory (%s)\n', current_dir
+        print('ERROR: idlsync.py not run in proper directory (%s)\n',
+              current_dir)
 
     base_directory = current_dir[:current_dir.rfind(SOURCE_FILE_DIR)]
 
@@ -384,8 +386,8 @@ def main():
     webcore_revision = GetDEPSWebCoreGitRevision(deps, 'webkit')
     chromium_sha = getChromiumSHA()
     if webcore_revision == chromium_sha:
-        print "ERROR: Nothing to update in WebCore, WebCore_rev SHA in DEPS " \
-              "matches Chromium GIT master SHA in %s" % options['webkit_dir']
+        print("ERROR: Nothing to update in WebCore, WebCore_rev SHA in DEPS "
+              "matches Chromium GIT master SHA in %s" % options['webkit_dir'])
         return
 
     start_time = time.time()
@@ -417,12 +419,14 @@ def main():
 
     end_time = time.time()
 
-    print 'WARNING: File(s) contain FIXMEDART and are NOT "git add " please review:'
+    print(
+        'WARNING: File(s) contain FIXMEDART and are NOT "git add " please review:'
+    )
     for warning in warning_messages:
-        print '    %s' % warning
+        print('    %s' % warning)
 
-    print '\nDone idlsync completed in %s seconds' % round(
-        end_time - start_time, 2)
+    print('\nDone idlsync completed in %s seconds' %
+          round(end_time - start_time, 2))
 
 
 if __name__ == '__main__':

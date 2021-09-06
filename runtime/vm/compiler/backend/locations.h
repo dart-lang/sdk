@@ -28,6 +28,7 @@ class Value;
 // Format: (representation name, is unsigned, value type)
 #define FOR_EACH_INTEGER_REPRESENTATION_KIND(M)                                \
   M(UnboxedUint8, true, uint8_t)                                               \
+  M(UnboxedUint16, true, uint16_t)                                             \
   M(UnboxedInt32, false, int32_t)                                              \
   M(UnboxedUint32, true, uint32_t)                                             \
   M(UnboxedInt64, false, int64_t)
@@ -77,7 +78,19 @@ struct RepresentationUtils : AllStatic {
 
   // Whether the values described by this representation are unsigned integers.
   static bool IsUnsigned(Representation rep);
+
+  static compiler::OperandSize OperandSize(Representation rep);
 };
+
+// The representation for word-sized unboxed fields.
+static constexpr Representation kUnboxedWord =
+    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
+// The representation for unsigned word-sized unboxed fields.
+//
+// Note: kUnboxedUword is identical to kUnboxedWord until range analysis can
+// handle unsigned 64-bit ranges. This means that range analysis will give
+// signed results for unboxed uword field values.
+static constexpr Representation kUnboxedUword = kUnboxedWord;
 
 // 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
 // On a 32-bit platform, it's an unsigned 32-bit int because it should be
@@ -90,8 +103,7 @@ static constexpr Representation kUnboxedFfiIntPtr =
 
 // The representation which can be used for native pointers. We use signed 32/64
 // bit representation to be able to do arithmetic on pointers.
-static constexpr Representation kUnboxedIntPtr =
-    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
+static constexpr Representation kUnboxedIntPtr = kUnboxedWord;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -145,21 +157,21 @@ class Location : public ValueObject {
     // allocated by a register allocator.  Each unallocated location has
     // a policy that specifies what kind of location is suitable. Payload
     // contains register allocation policy.
-    kUnallocated = 3,
+    kUnallocated = 1 << 2,
 
     // Spill slots allocated by the register allocator.  Payload contains
     // a spill index.
-    kStackSlot = 4,        // Word size slot.
-    kDoubleStackSlot = 7,  // 64bit stack slot.
-    kQuadStackSlot = 11,   // 128bit stack slot.
+    kStackSlot = 2 << 2,        // Word size slot.
+    kDoubleStackSlot = 3 << 2,  // 64bit stack slot.
+    kQuadStackSlot = 4 << 2,    // 128bit stack slot.
 
     // Register location represents a fixed register.  Payload contains
     // register code.
-    kRegister = 8,
+    kRegister = 5 << 2,
 
     // FpuRegister location represents a fixed fpu register.  Payload contains
     // its code.
-    kFpuRegister = 12,
+    kFpuRegister = 6 << 2,
   };
 
   Location() : value_(kInvalidLocation) {
@@ -204,14 +216,21 @@ class Location : public ValueObject {
   bool IsInvalid() const { return value_ == kInvalidLocation; }
 
   // Constants.
-  bool IsConstant() const {
-    return (value_ & kLocationTagMask) == kConstantTag;
+  bool IsConstant() const { return (value_ & kConstantTag) == kConstantTag; }
+
+  static Location Constant(const ConstantInstr* obj, int pair_index = 0) {
+    ASSERT((pair_index == 0) || (pair_index == 1));
+    Location loc(reinterpret_cast<uword>(obj) |
+                 (pair_index != 0 ? static_cast<uword>(kPairLocationTag) : 0) |
+                 static_cast<uword>(kConstantTag));
+    ASSERT(obj == loc.constant_instruction());
+    ASSERT(loc.pair_index() == pair_index);
+    return loc;
   }
 
-  static Location Constant(const ConstantInstr* obj) {
-    Location loc(reinterpret_cast<uword>(obj) | kConstantTag);
-    ASSERT(obj == loc.constant_instruction());
-    return loc;
+  intptr_t pair_index() const {
+    ASSERT(IsConstant());
+    return (value_ & kPairLocationTag) != 0 ? 1 : 0;
   }
 
   ConstantInstr* constant_instruction() const {
@@ -762,13 +781,8 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc);
 
-  BitmapBuilder* stack_bitmap() {
-    if (stack_bitmap_ == NULL) {
-      stack_bitmap_ = new BitmapBuilder();
-    }
-    return stack_bitmap_;
-  }
-  void SetStackBit(intptr_t index) { stack_bitmap()->Set(index, true); }
+  const BitmapBuilder& stack_bitmap() { return EnsureStackBitmap(); }
+  void SetStackBit(intptr_t index) { EnsureStackBitmap().Set(index, true); }
 
   bool always_calls() const {
     return contains_call_ == kCall || contains_call_ == kCallCalleeSafe;
@@ -801,6 +815,13 @@ class LocationSummary : public ZoneAllocated {
 #endif
 
  private:
+  BitmapBuilder& EnsureStackBitmap() {
+    if (stack_bitmap_ == NULL) {
+      stack_bitmap_ = new BitmapBuilder();
+    }
+    return *stack_bitmap_;
+  }
+
   const intptr_t num_inputs_;
   Location* input_locations_;
   const intptr_t num_temps_;

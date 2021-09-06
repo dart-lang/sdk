@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -18,13 +16,13 @@ import '../../lsp/server_abstract.dart';
 abstract class AbstractLspAnalysisServerIntegrationTest
     with ClientCapabilitiesHelperMixin, LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
-  LspServerClient client;
-  InstrumentationService instrumentationService;
-
-  final Map<int, Completer<ResponseMessage>> _completers = {};
+  LspServerClient? client;
+  InstrumentationService? instrumentationService;
+  final Map<num, Completer<ResponseMessage>> _completers = {};
+  LspByteStreamServerChannel get channel => client!.channel!;
 
   @override
-  Stream<Message> get serverToClient => client.serverToClient;
+  Stream<Message> get serverToClient => client!.serverToClient;
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
@@ -32,25 +30,26 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   Future<T> expectSuccessfulResponseTo<T, R>(
       RequestMessage request, T Function(R) fromJson) async {
     final resp = await sendRequestToServer(request);
-    if (resp.error != null) {
-      throw resp.error;
+    final error = resp.error;
+    if (error != null) {
+      throw error;
     } else if (T == Null) {
       return resp.result == null
-          ? null
+          ? null as T
           : throw 'Expected Null response but got ${resp.result}';
     } else {
-      return fromJson(resp.result);
+      return fromJson(resp.result as R);
     }
   }
 
-  void newFile(String path, {String content}) =>
+  void newFile(String path, {String? content}) =>
       File(path).writeAsStringSync(content ?? '');
 
   void newFolder(String path) => Directory(path).createSync(recursive: true);
 
   @override
   void sendNotificationToServer(NotificationMessage notification) =>
-      client.channel.sendNotification(notification);
+      channel.sendNotification(notification);
 
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
@@ -59,14 +58,14 @@ abstract class AbstractLspAnalysisServerIntegrationTest
         (string) => throw 'String IDs not supported in tests');
     _completers[id] = completer;
 
-    client.channel.sendRequest(request);
+    channel.sendRequest(request);
 
     return completer.future;
   }
 
   @override
   void sendResponseToServer(ResponseMessage response) =>
-      client.channel.sendResponse(response);
+      channel.sendResponse(response);
 
   @mustCallSuper
   Future<void> setUp() async {
@@ -82,11 +81,12 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     analysisOptionsUri = Uri.file(analysisOptionsPath);
 
-    client = LspServerClient(instrumentationService);
+    final client = LspServerClient(instrumentationService);
+    this.client = client;
     await client.start(vmArgs: vmArgs);
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
-        final id = message.id.map((number) => number,
+        final id = message.id!.map((number) => number,
             (string) => throw 'String IDs not supported in tests');
 
         final completer = _completers[id];
@@ -102,26 +102,26 @@ abstract class AbstractLspAnalysisServerIntegrationTest
 
   void tearDown() {
     // TODO(dantup): Graceful shutdown?
-    client.close();
+    client?.close();
   }
 }
 
 class LspServerClient {
-  final InstrumentationService instrumentationService;
-  Process _process;
-  LspByteStreamServerChannel channel;
+  final InstrumentationService? instrumentationService;
+  Process? _process;
+  LspByteStreamServerChannel? channel;
   final StreamController<Message> _serverToClient =
       StreamController<Message>.broadcast();
 
   LspServerClient(this.instrumentationService);
 
-  Future<int> get exitCode => _process.exitCode;
+  Future<int> get exitCode => _process!.exitCode;
 
   Stream<Message> get serverToClient => _serverToClient.stream;
 
   void close() {
-    channel.close();
-    _process.kill();
+    channel?.close();
+    _process?.kill();
   }
 
   /// Find the root directory of the analysis_server package by proceeding
@@ -137,7 +137,7 @@ class LspServerClient {
     return dirname(pathname);
   }
 
-  Future start({List<String> vmArgs}) async {
+  Future start({List<String>? vmArgs}) async {
     if (_process != null) {
       throw Exception('Process already started');
     }
@@ -164,8 +164,9 @@ class LspServerClient {
     }
 
     final arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
-    _process = await Process.start(dartBinary, arguments);
-    _process.exitCode.then((int code) {
+    final process = await Process.start(dartBinary, arguments);
+    _process = process;
+    process.exitCode.then((int code) {
       if (code != 0) {
         // TODO(dantup): Log/fail tests...
       }
@@ -173,14 +174,14 @@ class LspServerClient {
 
     // If the server writes to stderr, fail tests with a more useful message
     // (rather than having the test just hang waiting for a response).
-    _process.stderr.listen((data) {
+    process.stderr.listen((data) {
       final message = String.fromCharCodes(data);
       throw 'Analysis Server wrote to stderr:\n\n$message';
     });
 
-    channel = LspByteStreamServerChannel(_process.stdout, _process.stdin,
-        instrumentationService ?? InstrumentationService.NULL_SERVICE);
-    channel.listen(_serverToClient.add);
+    channel = LspByteStreamServerChannel(process.stdout, process.stdin,
+        instrumentationService ?? InstrumentationService.NULL_SERVICE)
+      ..listen(_serverToClient.add);
   }
 }
 

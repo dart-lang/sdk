@@ -64,8 +64,8 @@ const FpuRegister FpuTMP = XMM7;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
-extern const char* cpu_reg_names[kNumberOfCpuRegisters];
-extern const char* fpu_reg_names[kNumberOfXmmRegisters];
+extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.
 const Register TMP = kNoRegister;   // No scratch register used by assembler.
@@ -87,9 +87,6 @@ const Register kStackTraceObjectReg = EDX;
 const Register kWriteBarrierObjectReg = EDX;
 const Register kWriteBarrierValueReg = kNoRegister;
 const Register kWriteBarrierSlotReg = EDI;
-
-// ABI for allocation stubs.
-const Register kAllocationStubTypeArgumentsReg = EDX;
 
 // Common ABI for shared slow path stubs.
 struct SharedSlowPathStubABI {
@@ -196,10 +193,37 @@ struct RangeErrorABI {
   static const Register kIndexReg = EBX;
 };
 
-// ABI for Allocate<TypedData>ArrayStub.
-struct AllocateTypedDataArrayABI {
-  static const Register kLengthReg = EAX;
+// ABI for AllocateObjectStub.
+struct AllocateObjectABI {
   static const Register kResultReg = EAX;
+  static const Register kTypeArgumentsReg = EDX;
+};
+
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kTempReg = EBX;
+};
+
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFunctionReg = EBX;
+  static const Register kContextReg = ECX;
+  static const Register kScratchReg = EDX;
+};
+
+// ABI for AllocateArrayStub.
+struct AllocateArrayABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kLengthReg = EDX;
+  static const Register kTypeArgumentsReg = ECX;
+};
+
+// ABI for AllocateTypedDataArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kLengthReg = kResultReg;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
@@ -235,6 +259,11 @@ enum ScaleFactor {
   TIMES_WORD_SIZE = kInt32SizeLog2,
 #else
 #error "Unexpected word size"
+#endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+#error Cannot compress IA32
 #endif
 };
 
@@ -315,8 +344,8 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
 
-  // How fields in composites are aligned.
-#if defined(TARGET_OS_WINDOWS)
+  // How fields in compounds are aligned.
+#if defined(DART_TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else
   static constexpr AlignmentStrategy kFieldAlignment =

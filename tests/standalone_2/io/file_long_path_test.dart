@@ -4,6 +4,8 @@
 //
 // This test is Windows-only.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import "package:expect/expect.dart";

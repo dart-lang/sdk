@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.declaration;
 
 import '../problems.dart' show unsupported;
@@ -12,11 +10,11 @@ abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for top-level and class-member declarations, not for
   /// block scopes.
-  Builder next;
+  Builder? next;
 
-  Builder get parent;
+  Builder? get parent;
 
-  Uri get fileUri;
+  Uri? get fileUri;
 
   int get charOffset;
 
@@ -202,7 +200,7 @@ abstract class Builder {
 
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
-  int resolveConstructors(covariant Builder parent);
+  int resolveConstructors(covariant Builder? parent);
 
   /// Return `true` if this builder is a duplicate of another with the same
   /// name. This is `false` for the builder first declared amongst duplicates.
@@ -211,7 +209,7 @@ abstract class Builder {
 
 abstract class BuilderImpl implements Builder {
   @override
-  Builder next;
+  Builder? next;
 
   BuilderImpl();
 
@@ -298,7 +296,6 @@ abstract class BuilderImpl implements Builder {
   int finishPatch() {
     if (!isPatch) return 0;
     unsupported("${runtimeType}.finishPatch", charOffset, fileUri);
-    return 0;
   }
 
   @override

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization_counter_threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 // Test for dart:typed_data (in particular, ByteData.get/setUint64 and
 // UInt64List) with limited 64-bit integers.
 

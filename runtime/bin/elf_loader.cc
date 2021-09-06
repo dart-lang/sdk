@@ -6,11 +6,10 @@
 #include <bin/file.h>
 #include <platform/elf.h>
 #include <platform/globals.h>
-#include <vm/bss_relocs.h>
 #include <vm/cpu.h>
 #include <vm/virtual_memory.h>
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
 #include <sys/mman.h>
 #endif
 
@@ -25,7 +24,7 @@ namespace elf {
 class Mappable {
  public:
   static Mappable* FromPath(const char* path);
-#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
   static Mappable* FromFD(int fd);
 #endif
   static Mappable* FromMemory(const uint8_t* memory, size_t size);
@@ -151,7 +150,7 @@ Mappable* Mappable::FromPath(const char* path) {
   return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead));
 }
 
-#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
 Mappable* Mappable::FromFD(int fd) {
   return new FileMappable(File::OpenFD(fd));
 }
@@ -239,8 +238,6 @@ class LoadedElf {
   const char* dynamic_string_table_ = nullptr;
   const dart::elf::Symbol* dynamic_symbol_table_ = nullptr;
   uword dynamic_symbol_count_ = 0;
-  uword* vm_bss_ = nullptr;
-  uword* isolate_bss_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(LoadedElf);
 };
@@ -424,7 +421,7 @@ bool LoadedElf::LoadSegments() {
       ERROR("Unsupported segment flag set.");
     }
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
     // mmap is less flexible on Fuchsia than on Linux and Darwin, in (at least)
     // two important ways:
     //
@@ -468,20 +465,11 @@ bool LoadedElf::ReadSections() {
       dynamic_symbol_table_ = reinterpret_cast<const dart::elf::Symbol*>(
           base_->start() + header.memory_offset);
       dynamic_symbol_count_ = header.file_size / sizeof(dart::elf::Symbol);
-    } else if (strcmp(name, ".bss") == 0) {
-      auto const bss_size =
-          (BSS::kVmEntryCount + BSS::kIsolateEntryCount) * kWordSize;
-      CHECK_ERROR(header.memory_offset != 0, ".bss must be loaded.");
-      CHECK_ERROR(header.file_size >= bss_size,
-                  ".bss does not have enough space.");
-      vm_bss_ = reinterpret_cast<uword*>(base_->start() + header.memory_offset);
-      isolate_bss_ = vm_bss_ + BSS::kVmEntryCount;
     }
   }
 
   CHECK_ERROR(dynamic_string_table_ != nullptr, "Couldn't find .dynstr.");
   CHECK_ERROR(dynamic_symbol_table_ != nullptr, "Couldn't find .dynsym.");
-  CHECK_ERROR(vm_bss_ != nullptr, "Couldn't find .bss.");
   return true;
 }
 
@@ -546,7 +534,7 @@ MappedMemory* LoadedElf::MapFilePiece(uword file_start,
 
 using namespace dart::bin::elf;  // NOLINT
 
-#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
                                             uint64_t file_offset,
                                             const char** error,
@@ -569,7 +557,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
 }
 #endif
 
-#if !defined(HOST_OS_FUCHSIA)
+#if !defined(DART_HOST_OS_FUCHSIA)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
                                          const char** error,

@@ -4,6 +4,8 @@
 //
 // OtherResources=readline_test1.dat
 
+// @dart = 2.9
+
 // Regression test for missing immutability check in the ListSet
 // methods in the API. This allowed overwriting const Lists.
 

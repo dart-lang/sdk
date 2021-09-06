@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 
 #include "bin/file.h"
 
@@ -82,20 +82,27 @@ MappedMemory* File::Map(MapType type,
                         void* start) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
+  void* hint = nullptr;
   int prot = PROT_NONE;
+  int flags = MAP_PRIVATE;
   switch (type) {
     case kReadOnly:
       prot = PROT_READ;
       break;
     case kReadExecute:
+      // Try to allocate near the VM's binary.
+      hint = reinterpret_cast<void*>(&Dart_Initialize);
       prot = PROT_READ | PROT_EXEC;
       break;
     case kReadWrite:
       prot = PROT_READ | PROT_WRITE;
       break;
   }
-  const int flags = MAP_PRIVATE | (start != nullptr ? MAP_FIXED : 0);
-  void* addr = mmap(start, length, prot, flags, handle_->fd(), position);
+  if (start != nullptr) {
+    hint = start;
+    flags |= MAP_FIXED;
+  }
+  void* addr = mmap(hint, length, prot, flags, handle_->fd(), position);
   if (addr == MAP_FAILED) {
     return NULL;
   }
@@ -741,4 +748,4 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_ANDROID)

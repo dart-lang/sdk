@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,12 +11,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveNonNullAssertionWithNullSafetyTest);
+    defineReflectiveTests(RemoveNonNullAssertionBulkTest);
+    defineReflectiveTests(RemoveNonNullAssertionTest);
   });
 }
 
 @reflectiveTest
-class RemoveNonNullAssertionWithNullSafetyTest extends FixProcessorTest
+class RemoveNonNullAssertionBulkTest extends BulkFixProcessorTest
+    with WithNullSafetyMixin {
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f(String a) {
+  print(a!!);
+}
+''');
+    await assertHasFix('''
+void f(String a) {
+  print(a);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveNonNullAssertionTest extends FixProcessorTest
     with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.REMOVE_NON_NULL_ASSERTION;

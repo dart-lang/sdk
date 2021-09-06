@@ -214,7 +214,7 @@ class B extends A {
     result = await resolveFile(convertPath('$testPackageLibPath/a.dart'));
     assertErrorsInResolvedUnit(result, []);
 
-    var bElement = FindElement(result.unit!).field('b') as ConstVariableElement;
+    var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
     var bValue = bElement.evaluationResult!.value!;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
     expect(superFields!.getField('f1')!.toBoolValue(), false);

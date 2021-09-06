@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToWhereTypeBulkTest);
     defineReflectiveTests(ConvertToWhereTypeTest);
   });
+}
+
+@reflectiveTest
+class ConvertToWhereTypeBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_iterable_whereType;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+Iterable<C> f(List<Object> list) {
+  return list.where((e) => e is C);
+}
+Iterable<C> f2(List<Object> list) =>
+  list.where((e) => e is C);
+
+class C {}
+''');
+    await assertHasFix('''
+Iterable<C> f(List<Object> list) {
+  return list.whereType<C>();
+}
+Iterable<C> f2(List<Object> list) =>
+  list.whereType<C>();
+
+class C {}
+''');
+  }
 }
 
 @reflectiveTest
@@ -24,6 +50,9 @@ class ConvertToWhereTypeTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.prefer_iterable_whereType;
+
+  @override
+  String? get testPackageLanguageVersion => '2.9';
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''

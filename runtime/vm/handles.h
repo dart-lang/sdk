@@ -100,6 +100,13 @@ class Handles {
     return scoped_blocks_->AllocateHandle();
   }
 
+  bool IsEmpty() const {
+    if (zone_blocks_ != nullptr) return false;
+    if (first_scoped_block_.HandleCount() != 0) return false;
+    if (scoped_blocks_ != &first_scoped_block_) return false;
+    return true;
+  }
+
  protected:
   // Returns a count of active handles (used for testing purposes).
   int CountScopedHandles() const;

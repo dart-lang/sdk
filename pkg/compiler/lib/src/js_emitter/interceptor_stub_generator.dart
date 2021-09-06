@@ -398,8 +398,7 @@ class InterceptorStubGenerator {
     }
 
     jsAst.Name invocationName = _namer.invocationName(selector);
-    String globalObject =
-        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
+    var globalObject = _namer.readGlobalObjectForInterceptors();
 
     jsAst.Statement optimizedPath =
         _fastPathForOneShotInterceptor(selector, classes);

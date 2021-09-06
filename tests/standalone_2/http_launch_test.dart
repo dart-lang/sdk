@@ -17,6 +17,8 @@
 //   *) Automatically resolving package_root when script is fetched over HTTP.
 //   *) Spawning a URI over HTTP.
 
+// @dart = 2.9
+
 library http_launch_test;
 
 import 'dart:async';

@@ -169,6 +169,24 @@ class Expect {
   }
 
   /**
+   * Checks whether the Iterable [actual] is empty.
+   */
+  static void isEmpty(Iterable actual, [String reason = ""]) {
+    if (actual.isEmpty) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.isEmpty(actual: <$actual>$msg) fails.");
+  }
+
+  /**
+   * Checks whether the Iterable [actual] is not empty.
+   */
+  static void isNotEmpty(Iterable actual, [String reason = ""]) {
+    if (actual.isNotEmpty) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.isNotEmpty(actual: <$actual>$msg) fails.");
+  }
+
+  /**
    * Checks whether the expected and actual values are identical
    * (using `identical`).
    */
@@ -694,14 +712,14 @@ class Expect {
   /// because the types appear to be unrelated.
   static void _subtypeAtRuntime<Sub, Super>() {
     if (<Sub>[] is! List<Super>) {
-      fail("$Sub is not a subtype of $Super");
+      _fail("Expect.subtype<$Sub, $Super>: $Sub is not a subtype of $Super");
     }
   }
 
   /// Checks that `Sub` is not a subtype of `Super` at run time.
   static void notSubtype<Sub, Super>() {
     if (<Sub>[] is List<Super>) {
-      fail("$Sub is a subtype of $Super");
+      _fail("Expect.notSubtype<$Sub, $Super>: $Sub is a subtype of $Super");
     }
   }
 
@@ -709,7 +727,7 @@ class Expect {
       (reason.isEmpty) ? "" : ", '$reason'";
 
   @alwaysThrows
-  static void _fail(String message) {
+  static Never _fail(String message) {
     throw new ExpectException(message);
   }
 }

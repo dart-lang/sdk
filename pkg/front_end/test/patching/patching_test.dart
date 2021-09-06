@@ -7,8 +7,6 @@
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';

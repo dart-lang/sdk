@@ -41,12 +41,13 @@ class FirestoreDatabase {
       this._beginTransactionUrl, this._commitUrl);
 
   factory FirestoreDatabase(String project, String authToken) {
-    var databaseUrl = _apiUrl.resolve('projects/$project/databases/(default)/');
+    var databasePath = 'projects/$project/databases/(default)';
+    var databaseUrl = _apiUrl.resolve('$databasePath/');
     var documentsUrl = databaseUrl.resolve('documents/');
-    var queryUrl = databaseUrl.resolveUri(Uri(path: 'documents:runQuery'));
+    var queryUrl = _apiUrl.resolve('$databasePath/documents:runQuery');
     var beginTransactionUrl =
-        databaseUrl.resolveUri(Uri(path: 'documents:beginTransaction'));
-    var commitUrl = databaseUrl.resolveUri(Uri(path: 'documents:commit'));
+        _apiUrl.resolve('$databasePath/documents:beginTransaction');
+    var commitUrl = _apiUrl.resolve('$databasePath/documents:commit');
     var headers = {
       'Authorization': 'Bearer $authToken',
       'Accept': 'application/json',
@@ -56,7 +57,7 @@ class FirestoreDatabase {
         headers, documentsUrl, queryUrl, beginTransactionUrl, commitUrl);
   }
 
-  static final _apiUrl = Uri.https('firestore.googleapis.com', 'v1beta1/');
+  static final _apiUrl = Uri.https('firestore.googleapis.com', 'v1/');
 
   Future<List /*!*/ > runQuery(Query query) async {
     var body = jsonEncode(query.data);

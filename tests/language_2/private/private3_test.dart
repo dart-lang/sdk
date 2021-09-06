@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing access to private fields.
 
+// @dart = 2.9
+
 library Private3Test.dart;
 
 import "package:expect/expect.dart";

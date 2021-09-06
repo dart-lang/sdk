@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/socket_base.h"
 
@@ -39,7 +39,8 @@ SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
       as_string_[0] = 0;
     }
   }
-  socklen_t salen = GetAddrLength(*reinterpret_cast<RawAddr*>(sa));
+  socklen_t salen =
+      GetAddrLength(*reinterpret_cast<RawAddr*>(sa), unnamed_unix_socket);
   memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
@@ -483,4 +484,4 @@ bool SocketBase::LeaveMulticast(intptr_t fd,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)

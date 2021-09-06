@@ -148,7 +148,7 @@ final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
 ///
 /// [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
 ///
-/// Usage:
+/// Use:
 /// Hash each value with the hash of the previous value, then get the final
 /// hash by calling finish.
 /// ```
@@ -158,8 +158,9 @@ final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
 /// }
 /// hash = SystemHash.finish(hash);
 /// ```
-// TODO(lrn): Consider specializing this code per platform,
-// so the VM can use its 64-bit integers directly.
+///
+/// TODO(lrn): Consider specializing this code per platform,
+/// so the VM can use its 64-bit integers directly.
 @Since("2.11")
 class SystemHash {
   static int combine(int hash, int value) {
@@ -174,23 +175,24 @@ class SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  static int hash2(int v1, int v2) {
-    int hash = 0;
+  static int hash2(int v1, int v2, [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     return finish(hash);
   }
 
-  static int hash3(int v1, int v2, int v3) {
-    int hash = 0;
+  static int hash3(int v1, int v2, int v3, [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
     return finish(hash);
   }
 
-  static int hash4(int v1, int v2, int v3, int v4) {
-    int hash = 0;
+  static int hash4(int v1, int v2, int v3, int v4,
+      [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
@@ -198,8 +200,9 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash5(int v1, int v2, int v3, int v4, int v5) {
-    int hash = 0;
+  static int hash5(int v1, int v2, int v3, int v4, int v5,
+      [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
@@ -208,8 +211,9 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash6(int v1, int v2, int v3, int v4, int v5, int v6) {
-    int hash = 0;
+  static int hash6(int v1, int v2, int v3, int v4, int v5, int v6,
+      [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
@@ -219,8 +223,9 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash7(int v1, int v2, int v3, int v4, int v5, int v6, int v7) {
-    int hash = 0;
+  static int hash7(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
@@ -232,8 +237,9 @@ class SystemHash {
   }
 
   static int hash8(
-      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8) {
-    int hash = 0;
+      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8,
+      [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
@@ -246,8 +252,9 @@ class SystemHash {
   }
 
   static int hash9(
-      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8, int v9) {
-    int hash = 0;
+      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8, int v9,
+      [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
@@ -261,8 +268,9 @@ class SystemHash {
   }
 
   static int hash10(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10) {
-    int hash = 0;
+      int v8, int v9, int v10,
+      [@Since("2.14") int seed = 0]) {
+    int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     hash = combine(hash, v3);
@@ -276,14 +284,334 @@ class SystemHash {
     return finish(hash);
   }
 
+  @Since("2.14")
+  static int hash11(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int v9, int v10, int v11,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash12(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int v9, int v10, int v11, int v12,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash13(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int v9, int v10, int v11, int v12, int v13,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash14(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int v9, int v10, int v11, int v12, int v13, int v14,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    hash = combine(hash, v14);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash15(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int v9, int v10, int v11, int v12, int v13, int v14, int v15,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    hash = combine(hash, v14);
+    hash = combine(hash, v15);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash16(
+      int v1,
+      int v2,
+      int v3,
+      int v4,
+      int v5,
+      int v6,
+      int v7,
+      int v8,
+      int v9,
+      int v10,
+      int v11,
+      int v12,
+      int v13,
+      int v14,
+      int v15,
+      int v16,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    hash = combine(hash, v14);
+    hash = combine(hash, v15);
+    hash = combine(hash, v16);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash17(
+      int v1,
+      int v2,
+      int v3,
+      int v4,
+      int v5,
+      int v6,
+      int v7,
+      int v8,
+      int v9,
+      int v10,
+      int v11,
+      int v12,
+      int v13,
+      int v14,
+      int v15,
+      int v16,
+      int v17,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    hash = combine(hash, v14);
+    hash = combine(hash, v15);
+    hash = combine(hash, v16);
+    hash = combine(hash, v17);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash18(
+      int v1,
+      int v2,
+      int v3,
+      int v4,
+      int v5,
+      int v6,
+      int v7,
+      int v8,
+      int v9,
+      int v10,
+      int v11,
+      int v12,
+      int v13,
+      int v14,
+      int v15,
+      int v16,
+      int v17,
+      int v18,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    hash = combine(hash, v14);
+    hash = combine(hash, v15);
+    hash = combine(hash, v16);
+    hash = combine(hash, v17);
+    hash = combine(hash, v18);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash19(
+      int v1,
+      int v2,
+      int v3,
+      int v4,
+      int v5,
+      int v6,
+      int v7,
+      int v8,
+      int v9,
+      int v10,
+      int v11,
+      int v12,
+      int v13,
+      int v14,
+      int v15,
+      int v16,
+      int v17,
+      int v18,
+      int v19,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    hash = combine(hash, v14);
+    hash = combine(hash, v15);
+    hash = combine(hash, v16);
+    hash = combine(hash, v17);
+    hash = combine(hash, v18);
+    hash = combine(hash, v19);
+    return finish(hash);
+  }
+
+  @Since("2.14")
+  static int hash20(
+      int v1,
+      int v2,
+      int v3,
+      int v4,
+      int v5,
+      int v6,
+      int v7,
+      int v8,
+      int v9,
+      int v10,
+      int v11,
+      int v12,
+      int v13,
+      int v14,
+      int v15,
+      int v16,
+      int v17,
+      int v18,
+      int v19,
+      int v20,
+      [int seed = 0]) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    hash = combine(hash, v5);
+    hash = combine(hash, v6);
+    hash = combine(hash, v7);
+    hash = combine(hash, v8);
+    hash = combine(hash, v9);
+    hash = combine(hash, v10);
+    hash = combine(hash, v11);
+    hash = combine(hash, v12);
+    hash = combine(hash, v13);
+    hash = combine(hash, v14);
+    hash = combine(hash, v15);
+    hash = combine(hash, v16);
+    hash = combine(hash, v17);
+    hash = combine(hash, v18);
+    hash = combine(hash, v19);
+    hash = combine(hash, v20);
+    return finish(hash);
+  }
+
   /// Bit shuffling operation to improve hash codes.
   ///
   /// Dart integers have very simple hash codes (their value),
   /// which is acceptable for the hash above because it smears the bits
   /// as part of the combination.
-  /// However, for the unordered hash based on xor, we need to improve
-  /// the hash code of, e.g., integers, so a set containing the integers
-  /// from zero to 2^n won't always have a zero hashcode.
+  /// However, for the unordered hash, we need to improve
+  /// the hash code of, e.g., integers, to avoid collections of small integers
+  /// too easily having colliding hash results.
   ///
   /// Assumes the input hash code is an unsigned 32-bit integer.
   /// Found by Christopher Wellons [https://github.com/skeeto/hash-prospector].
@@ -297,6 +625,17 @@ class SystemHash {
     return x;
   }
 }
+
+/// Sentinel values that should never be exposed outside of platform libraries.
+@Since("2.14")
+class SentinelValue {
+  final int id;
+  const SentinelValue(this.id);
+}
+
+/// A default value to use when only one sentinel is needed.
+@Since("2.14")
+const Object sentinelValue = const SentinelValue(0);
 
 /// Given an [instance] of some generic type [T], and [extract], a first-class
 /// generic function that takes the same number of type parameters as [T],

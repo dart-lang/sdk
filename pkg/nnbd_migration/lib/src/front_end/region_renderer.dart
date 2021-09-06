@@ -18,11 +18,11 @@ class RegionRenderer {
   /// The compilation unit information containing the region.
   final UnitInfo unitInfo;
 
-  final MigrationInfo migrationInfo;
+  final MigrationInfo? migrationInfo;
 
   /// An object used to map the file paths of analyzed files to the file paths
   /// of the HTML files used to view the content of those files.
-  final PathMapper pathMapper;
+  final PathMapper? pathMapper;
 
   /// The auth token for the current site, for use in generating URIs.
   final String authToken;
@@ -33,12 +33,12 @@ class RegionRenderer {
       this.pathMapper, this.authToken);
 
   /// Returns the path context used to manipulate paths.
-  path.Context get pathContext => migrationInfo.pathContext;
+  path.Context get pathContext => migrationInfo!.pathContext;
 
   EditDetails render() {
     TargetLink linkForTarget(NavigationTarget target) {
       var relativePath =
-          _relativePathToTarget(target, pathContext.dirname(unitInfo.path));
+          _relativePathToTarget(target, pathContext.dirname(unitInfo.path!));
       var targetUri = _uriForPath(target.filePath, target);
       return TargetLink(
         path: relativePath,
@@ -49,7 +49,7 @@ class RegionRenderer {
 
     EditLink linkForEdit(EditDetail edit) => EditLink(
         description: edit.description,
-        href: Uri(path: pathContext.basename(unitInfo.path), queryParameters: {
+        href: Uri(path: pathContext.basename(unitInfo.path!), queryParameters: {
           'offset': edit.offset.toString(),
           'end': (edit.offset + edit.length).toString(),
           'replacement': edit.replacement
@@ -57,7 +57,7 @@ class RegionRenderer {
 
     var response = EditDetails(
       displayPath: unitInfo.path,
-      uriPath: pathMapper.map(unitInfo.path),
+      uriPath: pathMapper!.map(unitInfo.path!),
       line: region.lineNumber,
       explanation: region.explanation,
       edits: supportsIncrementalWorkflow
@@ -72,8 +72,9 @@ class RegionRenderer {
               TraceEntry(
                   description: entry.description,
                   function: entry.function,
-                  link:
-                      entry.target == null ? null : linkForTarget(entry.target),
+                  link: entry.target == null
+                      ? null
+                      : linkForTarget(entry.target!),
                   hintActions: entry.hintActions)
           ])
       ],
@@ -83,12 +84,8 @@ class RegionRenderer {
 
   /// Returns the URL that will navigate to the given [target].
   String _relativePathToTarget(NavigationTarget target, String unitDir) {
-    if (target == null) {
-      // TODO(brianwilkerson) This is temporary support until we can get targets
-      //  for all nodes.
-      return '';
-    }
-    return pathMapper.map(pathContext.relative(target.filePath, from: unitDir));
+    return pathMapper!
+        .map(pathContext.relative(target.filePath, from: unitDir));
   }
 
   /// Return the URL that will navigate to the given [target] in the file at the
@@ -99,6 +96,6 @@ class RegionRenderer {
       if (target.line != null) 'line': target.line,
       'authToken': authToken,
     }.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
-    return '${pathMapper.map(path)}?$queryParams';
+    return '${pathMapper!.map(path)}?$queryParams';
   }
 }

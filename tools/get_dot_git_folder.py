@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -8,7 +8,6 @@
 
 import sys
 import subprocess
-import os
 import utils
 
 
@@ -24,13 +23,15 @@ def main():
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
                                        stdin=subprocess.PIPE,
-                                       shell=True)
+                                       shell=True,
+                                       universal_newlines=True)
         else:
             process = subprocess.Popen(args,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
                                        stdin=subprocess.PIPE,
-                                       shell=False)
+                                       shell=False,
+                                       universal_newlines=True)
 
         outs, _ = process.communicate()
 

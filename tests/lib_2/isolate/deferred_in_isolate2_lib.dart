@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Used by deferred_in_isolate2_test.
 library deferred_in_isolate2_lib;
 

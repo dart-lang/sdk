@@ -11,10 +11,11 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
-void RunSignatureTest(dart::Zone* zone,
-                      const char* name,
-                      const NativeTypes& argument_types,
-                      const NativeType& return_type) {
+const NativeCallingConvention& RunSignatureTest(
+    dart::Zone* zone,
+    const char* name,
+    const NativeTypes& argument_types,
+    const NativeType& return_type) {
   const auto& native_signature =
       *new (zone) NativeFunctionType(argument_types, return_type);
 
@@ -42,6 +43,8 @@ void RunSignatureTest(dart::Zone* zone,
     EXPECT_STREQ(expectation_file_contents, test_result);
     free(expectation_file_contents);
   }
+
+  return native_calling_convention;
 }
 
 UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_int8x10) {
@@ -95,8 +98,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct3bytesx10) {
   member_types.Add(&int8type);
   member_types.Add(&int8type);
   member_types.Add(&int8type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 10);
   arguments.Add(&struct_type);
@@ -138,8 +140,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesHomogenousx10) {
   member_types.Add(&float_type);
   member_types.Add(&float_type);
   member_types.Add(&float_type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 13);
   arguments.Add(&struct_type);
@@ -174,14 +175,13 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesHomogenousx10_2) {
   auto& full_float_member_types = *new (Z) NativeTypes(Z, 1);
   full_float_member_types.Add(&float_2_array_type);
   const auto& float_array_struct_type =
-      NativeCompoundType::FromNativeTypes(Z, full_float_member_types);
+      NativeStructType::FromNativeTypes(Z, full_float_member_types);
 
   auto& member_types = *new (Z) NativeTypes(Z, 3);
   member_types.Add(&float_1_array_type);
   member_types.Add(&float_array_struct_type);
   member_types.Add(&float_type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 13);
   arguments.Add(&struct_type);
@@ -201,6 +201,55 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesHomogenousx10_2) {
   // Identical expectation files as previous test, struct contains the same
   // members, but nested in arrays and nested structs.
   RunSignatureTest(Z, "struct16bytesHomogenousx10", arguments, struct_type);
+}
+
+// Test with homogenous union.
+//
+// Even though the number of floats nested is different, this is still laid
+// out as a homogeneous aggregate in arm64 and arm hardfp.
+//
+// Even though the member sizes are different, these unions are still passed in
+// xmm registers on Linux/MacOS x64.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_union16bytesHomogenousx10) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int8type = *new (Z) NativePrimitiveType(kInt8);
+
+  const auto& float_array_type = *new (Z) NativeArrayType(float_type, 3);
+
+  auto& struct_member_types = *new (Z) NativeTypes(Z, 4);
+  struct_member_types.Add(&float_type);
+  struct_member_types.Add(&float_type);
+  struct_member_types.Add(&float_type);
+  struct_member_types.Add(&float_type);
+  const auto& struct_type =
+      NativeStructType::FromNativeTypes(Z, struct_member_types);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 2);
+  member_types.Add(&float_array_type);
+  member_types.Add(&struct_type);
+  const auto& union_type = NativeUnionType::FromNativeTypes(Z, member_types);
+
+  EXPECT_EQ(16, union_type.SizeInBytes());
+  EXPECT(union_type.ContainsHomogenuousFloats());
+
+  auto& arguments = *new (Z) NativeTypes(Z, 13);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&int8type);    // Check integer register back filling, if any.
+  arguments.Add(&union_type);  // Check stack alignment of struct.
+
+  // Identical expectation files as previous test, struct contains the same
+  // members, but nested in arrays and nested structs.
+  RunSignatureTest(Z, "union16bytesHomogenousx10", arguments, union_type);
 }
 
 // A fairly big struct.
@@ -237,8 +286,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct128bytesx1) {
   member_types.Add(&int64_type);
   member_types.Add(&int64_type);
   member_types.Add(&int64_type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 2);
   arguments.Add(&struct_type);
@@ -260,8 +308,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesMixedx10) {
   member_types.Add(&float_type);
   member_types.Add(&int32_type);
   member_types.Add(&int32_type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 11);
   arguments.Add(&struct_type);
@@ -291,8 +338,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesMixedx10_2) {
   member_types.Add(&float_type);
   member_types.Add(&int32_type);
   member_types.Add(&int32_type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 15);
   arguments.Add(&float_type);
@@ -342,20 +388,19 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesMixedx10_3) {
   half_float_member_types.Add(&int32_type);
   half_float_member_types.Add(&float_type);
   const auto& half_float_type =
-      NativeCompoundType::FromNativeTypes(Z, half_float_member_types);
+      NativeStructType::FromNativeTypes(Z, half_float_member_types);
 
   const auto& float_array_type = *new (Z) NativeArrayType(float_type, 1);
   auto& full_float_member_types = *new (Z) NativeTypes(Z, 1);
   full_float_member_types.Add(&float_array_type);
   const auto& full_float_type =
-      NativeCompoundType::FromNativeTypes(Z, full_float_member_types);
+      NativeStructType::FromNativeTypes(Z, full_float_member_types);
 
   auto& member_types = *new (Z) NativeTypes(Z, 3);
   member_types.Add(&int32_type);
   member_types.Add(&half_float_type);
   member_types.Add(&full_float_type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 11);
   arguments.Add(&struct_type);
@@ -389,8 +434,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct8bytesx1) {
   member_types.Add(&int8type);
   member_types.Add(&int8type);
   member_types.Add(&int8type);
-  const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
   auto& arguments = *new (Z) NativeTypes(Z, 1);
   arguments.Add(&struct_type);
@@ -418,7 +462,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct8bytesPackedx10) {
   member_types.Add(&int8_type);
   member_types.Add(&int8_type);
   const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types, /*packing=*/1);
+      NativeStructType::FromNativeTypes(Z, member_types, /*packing=*/1);
   EXPECT_EQ(8, struct_type.SizeInBytes());
   EXPECT(struct_type.ContainsUnalignedMembers());
 
@@ -450,23 +494,135 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct8bytesPackedx10) {
 // See the *.expect in ./unit_tests for this behavior.
 UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_structPacked) {
   const auto& int8_type = *new (Z) NativePrimitiveType(kInt8);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
   const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
 
   auto& member_types = *new (Z) NativeTypes(Z, 2);
   member_types.Add(&int8_type);
   member_types.Add(&double_type);
   const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, member_types, /*packing=*/1);
+      NativeStructType::FromNativeTypes(Z, member_types, /*packing=*/1);
   EXPECT_EQ(9, struct_type.SizeInBytes());
   EXPECT(struct_type.ContainsUnalignedMembers());
 
-  auto& arguments = *new (Z) NativeTypes(Z, 11);
+  auto& arguments = *new (Z) NativeTypes(Z, 13);
   arguments.Add(&struct_type);
   arguments.Add(&struct_type);
-  arguments.Add(&int8_type);    // Backfilling int registers.
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
   arguments.Add(&double_type);  // Backfilling float registers.
+  arguments.Add(&int32_type);   // Backfilling int registers.
+  arguments.Add(&int32_type);   // Backfilling int registers.
 
-  RunSignatureTest(Z, "structPacked", arguments, struct_type);
+  RunSignatureTest(Z, "structPacked", arguments, double_type);
+}
+
+// The union is only 5 bytes because it's members are packed.
+//
+// Many calling conventions pass this struct in single registers or less
+// stack slots because of this.
+//
+// Non-windows x64 passes this struct on the stack instead of in a single
+// CPU register, because it contains a mis-aligned member.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_union5bytesPackedx10) {
+  const auto& uint8_type = *new (Z) NativePrimitiveType(kUint8);
+  const auto& uint32_type = *new (Z) NativePrimitiveType(kUint32);
+
+  auto& inner_members = *new (Z) NativeTypes(Z, 2);
+  inner_members.Add(&uint8_type);
+  inner_members.Add(&uint32_type);
+  const intptr_t packing = 1;
+  const auto& struct_type =
+      NativeStructType::FromNativeTypes(Z, inner_members, packing);
+
+  const auto& array_type = *new (Z) NativeArrayType(uint8_type, 5);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 2);
+  member_types.Add(&array_type);
+  member_types.Add(&struct_type);
+  const auto& union_type = NativeUnionType::FromNativeTypes(Z, member_types);
+
+  EXPECT_EQ(5, union_type.SizeInBytes());
+  EXPECT_EQ(1, union_type.AlignmentInBytesField());
+
+  auto& arguments = *new (Z) NativeTypes(Z, 10);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+  arguments.Add(&union_type);
+
+  RunSignatureTest(Z, "union5bytesPackedx10", arguments, union_type);
+}
+
+// http://dartbug.com/46127
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress46127) {
+  const auto& uint64_type = *new (Z) NativePrimitiveType(kUint64);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 1);
+  member_types.Add(&uint64_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  EXPECT_EQ(8, struct_type.SizeInBytes());
+
+  auto& arguments = *new (Z) NativeTypes(Z, 0);
+
+  const auto& native_calling_convention =
+      RunSignatureTest(Z, "regress46127", arguments, struct_type);
+
+#if defined(TARGET_ARCH_IA32) &&                                               \
+    (defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX))
+  // We must count the result pointer passed on the stack as well.
+  EXPECT_EQ(4, native_calling_convention.StackTopInBytes());
+#else
+  EXPECT_EQ(0, native_calling_convention.StackTopInBytes());
+#endif
+}
+
+// MacOS arm64 alignment of 12-byte homogenous float structs.
+//
+// http://dartbug.com/46305
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct12bytesFloatx6) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int64_type = *new (Z) NativePrimitiveType(kInt64);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 3);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+#if defined(TARGET_ARCH_ARM64) &&                                              \
+    (defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS))
+  EXPECT_EQ(4, struct_type.AlignmentInBytesStack());
+#endif
+
+  auto& arguments = *new (Z) NativeTypes(Z, 6);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+
+  RunSignatureTest(Z, "struct12bytesFloatx6", arguments, int64_type);
 }
 
 }  // namespace ffi

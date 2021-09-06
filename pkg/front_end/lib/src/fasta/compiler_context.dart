@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.compiler_context;
 
 import 'dart:async' show Zone, runZoned;
@@ -53,7 +51,7 @@ class CompilerContext {
 
   FileSystem get fileSystem => options.fileSystem;
 
-  Uri cachedSdkRoot = null;
+  Uri? cachedSdkRoot = null;
 
   bool compilingPlatform = false;
 
@@ -65,7 +63,7 @@ class CompilerContext {
 
   /// Report [message], for example, by printing it.
   void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage> context, List<Uri> involvedFiles}) {
+      {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
     options.report(message, severity,
         context: context, involvedFiles: involvedFiles);
   }
@@ -91,19 +89,19 @@ class CompilerContext {
     if (uri.scheme != "file" && uri.scheme != "http") {
       throw new ArgumentError("Expected a file or http URI, but got: '$uri'.");
     }
-    CompilerContext context = Zone.current[compilerContextKey];
+    CompilerContext? context = Zone.current[compilerContextKey];
     if (context != null) {
       context.dependencies.add(uri);
     }
   }
 
   static CompilerContext get current {
-    CompilerContext context = Zone.current[compilerContextKey];
+    CompilerContext? context = Zone.current[compilerContextKey];
     if (context == null) {
       // Note: we throw directly and don't use internalProblem, because
       // internalProblem depends on having a compiler context available.
       String message = messageInternalProblemMissingContext.message;
-      String tip = messageInternalProblemMissingContext.tip;
+      String tip = messageInternalProblemMissingContext.tip!;
       throw "Internal problem: $message\nTip: $tip";
     }
     return context;

@@ -554,7 +554,7 @@ class ProcedureHelper {
     kConst = 1 << 3,  // Only for external const factories.
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 4,
+    kRedirectingFactory = 1 << 4,
     kExtensionMember = 1 << 5,
     kSyntheticProcedure = 1 << 7,
   };
@@ -579,8 +579,8 @@ class ProcedureHelper {
     return stub_kind_ == kAbstractForwardingStubKind ||
            stub_kind_ == kConcreteForwardingStubKind;
   }
-  bool IsRedirectingFactoryConstructor() const {
-    return (flags_ & kRedirectingFactoryConstructor) != 0;
+  bool IsRedirectingFactory() const {
+    return (flags_ & kRedirectingFactory) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;
@@ -976,9 +976,10 @@ struct InferredTypeMetadata {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(
               zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
-          IsNullable());
+          IsNullable(), CompileType::kCannotBeSentinel);
     } else {
-      return CompileType::CreateNullable(IsNullable(), cid);
+      return CompileType(IsNullable(), CompileType::kCannotBeSentinel, cid,
+                         nullptr);
     }
   }
 };
@@ -1204,6 +1205,7 @@ class KernelReaderHelper {
   }
 
   intptr_t ReaderOffset() const;
+  intptr_t ReaderSize() const;
   void SkipBytes(intptr_t skip);
   bool ReadBool();
   uint8_t ReadByte();
@@ -1252,7 +1254,6 @@ class KernelReaderHelper {
   Nullability ReadNullability();
   Variance ReadVariance();
 
-  intptr_t SourceTableFieldCountFromFirstLibraryOffset();
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);
@@ -1344,11 +1345,8 @@ class ActiveClass {
     return klass->NumTypeArguments();
   }
 
-  void RecordDerivedTypeParameter(Zone* zone,
-                                  const TypeParameter& original,
-                                  const TypeParameter& derived) {
-    if (original.ptr() != derived.ptr() &&
-        original.bound() == AbstractType::null()) {
+  void RecordDerivedTypeParameter(Zone* zone, const TypeParameter& derived) {
+    if (derived.bound() == AbstractType::null()) {
       if (derived_type_parameters == nullptr) {
         derived_type_parameters = &GrowableObjectArray::Handle(
             zone, GrowableObjectArray::New(Heap::kOld));
@@ -1442,14 +1440,14 @@ class ActiveTypeParametersScope {
   // Also, the enclosing signature is set to 'signature'.
   ActiveTypeParametersScope(ActiveClass* active_class,
                             const FunctionType* innermost_signature,
-                            const TypeArguments& new_params,
                             Zone* Z);
 
-  ~ActiveTypeParametersScope() { *active_class_ = saved_; }
+  ~ActiveTypeParametersScope();
 
  private:
   ActiveClass* active_class_;
   ActiveClass saved_;
+  Zone* zone_;
 
   DISALLOW_COPY_AND_ASSIGN(ActiveTypeParametersScope);
 };
@@ -1476,8 +1474,7 @@ class TypeTranslator {
                                   const Function& function,
                                   const Class& parameterized_class,
                                   const FunctionType& parameterized_signature,
-                                  intptr_t type_parameter_count,
-                                  const NNBDMode nnbd_mode);
+                                  intptr_t type_parameter_count);
 
   void LoadAndSetupBounds(ActiveClass* active_class,
                           const Function& function,
@@ -1541,6 +1538,7 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
+  bool refers_to_derived_type_param_;
   const bool apply_canonical_type_erasure_;
   const bool in_constant_context_;
 

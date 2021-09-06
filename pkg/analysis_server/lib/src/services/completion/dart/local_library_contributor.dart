@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -25,17 +23,24 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   CompletionSuggestionKind kind;
 
-  final String prefix;
+  final String? prefix;
 
   /// The set of libraries that have been, or are currently being, visited.
   final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
-  LibraryElementSuggestionBuilder(this.request, this.builder, [this.prefix])
-      : opType = request.opType {
-    kind = request.target.isFunctionalArgument()
+  factory LibraryElementSuggestionBuilder(
+      DartCompletionRequest request, SuggestionBuilder builder,
+      [String? prefix]) {
+    var opType = request.opType;
+    var kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
         : opType.suggestKind;
+    return LibraryElementSuggestionBuilder._(
+        request, builder, opType, kind, prefix);
   }
+
+  LibraryElementSuggestionBuilder._(
+      this.request, this.builder, this.opType, this.kind, this.prefix);
 
   @override
   void visitClassElement(ClassElement element) {
@@ -84,7 +89,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       return;
     }
     var returnType = element.returnType;
-    if (returnType != null && returnType.isVoid) {
+    if (returnType.isVoid) {
       if (opType.includeVoidReturnSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }
@@ -153,14 +158,14 @@ class LocalLibraryContributor extends DartCompletionContributor {
       return;
     }
 
-    var libraryUnits = request.result.unit.declaredElement.library.units;
+    var libraryUnits = request.result.unit.declaredElement?.library.units;
     if (libraryUnits == null) {
       return;
     }
 
     var visitor = LibraryElementSuggestionBuilder(request, builder);
     for (var unit in libraryUnits) {
-      if (unit != null && unit.source != request.source) {
+      if (unit.source != request.source) {
         unit.accept(visitor);
       }
     }

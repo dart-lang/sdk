@@ -8,8 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 Element? declaredParameterElement(
@@ -92,7 +94,7 @@ class ElementNameComponents {
     String? classMemberName;
     if (element.enclosingElement is ClassElement ||
         element.enclosingElement is ExtensionElement) {
-      classMemberName = element.name!;
+      classMemberName = element.name;
       element = element.enclosingElement!;
     }
 
@@ -606,7 +608,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    ConstructorElement? element = node.staticElement;
+    var element = node.staticElement?.declaration;
     element = _getActualConstructorElement(element);
     // record relation
     if (node.name != null) {
@@ -750,7 +752,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     Element? element = node.writeOrReadElement;
-    if (node is SimpleIdentifier && element is ParameterElement) {
+    if (element is ParameterElement) {
       element = declaredParameterElement(node, element);
     }
 
@@ -907,10 +909,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
   ConstructorElement? _getActualConstructorElement(
       ConstructorElement? constructor) {
     var seenConstructors = <ConstructorElement?>{};
-    while (constructor != null &&
-        constructor.isSynthetic &&
-        constructor.redirectedConstructor != null) {
-      constructor = constructor.redirectedConstructor;
+    while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
+      var enclosing = constructor.enclosingElement;
+      if (enclosing.isMixinApplication) {
+        var superInvocation = constructor.constantInitializers
+            .whereType<SuperConstructorInvocation>()
+            .singleOrNull;
+        if (superInvocation != null) {
+          constructor = superInvocation.staticElement;
+        }
+      } else {
+        break;
+      }
       // fail if a cycle is detected
       if (!seenConstructors.add(constructor)) {
         return null;

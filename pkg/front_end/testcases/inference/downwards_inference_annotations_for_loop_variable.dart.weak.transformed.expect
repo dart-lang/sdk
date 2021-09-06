@@ -18,12 +18,12 @@ class Foo extends core::Object /*hasConstConstructor*/  {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → void {
-  for (@#C1 core::int* i = 0; i.{core::num::<}(1); i = i.{core::num::+}(1)) {
+  for (@#C1 core::int* i = 0; i.{core::num::<}(1){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
   }
   {
-    core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(0).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      @#C1 core::int* i = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      @#C1 core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
       {}
     }
   }

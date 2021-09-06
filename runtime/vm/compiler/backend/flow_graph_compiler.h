@@ -278,6 +278,26 @@ class TemplateSlowPathCode : public SlowPathCode {
   }
 };
 
+class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
+ public:
+  BoxAllocationSlowPath(Instruction* instruction,
+                        const Class& cls,
+                        Register result)
+      : TemplateSlowPathCode(instruction), cls_(cls), result_(result) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  static void Allocate(FlowGraphCompiler* compiler,
+                       Instruction* instruction,
+                       const Class& cls,
+                       Register result,
+                       Register temp);
+
+ private:
+  const Class& cls_;
+  const Register result_;
+};
+
 // Slow path code which calls runtime entry to throw an exception.
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
@@ -590,6 +610,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateAssertAssignable(CompileType* receiver_type,
                                 const InstructionSource& source,
                                 intptr_t deopt_id,
+                                Environment* env,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
@@ -600,6 +621,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateTTSCall(const InstructionSource& source,
                        intptr_t deopt_id,
+                       Environment* env,
                        Register reg_with_type,
                        const AbstractType& dst_type,
                        const String& dst_name,
@@ -610,18 +632,17 @@ class FlowGraphCompiler : public ValueObject {
                                       intptr_t sub_type_cache_index);
 #endif
 
-  void GenerateRuntimeCall(const InstructionSource& source,
-                           intptr_t deopt_id,
-                           const RuntimeEntry& entry,
-                           intptr_t argument_count,
-                           LocationSummary* locs);
-
   void GenerateStubCall(const InstructionSource& source,
                         const Code& stub,
                         UntaggedPcDescriptors::Kind kind,
                         LocationSummary* locs,
-                        intptr_t deopt_id = DeoptId::kNone,
-                        Environment* env = nullptr);
+                        intptr_t deopt_id,
+                        Environment* env);
+
+  void GenerateNonLazyDeoptableStubCall(const InstructionSource& source,
+                                        const Code& stub,
+                                        UntaggedPcDescriptors::Kind kind,
+                                        LocationSummary* locs);
 
   void GeneratePatchableCall(const InstructionSource& source,
                              const Code& stub,
@@ -645,6 +666,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateInstanceOf(const InstructionSource& source,
                           intptr_t deopt_id,
+                          Environment* env,
                           const AbstractType& type,
                           LocationSummary* locs);
 
@@ -783,7 +805,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter(intptr_t edge_id);
 
-  void RecordCatchEntryMoves(Environment* env = NULL,
+  void RecordCatchEntryMoves(Environment* env,
                              intptr_t try_index = kInvalidTryIndex);
 
   void EmitCallToStub(const Code& stub);
@@ -802,7 +824,7 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t deopt_id,
                             UntaggedPcDescriptors::Kind kind,
                             LocationSummary* locs,
-                            Environment* env = nullptr);
+                            Environment* env);
 
   void EmitYieldPositionMetadata(const InstructionSource& source,
                                  intptr_t yield_index);
@@ -860,8 +882,7 @@ class FlowGraphCompiler : public ValueObject {
                                 ICData::DeoptReasonId reason,
                                 uint32_t flags = 0);
 
-  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id,
-                                         Environment* env = nullptr);
+  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id, Environment* env);
   CompilerDeoptInfo* AddSlowPathDeoptInfo(intptr_t deopt_id, Environment* env);
 
   void AddSlowPathCode(SlowPathCode* slow_path);

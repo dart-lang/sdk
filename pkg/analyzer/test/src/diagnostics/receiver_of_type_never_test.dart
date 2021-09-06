@@ -114,6 +114,7 @@ void f(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 21, 3),
     ]);
   }
 
@@ -569,7 +570,7 @@ void f() {
     assertBinaryExpression(
       findNode.binary('=='),
       element: elementMatcher(
-        objectElement.getMethod('==')!,
+        objectElement.getMethod('=='),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'bool',
@@ -619,7 +620,7 @@ void f() {
     assertSimpleIdentifier(
       findNode.simple('toString'),
       element: elementMatcher(
-        objectElement.getMethod('toString')!,
+        objectElement.getMethod('toString'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'String Function()',
@@ -636,7 +637,7 @@ void f() {
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
       element: elementMatcher(
-        objectElement.getGetter('hashCode')!,
+        objectElement.getGetter('hashCode'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',

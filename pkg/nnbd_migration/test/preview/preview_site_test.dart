@@ -44,9 +44,9 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     final migrationInfo =
         MigrationInfo({}, {}, resourceProvider.pathContext, null);
     state = MigrationState(
-        null, null, dartfixListener, null, {}, (String path) => true);
-    state.pathMapper = PathMapper(resourceProvider);
-    state.migrationInfo = migrationInfo;
+        null, null, dartfixListener, null, {}, (String? path) => true);
+    state!.pathMapper = PathMapper(resourceProvider);
+    state!.migrationInfo = migrationInfo;
     logger = TestLogger(false /*isVerbose*/);
     site = PreviewSite(state, () async {
       return state;
@@ -63,9 +63,9 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     file.writeAsStringSync(content);
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     // Add a source change for analysis_options, which has no UnitInfo.
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'enable experiment',
-        Location(analysisOptionsPath, 9, 0, 1, 9, 1, 9),
+        Location(analysisOptionsPath, 9, 0, 1, 9, endLine: 1, endColumn: 9),
         SourceFileEdit(analysisOptionsPath, 0, edits: [
           SourceEdit(9, 0, '\n  enable-experiment:\n  - non-nullable')
         ]));
@@ -75,7 +75,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
 analyzer:
   enable-experiment:
   - non-nullable''');
-    expect(state.hasBeenApplied, true);
+    expect(state!.hasBeenApplied, true);
   }
 
   void test_applyChangesEmpty() {
@@ -83,7 +83,7 @@ analyzer:
     file.writeAsStringSync('void main() {}');
     site.performApply([]);
     expect(file.readAsStringSync(), 'void main() {}');
-    expect(state.hasBeenApplied, true);
+    expect(state!.hasBeenApplied, true);
   }
 
   void test_applyChangesTwiceThrows() {
@@ -98,13 +98,13 @@ analyzer:
       ..diskContent = '// different content';
     final currentContent = 'void main() {}';
     file.writeAsStringSync(currentContent);
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     expect(() => site.performApply([]), throwsA(isA<StateError>()));
     expect(file.readAsStringSync(), currentContent);
-    expect(state.hasBeenApplied, false);
+    expect(state!.hasBeenApplied, false);
   }
 
   void test_applyMultipleChanges() {
@@ -113,9 +113,9 @@ analyzer:
     final content = 'void main() {}';
     file.writeAsStringSync(content);
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [
           SourceEdit(10, 0, 'List args'),
           SourceEdit(13, 0, '\n  print(args);\n')
@@ -125,7 +125,7 @@ analyzer:
 void main(List args) {
   print(args);
 }''');
-    expect(state.hasBeenApplied, true);
+    expect(state!.hasBeenApplied, true);
   }
 
   void test_applySingleChange() {
@@ -134,13 +134,13 @@ void main(List args) {
     final content = 'void main() {}';
     file.writeAsStringSync(content);
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     site.performApply([]);
     expect(file.readAsStringSync(), 'void main(List args) {}');
-    expect(state.hasBeenApplied, true);
+    expect(state!.hasBeenApplied, true);
   }
 
   void test_optOutOfNullSafety_blankLines() {
@@ -238,8 +238,8 @@ void main(List args) {
     file.writeAsStringSync(content);
     performEdit(path, 3, '/*?*/');
     expect(file.readAsStringSync(), 'int/*?*/ foo() {}');
-    expect(state.hasBeenApplied, false);
-    expect(state.needsRerun, true);
+    expect(state!.hasBeenApplied, false);
+    expect(state!.needsRerun, true);
     expect(unitInfo.content, 'int/*?*/ foo() {}');
   }
 
@@ -252,15 +252,15 @@ void main(List args) {
     file.writeAsStringSync(currentContent);
     expect(() => performEdit(path, 0, 'foo'), throwsA(isA<StateError>()));
     expect(file.readAsStringSync(), currentContent);
-    expect(state.hasBeenApplied, false);
+    expect(state!.hasBeenApplied, false);
   }
 }
 
 mixin PreviewSiteTestMixin {
-  PreviewSite site;
-  DartFixListener dartfixListener;
-  MigrationState state;
-  TestLogger logger;
+  late PreviewSite site;
+  DartFixListener? dartfixListener;
+  MigrationState? state;
+  TestLogger? logger;
 
   Future<void> performEdit(String path, int offset, String replacement) {
     final pathUri = Uri.file(path).path;
@@ -273,12 +273,12 @@ mixin PreviewSiteTestMixin {
 @reflectiveTest
 class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
     with ResourceProviderMixin, PreviewSiteTestMixin {
-  MigrationInfo migrationInfo;
+  MigrationInfo? migrationInfo;
 
   Future<void> setUpMigrationInfo(Map<String, String> files,
-      {bool Function(String) shouldBeMigratedFunction,
-      Iterable<String> pathsToProcess}) async {
-    shouldBeMigratedFunction ??= (String path) => true;
+      {bool Function(String?)? shouldBeMigratedFunction,
+      Iterable<String>? pathsToProcess}) async {
+    shouldBeMigratedFunction ??= (String? path) => true;
     pathsToProcess ??= files.keys;
     await buildInfoForTestFiles(files,
         includedRoot: projectPath,
@@ -289,9 +289,9 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
         MigrationInfo(infos, {}, resourceProvider.pathContext, projectPath);
     state = MigrationState(
         null, null, dartfixListener, null, {}, shouldBeMigratedFunction);
-    nodeMapper = state.nodeMapper;
-    state.pathMapper = PathMapper(resourceProvider);
-    state.migrationInfo = migrationInfo;
+    nodeMapper = state!.nodeMapper;
+    state!.pathMapper = PathMapper(resourceProvider);
+    state!.migrationInfo = migrationInfo;
     logger = TestLogger(false /*isVerbose*/);
     site = PreviewSite(state, () async {
       return state;
@@ -327,25 +327,29 @@ int/*?*/? x;
 int/*?*/? y = x;
 ''');
     assertRegion(
-        region: unitInfo.regions[0], offset: unitInfo.content.indexOf('? x'));
+        region: unitInfo.regions[0], offset: unitInfo.content!.indexOf('? x'));
     assertRegion(
-        region: unitInfo.regions[1], offset: unitInfo.content.indexOf('? y'));
+        region: unitInfo.regions[1], offset: unitInfo.content!.indexOf('? y'));
     final targets = List<NavigationTarget>.from(unitInfo.targets);
     assertInTargets(
         targets: targets,
-        offset: unitInfo.content.indexOf('x'),
+        offset: unitInfo.content!.indexOf('x'),
         offsetMapper: unitInfo.offsetMapper);
     assertInTargets(
         targets: targets,
-        offset: unitInfo.content.indexOf('y'),
+        offset: unitInfo.content!.indexOf('y'),
         offsetMapper: unitInfo.offsetMapper);
     var trace = unitInfo.regions[1].traces[0];
-    assertTraceEntry(unitInfo, trace.entries[0], 'y',
-        unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
+    assertTraceEntry(
+        unitInfo,
+        trace.entries[0],
+        'y',
+        unitInfo.content!.indexOf('int/*?*/? y'),
+        contains('y (test.dart:2:1)'));
     assertTraceEntry(unitInfo, trace.entries[1], 'y',
-        unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
-    expect(state.hasBeenApplied, false);
-    expect(state.needsRerun, true);
+        unitInfo.content!.indexOf('= x;') + '= '.length, contains('data flow'));
+    expect(state!.hasBeenApplied, false);
+    expect(state!.needsRerun, true);
   }
 
   void test_applyHintAction_removeHint() async {
@@ -378,14 +382,14 @@ int  y = x;
     assertRegion(
         kind: NullabilityFixKind.typeNotMadeNullable,
         region: unitInfo.regions[0],
-        offset: unitInfo.content.indexOf('  y'));
+        offset: unitInfo.content!.indexOf('  y'));
     final targets = List<NavigationTarget>.from(unitInfo.targets);
     assertInTargets(
         targets: targets,
-        offset: unitInfo.content.indexOf('x'),
+        offset: unitInfo.content!.indexOf('x'),
         offsetMapper: unitInfo.offsetMapper);
-    expect(state.hasBeenApplied, false);
-    expect(state.needsRerun, true);
+    expect(state!.hasBeenApplied, false);
+    expect(state!.needsRerun, true);
   }
 
   void test_applyMigration_doNotOptOutFileNotInPathsToProcess() async {
@@ -394,7 +398,7 @@ int  y = x;
     final content = 'void main() {}';
     await setUpMigrationInfo({pathA: content, pathB: content},
         // Neither [pathA] nor [[pathB] should be migrated.
-        shouldBeMigratedFunction: (String path) => false,
+        shouldBeMigratedFunction: (String? path) => false,
         pathsToProcess: [pathA]);
     site.unitInfoMap[pathA] = UnitInfo(pathA)
       ..diskContent = content
@@ -405,7 +409,7 @@ int  y = x;
       ..wasExplicitlyOptedOut = false
       ..migrationStatus = UnitMigrationStatus.optingOut;
     var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+        NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
     site.performApply(navigationTree);
     expect(getFile(pathA).readAsStringSync(), '''
 // @dart=2.9
@@ -424,15 +428,15 @@ void main() {}''';
     site.unitInfoMap[path] = UnitInfo(path)
       ..diskContent = content
       ..wasExplicitlyOptedOut = true;
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'remove DLV comment',
-        Location(path, 0, 14, 1, 1, 3, 1),
+        Location(path, 0, 14, 1, 1, endLine: 3, endColumn: 1),
         SourceFileEdit(path, 0, edits: [SourceEdit(0, 14, '')]));
     var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+        NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), 'void main() {}');
-    expect(logger.stdoutBuffer.toString(), contains('''
+    expect(logger!.stdoutBuffer.toString(), contains('''
 Migrated 1 file:
     ${convertPath('lib/a.dart')}
 '''));
@@ -446,13 +450,13 @@ Migrated 1 file:
       ..diskContent = content
       ..wasExplicitlyOptedOut = false;
     var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+        NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
     var libDir = navigationTree.single as NavigationTreeDirectoryNode;
-    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+    (libDir.subtree!.single as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), '// @dart=2.9');
-    expect(logger.stdoutBuffer.toString(), contains('''
+    expect(logger!.stdoutBuffer.toString(), contains('''
 Opted 1 file out of null safety with a new Dart language version comment:
     ${convertPath('lib/a.dart')}
 '''));
@@ -465,21 +469,21 @@ Opted 1 file out of null safety with a new Dart language version comment:
     site.unitInfoMap[path] = UnitInfo(path)
       ..diskContent = content
       ..wasExplicitlyOptedOut = false;
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+        NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
     var libDir = navigationTree.single as NavigationTreeDirectoryNode;
-    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+    (libDir.subtree!.single as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), '''
 // @dart=2.9
 
 void main() {}''');
-    expect(logger.stdoutBuffer.toString(), contains('''
+    expect(logger!.stdoutBuffer.toString(), contains('''
 Opted 1 file out of null safety with a new Dart language version comment:
     ${convertPath('lib/a.dart')}
 '''));
@@ -493,16 +497,16 @@ Opted 1 file out of null safety with a new Dart language version comment:
       ..diskContent = content
       ..wasExplicitlyOptedOut = false;
     var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+        NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
     var libDir = navigationTree.single as NavigationTreeDirectoryNode;
-    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+    (libDir.subtree!.single as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), '''
 // @dart=2.9
 
 void main() {}''');
-    expect(logger.stdoutBuffer.toString(), contains('''
+    expect(logger!.stdoutBuffer.toString(), contains('''
 Opted 1 file out of null safety with a new Dart language version comment:
     ${convertPath('lib/a.dart')}
 '''));
@@ -519,18 +523,18 @@ Opted 1 file out of null safety with a new Dart language version comment:
     site.unitInfoMap[pathB] = UnitInfo(pathB)
       ..diskContent = content
       ..wasExplicitlyOptedOut = false;
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(pathA, 10, 0, 1, 10, 1, 10),
+        Location(pathA, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(pathA, 0, edits: [SourceEdit(10, 0, 'List args')]));
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(pathB, 10, 0, 1, 10, 1, 10),
+        Location(pathB, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(pathB, 0, edits: [SourceEdit(10, 0, 'List args')]));
     var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+        NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
     var libDir = navigationTree.single as NavigationTreeDirectoryNode;
-    (libDir.subtree[0] as NavigationTreeFileNode).migrationStatus =
+    (libDir.subtree![0] as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
     site.performApply(navigationTree);
     expect(getFile(pathA).readAsStringSync(), '''
@@ -539,7 +543,7 @@ Opted 1 file out of null safety with a new Dart language version comment:
 void main() {}''');
     expect(getFile(pathB).readAsStringSync(), '''
 void main(List args) {}''');
-    expect(logger.stdoutBuffer.toString(), contains('''
+    expect(logger!.stdoutBuffer.toString(), contains('''
 Migrated 1 file:
     ${convertPath('lib/b.dart')}
 Opted 1 file out of null safety with a new Dart language version comment:
@@ -557,18 +561,18 @@ int a;''';
     site.unitInfoMap[path] = UnitInfo(path)
       ..diskContent = content
       ..wasExplicitlyOptedOut = true;
-    dartfixListener.addSourceFileEdit(
+    dartfixListener!.addSourceFileEdit(
         'remove DLV comment',
-        Location(path, 0, 14, 1, 1, 3, 1),
+        Location(path, 0, 14, 1, 1, endLine: 3, endColumn: 1),
         SourceFileEdit(path, 0, edits: [SourceEdit(0, 14, '')]));
     var navigationTree =
-        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+        NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
     var libDir = navigationTree.single as NavigationTreeDirectoryNode;
-    (libDir.subtree.single as NavigationTreeFileNode).migrationStatus =
+    (libDir.subtree!.single as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
     site.performApply(navigationTree);
     expect(getFile(path).readAsStringSync(), content);
-    expect(logger.stdoutBuffer.toString(), contains('''
+    expect(logger!.stdoutBuffer.toString(), contains('''
 Kept 1 file opted out of null safety:
     ${convertPath('lib/a.dart')}
 '''));
@@ -603,24 +607,28 @@ int/*?*/? x;
 int/*?*/? y = x;
 ''');
     assertRegion(
-        region: unitInfo.regions[0], offset: unitInfo.content.indexOf('? x'));
+        region: unitInfo.regions[0], offset: unitInfo.content!.indexOf('? x'));
     assertRegion(
-        region: unitInfo.regions[1], offset: unitInfo.content.indexOf('? y'));
+        region: unitInfo.regions[1], offset: unitInfo.content!.indexOf('? y'));
     final targets = List<NavigationTarget>.from(unitInfo.targets);
     assertInTargets(
         targets: targets,
-        offset: unitInfo.content.indexOf('x'),
+        offset: unitInfo.content!.indexOf('x'),
         offsetMapper: unitInfo.offsetMapper);
     assertInTargets(
         targets: targets,
-        offset: unitInfo.content.indexOf('y'),
+        offset: unitInfo.content!.indexOf('y'),
         offsetMapper: unitInfo.offsetMapper);
     var trace = unitInfo.regions[1].traces[0];
-    assertTraceEntry(unitInfo, trace.entries[0], 'y',
-        unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
+    assertTraceEntry(
+        unitInfo,
+        trace.entries[0],
+        'y',
+        unitInfo.content!.indexOf('int/*?*/? y'),
+        contains('y (test.dart:2:1)'));
     assertTraceEntry(unitInfo, trace.entries[1], 'y',
-        unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
-    expect(state.hasBeenApplied, false);
-    expect(state.needsRerun, true);
+        unitInfo.content!.indexOf('= x;') + '= '.length, contains('data flow'));
+    expect(state!.hasBeenApplied, false);
+    expect(state!.needsRerun, true);
   }
 }

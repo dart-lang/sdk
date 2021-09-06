@@ -143,7 +143,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
     : self::Class::field = value as{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
     ;
 }
-class ClassWithBound<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+class ClassWithBound<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field self::ClassWithBound::T field;
   const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
     : self::ClassWithBound::field = (#C1) as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
@@ -225,8 +225,8 @@ static method errors() → dynamic {
 
 constants  {
   #C1 = 3
-  #C2 = tearoff self::idFunction
-  #C3 = partial-instantiation self::idFunction <core::int>
+  #C2 = static-tearoff self::idFunction
+  #C3 = instantiation self::idFunction <core::int>
   #C4 = 0
   #C5 = self::Class<dynamic> {field:#C4}
   #C6 = self::Class<core::num> {field:#C4}
@@ -244,13 +244,13 @@ constants  {
   #C18 = self::ClassWithList<core::int> {field:#C16}
   #C19 = <core::String>[#C8]
   #C20 = self::ClassWithList<core::String> {field:#C19}
-  #C21 = tearoff self::dynamicFunction
+  #C21 = static-tearoff self::dynamicFunction
   #C22 = self::ClassWithFunction<dynamic> {field:#C21}
   #C23 = self::ClassWithFunction<core::Object?> {field:#C21}
-  #C24 = tearoff self::objectFunction
+  #C24 = static-tearoff self::objectFunction
   #C25 = self::ClassWithFunction<dynamic> {field:#C24}
   #C26 = self::ClassWithFunction<void> {field:#C24}
-  #C27 = tearoff self::intFunction
+  #C27 = static-tearoff self::intFunction
   #C28 = self::ClassWithFunction<core::int> {field:#C27}
   #C29 = self::ClassWithFunction<core::int> {field:#C3}
 }

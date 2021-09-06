@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests that a dynamic type does not affect whether an expression is
 // potentially constant, the actual type of the value of an experssion
 // only matters if the expression is evaluated as a constant.
@@ -17,7 +19,6 @@ main() {
   T.test07(c, c);
   T.test08(c, c);
   T.test09(c, c);
-  T.test10(c, c); //# sh3: ok
   T.test11(c, c);
   T.test12(c, c);
   T.test13(c, c);
@@ -40,7 +41,6 @@ class T {
   const T.test07(dynamic x, dynamic y) : this(x % y);
   const T.test08(dynamic x, dynamic y) : this(x << y);
   const T.test09(dynamic x, dynamic y) : this(x >> y);
-  const T.test10(dynamic x, dynamic y) : this(x >>> y); //# sh3: continued
   const T.test11(dynamic x, dynamic y) : this(x & y);
   const T.test12(dynamic x, dynamic y) : this(x | y);
   const T.test13(dynamic x, dynamic y) : this(x ^ y);
@@ -63,7 +63,6 @@ class C {
   dynamic operator %(dynamic other) => this;
   dynamic operator <<(dynamic other) => this;
   dynamic operator >>(dynamic other) => this;
-  dynamic operator >>>(dynamic other) => this; //# sh3: continued
   dynamic operator &(dynamic other) => this;
   dynamic operator |(dynamic other) => this;
   dynamic operator ^(dynamic other) => this;

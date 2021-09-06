@@ -15,22 +15,22 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   get nonNullableInstanceField() → core::int {
-    if(!this.{self::A::_#A#nonNullableInstanceField#isSet}) {
+    if(!this.{self::A::_#A#nonNullableInstanceField#isSet}{core::bool}) {
       this.{self::A::_#A#nonNullableInstanceField} = 0;
       this.{self::A::_#A#nonNullableInstanceField#isSet} = true;
     }
-    return let final core::int? #t1 = this.{self::A::_#A#nonNullableInstanceField} in #t1{core::int};
+    return let final core::int? #t1 = this.{self::A::_#A#nonNullableInstanceField}{core::int?} in #t1{core::int};
   }
   set nonNullableInstanceField(core::int #t2) → void {
     this.{self::A::_#A#nonNullableInstanceField#isSet} = true;
     this.{self::A::_#A#nonNullableInstanceField} = #t2;
   }
   get nullableInstanceField() → core::int? {
-    if(!this.{self::A::_#A#nullableInstanceField#isSet}) {
+    if(!this.{self::A::_#A#nullableInstanceField#isSet}{core::bool}) {
       this.{self::A::_#A#nullableInstanceField} = self::method();
       this.{self::A::_#A#nullableInstanceField#isSet} = true;
     }
-    return this.{self::A::_#A#nullableInstanceField};
+    return this.{self::A::_#A#nullableInstanceField}{core::int?};
   }
   set nullableInstanceField(core::int? #t3) → void {
     this.{self::A::_#A#nullableInstanceField#isSet} = true;

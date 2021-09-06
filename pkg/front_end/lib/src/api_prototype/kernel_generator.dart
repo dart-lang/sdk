@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator;
 
@@ -47,12 +45,12 @@ import 'compiler_options.dart' show CompilerOptions;
 /// The input [source] is expected to be a script with a main method, otherwise
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
-Future<CompilerResult> kernelForProgram(
+Future<CompilerResult?> kernelForProgram(
     Uri source, CompilerOptions options) async {
   return (await kernelForProgramInternal(source, options));
 }
 
-Future<CompilerResult> kernelForProgramInternal(
+Future<CompilerResult?> kernelForProgramInternal(
     Uri source, CompilerOptions options,
     {bool retainDataForTesting: false, bool requireMain: true}) async {
   ProcessedOptions pOptions =
@@ -61,7 +59,7 @@ Future<CompilerResult> kernelForProgramInternal(
     CompilerResult result = await generateKernelInternal(
         includeHierarchyAndCoreTypes: true,
         retainDataForTesting: retainDataForTesting);
-    Component component = result?.component;
+    Component? component = result.component;
     if (component == null) return null;
 
     if (requireMain && component.mainMethod == null) {
@@ -104,12 +102,12 @@ Future<CompilerResult> kernelForModule(
 /// Result object for [kernelForProgram] and [kernelForModule].
 abstract class CompilerResult {
   /// The generated summary bytes, if it was requested.
-  List<int> get summary;
+  List<int>? get summary;
 
   /// The generated component, if it was requested.
-  Component get component;
+  Component? get component;
 
-  Component get sdkComponent;
+  Component? get sdkComponent;
 
   /// The components loaded from dill (excluding the sdk).
   List<Component> get loadedComponents;
@@ -121,8 +119,8 @@ abstract class CompilerResult {
   List<Uri> get deps;
 
   /// The [ClassHierarchy] for the compiled [component], if it was requested.
-  ClassHierarchy get classHierarchy;
+  ClassHierarchy? get classHierarchy;
 
   /// The [CoreTypes] object for the compiled [component], if it was requested.
-  CoreTypes get coreTypes;
+  CoreTypes? get coreTypes;
 }

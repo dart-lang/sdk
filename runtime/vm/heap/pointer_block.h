@@ -108,6 +108,8 @@ class BlockStack {
 
   bool IsEmpty();
 
+  Block* WaitForWork(RelaxedAtomic<uintptr_t>* num_busy);
+
  protected:
   class List {
    public:
@@ -126,6 +128,8 @@ class BlockStack {
     DISALLOW_COPY_AND_ASSIGN(List);
   };
 
+  bool IsEmptyLocked();
+
   // Adds and transfers ownership of the block to the buffer.
   void PushBlockImpl(Block* block);
 
@@ -134,7 +138,7 @@ class BlockStack {
 
   List full_;
   List partial_;
-  Mutex mutex_;
+  Monitor monitor_;
 
   // Note: This is shared on the basis of block size.
   static const intptr_t kMaxGlobalEmpty = 100;
@@ -151,65 +155,89 @@ class BlockWorkList : public ValueObject {
   typedef typename Stack::Block Block;
 
   explicit BlockWorkList(Stack* stack) : stack_(stack) {
-    work_ = stack_->PopEmptyBlock();
+    local_output_ = stack_->PopEmptyBlock();
+    local_input_ = stack_->PopEmptyBlock();
   }
 
   ~BlockWorkList() {
-    ASSERT(work_ == nullptr);
+    ASSERT(local_output_ == nullptr);
+    ASSERT(local_input_ == nullptr);
     ASSERT(stack_ == nullptr);
   }
 
   // Returns nullptr if no more work was found.
   ObjectPtr Pop() {
-    ASSERT(work_ != nullptr);
-    if (work_->IsEmpty()) {
-      // TODO(koda): Track over/underflow events and use in heuristics to
-      // distribute work and prevent degenerate flip-flopping.
-      Block* new_work = stack_->PopNonEmptyBlock();
-      if (new_work == nullptr) {
-        return nullptr;
+    ASSERT(local_input_ != nullptr);
+    if (UNLIKELY(local_input_->IsEmpty())) {
+      if (!local_output_->IsEmpty()) {
+        auto temp = local_output_;
+        local_output_ = local_input_;
+        local_input_ = temp;
+      } else {
+        Block* new_work = stack_->PopNonEmptyBlock();
+        if (new_work == nullptr) {
+          return nullptr;
+        }
+        stack_->PushBlock(local_input_);
+        local_input_ = new_work;
+        // Generated code appends to marking stacks; tell MemorySanitizer.
+        MSAN_UNPOISON(local_input_, sizeof(*local_input_));
       }
-      stack_->PushBlock(work_);
-      work_ = new_work;
-      // Generated code appends to marking stacks; tell MemorySanitizer.
-      MSAN_UNPOISON(work_, sizeof(*work_));
     }
-    return work_->Pop();
+    return local_input_->Pop();
   }
 
   void Push(ObjectPtr raw_obj) {
-    if (work_->IsFull()) {
-      // TODO(koda): Track over/underflow events and use in heuristics to
-      // distribute work and prevent degenerate flip-flopping.
-      stack_->PushBlock(work_);
-      work_ = stack_->PopEmptyBlock();
+    if (UNLIKELY(local_output_->IsFull())) {
+      stack_->PushBlock(local_output_);
+      local_output_ = stack_->PopEmptyBlock();
     }
-    work_->Push(raw_obj);
+    local_output_->Push(raw_obj);
+  }
+
+  bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
+    ASSERT(local_input_->IsEmpty());
+    Block* new_work = stack_->WaitForWork(num_busy);
+    if (new_work == NULL) {
+      return false;
+    }
+    stack_->PushBlock(local_input_);
+    local_input_ = new_work;
+    return true;
   }
 
   void Finalize() {
-    ASSERT(work_->IsEmpty());
-    stack_->PushBlock(work_);
-    work_ = nullptr;
+    ASSERT(local_output_->IsEmpty());
+    stack_->PushBlock(local_output_);
+    local_output_ = nullptr;
+    ASSERT(local_input_->IsEmpty());
+    stack_->PushBlock(local_input_);
+    local_input_ = nullptr;
     // Fail fast on attempts to mark after finalizing.
     stack_ = nullptr;
   }
 
   void AbandonWork() {
-    stack_->PushBlock(work_);
-    work_ = nullptr;
+    stack_->PushBlock(local_output_);
+    local_output_ = nullptr;
+    stack_->PushBlock(local_input_);
+    local_input_ = nullptr;
     stack_ = nullptr;
   }
 
   bool IsEmpty() {
-    if (!work_->IsEmpty()) {
+    if (!local_input_->IsEmpty()) {
+      return false;
+    }
+    if (!local_output_->IsEmpty()) {
       return false;
     }
     return stack_->IsEmpty();
   }
 
  private:
-  Block* work_;
+  Block* local_output_;
+  Block* local_input_;
   Stack* stack_;
 };
 

@@ -9,7 +9,13 @@ namespace dart {
 
 #define RUNTIME_ENTRY_LIST(V)                                                  \
   V(AllocateArray)                                                             \
+  V(AllocateMint)                                                              \
+  V(AllocateDouble)                                                            \
+  V(AllocateFloat32x4)                                                         \
+  V(AllocateFloat64x2)                                                         \
+  V(AllocateInt32x4)                                                           \
   V(AllocateTypedData)                                                         \
+  V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(BreakpointRuntimeHandler)                                                  \
@@ -44,7 +50,6 @@ namespace dart {
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
-  V(AllocateMint)                                                              \
   V(Throw)                                                                     \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \
@@ -91,7 +96,9 @@ namespace dart {
   V(void, ExitSafepoint)                                                       \
   V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
   V(void, ExitHandleScope, Thread*)                                            \
-  V(LocalHandle*, AllocateHandle, ApiLocalScope*)
+  V(LocalHandle*, AllocateHandle, ApiLocalScope*)                              \
+  V(void, TsanLoadAcquire, uword /* address */)                                \
+  V(void, TsanStoreRelease, uword /* address */)
 
 }  // namespace dart
 

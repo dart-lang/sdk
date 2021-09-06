@@ -120,6 +120,14 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
   }
 
   @override
+  bool visitMethodDefinition(MethodDefinition node, Node arg) {
+    if (arg is! MethodDefinition) return failAt(node, arg);
+    MethodDefinition other = arg;
+    return testNodes(node.name, other.name) &&
+        testNodes(node.function, other.function);
+  }
+
+  @override
   bool visitObjectInitializer(ObjectInitializer node, Node arg) {
     if (arg is! ObjectInitializer) return failAt(node, arg);
     ObjectInitializer other = arg;
@@ -209,9 +217,25 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
   }
 
   @override
+  bool visitDeferredStatement(DeferredStatement node, Node arg) {
+    if (arg is! DeferredStatement) return failAt(node, arg);
+    DeferredStatement other = arg;
+    return testNodes(node.statement, other.statement);
+  }
+
+  @override
   bool visitFun(Fun node, Node arg) {
     if (arg is! Fun) return failAt(node, arg);
     Fun other = arg;
+    return testNodeLists(node.params, other.params) &&
+        testNodes(node.body, other.body) &&
+        testValues(node, node.asyncModifier, other, other.asyncModifier);
+  }
+
+  @override
+  bool visitArrowFunction(ArrowFunction node, Node arg) {
+    if (arg is! ArrowFunction) return failAt(node, arg);
+    ArrowFunction other = arg;
     return testNodeLists(node.params, other.params) &&
         testNodes(node.body, other.body) &&
         testValues(node, node.asyncModifier, other, other.asyncModifier);

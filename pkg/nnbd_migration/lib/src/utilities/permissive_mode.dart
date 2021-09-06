@@ -13,10 +13,10 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 ///
 /// If the [listener] is `null`, exceptions are not caught.
 mixin PermissiveModeVisitor<T> on GeneralizingAstVisitor<T> {
-  NullabilityMigrationListener /*?*/ get listener;
+  NullabilityMigrationListener? get listener;
 
   /// The file being analyzed.
-  Source get source;
+  Source? get source;
 
   /// Executes [callback].  If [listener] is not `null`, and an exception
   /// occurs, the exception is caught and reported to the [listener].
@@ -25,7 +25,7 @@ mixin PermissiveModeVisitor<T> on GeneralizingAstVisitor<T> {
       try {
         return callback();
       } catch (exception, stackTrace) {
-        listener.reportException(source, node, exception, stackTrace);
+        listener!.reportException(source, node, exception, stackTrace);
       }
     } else {
       callback();
@@ -33,12 +33,12 @@ mixin PermissiveModeVisitor<T> on GeneralizingAstVisitor<T> {
   }
 
   @override
-  T visitNode(AstNode node) {
+  T? visitNode(AstNode node) {
     if (listener != null) {
       try {
         return super.visitNode(node);
       } catch (exception, stackTrace) {
-        listener.reportException(source, node, exception, stackTrace);
+        listener!.reportException(source, node, exception, stackTrace);
         return null;
       }
     } else {

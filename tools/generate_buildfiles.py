@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2016 The Dart project authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -29,7 +29,7 @@ def RunAndroidGn(options):
     if not HOST_OS in ['linux', 'macos']:
         return 0
     gn_command = [
-        'python',
+        'python3',
         os.path.join(DART_ROOT, 'tools', 'gn.py'),
         '-m',
         'all',
@@ -48,7 +48,7 @@ def RunCrossGn(options):
     if HOST_OS != 'linux':
         return 0
     gn_command = [
-        'python',
+        'python3',
         os.path.join(DART_ROOT, 'tools', 'gn.py'),
         '-m',
         'all',
@@ -63,7 +63,7 @@ def RunCrossGn(options):
 
 def RunHostGn(options):
     gn_command = [
-        'python',
+        'python3',
         os.path.join(DART_ROOT, 'tools', 'gn.py'),
         '-m',
         'all',

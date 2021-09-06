@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -12,14 +11,11 @@ import 'package:analyzer/src/workspace/workspace.dart';
 
 /// An abstract class for simple workspaces which do not feature any build
 /// artifacts or generated files.
-///
-/// The [packageMap] and [packageUrlResolver] are simple derivations from the
-/// [ContextBuilder] and [ResourceProvider] required for the class.
 abstract class SimpleWorkspace extends Workspace {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider provider;
 
-  Map<String, List<Folder>> packageMap;
+  final Map<String, List<Folder>> packageMap;
 
   /// The absolute workspace root path.
   @override

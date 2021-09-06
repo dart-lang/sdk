@@ -23,7 +23,7 @@ class GenericClassVisitor extends ScrapeVisitor {
     if (node.typeParameters == null) {
       record('Classes', 0);
     } else {
-      record('Classes', node.typeParameters.typeParameters.length);
+      record('Classes', node.typeParameters!.typeParameters.length);
     }
     super.visitClassDeclaration(node);
   }

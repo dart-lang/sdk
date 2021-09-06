@@ -11,6 +11,7 @@
  * For information on writing web apps with Dart, see https://dart.dev/web.
  *
  * {@category Web}
+ * {@canonicalFor dart:_internal.HttpStatus}
  */
 library dart.dom.html;
 
@@ -2185,7 +2186,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  gl.RenderingContext getContext3d(
+  gl.RenderingContext? getContext3d(
       {alpha: true,
       depth: true,
       stencil: false,
@@ -2204,7 +2205,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context as gl.RenderingContext;
+    return context as gl.RenderingContext?;
   }
 
   /**
@@ -2269,7 +2270,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 /**
  * An opaque canvas object representing a gradient.
  *
- * Created by calling [createLinearGradient] or [createRadialGradient] on a
+ * Created by calling the methods
+ * [CanvasRenderingContext2D.createLinearGradient] or
+ * [CanvasRenderingContext2D.createRadialGradient] on a
  * [CanvasRenderingContext2D] object.
  *
  * Example usage:
@@ -2321,7 +2324,8 @@ class CanvasGradient extends Interceptor {
 /**
  * An opaque object representing a pattern of image, canvas, or video.
  *
- * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
+ * Created by calling [CanvasRenderingContext2D.createPattern] on a
+ * [CanvasRenderingContext2D] object.
  *
  * Example usage:
  *
@@ -2955,7 +2959,7 @@ class CanvasRenderingContext2D extends Interceptor
    * options, such as typeface and size, and the current
    * [CanvasRenderingContext2D.fillStyle] for style options such as color.
    * The current [CanvasRenderingContext2D.textAlign] and
-   * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
+   * [CanvasRenderingContext2D.textBaseline] properties are also applied to the
    * drawn text.
    */
   void fillText(String text, num x, num y, [num? maxWidth]) {
@@ -11935,7 +11939,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   CssStyleDeclarationBase get style;
 
   /**
-   * Access dimensions and position of the Elements in this list.
+   * Access dimensions and position of the [Element]s in this list.
    *
    * Setting the height or width properties will set the height or width
    * property for all elements in the list. This returns a rectangle with the
@@ -11944,46 +11948,48 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * property. Getting the height or width returns the height or width of the
    * first Element in this list.
    *
-   * Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * Unlike [Element.getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
    */
   CssRect get contentEdge;
 
   /**
-   * Access dimensions and position of the first Element's content + padding box
-   * in this list.
+   * Access dimensions and position of the first [Element]'s content + padding
+   * box in this list.
    *
    * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
-   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
-   * will return the same numerical height if the element is hidden or not. This
-   * can be used to retrieve jQuery's `innerHeight` value for an element. This
-   * is also a rectangle equalling the dimensions of clientHeight and
-   * clientWidth.
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `innerHeight` value for an
+   * element. This is also a rectangle equalling the dimensions of clientHeight
+   * and clientWidth.
    */
   CssRect get paddingEdge;
 
   /**
-   * Access dimensions and position of the first Element's content + padding +
+   * Access dimensions and position of the first [Element]'s content + padding +
    * border box in this list.
    *
    * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
-   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
-   * will return the same numerical height if the element is hidden or not. This
-   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `outerHeight` value for an
+   * element.
    */
   CssRect get borderEdge;
 
   /**
-   * Access dimensions and position of the first Element's content + padding +
+   * Access dimensions and position of the first [Element]'s content + padding +
    * border + margin box in this list.
    *
    * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
-   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
-   * will return the same numerical height if the element is hidden or not. This
-   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `outerHeight` value for an
+   * element.
    */
   CssRect get marginEdge;
 
@@ -13274,9 +13280,9 @@ class Element extends Node
    *
    * The [frames] parameter is an Iterable<Map>, where the
    * map entries specify CSS animation effects. The
-   * [timing] paramter can be a double, representing the number of milliseconds
-   * for the transition, or a Map with fields corresponding to those
-   * of the [Timing] object.
+   * [timing] parameter can be a double, representing the number of
+   * milliseconds for the transition, or a Map with fields corresponding to
+   * those of the [timing] object.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
@@ -13429,11 +13435,13 @@ class Element extends Node
    * * 'beforeEnd': As the last child of this element.
    * * 'afterEnd': Immediately after this element.
    *
+   * ```dart
    *     var html = '<div class="something">content</div>';
    *     // Inserts as the first child
    *     document.body.insertAdjacentHtml('afterBegin', html);
    *     var createdElement = document.body.children[0];
    *     print(createdElement.classes[0]); // Prints 'something'
+   * ```
    *
    * See also:
    *
@@ -16545,7 +16553,7 @@ class FontFaceSet extends EventTarget {
 
   String? get status native;
 
-  FontFaceSet add(FontFace arg) native;
+  FontFaceSet? add(FontFace arg) native;
 
   bool check(String font, [String? text]) native;
 
@@ -16953,6 +16961,8 @@ class Geolocation extends Interceptor {
   @JSName('clearWatch')
   void _clearWatch(int watchID) native;
 
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition(_PositionCallback successCallback,
       [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
@@ -16972,14 +16982,22 @@ class Geolocation extends Interceptor {
   }
 
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_1(
       successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_2(
       successCallback, _PositionErrorCallback? errorCallback) native;
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_3(successCallback) native;
 
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition(_PositionCallback successCallback,
       [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
@@ -16996,12 +17014,18 @@ class Geolocation extends Interceptor {
   }
 
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_1(
       successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_2(successCallback, _PositionErrorCallback? errorCallback)
       native;
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_3(successCallback) native;
 }
 
@@ -17021,7 +17045,7 @@ class _GeopositionWrapper implements Geoposition {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native("Position")
+@Native("Position,GeolocationPosition")
 class Geoposition extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() {
@@ -18091,7 +18115,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * * Using credentials is only useful for cross-origin requests.
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
-   * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
+   * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllResponseHeaders].
    *
    * The following is equivalent to the [getString] sample above:
    *
@@ -18491,7 +18515,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * Length of time in milliseconds before a request is automatically
    * terminated.
    *
-   * When the time has passed, a [TimeoutEvent] is dispatched.
+   * When the time has passed, a [HttpRequestEventTarget.timeoutEvent] is
+   * dispatched.
    *
    * If [timeout] is set to 0, then the request will not time out.
    *
@@ -18509,7 +18534,6 @@ class HttpRequest extends HttpRequestEventTarget {
 
   /**
    * [EventTarget] that can hold listeners to track the progress of the request.
-   * The events fired will be members of [HttpRequestUploadEvents].
    */
   @Unstable()
   HttpRequestUpload get upload native;
@@ -19731,7 +19755,7 @@ abstract class CheckboxInputElement implements InputElementBase {
 }
 
 /**
- * A control that when used with other [ReadioButtonInputElement] controls
+ * A control that when used with other [RadioButtonInputElement] controls
  * forms a radio button group in which only one control can be checked at a
  * time.
  *
@@ -23351,7 +23375,7 @@ class Node extends EventTarget {
    * * [COMMENT_NODE] if this node is a [Comment].
    * * [DOCUMENT_FRAGMENT_NODE] if this node is a [DocumentFragment].
    * * [DOCUMENT_NODE] if this node is a [Document].
-   * * [DOCUMENT_TYPE_NODE] if this node is a [DocumentType] node.
+   * * [DOCUMENT_TYPE_NODE] if this node is a [_DocumentType] node.
    * * [ELEMENT_NODE] if this node is an [Element].
    * * [ENTITY_NODE] if this node is an entity.
    * * [ENTITY_REFERENCE_NODE] if this node is an entity reference.
@@ -25723,13 +25747,13 @@ class PopStateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 @Unstable()
-typedef void _PositionCallback(Geoposition position);
+typedef void _PositionCallback(position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-@Native("PositionError")
+@Native("PositionError,GeolocationPositionError")
 class PositionError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() {
@@ -31653,7 +31677,7 @@ class VttRegion extends Interceptor {
  * The message event handler receives a [MessageEvent] object
  * as its sole argument.
  * You can also define open, close, and error handlers,
- * as specified by [WebSocketEvents].
+ * as specified by [Event]s.
  *
  * For more information, see the
  * [WebSockets](http://www.dartlang.org/docs/library-tour/#html-websockets)
@@ -32170,8 +32194,8 @@ class Window extends EventTarget
   /**
    * Gets an instance of the Indexed DB factory to being using Indexed DB.
    *
-   * Use [indexed_db.IdbFactory.supported] to check if Indexed DB is supported on the
-   * current platform.
+   * Use [dart:indexed_db.IdbFactory.supported] to check if Indexed DB is
+   * supported on the current platform.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
@@ -33660,6 +33684,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Creates('SqlDatabase')
+  @deprecated
   SqlDatabase openDatabase(
       String name, String version, String displayName, int estimatedSize,
       [DatabaseCallback? creationCallback]) {
@@ -36503,8 +36528,8 @@ abstract class CssRect implements Rectangle<num> {
    *
    * This is equivalent to the `height` function in jQuery and the calculated
    * `height` CSS value, converted to a dimensionless num in pixels. Unlike
-   * [getBoundingClientRect], `height` will return the same numerical width if
-   * the element is hidden or not.
+   * [Element.getBoundingClientRect], `height` will return the same numerical
+   * height if the element is hidden or not.
    */
   num get height;
 
@@ -36513,8 +36538,8 @@ abstract class CssRect implements Rectangle<num> {
    *
    * This is equivalent to the `width` function in jQuery and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels. Unlike
-   * [getBoundingClientRect], `width` will return the same numerical width if
-   * the element is hidden or not.
+   * [Element.getBoundingClientRect], `width` will return the same numerical
+   * width if the element is hidden or not.
    */
   num get width;
 
@@ -37075,7 +37100,7 @@ class EventStreamProvider<T extends Event> {
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
-   * Gets an [ElementEventStream] for this event type, on the specified element.
+   * Gets a [Stream] for this event type, on the specified element.
    *
    * This will always return a broadcast stream so multiple listeners can be
    * used simultaneously.
@@ -37101,7 +37126,7 @@ class EventStreamProvider<T extends Event> {
   }
 
   /**
-   * Gets an [ElementEventStream] for this event type, on the list of elements.
+   * Gets a [Stream] for this event type, on the list of elements.
    *
    * This will always return a broadcast stream so multiple listeners can be
    * used simultaneously.

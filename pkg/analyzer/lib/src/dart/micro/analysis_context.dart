@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -20,7 +19,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 MicroContextObjects createMicroContextObjects({
@@ -183,32 +181,18 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   }
 
   @override
-  FileResult getFile(String path) {
-    var fileContext = analysisContext.fileResolver.getFileContext(
-      path: path,
-      performance: OperationPerformanceImpl('<default>'),
-    );
-    return FileResultImpl(
-      this,
-      path,
-      fileContext.file.uri,
-      fileContext.file.lineInfo,
-      false,
-    );
+  Future<SomeLibraryElementResult> getLibraryByUri(String uriStr) async {
+    var element = analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
+    return LibraryElementResultImpl(element);
   }
 
   @override
-  Future<LibraryElement> getLibraryByUri(String uriStr) async {
-    return analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
-  }
-
-  @override
-  Future<ResolvedLibraryResult> getResolvedLibrary(String path) async {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
     return analysisContext.fileResolver.resolveLibrary(path: path);
   }
 
   @override
-  Future<ResolvedUnitResult> getResolvedUnit(String path) async {
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
     return analysisContext.fileResolver.resolve(path: path);
   }
 

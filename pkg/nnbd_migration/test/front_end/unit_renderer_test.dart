@@ -28,7 +28,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
 
     var contents = <FileDetails>[];
-    for (var unitInfo in infos) {
+    for (var unitInfo in infos!) {
       contents.add(UnitRenderer(unitInfo, migrationInfo,
               PathMapper(resourceProvider), 'AUTH_TOKEN')
           .render());
@@ -56,7 +56,7 @@ int  f(String  s) {
 ''', warnOnWeakCode: true);
     var output = renderUnits()[0];
     expect(
-        _stripDataAttributes(output.regions),
+        _stripDataAttributes(output.regions!),
         contains(
             '<span class="region informative-region">/* == false */</span>'));
     expect(output.edits.keys,
@@ -83,7 +83,7 @@ int  f(String  s) {
 ''', warnOnWeakCode: true);
     var output = renderUnits()[0];
     expect(
-        _stripDataAttributes(output.regions),
+        _stripDataAttributes(output.regions!),
         contains(
             '<span class="region informative-region">/* == true */</span>'));
     expect(output.edits.keys,
@@ -115,14 +115,14 @@ bool  b = a!.isEven;
     // The null checks are higher priority than the assertions.
     expect(output.edits.keys,
         orderedEquals(['1 null check added', '1 type made nullable']));
-    var typesMadeNullable = output.edits['1 type made nullable'];
+    var typesMadeNullable = output.edits['1 type made nullable']!;
     expect(typesMadeNullable, hasLength(1));
     var typeMadeNullable = typesMadeNullable.single;
     expect(typeMadeNullable.line, equals(1));
     expect(typeMadeNullable.offset, equals(3));
     expect(typeMadeNullable.explanation,
         equals("Changed type 'int' to be nullable"));
-    var nullChecks = output.edits['1 null check added'];
+    var nullChecks = output.edits['1 null check added']!;
     expect(nullChecks, hasLength(1));
     var nullCheck = nullChecks.single;
     expect(nullCheck.line, equals(2));
@@ -247,7 +247,7 @@ List<int?>  x = [null];
 ''', removeViaComments: false);
     var output = renderUnits()[0];
     // Strip out URLs and span IDs; they're not being tested here.
-    var navContent = output.navigationContent
+    var navContent = output.navigationContent!
         .replaceAll(RegExp('href="[^"]*"'), 'href="..."')
         .replaceAll(RegExp('id="[^"]*"'), 'id="..."');
     expect(navContent, '''
@@ -275,7 +275,7 @@ int? f(List<int >  values)
     => values.firstWherefirstWhereOrNull((i) => i.isEven/* , orElse: () => null */);
 ''');
     var output = renderUnits()[0];
-    var regions = output.regions;
+    var regions = output.regions!;
     // We're not testing the correctness of the data path, so drop it.
     regions = regions.replaceAll(RegExp(' data-path="[^"]*"'), '');
     // Split the output into table rows.
@@ -328,7 +328,7 @@ int? f(List<int >  values)
     => values.firstWherefirstWhereOrNull((i) => i.isEven, orElse: () => null);
 ''');
     var output = renderUnits()[0];
-    var regions = output.regions;
+    var regions = output.regions!;
     // We aren't testing data-offset or data-line behaviors.
     regions = regions.replaceAll(RegExp(' data-offset="[^"]*"'), '');
     regions = regions.replaceAll(RegExp(' data-line="[^"]*"'), '');
@@ -343,8 +343,8 @@ int? f(List<int >  values)
         migratedContent: 'List<String >? a = null;');
     var output = renderUnits()[0];
     // Strip out URLs which will change; not being tested here.
-    var navContent =
-        output.navigationContent.replaceAll(RegExp('href=".*?"'), 'href="..."');
+    var navContent = output.navigationContent!
+        .replaceAll(RegExp('href=".*?"'), 'href="..."');
     expect(
         navContent,
         contains(r'<a href="..." class="nav-link">List</a>'
@@ -359,7 +359,7 @@ int f(String s) => s?.length;
 int  f(String  s) => s?.length;
 ''', warnOnWeakCode: true);
     var output = renderUnits()[0];
-    expect(_stripDataAttributes(output.regions),
+    expect(_stripDataAttributes(output.regions!),
         contains('s<span class="region informative-region">?</span>.length'));
     expect(
         output.edits.keys,
@@ -380,7 +380,7 @@ void f() {
 }
 ''');
     var output = renderUnits()[0];
-    var regions = _stripDataAttributes(output.regions);
+    var regions = _stripDataAttributes(output.regions!);
     expect(
         regions,
         contains('final '
@@ -405,7 +405,7 @@ void f() {
 }
 ''');
     var output = renderUnits()[0];
-    var regions = _stripDataAttributes(output.regions);
+    var regions = _stripDataAttributes(output.regions!);
     expect(
         regions,
         contains('<span class="region removed-region">var</span>'
@@ -421,7 +421,7 @@ void f() {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var output = renderUnits()[0];
-    var regions = _stripDataAttributes(output.regions);
+    var regions = _stripDataAttributes(output.regions!);
     expect(regions,
         contains('int<span class="region added-region">?</span> a = null;'));
   }
@@ -478,7 +478,7 @@ Future<int >  f(Future<int >  x) {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String >? a = null;');
     var output = renderUnits()[0];
-    var regions = _stripDataAttributes(output.regions);
+    var regions = _stripDataAttributes(output.regions!);
     expect(
         regions,
         contains(
@@ -490,7 +490,7 @@ Future<int >  f(Future<int >  x) {
     await buildInfoForSingleTestFile('f(List<String> a) => a.join(",");',
         migratedContent: 'f(List<String >  a) => a.join(",");');
     var output = renderUnits()[0];
-    var regions = _stripDataAttributes(output.regions);
+    var regions = _stripDataAttributes(output.regions!);
     expect(
         regions,
         contains(
@@ -498,7 +498,8 @@ Future<int >  f(Future<int >  x) {
             '&gt;<span class="region informative-region"> </span>'));
   }
 
-  UnitInfo unit(String path, String content, {List<RegionInfo> regions}) {
+  UnitInfo unit(String path, String content,
+      {required List<RegionInfo> regions}) {
     return UnitInfo(convertPath(path))
       ..content = content
       ..regions.addAll(regions);

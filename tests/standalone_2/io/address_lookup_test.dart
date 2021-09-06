@@ -5,6 +5,8 @@
 // Verifies that one can provide timeout handler for InternetAddress.lookup,
 // which was reported broken https://github.com/dart-lang/sdk/issues/45542.
 
+// @dart = 2.9
+
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";

@@ -12,6 +12,8 @@
 namespace dart {
 namespace bin {
 
+AcqRelAtomic<const char*> Platform::resolved_executable_name_ = nullptr;
+
 void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
 }

@@ -49,10 +49,10 @@ static const field core::bool f3_is_t1 = #C1;
 static const field core::bool f4_is_t1 = #C1;
 static const field core::bool f5_is_t1 = #C1;
 static method f({required core::int i = #C3}) → core::int {
-  return i.{core::num::+}(1);
+  return i.{core::num::+}(1){(core::num) → core::int};
 }
 static method g({core::int i = #C4}) → core::int {
-  return i.{core::num::+}(1);
+  return i.{core::num::+}(1){(core::num) → core::int};
 }
 static method f1(core::int i, self::B b, core::Map<core::int, core::num> m, dynamic x, {required dynamic extraParam = #C3, required core::bool obool = #C3, required dynamic ox = #C3, required self::D ob = #C3, required core::List<core::num>? ol = #C3}) → self::B
   return new self::B::•();
@@ -87,7 +87,7 @@ static method main() → dynamic {
   self::expect((#C11) is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B, #C1);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 
@@ -96,11 +96,11 @@ constants  {
   #C2 = false
   #C3 = null
   #C4 = 1
-  #C5 = tearoff self::f
-  #C6 = tearoff self::g
-  #C7 = tearoff self::f1
-  #C8 = tearoff self::f2
-  #C9 = tearoff self::f3
-  #C10 = tearoff self::f4
-  #C11 = tearoff self::f5
+  #C5 = static-tearoff self::f
+  #C6 = static-tearoff self::g
+  #C7 = static-tearoff self::f1
+  #C8 = static-tearoff self::f2
+  #C9 = static-tearoff self::f3
+  #C10 = static-tearoff self::f4
+  #C11 = static-tearoff self::f5
 }

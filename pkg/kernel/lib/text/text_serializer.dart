@@ -8,8 +8,6 @@ import '../ast.dart';
 
 import 'serializer_combinators.dart';
 
-import '../visitor.dart' show ExpressionVisitor;
-
 abstract class Tagger<T> {
   String tag(T object);
 }
@@ -72,8 +70,6 @@ class ExpressionTagger extends ExpressionVisitor<String>
 
   String visitLet(Let _) => "let";
 
-  String visitPropertyGet(PropertyGet _) => "get-prop";
-  String visitPropertySet(PropertySet _) => "set-prop";
   String visitInstanceGet(InstanceGet _) => "get-instance";
   String visitInstanceSet(InstanceSet _) => "set-instance";
   String visitDynamicGet(DynamicGet _) => "get-dynamic";
@@ -82,7 +78,6 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitFunctionTearOff(FunctionTearOff _) => "tearoff-function";
   String visitSuperPropertyGet(SuperPropertyGet _) => "get-super";
   String visitSuperPropertySet(SuperPropertySet _) => "set-super";
-  String visitMethodInvocation(MethodInvocation _) => "invoke-method";
   String visitInstanceInvocation(InstanceInvocation _) => "invoke-instance";
   String visitInstanceGetterInvocation(InstanceGetterInvocation _) =>
       "invoke-instance-getter";
@@ -99,6 +94,10 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitStaticGet(StaticGet _) => "get-static";
   String visitStaticSet(StaticSet _) => "set-static";
   String visitStaticTearOff(StaticTearOff _) => "tearoff-static";
+  String visitConstructorTearOff(ConstructorTearOff _) => "tearoff-constructor";
+  String visitRedirectingFactoryTearOff(RedirectingFactoryTearOff _) =>
+      "tearoff-redirecting-factory";
+  String visitTypedefTearOff(TypedefTearOff _) => "tearoff-typedef";
   String visitStaticInvocation(StaticInvocation expression) {
     return expression.isConst ? "invoke-const-static" : "invoke-static";
   }
@@ -372,7 +371,7 @@ Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
   List<Expression> entries =
       new List.filled(2 * expression.entries.length, dummyExpression);
   for (int from = 0, to = 0; from < expression.entries.length; ++from) {
-    MapEntry entry = expression.entries[from];
+    MapLiteralEntry entry = expression.entries[from];
     entries[to++] = entry.key;
     entries[to++] = entry.value;
   }
@@ -380,10 +379,10 @@ Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
 }
 
 MapLiteral wrapMapLiteral(Tuple3<DartType, DartType, List<Expression>> tuple) {
-  List<MapEntry> entries =
-      new List.filled(tuple.third.length ~/ 2, dummyMapEntry);
+  List<MapLiteralEntry> entries =
+      new List.filled(tuple.third.length ~/ 2, dummyMapLiteralEntry);
   for (int from = 0, to = 0; to < entries.length; ++to) {
-    entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
+    entries[to] = new MapLiteralEntry(tuple.third[from++], tuple.third[from++]);
   }
   return new MapLiteral(entries,
       keyType: tuple.first, valueType: tuple.second, isConst: false);
@@ -397,10 +396,10 @@ TextSerializer<MapLiteral> constMapLiteralSerializer = new Wrapped(
 
 MapLiteral wrapConstMapLiteral(
     Tuple3<DartType, DartType, List<Expression>> tuple) {
-  List<MapEntry> entries =
-      new List.filled(tuple.third.length ~/ 2, dummyMapEntry);
+  List<MapLiteralEntry> entries =
+      new List.filled(tuple.third.length ~/ 2, dummyMapLiteralEntry);
   for (int from = 0, to = 0; to < entries.length; ++to) {
-    entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
+    entries[to] = new MapLiteralEntry(tuple.third[from++], tuple.third[from++]);
   }
   return new MapLiteral(entries,
       keyType: tuple.first, valueType: tuple.second, isConst: true);
@@ -415,33 +414,6 @@ Tuple2<VariableDeclaration, Expression> unwrapLet(Let expression) {
 
 Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
   return new Let(tuple.first, tuple.second);
-}
-
-TextSerializer<PropertyGet> propertyGetSerializer = new Wrapped(
-    unwrapPropertyGet,
-    wrapPropertyGet,
-    new Tuple2Serializer(expressionSerializer, nameSerializer));
-
-Tuple2<Expression, Name> unwrapPropertyGet(PropertyGet expression) {
-  return new Tuple2(expression.receiver, expression.name);
-}
-
-PropertyGet wrapPropertyGet(Tuple2<Expression, Name> tuple) {
-  return new PropertyGet(tuple.first, tuple.second);
-}
-
-TextSerializer<PropertySet> propertySetSerializer = new Wrapped(
-    unwrapPropertySet,
-    wrapPropertySet,
-    new Tuple3Serializer(
-        expressionSerializer, nameSerializer, expressionSerializer));
-
-Tuple3<Expression, Name, Expression> unwrapPropertySet(PropertySet expression) {
-  return new Tuple3(expression.receiver, expression.name, expression.value);
-}
-
-PropertySet wrapPropertySet(Tuple3<Expression, Name, Expression> tuple) {
-  return new PropertySet(tuple.first, tuple.second, tuple.third);
 }
 
 TextSerializer<InstanceGet> instanceGetSerializer = new Wrapped<
@@ -586,22 +558,6 @@ Tuple2<Name, Expression> unwrapSuperPropertySet(SuperPropertySet expression) {
 
 SuperPropertySet wrapSuperPropertySet(Tuple2<Name, Expression> tuple) {
   return new SuperPropertySet(tuple.first, tuple.second, null);
-}
-
-TextSerializer<MethodInvocation> methodInvocationSerializer = new Wrapped(
-    unwrapMethodInvocation,
-    wrapMethodInvocation,
-    new Tuple3Serializer(
-        expressionSerializer, nameSerializer, argumentsSerializer));
-
-Tuple3<Expression, Name, Arguments> unwrapMethodInvocation(
-    MethodInvocation expression) {
-  return new Tuple3(expression.receiver, expression.name, expression.arguments);
-}
-
-MethodInvocation wrapMethodInvocation(
-    Tuple3<Expression, Name, Arguments> tuple) {
-  return new MethodInvocation(tuple.first, tuple.second, tuple.third);
 }
 
 const Map<InstanceAccessKind, String> instanceAccessKindToName = const {
@@ -933,6 +889,55 @@ StaticTearOff wrapStaticTearOff(CanonicalName name) {
   return new StaticTearOff.byReference(name.reference);
 }
 
+const TextSerializer<ConstructorTearOff> constructorTearOffSerializer =
+    const Wrapped(unwrapConstructorTearOff, wrapConstructorTearOff,
+        canonicalNameSerializer);
+
+CanonicalName unwrapConstructorTearOff(ConstructorTearOff expression) {
+  return expression.targetReference.canonicalName!;
+}
+
+ConstructorTearOff wrapConstructorTearOff(CanonicalName name) {
+  return new ConstructorTearOff.byReference(name.reference);
+}
+
+const TextSerializer<RedirectingFactoryTearOff>
+    redirectingFactoryTearOffSerializer = const Wrapped(
+        unwrapRedirectingFactoryTearOff,
+        wrapRedirectingFactoryTearOff,
+        canonicalNameSerializer);
+
+CanonicalName unwrapRedirectingFactoryTearOff(
+    RedirectingFactoryTearOff expression) {
+  return expression.targetReference.canonicalName!;
+}
+
+RedirectingFactoryTearOff wrapRedirectingFactoryTearOff(CanonicalName name) {
+  return new RedirectingFactoryTearOff.byReference(name.reference);
+}
+
+final TextSerializer<TypedefTearOff> typedefTearOffSerializer = new Wrapped<
+        Tuple2<List<TypeParameter>, Tuple2<Expression, List<DartType>>>,
+        TypedefTearOff>(
+    unwrapTypedefTearOff,
+    wrapTypedefTearOff,
+    Bind(
+        typeParametersSerializer,
+        Tuple2Serializer(
+            expressionSerializer, ListSerializer(dartTypeSerializer))));
+
+Tuple2<List<TypeParameter>, Tuple2<Expression, List<DartType>>>
+    unwrapTypedefTearOff(TypedefTearOff node) {
+  return new Tuple2(
+      node.typeParameters, new Tuple2(node.expression, node.typeArguments));
+}
+
+TypedefTearOff wrapTypedefTearOff(
+    Tuple2<List<TypeParameter>, Tuple2<Expression, List<DartType>>> tuple) {
+  return new TypedefTearOff(
+      tuple.first, tuple.second.first, tuple.second.second);
+}
+
 TextSerializer<StaticSet> staticSetSerializer = new Wrapped(
     unwrapStaticSet,
     wrapStaticSet,
@@ -1195,20 +1200,20 @@ TextSerializer<List<TypeParameter>> typeParametersSerializer = new Zip(
     zipTypeParameterDefaultType,
     unzipTypeParameterDefaultType);
 
-TypeParameter zipTypeParameterBound(TypeParameter node, DartType? bound) {
+TypeParameter zipTypeParameterBound(TypeParameter node, DartType bound) {
   return node..bound = bound;
 }
 
-Tuple2<TypeParameter, DartType?> unzipTypeParameterBound(TypeParameter node) {
+Tuple2<TypeParameter, DartType> unzipTypeParameterBound(TypeParameter node) {
   return new Tuple2(node, node.bound);
 }
 
 TypeParameter zipTypeParameterDefaultType(
-    TypeParameter node, DartType? defaultType) {
+    TypeParameter node, DartType defaultType) {
   return node..defaultType = defaultType;
 }
 
-Tuple2<TypeParameter, DartType?> unzipTypeParameterDefaultType(
+Tuple2<TypeParameter, DartType> unzipTypeParameterDefaultType(
     TypeParameter node) {
   return new Tuple2(node, node.defaultType);
 }
@@ -1655,7 +1660,7 @@ TextSerializer<LabeledStatement> labeledStatementSerializer =
         (ls) => Tuple2(ls, ls.body),
         (t) => t.first..body = t.second,
         Bind(
-            Wrapped<Tuple2<String, LabeledStatement>, LabeledStatement>(
+            Wrapped<Tuple2<String?, LabeledStatement>, LabeledStatement>(
                 (ls) => Tuple2("L", ls),
                 (t) => t.second,
                 Binder(Wrapped(
@@ -1724,7 +1729,7 @@ class SwitchCaseTagger implements Tagger<SwitchCase> {
 }
 
 TextSerializer<SwitchCase> switchCaseCaseSerializer =
-    Wrapped<Tuple2<String, SwitchCase>, SwitchCase>(
+    Wrapped<Tuple2<String?, SwitchCase>, SwitchCase>(
         (w) => Tuple2("L", w),
         (u) => u.second,
         Binder(Wrapped<List<Expression>, SwitchCase>(
@@ -1733,7 +1738,7 @@ TextSerializer<SwitchCase> switchCaseCaseSerializer =
             ListSerializer(expressionSerializer))));
 
 TextSerializer<SwitchCase> switchCaseDefaultSerializer = Wrapped<
-        Tuple2<String, SwitchCase>, SwitchCase>(
+        Tuple2<String?, SwitchCase>, SwitchCase>(
     (w) => Tuple2("L", w),
     (u) => u.second,
     Binder(
@@ -1750,7 +1755,7 @@ TextSerializer<ContinueSwitchStatement> continueSwitchStatementSerializer =
 
 TextSerializer<FunctionDeclaration> functionDeclarationSerializer =
     Wrapped<Tuple2<VariableDeclaration, FunctionNode>, FunctionDeclaration>(
-        (w) => Tuple2(w.variable, w.function!),
+        (w) => Tuple2(w.variable, w.function),
         (u) => FunctionDeclaration(u.first, u.second),
         Rebind(variableDeclarationSerializer, functionNodeSerializer));
 
@@ -1838,8 +1843,7 @@ const Map<int, String> procedureFlagToName = const {
   Procedure.FlagAbstract: "abstract",
   Procedure.FlagExternal: "external",
   Procedure.FlagConst: "const",
-  Procedure.FlagRedirectingFactoryConstructor:
-      "redirecting-factory-constructor",
+  Procedure.FlagRedirectingFactory: "redirecting-factory-constructor",
   Procedure.FlagExtensionMember: "extension-member",
   Procedure.FlagNonNullableByDefault: "non-nullable-by-default",
   Procedure.FlagSynthetic: "synthetic",
@@ -1908,20 +1912,18 @@ TextSerializer<int> constructorFlagsSerializer = Wrapped<List<int>, int>(
     ListSerializer(
         Case(ConstructorFlagTagger(), convertFlagsMap(constructorFlagToName))));
 
-const Map<int, String> redirectingFactoryConstructorFlagToName = const {
-  RedirectingFactoryConstructor.FlagConst: "const",
-  RedirectingFactoryConstructor.FlagExternal: "external",
-  RedirectingFactoryConstructor.FlagNonNullableByDefault:
-      "non-nullable-by-default",
+const Map<int, String> redirectingFactoryFlagToName = const {
+  RedirectingFactory.FlagConst: "const",
+  RedirectingFactory.FlagExternal: "external",
+  RedirectingFactory.FlagNonNullableByDefault: "non-nullable-by-default",
 };
 
-class RedirectingFactoryConstructorFlagTagger implements Tagger<int> {
-  const RedirectingFactoryConstructorFlagTagger();
+class RedirectingFactoryFlagTagger implements Tagger<int> {
+  const RedirectingFactoryFlagTagger();
 
   String tag(int flag) {
-    return redirectingFactoryConstructorFlagToName[flag] ??
-        (throw StateError(
-            "Unknown RedirectingFactoryConstructor flag value: ${flag}."));
+    return redirectingFactoryFlagToName[flag] ??
+        (throw StateError("Unknown RedirectingFactory flag value: ${flag}."));
   }
 }
 
@@ -1931,8 +1933,8 @@ TextSerializer<int> redirectingFactoryConstructorFlagsSerializer =
             .where((f) => f != 0)
             .toList(),
         (u) => u.fold(0, (fs, f) => fs |= f),
-        ListSerializer(Case(RedirectingFactoryConstructorFlagTagger(),
-            convertFlagsMap(redirectingFactoryConstructorFlagToName))));
+        ListSerializer(Case(RedirectingFactoryFlagTagger(),
+            convertFlagsMap(redirectingFactoryFlagToName))));
 
 class MemberTagger implements Tagger<Member> {
   const MemberTagger();
@@ -1942,7 +1944,7 @@ class MemberTagger implements Tagger<Member> {
       return node.hasSetter ? "mutable-field" : "immutable-field";
     } else if (node is Constructor) {
       return "constructor";
-    } else if (node is RedirectingFactoryConstructor) {
+    } else if (node is RedirectingFactory) {
       return "redirecting-factory-constructor";
     } else if (node is Procedure) {
       switch (node.kind) {
@@ -1966,117 +1968,98 @@ class MemberTagger implements Tagger<Member> {
 }
 
 TextSerializer<Field> mutableFieldSerializer =
-    Wrapped<Tuple4<Name, int, DartType, Expression?>, Field>(
-        (w) => Tuple4(w.name!, w.flags, w.type, w.initializer),
-        (u) => Field.mutable(u.first, type: u.third, initializer: u.fourth)
+    Wrapped<Tuple5<Name, int, DartType, Expression?, Uri>, Field>(
+        (w) => Tuple5(w.name, w.flags, w.type, w.initializer, w.fileUri),
+        (u) => Field.mutable(u.first,
+            type: u.third, initializer: u.fourth, fileUri: u.fifth)
           ..flags = u.second,
-        Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
-            dartTypeSerializer, nullableExpressionSerializer));
+        Tuple5Serializer(nameSerializer, fieldFlagsSerializer,
+            dartTypeSerializer, nullableExpressionSerializer, UriSerializer()));
 
 TextSerializer<Field> immutableFieldSerializer =
-    Wrapped<Tuple4<Name, int, DartType, Expression?>, Field>(
-        (w) => Tuple4(w.name!, w.flags, w.type, w.initializer),
-        (u) => Field.immutable(u.first, type: u.third, initializer: u.fourth)
+    Wrapped<Tuple5<Name, int, DartType, Expression?, Uri>, Field>(
+        (w) => Tuple5(w.name, w.flags, w.type, w.initializer, w.fileUri),
+        (u) => Field.immutable(u.first,
+            type: u.third, initializer: u.fourth, fileUri: u.fifth)
           ..flags = u.second,
-        Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
-            dartTypeSerializer, nullableExpressionSerializer));
+        Tuple5Serializer(nameSerializer, fieldFlagsSerializer,
+            dartTypeSerializer, nullableExpressionSerializer, UriSerializer()));
 
 TextSerializer<Procedure> methodSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
         (u) =>
-            Procedure(u.first, ProcedureKind.Method, u.third)..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+            Procedure(u.first, ProcedureKind.Method, u.third, fileUri: u.fourth)
+              ..flags = u.second,
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Procedure> getterSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
         (u) =>
-            Procedure(u.first, ProcedureKind.Getter, u.third)..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+            Procedure(u.first, ProcedureKind.Getter, u.third, fileUri: u.fourth)
+              ..flags = u.second,
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Procedure> setterSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
         (u) =>
-            Procedure(u.first, ProcedureKind.Setter, u.third)..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+            Procedure(u.first, ProcedureKind.Setter, u.third, fileUri: u.fourth)
+              ..flags = u.second,
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Procedure> operatorSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
-        (u) => Procedure(u.first, ProcedureKind.Operator, u.third)
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
+        (u) => Procedure(u.first, ProcedureKind.Operator, u.third,
+            fileUri: u.fourth)
           ..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
-TextSerializer<Procedure> factorySerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
-        (u) => Procedure(u.first, ProcedureKind.Factory, u.third)
-          ..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+TextSerializer<Procedure> factorySerializer = Wrapped<
+        Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+    (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
+    (u) => Procedure(u.first, ProcedureKind.Factory, u.third, fileUri: u.fourth)
+      ..flags = u.second,
+    Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+        functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Constructor> constructorSerializer = Wrapped<
-        Tuple3<Name, int, Tuple2<FunctionNode, List<Initializer>?>>,
+        Tuple4<Name, int, Tuple2<FunctionNode, List<Initializer>?>, Uri>,
         Constructor>(
-    (w) => Tuple3(w.name!, w.flags, Tuple2(w.function!, w.initializers)),
-    (u) =>
-        Constructor(u.third.first, name: u.first, initializers: u.third.second)
-          ..flags = u.second,
-    Tuple3Serializer(nameSerializer, constructorFlagsSerializer,
-        functionNodeWithInitializersSerializer));
+    (w) =>
+        Tuple4(w.name, w.flags, Tuple2(w.function, w.initializers), w.fileUri),
+    (u) => Constructor(u.third.first,
+        name: u.first, initializers: u.third.second, fileUri: u.fourth)
+      ..flags = u.second,
+    Tuple4Serializer(nameSerializer, constructorFlagsSerializer,
+        functionNodeWithInitializersSerializer, UriSerializer()));
 
-TextSerializer<RedirectingFactoryConstructor>
-    redirectingFactoryConstructorSerializer = Wrapped<
-            Tuple4<
-                Name,
-                int,
-                CanonicalName,
-                Tuple2<
-                    List<TypeParameter>,
-                    Tuple4<List<VariableDeclaration>, List<VariableDeclaration>,
-                        List<VariableDeclaration>, List<DartType>>>>,
-            RedirectingFactoryConstructor>(
-        (w) => Tuple4(
-            w.name!,
-            w.flags,
-            w.targetReference!.canonicalName!,
-            Tuple2(
-                w.typeParameters,
-                Tuple4(
-                    w.positionalParameters
-                        .take(w.requiredParameterCount)
-                        .toList(),
-                    w.positionalParameters
-                        .skip(w.requiredParameterCount)
-                        .toList(),
-                    w.namedParameters,
-                    w.typeArguments))),
-        (u) => RedirectingFactoryConstructor(u.third.reference,
+TextSerializer<RedirectingFactory> redirectingFactoryConstructorSerializer
+    // Comment added to direct formatter.
+    = Wrapped<
+            Tuple6<Name, int, FunctionNode, CanonicalName, List<DartType>, Uri>,
+            RedirectingFactory>(
+        (w) => Tuple6(w.name, w.flags, w.function,
+            w.targetReference!.canonicalName!, w.typeArguments, w.fileUri),
+        (u) => RedirectingFactory(u.fourth.reference,
             name: u.first,
-            typeParameters: u.fourth.first,
-            positionalParameters:
-                u.fourth.second.first + u.fourth.second.second,
-            requiredParameterCount: u.fourth.second.first.length,
-            namedParameters: u.fourth.second.third,
-            typeArguments: u.fourth.second.fourth)
+            function: u.third,
+            typeArguments: u.fifth,
+            fileUri: u.sixth)
           ..flags = u.second,
-        Tuple4Serializer(
+        Tuple6Serializer(
             nameSerializer,
             redirectingFactoryConstructorFlagsSerializer,
+            functionNodeSerializer,
             CanonicalNameSerializer(),
-            Bind(
-                typeParametersSerializer,
-                Tuple4Serializer(
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(dartTypeSerializer)))));
+            ListSerializer(dartTypeSerializer),
+            UriSerializer()));
 
 Case<Member> memberSerializer = new Case.uninitialized(const MemberTagger());
 
@@ -2117,11 +2100,11 @@ TextSerializer<int> libraryFlagsSerializer = Wrapped<List<int>, int>(
         Case(LibraryFlagTagger(), convertFlagsMap(libraryFlagToName))));
 
 TextSerializer<Library> librarySerializer = new Wrapped<
-    Tuple7<Uri, int, List<LibraryPart>, List<Member>, List<Class>,
-        List<Typedef>, List<Extension>>,
+    Tuple8<Uri, int, List<LibraryPart>, List<Member>, List<Class>,
+        List<Typedef>, List<Extension>, Uri>,
     Library>(
-  (w) => Tuple7(w.importUri, w.flags, w.parts, [...w.fields, ...w.procedures],
-      w.classes, w.typedefs, w.extensions),
+  (w) => Tuple8(w.importUri, w.flags, w.parts, [...w.fields, ...w.procedures],
+      w.classes, w.typedefs, w.extensions, w.fileUri),
   (u) => Library(u.first,
       parts: u.third,
       fields: u.fourth.where((m) => m is Field).cast<Field>().toList(),
@@ -2129,16 +2112,18 @@ TextSerializer<Library> librarySerializer = new Wrapped<
           u.fourth.where((m) => m is Procedure).cast<Procedure>().toList(),
       classes: u.fifth,
       typedefs: u.sixth,
-      extensions: u.seventh)
+      extensions: u.seventh,
+      fileUri: u.eighth)
     ..flags = u.second,
-  Tuple7Serializer(
+  Tuple8Serializer(
       UriSerializer(),
       libraryFlagsSerializer,
       ListSerializer(libraryPartSerializer),
       ListSerializer(memberSerializer),
       ListSerializer(classSerializer),
       ListSerializer(typedefSerializer),
-      ListSerializer(extensionSerializer)),
+      ListSerializer(extensionSerializer),
+      UriSerializer()),
 );
 
 TextSerializer<Component> componentSerializer =
@@ -2191,12 +2176,20 @@ class ConstantTagger extends ConstantVisitor<String>
   String visitListConstant(ListConstant node) => "const-list";
   String visitMapConstant(MapConstant node) => "const-map";
   String visitNullConstant(NullConstant node) => "const-null";
-  String visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  String visitInstantiationConstant(InstantiationConstant node) =>
       "const-apply";
   String visitSetConstant(SetConstant node) => "const-set";
   String visitStringConstant(StringConstant node) => "const-string";
   String visitSymbolConstant(SymbolConstant node) => "const-symbol";
-  String visitTearOffConstant(TearOffConstant node) => "const-tearoff";
+  String visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      "const-tearoff-static";
+  String visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      "const-tearoff-constructor";
+  String visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      "const-tearoff-redirecting-factory";
+  String visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      "const-tearoff-typedef";
   String visitTypeLiteralConstant(TypeLiteralConstant node) => "const-type";
   String visitUnevaluatedConstant(UnevaluatedConstant node) => "const-expr";
 
@@ -2241,14 +2234,12 @@ TextSerializer<MapConstant> mapConstantSerializer =
 TextSerializer<NullConstant> nullConstantSerializer =
     Wrapped<void, NullConstant>((w) => null, (u) => NullConstant(), Nothing());
 
-TextSerializer<PartialInstantiationConstant>
-    partialInstantiationConstantSerializer = Wrapped<
-            Tuple2<TearOffConstant, List<DartType>>,
-            PartialInstantiationConstant>(
+TextSerializer<InstantiationConstant> instantiationConstantSerializer =
+    Wrapped<Tuple2<Constant, List<DartType>>, InstantiationConstant>(
         (w) => Tuple2(w.tearOffConstant, w.types),
-        (u) => PartialInstantiationConstant(u.first, u.second),
+        (u) => InstantiationConstant(u.first, u.second),
         Tuple2Serializer(
-            tearOffConstantSerializer, ListSerializer(dartTypeSerializer)));
+            constantSerializer, ListSerializer(dartTypeSerializer)));
 
 TextSerializer<SetConstant> setConstantSerializer =
     Wrapped<Tuple2<DartType, List<Constant>>, SetConstant>(
@@ -2267,11 +2258,47 @@ TextSerializer<SymbolConstant> symbolConstantSerializer =
         (u) => SymbolConstant(u.first, u.second?.reference),
         Tuple2Serializer(DartString(), Optional(CanonicalNameSerializer())));
 
-TextSerializer<TearOffConstant> tearOffConstantSerializer =
-    Wrapped<CanonicalName, TearOffConstant>(
-        (w) => w.procedureReference.canonicalName!,
-        (u) => TearOffConstant.byReference(u.reference),
+TextSerializer<StaticTearOffConstant> staticTearOffConstantSerializer =
+    Wrapped<CanonicalName, StaticTearOffConstant>(
+        (w) => w.targetReference.canonicalName!,
+        (u) => StaticTearOffConstant.byReference(u.reference),
         CanonicalNameSerializer());
+
+TextSerializer<ConstructorTearOffConstant>
+    constructorTearOffConstantSerializer =
+    Wrapped<CanonicalName, ConstructorTearOffConstant>(
+        (w) => w.targetReference.canonicalName!,
+        (u) => ConstructorTearOffConstant.byReference(u.reference),
+        CanonicalNameSerializer());
+
+TextSerializer<RedirectingFactoryTearOffConstant>
+    redirectingFactoryTearOffConstantSerializer =
+    Wrapped<CanonicalName, RedirectingFactoryTearOffConstant>(
+        (w) => w.targetReference.canonicalName!,
+        (u) => RedirectingFactoryTearOffConstant.byReference(u.reference),
+        CanonicalNameSerializer());
+
+final TextSerializer<TypedefTearOffConstant> typedefTearOffConstantSerializer =
+    new Wrapped<Tuple2<List<TypeParameter>, Tuple2<Constant, List<DartType>>>,
+            TypedefTearOffConstant>(
+        unwrapTypedefTearOffConstant,
+        wrapTypedefTearOffConstant,
+        Bind(
+            typeParametersSerializer,
+            Tuple2Serializer(
+                constantSerializer, ListSerializer(dartTypeSerializer))));
+
+Tuple2<List<TypeParameter>, Tuple2<Constant, List<DartType>>>
+    unwrapTypedefTearOffConstant(TypedefTearOffConstant node) {
+  return new Tuple2(
+      node.parameters, new Tuple2(node.tearOffConstant, node.types));
+}
+
+TypedefTearOffConstant wrapTypedefTearOffConstant(
+    Tuple2<List<TypeParameter>, Tuple2<Constant, List<DartType>>> tuple) {
+  return new TypedefTearOffConstant(
+      tuple.first, tuple.second.first as TearOffConstant, tuple.second.second);
+}
 
 TextSerializer<TypeLiteralConstant> typeLiteralConstantSerializer =
     Wrapped<DartType, TypeLiteralConstant>(
@@ -2387,43 +2414,47 @@ TextSerializer<int> classFlagsSerializer = Wrapped<List<int>, int>(
     ListSerializer(Case(ClassFlagTagger(), convertFlagsMap(classFlagToName))));
 
 TextSerializer<Class> classSerializer = Wrapped<
-        Tuple3<
+        Tuple4<
             String,
             int,
+            Uri,
             Tuple2<
                 List<TypeParameter>,
                 /* Comment added to guide formatting. */
                 Tuple4<Supertype?, Supertype?, List<Supertype>, List<Member>>>>,
         Class>(
-    (w) => Tuple3(
+    (w) => Tuple4(
         w.name,
         w.flags,
+        w.fileUri,
         Tuple2(
             w.typeParameters,
             Tuple4(w.supertype, w.mixedInType, w.implementedTypes,
                 <Member>[...w.fields, ...w.constructors, ...w.procedures]))),
     (u) => Class(
         name: u.first,
-        typeParameters: u.third.first,
-        supertype: u.third.second.first,
-        mixedInType: u.third.second.second,
-        implementedTypes: u.third.second.third,
-        fields: u.third.second.fourth
+        typeParameters: u.fourth.first,
+        supertype: u.fourth.second.first,
+        mixedInType: u.fourth.second.second,
+        implementedTypes: u.fourth.second.third,
+        fields: u.fourth.second.fourth
             .where((m) => m is Field)
             .cast<Field>()
             .toList(),
-        constructors: u.third.second.fourth
+        constructors: u.fourth.second.fourth
             .where((m) => m is Constructor)
             .cast<Constructor>()
             .toList(),
-        procedures: u.third.second.fourth
+        procedures: u.fourth.second.fourth
             .where((m) => m is Procedure)
             .cast<Procedure>()
-            .toList())
+            .toList(),
+        fileUri: u.third)
       ..flags = u.second,
-    Tuple3Serializer(
+    Tuple4Serializer(
         DartString(),
         classFlagsSerializer,
+        UriSerializer(),
         Bind(
             typeParametersSerializer,
             Tuple4Serializer(
@@ -2432,13 +2463,13 @@ TextSerializer<Class> classSerializer = Wrapped<
                 ListSerializer(supertypeSerializer),
                 ListSerializer(memberSerializer)))));
 
-TextSerializer<Typedef> typedefSerializer =
-    Wrapped<Tuple2<String, Tuple2<List<TypeParameter>, DartType>>, Typedef>(
-        (w) => Tuple2(w.name, Tuple2(w.typeParameters, w.type!)),
-        (u) =>
-            Typedef(u.first, u.second.second, typeParameters: u.second.first),
-        Tuple2Serializer(
-            DartString(), Bind(typeParametersSerializer, dartTypeSerializer)));
+TextSerializer<Typedef> typedefSerializer = Wrapped<
+        Tuple3<String, Tuple2<List<TypeParameter>, DartType>, Uri>, Typedef>(
+    (w) => Tuple3(w.name, Tuple2(w.typeParameters, w.type!), w.fileUri),
+    (u) => Typedef(u.first, u.second.second,
+        typeParameters: u.second.first, fileUri: u.third),
+    Tuple3Serializer(DartString(),
+        Bind(typeParametersSerializer, dartTypeSerializer), UriSerializer()));
 
 const Map<int, String> extensionMemberDescriptorFlagToName = const {
   ExtensionMemberDescriptor.FlagStatic: "static",
@@ -2498,19 +2529,22 @@ TextSerializer<ExtensionMemberDescriptor> extensionMemberDescriptorSerializer =
             CanonicalNameSerializer()));
 
 TextSerializer<Extension> extensionSerializer = Wrapped<
-        Tuple3<String, Tuple2<List<TypeParameter>, DartType>,
-            List<ExtensionMemberDescriptor>>,
+        Tuple4<String, Tuple2<List<TypeParameter>, DartType>,
+            List<ExtensionMemberDescriptor>, Uri>,
         Extension>(
-    (w) => Tuple3(w.name, Tuple2(w.typeParameters, w.onType), w.members),
+    (w) => Tuple4(
+        w.name, Tuple2(w.typeParameters, w.onType), w.members, w.fileUri),
     (u) => Extension(
         name: u.first,
         typeParameters: u.second.first,
         onType: u.second.second,
-        members: u.third),
-    Tuple3Serializer(
+        members: u.third,
+        fileUri: u.fourth),
+    Tuple4Serializer(
         DartString(),
         Bind(typeParametersSerializer, dartTypeSerializer),
-        ListSerializer(extensionMemberDescriptorSerializer)));
+        ListSerializer(extensionMemberDescriptorSerializer),
+        UriSerializer()));
 
 void initializeSerializers() {
   expressionSerializer.registerTags({
@@ -2540,8 +2574,6 @@ void initializeSerializers() {
     "map": mapLiteralSerializer,
     "const-map": constMapLiteralSerializer,
     "let": letSerializer,
-    "get-prop": propertyGetSerializer,
-    "set-prop": propertySetSerializer,
     "get-instance": instanceGetSerializer,
     "set-instance": instanceSetSerializer,
     "get-dynamic": dynamicGetSerializer,
@@ -2550,7 +2582,6 @@ void initializeSerializers() {
     "tearoff-function": functionTearOffSerializer,
     "get-super": superPropertyGetSerializer,
     "set-super": superPropertySetSerializer,
-    "invoke-method": methodInvocationSerializer,
     "invoke-instance": instanceInvocationSerializer,
     "invoke-instance-getter": instanceGetterInvocationSerializer,
     "invoke-dynamic": dynamicInvocationSerializer,
@@ -2563,7 +2594,10 @@ void initializeSerializers() {
     "set-var": variableSetSerializer,
     "get-static": staticGetSerializer,
     "set-static": staticSetSerializer,
-    "tearoff-static": staticGetSerializer,
+    "tearoff-static": staticTearOffSerializer,
+    "tearoff-constructor": constructorTearOffSerializer,
+    "tearoff-redirecting-factory": redirectingFactoryTearOffSerializer,
+    "tearoff-typedef": typedefTearOffSerializer,
     "invoke-static": staticInvocationSerializer,
     "invoke-const-static": constStaticInvocationSerializer,
     "invoke-constructor": constructorInvocationSerializer,
@@ -2636,11 +2670,15 @@ void initializeSerializers() {
     "const-list": listConstantSerializer,
     "const-map": mapConstantSerializer,
     "const-null": nullConstantSerializer,
-    "const-apply": partialInstantiationConstantSerializer,
+    "const-apply": instantiationConstantSerializer,
     "const-set": setConstantSerializer,
     "const-string": stringConstantSerializer,
     "const-symbol": symbolConstantSerializer,
-    "const-tearoff": tearOffConstantSerializer,
+    "const-tearoff-static": staticTearOffConstantSerializer,
+    "const-tearoff-constructor": constructorTearOffConstantSerializer,
+    "const-tearoff-redirecting-factory":
+        redirectingFactoryTearOffConstantSerializer,
+    "const-tearoff-typedef": typedefTearOffConstantSerializer,
     "const-type": typeLiteralConstantSerializer,
     "const-expr": unevaluatedConstantSerializer,
     "const-object": instanceConstantSerializer,

@@ -259,8 +259,16 @@ class DateTime implements Comparable<DateTime> {
   /// * `"2012-02-27T14+00:00"`
   /// * `"-123450101 00:00:00 Z"`: in the year -12345.
   /// * `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
-  // TODO(lrn): restrict incorrect values like  2003-02-29T50:70:80.
-  // Or not, that may be a breaking change.
+  ///
+  /// This method accepts out-of-range component values and interprets
+  /// them as overflows into the next larger component.
+  /// For example, "2020-01-42" will be parsed as 2020-02-11, because
+  /// the last valid date in that month is 2020-01-31, so 42 days is
+  /// interprted as 31 days of that month plus 11 days into the next month.
+  ///
+  /// To detect and reject invalid component values, use
+  /// [DateFormat.parseStrict](https://pub.dev/documentation/intl/latest/intl/DateFormat/parseStrict.html)
+  /// from the [intl](https://pub.dev/packages/intl) package.
   static DateTime parse(String formattedString) {
     var re = _parseFormat;
     Match? match = re.firstMatch(formattedString);
@@ -709,7 +717,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get year;
 
-  /// The month [1..12].
+  /// The month `[1..12]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -718,7 +726,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get month;
 
-  /// The day of the month [1..31].
+  /// The day of the month `[1..31]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -726,7 +734,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get day;
 
-  /// The hour of the day, expressed as in a 24-hour clock [0..23].
+  /// The hour of the day, expressed as in a 24-hour clock `[0..23]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -734,7 +742,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get hour;
 
-  /// The minute [0...59].
+  /// The minute `[0...59]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -742,7 +750,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get minute;
 
-  /// The second [0...59].
+  /// The second `[0...59]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -750,7 +758,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get second;
 
-  /// The millisecond [0...999].
+  /// The millisecond `[0...999]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -758,7 +766,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get millisecond;
 
-  /// The microsecond [0...999].
+  /// The microsecond `[0...999]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");

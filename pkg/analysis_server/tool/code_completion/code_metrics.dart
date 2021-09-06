@@ -1398,7 +1398,7 @@ class CodeShapeMetricsComputer {
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult is! ResolvedUnitResult) {
             print('File $filePath skipped because it could not be analyzed.');
             print('');
             continue;
@@ -1411,7 +1411,7 @@ class CodeShapeMetricsComputer {
             continue;
           }
 
-          resolvedUnitResult.unit!.accept(collector);
+          resolvedUnitResult.unit.accept(collector);
         } catch (exception) {
           print('Exception caught analyzing: "$filePath"');
           print(exception.toString());

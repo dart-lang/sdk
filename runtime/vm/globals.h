@@ -33,6 +33,16 @@ const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
 const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
 const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
+#if defined(DART_COMPRESSED_POINTERS)
+static constexpr int kCompressedWordSize = kInt32Size;
+static constexpr int kCompressedWordSizeLog2 = kInt32SizeLog2;
+typedef uint32_t compressed_uword;
+#else
+static constexpr int kCompressedWordSize = kWordSize;
+static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
+typedef uintptr_t compressed_uword;
+#endif
+
 // Number of bytes per BigInt digit.
 const intptr_t kBytesPerBigIntDigit = 4;
 
@@ -98,7 +108,8 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
 #define NOT_IN_PRECOMPILED_RUNTIME(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(PRODUCT) || defined(HOST_OS_FUCHSIA) || defined(TARGET_OS_FUCHSIA)
+#if !defined(PRODUCT) || defined(DART_HOST_OS_FUCHSIA) ||                      \
+    defined(DART_TARGET_OS_FUCHSIA)
 #define SUPPORT_TIMELINE 1
 #endif
 
@@ -146,7 +157,7 @@ typedef uword cpp_vtable;
 
 // When using GCC we can use GCC attributes to ensure that certain
 // constants are 8 or 16 byte aligned.
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 #define ALIGN8 __declspec(align(8))
 #define ALIGN16 __declspec(align(16))
 #else
@@ -162,7 +173,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #endif
 
 // Macros to get the contents of the fp register.
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 
 // clang-format off
 #if defined(HOST_ARCH_IA32)
@@ -178,13 +189,13 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #error Unknown host architecture.
 #endif
 
-#else  // !defined(HOST_OS_WINDOWS))
+#else  // !defined(DART_HOST_OS_WINDOWS))
 
 // Assume GCC-compatible builtins.
 #define COPY_FP_REGISTER(fp)                                                   \
   fp = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
 
-#endif  // !defined(HOST_OS_WINDOWS))
+#endif  // !defined(DART_HOST_OS_WINDOWS))
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)

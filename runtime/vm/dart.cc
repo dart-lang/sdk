@@ -103,7 +103,8 @@ static void CheckOffsets() {
     ok = false;                                                                \
   }
 
-// No consistency checks needed for this construct.
+// No consistency checks needed for these constructs.
+#define CHECK_ARRAY_SIZEOF(Class, Name, ElementOffset)
 #define CHECK_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -131,8 +132,16 @@ static void CheckOffsets() {
   CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
                Class##_elements_start_offset);                                 \
   CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size);
+#if defined(DART_PRECOMPILER)
+// Objects in precompiler may have extra fields only used during
+// precompilation (such as Class::target_instance_size_in_words_),
+// so size of objects in precompiler doesn't necessarily match
+// size of objects at run time.
+#define CHECK_SIZEOF(Class, Name, What)
+#else
 #define CHECK_SIZEOF(Class, Name, What)                                        \
   CHECK_OFFSET(sizeof(What), Class##_##Name);
+#endif  // defined(DART_PRECOMPILER)
 #define CHECK_RANGE(Class, Getter, Type, First, Last, Filter)                  \
   for (intptr_t i = static_cast<intptr_t>(First);                              \
        i <= static_cast<intptr_t>(Last); i++) {                                \
@@ -144,11 +153,16 @@ static void CheckOffsets() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
-                      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT)
+                      CHECK_ARRAY_SIZEOF, CHECK_PAYLOAD_SIZEOF, CHECK_RANGE,
+                      CHECK_CONSTANT)
 
-  NOT_IN_PRECOMPILED_RUNTIME(
-      JIT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
-                       CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
+      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_ARRAY_SIZEOF,
+      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+
+  ONLY_IN_PRECOMPILED(AOT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                                       CHECK_ARRAY_SIZEOF, CHECK_PAYLOAD_SIZEOF,
+                                       CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(
@@ -206,14 +220,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     if (error != nullptr) {
       return error;
     }
-  }
-  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
-    return Utils::StrDup(
-        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
-  }
-  // TODO(cskau): Remove once flag deprecation has been completed.
-  if (FLAG_causal_async_stacks) {
-    return Utils::StrDup("--causal-async-stacks is deprecated!");
   }
 
   UntaggedFrame::Init();
@@ -295,6 +301,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     vm_isolate_->isolate_object_store()->Init();
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
+    OffsetsTable::Init();
     ArgumentsDescriptor::Init();
     ICData::Init();
     SubtypeTestCache::Init();
@@ -629,6 +636,7 @@ char* Dart::Cleanup() {
   ICData::Cleanup();
   SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
+  OffsetsTable::Cleanup();
   TargetCPUFeatures::Cleanup();
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();
@@ -851,7 +859,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   Object::VerifyBuiltinVtables();
-  DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+  if (T->isolate()->origin_id() == 0) {
+    DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+  }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool kIsAotRuntime = true;
@@ -861,16 +871,32 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   if (kIsAotRuntime || was_child_cloned_into_existing_isolate) {
 #if !defined(TARGET_ARCH_IA32)
-    ASSERT(IG->object_store()->build_method_extractor_code() != Code::null());
+    ASSERT(IG->object_store()->build_generic_method_extractor_code() !=
+           Code::null());
+    ASSERT(IG->object_store()->build_nongeneric_method_extractor_code() !=
+           Code::null());
 #endif
   } else {
 #if !defined(TARGET_ARCH_IA32)
     if (I != Dart::vm_isolate()) {
-      if (IG->object_store()->build_method_extractor_code() != nullptr) {
+      if (IG->object_store()->build_generic_method_extractor_code() !=
+          nullptr) {
         SafepointWriteRwLocker ml(T, IG->program_lock());
-        if (IG->object_store()->build_method_extractor_code() != nullptr) {
-          IG->object_store()->set_build_method_extractor_code(
-              Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
+        if (IG->object_store()->build_generic_method_extractor_code() !=
+            nullptr) {
+          IG->object_store()->set_build_generic_method_extractor_code(
+              Code::Handle(
+                  StubCode::GetBuildGenericMethodExtractorStub(nullptr)));
+        }
+      }
+      if (IG->object_store()->build_nongeneric_method_extractor_code() !=
+          nullptr) {
+        SafepointWriteRwLocker ml(T, IG->program_lock());
+        if (IG->object_store()->build_nongeneric_method_extractor_code() !=
+            nullptr) {
+          IG->object_store()->set_build_nongeneric_method_extractor_code(
+              Code::Handle(
+                  StubCode::GetBuildNonGenericMethodExtractorStub(nullptr)));
         }
       }
     }
@@ -966,14 +992,10 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
                              FLAG_use_field_guards);
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
-#if !defined(PRODUCT)
-    buffer.AddString(FLAG_code_comments ? " code-comments"
-                                        : " no-code-comments");
-#endif
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     buffer.AddString(" arm-ios");
 #else
     buffer.AddString(" arm-eabi");
@@ -981,7 +1003,7 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
     buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
                                                            : " softfp");
 #elif defined(TARGET_ARCH_ARM64)
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA)
     // See signal handler cheat in Assembler::EnterFrame.
     buffer.AddString(" arm64-fuchsia");
 #else
@@ -990,7 +1012,7 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #elif defined(TARGET_ARCH_IA32)
     buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
     buffer.AddString(" x64-win");
 #else
     buffer.AddString(" x64-sysv");

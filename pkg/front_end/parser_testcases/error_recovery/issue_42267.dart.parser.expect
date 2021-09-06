@@ -3,10 +3,10 @@ NOTICE: Stream was rewritten by parser!
 void main() {
 builder..foo[bar];
 FilterSet((builder) => builder..foo[bar]);
-builder..foo[];
-FilterSet((builder) => builder..foo[]);
-builder..foo[ ];
-FilterSet((builder) => builder..foo[ ]);
+builder..foo[*synthetic*];
+FilterSet((builder) => builder..foo[*synthetic*]);
+builder..foo[ *synthetic*];
+FilterSet((builder) => builder..foo[ *synthetic*]);
 }
 
 void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]

@@ -96,8 +96,8 @@ const FpuRegister FpuTMP = XMM15;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
-extern const char* cpu_reg_names[kNumberOfCpuRegisters];
-extern const char* fpu_reg_names[kNumberOfXmmRegisters];
+extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 enum RexBits {
   REX_NONE = 0,
@@ -129,9 +129,6 @@ const Register kWriteBarrierObjectReg = RDX;
 const Register kWriteBarrierValueReg = RAX;
 const Register kWriteBarrierSlotReg = R13;
 
-// ABI for allocation stubs.
-const Register kAllocationStubTypeArgumentsReg = RDX;
-
 // Common ABI for shared slow path stubs.
 struct SharedSlowPathStubABI {
   static const Register kResultReg = RAX;
@@ -160,11 +157,11 @@ struct TTSInternalRegs {
 // implementation of subtype test cache stubs that are _not_ preserved.
 struct STCInternalRegs {
   static const Register kCacheEntryReg = RDI;
-  static const Register kInstanceCidOrFunctionReg = R10;
+  static const Register kInstanceCidOrSignatureReg = R10;
   static const Register kInstanceInstantiatorTypeArgumentsReg = R13;
 
   static const intptr_t kInternalRegisters =
-      (1 << kCacheEntryReg) | (1 << kInstanceCidOrFunctionReg) |
+      (1 << kCacheEntryReg) | (1 << kInstanceCidOrSignatureReg) |
       (1 << kInstanceInstantiatorTypeArgumentsReg);
 };
 
@@ -263,16 +260,43 @@ struct RangeErrorABI {
   static const Register kIndexReg = RBX;
 };
 
-// ABI for AllocateMint*Stub.
-struct AllocateMintABI {
+// ABI for AllocateObjectStub.
+struct AllocateObjectABI {
   static const Register kResultReg = RAX;
+  static const Register kTypeArgumentsReg = RDX;
+};
+
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFunctionReg = RBX;
+  static const Register kContextReg = RDX;
+  static const Register kScratchReg = R13;
+};
+
+// ABI for AllocateMintShared*Stub.
+struct AllocateMintABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kTempReg = RBX;
 };
 
-// ABI for Allocate<TypedData>ArrayStub.
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kTempReg = RBX;
+};
+
+// ABI for AllocateArrayStub.
+struct AllocateArrayABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kLengthReg = R10;
+  static const Register kTypeArgumentsReg = RBX;
+};
+
+// ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
-  static const Register kLengthReg = RAX;
-  static const Register kResultReg = RAX;
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kLengthReg = kResultReg;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
@@ -318,13 +342,19 @@ enum ScaleFactor {
 #else
 #error "Unexpected word size"
 #endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
+#endif
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 #define R(reg) (1 << (reg))
 
 class CallingConventions {
  public:
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
   static const Register kArg1Reg = RCX;
   static const Register kArg2Reg = RDX;
   static const Register kArg3Reg = R8;
@@ -388,7 +418,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 
   // Whether 1 or 2 byte-sized arguments or return values are passed extended
@@ -453,7 +483,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 
   // Whether 1 or 2 byte-sized arguments or return values are passed extended

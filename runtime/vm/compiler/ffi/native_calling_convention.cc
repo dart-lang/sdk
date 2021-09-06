@@ -31,7 +31,7 @@ static bool SoftFpAbi() {
 }
 #else  // !defined(FFI_UNIT_TESTS)
 static bool SoftFpAbi() {
-#if defined(TARGET_ARCH_ARM) && defined(TARGET_OS_ANDROID)
+#if defined(TARGET_ARCH_ARM) && defined(DART_TARGET_OS_ANDROID)
   return true;
 #else
   return false;
@@ -135,7 +135,7 @@ class ArgumentAllocator : public ValueObject {
     return AllocateStack(payload_type);
   }
 
-#if defined(TARGET_ARCH_X64) && !defined(TARGET_OS_WINDOWS)
+#if defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
   // If fits in two fpu and/or cpu registers, transfer in those. Otherwise,
   // transfer on stack.
   const NativeLocation& AllocateCompound(
@@ -177,9 +177,9 @@ class ArgumentAllocator : public ValueObject {
     }
     return AllocateStack(payload_type);
   }
-#endif  // defined(TARGET_ARCH_X64) && !defined(TARGET_OS_WINDOWS)
+#endif  // defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
 
-#if defined(TARGET_ARCH_X64) && defined(TARGET_OS_WINDOWS)
+#if defined(TARGET_ARCH_X64) && defined(DART_TARGET_OS_WINDOWS)
   // If struct fits in a single register and size is a power of two, then
   // use a single register and sign extend.
   // Otherwise, pass a pointer to a copy.
@@ -209,7 +209,7 @@ class ArgumentAllocator : public ValueObject {
 
     return AllocateStack(payload_type);
   }
-#endif  // defined(TARGET_ARCH_X64) && defined(TARGET_OS_WINDOWS)
+#endif  // defined(TARGET_ARCH_X64) && defined(DART_TARGET_OS_WINDOWS)
 
 #if defined(TARGET_ARCH_IA32)
   const NativeLocation& AllocateCompound(
@@ -383,6 +383,7 @@ class ArgumentAllocator : public ValueObject {
         payload_type, container_type, CallingConventions::kStackPointerRegister,
         stack_height_in_bytes);
     stack_height_in_bytes += size;
+    align_stack(payload_type.AlignmentInBytesStack());
     return result;
   }
 
@@ -511,7 +512,7 @@ static const NativeLocation& PointerToMemoryResultLocation(
 }
 #endif  // defined(TARGET_ARCH_IA32)
 
-#if defined(TARGET_ARCH_X64) && !defined(TARGET_OS_WINDOWS)
+#if defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
 static const NativeLocation& CompoundResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
@@ -563,9 +564,9 @@ static const NativeLocation& CompoundResultLocation(
   }
   return PointerToMemoryResultLocation(zone, payload_type);
 }
-#endif  // defined(TARGET_ARCH_X64) && !defined(TARGET_OS_WINDOWS)
+#endif  // defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
 
-#if defined(TARGET_ARCH_X64) && defined(TARGET_OS_WINDOWS)
+#if defined(TARGET_ARCH_X64) && defined(DART_TARGET_OS_WINDOWS)
 // If struct fits in a single register do that, and sign extend.
 // Otherwise, pass a pointer to memory.
 static const NativeLocation& CompoundResultLocation(
@@ -583,17 +584,17 @@ static const NativeLocation& CompoundResultLocation(
   }
   return PointerToMemoryResultLocation(zone, payload_type);
 }
-#endif  // defined(TARGET_ARCH_X64) && defined(TARGET_OS_WINDOWS)
+#endif  // defined(TARGET_ARCH_X64) && defined(DART_TARGET_OS_WINDOWS)
 
-#if defined(TARGET_ARCH_IA32) && !defined(TARGET_OS_WINDOWS)
+#if defined(TARGET_ARCH_IA32) && !defined(DART_TARGET_OS_WINDOWS)
 static const NativeLocation& CompoundResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
   return PointerToMemoryResultLocation(zone, payload_type);
 }
-#endif  // defined(TARGET_ARCH_IA32) && !defined(TARGET_OS_WINDOWS)
+#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_TARGET_OS_WINDOWS)
 
-#if defined(TARGET_ARCH_IA32) && defined(TARGET_OS_WINDOWS)
+#if defined(TARGET_ARCH_IA32) && defined(DART_TARGET_OS_WINDOWS)
 // Windows uses up to two return registers, while Linux does not.
 static const NativeLocation& CompoundResultLocation(
     Zone* zone,
@@ -614,7 +615,7 @@ static const NativeLocation& CompoundResultLocation(
   }
   return PointerToMemoryResultLocation(zone, payload_type);
 }
-#endif  // defined(TARGET_ARCH_IA32) && defined(TARGET_OS_WINDOWS)
+#endif  // defined(TARGET_ARCH_IA32) && defined(DART_TARGET_OS_WINDOWS)
 
 #if defined(TARGET_ARCH_ARM)
 // Arm passes homogenous float return values in FPU registers and small
@@ -715,6 +716,11 @@ intptr_t NativeCallingConvention::StackTopInBytes() const {
   for (intptr_t i = 0; i < num_arguments; i++) {
     max_height_in_bytes = Utils::Maximum(
         max_height_in_bytes, argument_locations_[i]->StackTopInBytes());
+  }
+  if (return_location_.IsPointerToMemory()) {
+    const auto& ret_loc = return_location_.AsPointerToMemory();
+    max_height_in_bytes =
+        Utils::Maximum(max_height_in_bytes, ret_loc.StackTopInBytes());
   }
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
 }

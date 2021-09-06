@@ -1,6 +1,8 @@
 // Bug found by DartFuzz (stripped down version):
 // https://github.com/dart-lang/sdk/issues/36076
 
+// @dart = 2.9
+
 // Code does not do anything, but broke kernel binary flow graph builder.
 
 foo() {

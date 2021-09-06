@@ -411,7 +411,7 @@ void SharedClassTable::Unregister(intptr_t index) {
 }
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   const intptr_t num_cids = NumCids();
   std::unique_ptr<ClassPtr[]> cls_by_old_cid(new ClassPtr[num_cids]);
   auto* table = table_.load();
@@ -422,7 +422,7 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
 }
 
 void SharedClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   const intptr_t num_cids = NumCids();
   std::unique_ptr<intptr_t[]> size_by_old_cid(new intptr_t[num_cids]);
   auto* table = table_.load();
@@ -519,10 +519,17 @@ void ClassTable::SetAt(intptr_t cid, ClassPtr raw_cls) {
 
   // This is called by snapshot reader and class finalizer.
   ASSERT(cid < capacity_);
+  UpdateClassSize(cid, raw_cls);
+  table_.load()[cid] = raw_cls;
+}
+
+void ClassTable::UpdateClassSize(intptr_t cid, ClassPtr raw_cls) {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(!IsTopLevelCid(cid));  // "top-level" classes don't get instantiated
+  ASSERT(cid < capacity_);
   const intptr_t size =
       raw_cls == nullptr ? 0 : Class::host_instance_size(raw_cls);
   shared_class_table_->SetSizeAt(cid, size);
-  table_.load()[cid] = raw_cls;
 }
 
 #ifndef PRODUCT
@@ -538,10 +545,6 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
       }
     }
   }
-}
-
-bool SharedClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
-  return !IsVariableSizeClassId(cid);
 }
 
 intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {

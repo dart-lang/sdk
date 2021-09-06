@@ -12,13 +12,14 @@ import 'dart:isolate' show ReceivePort;
 
 import 'log.dart';
 
-Future<T> withErrorHandling<T>(Future<T> f(), {Logger logger}) async {
+Future<T?> withErrorHandling<T>(Future<T> f(), {Logger? logger}) async {
   final ReceivePort port = new ReceivePort();
   try {
     return await f();
   } catch (e, trace) {
     exitCode = 1;
     stderr.writeln(e);
+    // ignore: unnecessary_null_comparison
     if (trace != null) {
       stderr.writeln(trace);
     }

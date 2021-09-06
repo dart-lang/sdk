@@ -216,17 +216,8 @@ void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
 
   const intptr_t entries_count = entry_block_->indirect_entries().length();
 
-  TypedData& offsets = TypedData::ZoneHandle(
-      Z, TypedData::New(kTypedDataInt32ArrayCid, entries_count, Heap::kOld));
-
-  Value* block_offsets_push = Bind(new (Z) ConstantInstr(offsets));
   Value* block_id_push = Bind(PopStack());
-
-  Value* offset_value =
-      Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                        block_offsets_push, block_id_push));
-
-  backtrack_goto_ = new (Z) IndirectGotoInstr(&offsets, offset_value);
+  backtrack_goto_ = new (Z) IndirectGotoInstr(entries_count, block_id_push);
   CloseBlockWith(backtrack_goto_);
 
   // Add an edge from the "indirect" goto to each of the targets.

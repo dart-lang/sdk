@@ -36,7 +36,7 @@ void main() {
 main() {
   // Make sure that class A, B and C are emitted in that order. For simplicity
   // we just verify that their members are in the correct order.
-  RegExp regexp = new RegExp(r"foo\$0?:(.|\n)*bar\$0:(.|\n)*gee\$0:");
+  RegExp regexp = new RegExp(r"foo\$0?\((.|\n)*bar\$0\((.|\n)*gee\$0\(");
 
   runTests() async {
     String generated1 = await compileAll(TEST_ONE);

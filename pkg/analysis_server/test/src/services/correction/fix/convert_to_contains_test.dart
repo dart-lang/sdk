@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToContainsBulkTest);
     defineReflectiveTests(ConvertToContainsTest);
   });
+}
+
+@reflectiveTest
+class ConvertToContainsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_contains;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+bool f(List<int> list, int value) {
+  return -1 != list.indexOf(value);
+}
+
+bool f2(List<int> list, int value) {
+  return 0 > list.indexOf(value);
+}
+''');
+    await assertHasFix('''
+bool f(List<int> list, int value) {
+  return list.contains(value);
+}
+
+bool f2(List<int> list, int value) {
+  return !list.contains(value);
+}
+''');
+  }
 }
 
 @reflectiveTest

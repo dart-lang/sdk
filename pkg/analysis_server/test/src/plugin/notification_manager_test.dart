@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart' as server;
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/channel/channel.dart';
@@ -33,13 +31,13 @@ void _fail(String message) {
 
 @reflectiveTest
 class NotificationManagerTest extends ProtocolTestUtilities {
-  String testDir;
-  String fileA;
-  String fileB;
+  late String testDir;
+  late String fileA;
+  late String fileB;
 
-  TestChannel channel;
+  late TestChannel channel;
 
-  NotificationManager manager;
+  late NotificationManager manager;
 
   void setUp() {
     var provider = MemoryResourceProvider();
@@ -389,8 +387,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyErrors(String fileName, List<AnalysisError> expectedErrors) {
-    var notification = channel.sentNotification;
-    expect(notification, isNotNull);
+    var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.errors');
     var params = server.AnalysisErrorsParams.fromNotification(notification);
     expect(params, isNotNull);
@@ -401,8 +398,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void _verifyFoldingRegions(
       String fileName, List<FoldingRegion> expectedRegions) {
-    var notification = channel.sentNotification;
-    expect(notification, isNotNull);
+    var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.folding');
     var params = server.AnalysisFoldingParams.fromNotification(notification);
     expect(params, isNotNull);
@@ -413,8 +409,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void _verifyHighlightRegions(
       String fileName, List<HighlightRegion> expectedRegions) {
-    var notification = channel.sentNotification;
-    expect(notification, isNotNull);
+    var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.highlights');
     var params = server.AnalysisHighlightsParams.fromNotification(notification);
     expect(params, isNotNull);
@@ -424,8 +419,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyNavigationParams(server.AnalysisNavigationParams expectedParams) {
-    var notification = channel.sentNotification;
-    expect(notification, isNotNull);
+    var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.navigation');
     var params = server.AnalysisNavigationParams.fromNotification(notification);
     expect(params, isNotNull);
@@ -438,8 +432,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void _verifyOccurrences(
       String fileName, List<Occurrences> expectedOccurrences) {
-    var notification = channel.sentNotification;
-    expect(notification, isNotNull);
+    var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.occurrences');
     var params =
         server.AnalysisOccurrencesParams.fromNotification(notification);
@@ -450,8 +443,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyOutlines(String fileName, Outline expectedOutline) {
-    var notification = channel.sentNotification;
-    expect(notification, isNotNull);
+    var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.outline');
     var params = server.AnalysisOutlineParams.fromNotification(notification);
     expect(params, isNotNull);
@@ -461,8 +453,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyPluginError(bool isFatal, String message, String stackTrace) {
-    var notification = channel.sentNotification;
-    expect(notification, isNotNull);
+    var notification = channel.sentNotification!;
     expect(notification.event, 'server.error');
     var params = server.ServerErrorParams.fromNotification(notification);
     expect(params, isNotNull);
@@ -474,7 +465,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 }
 
 class TestChannel implements ServerCommunicationChannel {
-  server.Notification sentNotification;
+  server.Notification? sentNotification;
 
   @override
   void close() {
@@ -483,7 +474,7 @@ class TestChannel implements ServerCommunicationChannel {
 
   @override
   void listen(void Function(server.Request) onRequest,
-      {Function onError, void Function() onDone}) {
+      {Function? onError, void Function()? onDone}) {
     fail('Unexpected invocation of listen');
   }
 

@@ -14,7 +14,7 @@ import 'package:nnbd_migration/src/variables.dart';
 class DecoratedTypeOperations
     implements TypeOperations<PromotableElement, DecoratedType> {
   final TypeSystem _typeSystem;
-  final Variables _variableRepository;
+  final Variables? _variableRepository;
   final NullabilityGraph _graph;
 
   DecoratedTypeOperations(
@@ -22,7 +22,7 @@ class DecoratedTypeOperations
 
   @override
   TypeClassification classifyType(DecoratedType type) {
-    if (type.type.isDartCoreNull) {
+    if (type.type!.isDartCoreNull) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -36,10 +36,11 @@ class DecoratedTypeOperations
   }
 
   @override
-  bool forcePromotion(DecoratedType to, DecoratedType from,
-      List<DecoratedType> promotedTypes, List<DecoratedType> newPromotedTypes) {
-    assert(to != null);
-    assert(from != null);
+  bool forcePromotion(
+      DecoratedType to,
+      DecoratedType from,
+      List<DecoratedType>? promotedTypes,
+      List<DecoratedType>? newPromotedTypes) {
     // Do not force promotion if it appears that the element's type was just
     // demoted.
     if (promotedTypes != null &&
@@ -50,7 +51,7 @@ class DecoratedTypeOperations
     if (!isSubtypeOf(to, from)) {
       return false;
     }
-    var fromSources = from.node.upstreamEdges;
+    var fromSources = from.node!.upstreamEdges;
     // Do not force promotion if [to] already points to [from].
     if (fromSources.length == 1 && fromSources.single.sourceNode == to.node) {
       return false;
@@ -70,7 +71,7 @@ class DecoratedTypeOperations
 
   @override
   bool isSubtypeOf(DecoratedType leftType, DecoratedType rightType) {
-    if (!_typeSystem.isSubtypeOf(leftType.type, rightType.type)) {
+    if (!_typeSystem.isSubtypeOf(leftType.type!, rightType.type!)) {
       // Pre-migrated types don't meet the subtype requirement.  Not a subtype.
       return false;
     } else if (rightType.node == _graph.never &&
@@ -92,8 +93,8 @@ class DecoratedTypeOperations
   @override
   // This function walks [chain1] and [chain2], creating an intersection similar
   // to that of [VariableModel.joinPromotedTypes].
-  List<DecoratedType> refinePromotedTypes(List<DecoratedType> chain1,
-      List<DecoratedType> chain2, List<DecoratedType> promotedTypes) {
+  List<DecoratedType>? refinePromotedTypes(List<DecoratedType>? chain1,
+      List<DecoratedType>? chain2, List<DecoratedType>? promotedTypes) {
     if (chain1 == null || chain2 == null) return promotedTypes;
 
     // This method can only handle very simple joins.
@@ -130,14 +131,14 @@ class DecoratedTypeOperations
         // TODO(srawlins): How to get the source or astNode from within here...
         GreatestLowerBoundOrigin(null /* source */, null /* astNode */);
     _graph.connect(firstType.node, node, origin, guards: [secondType.node]);
-    _graph.connect(node, firstType.node, origin);
-    _graph.connect(node, secondType.node, origin);
+    _graph.connect(node, firstType.node!, origin);
+    _graph.connect(node, secondType.node!, origin);
 
     return result..add(firstType.withNode(node));
   }
 
   @override
-  DecoratedType tryPromoteToType(DecoratedType to, DecoratedType from) {
+  DecoratedType? tryPromoteToType(DecoratedType to, DecoratedType from) {
     // TODO(paulberry): implement appropriate logic for type variable promotion.
     if (isSubtypeOf(to, from)) {
       return to;
@@ -154,6 +155,6 @@ class DecoratedTypeOperations
 
   @override
   DecoratedType variableType(PromotableElement variable) {
-    return _variableRepository.decoratedElementType(variable);
+    return _variableRepository!.decoratedElementType(variable);
   }
 }

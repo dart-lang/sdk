@@ -33,8 +33,20 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkTypeArguments(node);
+    _checkTypeArguments(
+      node.typeArguments?.arguments,
+      node.function.staticType,
+      node.staticInvokeType,
+    );
     _checkForImplicitDynamicInvoke(node);
+  }
+
+  void checkFunctionReference(FunctionReference node) {
+    _checkTypeArguments(
+      node.typeArguments?.arguments,
+      node.function.staticType,
+      node.staticType,
+    );
   }
 
   void checkListLiteral(ListLiteral node) {
@@ -68,7 +80,11 @@ class TypeArgumentsVerifier {
   }
 
   void checkMethodInvocation(MethodInvocation node) {
-    _checkTypeArguments(node);
+    _checkTypeArguments(
+      node.typeArguments?.arguments,
+      node.function.staticType,
+      node.staticInvokeType,
+    );
     _checkForImplicitDynamicInvoke(node);
   }
 
@@ -194,10 +210,10 @@ class TypeArgumentsVerifier {
 
     List<TypeParameterElement> typeParameters;
     List<DartType> typeArguments;
-    var aliasElement = type.aliasElement;
-    if (aliasElement != null) {
-      typeParameters = aliasElement.typeParameters;
-      typeArguments = type.aliasArguments!;
+    var alias = type.alias;
+    if (alias != null) {
+      typeParameters = alias.element.typeParameters;
+      typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
       typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
@@ -261,8 +277,9 @@ class TypeArgumentsVerifier {
 
     // Prepare type arguments for checking for super-bounded.
     type = _typeSystem.replaceTopAndBottom(type);
-    if (type.aliasElement != null) {
-      typeArguments = type.aliasArguments!;
+    alias = type.alias;
+    if (alias != null) {
+      typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
       typeArguments = type.typeArguments;
     } else {
@@ -324,63 +341,65 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Verify that the given [typeArguments] are all within their bounds, as
-  /// defined by the given [element].
-  void _checkTypeArguments(InvocationExpression node) {
-    var typeArgumentList = node.typeArguments?.arguments;
+  /// Verify that each type argument in [typeArgumentList] is within its bounds,
+  /// as defined by [genericType].
+  void _checkTypeArguments(
+    List<TypeAnnotation>? typeArgumentList,
+    DartType? genericType,
+    DartType? instantiatedType,
+  ) {
     if (typeArgumentList == null) {
       return;
     }
 
-    var genericType = node.function.staticType;
-    var instantiatedType = node.staticInvokeType;
-    if (genericType is FunctionType && instantiatedType is FunctionType) {
-      var fnTypeParams = genericType.typeFormals;
-      var typeArgs = typeArgumentList.map((t) => t.typeOrThrow).toList();
+    if (genericType is! FunctionType || instantiatedType is! FunctionType) {
+      return;
+    }
 
-      // If the amount mismatches, clean up the lists to be substitutable. The
-      // mismatch in size is reported elsewhere, but we must successfully
-      // perform substitution to validate bounds on mismatched lists.
-      final providedLength = math.min(typeArgs.length, fnTypeParams.length);
-      fnTypeParams = fnTypeParams.sublist(0, providedLength);
-      typeArgs = typeArgs.sublist(0, providedLength);
+    var fnTypeParams = genericType.typeFormals;
+    var typeArgs = typeArgumentList.map((t) => t.typeOrThrow).toList();
 
-      for (int i = 0; i < providedLength; i++) {
-        // Check the `extends` clause for the type parameter, if any.
-        //
-        // Also substitute to handle cases like this:
-        //
-        //     <TFrom, TTo extends TFrom>
-        //     <TFrom, TTo extends Iterable<TFrom>>
-        //     <T extends Cloneable<T>>
-        //
-        DartType argType = typeArgs[i];
+    // If the amount mismatches, clean up the lists to be substitutable. The
+    // mismatch in size is reported elsewhere, but we must successfully
+    // perform substitution to validate bounds on mismatched lists.
+    var providedLength = math.min(typeArgs.length, fnTypeParams.length);
+    fnTypeParams = fnTypeParams.sublist(0, providedLength);
+    typeArgs = typeArgs.sublist(0, providedLength);
 
-        if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode
-                  .GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-              typeArgumentList[i],
-            );
-            continue;
-          }
-        }
+    for (int i = 0; i < providedLength; i++) {
+      // Check the `extends` clause for the type parameter, if any.
+      //
+      // Also substitute to handle cases like this:
+      //
+      //     <TFrom, TTo extends TFrom>
+      //     <TFrom, TTo extends Iterable<TFrom>>
+      //     <T extends Cloneable<T>>
+      //
+      DartType argType = typeArgs[i];
 
-        var fnTypeParam = fnTypeParams[i];
-        var rawBound = fnTypeParam.bound;
-        if (rawBound == null) {
+      if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
+        if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+            typeArgumentList[i],
+          );
           continue;
         }
+      }
 
-        var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
-        var bound = substitution.substituteType(rawBound);
-        if (!_typeSystem.isSubtypeOf(argType, bound)) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-              typeArgumentList[i],
-              [argType, fnTypeParam.name, bound]);
-        }
+      var fnTypeParam = fnTypeParams[i];
+      var rawBound = fnTypeParam.bound;
+      if (rawBound == null) {
+        continue;
+      }
+
+      var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
+      var bound = substitution.substituteType(rawBound);
+      if (!_typeSystem.isSubtypeOf(argType, bound)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+            typeArgumentList[i],
+            [argType, fnTypeParam.name, bound]);
       }
     }
   }
@@ -404,9 +423,9 @@ class TypeArgumentsVerifier {
   bool _isMissingTypeArguments(AstNode node, DartType type, Element? element,
       Expression? inferenceContextNode) {
     List<DartType> typeArguments;
-    var aliasElement = type.aliasElement;
-    if (aliasElement != null) {
-      typeArguments = type.aliasArguments!;
+    var alias = type.alias;
+    if (alias != null) {
+      typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
       typeArguments = type.typeArguments;
     } else {

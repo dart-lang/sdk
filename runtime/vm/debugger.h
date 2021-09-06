@@ -81,6 +81,18 @@ class Breakpoint {
     closure_ = closure.ptr();
   }
 
+  void Enable() {
+    ASSERT(!enabled_);
+    enabled_ = true;
+  }
+
+  void Disable() {
+    ASSERT(enabled_);
+    enabled_ = false;
+  }
+
+  bool is_enabled() const { return enabled_; }
+
   // Mark that this breakpoint is a result of a step OverAwait request.
   void set_is_synthetic_async(bool is_synthetic_async) {
     is_synthetic_async_ = is_synthetic_async;
@@ -105,6 +117,7 @@ class Breakpoint {
   InstancePtr closure_;
   BreakpointLocation* bpt_location_;
   bool is_synthetic_async_;
+  bool enabled_ = false;
 
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Breakpoint);
@@ -125,7 +138,7 @@ class BreakpointLocation {
  public:
   // Create a new unresolved breakpoint.
   BreakpointLocation(Debugger* debugger,
-                     const Script& script,
+                     const GrowableHandlePtrArray<const Script>& scripts,
                      TokenPosition token_pos,
                      TokenPosition end_token_pos,
                      intptr_t requested_line_number,
@@ -138,11 +151,16 @@ class BreakpointLocation {
 
   ~BreakpointLocation();
 
-  TokenPosition token_pos() const { return token_pos_; }
+  TokenPosition token_pos() const { return token_pos_.load(); }
   intptr_t line_number();
-  TokenPosition end_token_pos() const { return end_token_pos_; }
+  TokenPosition end_token_pos() const { return end_token_pos_.load(); }
 
-  ScriptPtr script() const { return script_; }
+  ScriptPtr script() const {
+    if (scripts_.length() == 0) {
+      return Script::null();
+    }
+    return scripts_.At(0);
+  }
   StringPtr url() const { return url_; }
 
   intptr_t requested_line_number() const { return requested_line_number_; }
@@ -158,7 +176,7 @@ class BreakpointLocation {
 
   bool AnyEnabled() const;
   bool IsResolved() const { return code_token_pos_.IsReal(); }
-  bool IsLatent() const { return !token_pos_.IsReal(); }
+  bool IsLatent() const { return !token_pos().IsReal(); }
 
   bool EnsureIsResolved(const Function& target_function,
                         TokenPosition exact_token_pos);
@@ -184,12 +202,12 @@ class BreakpointLocation {
   SafepointRwLock* line_number_lock() { return line_number_lock_.get(); }
 
   Debugger* debugger_;
-  ScriptPtr script_;
+  MallocGrowableArray<ScriptPtr> scripts_;
   StringPtr url_;
   std::unique_ptr<SafepointRwLock> line_number_lock_;
   intptr_t line_number_;  // lazily computed for token_pos_
-  TokenPosition token_pos_;
-  TokenPosition end_token_pos_;
+  std::atomic<TokenPosition> token_pos_;
+  std::atomic<TokenPosition> end_token_pos_;
   BreakpointLocation* next_;
   Breakpoint* conditions_;
   intptr_t requested_line_number_;
@@ -258,8 +276,7 @@ class CodeBreakpoint {
     ASSERT(breakpoint_locations_.length() == 0 ||
            (breakpoint_location->token_pos() ==
                 breakpoint_locations_.At(0)->token_pos() &&
-            breakpoint_location->script() ==
-                breakpoint_locations_.At(0)->script()));
+            breakpoint_location->url() == breakpoint_locations_.At(0)->url()));
     breakpoint_locations_.Add(breakpoint_location);
   }
 
@@ -535,7 +552,9 @@ class DebuggerKeyValueTrait : public AllStatic {
 
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
+  static uword Hash(Key key) {
+    return Utils::WordHash(reinterpret_cast<intptr_t>(key));
+  }
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 
@@ -713,6 +732,9 @@ class Debugger {
                                                   intptr_t line_number,
                                                   intptr_t column_number);
 
+  // Returns true if the breakpoint's state changed.
+  bool SetBreakpointState(Breakpoint* bpt, bool enable);
+
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
@@ -803,29 +825,38 @@ class Debugger {
 
   void SendBreakpointEvent(ServiceEvent::EventKind kind, Breakpoint* bpt);
 
-  void FindCompiledFunctions(const Script& script,
-                             TokenPosition start_pos,
-                             TokenPosition end_pos,
-                             GrowableObjectArray* code_function_list);
+  void FindCompiledFunctions(
+      const GrowableHandlePtrArray<const Script>& scripts,
+      TokenPosition start_pos,
+      TokenPosition end_pos,
+      GrowableObjectArray* code_function_list);
   bool FindBestFit(const Script& script,
                    TokenPosition token_pos,
                    TokenPosition last_token_pos,
                    Function* best_fit);
   void DeoptimizeWorld();
   void NotifySingleStepping(bool value) const;
-  BreakpointLocation* SetCodeBreakpoints(const Script& script,
-                                         TokenPosition token_pos,
-                                         TokenPosition last_token_pos,
-                                         intptr_t requested_line,
-                                         intptr_t requested_column,
-                                         TokenPosition exact_token_pos,
-                                         const GrowableObjectArray& functions);
+  BreakpointLocation* SetCodeBreakpoints(
+      const GrowableHandlePtrArray<const Script>& scripts,
+      TokenPosition token_pos,
+      TokenPosition last_token_pos,
+      intptr_t requested_line,
+      intptr_t requested_column,
+      TokenPosition exact_token_pos,
+      const GrowableObjectArray& functions);
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     TokenPosition token_pos,
                                     TokenPosition last_token_pos,
                                     intptr_t requested_line,
                                     intptr_t requested_column,
                                     const Function& function);
+  BreakpointLocation* SetBreakpoint(
+      const GrowableHandlePtrArray<const Script>& scripts,
+      TokenPosition token_pos,
+      TokenPosition last_token_pos,
+      intptr_t requested_line,
+      intptr_t requested_column,
+      const Function& function);
   bool RemoveBreakpointFromTheList(intptr_t bp_id, BreakpointLocation** list);
   Breakpoint* GetBreakpointByIdInTheList(intptr_t id, BreakpointLocation* list);
   BreakpointLocation* GetLatentBreakpoint(const String& url,
@@ -833,10 +864,10 @@ class Debugger {
                                           intptr_t column);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
   BreakpointLocation* GetResolvedBreakpointLocation(
-      const Script& script,
+      const String& script_url,
       TokenPosition code_token_pos);
   BreakpointLocation* GetBreakpointLocation(
-      const Script& script,
+      const String& script_url,
       TokenPosition token_pos,
       intptr_t requested_line,
       intptr_t requested_column,

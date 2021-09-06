@@ -1,0 +1,969 @@
+Problems reported:
+
+parser/error_recovery/symbols:4:8: 'void' can't be used as an identifier because it's a keyword.
+  #foo.void;
+       ^^^^
+
+parser/error_recovery/symbols:5:4: 'assert' can't be used as an identifier because it's a keyword.
+  #assert;
+   ^^^^^^
+
+parser/error_recovery/symbols:6:4: 'break' can't be used as an identifier because it's a keyword.
+  #break;
+   ^^^^^
+
+parser/error_recovery/symbols:7:4: 'case' can't be used as an identifier because it's a keyword.
+  #case;
+   ^^^^
+
+parser/error_recovery/symbols:8:4: 'catch' can't be used as an identifier because it's a keyword.
+  #catch;
+   ^^^^^
+
+parser/error_recovery/symbols:9:4: 'class' can't be used as an identifier because it's a keyword.
+  #class;
+   ^^^^^
+
+parser/error_recovery/symbols:10:4: 'const' can't be used as an identifier because it's a keyword.
+  #const;
+   ^^^^^
+
+parser/error_recovery/symbols:11:4: 'continue' can't be used as an identifier because it's a keyword.
+  #continue;
+   ^^^^^^^^
+
+parser/error_recovery/symbols:12:4: 'default' can't be used as an identifier because it's a keyword.
+  #default;
+   ^^^^^^^
+
+parser/error_recovery/symbols:13:4: 'do' can't be used as an identifier because it's a keyword.
+  #do;
+   ^^
+
+parser/error_recovery/symbols:14:4: 'else' can't be used as an identifier because it's a keyword.
+  #else;
+   ^^^^
+
+parser/error_recovery/symbols:15:4: 'enum' can't be used as an identifier because it's a keyword.
+  #enum;
+   ^^^^
+
+parser/error_recovery/symbols:16:4: 'extends' can't be used as an identifier because it's a keyword.
+  #extends;
+   ^^^^^^^
+
+parser/error_recovery/symbols:17:4: 'false' can't be used as an identifier because it's a keyword.
+  #false;
+   ^^^^^
+
+parser/error_recovery/symbols:18:4: 'final' can't be used as an identifier because it's a keyword.
+  #final;
+   ^^^^^
+
+parser/error_recovery/symbols:19:4: 'finally' can't be used as an identifier because it's a keyword.
+  #finally;
+   ^^^^^^^
+
+parser/error_recovery/symbols:20:4: 'for' can't be used as an identifier because it's a keyword.
+  #for;
+   ^^^
+
+parser/error_recovery/symbols:21:4: 'if' can't be used as an identifier because it's a keyword.
+  #if;
+   ^^
+
+parser/error_recovery/symbols:22:4: 'in' can't be used as an identifier because it's a keyword.
+  #in;
+   ^^
+
+parser/error_recovery/symbols:23:4: 'is' can't be used as an identifier because it's a keyword.
+  #is;
+   ^^
+
+parser/error_recovery/symbols:24:4: 'new' can't be used as an identifier because it's a keyword.
+  #new;
+   ^^^
+
+parser/error_recovery/symbols:25:4: 'null' can't be used as an identifier because it's a keyword.
+  #null;
+   ^^^^
+
+parser/error_recovery/symbols:26:4: 'rethrow' can't be used as an identifier because it's a keyword.
+  #rethrow;
+   ^^^^^^^
+
+parser/error_recovery/symbols:27:4: 'return' can't be used as an identifier because it's a keyword.
+  #return;
+   ^^^^^^
+
+parser/error_recovery/symbols:28:4: 'super' can't be used as an identifier because it's a keyword.
+  #super;
+   ^^^^^
+
+parser/error_recovery/symbols:29:4: 'switch' can't be used as an identifier because it's a keyword.
+  #switch;
+   ^^^^^^
+
+parser/error_recovery/symbols:30:4: 'this' can't be used as an identifier because it's a keyword.
+  #this;
+   ^^^^
+
+parser/error_recovery/symbols:31:4: 'throw' can't be used as an identifier because it's a keyword.
+  #throw;
+   ^^^^^
+
+parser/error_recovery/symbols:32:4: 'true' can't be used as an identifier because it's a keyword.
+  #true;
+   ^^^^
+
+parser/error_recovery/symbols:33:4: 'try' can't be used as an identifier because it's a keyword.
+  #try;
+   ^^^
+
+parser/error_recovery/symbols:34:4: 'var' can't be used as an identifier because it's a keyword.
+  #var;
+   ^^^
+
+parser/error_recovery/symbols:35:4: 'while' can't be used as an identifier because it's a keyword.
+  #while;
+   ^^^^^
+
+parser/error_recovery/symbols:36:4: 'with' can't be used as an identifier because it's a keyword.
+  #with;
+   ^^^^
+
+parser/error_recovery/symbols:37:8: 'assert' can't be used as an identifier because it's a keyword.
+  #foo.assert;
+       ^^^^^^
+
+parser/error_recovery/symbols:38:8: 'break' can't be used as an identifier because it's a keyword.
+  #foo.break;
+       ^^^^^
+
+parser/error_recovery/symbols:39:8: 'case' can't be used as an identifier because it's a keyword.
+  #foo.case;
+       ^^^^
+
+parser/error_recovery/symbols:40:8: 'catch' can't be used as an identifier because it's a keyword.
+  #foo.catch;
+       ^^^^^
+
+parser/error_recovery/symbols:41:8: 'class' can't be used as an identifier because it's a keyword.
+  #foo.class;
+       ^^^^^
+
+parser/error_recovery/symbols:42:8: 'const' can't be used as an identifier because it's a keyword.
+  #foo.const;
+       ^^^^^
+
+parser/error_recovery/symbols:43:8: 'continue' can't be used as an identifier because it's a keyword.
+  #foo.continue;
+       ^^^^^^^^
+
+parser/error_recovery/symbols:44:8: 'default' can't be used as an identifier because it's a keyword.
+  #foo.default;
+       ^^^^^^^
+
+parser/error_recovery/symbols:45:8: 'do' can't be used as an identifier because it's a keyword.
+  #foo.do;
+       ^^
+
+parser/error_recovery/symbols:46:8: 'else' can't be used as an identifier because it's a keyword.
+  #foo.else;
+       ^^^^
+
+parser/error_recovery/symbols:47:8: 'enum' can't be used as an identifier because it's a keyword.
+  #foo.enum;
+       ^^^^
+
+parser/error_recovery/symbols:48:8: 'extends' can't be used as an identifier because it's a keyword.
+  #foo.extends;
+       ^^^^^^^
+
+parser/error_recovery/symbols:49:8: 'false' can't be used as an identifier because it's a keyword.
+  #foo.false;
+       ^^^^^
+
+parser/error_recovery/symbols:50:8: 'final' can't be used as an identifier because it's a keyword.
+  #foo.final;
+       ^^^^^
+
+parser/error_recovery/symbols:51:8: 'finally' can't be used as an identifier because it's a keyword.
+  #foo.finally;
+       ^^^^^^^
+
+parser/error_recovery/symbols:52:8: 'for' can't be used as an identifier because it's a keyword.
+  #foo.for;
+       ^^^
+
+parser/error_recovery/symbols:53:8: 'if' can't be used as an identifier because it's a keyword.
+  #foo.if;
+       ^^
+
+parser/error_recovery/symbols:54:8: 'in' can't be used as an identifier because it's a keyword.
+  #foo.in;
+       ^^
+
+parser/error_recovery/symbols:55:8: 'is' can't be used as an identifier because it's a keyword.
+  #foo.is;
+       ^^
+
+parser/error_recovery/symbols:56:8: 'new' can't be used as an identifier because it's a keyword.
+  #foo.new;
+       ^^^
+
+parser/error_recovery/symbols:57:8: 'null' can't be used as an identifier because it's a keyword.
+  #foo.null;
+       ^^^^
+
+parser/error_recovery/symbols:58:8: 'rethrow' can't be used as an identifier because it's a keyword.
+  #foo.rethrow;
+       ^^^^^^^
+
+parser/error_recovery/symbols:59:8: 'return' can't be used as an identifier because it's a keyword.
+  #foo.return;
+       ^^^^^^
+
+parser/error_recovery/symbols:60:8: 'super' can't be used as an identifier because it's a keyword.
+  #foo.super;
+       ^^^^^
+
+parser/error_recovery/symbols:61:8: 'switch' can't be used as an identifier because it's a keyword.
+  #foo.switch;
+       ^^^^^^
+
+parser/error_recovery/symbols:62:8: 'this' can't be used as an identifier because it's a keyword.
+  #foo.this;
+       ^^^^
+
+parser/error_recovery/symbols:63:8: 'throw' can't be used as an identifier because it's a keyword.
+  #foo.throw;
+       ^^^^^
+
+parser/error_recovery/symbols:64:8: 'true' can't be used as an identifier because it's a keyword.
+  #foo.true;
+       ^^^^
+
+parser/error_recovery/symbols:65:8: 'try' can't be used as an identifier because it's a keyword.
+  #foo.try;
+       ^^^
+
+parser/error_recovery/symbols:66:8: 'var' can't be used as an identifier because it's a keyword.
+  #foo.var;
+       ^^^
+
+parser/error_recovery/symbols:67:8: 'while' can't be used as an identifier because it's a keyword.
+  #foo.while;
+       ^^^^^
+
+parser/error_recovery/symbols:68:8: 'with' can't be used as an identifier because it's a keyword.
+  #foo.with;
+       ^^^^
+
+parser/error_recovery/symbols:69:4: 'assert' can't be used as an identifier because it's a keyword.
+  #assert.foo;
+   ^^^^^^
+
+parser/error_recovery/symbols:70:4: 'break' can't be used as an identifier because it's a keyword.
+  #break.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:71:4: 'case' can't be used as an identifier because it's a keyword.
+  #case.foo;
+   ^^^^
+
+parser/error_recovery/symbols:72:4: 'catch' can't be used as an identifier because it's a keyword.
+  #catch.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:73:4: 'class' can't be used as an identifier because it's a keyword.
+  #class.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:74:4: 'const' can't be used as an identifier because it's a keyword.
+  #const.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:75:4: 'continue' can't be used as an identifier because it's a keyword.
+  #continue.foo;
+   ^^^^^^^^
+
+parser/error_recovery/symbols:76:4: 'default' can't be used as an identifier because it's a keyword.
+  #default.foo;
+   ^^^^^^^
+
+parser/error_recovery/symbols:77:4: 'do' can't be used as an identifier because it's a keyword.
+  #do.foo;
+   ^^
+
+parser/error_recovery/symbols:78:4: 'else' can't be used as an identifier because it's a keyword.
+  #else.foo;
+   ^^^^
+
+parser/error_recovery/symbols:79:4: 'enum' can't be used as an identifier because it's a keyword.
+  #enum.foo;
+   ^^^^
+
+parser/error_recovery/symbols:80:4: 'extends' can't be used as an identifier because it's a keyword.
+  #extends.foo;
+   ^^^^^^^
+
+parser/error_recovery/symbols:81:4: 'false' can't be used as an identifier because it's a keyword.
+  #false.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:82:4: 'final' can't be used as an identifier because it's a keyword.
+  #final.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:83:4: 'finally' can't be used as an identifier because it's a keyword.
+  #finally.foo;
+   ^^^^^^^
+
+parser/error_recovery/symbols:84:4: 'for' can't be used as an identifier because it's a keyword.
+  #for.foo;
+   ^^^
+
+parser/error_recovery/symbols:85:4: 'if' can't be used as an identifier because it's a keyword.
+  #if.foo;
+   ^^
+
+parser/error_recovery/symbols:86:4: 'in' can't be used as an identifier because it's a keyword.
+  #in.foo;
+   ^^
+
+parser/error_recovery/symbols:87:4: 'is' can't be used as an identifier because it's a keyword.
+  #is.foo;
+   ^^
+
+parser/error_recovery/symbols:88:4: 'new' can't be used as an identifier because it's a keyword.
+  #new.foo;
+   ^^^
+
+parser/error_recovery/symbols:89:4: 'null' can't be used as an identifier because it's a keyword.
+  #null.foo;
+   ^^^^
+
+parser/error_recovery/symbols:90:4: 'rethrow' can't be used as an identifier because it's a keyword.
+  #rethrow.foo;
+   ^^^^^^^
+
+parser/error_recovery/symbols:91:4: 'return' can't be used as an identifier because it's a keyword.
+  #return.foo;
+   ^^^^^^
+
+parser/error_recovery/symbols:92:4: 'super' can't be used as an identifier because it's a keyword.
+  #super.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:93:4: 'switch' can't be used as an identifier because it's a keyword.
+  #switch.foo;
+   ^^^^^^
+
+parser/error_recovery/symbols:94:4: 'this' can't be used as an identifier because it's a keyword.
+  #this.foo;
+   ^^^^
+
+parser/error_recovery/symbols:95:4: 'throw' can't be used as an identifier because it's a keyword.
+  #throw.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:96:4: 'true' can't be used as an identifier because it's a keyword.
+  #true.foo;
+   ^^^^
+
+parser/error_recovery/symbols:97:4: 'try' can't be used as an identifier because it's a keyword.
+  #try.foo;
+   ^^^
+
+parser/error_recovery/symbols:98:4: 'var' can't be used as an identifier because it's a keyword.
+  #var.foo;
+   ^^^
+
+parser/error_recovery/symbols:99:4: 'while' can't be used as an identifier because it's a keyword.
+  #while.foo;
+   ^^^^^
+
+parser/error_recovery/symbols:100:4: 'with' can't be used as an identifier because it's a keyword.
+  #with.foo;
+   ^^^^
+
+beginCompilationUnit(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(, null)
+      handleNoType()
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginLiteralSymbol(#)
+          handleSymbolVoid(void)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleSymbolVoid(void)
+        endLiteralSymbol(#, 1)
+        handleIdentifier(foo, expressionContinuation)
+        handleNoTypeArguments(;)
+        handleNoArguments(;)
+        handleSend(foo, ;)
+        handleEndingBinaryExpression(.)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'void' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: void}], void, void)
+          handleIdentifier(void, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'assert' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: assert}], assert, assert)
+          handleIdentifier(assert, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'break' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: break}], break, break)
+          handleIdentifier(break, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'case' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: case}], case, case)
+          handleIdentifier(case, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'catch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: catch}], catch, catch)
+          handleIdentifier(catch, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'class' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: class}], class, class)
+          handleIdentifier(class, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'const' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: const}], const, const)
+          handleIdentifier(const, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'continue' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: continue}], continue, continue)
+          handleIdentifier(continue, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'default' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: default}], default, default)
+          handleIdentifier(default, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'do' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: do}], do, do)
+          handleIdentifier(do, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'else' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: else}], else, else)
+          handleIdentifier(else, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
+          handleIdentifier(extends, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'false' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: false}], false, false)
+          handleIdentifier(false, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'final' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: final}], final, final)
+          handleIdentifier(final, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'finally' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: finally}], finally, finally)
+          handleIdentifier(finally, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'for' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: for}], for, for)
+          handleIdentifier(for, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'if' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: if}], if, if)
+          handleIdentifier(if, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'in' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: in}], in, in)
+          handleIdentifier(in, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'is' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: is}], is, is)
+          handleIdentifier(is, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+          handleIdentifier(new, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'null' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: null}], null, null)
+          handleIdentifier(null, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'rethrow' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: rethrow}], rethrow, rethrow)
+          handleIdentifier(rethrow, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'return' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: return}], return, return)
+          handleIdentifier(return, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'switch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: switch}], switch, switch)
+          handleIdentifier(switch, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+          handleIdentifier(this, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'throw' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: throw}], throw, throw)
+          handleIdentifier(throw, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'true' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: true}], true, true)
+          handleIdentifier(true, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'try' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: try}], try, try)
+          handleIdentifier(try, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'var' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: var}], var, var)
+          handleIdentifier(var, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'while' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: while}], while, while)
+          handleIdentifier(while, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
+          handleIdentifier(with, literalSymbol)
+        endLiteralSymbol(#, 1)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'assert' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: assert}], assert, assert)
+          handleIdentifier(assert, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'break' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: break}], break, break)
+          handleIdentifier(break, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'case' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: case}], case, case)
+          handleIdentifier(case, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'catch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: catch}], catch, catch)
+          handleIdentifier(catch, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'class' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: class}], class, class)
+          handleIdentifier(class, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'const' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: const}], const, const)
+          handleIdentifier(const, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'continue' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: continue}], continue, continue)
+          handleIdentifier(continue, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'default' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: default}], default, default)
+          handleIdentifier(default, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'do' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: do}], do, do)
+          handleIdentifier(do, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'else' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: else}], else, else)
+          handleIdentifier(else, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
+          handleIdentifier(extends, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'false' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: false}], false, false)
+          handleIdentifier(false, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'final' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: final}], final, final)
+          handleIdentifier(final, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'finally' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: finally}], finally, finally)
+          handleIdentifier(finally, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'for' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: for}], for, for)
+          handleIdentifier(for, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'if' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: if}], if, if)
+          handleIdentifier(if, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'in' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: in}], in, in)
+          handleIdentifier(in, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'is' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: is}], is, is)
+          handleIdentifier(is, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+          handleIdentifier(new, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'null' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: null}], null, null)
+          handleIdentifier(null, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'rethrow' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: rethrow}], rethrow, rethrow)
+          handleIdentifier(rethrow, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'return' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: return}], return, return)
+          handleIdentifier(return, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'switch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: switch}], switch, switch)
+          handleIdentifier(switch, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+          handleIdentifier(this, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'throw' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: throw}], throw, throw)
+          handleIdentifier(throw, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'true' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: true}], true, true)
+          handleIdentifier(true, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'try' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: try}], try, try)
+          handleIdentifier(try, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'var' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: var}], var, var)
+          handleIdentifier(var, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'while' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: while}], while, while)
+          handleIdentifier(while, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleIdentifier(foo, literalSymbol)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
+          handleIdentifier(with, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'assert' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: assert}], assert, assert)
+          handleIdentifier(assert, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'break' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: break}], break, break)
+          handleIdentifier(break, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'case' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: case}], case, case)
+          handleIdentifier(case, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'catch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: catch}], catch, catch)
+          handleIdentifier(catch, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'class' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: class}], class, class)
+          handleIdentifier(class, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'const' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: const}], const, const)
+          handleIdentifier(const, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'continue' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: continue}], continue, continue)
+          handleIdentifier(continue, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'default' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: default}], default, default)
+          handleIdentifier(default, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'do' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: do}], do, do)
+          handleIdentifier(do, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'else' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: else}], else, else)
+          handleIdentifier(else, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
+          handleIdentifier(enum, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: extends}], extends, extends)
+          handleIdentifier(extends, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'false' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: false}], false, false)
+          handleIdentifier(false, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'final' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: final}], final, final)
+          handleIdentifier(final, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'finally' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: finally}], finally, finally)
+          handleIdentifier(finally, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'for' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: for}], for, for)
+          handleIdentifier(for, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'if' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: if}], if, if)
+          handleIdentifier(if, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'in' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: in}], in, in)
+          handleIdentifier(in, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'is' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: is}], is, is)
+          handleIdentifier(is, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+          handleIdentifier(new, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'null' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: null}], null, null)
+          handleIdentifier(null, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'rethrow' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: rethrow}], rethrow, rethrow)
+          handleIdentifier(rethrow, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'return' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: return}], return, return)
+          handleIdentifier(return, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'switch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: switch}], switch, switch)
+          handleIdentifier(switch, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+          handleIdentifier(this, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'throw' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: throw}], throw, throw)
+          handleIdentifier(throw, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'true' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: true}], true, true)
+          handleIdentifier(true, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'try' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: try}], try, try)
+          handleIdentifier(try, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'var' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: var}], var, var)
+          handleIdentifier(var, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'while' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: while}], while, while)
+          handleIdentifier(while, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+        beginLiteralSymbol(#)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: with}], with, with)
+          handleIdentifier(with, literalSymbol)
+          handleIdentifier(foo, literalSymbolContinuation)
+        endLiteralSymbol(#, 2)
+        handleExpressionStatement(;)
+      endBlockFunctionBody(99, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

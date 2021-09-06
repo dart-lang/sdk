@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,7 +31,8 @@ class AbstractOutlineComputerTest extends AbstractContextTest
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
-    var resolveResult = await session.getResolvedUnit(testPath);
+    var resolveResult =
+        await session.getResolvedUnit(testPath) as ResolvedUnitResult;
     return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,
@@ -541,7 +543,7 @@ typedef F<T> = Map<int, T>;
     var outline = await _computeOutline('''
 void group(name, closure) {}
 void test(name) {}
-void main() {
+void f() {
   group('group1', () {
     group('group1_1', () {
       test('test1_1_1');
@@ -560,18 +562,18 @@ void main() {
     // unit
     var unit_children = outline.children!;
     expect(unit_children, hasLength(3));
-    // main
-    var main_outline = unit_children[2];
-    _expect(main_outline,
+    // f
+    var f_outline = unit_children[2];
+    _expect(f_outline,
         kind: ElementKind.FUNCTION,
-        name: 'main',
-        offset: testCode.indexOf('main() {'),
+        name: 'f',
+        offset: testCode.indexOf('f() {'),
         parameters: '()',
         returnType: 'void');
-    var main_children = main_outline.children!;
-    expect(main_children, hasLength(2));
+    var f_children = f_outline.children!;
+    expect(f_children, hasLength(2));
     // group1
-    var group1_outline = main_children[0];
+    var group1_outline = f_children[0];
     _expect(group1_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 5,
@@ -622,7 +624,7 @@ void main() {
         name: 'test("test1_2_1")',
         offset: testCode.indexOf("test('test1_2_1'"));
     // group2
-    var group2_outline = main_children[1];
+    var group2_outline = f_children[1];
     _expect(group2_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 5,
@@ -669,7 +671,7 @@ class A {
   /// https://github.com/dart-lang/sdk/issues/33228
   Future<void> test_invocation_ofParameter() async {
     var outline = await _computeOutline('''
-main(p()) {
+void f(p()) {
   p();
 }
 ''');
@@ -687,7 +689,7 @@ void myGroup(name, body()) {}
 @isTest
 void myTest(name) {}
 
-void main() {
+void f() {
   myGroup('group1', () {
     myGroup('group1_1', () {
       myTest('test1_1_1');
@@ -706,18 +708,18 @@ void main() {
     // unit
     var unit_children = outline.children!;
     expect(unit_children, hasLength(3));
-    // main
-    var main_outline = unit_children[2];
-    _expect(main_outline,
+    // f
+    var f_outline = unit_children[2];
+    _expect(f_outline,
         kind: ElementKind.FUNCTION,
-        name: 'main',
-        offset: testCode.indexOf('main() {'),
+        name: 'f',
+        offset: testCode.indexOf('f() {'),
         parameters: '()',
         returnType: 'void');
-    var main_children = main_outline.children!;
-    expect(main_children, hasLength(2));
+    var f_children = f_outline.children!;
+    expect(f_children, hasLength(2));
     // group1
-    var group1_outline = main_children[0];
+    var group1_outline = f_children[0];
     _expect(group1_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 7,
@@ -768,7 +770,7 @@ void main() {
         name: 'myTest("test1_2_1")',
         offset: testCode.indexOf("myTest('test1_2_1'"));
     // group2
-    var group2_outline = main_children[1];
+    var group2_outline = f_children[1];
     _expect(group2_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 7,
@@ -1024,9 +1026,9 @@ mixin M<N> {
     var unitOutline = await _computeOutline('''
 class A {
   int fieldA, fieldB = 2;
-  
+
   int fieldC;
-  
+
   /// Documentation.
   int fieldD;
 }
@@ -1069,10 +1071,10 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldC');
 
-      expect(outline.offset, 41);
+      expect(outline.offset, 39);
       expect(outline.length, 11);
 
-      expect(outline.codeOffset, 45);
+      expect(outline.codeOffset, 43);
       expect(outline.codeLength, 6);
     }
 
@@ -1083,10 +1085,10 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldD');
 
-      expect(outline.offset, 58);
+      expect(outline.offset, 54);
       expect(outline.length, 32);
 
-      expect(outline.codeOffset, 83);
+      expect(outline.codeOffset, 79);
       expect(outline.codeLength, 6);
     }
   }
@@ -1134,7 +1136,7 @@ class B {}
     var unitOutline = await _computeOutline('''
 class A {
   int methodA() {}
-  
+
   /// Documentation.
   @override
   int methodB() {}
@@ -1164,10 +1166,10 @@ class A {
       expect(element.kind, ElementKind.METHOD);
       expect(element.name, 'methodB');
 
-      expect(outline.offset, 34);
+      expect(outline.offset, 32);
       expect(outline.length, 49);
 
-      expect(outline.codeOffset, 67);
+      expect(outline.codeOffset, 65);
       expect(outline.codeLength, 16);
     }
   }

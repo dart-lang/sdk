@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -18,16 +16,20 @@ class SplitVariableDeclaration extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var variableList = node?.thisOrAncestorOfType<VariableDeclarationList>();
-
-    // Must be a local variable declaration.
-    if (variableList?.parent is! VariableDeclarationStatement) {
+    var variableList = node.thisOrAncestorOfType<VariableDeclarationList>();
+    if (variableList == null) {
       return;
     }
-    VariableDeclarationStatement statement = variableList.parent;
+
+    // Must be a local variable declaration.
+    var statement = variableList.parent;
+    if (statement is! VariableDeclarationStatement) {
+      return;
+    }
 
     // Cannot be `const` or `final`.
-    var keywordKind = variableList.keyword?.keyword;
+    var keyword = variableList.keyword;
+    var keywordKind = keyword?.keyword;
     if (keywordKind == Keyword.CONST || keywordKind == Keyword.FINAL) {
       return;
     }
@@ -50,9 +52,9 @@ class SplitVariableDeclaration extends CorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       if (variableList.type == null) {
-        final type = variable.declaredElement.type;
-        if (!type.isDynamic) {
-          builder.addReplacement(range.token(variableList.keyword), (builder) {
+        final type = variable.declaredElement!.type;
+        if (!type.isDynamic && keyword != null) {
+          builder.addReplacement(range.token(keyword), (builder) {
             builder.writeType(type);
           });
         }

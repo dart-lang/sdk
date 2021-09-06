@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
-import 'dart:io' show File, Platform;
+import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $A, $MINUS, $a, $z;
@@ -15,42 +13,42 @@ import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
+import '../../test/utils/io_utils.dart' show computeRepoDirUri;
+
 main(List<String> arguments) {
-  new File.fromUri(computeCfeGeneratedFile())
-      .writeAsStringSync(generateCfeFile(), flush: true);
-  new File.fromUri(computeKernelGeneratedFile())
-      .writeAsStringSync(generateKernelFile(), flush: true);
+  final Uri repoDir = computeRepoDirUri();
+  new File.fromUri(computeCfeGeneratedFile(repoDir))
+      .writeAsStringSync(generateCfeFile(repoDir), flush: true);
+  new File.fromUri(computeKernelGeneratedFile(repoDir))
+      .writeAsStringSync(generateKernelFile(repoDir), flush: true);
 }
 
-Uri computeCfeGeneratedFile() {
-  return Platform.script
-      .resolve("../../lib/src/api_prototype/experimental_flags_generated.dart");
+Uri computeCfeGeneratedFile(Uri repoDir) {
+  return repoDir.resolve(
+      "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart");
 }
 
-Uri computeKernelGeneratedFile() {
-  return Platform.script
-      .resolve("../../../kernel/lib/default_language_version.dart");
+Uri computeKernelGeneratedFile(Uri repoDir) {
+  return repoDir.resolve("pkg/kernel/lib/default_language_version.dart");
 }
 
-Uri computeYamlFile() {
-  return Platform.script
-      .resolve("../../../../tools/experimental_features.yaml");
+Uri computeYamlFile(Uri repoDir) {
+  return repoDir.resolve("tools/experimental_features.yaml");
 }
 
-Uri computeAllowListFile() {
-  return Platform.script
-      .resolve("../../../../sdk/lib/_internal/allowed_experiments.json");
+Uri computeAllowListFile(Uri repoDir) {
+  return repoDir.resolve("sdk/lib/_internal/allowed_experiments.json");
 }
 
-String generateKernelFile() {
-  Uri yamlFile = computeYamlFile();
+String generateKernelFile(Uri repoDir) {
+  Uri yamlFile = computeYamlFile(repoDir);
   Map<dynamic, dynamic> yaml =
       loadYaml(new File.fromUri(yamlFile).readAsStringSync());
 
   int currentVersionMajor;
   int currentVersionMinor;
   {
-    String currentVersion = getAsVersionNumberString(yaml['current-version']);
+    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
     List<String> split = currentVersion.split(".");
     currentVersionMajor = int.parse(split[0]);
     currentVersionMinor = int.parse(split[1]);
@@ -76,15 +74,15 @@ Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVer
   return new DartFormatter().format("$sb");
 }
 
-String generateCfeFile() {
-  Uri yamlFile = computeYamlFile();
+String generateCfeFile(Uri repoDir) {
+  Uri yamlFile = computeYamlFile(repoDir);
   Map<dynamic, dynamic> yaml =
       loadYaml(new File.fromUri(yamlFile).readAsStringSync());
 
   int currentVersionMajor;
   int currentVersionMinor;
   {
-    String currentVersion = getAsVersionNumberString(yaml['current-version']);
+    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
     List<String> split = currentVersion.split(".");
     currentVersionMajor = int.parse(split[0]);
     currentVersionMinor = int.parse(split[1]);
@@ -96,8 +94,6 @@ String generateCfeFile() {
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// @dart = 2.9
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -137,7 +133,7 @@ enum ExperimentalFlag {
   for (String key in keys) {
     int major;
     int minor;
-    String enabledIn =
+    String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
     if (enabledIn == null) {
       major = currentVersionMajor;
@@ -154,7 +150,7 @@ enum ExperimentalFlag {
 
   sb.write('''
 
-ExperimentalFlag parseExperimentalFlag(String flag) {
+ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
 ''');
   for (String key in keys) {
@@ -194,7 +190,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   for (String key in keys) {
     int major;
     int minor;
-    String enabledIn =
+    String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
     if (enabledIn != null) {
       List<String> split = enabledIn.split(".");
@@ -215,9 +211,9 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   for (String key in keys) {
     int major;
     int minor;
-    String enabledIn =
+    String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
-    String experimentalReleaseVersion = getAsVersionNumberString(
+    String? experimentalReleaseVersion = getAsVersionNumberString(
         (features[key] as YamlMap)['experimentalReleaseVersion']);
     if (experimentalReleaseVersion != null) {
       List<String> split = experimentalReleaseVersion.split(".");
@@ -239,7 +235,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   
 ''');
 
-  Uri allowListFile = computeAllowListFile();
+  Uri allowListFile = computeAllowListFile(repoDir);
   AllowedExperiments allowedExperiments = parseAllowedExperiments(
       new File.fromUri(allowListFile).readAsStringSync());
 
@@ -298,7 +294,7 @@ keyToIdentifier(String key, {bool upperCaseFirst = false}) {
   return identifier.toString();
 }
 
-String getAsVersionNumberString(dynamic value) {
+String? getAsVersionNumberString(dynamic value) {
   if (value == null) return null;
   if (value is String) return value;
   if (value is double) return "$value";

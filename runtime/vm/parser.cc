@@ -287,7 +287,7 @@ void ParsedFunction::AllocateVariables() {
   VariableIndex first_local_index =
       VariableIndex(parameter_index_start.value() > 0 ? 0 : -num_params);
   VariableIndex next_free_index = scope->AllocateVariables(
-      parameter_index_start, num_params, first_local_index, NULL,
+      function(), parameter_index_start, num_params, first_local_index, NULL,
       &found_captured_variables);
 
   num_stack_locals_ = -next_free_index.value();

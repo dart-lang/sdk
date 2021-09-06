@@ -91,16 +91,16 @@ static method main() → dynamic {
   core::Map<core::String*, core::Object*>* m = <core::String*, core::Object*>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
   m = <core::String*, core::Object*>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
   self::IndexTester* i = new self::IndexTester::•();
-  i.{self::IndexTester::[]}(new self::Foo::•());
-  i.{self::IndexTester::[]}(new self::Foo::•());
-  i.{self::IndexTester::[]}(new self::Bar::named());
-  i.{self::IndexTester::[]}(new self::Bar::named());
-  i.{self::IndexTester::[]=}(new self::Foo::•(), null);
-  i.{self::IndexTester::[]=}(new self::Foo::•(), null);
-  i.{self::IndexTester::[]=}(new self::Bar::named(), null);
-  i.{self::IndexTester::[]=}(new self::Bar::named(), null);
-  new self::Foo::•().{self::Foo::+}(new self::Bar::named());
-  new self::Foo::•().{self::Foo::+}(new self::Bar::named());
-  new self::Bar::named().{self::Bar::+}(new self::Foo::•());
-  new self::Bar::named().{self::Bar::+}(new self::Foo::•());
+  i.{self::IndexTester::[]}(new self::Foo::•()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]}(new self::Foo::•()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]}(new self::Bar::named()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]}(new self::Bar::named()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]=}(new self::Foo::•(), null){(dynamic, dynamic) →* void};
+  i.{self::IndexTester::[]=}(new self::Foo::•(), null){(dynamic, dynamic) →* void};
+  i.{self::IndexTester::[]=}(new self::Bar::named(), null){(dynamic, dynamic) →* void};
+  i.{self::IndexTester::[]=}(new self::Bar::named(), null){(dynamic, dynamic) →* void};
+  new self::Foo::•().{self::Foo::+}(new self::Bar::named()){(dynamic) →* dynamic};
+  new self::Foo::•().{self::Foo::+}(new self::Bar::named()){(dynamic) →* dynamic};
+  new self::Bar::named().{self::Bar::+}(new self::Foo::•()){(dynamic) →* dynamic};
+  new self::Bar::named().{self::Bar::+}(new self::Foo::•()){(dynamic) →* dynamic};
 }

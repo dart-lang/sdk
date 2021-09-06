@@ -21,12 +21,12 @@ class A extends core::Object /*hasConstConstructor*/  {
 static method main() → dynamic {
   core::int* foo = 42;
   new self::A::•(5);
-  new self::A::•(5.{core::num::+}(5));
+  new self::A::•(5.{core::num::+}(5){(core::num*) →* core::int*});
   new self::A::•(foo);
-  new self::A::•(5.{core::num::+}(foo));
+  new self::A::•(5.{core::num::+}(foo){(core::num*) →* core::int*});
 }
 
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///simple.dart:15:7 -> IntConstant(10)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple.dart:15:7 -> IntConstant(10)
 Extra constant evaluation: evaluated: 9, effectively constant: 1

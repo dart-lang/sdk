@@ -19,25 +19,26 @@ import 'abstract_context.dart';
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
-  String testCode;
-  String testFile;
-  Uri testUri;
-  Source testSource;
-  ResolvedUnitResult testAnalysisResult;
-  CompilationUnit testUnit;
-  CompilationUnitElement testUnitElement;
-  LibraryElement testLibraryElement;
-  FindNode findNode;
-  FindElement findElement;
+  String? testCode;
+  late String testFile;
+  Uri? testUri;
+  Source? testSource;
+  late ResolvedUnitResult testAnalysisResult;
+  CompilationUnit? testUnit;
+  CompilationUnitElement? testUnitElement;
+  LibraryElement? testLibraryElement;
+  late FindNode findNode;
+  late FindElement findElement;
 
-  void addTestSource(String code, [Uri uri]) {
+  void addTestSource(String code, [Uri? uri]) {
     testCode = code;
     testSource = addSource(testFile, code, uri);
   }
 
   Future<void> resolveTestUnit(String code) async {
     addTestSource(code, testUri);
-    testAnalysisResult = await session.getResolvedUnit(testFile);
+    testAnalysisResult =
+        await session.getResolvedUnit(testFile) as ResolvedUnitResult;
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
       expect(testAnalysisResult.errors.where((AnalysisError error) {
@@ -51,10 +52,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.declaredElement;
-    testLibraryElement = testUnitElement.library;
-    findNode = FindNode(code, testUnit);
-    findElement = FindElement(testUnit);
+    testUnitElement = testUnit!.declaredElement;
+    testLibraryElement = testUnitElement!.library;
+    findNode = FindNode(code, testUnit!);
+    findElement = FindElement(testUnit!);
   }
 
   @override

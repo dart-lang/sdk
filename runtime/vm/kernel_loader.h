@@ -168,7 +168,7 @@ struct UriToSourceTableTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->uri->Hash(); }
+  static inline uword Hash(Key key) { return key->uri->Hash(); }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
     // Only compare uri.
@@ -223,15 +223,6 @@ class KernelLoader : public ValueObject {
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
                                   const LibraryIndex& library_index);
-
-  // Check for the presence of a (possibly const) constructor for the
-  // 'ExternalName' class. If found, returns the name parameter to the
-  // constructor.
-  StringPtr DetectExternalNameCtor();
-
-  // Check for the presence of a (possibly const) constructor for the 'pragma'
-  // class. Returns whether it was found (no details about the type of pragma).
-  bool DetectPragmaCtor();
 
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
@@ -329,9 +320,9 @@ class KernelLoader : public ValueObject {
   }
 
   // Returns the initial field value for a static function (if applicable).
-  InstancePtr GenerateFieldAccessors(const Class& klass,
-                                     const Field& field,
-                                     FieldHelper* field_helper);
+  ObjectPtr GenerateFieldAccessors(const Class& klass,
+                                   const Field& field,
+                                   FieldHelper* field_helper);
   bool FieldNeedsSetter(FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
@@ -412,7 +403,7 @@ class KernelLoader : public ValueObject {
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
-  Instance& static_field_value_;
+  Object& static_field_value_;
 
   Class& pragma_class_;
 

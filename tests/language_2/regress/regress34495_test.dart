@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 final foo = A<B>.foo();
 //          ^
 // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE

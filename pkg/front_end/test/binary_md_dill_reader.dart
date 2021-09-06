@@ -29,6 +29,7 @@ class BinaryMdDillReader {
   Map _dillStringsPointer;
   int verboseLevel = 0;
   bool _ranSetup = false;
+  List<String> readingStack = [];
 
   BinaryMdDillReader(this._binaryMdContent, this._dillContent);
 
@@ -101,11 +102,13 @@ class BinaryMdDillReader {
 
   int numLibs;
   int binaryOffsetForSourceTable;
+  int binaryOffsetForConstantTable;
+  int binaryOffsetForConstantTableIndex;
   int binaryOffsetForCanonicalNames;
   int binaryOffsetForMetadataPayloads;
   int binaryOffsetForMetadataMappings;
   int binaryOffsetForStringTable;
-  int binaryOffsetForConstantTable;
+  int binaryOffsetForStartOfComponentIndex;
   int mainMethodReference;
 
   /// Read the dill file data, parsing it into a Map.
@@ -119,10 +122,14 @@ class BinaryMdDillReader {
 
     // Skip to the start of the index.
     _binaryOffset = _dillContent.length -
-        ((numLibs + 1) + 10 /* number of fixed fields */) * 4;
+        ((numLibs + 1) + 12 /* number of fixed fields */) * 4;
 
     // Read index.
     binaryOffsetForSourceTable = _peekUint32();
+    _binaryOffset += 4;
+    binaryOffsetForConstantTable = _peekUint32();
+    _binaryOffset += 4;
+    binaryOffsetForConstantTableIndex = _peekUint32();
     _binaryOffset += 4;
     binaryOffsetForCanonicalNames = _peekUint32();
     _binaryOffset += 4;
@@ -132,7 +139,7 @@ class BinaryMdDillReader {
     _binaryOffset += 4;
     binaryOffsetForStringTable = _peekUint32();
     _binaryOffset += 4;
-    binaryOffsetForConstantTable = _peekUint32();
+    binaryOffsetForStartOfComponentIndex = _peekUint32();
     _binaryOffset += 4;
     mainMethodReference = _peekUint32();
     _binaryOffset += 4;
@@ -141,13 +148,13 @@ class BinaryMdDillReader {
     _binaryOffset = binaryOffsetForStringTable;
     var saved = _readingInstructions["ComponentFile"];
     _readingInstructions["ComponentFile"] = ["StringTable strings;"];
-    _readBinary("ComponentFile");
+    _readBinary("ComponentFile", "");
     _readingInstructions["ComponentFile"] = saved;
     _binaryOffset = 0;
     _depth = 0;
     // Hack end.
 
-    Map componentFile = _readBinary("ComponentFile");
+    Map componentFile = _readBinary("ComponentFile", "");
     if (_binaryOffset != _dillContent.length) {
       throw "Didn't read the entire binary: "
           "Only read $_binaryOffset of ${_dillContent.length} bytes. "
@@ -229,33 +236,109 @@ class BinaryMdDillReader {
     return result;
   }
 
+  static const int $COMMA = 44;
+  static const int $LT = 60;
+  static const int $GT = 62;
+
   /// Extract the generics used in an input type, e.g. turns
   ///
-  /// * "Pair<A, B>" into ["A", "B"]
-  /// * "List<Expression>" into ["Expression"]
+  /// * "Pair<A, B>" into ["A", "B"].
+  /// * "List<Expression>" into ["Expression"].
+  /// * "Foo<Bar<Baz>>" into ["Bar<Baz>"].
+  /// * "Foo<A, B<C, D>, E>" into ["A", "B<C, D>", "E"].
   ///
   /// Note that the input string *has* to use generics, i.e. have '<' and '>'
   /// in it.
-  /// Also note that nested generics isn't really supported
-  /// (e.g. Foo<Bar<Baz>>).
-  List<String> _getGenerics(String s) {
+  ///
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Pair<A, B>"), ["A", "B"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("List<Expression>"), ["Expression"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("List<Pair<FileOffset, Expression>>"),
+  ///   ["Pair<FileOffset, Expression>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("RList<Pair<UInt32, UInt32>>"),
+  ///   ["Pair<UInt32, UInt32>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<FieldReference, Expression>>"),
+  ///   ["Pair<FieldReference, Expression>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<ConstantReference, ConstantReference>>"),
+  ///   ["Pair<ConstantReference, ConstantReference>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<FieldReference, ConstantReference>>"),
+  ///   ["Pair<FieldReference, ConstantReference>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Option<List<DartType>>"),
+  ///   ["List<DartType>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Foo<Bar<Baz>>"), ["Bar<Baz>"]
+  /// )
+  /// DartDocTest(
+  ///      BinaryMdDillReader._getGenerics("Foo<A, B<C, D>, E>"),
+  ///            ["A", "B<C, D>", "E"]
+  /// )
+  /// DartDocTest(
+  ///      BinaryMdDillReader._getGenerics("Foo<A, B<C, D<E<F<G>>>>, H>"),
+  ///            ["A", "B<C, D<E<F<G>>>>", "H"]
+  /// )
+  ///
+  /// Expected failing run (expects to fail with unbalanced < >).
+  /// TODO: Support this more elegantly.
+  /// DartDocTest(() {
+  ///      try {
+  ///        BinaryMdDillReader._getGenerics("Foo<A, B<C, D, E>");
+  ///        return false;
+  ///      } catch(e) {
+  ///        return true;
+  ///      }
+  ///    }(),
+  ///    true
+  /// )
+  ///
+  static List<String> _getGenerics(String s) {
     s = s.substring(s.indexOf("<") + 1, s.lastIndexOf(">"));
-    if (s.contains("<")) {
-      if (s == "Pair<FileOffset, Expression>") {
-        return ["Pair<FileOffset, Expression>"];
-      } else if (s == "Pair<UInt32, UInt32>") {
-        return ["Pair<UInt32, UInt32>"];
-      } else if (s == "Pair<FieldReference, Expression>") {
-        return ["Pair<FieldReference, Expression>"];
-      } else if (s == "Pair<ConstantReference, ConstantReference>") {
-        return ["Pair<ConstantReference, ConstantReference>"];
-      } else if (s == "Pair<FieldReference, ConstantReference>") {
-        return ["Pair<FieldReference, ConstantReference>"];
+    // Check that any '<' and '>' are balanced and split entries on comma for
+    // the outermost parameters.
+    int ltCount = 0;
+    int gtCount = 0;
+    int depth = 0;
+    int lastPos = 0;
+
+    List<int> codeUnits = s.codeUnits;
+    List<String> result = [];
+    for (int i = 0; i < codeUnits.length; i++) {
+      int codeUnit = codeUnits[i];
+      if (codeUnit == $LT) {
+        ltCount++;
+        depth++;
+      } else if (codeUnit == $GT) {
+        gtCount++;
+        depth--;
+      } else if (codeUnit == $COMMA && depth == 0) {
+        result.add(s.substring(lastPos, i).trim());
+        lastPos = i + 1;
       }
-      throw "Doesn't supported nested generics (input: $s).";
     }
 
-    return s.split(",").map((untrimmed) => untrimmed.trim()).toList();
+    if (ltCount != gtCount) {
+      throw "Unbalanced '<' and '>': $s";
+    }
+    assert(depth == 0);
+    result.add(s.substring(lastPos, codeUnits.length).trim());
+    return result;
   }
 
   /// Parses a line of binary.md content for a "current class" into the
@@ -384,7 +467,7 @@ class BinaryMdDillReader {
 
   /// Actually read the binary dill file. Read type [what] at the current
   /// binary position as specified by field [_binaryOffset].
-  dynamic _readBinary(String what) {
+  dynamic _readBinary(String what, String callerInstruction) {
     ++_depth;
     what = _remapWhat(what);
 
@@ -416,6 +499,9 @@ class BinaryMdDillReader {
     if (_readingInstructions[what] == null) {
       throw "Didn't find instructions for '$what'";
     }
+
+    readingStack.add(orgWhat);
+    readingStack.add(callerInstruction);
 
     Map<String, dynamic> vars = {};
     if (verboseLevel > 1) {
@@ -516,25 +602,36 @@ class BinaryMdDillReader {
             count == "libraryCount + 1") {
           intCount = numLibs + 1;
         }
+        if (intCount < 0 &&
+            type == "UInt32" &&
+            _depth == 2 &&
+            count == "length" &&
+            readingStack.last == "RList<UInt32> constantsMapping;") {
+          int prevBinaryOffset = _binaryOffset;
+          // Hack: Use the ComponentIndex to go to the end and read the length.
+          _binaryOffset = binaryOffsetForCanonicalNames - 4;
+          intCount = _peekUint32();
+          _binaryOffset = prevBinaryOffset;
+        }
 
         if (intCount >= 0) {
           readNothingIsOk = intCount == 0;
           List<dynamic> value = new List.filled(intCount, null);
           for (int i = 0; i < intCount; ++i) {
             int oldOffset2 = _binaryOffset;
-            value[i] = _readBinary(type);
+            value[i] = _readBinary(type, instruction);
             if (_binaryOffset <= oldOffset2) {
               throw "Didn't read anything for $type @ $_binaryOffset";
             }
           }
           vars[name] = value;
         } else {
-          throw "Array of unknown size ($count)";
+          throw "Array of unknown size ($instruction, $type, $count)";
         }
       } else {
         // Not an array, read the single field recursively.
         type = _lookupGenericType(typeNames, type, types);
-        dynamic value = _readBinary(type);
+        dynamic value = _readBinary(type, instruction);
         vars[name] = value;
         _checkTag(instruction, value);
       }
@@ -551,6 +648,8 @@ class BinaryMdDillReader {
     }
 
     --_depth;
+    readingStack.removeLast();
+    readingStack.removeLast();
     return vars;
   }
 

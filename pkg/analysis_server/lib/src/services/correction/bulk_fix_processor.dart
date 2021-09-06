@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
@@ -24,7 +22,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -150,9 +147,8 @@ class BulkFixProcessor {
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
   BulkFixProcessor(this.instrumentationService, this.workspace,
-      {bool useConfigFiles})
-      : useConfigFiles = useConfigFiles ?? false,
-        builder = ChangeBuilder(workspace: workspace);
+      {this.useConfigFiles = false})
+      : builder = ChangeBuilder(workspace: workspace);
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -172,14 +168,29 @@ class BulkFixProcessor {
     for (var context in contexts) {
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
-        if (!file_paths.isDart(pathContext, path)) {
-          continue;
-        }
-        var kind = await context.currentSession.getSourceKind(path);
-        if (kind != SourceKind.LIBRARY) {
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
           continue;
         }
         var library = await context.currentSession.getResolvedLibrary(path);
+        if (library is ResolvedLibraryResult) {
+          await _fixErrorsInLibrary(library);
+        }
+      }
+    }
+
+    return builder;
+  }
+
+  /// Return a change builder that has been used to create fixes for the
+  /// diagnostics in [file] in the given [context].
+  Future<ChangeBuilder> fixErrorsForFile(
+      AnalysisContext context, String path) async {
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
+
+    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
+      var library = await context.currentSession.getResolvedLibrary(path);
+      if (library is ResolvedLibraryResult) {
         await _fixErrorsInLibrary(library);
       }
     }
@@ -199,19 +210,19 @@ class BulkFixProcessor {
     );
 
     final analysisOptions = unit.session.analysisContext.analysisOptions;
-    final fixContext = DartFixContextImpl(
-      instrumentationService,
-      workspace,
-      unit,
-      null,
-      (name) => [],
-    );
 
     var overrideSet = _readOverrideSet(unit);
     for (var error in errors) {
       final processor = ErrorProcessor.getProcessor(analysisOptions, error);
       // Only fix errors not filtered out in analysis options.
       if (processor == null || processor.severity != null) {
+        final fixContext = DartFixContextImpl(
+          instrumentationService,
+          workspace,
+          unit,
+          error,
+          (name) => [],
+        );
         await _fixSingleError(fixContext, unit, error, overrideSet);
       }
     }
@@ -231,27 +242,13 @@ class BulkFixProcessor {
   ) sync* {
     final errorCode = diagnostic.errorCode;
     if (errorCode is LintCode) {
-      var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
-      for (var fix in fixes) {
-        if (fix.canBeBulkApplied) {
-          final generators = fix.generators;
-          if (generators != null) {
-            yield* generators.map((g) => g().fixKind).whereNotNull();
-          }
-        }
-      }
+      yield* _producableFixesFromGenerators(
+          FixProcessor.lintProducerMap[errorCode.name]);
       return;
     }
 
-    var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
-    for (var fix in fixes) {
-      if (fix.canBeBulkApplied) {
-        final generators = fix.generators;
-        if (generators != null) {
-          yield* generators.map((g) => g().fixKind).whereNotNull();
-        }
-      }
-    }
+    yield* _producableFixesFromGenerators(
+        FixProcessor.nonLintProducerMap[errorCode]);
 
     final multiGenerators = nonLintMultiProducerMap[errorCode];
     if (multiGenerators != null) {
@@ -259,11 +256,11 @@ class BulkFixProcessor {
         instrumentationService,
         workspace,
         result,
-        null,
+        diagnostic,
         (name) => [],
       );
 
-      var context = CorrectionProducerContext(
+      var context = CorrectionProducerContext.create(
         applyingBulkFixes: true,
         dartFixContext: fixContext,
         diagnostic: diagnostic,
@@ -272,13 +269,14 @@ class BulkFixProcessor {
         selectionLength: diagnostic.length,
         workspace: workspace,
       );
+      if (context == null) {
+        return;
+      }
 
       for (final multiGenerator in multiGenerators) {
         final multiProducer = multiGenerator();
         multiProducer.configure(context);
-        yield* multiProducer.producers
-            .map((p) => p.fixKind)
-            .where((k) => k != null);
+        yield* multiProducer.producers.map((p) => p.fixKind).whereNotNull();
       }
     }
   }
@@ -288,18 +286,18 @@ class BulkFixProcessor {
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
     for (var unitResult in result.units) {
-      final fixContext = DartFixContextImpl(
-        instrumentationService,
-        workspace,
-        unitResult,
-        null,
-        (name) => [],
-      );
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in unitResult.errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         // Only fix errors not filtered out in analysis options.
         if (processor == null || processor.severity != null) {
+          final fixContext = DartFixContextImpl(
+            instrumentationService,
+            workspace,
+            unitResult,
+            error,
+            (name) => [],
+          );
           await _fixSingleError(fixContext, unitResult, error, overrideSet);
         }
       }
@@ -313,8 +311,8 @@ class BulkFixProcessor {
       DartFixContext fixContext,
       ResolvedUnitResult result,
       AnalysisError diagnostic,
-      TransformOverrideSet overrideSet) async {
-    var context = CorrectionProducerContext(
+      TransformOverrideSet? overrideSet) async {
+    var context = CorrectionProducerContext.create(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
@@ -324,9 +322,7 @@ class BulkFixProcessor {
       selectionLength: diagnostic.length,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return;
     }
 
@@ -360,15 +356,12 @@ class BulkFixProcessor {
       }
     }
 
-    Future<void> bulkApply(List<FixInfo> fixes, String codeName) async {
-      for (var fix in fixes) {
-        if (fix.canBeBulkApplied) {
-          final generators = fix.generators;
-          if (generators != null) {
-            for (var generator in generators) {
-              await generate(generator(), codeName);
-            }
-          }
+    Future<void> bulkApply(
+        List<ProducerGenerator> generators, String codeName) async {
+      for (var generator in generators) {
+        var producer = generator();
+        if (producer.canBeAppliedInBulk) {
+          await generate(producer, codeName);
         }
       }
     }
@@ -377,11 +370,11 @@ class BulkFixProcessor {
     try {
       var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
-        await bulkApply(fixes, codeName);
+        var generators = FixProcessor.lintProducerMap[errorCode.name] ?? [];
+        await bulkApply(generators, codeName);
       } else {
-        var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
-        await bulkApply(fixes, codeName);
+        var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
+        await bulkApply(generators, codeName);
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
@@ -401,10 +394,26 @@ class BulkFixProcessor {
     }
   }
 
+  Iterable<FixKind> _producableFixesFromGenerators(
+      List<ProducerGenerator>? generators) sync* {
+    if (generators == null) {
+      return;
+    }
+    for (var generator in generators) {
+      var producer = generator();
+      if (producer.canBeAppliedInBulk) {
+        var fixKind = producer.fixKind;
+        if (fixKind != null) {
+          yield fixKind;
+        }
+      }
+    }
+  }
+
   /// Return the override set corresponding to the given [result], or `null` if
   /// there is no corresponding configuration file or the file content isn't a
   /// valid override set.
-  TransformOverrideSet _readOverrideSet(ResolvedUnitResult result) {
+  TransformOverrideSet? _readOverrideSet(ResolvedUnitResult result) {
     if (useConfigFiles) {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;

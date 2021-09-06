@@ -227,7 +227,10 @@ abstract class int extends num {
 
   /// Returns the absolute value of this integer.
   ///
-  /// For any integer `x`, the result is the same as `x < 0 ? -x : x`.
+  /// For any integer `value`,
+  /// the result is the same as `value < 0 ? -value : value`.
+  ///
+  /// Integer overflow may cause the result of `-value` to stay negative.
   int abs();
 
   /// Returns the sign of this integer.

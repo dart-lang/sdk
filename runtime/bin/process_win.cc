@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 
 #include "bin/process.h"
 
@@ -96,7 +96,7 @@ class ProcessInfoList {
     MutexLocker locker(mutex_);
     HANDLE wait_handle = INVALID_HANDLE_VALUE;
     BOOL success = RegisterWaitForSingleObject(
-        &wait_handle, handle, &ExitCodeCallback, reinterpret_cast<void*>(pid),
+        &wait_handle, handle, &ExitCodeCallback, reinterpret_cast<PVOID>(pid),
         INFINITE, WT_EXECUTEONLYONCE);
     if (!success) {
       FATAL("Failed to register exit code wait operation.");
@@ -151,7 +151,7 @@ class ProcessInfoList {
     if (timed_out) {
       return;
     }
-    DWORD pid = reinterpret_cast<DWORD>(data);
+    DWORD pid = reinterpret_cast<UINT_PTR>(data);
     HANDLE handle;
     HANDLE wait_handle;
     HANDLE exit_pipe;
@@ -935,7 +935,7 @@ int64_t Process::CurrentRSS() {
 // https://docs.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-getprocessmemoryinfo
 // claims that GetProcessMemoryInfo is UWP compatible, it is actually not
 // hence this function cannot work when compiled in UWP mode.
-#ifdef TARGET_OS_WINDOWS_UWP
+#ifdef DART_TARGET_OS_WINDOWS_UWP
   return -1;
 #else
   PROCESS_MEMORY_COUNTERS pmc;
@@ -947,7 +947,7 @@ int64_t Process::CurrentRSS() {
 }
 
 int64_t Process::MaxRSS() {
-#ifdef TARGET_OS_WINDOWS_UWP
+#ifdef DART_TARGET_OS_WINDOWS_UWP
   return -1;
 #else
   PROCESS_MEMORY_COUNTERS pmc;
@@ -1032,7 +1032,8 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
       return -1;
     }
   }
-  signal_handlers = new SignalInfo(write_fd, signal, signal_handlers);
+  signal_handlers =
+      new SignalInfo(write_fd, signal, /*oldact=*/nullptr, signal_handlers);
   return reinterpret_cast<intptr_t>(new FileHandle(fds[kReadHandle]));
 }
 
@@ -1095,6 +1096,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
 }
 
 void ProcessInfoList::Init() {
+  active_processes_ = nullptr;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }
@@ -1108,11 +1110,13 @@ void ProcessInfoList::Cleanup() {
 void Process::Init() {
   ProcessInfoList::Init();
 
+  signal_handlers = NULL;
   ASSERT(signal_mutex == nullptr);
   signal_mutex = new Mutex();
 
   ASSERT(initialized_mutex == nullptr);
   initialized_mutex = new Mutex();
+  load_attempted = false;
 
   ASSERT(Process::global_exit_code_mutex_ == nullptr);
   Process::global_exit_code_mutex_ = new Mutex();
@@ -1139,4 +1143,4 @@ void Process::Cleanup() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)

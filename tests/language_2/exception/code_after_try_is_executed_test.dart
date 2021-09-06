@@ -5,6 +5,8 @@
 // test cannot use Expect.throws, because Expect.throws uses the same
 // pattern.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

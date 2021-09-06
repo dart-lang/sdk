@@ -28,15 +28,15 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                 String::Handle(zone, dart_target.name())));
   const Library& lib = Library::Handle(zone, Library::FfiLibrary());
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
-  const Function& function =
-      Function::Handle(zone, Function::New(Object::null_function_type(), name,
-                                           UntaggedFunction::kFfiTrampoline,
-                                           /*is_static=*/true,
-                                           /*is_const=*/false,
-                                           /*is_abstract=*/false,
-                                           /*is_external=*/false,
-                                           /*is_native=*/false, owner_class,
-                                           TokenPosition::kNoSource));
+  auto& signature = FunctionType::Handle(zone, FunctionType::New());
+  const Function& function = Function::Handle(
+      zone, Function::New(signature, name, UntaggedFunction::kFfiTrampoline,
+                          /*is_static=*/true,
+                          /*is_const=*/false,
+                          /*is_abstract=*/false,
+                          /*is_external=*/false,
+                          /*is_native=*/false, owner_class,
+                          TokenPosition::kNoSource));
   function.set_is_debuggable(false);
 
   // Set callback-specific fields which the flow-graph builder needs to generate
@@ -59,6 +59,16 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   } else {
     function.SetFfiCallbackExceptionalReturn(exceptional_return);
   }
+
+  // The dart type of the FfiCallback has no arguments or type arguments and
+  // has a result type of dynamic, as the callback is never invoked via Dart,
+  // only via native calls that do not use this information. Having no Dart
+  // arguments ensures the scope builder does not add inappropriate parameter
+  // variables.
+  signature.set_result_type(Object::dynamic_type());
+  // Finalize (and thus canonicalize) the signature.
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  function.SetSignature(signature);
 
   return function.ptr();
 }

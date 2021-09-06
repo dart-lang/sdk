@@ -1,7 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 main() {
-for (;;) {}
+for (*synthetic*;*synthetic*;) {}
 }
 
 

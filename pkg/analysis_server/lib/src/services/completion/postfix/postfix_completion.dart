@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -20,10 +18,12 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 /// An enumeration of possible postfix completion kinds.
 class DartPostfixCompletion {
-  static const NO_TEMPLATE = PostfixCompletionKind('', 'no change', null, null);
+  static const NO_TEMPLATE =
+      PostfixCompletionKind('', 'no change', _false, _null);
 
   static const List<PostfixCompletionKind> ALL_TEMPLATES = [
     PostfixCompletionKind('assert', 'expr.assert -> assert(expr);',
@@ -67,20 +67,20 @@ class DartPostfixCompletion {
         'while', 'expr.while -> while (expr) {}', isBoolContext, expandWhile),
   ];
 
-  static Future<PostfixCompletion> expandAssert(
+  static Future<PostfixCompletion?> expandAssert(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findAssertExpression, (expr) {
       return 'assert(${processor.utils.getNodeText(expr)});';
     }, withBraces: false);
   }
 
-  static Future<PostfixCompletion> expandElse(
+  static Future<PostfixCompletion?> expandElse(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => 'if (${processor.makeNegatedBoolExpr(expr)})');
   }
 
-  static Future<PostfixCompletion> expandFor(
+  static Future<PostfixCompletion?> expandFor(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findIterableExpression, (expr) {
       var value = processor.newVariable('value');
@@ -88,7 +88,7 @@ class DartPostfixCompletion {
     });
   }
 
-  static Future<PostfixCompletion> expandFori(
+  static Future<PostfixCompletion?> expandFori(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findIntExpression, (expr) {
       var index = processor.newVariable('i');
@@ -96,20 +96,20 @@ class DartPostfixCompletion {
     });
   }
 
-  static Future<PostfixCompletion> expandIf(
+  static Future<PostfixCompletion?> expandIf(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => 'if (${processor.utils.getNodeText(expr)})');
   }
 
-  static Future<PostfixCompletion> expandNegate(
+  static Future<PostfixCompletion?> expandNegate(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => processor.makeNegatedBoolExpr(expr),
         withBraces: false);
   }
 
-  static Future<PostfixCompletion> expandNotNull(
+  static Future<PostfixCompletion?> expandNotNull(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
@@ -118,7 +118,7 @@ class DartPostfixCompletion {
     });
   }
 
-  static Future<PostfixCompletion> expandNull(
+  static Future<PostfixCompletion?> expandNull(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
@@ -127,44 +127,44 @@ class DartPostfixCompletion {
     });
   }
 
-  static Future<PostfixCompletion> expandParen(
+  static Future<PostfixCompletion?> expandParen(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findObjectExpression,
         (expr) => '(${processor.utils.getNodeText(expr)})',
         withBraces: false);
   }
 
-  static Future<PostfixCompletion> expandReturn(
+  static Future<PostfixCompletion?> expandReturn(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findObjectExpression,
         (expr) => 'return ${processor.utils.getNodeText(expr)};',
         withBraces: false);
   }
 
-  static Future<PostfixCompletion> expandSwitch(
+  static Future<PostfixCompletion?> expandSwitch(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findObjectExpression,
         (expr) => 'switch (${processor.utils.getNodeText(expr)})');
   }
 
-  static Future<PostfixCompletion> expandTry(
+  static Future<PostfixCompletion?> expandTry(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expandTry(kind, processor.findStatement, withOn: false);
   }
 
-  static Future<PostfixCompletion> expandTryon(
+  static Future<PostfixCompletion?> expandTryon(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expandTry(kind, processor.findStatement, withOn: true);
   }
 
-  static Future<PostfixCompletion> expandWhile(
+  static Future<PostfixCompletion?> expandWhile(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
     return processor.expand(kind, processor.findBoolExpression,
         (expr) => 'while (${processor.utils.getNodeText(expr)})');
   }
 
-  static PostfixCompletionKind forKey(String key) =>
-      ALL_TEMPLATES.firstWhere((kind) => kind.key == key, orElse: () => null);
+  static PostfixCompletionKind? forKey(String key) =>
+      ALL_TEMPLATES.firstWhereOrNull((kind) => kind.key == key);
 
   static bool isAssertContext(PostfixCompletionProcessor processor) {
     return processor.findAssertExpression() != null;
@@ -193,6 +193,10 @@ class DartPostfixCompletion {
   static bool isSwitchContext(PostfixCompletionProcessor processor) {
     return processor.findObjectExpression() != null;
   }
+
+  static bool _false(_) => false;
+
+  static Future<PostfixCompletion?> _null(_, __) async => null;
 }
 
 /// A description of a postfix completion.
@@ -227,8 +231,9 @@ class PostfixCompletionContext {
 /// Clients may not extend, implement or mix-in this class.
 class PostfixCompletionKind {
   final String name, example;
-  final Function selector;
-  final Function computer;
+  final bool Function(PostfixCompletionProcessor) selector;
+  final Future<PostfixCompletion?> Function(
+      PostfixCompletionProcessor, PostfixCompletionKind) computer;
 
   const PostfixCompletionKind(
       this.name, this.example, this.selector, this.computer);
@@ -248,11 +253,11 @@ class PostfixCompletionProcessor {
 
   final PostfixCompletionContext completionContext;
   final CorrectionUtils utils;
-  AstNode node;
-  PostfixCompletion completion;
+  AstNode? node;
+  PostfixCompletion? completion;
   SourceChange change = SourceChange('postfix-completion');
   final Map<String, LinkedEditGroup> linkedPositionGroups = {};
-  Position exitPosition;
+  Position? exitPosition;
 
   PostfixCompletionProcessor(this.completionContext)
       : utils = CorrectionUtils(completionContext.resolveResult);
@@ -279,13 +284,16 @@ class PostfixCompletionProcessor {
       return NO_COMPLETION;
     }
     var completer = DartPostfixCompletion.forKey(key);
-    return completer?.computer(this, completer) ?? NO_COMPLETION;
+    if (completer == null) {
+      return NO_COMPLETION;
+    }
+    return await completer.computer(this, completer) ?? NO_COMPLETION;
   }
 
-  Future<PostfixCompletion> expand(
-      PostfixCompletionKind kind, Function contexter, Function sourcer,
+  Future<PostfixCompletion?> expand(PostfixCompletionKind kind,
+      Expression? Function() contexter, String Function(Expression) sourcer,
       {bool withBraces = true}) async {
-    AstNode expr = contexter();
+    var expr = contexter();
     if (expr == null) {
       return null;
     }
@@ -293,10 +301,7 @@ class PostfixCompletionProcessor {
     var changeBuilder = ChangeBuilder(session: session);
     await changeBuilder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(expr), (builder) {
-        String newSrc = sourcer(expr);
-        if (newSrc == null) {
-          return null;
-        }
+        var newSrc = sourcer(expr);
         builder.write(newSrc);
         if (withBraces) {
           builder.write(' {');
@@ -317,10 +322,10 @@ class PostfixCompletionProcessor {
     return completion;
   }
 
-  Future<PostfixCompletion> expandTry(
-      PostfixCompletionKind kind, Function contexter,
+  Future<PostfixCompletion?> expandTry(
+      PostfixCompletionKind kind, Statement? Function() contexter,
       {bool withOn = false}) async {
-    AstNode stmt = contexter();
+    var stmt = contexter();
     if (stmt == null) {
       return null;
     }
@@ -329,8 +334,11 @@ class PostfixCompletionProcessor {
       // Embed the full line(s) of the statement in the try block.
       var startLine = lineInfo.getLocation(stmt.offset).lineNumber - 1;
       var endLine = lineInfo.getLocation(stmt.end).lineNumber - 1;
-      if (stmt is ExpressionStatement && !stmt.semicolon.isSynthetic) {
-        endLine += 1;
+      if (stmt is ExpressionStatement) {
+        var semicolon = stmt.semicolon;
+        if (semicolon != null && !semicolon.isSynthetic) {
+          endLine += 1;
+        }
       }
       var startOffset = lineInfo.getOffsetOfLine(startLine);
       var endOffset = lineInfo.getOffsetOfLine(endLine);
@@ -365,22 +373,23 @@ class PostfixCompletionProcessor {
     return completion;
   }
 
-  Expression findAssertExpression() {
+  Expression? findAssertExpression() {
+    final node = this.node;
     if (node is Expression) {
       var boolExpr = _findOuterExpression(node, typeProvider.boolType);
       if (boolExpr == null) {
         return null;
       }
-      if (boolExpr.parent is ExpressionFunctionBody &&
-          boolExpr.parent.parent is FunctionExpression) {
-        FunctionExpression fnExpr = boolExpr.parent.parent;
-        var type = fnExpr.staticType;
+      var parent = boolExpr.parent;
+      var grandParent = parent?.parent;
+      if (parent is ExpressionFunctionBody &&
+          grandParent is FunctionExpression) {
+        var type = grandParent.staticType;
         if (type is! FunctionType) {
           return boolExpr;
         }
-        FunctionType fnType = type;
-        if (fnType.returnType == typeProvider.boolType) {
-          return fnExpr;
+        if (type.returnType == typeProvider.boolType) {
+          return grandParent;
         }
       }
       if (boolExpr.staticType == typeProvider.boolType) {
@@ -390,19 +399,19 @@ class PostfixCompletionProcessor {
     return null;
   }
 
-  Expression findBoolExpression() =>
+  Expression? findBoolExpression() =>
       _findOuterExpression(node, typeProvider.boolType);
 
-  Expression findIntExpression() =>
+  Expression? findIntExpression() =>
       _findOuterExpression(node, typeProvider.intType);
 
-  Expression findIterableExpression() =>
+  Expression? findIterableExpression() =>
       _findOuterExpression(node, typeProvider.iterableDynamicType);
 
-  Expression findObjectExpression() =>
+  Expression? findObjectExpression() =>
       _findOuterExpression(node, typeProvider.objectType);
 
-  AstNode findStatement() {
+  Statement? findStatement() {
     var astNode = node;
     while (astNode != null) {
       if (astNode is Statement && astNode is! Block) {
@@ -428,7 +437,10 @@ class PostfixCompletionProcessor {
       return false;
     }
     var completer = DartPostfixCompletion.forKey(key);
-    return completer?.selector(this);
+    if (completer == null) {
+      return false;
+    }
+    return completer.selector(this);
   }
 
   String makeNegatedBoolExpr(Expression expr) {
@@ -443,21 +455,24 @@ class PostfixCompletionProcessor {
 
   String nameOfExceptionThrownBy(AstNode astNode) {
     if (astNode is ExpressionStatement) {
-      astNode = (astNode as ExpressionStatement).expression;
+      astNode = astNode.expression;
     }
     if (astNode is ThrowExpression) {
       var expr = astNode;
       var type = expr.expression.staticType;
+      if (type is! TypeImpl) {
+        return 'Exception';
+      }
 
       // Only print nullability for non-legacy types in non-legacy libraries.
       var showNullability = type.nullabilitySuffix != NullabilitySuffix.star &&
           (astNode.root as CompilationUnit)
-              .declaredElement
+              .declaredElement!
               .library
               .isNonNullableByDefault;
 
       // Can't catch nullable types, strip `?`s now that we've checked for `*`s.
-      return (type as TypeImpl)
+      return type
           .withNullability(NullabilitySuffix.none)
           .getDisplayString(withNullability: showNullability);
     }
@@ -474,12 +489,12 @@ class PostfixCompletionProcessor {
     return name;
   }
 
-  Expression _findOuterExpression(AstNode start, InterfaceType builtInType) {
+  Expression? _findOuterExpression(AstNode? start, InterfaceType builtInType) {
     if (start is SimpleIdentifier && start.staticElement is PrefixElement) {
       return null;
     }
 
-    AstNode parent;
+    AstNode? parent;
     if (start is Expression) {
       parent = start;
     } else if (start is ArgumentList) {
@@ -495,26 +510,27 @@ class PostfixCompletionProcessor {
       parent = parent.parent;
     }
 
-    var expr = list.firstWhere((expr) {
+    var expr = list.firstWhereOrNull((expr) {
       var type = expr.staticType;
       if (type == null) return false;
       return typeSystem.isSubtypeOf(type, builtInType);
-    }, orElse: () => null);
-    if (expr is SimpleIdentifier && expr.parent is PropertyAccess) {
-      expr = expr.parent;
+    });
+    var exprParent = expr?.parent;
+    if (expr is SimpleIdentifier && exprParent is PropertyAccess) {
+      expr = exprParent;
     }
-    if (expr?.parent is CascadeExpression) {
-      expr = expr.parent;
+    if (exprParent is CascadeExpression) {
+      expr = exprParent;
     }
     return expr;
   }
 
-  AstNode _selectedNode({int at}) => NodeLocator(at ?? selectionOffset)
+  AstNode? _selectedNode({int? at}) => NodeLocator(at ?? selectionOffset)
       .searchWithin(completionContext.resolveResult.unit);
 
   void _setCompletionFromBuilder(
       ChangeBuilder builder, PostfixCompletionKind kind,
-      [List args]) {
+      [List? args]) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       completion = null;

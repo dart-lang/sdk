@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Client for secure_socket_renegotiate_test, that runs in a subprocess.
 // The test verifies that client certificates work, if the client and server
 // are in separate processes, and that connection renegotiation can request

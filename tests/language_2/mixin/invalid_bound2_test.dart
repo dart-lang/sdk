@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class S0<T> {}
 
 class S<U extends num, V extends U> extends S0<String> {}

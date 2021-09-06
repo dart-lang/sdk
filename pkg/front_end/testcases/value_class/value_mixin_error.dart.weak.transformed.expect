@@ -12,7 +12,7 @@ class A extends core::Object {
   operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::A;
   get /*isLegacy*/ hashCode() → core::int
-    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode});
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
     return "A()";
   method /*isLegacy*/ copyWith() → dynamic
@@ -30,7 +30,7 @@ abstract class _C&B&A extends self::B implements self::A /*isAnonymousMixin,isEl
   operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::A;
   get /*isLegacy*/ hashCode() → core::int
-    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode});
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
     return "A()";
   method /*isLegacy*/ copyWith() → dynamic
@@ -62,14 +62,14 @@ class JenkinsSmiHash extends core::Object {
     : super core::Object::•()
     ;
   static method combine(core::int hash, core::int value) → core::int {
-    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
-    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
-    return hash.{core::int::^}(hash.{core::int::>>}(6));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value){(core::num) → core::int}){(core::int) → core::int};
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(10){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
+    return hash.{core::int::^}(hash.{core::int::>>}(6){(core::int) → core::int}){(core::int) → core::int};
   }
   static method finish(core::int hash) → core::int {
-    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
-    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
-    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(3){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11){(core::int) → core::int}){(core::int) → core::int};
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(15){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
   }
 }
 static const field core::String valueClass = #C1;

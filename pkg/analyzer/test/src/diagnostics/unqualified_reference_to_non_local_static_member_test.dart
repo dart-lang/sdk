@@ -50,6 +50,21 @@ class B extends A {
     ]);
   }
 
+  test_methodTearoff() async {
+    await assertErrorsInCode('''
+class A {
+  static void a<T>() {}
+}
+class B extends A {
+  void b() {
+    a<int>;
+  }
+}
+''', [
+      error(_errorCode, 73, 1),
+    ]);
+  }
+
   test_readWrite() async {
     await assertErrorsInCode(r'''
 class A {

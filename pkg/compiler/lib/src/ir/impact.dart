@@ -598,15 +598,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
   @override
   void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {
-    // TODO(johnniwinther): Remove this after the new method invocation has landed
-    // stably. This is only included to make the transition a no-op.
-    if (node.fileOffset < node.expression.fileOffset) {
-      // Hack to detect `null == o`.
-      expressionType = const ir.NullType();
-    }
-    ClassRelation relation = computeClassRelationFromType(expressionType);
-    registerDynamicInvocation(
-        expressionType, relation, ir.Name.equalsName, 1, const [], const []);
     registerNullLiteral();
   }
 
@@ -687,7 +678,8 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handleConstantExpression(ir.ConstantExpression node) {
     ir.LibraryDependency import = getDeferredImport(node);
-    new ConstantImpactVisitor(this, import, node).visitConstant(node.constant);
+    new ConstantImpactVisitor(this, import, node, staticTypeContext)
+        .visitConstant(node.constant);
   }
 }
 
@@ -736,8 +728,10 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   final ImpactRegistry registry;
   final ir.LibraryDependency import;
   final ir.ConstantExpression expression;
+  final ir.StaticTypeContext staticTypeContext;
 
-  ConstantImpactVisitor(this.registry, this.import, this.expression);
+  ConstantImpactVisitor(
+      this.registry, this.import, this.expression, this.staticTypeContext);
 
   @override
   void defaultConstant(ir.Constant node) {
@@ -757,17 +751,20 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   }
 
   @override
-  void visitTearOffConstant(ir.TearOffConstant node) {
-    registry.registerStaticTearOff(node.procedure, import);
+  void visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
+    registry.registerStaticTearOff(node.target, import);
   }
 
   @override
-  void visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
+  void visitInstantiationConstant(ir.InstantiationConstant node) {
     registry.registerGenericInstantiation(
-        node.tearOffConstant.procedure.function.computeFunctionType(
-            node.tearOffConstant.procedure.enclosingLibrary.nonNullable),
-        node.types);
+        node.tearOffConstant.getType(staticTypeContext), node.types);
     visitConstant(node.tearOffConstant);
+  }
+
+  @override
+  void visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) {
+    defaultConstant(node);
   }
 
   @override

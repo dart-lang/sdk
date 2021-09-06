@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -21,8 +18,6 @@ void main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
-  Folder pedanticLibFolder;
-
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
 
@@ -35,12 +30,15 @@ String b = "Test";
     final pluginError = plugin.AnalysisError(
       plugin.AnalysisErrorSeverity.ERROR,
       plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
-      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0, 0, 6),
+      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0,
+          endLine: 0, endColumn: 6),
       'Test error from plugin',
       'ERR1',
       contextMessages: [
-        plugin.DiagnosticMessage('Related error',
-            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12, 1, 16))
+        plugin.DiagnosticMessage(
+            'Related error',
+            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12,
+                endLine: 1, endColumn: 16))
       ],
     );
     final pluginResult =
@@ -50,7 +48,7 @@ String b = "Test";
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
 
-    final err = diagnostics.first;
+    final err = diagnostics!.first;
     expect(err.severity, DiagnosticSeverity.Error);
     expect(err.message, equals('Test error from plugin'));
     expect(err.code, equals('ERR1'));
@@ -60,7 +58,7 @@ String b = "Test";
     expect(err.range.end.character, equals(6));
     expect(err.relatedInformation, hasLength(1));
 
-    final related = err.relatedInformation[0];
+    final related = err.relatedInformation![0];
     expect(related.message, equals('Related error'));
     expect(related.location.range.start.line, equals(1));
     expect(related.location.range.start.character, equals(12));
@@ -96,7 +94,7 @@ linter:
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Warning);
     expect(initialDiagnostics.first.code, 'undefined_lint_warning');
   }
 
@@ -111,7 +109,7 @@ include: package:pedantic/analysis_options.yaml
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Warning);
     expect(initialDiagnostics.first.code, 'include_file_not_found');
 
     // TODO(scheglov) The server does not handle the file change.
@@ -139,7 +137,7 @@ void f() {
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.relatedInformation, hasLength(1));
   }
 
@@ -154,7 +152,7 @@ void f() {
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.message, contains('\nTry'));
   }
 
@@ -187,7 +185,7 @@ void f() {
             emptyTextDocumentClientCapabilities, [DiagnosticTag.Deprecated]));
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
     expect(diagnostic.tags, contains(DiagnosticTag.Deprecated));
   }
@@ -204,7 +202,7 @@ void f() {
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
     expect(diagnostic.tags, isNull);
   }
@@ -223,9 +221,44 @@ void f() {
             emptyTextDocumentClientCapabilities, [DiagnosticTag.Unnecessary]));
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('dead_code'));
     expect(diagnostic.tags, contains(DiagnosticTag.Unnecessary));
+  }
+
+  Future<void> test_documentationUrl() async {
+    newFile(mainFilePath, content: '''
+    // ignore: unused_import
+    import 'dart:async' as import; // produces BUILT_IN_IDENTIFIER_IN_DECLARATION
+    ''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize(
+        textDocumentCapabilities: withDiagnosticCodeDescriptionSupport(
+            emptyTextDocumentClientCapabilities));
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics!.first;
+    expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
+    expect(
+      diagnostic.codeDescription!.href,
+      equals('https://dart.dev/diagnostics/built_in_identifier_in_declaration'),
+    );
+  }
+
+  Future<void> test_documentationUrl_notSupported() async {
+    newFile(mainFilePath, content: '''
+    // ignore: unused_import
+    import 'dart:async' as import; // produces BUILT_IN_IDENTIFIER_IN_DECLARATION
+    ''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics!.first;
+    expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
+    expect(diagnostic.codeDescription, isNull);
   }
 
   Future<void> test_dotFilesExcluded() async {
@@ -235,7 +268,7 @@ void f() {
 
     newFile(dotFolderFilePath, content: 'String a = 1;');
 
-    List<Diagnostic> diagnostics;
+    List<Diagnostic>? diagnostics;
     waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
 
     // Send a request for a hover.
@@ -258,12 +291,50 @@ version: latest
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Error);
+    expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Error);
     expect(initialDiagnostics.first.code, 'invalid_value');
   }
 
   Future<void> test_fromPlugins_dartFile() async {
     await checkPluginErrorsForFile(mainFilePath);
+  }
+
+  Future<void> test_fromPlugins_dartFile_combined() async {
+    // Check that if code has both a plugin and a server error, that when the
+    // plugin produces an error, it comes through _with_ the server-produced
+    // error.
+    // https://github.com/dart-lang/sdk/issues/45678
+    //
+    final serverErrorMessage =
+        "A value of type 'int' can't be assigned to a variable of type 'String'";
+    final pluginErrorMessage = 'Test error from plugin';
+
+    newFile(mainFilePath, content: 'String a = 1;');
+    final initialDiagnosticsFuture = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final initialDiagnostics = await initialDiagnosticsFuture;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics!.first.message, contains(serverErrorMessage));
+
+    final pluginTriggeredDiagnosticFuture = waitForDiagnostics(mainFileUri);
+    final pluginError = plugin.AnalysisError(
+      plugin.AnalysisErrorSeverity.ERROR,
+      plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
+      plugin.Location(mainFilePath, 0, 1, 0, 0, endLine: 0, endColumn: 1),
+      pluginErrorMessage,
+      'ERR1',
+    );
+    final pluginResult =
+        plugin.AnalysisErrorsParams(mainFilePath, [pluginError]);
+    configureTestPlugin(notification: pluginResult.toNotification());
+
+    final pluginTriggeredDiagnostics = await pluginTriggeredDiagnosticFuture;
+    expect(
+        pluginTriggeredDiagnostics!.map((error) => error.message),
+        containsAll([
+          pluginErrorMessage,
+          contains(serverErrorMessage),
+        ]));
   }
 
   Future<void> test_fromPlugins_nonDartFile() async {
@@ -277,7 +348,7 @@ version: latest
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('invalid_assignment'));
     expect(diagnostic.range.start.line, equals(0));
     expect(diagnostic.range.start.character, equals(11));
@@ -294,7 +365,7 @@ version: latest
       await openFile(mainFileUri, 'final a = Bad();');
       final diagnostics = await diagnosticsUpdate;
       expect(diagnostics, hasLength(1));
-      final diagnostic = diagnostics.first;
+      final diagnostic = diagnostics!.first;
       expect(diagnostic.message, contains("The function 'Bad' isn't defined"));
     }
 

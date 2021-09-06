@@ -7,6 +7,7 @@
 #include "platform/text_buffer.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
+#include "vm/heap/safepoint.h"
 #include "vm/log.h"
 #include "vm/malloc_hooks.h"
 #include "vm/native_symbol.h"
@@ -15,6 +16,8 @@
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/scope_timer.h"
+#include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/timeline.h"
 
 namespace dart {
@@ -540,7 +543,7 @@ class ProfileFunctionTable : public ZoneAllocated {
 
     static Value ValueOf(Pair kv) { return kv; }
 
-    static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+    static inline uword Hash(Key key) { return key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
       return kv->function()->ptr() == key->ptr();
@@ -919,7 +922,7 @@ class ProfileBuilder : public ValueObject {
 
   ProfileBuilder(Thread* thread,
                  SampleFilter* filter,
-                 SampleBuffer* sample_buffer,
+                 ProcessedSampleBufferBuilder* sample_buffer,
                  Profile* profile)
       : thread_(thread),
         vm_isolate_(Dart::vm_isolate()),
@@ -932,8 +935,6 @@ class ProfileBuilder : public ValueObject {
         inlined_functions_cache_(new ProfileCodeInlinedFunctionsCache()),
         samples_(NULL),
         info_kind_(kNone) {
-    ASSERT((sample_buffer_ == Profiler::sample_buffer()) ||
-           (sample_buffer_ == Profiler::allocation_sample_buffer()));
     ASSERT(profile_ != NULL);
   }
 
@@ -975,7 +976,7 @@ class ProfileBuilder : public ValueObject {
 
   bool FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    ASSERT(sample_buffer_ != NULL);
+    ASSERT(sample_buffer_ != nullptr);
     samples_ = sample_buffer_->BuildProcessedSampleBuffer(filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
@@ -1439,7 +1440,7 @@ class ProfileBuilder : public ValueObject {
   Thread* thread_;
   Isolate* vm_isolate_;
   SampleFilter* filter_;
-  SampleBuffer* sample_buffer_;
+  ProcessedSampleBufferBuilder* sample_buffer_;
   Profile* profile_;
   const AbstractCode null_code_;
   const Function& null_function_;
@@ -1466,11 +1467,10 @@ Profile::Profile(Isolate* isolate)
 
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
-                    SampleBuffer* sample_buffer) {
+                    ProcessedSampleBufferBuilder* sample_buffer) {
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
   ThreadInterrupter::SampleBufferReaderScope scope;
-
   ProfileBuilder builder(thread, filter, sample_buffer, this);
   builder.Build();
 }
@@ -1722,12 +1722,16 @@ ProfileFunction* Profile::FindFunction(const Function& function) {
 }
 
 void Profile::PrintProfileJSON(JSONStream* stream, bool include_code_samples) {
-  ScopeTimer sw("Profile::PrintProfileJSON", FLAG_trace_profiler);
   JSONObject obj(stream);
-  obj.AddProperty("type", "CpuSamples");
-  PrintHeaderJSON(&obj);
+  PrintProfileJSON(&obj, include_code_samples);
+}
+
+void Profile::PrintProfileJSON(JSONObject* obj, bool include_code_samples) {
+  ScopeTimer sw("Profile::PrintProfileJSON", FLAG_trace_profiler);
+  obj->AddProperty("type", "CpuSamples");
+  PrintHeaderJSON(obj);
   if (include_code_samples) {
-    JSONArray codes(&obj, "_codes");
+    JSONArray codes(obj, "_codes");
     for (intptr_t i = 0; i < live_code_->length(); i++) {
       ProfileCode* code = live_code_->At(i);
       ASSERT(code != NULL);
@@ -1746,30 +1750,30 @@ void Profile::PrintProfileJSON(JSONStream* stream, bool include_code_samples) {
   }
 
   {
-    JSONArray functions(&obj, "functions");
+    JSONArray functions(obj, "functions");
     for (intptr_t i = 0; i < functions_->length(); i++) {
       ProfileFunction* function = functions_->At(i);
       ASSERT(function != NULL);
       function->PrintToJSONArray(&functions);
     }
   }
-  PrintSamplesJSON(&obj, include_code_samples);
+  PrintSamplesJSON(obj, include_code_samples);
 }
 
 void ProfilerService::PrintJSONImpl(Thread* thread,
                                     JSONStream* stream,
                                     SampleFilter* filter,
-                                    SampleBuffer* sample_buffer,
+                                    ProcessedSampleBufferBuilder* buffer,
                                     bool include_code_samples) {
   Isolate* isolate = thread->isolate();
 
   // We should bail out in service.cc if the profiler is disabled.
-  ASSERT(sample_buffer != NULL);
+  ASSERT(buffer != nullptr);
 
   StackZone zone(thread);
   HANDLESCOPE(thread);
   Profile profile(isolate);
-  profile.Build(thread, filter, sample_buffer);
+  profile.Build(thread, filter, buffer);
   profile.PrintProfileJSON(stream, include_code_samples);
 }
 
@@ -1795,7 +1799,7 @@ void ProfilerService::PrintJSON(JSONStream* stream,
   Isolate* isolate = thread->isolate();
   NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
                                   time_origin_micros, time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::sample_buffer(),
+  PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(),
                 include_code_samples);
 }
 
@@ -1820,7 +1824,7 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   Isolate* isolate = thread->isolate();
   AllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
                                 time_origin_micros, time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::sample_buffer(), true);
+  PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(), true);
 }
 
 class ClassAllocationSampleFilter : public SampleFilter {
@@ -1856,7 +1860,7 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   ClassAllocationSampleFilter filter(isolate->main_port(), cls,
                                      Thread::kMutatorTask, time_origin_micros,
                                      time_extent_micros);
-  PrintJSONImpl(thread, stream, &filter, Profiler::sample_buffer(), true);
+  PrintJSONImpl(thread, stream, &filter, Profiler::sample_block_buffer(), true);
 }
 
 void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
@@ -1870,8 +1874,8 @@ void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
 }
 
 void ProfilerService::ClearSamples() {
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
-  if (sample_buffer == NULL) {
+  SampleBlockBuffer* sample_block_buffer = Profiler::sample_block_buffer();
+  if (sample_block_buffer == nullptr) {
     return;
   }
 
@@ -1883,7 +1887,7 @@ void ProfilerService::ClearSamples() {
   ThreadInterrupter::SampleBufferReaderScope scope;
 
   ClearProfileVisitor clear_profile(isolate);
-  sample_buffer->VisitSamples(&clear_profile);
+  sample_block_buffer->VisitSamples(&clear_profile);
 }
 
 #endif  // !PRODUCT

@@ -268,12 +268,12 @@ int j =
   ], expected: """
 int i =
 "bad";
-/\/ [error line 2, column 1, length 5]
+/\/ [error column 1, length 5]
 /\/ [analyzer] updated.error
 
 int j =
 "bad";
-/\/ [error line 7, column 1, length 5]
+/\/ [error column 1, length 5]
 /\/ [cfe] Error.
 """);
 
@@ -293,7 +293,7 @@ int i =
 """, errors: [makeError(line: 2, column: 1, cfeError: "Error.")], expected: """
 int i =
 "bad";
-/\/ [error line 2, column 1]
+/\/ [error column 1]
 /\/ [cfe] Error.
 """);
 
@@ -314,9 +314,9 @@ Error here;
 main() {
 }
 Error here;
-/\/ [error line 3, column 1, length 5]
+/\/ [error column 1, length 5]
 /\/ [analyzer] NEW.ERROR
-/\/ [error line 3, column 2, length 3]
+/\/ [error column 2, length 3]
 /\/ [cfe] Error.
 """);
 
@@ -400,7 +400,7 @@ x
     makeError(line: 1, column: 1, length: 0, cfeError: "Foo"),
   ], expected: """
 x
-// [error line 1, column 1, length 0]
+// [error column 1, length 0]
 // [cfe] Foo""");
 
   contextMessages();

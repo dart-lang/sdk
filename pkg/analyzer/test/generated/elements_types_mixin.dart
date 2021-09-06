@@ -496,11 +496,13 @@ mixin ElementsTypesMixin {
     String? name,
     required DartType type,
     bool isCovariant = false,
+    String? defaultValueCode,
   }) {
     var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
+    parameter.defaultValueCode = defaultValueCode;
     return parameter;
   }
 

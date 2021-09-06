@@ -88,10 +88,6 @@ class Utf8Encoder extends Converter<String, List<int>> {
   Uint8List convert(String string, [int start = 0, int? end]) {
     var stringLength = string.length;
     end = RangeError.checkValidRange(start, end, stringLength);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     var length = end - start;
     if (length == 0) return Uint8List(0);
     // Create a new encoder with a length that is guaranteed to be big enough.

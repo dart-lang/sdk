@@ -87,6 +87,8 @@ compiler_sources = [
   "compiler_pass.h",
   "compiler_state.cc",
   "compiler_state.h",
+  "compiler_timings.cc",
+  "compiler_timings.h",
   "ffi/abi.cc",
   "ffi/abi.h",
   "ffi/call.cc",
@@ -152,6 +154,7 @@ compiler_sources = [
 ]
 
 compiler_sources_tests = [
+  "asm_intrinsifier_test.cc",
   "assembler/assembler_arm64_test.cc",
   "assembler/assembler_arm_test.cc",
   "assembler/assembler_ia32_test.cc",

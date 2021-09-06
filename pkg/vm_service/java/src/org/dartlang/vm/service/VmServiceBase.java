@@ -572,6 +572,10 @@ abstract class VmServiceBase implements VmServiceConst {
     }
   }
 
+  protected String removeNewLines(String str) {
+    return str.replaceAll("\r\n", " ").replaceAll("\n", " ");
+  }
+
   void processResponse(JsonObject json) {
     JsonElement idElem = json.get(ID);
     if (idElem == null) {

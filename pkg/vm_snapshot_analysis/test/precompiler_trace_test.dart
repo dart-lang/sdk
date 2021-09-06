@@ -75,7 +75,7 @@ void main() async {
         callGraph.computeDominators();
 
         final main = callGraph.program
-            .lookup(['package:input', 'package:input/input.dart', '', 'main']);
+            .lookup(['package:input', 'package:input/input.dart', '', 'main'])!;
         final mainNode = callGraph.lookup(main);
 
         final retainedClasses = mainNode.dominated

@@ -413,8 +413,8 @@ class StaticError implements Comparable<StaticError> {
       }
 
       if (actual.length != null && length != actual.length) {
-        expectedMismatches.add("length $column");
-        actualMismatches.add("length ${actual.column}");
+        expectedMismatches.add("length $length");
+        actualMismatches.add("length ${actual.length}");
       }
     }
 
@@ -455,15 +455,23 @@ class _ErrorExpectationParser {
   /// Matches an explicit error location with a length, like:
   ///
   ///     // [error line 1, column 17, length 3]
-  static final _explicitLocationAndLengthRegExp =
-      RegExp(r"^\s*//\s*\[\s*error line\s+(\d+)\s*,\s*column\s+(\d+)\s*,\s*"
-          r"length\s+(\d+)\s*\]\s*$");
+  ///
+  /// or implicitly on the previous line
+  ///
+  ///     // [error column 17, length 3]
+  static final _explicitLocationAndLengthRegExp = RegExp(
+      r"^\s*//\s*\[\s*error (?:line\s+(\d+)\s*,)?\s*column\s+(\d+)\s*,\s*"
+      r"length\s+(\d+)\s*\]\s*$");
 
   /// Matches an explicit error location without a length, like:
   ///
   ///     // [error line 1, column 17]
-  static final _explicitLocationRegExp =
-      RegExp(r"^\s*//\s*\[\s*error line\s+(\d+)\s*,\s*column\s+(\d+)\s*\]\s*$");
+  ///
+  /// or implicitly on the previous line.
+  ///
+  ///     // [error column 17]
+  static final _explicitLocationRegExp = RegExp(
+      r"^\s*//\s*\[\s*error (?:line\s+(\d+)\s*,)?\s*column\s+(\d+)\s*\]\s*$");
 
   /// Matches the beginning of an error message, like `// [analyzer]`.
   ///
@@ -518,25 +526,28 @@ class _ErrorExpectationParser {
         _parseErrors(
             line: _lastRealLine,
             column: sourceLine.indexOf("^") + 1,
-            length: match.group(1).length);
+            length: match[1].length);
         _advance();
         continue;
       }
 
       match = _explicitLocationAndLengthRegExp.firstMatch(sourceLine);
       if (match != null) {
+        var lineCapture = match[1];
         _parseErrors(
-            line: int.parse(match.group(1)),
-            column: int.parse(match.group(2)),
-            length: int.parse(match.group(3)));
+            line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
+            column: int.parse(match[2]),
+            length: int.parse(match[3]));
         _advance();
         continue;
       }
 
       match = _explicitLocationRegExp.firstMatch(sourceLine);
       if (match != null) {
+        var lineCapture = match[1];
         _parseErrors(
-            line: int.parse(match.group(1)), column: int.parse(match.group(2)));
+            line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
+            column: int.parse(match[2]));
         _advance();
         continue;
       }
@@ -559,16 +570,16 @@ class _ErrorExpectationParser {
       var match = _errorMessageRegExp.firstMatch(_peek(1));
       if (match == null) break;
 
-      var number = match.group(2) != null ? int.parse(match.group(2)) : null;
+      var number = match[2] != null ? int.parse(match[2]) : null;
 
-      var sourceName = match.group(1);
+      var sourceName = match[1];
       var source = ErrorSource.find(sourceName);
       if (source == null) _fail("Unknown front end '[$sourceName]'.");
       if (source == ErrorSource.context && number == null) {
         _fail("Context messages must have an error number.");
       }
 
-      var message = match.group(3);
+      var message = match[3];
       _advance();
       var sourceLines = {locationLine, _currentLine};
 
@@ -587,7 +598,7 @@ class _ErrorExpectationParser {
         var messageMatch = _errorMessageRestRegExp.firstMatch(nextLine);
         if (messageMatch == null) break;
 
-        message += "\n" + messageMatch.group(1);
+        message += "\n" + messageMatch[1];
         _advance();
         sourceLines.add(_currentLine);
       }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests that `void` accepts any value and won't throw on non-`null` values.
 // The test is set up in a way that `--trust-type-annotations` and type
 // propagation must not assume that `void` is `null` either.

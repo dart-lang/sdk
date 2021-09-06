@@ -4,6 +4,8 @@
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation --no-lazy-dispatchers
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Test error message with misusing Functions and Closures: wrong args

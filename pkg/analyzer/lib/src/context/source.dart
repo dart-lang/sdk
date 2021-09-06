@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/package_build.dart';
 
 /// Return `true` if the given [source] refers to a file that is assumed to be
@@ -19,22 +20,7 @@ bool isGeneratedSource(Source? source) {
   if (source == null) {
     return false;
   }
-  // TODO(brianwilkerson) Generalize this mechanism.
-  const List<String> suffixes = <String>[
-    '.g.dart',
-    '.pb.dart',
-    '.pbenum.dart',
-    '.pbserver.dart',
-    '.pbjson.dart',
-    '.template.dart'
-  ];
-  String fullName = source.fullName;
-  for (String suffix in suffixes) {
-    if (fullName.endsWith(suffix)) {
-      return true;
-    }
-  }
-  return false;
+  return file_paths.isGenerated(source.fullName);
 }
 
 /// Instances of the class `SourceFactory` resolve possibly relative URI's
@@ -52,13 +38,12 @@ class SourceFactoryImpl implements SourceFactory {
 
   @override
   DartSdk? get dartSdk {
-    List<UriResolver> resolvers = this.resolvers;
+    final resolvers = this.resolvers;
     int length = resolvers.length;
     for (int i = 0; i < length; i++) {
-      UriResolver resolver = resolvers[i];
+      var resolver = resolvers[i];
       if (resolver is DartUriResolver) {
-        DartUriResolver dartUriResolver = resolver;
-        return dartUriResolver.dartSdk;
+        return resolver.dartSdk;
       }
     }
     return null;

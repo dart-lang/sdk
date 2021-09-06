@@ -88,11 +88,18 @@ ParseStringResult parseString(
     featureSet: scanner.featureSet,
   );
   var unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = LineInfo(scanner.lineStarts);
+  var lineInfo = LineInfo(scanner.lineStarts);
+  unit.lineInfo = lineInfo;
   ParseStringResult result =
       ParseStringResultImpl(content, unit, errorCollector.errors);
   if (throwIfDiagnostics && result.errors.isNotEmpty) {
-    throw ArgumentError('Content produced diagnostics when parsed');
+    var buffer = StringBuffer();
+    for (var error in result.errors) {
+      var location = lineInfo.getLocation(error.offset);
+      buffer.writeln('  ${error.errorCode.name}: ${error.message} - '
+          '${location.lineNumber}:${location.columnNumber}');
+    }
+    throw ArgumentError('Content produced diagnostics when parsed:\n$buffer');
   }
   return result;
 }
@@ -104,9 +111,7 @@ ParseStringResult parseString(
 /// Note that if more than one file is going to be resolved then this function
 /// is inefficient. Clients should instead use [AnalysisContextCollection] to
 /// create one or more contexts and use those contexts to resolve the files.
-///
-/// TODO(migration): should not be nullable
-Future<ResolvedUnitResult?> resolveFile(
+Future<SomeResolvedUnitResult> resolveFile2(
     {required String path, ResourceProvider? resourceProvider}) async {
   AnalysisContext context =
       _createAnalysisContext(path: path, resourceProvider: resourceProvider);

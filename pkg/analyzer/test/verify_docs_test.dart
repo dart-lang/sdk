@@ -118,26 +118,27 @@ $snippet
       if (contexts.length != 1) {
         fail('The snippets directory contains multiple analysis contexts.');
       }
-      ErrorsResult results =
-          await contexts[0].currentSession.getErrors(snippetPath);
-      Iterable<AnalysisError> errors = results.errors.where((error) {
-        ErrorCode errorCode = error.errorCode;
-        return errorCode != HintCode.UNUSED_IMPORT &&
-            errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
-      });
-      if (errors.isNotEmpty) {
-        String filePath =
-            provider.pathContext.relative(file.path, from: docFolder.path);
-        if (output.isNotEmpty) {
+      var results = await contexts[0].currentSession.getErrors(snippetPath);
+      if (results is ErrorsResult) {
+        Iterable<AnalysisError> errors = results.errors.where((error) {
+          ErrorCode errorCode = error.errorCode;
+          return errorCode != HintCode.UNUSED_IMPORT &&
+              errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
+        });
+        if (errors.isNotEmpty) {
+          String filePath =
+              provider.pathContext.relative(file.path, from: docFolder.path);
+          if (output.isNotEmpty) {
+            output.writeln();
+          }
+          output.writeln('Errors in snippet in "$filePath":');
           output.writeln();
-        }
-        output.writeln('Errors in snippet in "$filePath":');
-        output.writeln();
-        output.writeln(snippet);
-        output.writeln();
-        int importsLength = imports.length + 1; // account for the '\n'.
-        for (var error in errors) {
-          writeError(error, importsLength);
+          output.writeln(snippet);
+          output.writeln();
+          int importsLength = imports.length + 1; // account for the '\n'.
+          for (var error in errors) {
+            writeError(error, importsLength);
+          }
         }
       }
     } catch (exception, stackTrace) {

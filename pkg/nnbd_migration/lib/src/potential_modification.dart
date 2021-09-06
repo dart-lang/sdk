@@ -20,7 +20,7 @@ class ConditionalModification {
 
   final _KeepNode thenStatement;
 
-  final _KeepNode elseStatement;
+  final _KeepNode? elseStatement;
 
   factory ConditionalModification(AstNode node, ConditionalDiscard discard) {
     if (node is IfStatement) {
@@ -31,7 +31,7 @@ class ConditionalModification {
           discard,
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),
-          node.elseStatement == null ? null : _KeepNode(node.elseStatement));
+          node.elseStatement == null ? null : _KeepNode(node.elseStatement!));
     } else if (node is IfElement) {
       return ConditionalModification._(
           node.offset,
@@ -40,7 +40,7 @@ class ConditionalModification {
           discard,
           _KeepNode(node.condition),
           _KeepNode(node.thenElement),
-          node.elseElement == null ? null : _KeepNode(node.elseElement));
+          node.elseElement == null ? null : _KeepNode(node.elseElement!));
     } else {
       throw UnimplementedError('TODO(paulberry)');
     }
@@ -63,8 +63,8 @@ class _KeepNode {
     int offset = node.offset;
     int end = node.end;
     if (node is Block && node.statements.isNotEmpty) {
-      offset = node.statements.beginToken.offset;
-      end = node.statements.endToken.end;
+      offset = node.statements.beginToken!.offset;
+      end = node.statements.endToken!.end;
     }
     return _KeepNode._(offset, end, node is Expression);
   }

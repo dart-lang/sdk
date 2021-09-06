@@ -312,7 +312,6 @@ class C {
 ''');
   }
 
-  @FailingTest(reason: 'We should set the type of v')
   test_fuzz_38953() async {
     // When we enter a directive, we should stop using the element walker
     // of the unit, just like when we enter a method body. Even though using
@@ -366,6 +365,14 @@ class C {
 class C {
   C() : this = 0;
 }
+''');
+  }
+
+  test_libraryAfterImport() async {
+    await _assertCanBeAnalyzed(r'''
+import 'dart:async';
+@foo
+library my;
 ''');
   }
 
@@ -446,6 +453,20 @@ class A {
 
 @A(() => 0)
 class B {}
+''');
+  }
+
+  test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  static void foo<T2>() {}
+}
+''');
+    await _assertCanBeAnalyzed('''
+// @dart = 2.9
+import 'a.dart';
+
+const bar = A.foo();
 ''');
   }
 

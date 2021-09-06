@@ -168,7 +168,7 @@ bool ObjectGraph::StackIterator::MoveToParent() {
   }
 }
 
-intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
+intptr_t ObjectGraph::StackIterator::OffsetFromParent() const {
   intptr_t parent_index = stack_->Parent(index_);
   if (parent_index == Stack::kNoParent) {
     return -1;
@@ -179,8 +179,7 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
   uword child_ptr_addr = reinterpret_cast<uword>(child.ptr);
   intptr_t offset = child_ptr_addr - parent_start;
   if (offset > 0 && offset < parent.obj->untag()->HeapSize()) {
-    ASSERT(Utils::IsAligned(offset, kWordSize));
-    return offset >> kWordSizeLog2;
+    return offset;
   } else {
     // Some internal VM objects visit pointers not contained within the parent.
     // For instance, UntaggedCode::VisitCodePointers visits pointers in
@@ -435,7 +434,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
         if (!path_.IsNull() && offset_index < path_.Length()) {
           current = it->Get();
           path_.SetAt(obj_index, current);
-          offset_from_parent = Smi::New(it->OffsetFromParentInWords());
+          offset_from_parent = Smi::New(it->OffsetFromParent());
           path_.SetAt(offset_index, offset_from_parent);
         }
         ++length_;
@@ -509,8 +508,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
           uword current_ptr_addr = reinterpret_cast<uword>(current_ptr);
           intptr_t offset = current_ptr_addr - source_start;
           if (offset > 0 && offset < source_->untag()->HeapSize()) {
-            ASSERT(Utils::IsAligned(offset, kWordSize));
-            *scratch_ = Smi::New(offset >> kWordSizeLog2);
+            *scratch_ = Smi::New(offset);
           } else {
             // Some internal VM objects visit pointers not contained within the
             // parent. For instance, UntaggedCode::VisitCodePointers visits
@@ -543,8 +541,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
           uword current_ptr_addr = reinterpret_cast<uword>(current_ptr);
           intptr_t offset = current_ptr_addr - source_start;
           if (offset > 0 && offset < source_->untag()->HeapSize()) {
-            ASSERT(Utils::IsAligned(offset, kWordSize));
-            *scratch_ = Smi::New(offset >> kWordSizeLog2);
+            *scratch_ = Smi::New(offset);
           } else {
             // Some internal VM objects visit pointers not contained within the
             // parent. For instance, UntaggedCode::VisitCodePointers visits
@@ -821,7 +818,7 @@ class Pass1Visitor : public ObjectVisitor,
     if (obj->IsPseudoObject()) return;
 
     writer_->AssignObjectId(obj);
-    obj->untag()->VisitPointers(this);
+    obj->untag()->VisitPointersPrecise(isolate_group(), this);
   }
 
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
@@ -938,15 +935,19 @@ class Pass2Visitor : public ObjectVisitor,
     } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<ArrayPtr>(obj)->untag()->length_));
+          Smi::Value(static_cast<ArrayPtr>(obj)->untag()->length()));
     } else if (cid == kGrowableObjectArrayCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(Smi::Value(
-          static_cast<GrowableObjectArrayPtr>(obj)->untag()->length_));
+          static_cast<GrowableObjectArrayPtr>(obj)->untag()->length()));
     } else if (cid == kLinkedHashMapCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data_));
+          Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
+    } else if (cid == kLinkedHashSetCid) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(
+          Smi::Value(static_cast<LinkedHashSetPtr>(obj)->untag()->used_data()));
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<ObjectPoolPtr>(obj)->untag()->length_);
@@ -1161,11 +1162,10 @@ void HeapSnapshotWriter::Write() {
 
         intptr_t field_count = 0;
         intptr_t min_offset = kIntptrMax;
-        for (intptr_t j = 0; OffsetsTable::offsets_table[j].class_id != -1;
-             j++) {
-          if (OffsetsTable::offsets_table[j].class_id == cid) {
+        for (const auto& entry : OffsetsTable::offsets_table()) {
+          if (entry.class_id == cid) {
             field_count++;
-            intptr_t offset = OffsetsTable::offsets_table[j].offset;
+            intptr_t offset = entry.offset;
             min_offset = Utils::Minimum(min_offset, offset);
           }
         }
@@ -1186,16 +1186,15 @@ void HeapSnapshotWriter::Write() {
         }
 
         WriteUnsigned(field_count);
-        for (intptr_t j = 0; OffsetsTable::offsets_table[j].class_id != -1;
-             j++) {
-          if (OffsetsTable::offsets_table[j].class_id == cid) {
+        for (const auto& entry : OffsetsTable::offsets_table()) {
+          if (entry.class_id == cid) {
             intptr_t flags = 1;  // Strong.
             WriteUnsigned(flags);
-            intptr_t offset = OffsetsTable::offsets_table[j].offset;
-            intptr_t index = (offset - min_offset) / kWordSize;
+            intptr_t offset = entry.offset;
+            intptr_t index = (offset - min_offset) / kCompressedWordSize;
             ASSERT(index >= 0);
             WriteUnsigned(index);
-            WriteUtf8(OffsetsTable::offsets_table[j].field_name);
+            WriteUtf8(entry.field_name);
             WriteUtf8("");  // Reserved
           }
         }
@@ -1208,7 +1207,8 @@ void HeapSnapshotWriter::Write() {
                 if (field.is_instance()) {
                   intptr_t flags = 1;  // Strong.
                   WriteUnsigned(flags);
-                  intptr_t index = field.HostOffset() / kWordSize - 1;
+                  intptr_t index = (field.HostOffset() / kCompressedWordSize) -
+                                   (kWordSize / kCompressedWordSize);
                   ASSERT(index >= 0);
                   WriteUnsigned(index);
                   str = field.name();
@@ -1308,9 +1308,12 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kImmutableArrayCid:
     case kInstructionsCid:
     case kInstructionsSectionCid:
+    case kInstructionsTableCid:
     case kLinkedHashMapCid:
+    case kLinkedHashSetCid:
     case kMintCid:
     case kNeverCid:
+    case kSentinelCid:
     case kNullCid:
     case kObjectPoolCid:
     case kOneByteStringCid:
@@ -1328,22 +1331,32 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
   return hash;
 }
 
+// Generates a random value which can serve as an identity hash.
+// It must be a non-zero smi value (see also [Object._getObjectHash]).
+static uint32_t GenerateHash(Random* random) {
+  uint32_t hash;
+  do {
+    hash = random->NextUInt32();
+  } while (hash == 0 || (kSmiBits < 32 && !Smi::IsValid(hash)));
+  return hash;
+}
+
 uint32_t HeapSnapshotWriter::GetHashHelper(Thread* thread, ObjectPtr obj) {
   uint32_t hash;
 #if defined(HASH_IN_OBJECT_HEADER)
   hash = Object::GetCachedHash(obj);
   if (hash == 0) {
     ASSERT(!thread->heap()->old_space()->IsObjectFromImagePages(obj));
-    hash = thread->random()->NextUInt32();
-    Object::SetCachedHash(obj, hash);
+    hash = GenerateHash(thread->random());
+    Object::SetCachedHashIfNotSet(obj, hash);
   }
 #else
   Heap* heap = thread->heap();
   hash = heap->GetHash(obj);
   if (hash == 0) {
     ASSERT(!heap->old_space()->IsObjectFromImagePages(obj));
-    hash = thread->random()->NextUInt32();
-    heap->SetHash(obj, hash);
+    hash = GenerateHash(thread->random());
+    heap->SetHashIfNotSet(obj, hash);
   }
 #endif
   return hash;

@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:meta/meta.dart';
-
 /// A description of a set of changes to a single transform.
 class TransformOverride {
   /// The title of the transform being overridden.
@@ -13,12 +9,12 @@ class TransformOverride {
 
   /// The overridden value of the `bulkApply` property of the transform, or
   /// `null` if the property should not be overridden.
-  final bool bulkApply;
+  final bool? bulkApply;
 
   /// Initialize a newly created transform override to override the transform
   /// with the given [title]. The remaining parameters correspond to properties
   /// of the transform. They should have non-null values when the property is to
   /// be overridden, and a value of `null` when the property should be
   /// unchanged.
-  TransformOverride({@required this.title, this.bulkApply});
+  TransformOverride({required this.title, this.bulkApply});
 }

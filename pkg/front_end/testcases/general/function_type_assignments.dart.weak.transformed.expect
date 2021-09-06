@@ -32,14 +32,14 @@ String z = identityList; // List<T> bound
            ^" in (#C3) as{TypeError} core::String*;
 static method identity<T extends core::Object* = dynamic>(self::identity::T* t) → self::identity::T*
   return t;
-static method identityObject<T extends core::Object* = core::Object*>(self::identityObject::T* t) → self::identityObject::T*
+static method identityObject<T extends core::Object*>(self::identityObject::T* t) → self::identityObject::T*
   return t;
 static method identityList<T extends core::List<self::identityList::T*>* = core::List<dynamic>*>(self::identityList::T* t) → self::identityList::T*
   return t;
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::identity
-  #C2 = tearoff self::identityObject
-  #C3 = tearoff self::identityList
+  #C1 = static-tearoff self::identity
+  #C2 = static-tearoff self::identityObject
+  #C3 = static-tearoff self::identityList
 }

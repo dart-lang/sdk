@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
@@ -11,16 +9,54 @@ import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
 /// An object that represents the location of a package name.
-class PubPackageNameProducer extends Producer {
+class PubPackageNameProducer extends KeyValueProducer {
   const PubPackageNameProducer();
+
+  @override
+  Producer producerForKey(String key) => PubPackageVersionProducer(key);
 
   @override
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
-    final cachedPackages = request.pubPackageService.cachedPackages;
-    var relevance = cachedPackages.length;
-    yield* cachedPackages.map((package) =>
-        packageName('${package.packageName}: ', relevance: relevance--));
+    final cachedPackages = request.pubPackageService?.cachedPackages;
+    if (cachedPackages != null) {
+      var relevance = cachedPackages.length;
+      yield* cachedPackages.map((package) =>
+          packageName('${package.packageName}: ', relevance: relevance--));
+    }
+  }
+}
+
+/// An object that represents the location of the version number for a pub
+/// package.
+class PubPackageVersionProducer extends Producer {
+  final String package;
+
+  const PubPackageVersionProducer(this.package);
+
+  @override
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
+    final versions = request.pubPackageService
+        ?.cachedPubOutdatedVersions(request.filePath, package);
+    final resolvable = versions?.resolvableVersion;
+    var latest = versions?.latestVersion;
+
+    // If we didn't get a latest version from the "pub outdated" results, we can
+    // use the result from the Pub API if we've called it (this will usually
+    // only be the case for LSP where a resolve() call was sent).
+    //
+    // This allows us (in some cases) to still show version numbers even if the
+    // package was newly added to pubspec and not saved, so not yet in the
+    // "pub outdated" results.
+    latest ??= request.pubPackageService?.cachedPubApiLatestVersion(package);
+
+    if (resolvable != null && resolvable != latest) {
+      yield identifier('^$resolvable', docComplete: '_latest compatible_');
+    }
+    if (latest != null) {
+      yield identifier('^$latest', docComplete: '_latest_');
+    }
   }
 }
 

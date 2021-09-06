@@ -320,6 +320,7 @@ final Matcher isFilePath = isString;
 ///   FUNCTION_BODY
 ///   INVOCATION
 ///   LITERAL
+///   PARAMETERS
 /// }
 final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
@@ -331,7 +332,8 @@ final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'FILE_HEADER',
   'FUNCTION_BODY',
   'INVOCATION',
-  'LITERAL'
+  'LITERAL',
+  'PARAMETERS'
 ]);
 
 /// FoldingRegion
@@ -589,15 +591,16 @@ final Matcher isLinkedEditSuggestionKind = MatchesEnum(
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
-///   "endLine": int
-///   "endColumn": int
+///   "endLine": optional int
+///   "endColumn": optional int
 /// }
 final Matcher isLocation = LazyMatcher(() => MatchesJsonObject('Location', {
       'file': isFilePath,
       'offset': isInt,
       'length': isInt,
       'startLine': isInt,
-      'startColumn': isInt,
+      'startColumn': isInt
+    }, optionalFields: {
       'endLine': isInt,
       'endColumn': isInt
     }));

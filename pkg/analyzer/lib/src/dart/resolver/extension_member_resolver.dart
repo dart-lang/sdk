@@ -22,6 +22,8 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/util/either.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class ExtensionMemberResolver {
   final ResolverVisitor _resolver;
@@ -63,22 +65,26 @@ class ExtensionMemberResolver {
       return extensions[0].asResolutionResult;
     }
 
-    var extension = _chooseMostSpecific(extensions);
-    if (extension != null) {
-      return extension.asResolutionResult;
-    }
-
-    _errorReporter.reportErrorForOffset(
-      CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-      nameEntity.offset,
-      nameEntity.length,
-      [
-        name,
-        extensions[0].extension.name,
-        extensions[1].extension.name,
-      ],
+    var mostSpecific = _chooseMostSpecific(extensions);
+    return mostSpecific.map(
+      (extension) {
+        return extension.asResolutionResult;
+      },
+      (noneMoreSpecific) {
+        _errorReporter.reportErrorForOffset(
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
+          nameEntity.offset,
+          nameEntity.length,
+          [
+            name,
+            noneMoreSpecific
+                .map((e) => e.extension.name ?? '<unnamed>')
+                .quotedAndCommaSeparatedWithAnd,
+          ],
+        );
+        return ResolutionResult.ambiguous;
+      },
     );
-    return ResolutionResult.ambiguous;
   }
 
   /// Resolve the [name] (without `=`) to the corresponding getter and setter
@@ -119,7 +125,8 @@ class ExtensionMemberResolver {
   }
 
   /// Perform upward inference for the override.
-  void resolveOverride(ExtensionOverride node) {
+  void resolveOverride(
+      ExtensionOverride node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.staticElement!;
     var typeParameters = element.typeParameters;
@@ -173,10 +180,14 @@ class ExtensionMemberResolver {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType!)) {
+      var whyNotPromoted =
+          whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
         [receiverType, node.extendedType],
+        _resolver.computeWhyNotPromotedMessages(
+            receiverExpression, whyNotPromoted?.call()),
       );
     }
   }
@@ -244,27 +255,48 @@ class ExtensionMemberResolver {
     }
   }
 
-  /// Return the most specific extension or `null` if no single one can be
-  /// identified.
-  _InstantiatedExtension? _chooseMostSpecific(
-      List<_InstantiatedExtension> extensions) {
-    for (var i = 0; i < extensions.length; i++) {
-      var e1 = extensions[i];
-      var isMoreSpecific = true;
-      for (var j = 0; j < extensions.length; j++) {
-        var e2 = extensions[j];
-        if (i != j && !_isMoreSpecific(e1, e2)) {
-          isMoreSpecific = false;
-          break;
+  /// Return either the most specific extension, or a list of the extensions
+  /// that are ambiguous.
+  Either2<_InstantiatedExtension, List<_InstantiatedExtension>>
+      _chooseMostSpecific(List<_InstantiatedExtension> extensions) {
+    _InstantiatedExtension? bestSoFar;
+    var noneMoreSpecific = <_InstantiatedExtension>[];
+    for (var candidate in extensions) {
+      if (noneMoreSpecific.isNotEmpty) {
+        var isMostSpecific = true;
+        var hasMoreSpecific = false;
+        for (var other in noneMoreSpecific) {
+          if (!_isMoreSpecific(candidate, other)) {
+            isMostSpecific = false;
+          }
+          if (_isMoreSpecific(other, candidate)) {
+            hasMoreSpecific = true;
+          }
         }
-      }
-      if (isMoreSpecific) {
-        return e1;
+        if (isMostSpecific) {
+          bestSoFar = candidate;
+          noneMoreSpecific.clear();
+        } else if (!hasMoreSpecific) {
+          noneMoreSpecific.add(candidate);
+        }
+      } else if (bestSoFar == null) {
+        bestSoFar = candidate;
+      } else if (_isMoreSpecific(bestSoFar, candidate)) {
+        // already
+      } else if (_isMoreSpecific(candidate, bestSoFar)) {
+        bestSoFar = candidate;
+      } else {
+        noneMoreSpecific.add(bestSoFar);
+        noneMoreSpecific.add(candidate);
+        bestSoFar = null;
       }
     }
 
-    // Otherwise fail.
-    return null;
+    if (bestSoFar != null) {
+      return Either2.t1(bestSoFar);
+    } else {
+      return Either2.t2(noneMoreSpecific);
+    }
   }
 
   /// Return extensions for the [type] that match the given [name] in the

@@ -130,13 +130,13 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
         // created the socket. Feed same fd and store it into native field
         // of dart socket_object. Sockets here will share same fd but contain a
         // different port() through EventHandler_SendData.
-        Socket* socketfd = new Socket(os_socket->fd);
-        os_socket->ref_count++;
+        Socket* socketfd = new Socket(os_socket_same_addr->fd);
+        os_socket_same_addr->ref_count++;
         // We set as a side-effect the file descriptor on the dart
         // socket_object.
         Socket::ReuseSocketIdNativeField(socket_object, socketfd,
                                          Socket::kFinalizerListening);
-        InsertByFd(socketfd, os_socket);
+        InsertByFd(socketfd, os_socket_same_addr);
         return Dart_True();
       }
     }
@@ -208,12 +208,12 @@ Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
     return result;
   }
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   // Abstract unix domain socket doesn't exist in file system.
   if (File::Exists(namespc, addr.un.sun_path) && path[0] != '@') {
 #else
   if (File::Exists(namespc, addr.un.sun_path)) {
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
     if (unix_domain_sockets_ != nullptr) {
       // If there is a socket listening on this file. Ensure
       // that it was created with `shared` mode and current `shared`
@@ -234,13 +234,13 @@ Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
         // created the socket. Feed the same fd and store it into the native
         // field of dart socket_object. Sockets here will share same fd but
         // contain a different port() through EventHandler_SendData.
-        Socket* socketfd = new Socket(os_socket->fd);
-        os_socket->ref_count++;
+        Socket* socketfd = new Socket(os_socket_same_addr->fd);
+        os_socket_same_addr->ref_count++;
         // We set as a side-effect the file descriptor on the dart
         // socket_object.
         Socket::ReuseSocketIdNativeField(socket_object, socketfd,
                                          Socket::kFinalizerListening);
-        InsertByFd(socketfd, os_socket);
+        InsertByFd(socketfd, os_socket_same_addr);
         return Dart_True();
       }
     }
@@ -285,7 +285,7 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
   }
   // Unlink the socket file, if os_socket contains unix domain sockets.
   if (os_socket->address.addr.sa_family == AF_UNIX) {
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
     // If the socket is abstract, which has a path starting with a null byte,
     // unlink() is not necessary because the file doesn't exist.
     if (os_socket->address.un.sun_path[0] != '\0') {
@@ -293,7 +293,7 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
     }
 #else
     Utils::Unlink(os_socket->address.un.sun_path);
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
     // Remove os_socket from unix_domain_sockets_ list.
     OSSocket* prev = nullptr;
     OSSocket* current = unix_domain_sockets_;
@@ -409,7 +409,7 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
     Dart_NativeArguments args) {
-#if defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
   OSError os_error(
       -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
@@ -450,11 +450,11 @@ void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
-#endif  // defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
 }
 
 void FUNCTION_NAME(Socket_CreateUnixDomainConnect)(Dart_NativeArguments args) {
-#if defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
   OSError os_error(
       -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
@@ -481,7 +481,7 @@ void FUNCTION_NAME(Socket_CreateUnixDomainConnect)(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
-#endif  // defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
 }
 
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
@@ -855,7 +855,7 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(ServerSocket_CreateUnixDomainBindListen)(
     Dart_NativeArguments args) {
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   OSError os_error(
       -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
@@ -876,7 +876,7 @@ void FUNCTION_NAME(ServerSocket_CreateUnixDomainBindListen)(
       ListeningSocketRegistry::Instance()->CreateUnixDomainBindListen(
           socket_object, namespc, path, backlog, shared);
   Dart_SetReturnValue(args, result);
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)
 }
 
 void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
@@ -1077,9 +1077,8 @@ void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   int64_t option = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
-  int64_t protocol = DartUtils::GetInt64ValueCheckRange(
-      Dart_GetNativeArgument(args, 2), SocketAddress::TYPE_IPV4,
-      SocketAddress::TYPE_IPV6);
+  intptr_t protocol = static_cast<intptr_t>(
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2)));
   switch (option) {
     case 0:  // TCP_NODELAY.
       result = SocketBase::SetNoDelay(

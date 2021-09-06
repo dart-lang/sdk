@@ -30,9 +30,9 @@ class TodoCode extends ErrorCode {
    * But not
    * * todo
    * * TODOS
-   * 
+   *
    * It also supports wrapped TODOs where the next line is indented by a space:
-   * 
+   *
    *   /**
    *    * TODO(username): This line is
    *    *  wrapped onto the next line

@@ -30,12 +30,11 @@ git checkout -b cipd_release $1
 # to serve from DDS.
 mkdir cipd_package
 cp -R packages/devtools/build/ cipd_package/web
-cp -r packages/devtools_server cipd_package
 cp -r packages/devtools_shared cipd_package
 
 cipd create \
   -name dart/third_party/flutter/devtools \
   -in cipd_package \
   -install-mode copy \
-  -tag revision:$1
-
+  -preserve-writable \
+  -tag git_revision:$1

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -15,6 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../src/plugin/plugin_manager_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -68,11 +68,12 @@ main() {
   }
 
   Future<void> test_fromPlugins() async {
-    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',
+        TestNotificationManager(), InstrumentationService.NULL_SERVICE);
     var fixes = plugin.AnalysisErrorFixes(AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.HINT,
-        Location('', 0, 0, 0, 0, 0, 0),
+        Location('', 0, 0, 0, 0, endLine: 0, endColumn: 0),
         'message',
         'code'));
     var result = plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
@@ -149,7 +150,7 @@ print(1)
 
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     newFolder('/aaa');
-    newFile('/aaa/.packages', content: '''
+    newDotPackagesFile('/aaa', content: '''
 aaa:${toUri('/aaa/lib')}
 bbb:${toUri('/bbb/lib')}
 ''');
@@ -159,7 +160,7 @@ dependencies:
 ''');
 
     newFolder('/bbb');
-    newFile('/bbb/.packages', content: '''
+    newDotPackagesFile('/bbb', content: '''
 bbb:${toUri('/bbb/lib')}
 ''');
     newFile('/bbb/lib/target.dart', content: 'class Foo() {}');

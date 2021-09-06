@@ -54,6 +54,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
       prefetchFiles: null,
+      isGenerated: null,
     );
     fileResolver.testView = FileResolverTestView();
   }
@@ -73,8 +74,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   Future<void> resolveTestFile() async {
     var path = convertPath(_testFile);
     result = await resolveFile(path);
-    findNode = FindNode(result.content!, result.unit!);
-    findElement = FindElement(result.unit!);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   void setUp() {

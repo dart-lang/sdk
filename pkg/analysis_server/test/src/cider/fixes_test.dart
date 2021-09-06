@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/cider/fixes.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -23,8 +21,8 @@ void main() {
 
 @reflectiveTest
 class CiderFixesComputerTest extends CiderServiceTest {
-  _CorrectionContext _correctionContext;
-  List<CiderErrorFixes> _errorsFixes;
+  late _CorrectionContext _correctionContext;
+  late List<CiderErrorFixes> _errorsFixes;
 
   void assertHasFix(FixKind kind, String expected) {
     var fix = _getFix(kind);
@@ -50,7 +48,7 @@ var a = 0; var b = 1
 ''');
 
     // The file was resolved only once, even though we have 2 errors.
-    expect(fileResolver.testView.resolvedFiles, [convertPath(testPath)]);
+    expect(fileResolver.testView!.resolvedLibraries, [convertPath(testPath)]);
   }
 
   Future<void> test_createMethod() async {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correctness of side effects tracking used by load to load forwarding.
 
+// @dart = 2.9
+
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 // Tests correct handling of redefinitions in aliasing computation.

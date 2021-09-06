@@ -6,6 +6,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
@@ -33,30 +34,34 @@ DEFINE_NATIVE_ENTRY(Object_equals, 0, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
-// Please note that no handle is created for the argument.
-// This is safe since the argument is only used in a tail call.
-// The performance benefit is more than 5% when using hashCode.
+static intptr_t GetHash(Isolate* isolate, const ObjectPtr obj) {
 #if defined(HASH_IN_OBJECT_HEADER)
-  return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
+  return Object::GetCachedHash(obj);
 #else
   Heap* heap = isolate->group()->heap();
-  ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
-  return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+  ASSERT(obj->IsDartInstance());
+  return heap->GetHash(obj);
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Object_setHash, 0, 2) {
+DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
+  // Please note that no handle is created for the argument.
+  // This is safe since the argument is only used in a tail call.
+  // The performance benefit is more than 5% when using hashCode.
+  return Smi::New(GetHash(isolate, arguments->NativeArgAt(0)));
+}
+
+DEFINE_NATIVE_ENTRY(Object_setHashIfNotSetYet, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
 #if defined(HASH_IN_OBJECT_HEADER)
-  Object::SetCachedHash(arguments->NativeArgAt(0), hash.Value());
+  return Smi::New(
+      Object::SetCachedHashIfNotSet(arguments->NativeArgAt(0), hash.Value()));
 #else
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  Heap* heap = isolate->group()->heap();
-  heap->SetHash(instance.ptr(), hash.Value());
+  Heap* heap = thread->heap();
+  return Smi::New(heap->SetHashIfNotSet(instance.ptr(), hash.Value()));
 #endif
-  return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Object_toString, 0, 1) {
@@ -87,56 +92,74 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
   return instance.GetType(Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
-  const Instance& left =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Instance& right =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
-
+static bool HaveSameRuntimeTypeHelper(Zone* zone,
+                                      const Instance& left,
+                                      const Instance& right) {
   const intptr_t left_cid = left.GetClassId();
   const intptr_t right_cid = right.GetClassId();
 
   if (left_cid != right_cid) {
     if (IsIntegerClassId(left_cid)) {
-      return Bool::Get(IsIntegerClassId(right_cid)).ptr();
-    } else if (IsStringClassId(left_cid)) {
-      return Bool::Get(IsStringClassId(right_cid)).ptr();
-    } else if (IsTypeClassId(left_cid)) {
-      return Bool::Get(IsTypeClassId(right_cid)).ptr();
-    } else {
-      return Bool::False().ptr();
+      return IsIntegerClassId(right_cid);
     }
+    if (IsStringClassId(left_cid)) {
+      return IsStringClassId(right_cid);
+    }
+    if (IsTypeClassId(left_cid)) {
+      return IsTypeClassId(right_cid);
+    }
+    return false;
   }
 
-  const Class& cls = Class::Handle(left.clazz());
-  if (cls.IsClosureClass()) {
-    // TODO(vegorov): provide faster implementation for closure classes.
+  if (left_cid == kClosureCid) {
+    const auto& left_closure = Closure::Cast(left);
+    const auto& right_closure = Closure::Cast(right);
+    // If all the components that make up the instantiated signature are equal,
+    // then no need to instantiate.
+    if (left_closure.function_type_arguments() ==
+            right_closure.function_type_arguments() &&
+        left_closure.delayed_type_arguments() ==
+            right_closure.delayed_type_arguments() &&
+        left_closure.instantiator_type_arguments() ==
+            right_closure.instantiator_type_arguments()) {
+      const auto& left_fun = Function::Handle(zone, left_closure.function());
+      const auto& right_fun = Function::Handle(zone, right_closure.function());
+      if (left_fun.signature() == right_fun.signature()) {
+        return true;
+      }
+    }
     const AbstractType& left_type =
-        AbstractType::Handle(left.GetType(Heap::kNew));
+        AbstractType::Handle(zone, left.GetType(Heap::kNew));
     const AbstractType& right_type =
-        AbstractType::Handle(right.GetType(Heap::kNew));
-    return Bool::Get(
-               left_type.IsEquivalent(right_type, TypeEquality::kSyntactical))
-        .ptr();
+        AbstractType::Handle(zone, right.GetType(Heap::kNew));
+    return left_type.IsEquivalent(right_type, TypeEquality::kSyntactical);
   }
 
+  const Class& cls = Class::Handle(zone, left.clazz());
   if (!cls.IsGeneric()) {
-    return Bool::True().ptr();
+    return true;
   }
 
   if (left.GetTypeArguments() == right.GetTypeArguments()) {
-    return Bool::True().ptr();
+    return true;
   }
   const TypeArguments& left_type_arguments =
-      TypeArguments::Handle(left.GetTypeArguments());
+      TypeArguments::Handle(zone, left.GetTypeArguments());
   const TypeArguments& right_type_arguments =
-      TypeArguments::Handle(right.GetTypeArguments());
+      TypeArguments::Handle(zone, right.GetTypeArguments());
   const intptr_t num_type_args = cls.NumTypeArguments();
   const intptr_t num_type_params = cls.NumTypeParameters();
-  return Bool::Get(left_type_arguments.IsSubvectorEquivalent(
-                       right_type_arguments, num_type_args - num_type_params,
-                       num_type_params, TypeEquality::kSyntactical))
-      .ptr();
+  return left_type_arguments.IsSubvectorEquivalent(
+      right_type_arguments, num_type_args - num_type_params, num_type_params,
+      TypeEquality::kSyntactical);
+}
+
+DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
+  const Instance& left =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& right =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+  return Bool::Get(HaveSameRuntimeTypeHelper(zone, left, right)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
@@ -279,12 +302,21 @@ DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
   return arguments->NativeArgAt(0);
 }
 
+DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
+  UNREACHABLE();
+}
+
 DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
   UNREACHABLE();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   isolate->group()->heap()->CollectAllGarbage();
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
+  DeoptimizeFunctionsOnStack();
   return Object::null();
 }
 
@@ -437,18 +469,20 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   const Closure& closure =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Function& target = Function::Handle(zone, closure.function());
-  const TypeArguments& bounds =
-      TypeArguments::Handle(zone, target.type_parameters());
-
-  // Either the bounds are all-dynamic or the function is not generic.
-  if (bounds.IsNull()) return Object::null();
+  ASSERT(target.IsGeneric());  // No need to check bounds for non-generics.
+  const TypeParameters& type_params =
+      TypeParameters::Handle(zone, target.type_parameters());
+  if (type_params.IsNull() || type_params.AllDynamicBounds()) {
+    // The function is not generic or the bounds are all dynamic.
+    return Object::null();
+  }
 
   const TypeArguments& type_args_to_check =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
 
   // This should be guaranteed by the front-end.
   ASSERT(type_args_to_check.IsNull() ||
-         bounds.Length() <= type_args_to_check.Length());
+         type_params.Length() <= type_args_to_check.Length());
 
   // The bounds on the closure may need instantiation.
   const TypeArguments& instantiator_type_args =
@@ -458,10 +492,8 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
 
   AbstractType& supertype = AbstractType::Handle(zone);
   AbstractType& subtype = AbstractType::Handle(zone);
-  TypeParameter& parameter = TypeParameter::Handle(zone);
-  for (intptr_t i = 0; i < bounds.Length(); ++i) {
-    parameter ^= bounds.TypeAt(i);
-    supertype = parameter.bound();
+  for (intptr_t i = 0; i < type_params.Length(); ++i) {
+    supertype = type_params.BoundAt(i);
     subtype = type_args_to_check.IsNull() ? Object::dynamic_type().ptr()
                                           : type_args_to_check.TypeAt(i);
 
@@ -480,7 +512,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
         ASSERT(caller_frame != NULL);
         location = caller_frame->GetTokenPos();
       }
-      String& parameter_name = String::Handle(zone, parameter.Name());
+      const auto& parameter_name = String::Handle(zone, type_params.NameAt(i));
       Exceptions::CreateAndThrowTypeError(location, subtype, supertype,
                                           parameter_name);
       UNREACHABLE();

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,13 +44,13 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'T'
-      argumentValue: 
+      argumentValue:
         expression: ''
         variables:
           x:
             kind: 'invalid'
 ''', [
-      error(TransformSetErrorCode.invalidValueOneOf, 280, 9),
+      error(TransformSetErrorCode.invalidValueOneOf, 279, 9),
     ]);
   }
 }

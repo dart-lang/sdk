@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
@@ -17,14 +16,15 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -34,19 +34,25 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary2/bundle_writer.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
 var counterUnlinkedBytes = 0;
 var counterUnlinkedLinkedBytes = 0;
-int fileObjectId = 0;
 var timerFileStateRefresh = Stopwatch();
+
+/// A library from [SummaryDataStore].
+class ExternalLibrary {
+  final Uri uri;
+
+  ExternalLibrary(this.uri);
+}
 
 /// [FileContentOverlay] is used to temporary override content of files.
 class FileContentOverlay {
@@ -84,24 +90,18 @@ class FileState {
   final FileSystemState _fsState;
 
   /// The absolute path of the file.
-  final String? path;
+  final String path;
 
   /// The absolute URI of the file.
   final Uri uri;
 
   /// The [Source] of the file with the [uri].
-  final Source? source;
+  final Source source;
 
   /// The [WorkspacePackage] that contains this file.
   ///
   /// It might be `null` if the file is outside of the workspace.
   final WorkspacePackage? workspacePackage;
-
-  /// Return `true` if this file is a stub created for a file in the provided
-  /// external summary store. The values of most properties are not the same
-  /// as they would be if the file were actually read from the file system.
-  /// The value of the property [uri] is correct.
-  final bool isInExternalSummaries;
 
   /// The [FeatureSet] for all files in the analysis context.
   ///
@@ -109,15 +109,12 @@ class FileState {
   /// possibly additional enabled experiments (from the analysis options file,
   /// or from SDK allowed experiments).
   ///
-  /// This feature set is then restricted, with the [_packageLanguageVersion],
+  /// This feature set is then restricted, with the [packageLanguageVersion],
   /// or with a `@dart` language override token in the file header.
-  final FeatureSet? _contextFeatureSet;
+  final FeatureSet _contextFeatureSet;
 
   /// The language version for the package that contains this file.
-  final Version? packageLanguageVersion;
-
-  int id = fileObjectId++;
-  int? refreshId;
+  final Version packageLanguageVersion;
 
   bool? _exists;
   String? _content;
@@ -128,7 +125,7 @@ class FileState {
   Set<String>? _referencedNames;
   List<int>? _unlinkedSignature;
   String? _unlinkedKey;
-  String? _astKey;
+  String? _informativeKey;
   AnalysisDriverUnlinkedUnit? _driverUnlinkedUnit;
   List<int>? _apiSignature;
 
@@ -158,19 +155,7 @@ class FileState {
     this.workspacePackage,
     this._contextFeatureSet,
     this.packageLanguageVersion,
-  ) : isInExternalSummaries = false;
-
-  FileState._external(this._fsState, this.uri)
-      : isInExternalSummaries = true,
-        path = null,
-        source = null,
-        workspacePackage = null,
-        _exists = true,
-        _contextFeatureSet = null,
-        packageLanguageVersion = null {
-    _apiSignature = Uint8List(16);
-    _libraryCycle = LibraryCycle.external();
-  }
+  );
 
   /// The unlinked API signature of the file.
   List<int> get apiSignature => _apiSignature!;
@@ -221,8 +206,12 @@ class FileState {
       _exportedFiles = <FileState?>[];
       for (var directive in _unlinked2!.exports) {
         var uri = _selectRelativeUri(directive);
-        var file = _fileForRelativeUri(uri);
-        _exportedFiles!.add(file);
+        _fileForRelativeUri(uri).map(
+          (file) {
+            _exportedFiles!.add(file);
+          },
+          (_) {},
+        );
       }
     }
     return _exportedFiles!;
@@ -237,8 +226,12 @@ class FileState {
       _importedFiles = <FileState?>[];
       for (var directive in _unlinked2!.imports) {
         var uri = _selectRelativeUri(directive);
-        var file = _fileForRelativeUri(uri);
-        _importedFiles!.add(file);
+        _fileForRelativeUri(uri).map(
+          (file) {
+            _importedFiles!.add(file);
+          },
+          (_) {},
+        );
       }
     }
     return _importedFiles!;
@@ -280,7 +273,7 @@ class FileState {
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
     if (isPart) {
-      var library = this.library;
+      final library = this.library;
       if (library != null && !identical(library, this)) {
         return library.libraryCycle;
       }
@@ -310,13 +303,17 @@ class FileState {
     if (_partedFiles == null) {
       _partedFiles = <FileState?>[];
       for (var uri in _unlinked2!.parts) {
-        var file = _fileForRelativeUri(uri);
-        _partedFiles!.add(file);
-        if (file != null) {
-          _fsState._partToLibraries
-              .putIfAbsent(file, () => <FileState>[])
-              .add(this);
-        }
+        _fileForRelativeUri(uri).map(
+          (file) {
+            _partedFiles!.add(file);
+            if (file != null) {
+              _fsState._partToLibraries
+                  .putIfAbsent(file, () => <FileState>[])
+                  .add(this);
+            }
+          },
+          (_) {},
+        );
       }
     }
     return _partedFiles!;
@@ -369,7 +366,7 @@ class FileState {
 
   String get _invalidTransitiveSignature {
     return (ApiSignature()
-          ..addString(path!)
+          ..addString(path)
           ..addBytes(unlinkedSignature))
         .toHex();
   }
@@ -379,12 +376,12 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
-  Uint8List getAstBytes({CompilationUnit? unit}) {
-    var bytes = _fsState._byteStore.get(_astKey!) as Uint8List?;
+  Uint8List getInformativeBytes({CompilationUnit? unit}) {
+    var bytes = _fsState._byteStore.get(_informativeKey!) as Uint8List?;
     if (bytes == null) {
       unit ??= parse();
-      bytes = writeUnitToBytes(unit: unit);
-      _fsState._byteStore.put(_astKey!, bytes);
+      bytes = writeUnitInformative(unit);
+      _fsState._byteStore.put(_informativeKey!, bytes);
     }
     return bytes;
   }
@@ -401,28 +398,25 @@ class FileState {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  ///
-  /// If an exception happens during parsing, an empty unit is returned.
   CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return _parse(errorListener);
-    } catch (_) {
-      return _createEmptyCompilationUnit();
+    } catch (exception, stackTrace) {
+      throw CaughtExceptionWithFiles(
+        exception,
+        stackTrace,
+        {path: content},
+      );
     }
   }
 
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
-  /// If [allowCached] is `true`, don't read the content of the file if it
-  /// is already cached (in another [FileSystemState], because otherwise we
-  /// would not create this new instance of [FileState] and refresh it).
-  ///
   /// Return `true` if the API signature changed since the last refresh.
-  bool refresh({bool allowCached = false}) {
+  bool refresh() {
     counterFileStateRefresh++;
-    refreshId = fileObjectId++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
     if (!timerWasRunning) {
@@ -432,7 +426,7 @@ class FileState {
     _invalidateCurrentUnresolvedData();
 
     {
-      var rawFileState = _fsState._fileContentCache.get(path!, allowCached);
+      var rawFileState = _fsState._fileContentCache.get(path);
       _content = rawFileState.content;
       _exists = rawFileState.exists;
       _contentHash = rawFileState.contentHash;
@@ -442,15 +436,15 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
-      signature.addFeatureSet(_contextFeatureSet!);
-      signature.addLanguageVersion(packageLanguageVersion!);
+      signature.addFeatureSet(_contextFeatureSet);
+      signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(_contentHash!);
       signature.addBool(_exists!);
       _unlinkedSignature = signature.toByteList();
       var signatureHex = hex.encode(_unlinkedSignature!);
       _unlinkedKey = '$signatureHex.unlinked2';
       // TODO(scheglov) Use the path as the key, and store the signature.
-      _astKey = '$signatureHex.ast';
+      _informativeKey = '$signatureHex.ast';
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.
@@ -520,43 +514,23 @@ class FileState {
 
   @override
   String toString() {
-    if (path == null) {
-      return '<unresolved>';
-    } else {
-      return '[id: $id][rid: $refreshId]$uri = $path';
-    }
-  }
-
-  CompilationUnitImpl _createEmptyCompilationUnit() {
-    var token = Token.eof(0);
-    var unit = astFactory.compilationUnit(
-      beginToken: token,
-      endToken: token,
-      featureSet: _contextFeatureSet!,
-    );
-
-    unit.lineInfo = LineInfo(const <int>[0]);
-
-    unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion!,
-      override: null,
-    );
-
-    return unit;
+    return '$uri = $path';
   }
 
   /// Return the [FileState] for the given [relativeUri], or `null` if the
   /// URI cannot be parsed, cannot correspond any file, etc.
-  FileState? _fileForRelativeUri(String relativeUri) {
+  Either2<FileState?, ExternalLibrary> _fileForRelativeUri(
+    String relativeUri,
+  ) {
     if (relativeUri.isEmpty) {
-      return null;
+      return Either2.t1(null);
     }
 
     Uri absoluteUri;
     try {
       absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     } on FormatException {
-      return null;
+      return Either2.t1(null);
     }
 
     return _fsState.getFileForUri(absoluteUri);
@@ -606,23 +580,19 @@ class FileState {
   }
 
   CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
-    if (source == null) {
-      return _createEmptyCompilationUnit();
-    }
-
     CharSequenceReader reader = CharSequenceReader(content);
-    Scanner scanner = Scanner(source!, reader, errorListener)
+    Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
-        featureSetForOverriding: _contextFeatureSet!,
-        featureSet: _contextFeatureSet!.restrictToVersion(
-          packageLanguageVersion!,
+        featureSetForOverriding: _contextFeatureSet,
+        featureSet: _contextFeatureSet.restrictToVersion(
+          packageLanguageVersion,
         ),
       );
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     Parser parser = Parser(
-      source!,
+      source,
       errorListener,
       featureSet: scanner.featureSet,
     );
@@ -631,7 +601,7 @@ class FileState {
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion!,
+      package: packageLanguageVersion,
       override: scanner.overrideVersion,
     );
 
@@ -750,7 +720,6 @@ class FileSystemState {
   final ResourceProvider _resourceProvider;
   final String contextName;
   final ByteStore _byteStore;
-  final FileContentOverlay? _contentOverlay;
   final SourceFactory _sourceFactory;
   final Workspace? _workspace;
   final DeclaredVariables _declaredVariables;
@@ -801,15 +770,14 @@ class FileSystemState {
   int fileStamp = 0;
 
   /// The cache of content of files, possibly shared with other file system
-  /// states with the same resource provider and the content overlay.
-  late final _FileContentCache _fileContentCache;
+  /// states.
+  final FileContentCache _fileContentCache;
 
   late final FileSystemStateTestView _testView;
 
   FileSystemState(
     this._logger,
     this._byteStore,
-    this._contentOverlay,
     this._resourceProvider,
     this.contextName,
     this._sourceFactory,
@@ -821,11 +789,8 @@ class FileSystemState {
     this._saltForElements,
     this.featureSetProvider, {
     this.externalSummaries,
-  }) {
-    _fileContentCache = _FileContentCache.getInstance(
-      _resourceProvider,
-      _contentOverlay,
-    );
+    required FileContentCache fileContentCache,
+  }) : _fileContentCache = fileContentCache {
     _testView = FileSystemStateTestView(this);
   }
 
@@ -889,35 +854,39 @@ class FileSystemState {
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
-      file.refresh(allowCached: true);
+      file.refresh();
     }
     return file;
   }
 
-  /// Return the [FileState] for the given absolute [uri]. May return the
-  /// "unresolved" file if the [uri] is invalid, e.g. a `package:` URI without
-  /// a package name. The returned file has the last known state since if was
-  /// last refreshed.
-  FileState? getFileForUri(Uri uri) {
+  /// The given [uri] must be absolute.
+  ///
+  /// If [uri] corresponds to a library from the summary store, return a
+  /// [ExternalLibrary].
+  ///
+  /// Otherwise the [uri] is resolved to a file, and the corresponding
+  /// [FileState] is returned. Might be `null` if the [uri] cannot be resolved
+  /// to a file, for example because it is invalid (e.g. a `package:` URI
+  /// without a package name), or we don't know this package. The returned
+  /// file has the last known state since if was last refreshed.
+  Either2<FileState?, ExternalLibrary> getFileForUri(Uri uri) {
+    // If the external store has this URI, create a stub file for it.
+    // We are given all required unlinked and linked summaries for it.
+    if (externalSummaries != null) {
+      String uriStr = uri.toString();
+      if (externalSummaries!.hasLinkedLibrary(uriStr)) {
+        return Either2.t2(ExternalLibrary(uri));
+      }
+    }
+
     FileState? file = _uriToFile[uri];
     if (file == null) {
-      // If the external store has this URI, create a stub file for it.
-      // We are given all required unlinked and linked summaries for it.
-      if (externalSummaries != null) {
-        String uriStr = uri.toString();
-        if (externalSummaries!.hasLinkedLibrary(uriStr)) {
-          file = FileState._external(this, uri);
-          _uriToFile[uri] = file;
-          return file;
-        }
-      }
-
       Source? uriSource = _sourceFactory.resolveUri(null, uri.toString());
 
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
       if (uriSource == null) {
-        return null;
+        return Either2.t1(null);
       }
 
       String path = uriSource.fullName;
@@ -931,9 +900,9 @@ class FileSystemState {
           packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
-      file.refresh(allowCached: true);
+      file.refresh();
     }
-    return file;
+    return Either2.t1(file);
   }
 
   /// Return the list of all [FileState]s corresponding to the given [path]. The
@@ -976,7 +945,7 @@ class FileSystemState {
   /// The file with the given [path] might have changed, so ensure that it is
   /// read the next time it is refreshed.
   void markFileForReading(String path) {
-    _fileContentCache.remove(path);
+    _fileContentCache.invalidate(path);
   }
 
   void readPartsForLibraries() {
@@ -1003,7 +972,7 @@ class FileSystemState {
   /// will be built.
   void resetUriResolution() {
     _sourceFactory.clearCache();
-    _fileContentCache.clear();
+    _fileContentCache.invalidateAll();
     _clearFiles();
   }
 
@@ -1041,101 +1010,5 @@ class FileSystemStateTestView {
     return state._uriToFile.values
         .where((f) => f._libraryCycle == null)
         .toSet();
-  }
-}
-
-/// Information about the content of a file.
-class _FileContent {
-  final String path;
-  final bool exists;
-  final String content;
-  final String contentHash;
-
-  _FileContent(this.path, this.exists, this.content, this.contentHash);
-}
-
-/// The cache of information about content of files.
-class _FileContentCache {
-  /// Weak map of cache instances.
-  ///
-  /// Outer key is a [FileContentOverlay].
-  /// Inner key is a [ResourceProvider].
-  static final _instances = Expando<Expando<_FileContentCache>>();
-
-  /// Weak map of cache instances.
-  ///
-  /// Key is a [ResourceProvider].
-  static final _instances2 = Expando<_FileContentCache>();
-
-  final ResourceProvider _resourceProvider;
-  final FileContentOverlay? _contentOverlay;
-  final Map<String, _FileContent> _pathToFile = {};
-
-  _FileContentCache(this._resourceProvider, this._contentOverlay);
-
-  void clear() {
-    _pathToFile.clear();
-  }
-
-  /// Return the content of the file with the given [path].
-  ///
-  /// If [allowCached] is `true`, and the file is in the cache, return the
-  /// cached data. Otherwise read the file, compute and cache the data.
-  _FileContent get(String path, bool allowCached) {
-    var file = allowCached ? _pathToFile[path] : null;
-    if (file == null) {
-      List<int> contentBytes;
-      String? content;
-      bool exists;
-      try {
-        if (_contentOverlay != null) {
-          content = _contentOverlay![path];
-        }
-        if (content != null) {
-          contentBytes = utf8.encode(content);
-        } else {
-          contentBytes = _resourceProvider.getFile(path).readAsBytesSync();
-          content = utf8.decode(contentBytes);
-        }
-        exists = true;
-      } catch (_) {
-        contentBytes = Uint8List(0);
-        content = '';
-        exists = false;
-      }
-
-      List<int> contentHashBytes = md5.convert(contentBytes).bytes;
-      String contentHash = hex.encode(contentHashBytes);
-
-      file = _FileContent(path, exists, content, contentHash);
-      _pathToFile[path] = file;
-    }
-    return file;
-  }
-
-  /// Remove the file with the given [path] from the cache.
-  void remove(String path) {
-    _pathToFile.remove(path);
-  }
-
-  static _FileContentCache getInstance(
-      ResourceProvider resourceProvider, FileContentOverlay? contentOverlay) {
-    Expando<_FileContentCache>? providerToInstance;
-    if (contentOverlay != null) {
-      providerToInstance = _instances[contentOverlay];
-      if (providerToInstance == null) {
-        providerToInstance = Expando<_FileContentCache>();
-        _instances[contentOverlay] = providerToInstance;
-      }
-    } else {
-      providerToInstance = _instances2;
-    }
-
-    var instance = providerToInstance[resourceProvider];
-    if (instance == null) {
-      instance = _FileContentCache(resourceProvider, contentOverlay);
-      providerToInstance[resourceProvider] = instance;
-    }
-    return instance;
   }
 }

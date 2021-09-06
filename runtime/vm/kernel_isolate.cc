@@ -88,6 +88,7 @@ class RunKernelTask : public ThreadPool::Task {
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
     api_flags.enable_asserts = false;
+    api_flags.null_safety = true;
     api_flags.is_system_isolate = true;
 #if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
@@ -127,7 +128,8 @@ class RunKernelTask : public ThreadPool::Task {
     // isolate_ was set as side effect of create callback.
     ASSERT(KernelIsolate::IsKernelIsolate(isolate));
 
-    isolate->message_handler()->Run(Dart::thread_pool(), NULL, ShutdownIsolate,
+    isolate->message_handler()->Run(isolate->group()->thread_pool(), NULL,
+                                    ShutdownIsolate,
                                     reinterpret_cast<uword>(isolate));
   }
 
