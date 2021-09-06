@@ -156,8 +156,9 @@ DEFINE_BACKEND(TailCall,
 LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 5;
-  const intptr_t kNumTemps =
-      element_size_ == 16 ? 4 : element_size_ == 8 ? 2 : 1;
+  const intptr_t kNumTemps = element_size_ == 16  ? 4
+                             : element_size_ == 8 ? 2
+                                                  : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::WritableRegister());
@@ -2841,6 +2842,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
   if (slot().representation() != kTagged) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     auto const rep = slot().representation();
     ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
     const size_t value_size = RepresentationUtils::ValueSize(rep);
@@ -2862,6 +2864,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsUnboxedDartFieldStore() && compiler->is_optimizing()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     const intptr_t cid = slot().field().UnboxedFieldCid();
     const DRegister value = EvenDRegisterOf(locs()->in(kValuePos).fpu_reg());
 
@@ -2940,6 +2943,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsPotentialUnboxedDartFieldStore()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     const Register value_reg = locs()->in(kValuePos).reg();
     const Register temp = locs()->temp(0).reg();
     const Register temp2 = locs()->temp(1).reg();
@@ -3021,15 +3025,16 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(kValuePos).reg();
     __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                             CanValueBeSmi());
+                             CanValueBeSmi(), memory_order_);
   } else {
     if (locs()->in(kValuePos).IsConstant()) {
       __ StoreIntoObjectNoBarrierOffset(instance_reg, offset_in_bytes,
-                                        locs()->in(kValuePos).constant());
+                                        locs()->in(kValuePos).constant(),
+                                        memory_order_);
     } else {
       const Register value_reg = locs()->in(kValuePos).reg();
       __ StoreIntoObjectNoBarrierOffset(instance_reg, offset_in_bytes,
-                                        value_reg);
+                                        value_reg, memory_order_);
     }
   }
   __ Bind(&skip_store);
@@ -5681,7 +5686,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     const DRegister left = EvenDRegisterOf(locs()->in(0).fpu_reg());

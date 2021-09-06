@@ -370,6 +370,12 @@ class Address : public ValueObject {
 
 class FieldAddress : public Address {
  public:
+  static bool CanHoldOffset(int32_t offset,
+                            AddressType at = Offset,
+                            OperandSize sz = kEightBytes) {
+    return Address::CanHoldOffset(offset - kHeapObjectTag, at, sz);
+  }
+
   FieldAddress(Register base, int32_t disp, OperandSize sz = kEightBytes)
       : Address(base, disp - kHeapObjectTag, Offset, sz) {}
 
@@ -595,19 +601,32 @@ class Assembler : public AssemblerBase {
     }
   }
 
-  void StoreRelease(Register dst, Register address, int32_t offset = 0) {
+  void StoreRelease(Register src,
+                    Register address,
+                    int32_t offset = 0) override {
+    Register kDestReg = address;
     if (offset != 0) {
-      AddImmediate(TMP2, address, offset);
-      stlr(dst, TMP2);
-#if defined(USING_THREAD_SANITIZER)
-      TsanStoreRelease(TMP2);
-#endif
-    } else {
-      stlr(dst, address);
-#if defined(USING_THREAD_SANITIZER)
-      TsanStoreRelease(address);
-#endif
+      kDestReg = TMP;
+      AddImmediate(kDestReg, address, offset);
     }
+    stlr(src, kDestReg);
+#if defined(USING_THREAD_SANITIZER)
+    TsanStoreRelease(kDestReg);
+#endif
+  }
+
+  void StoreReleaseCompressed(Register src,
+                              Register address,
+                              int32_t offset = 0) {
+    Register kResultReg = address;
+    if (offset != 0) {
+      kResultReg = TMP;
+      AddImmediate(kResultReg, address, offset);
+    }
+    stlr(src, kResultReg, kObjectBytes);
+#if defined(USING_THREAD_SANITIZER)
+    TsanStoreRelease(kResultReg);
+#endif
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
@@ -1696,7 +1715,8 @@ class Assembler : public AssemblerBase {
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
-  // PP should be passed for pp. `dest` can be TMP2, `rn` cannot.
+  // PP should be passed for pp. `dest` can be TMP2, `rn` cannot. `dest` can be
+  // TMP.
   void AddImmediate(Register dest,
                     Register rn,
                     int64_t imm,
@@ -1835,12 +1855,14 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreCompressedIntoObject(
       Register object,
       const Address& dest,
       Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
   void StoreIntoArray(Register object,
                       Register slot,
@@ -1858,36 +1880,52 @@ class Assembler : public AssemblerBase {
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreCompressedIntoObjectOffset(
       Register object,
       int32_t offset,
       Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi);
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                Register value) override;
-  void StoreCompressedIntoObjectNoBarrier(Register object,
-                                          const Address& dest,
-                                          Register value) override;
-  void StoreIntoObjectOffsetNoBarrier(Register object,
-                                      int32_t offset,
-                                      Register value);
-  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
-                                                int32_t offset,
-                                                Register value);
+      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreCompressedIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
-  void StoreCompressedIntoObjectNoBarrier(Register object,
-                                          const Address& dest,
-                                          const Object& value);
-  void StoreIntoObjectOffsetNoBarrier(Register object,
-                                      int32_t offset,
-                                      const Object& value);
-  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
-                                                int32_t offset,
-                                                const Object& value);
+  void StoreCompressedIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

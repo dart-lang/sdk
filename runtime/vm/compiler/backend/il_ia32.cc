@@ -2135,6 +2135,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
   if (slot().representation() != kTagged) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     auto const rep = slot().representation();
     ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
     const size_t value_size = RepresentationUtils::ValueSize(rep);
@@ -2156,6 +2157,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsUnboxedDartFieldStore() && compiler->is_optimizing()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     XmmRegister value = locs()->in(kValuePos).fpu_reg();
     Register temp = locs()->temp(0).reg();
     Register temp2 = locs()->temp(1).reg();
@@ -2207,6 +2209,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsPotentialUnboxedDartFieldStore()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     __ Comment("PotentialUnboxedStore");
     Register value_reg = locs()->in(kValuePos).reg();
     Register temp = locs()->temp(0).reg();
@@ -2294,17 +2297,17 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register value_reg = locs()->in(kValuePos).reg();
     __ StoreIntoObject(instance_reg,
                        compiler::FieldAddress(instance_reg, offset_in_bytes),
-                       value_reg, CanValueBeSmi());
+                       value_reg, CanValueBeSmi(), memory_order_);
   } else {
     if (locs()->in(kValuePos).IsConstant()) {
       __ StoreIntoObjectNoBarrier(
           instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
-          locs()->in(kValuePos).constant());
+          locs()->in(kValuePos).constant(), memory_order_);
     } else {
       Register value_reg = locs()->in(kValuePos).reg();
       __ StoreIntoObjectNoBarrier(
           instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
-          value_reg);
+          value_reg, memory_order_);
     }
   }
   __ Bind(&skip_store);
@@ -4833,7 +4836,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();

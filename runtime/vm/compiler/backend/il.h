@@ -5354,10 +5354,13 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                           Value* value,
                           StoreBarrierType emit_store_barrier,
                           const InstructionSource& source,
-                          Kind kind = Kind::kOther)
+                          Kind kind = Kind::kOther,
+                          compiler::Assembler::MemoryOrder memory_order =
+                              compiler::Assembler::kRelaxedNonAtomic)
       : TemplateInstruction(source),
         slot_(slot),
         emit_store_barrier_(emit_store_barrier),
+        memory_order_(memory_order),
         token_pos_(source.token_pos),
         is_initialization_(kind == Kind::kInitializing) {
     SetInputAt(kInstancePos, instance);
@@ -5464,6 +5467,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   const Slot& slot_;
   StoreBarrierType emit_store_barrier_;
+  compiler::Assembler::MemoryOrder memory_order_;
   const TokenPosition token_pos_;
   // Marks initializing stores. E.g. in the constructor.
   const bool is_initialization_;
