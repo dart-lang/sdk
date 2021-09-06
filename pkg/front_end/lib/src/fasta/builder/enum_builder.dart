@@ -55,8 +55,8 @@ import '../modifier.dart'
 
 import '../scope.dart';
 
+import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
@@ -189,7 +189,7 @@ class EnumBuilder extends SourceClassBuilder {
     ///   String toString() => _name;
     /// }
 
-    FieldNameScheme instanceFieldNameScheme = new FieldNameScheme(
+    NameScheme instanceFieldNameScheme = new NameScheme(
         isInstanceMember: true,
         className: name,
         isExtensionMember: false,
@@ -198,7 +198,7 @@ class EnumBuilder extends SourceClassBuilder {
             ? referencesFromIndexed.library.reference
             : parent.library.reference);
 
-    FieldNameScheme staticFieldNameScheme = new FieldNameScheme(
+    NameScheme staticFieldNameScheme = new NameScheme(
         isInstanceMember: false,
         className: name,
         isExtensionMember: false,
@@ -207,8 +207,9 @@ class EnumBuilder extends SourceClassBuilder {
             ? referencesFromIndexed.library.reference
             : parent.library.reference);
 
-    ProcedureNameScheme procedureNameScheme = new ProcedureNameScheme(
-        isStatic: false,
+    NameScheme procedureNameScheme = new NameScheme(
+        isInstanceMember: true,
+        className: name,
         isExtensionMember: false,
         extensionName: null,
         libraryReference: referencesFromIndexed != null
@@ -254,7 +255,6 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset,
         instanceFieldNameScheme,
-        isInstanceMember: true,
         fieldGetterReference: indexGetterReference,
         fieldSetterReference: indexSetterReference);
     members["index"] = indexBuilder;
@@ -268,7 +268,6 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset,
         instanceFieldNameScheme,
-        isInstanceMember: true,
         fieldGetterReference: _nameGetterReference,
         fieldSetterReference: _nameSetterReference);
     members["_name"] = nameBuilder;
@@ -302,7 +301,6 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset,
         staticFieldNameScheme,
-        isInstanceMember: false,
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference);
     members["values"] = valuesBuilder;
@@ -384,7 +382,6 @@ class EnumBuilder extends SourceClassBuilder {
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset,
             staticFieldNameScheme,
-            isInstanceMember: false,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference);
         members[name] = fieldBuilder..next = existing;

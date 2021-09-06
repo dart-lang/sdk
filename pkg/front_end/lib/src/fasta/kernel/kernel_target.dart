@@ -67,6 +67,7 @@ import '../messages.dart'
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
+import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_library_builder.dart'
     show LanguageVersion, SourceLibraryBuilder;
@@ -1185,7 +1186,7 @@ class KernelTarget extends TargetImplementation {
     assert(() {
       Set<String> patchFieldNames = {};
       builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
-        patchFieldNames.add(SourceFieldBuilder.createFieldName(
+        patchFieldNames.add(NameScheme.createFieldName(
           FieldNameType.Field,
           name,
           isInstanceMember: fieldBuilder.isClassInstanceMember,

@@ -15,6 +15,7 @@ import '../util/helpers.dart';
 
 import 'builder.dart';
 import 'declaration_builder.dart';
+import 'field_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
@@ -181,8 +182,20 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       {bool setter: false, bool required: false}) {
     Builder? builder =
         lookupLocalMember(name.text, setter: setter, required: required);
+    if (builder == null && setter) {
+      // When looking up setters, we include assignable fields.
+      builder = lookupLocalMember(name.text, setter: false, required: required);
+      if (builder is! FieldBuilder || !builder.isAssignable) {
+        builder = null;
+      }
+    }
     if (builder != null) {
       if (name.isPrivate && library.library != name.library) {
+        builder = null;
+      } else if (builder is FieldBuilder &&
+          !builder.isStatic &&
+          !builder.isExternal) {
+        // Non-external extension instance fields are invalid.
         builder = null;
       } else if (builder.isDuplicate) {
         // Duplicates are not visible in the instance scope.

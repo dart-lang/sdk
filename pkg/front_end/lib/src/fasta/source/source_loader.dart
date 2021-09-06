@@ -106,8 +106,6 @@ import '../loader.dart' show Loader, untranslatableUriScheme;
 
 import '../problems.dart' show internalProblem;
 
-import '../source/stack_listener_impl.dart' show offsetForToken;
-
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 
@@ -115,10 +113,12 @@ import '../util/helpers.dart';
 
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
+import 'name_scheme.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_type_alias_builder.dart';
+import 'stack_listener_impl.dart' show offsetForToken;
 
 class SourceLoader extends Loader {
   /// The [FileSystem] which should be used to access files.
@@ -551,9 +551,11 @@ class SourceLoader extends Loader {
         null,
         null,
         AsyncMarker.Sync,
-        new ProcedureNameScheme(
+        new NameScheme(
+            className: null,
+            extensionName: null,
             isExtensionMember: false,
-            isStatic: true,
+            isInstanceMember: false,
             libraryReference: libraryBuilder.library.reference),
         isInstanceMember: false,
         isExtensionMember: false)
