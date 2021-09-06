@@ -61,6 +61,8 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \
+  V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, index,                    \
+    TypedDataUint32Array, VAR)                                                 \
   V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \
   V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
@@ -98,6 +100,8 @@ class ParsedFunction;
   V(String, UntaggedString, length, Smi, FINAL)                                \
   V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
   V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
+  V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, data, ImmutableArray,     \
+    FINAL)                                                                     \
   V(LinkedHashBase, UntaggedLinkedHashBase, hash_mask, Smi, VAR)               \
   V(LinkedHashBase, UntaggedLinkedHashBase, used_data, Smi, VAR)               \
   V(LinkedHashBase, UntaggedLinkedHashBase, deleted_keys, Smi, VAR)            \

@@ -1584,6 +1584,21 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
+  TypeExpr visitSetLiteral(SetLiteral node) {
+    for (var expression in node.expressions) {
+      _visit(expression);
+    }
+    Class? concreteClass =
+        target.concreteSetLiteralClass(_environment.coreTypes);
+    if (concreteClass != null) {
+      return _translator.instantiateConcreteType(
+          _entryPointsListener.addAllocatedClass(concreteClass),
+          [node.typeArgument]);
+    }
+    return _staticType(node);
+  }
+
+  @override
   TypeExpr visitInstanceInvocation(InstanceInvocation node) {
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
@@ -2443,17 +2458,49 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
   }
 
   @override
-  Type visitMapConstant(MapConstant node) {
-    throw 'The kernel2kernel constants transformation desugars const maps!';
-  }
-
-  @override
   Type visitListConstant(ListConstant constant) {
     for (final Constant entry in constant.entries) {
       typeFor(entry);
     }
     final Class? concreteClass = summaryCollector.target
         .concreteConstListLiteralClass(summaryCollector._environment.coreTypes);
+    if (concreteClass != null) {
+      return new ConcreteType(
+          summaryCollector._entryPointsListener
+              .addAllocatedClass(concreteClass)
+              .cls,
+          null,
+          constant);
+    }
+    return _getStaticType(constant);
+  }
+
+  @override
+  Type visitMapConstant(MapConstant constant) {
+    for (final entry in constant.entries) {
+      typeFor(entry.key);
+      typeFor(entry.value);
+    }
+    final Class? concreteClass = summaryCollector.target
+        .concreteConstMapLiteralClass(summaryCollector._environment.coreTypes);
+    if (concreteClass != null) {
+      return new ConcreteType(
+          summaryCollector._entryPointsListener
+              .addAllocatedClass(concreteClass)
+              .cls,
+          null,
+          constant);
+    }
+    return _getStaticType(constant);
+  }
+
+  @override
+  Type visitSetConstant(SetConstant constant) {
+    for (final entry in constant.entries) {
+      typeFor(entry);
+    }
+    final Class? concreteClass = summaryCollector.target
+        .concreteConstSetLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
       return new ConcreteType(
           summaryCollector._entryPointsListener

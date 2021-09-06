@@ -12,5 +12,5 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///set.dart:5:16 -> ListConstant(const <int*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///set.dart:6:17 -> ListConstant(const <int?>[])
-Evaluated: SetLiteral @ org-dartlang-testcase:///set.dart:7:11 -> InstanceConstant(const _UnmodifiableSet<List<int?>*>{_UnmodifiableSet._map: const _ImmutableMap<List<int?>*, Null>{_ImmutableMap._kvPairs: const <dynamic>[const <int*>[], null, const <int?>[], null]}})
+Evaluated: SetLiteral @ org-dartlang-testcase:///set.dart:7:11 -> SetConstant(const <List<int?>*>{const <int*>[], const <int?>[]})
 Extra constant evaluation: evaluated: 3, effectively constant: 3

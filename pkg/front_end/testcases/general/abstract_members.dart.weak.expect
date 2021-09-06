@@ -431,7 +431,7 @@ constants  {
   #C1 = #interfaceMethod2
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C4 = <core::Symbol*, dynamic>{)
   #C5 = #abstractMethod
   #C6 = #interfaceMethod1
   #C7 = #interfaceMethod3

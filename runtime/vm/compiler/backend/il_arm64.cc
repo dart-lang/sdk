@@ -2410,6 +2410,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
   if (slot().representation() != kTagged) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     ASSERT(RepresentationUtils::IsUnboxedInteger(slot().representation()));
     const Register value = locs()->in(kValuePos).reg();
     __ Comment("NativeUnboxedStoreInstanceFieldInstr");
@@ -2420,6 +2421,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsUnboxedDartFieldStore() && compiler->is_optimizing()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     const VRegister value = locs()->in(kValuePos).fpu_reg();
     const intptr_t cid = slot().field().UnboxedFieldCid();
 
@@ -2489,6 +2491,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsPotentialUnboxedDartFieldStore()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     const Register value_reg = locs()->in(kValuePos).reg();
     const Register temp = locs()->temp(0).reg();
     const Register temp2 = locs()->temp(1).reg();
@@ -2574,28 +2577,30 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register value_reg = locs()->in(kValuePos).reg();
     if (!compressed) {
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                               CanValueBeSmi());
+                               CanValueBeSmi(), memory_order_);
     } else {
       __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes,
-                                         value_reg, CanValueBeSmi());
+                                         value_reg, CanValueBeSmi(),
+                                         memory_order_);
     }
   } else {
     if (locs()->in(kValuePos).IsConstant()) {
       const auto& value = locs()->in(kValuePos).constant();
       if (!compressed) {
-        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes, value);
+        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes, value,
+                                          memory_order_);
       } else {
-        __ StoreCompressedIntoObjectOffsetNoBarrier(instance_reg,
-                                                    offset_in_bytes, value);
+        __ StoreCompressedIntoObjectOffsetNoBarrier(
+            instance_reg, offset_in_bytes, value, memory_order_);
       }
     } else {
       const Register value_reg = locs()->in(kValuePos).reg();
       if (!compressed) {
         __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
-                                          value_reg);
+                                          value_reg, memory_order_);
       } else {
-        __ StoreCompressedIntoObjectOffsetNoBarrier(instance_reg,
-                                                    offset_in_bytes, value_reg);
+        __ StoreCompressedIntoObjectOffsetNoBarrier(
+            instance_reg, offset_in_bytes, value_reg, memory_order_);
       }
     }
   }
@@ -4008,10 +4013,9 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                      !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
-      ValueFitsSmi()
-          ? LocationSummary::kNoCall
-          : shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
-                                  : LocationSummary::kCallOnSlowPath);
+      ValueFitsSmi()          ? LocationSummary::kNoCall
+      : shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
+                              : LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
   if (ValueFitsSmi()) {
     summary->set_out(0, Location::RequiresRegister());
@@ -4727,7 +4731,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     const VRegister left = locs()->in(0).fpu_reg();

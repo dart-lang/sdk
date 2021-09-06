@@ -41,6 +41,8 @@ class TranslationHelper {
 
   Isolate* isolate() { return isolate_; }
 
+  IsolateGroup* isolate_group() { return isolate_group_; }
+
   Heap::Space allocation_space() { return allocation_space_; }
 
   // Access to strings.
@@ -232,6 +234,7 @@ class TranslationHelper {
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   Heap::Space allocation_space_;
 
   TypedData& string_offsets_;

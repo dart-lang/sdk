@@ -1658,10 +1658,11 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_array_class(cls);
 
     // VM classes that are parameterized (Array, ImmutableArray,
-    // GrowableObjectArray, and LinkedHashMap) are also pre-finalized, so
-    // CalculateFieldOffsets() is not called, so we need to set the offset of
-    // their type_arguments_ field, which is explicitly declared in their
-    // respective Raw* classes.
+    // GrowableObjectArray, LinkedHashMap, ImmutableLinkedHashMap,
+    // LinkedHashSet, ImmutableLinkedHashSet) are also pre-finalized, so
+    // CalculateFieldOffsets() is not called, so we need to set the offset
+    // of their type_arguments_ field, which is explicitly
+    // declared in their respective Raw* classes.
     cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                         RTN::Array::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(1);
@@ -1965,6 +1966,17 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(
+        kImmutableLinkedHashMapCid, isolate_group);
+    object_store->set_immutable_linked_hash_map_class(cls);
+    cls.set_type_arguments_field_offset(
+        LinkedHashMap::type_arguments_offset(),
+        RTN::LinkedHashMap::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(2);
+    cls.set_is_prefinalized();
+    RegisterPrivateClass(cls, Symbols::_ImmutableLinkedHashMap(), lib);
+    pending_classes.Add(cls);
+
     cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
     object_store->set_linked_hash_set_class(cls);
     cls.set_type_arguments_field_offset(
@@ -1972,6 +1984,17 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
         RTN::LinkedHashSet::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(1);
     RegisterPrivateClass(cls, Symbols::_LinkedHashSet(), lib);
+    pending_classes.Add(cls);
+
+    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(
+        kImmutableLinkedHashSetCid, isolate_group);
+    object_store->set_immutable_linked_hash_set_class(cls);
+    cls.set_type_arguments_field_offset(
+        LinkedHashSet::type_arguments_offset(),
+        RTN::LinkedHashSet::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(1);
+    cls.set_is_prefinalized();
+    RegisterPrivateClass(cls, Symbols::_ImmutableLinkedHashSet(), lib);
     pending_classes.Add(cls);
 
     // Pre-register the async library so we can place the vm class
@@ -2438,8 +2461,16 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate_group);
     object_store->set_linked_hash_map_class(cls);
 
+    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(
+        kImmutableLinkedHashMapCid, isolate_group);
+    object_store->set_immutable_linked_hash_map_class(cls);
+
     cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
     object_store->set_linked_hash_set_class(cls);
+
+    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(
+        kImmutableLinkedHashSetCid, isolate_group);
+    object_store->set_immutable_linked_hash_set_class(cls);
 
     cls = Class::New<Float32x4, RTN::Float32x4>(isolate_group);
     object_store->set_float32x4_class(cls);
@@ -2804,6 +2835,11 @@ ObjectPtr Object::Clone(const Object& orig,
     memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
             reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
             size - kHeaderSizeInBytes);
+  }
+
+  if (IsTypedDataClassId(raw_clone->GetClassId())) {
+    auto raw_typed_data = TypedData::RawCast(raw_clone);
+    raw_typed_data.untag()->RecomputeDataField();
   }
 
   // Add clone to store buffer, if needed.
@@ -4631,6 +4667,9 @@ bool Class::InjectCIDFields() const {
                   CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
+      // Used in const hashing to determine whether we're dealing with a
+      // user-defined const. See lib/_internal/vm/lib/compact_hash.dart.
+      {"numPredefinedCids", kNumPredefinedCids},
   };
 
   const AbstractType& field_type = Type::Handle(zone, Type::IntType());
@@ -6056,6 +6095,7 @@ InstancePtr Class::LookupCanonicalInstance(Zone* zone,
 
 InstancePtr Class::InsertCanonicalConstant(Zone* zone,
                                            const Instance& constant) const {
+  ASSERT(constant.IsCanonical());
   ASSERT(this->ptr() == constant.clazz());
   Instance& canonical_value = Instance::Handle(zone);
   if (this->constants() == Array::null()) {
@@ -24566,7 +24606,8 @@ class DefaultHashTraits {
   }
 };
 
-LinkedHashMapPtr LinkedHashMap::NewDefault(Heap::Space space) {
+LinkedHashMapPtr LinkedHashMap::NewDefault(intptr_t class_id,
+                                           Heap::Space space) {
   const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
   const TypedData& index = TypedData::Handle(
       TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
@@ -24574,35 +24615,40 @@ LinkedHashMapPtr LinkedHashMap::NewDefault(Heap::Space space) {
   static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
   static const intptr_t kInitialHashMask =
       (1 << (kAvailableBits - kInitialIndexBits)) - 1;
-  return LinkedHashMap::New(data, index, kInitialHashMask, 0, 0, space);
+  return LinkedHashMap::New(class_id, data, index, kInitialHashMask, 0, 0,
+                            space);
 }
 
-LinkedHashMapPtr LinkedHashMap::New(const Array& data,
+LinkedHashMapPtr LinkedHashMap::New(intptr_t class_id,
+                                    const Array& data,
                                     const TypedData& index,
                                     intptr_t hash_mask,
                                     intptr_t used_data,
                                     intptr_t deleted_keys,
                                     Heap::Space space) {
+  ASSERT(class_id == kLinkedHashMapCid ||
+         class_id == kImmutableLinkedHashMapCid);
   ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
          Class::null());
   LinkedHashMap& result =
-      LinkedHashMap::Handle(LinkedHashMap::NewUninitialized(space));
-  result.SetData(data);
-  result.SetIndex(index);
-  result.SetHashMask(hash_mask);
-  result.SetUsedData(used_data);
-  result.SetDeletedKeys(deleted_keys);
+      LinkedHashMap::Handle(LinkedHashMap::NewUninitialized(class_id, space));
+  result.set_data(data);
+  result.set_index(index);
+  result.set_hash_mask(hash_mask);
+  result.set_used_data(used_data);
+  result.set_deleted_keys(deleted_keys);
   return result.ptr();
 }
 
-LinkedHashMapPtr LinkedHashMap::NewUninitialized(Heap::Space space) {
+LinkedHashMapPtr LinkedHashMap::NewUninitialized(intptr_t class_id,
+                                                 Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
          Class::null());
   LinkedHashMap& result = LinkedHashMap::Handle();
   {
     ObjectPtr raw =
-        Object::Allocate(LinkedHashMap::kClassId, LinkedHashMap::InstanceSize(),
-                         space, LinkedHashMap::ContainsCompressedPointers());
+        Object::Allocate(class_id, LinkedHashMap::InstanceSize(), space,
+                         LinkedHashMap::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24611,28 +24657,155 @@ LinkedHashMapPtr LinkedHashMap::NewUninitialized(Heap::Space space) {
 
 const char* LinkedHashMap::ToCString() const {
   Zone* zone = Thread::Current()->zone();
-  return zone->PrintToString("_LinkedHashMap len:%" Pd, Length());
+  return zone->PrintToString(
+      "_%sLinkedHashMap len:%" Pd,
+      GetClassId() == kImmutableLinkedHashMapCid ? "Immutable" : "", Length());
 }
 
-LinkedHashSetPtr LinkedHashSet::New(const Array& data,
+void LinkedHashBase::ComputeAndSetHashMask() const {
+  ASSERT(IsImmutable());
+  ASSERT_EQUAL(Smi::Value(deleted_keys()), 0);
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+
+  const auto& data_array = Array::Handle(zone, data());
+  const intptr_t data_length = data_array.Length();
+  const intptr_t index_size_mult = IsLinkedHashMap() ? 1 : 2;
+  const intptr_t index_size = Utils::Maximum(LinkedHashBase::kInitialIndexSize,
+                                             data_length * index_size_mult);
+  ASSERT(Utils::IsPowerOfTwo(index_size));
+
+  const intptr_t hash_mask = IndexSizeToHashMask(index_size);
+  set_hash_mask(hash_mask);
+}
+
+bool LinkedHashBase::CanonicalizeEquals(const Instance& other) const {
+  ASSERT(IsImmutable());
+
+  if (this->ptr() == other.ptr()) {
+    // Both handles point to the same raw instance.
+    return true;
+  }
+  if (other.IsNull()) {
+    return false;
+  }
+  if (GetClassId() != other.GetClassId()) {
+    return false;
+  }
+
+  Zone* zone = Thread::Current()->zone();
+
+  const LinkedHashBase& other_map = LinkedHashBase::Cast(other);
+
+  if (!Smi::Handle(zone, used_data())
+           .Equals(Smi::Handle(zone, other_map.used_data()))) {
+    return false;
+  }
+
+  // Immutable maps and sets do not have deleted keys.
+  ASSERT_EQUAL(RawSmiValue(deleted_keys()), 0);
+
+  if (!Array::Handle(zone, data())
+           .CanonicalizeEquals(Array::Handle(zone, other_map.data()))) {
+    return false;
+  }
+
+  if (GetTypeArguments() == other.GetTypeArguments()) {
+    return true;
+  }
+  const TypeArguments& type_args =
+      TypeArguments::Handle(zone, GetTypeArguments());
+  const TypeArguments& other_type_args =
+      TypeArguments::Handle(zone, other.GetTypeArguments());
+  return type_args.Equals(other_type_args);
+}
+
+uint32_t LinkedHashBase::CanonicalizeHash() const {
+  ASSERT(IsImmutable());
+
+  Thread* thread = Thread::Current();
+  uint32_t hash = thread->heap()->GetCanonicalHash(ptr());
+  if (hash != 0) {
+    return hash;
+  }
+
+  // Immutable maps and sets do not have deleted keys.
+  ASSERT_EQUAL(RawSmiValue(deleted_keys()), 0);
+
+  Zone* zone = thread->zone();
+  auto& member = Instance::Handle(zone, GetTypeArguments());
+  hash = member.CanonicalizeHash();
+  member = data();
+  hash = CombineHashes(hash, member.CanonicalizeHash());
+  member = used_data();
+  hash = CombineHashes(hash, member.CanonicalizeHash());
+  hash = FinalizeHash(hash, kHashBits);
+  thread->heap()->SetCanonicalHash(ptr(), hash);
+  return hash;
+}
+
+void LinkedHashBase::CanonicalizeFieldsLocked(Thread* thread) const {
+  ASSERT(IsImmutable());
+
+  Zone* zone = thread->zone();
+
+  TypeArguments& type_args = TypeArguments::Handle(zone, GetTypeArguments());
+  if (!type_args.IsNull()) {
+    type_args = type_args.Canonicalize(thread, nullptr);
+    SetTypeArguments(type_args);
+  }
+
+  auto& data_array = Array::Handle(zone, data());
+  data_array.MakeImmutable();
+  data_array ^= data_array.CanonicalizeLocked(thread);
+  set_data(data_array);
+
+  // The index should not be set yet. It is populated lazily on first read.
+  const auto& index_td = TypedData::Handle(zone, index());
+  ASSERT(index_td.IsNull());
+}
+
+ImmutableLinkedHashMapPtr ImmutableLinkedHashMap::NewDefault(
+    Heap::Space space) {
+  ASSERT(IsolateGroup::Current()
+             ->object_store()
+             ->immutable_linked_hash_map_class() != Class::null());
+  return static_cast<ImmutableLinkedHashMapPtr>(
+      LinkedHashMap::NewDefault(kClassId, space));
+}
+
+ImmutableLinkedHashMapPtr ImmutableLinkedHashMap::NewUninitialized(
+    Heap::Space space) {
+  ASSERT(IsolateGroup::Current()
+             ->object_store()
+             ->immutable_linked_hash_map_class() != Class::null());
+  return static_cast<ImmutableLinkedHashMapPtr>(
+      LinkedHashMap::NewUninitialized(kClassId, space));
+}
+
+LinkedHashSetPtr LinkedHashSet::New(intptr_t class_id,
+                                    const Array& data,
                                     const TypedData& index,
                                     intptr_t hash_mask,
                                     intptr_t used_data,
                                     intptr_t deleted_keys,
                                     Heap::Space space) {
+  ASSERT(class_id == kLinkedHashSetCid ||
+         class_id == kImmutableLinkedHashSetCid);
   ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
          Class::null());
   LinkedHashSet& result =
-      LinkedHashSet::Handle(LinkedHashSet::NewUninitialized(space));
-  result.SetData(data);
-  result.SetIndex(index);
-  result.SetHashMask(hash_mask);
-  result.SetUsedData(used_data);
-  result.SetDeletedKeys(deleted_keys);
+      LinkedHashSet::Handle(LinkedHashSet::NewUninitialized(class_id, space));
+  result.set_data(data);
+  result.set_index(index);
+  result.set_hash_mask(hash_mask);
+  result.set_used_data(used_data);
+  result.set_deleted_keys(deleted_keys);
   return result.ptr();
 }
 
-LinkedHashSetPtr LinkedHashSet::NewDefault(Heap::Space space) {
+LinkedHashSetPtr LinkedHashSet::NewDefault(intptr_t class_id,
+                                           Heap::Space space) {
   const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
   const TypedData& index = TypedData::Handle(
       TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
@@ -24640,26 +24813,48 @@ LinkedHashSetPtr LinkedHashSet::NewDefault(Heap::Space space) {
   static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
   static const intptr_t kInitialHashMask =
       (1 << (kAvailableBits - kInitialIndexBits)) - 1;
-  return LinkedHashSet::New(data, index, kInitialHashMask, 0, 0, space);
+  return LinkedHashSet::New(class_id, data, index, kInitialHashMask, 0, 0,
+                            space);
 }
 
-LinkedHashSetPtr LinkedHashSet::NewUninitialized(Heap::Space space) {
+LinkedHashSetPtr LinkedHashSet::NewUninitialized(intptr_t class_id,
+                                                 Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
          Class::null());
   LinkedHashSet& result = LinkedHashSet::Handle();
   {
     ObjectPtr raw =
-        Object::Allocate(kLinkedHashSetCid, LinkedHashSet::InstanceSize(),
-                         space, LinkedHashSet::ContainsCompressedPointers());
+        Object::Allocate(class_id, LinkedHashSet::InstanceSize(), space,
+                         LinkedHashSet::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
   return result.ptr();
 }
 
+ImmutableLinkedHashSetPtr ImmutableLinkedHashSet::NewDefault(
+    Heap::Space space) {
+  ASSERT(IsolateGroup::Current()
+             ->object_store()
+             ->immutable_linked_hash_set_class() != Class::null());
+  return static_cast<ImmutableLinkedHashSetPtr>(
+      LinkedHashSet::NewDefault(kClassId, space));
+}
+
+ImmutableLinkedHashSetPtr ImmutableLinkedHashSet::NewUninitialized(
+    Heap::Space space) {
+  ASSERT(IsolateGroup::Current()
+             ->object_store()
+             ->immutable_linked_hash_map_class() != Class::null());
+  return static_cast<ImmutableLinkedHashSetPtr>(
+      LinkedHashSet::NewUninitialized(kClassId, space));
+}
+
 const char* LinkedHashSet::ToCString() const {
   Zone* zone = Thread::Current()->zone();
-  return zone->PrintToString("LinkedHashSet len:%" Pd, Length());
+  return zone->PrintToString(
+      "_%sLinkedHashSet len:%" Pd,
+      GetClassId() == kImmutableLinkedHashSetCid ? "Immutable" : "", Length());
 }
 
 const char* FutureOr::ToCString() const {

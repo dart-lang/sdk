@@ -325,6 +325,8 @@ class ObjectPointerVisitor;
   V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
   V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
+  V(_ImmutableLinkedHashMap, "_InternalImmutableLinkedHashMap")                \
+  V(_ImmutableLinkedHashSet, "_CompactImmutableLinkedHashSet")                 \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \

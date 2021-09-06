@@ -101,11 +101,13 @@ typedef uint16_t ClassIdTagType;
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                   \
   CLASS_LIST_INTERNAL_ONLY(V) CLASS_LIST_INSTANCE_SINGLETONS(V)
 
-// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashMap.
-#define CLASS_LIST_MAPS(V) V(LinkedHashMap)
+#define CLASS_LIST_MAPS(V)                                                     \
+  V(LinkedHashMap)                                                             \
+  V(ImmutableLinkedHashMap)
 
-// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashSet.
-#define CLASS_LIST_SETS(V) V(LinkedHashSet)
+#define CLASS_LIST_SETS(V)                                                     \
+  V(LinkedHashSet)                                                             \
+  V(ImmutableLinkedHashSet)
 
 #define CLASS_LIST_FIXED_LENGTH_ARRAYS(V)                                      \
   V(Array)                                                                     \

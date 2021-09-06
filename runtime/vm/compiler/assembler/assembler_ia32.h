@@ -672,10 +672,14 @@ class Assembler : public AssemblerBase {
     // with other loads).
     movl(dst, Address(address, offset));
   }
-  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+  void StoreRelease(Register src,
+                    Register address,
+                    int32_t offset = 0) override {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     movl(Address(address, offset), src);
+
+    // We don't run TSAN on 32 bit systems.
   }
 
   void ExtendValue(Register to, Register from, OperandSize sz) override;
@@ -741,17 +745,21 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreIntoArray(Register object,  // Object we are storing into.
                       Register slot,    // Where we are storing into.
                       Register value,   // Value we are storing.
                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value) override;
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                const Object& value);
+                                const Object& value,
+                                MemoryOrder memory_order = kRelaxedNonAtomic);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

@@ -2943,6 +2943,8 @@ class UntaggedArray : public UntaggedInstance {
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
+  friend class LinkedHashSetSerializationCluster;
+  friend class LinkedHashSetDeserializationCluster;
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
@@ -2951,6 +2953,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class GrowableObjectArray;
   friend class LinkedHashMap;
   friend class UntaggedLinkedHashMap;
+  friend class UntaggedImmutableLinkedHashMap;
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
@@ -2999,10 +3002,22 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
 
 class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+
+  friend class UntaggedImmutableLinkedHashMap;
+};
+
+class UntaggedImmutableLinkedHashMap : public UntaggedLinkedHashMap {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashMap);
 };
 
 class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
+
+  friend class UntaggedImmutableLinkedHashSet;
+};
+
+class UntaggedImmutableLinkedHashSet : public UntaggedLinkedHashSet {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashSet);
 };
 
 class UntaggedFloat32x4 : public UntaggedInstance {

@@ -197,6 +197,8 @@ static constexpr dart::compiler::target::word Isolate_single_step_offset = 40;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 12;
+static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     8;
@@ -741,6 +743,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
+static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
@@ -1292,6 +1296,8 @@ static constexpr dart::compiler::target::word Isolate_single_step_offset = 40;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 12;
+static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     8;
@@ -1833,6 +1839,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
+static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
@@ -2385,6 +2393,8 @@ static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     12;
@@ -2935,6 +2945,8 @@ static constexpr dart::compiler::target::word Isolate_single_step_offset = 80;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     12;
@@ -3482,6 +3494,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 12;
+static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     8;
@@ -4020,6 +4034,8 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
+static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
@@ -4565,6 +4581,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 12;
+static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     8;
@@ -5100,6 +5118,8 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
+static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
@@ -5646,6 +5666,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     12;
@@ -6189,6 +6211,8 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word
+    ImmutableLinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
     LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
@@ -6760,6 +6784,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 20;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     12;
+static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word
@@ -7370,6 +7396,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     24;
 static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 24;
+static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_hash_mask_offset = 16;
@@ -7985,6 +8013,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     24;
 static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 24;
+static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_hash_mask_offset = 16;
@@ -8597,6 +8627,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
 static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_hash_mask_offset = 12;
@@ -9208,6 +9240,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 40;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
 static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_hash_mask_offset = 12;
@@ -9815,6 +9849,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     12;
 static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 12;
+static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_hash_mask_offset = 8;
@@ -10416,6 +10452,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     24;
+static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
@@ -11025,6 +11063,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     24;
 static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 24;
+static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_hash_mask_offset = 16;
@@ -11630,6 +11670,8 @@ static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
 static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_hash_mask_offset = 12;
@@ -12233,6 +12275,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
+static constexpr dart::compiler::target::word
+    AOT_ImmutableLinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word

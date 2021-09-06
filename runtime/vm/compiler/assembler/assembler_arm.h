@@ -402,9 +402,16 @@ class Assembler : public AssemblerBase {
     ldr(dst, Address(address, offset));
     dmb();
   }
-  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+  void StoreRelease(Register src,
+                    Register address,
+                    int32_t offset = 0) override {
+    StoreRelease(src, Address(address, offset));
+  }
+  void StoreRelease(Register src, Address dest) {
     dmb();
-    str(src, Address(address, offset));
+    str(src, dest);
+
+    // We don't run TSAN bots on 32 bit.
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
@@ -877,7 +884,8 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
@@ -885,20 +893,28 @@ class Assembler : public AssemblerBase {
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             MemoryOrder memory_order = kRelaxedNonAtomic);
 
+  void StoreIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value) override;
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                const Object& value);
-  void StoreIntoObjectNoBarrierOffset(Register object,
-                                      int32_t offset,
-                                      Register value);
-  void StoreIntoObjectNoBarrierOffset(Register object,
-                                      int32_t offset,
-                                      const Object& value);
+                                const Object& value,
+                                MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectNoBarrierOffset(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectNoBarrierOffset(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

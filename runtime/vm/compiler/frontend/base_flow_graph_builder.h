@@ -196,14 +196,18 @@ class BaseFlowGraphBuilder {
       const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic);
   Fragment StoreNativeField(
       const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier) {
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic) {
     return StoreNativeField(TokenPosition::kNoSource, slot, kind,
-                            emit_store_barrier);
+                            emit_store_barrier, memory_order);
   }
   Fragment StoreInstanceField(
       const Field& field,

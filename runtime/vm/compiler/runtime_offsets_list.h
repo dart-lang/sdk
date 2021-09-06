@@ -157,6 +157,7 @@
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashBase, data_offset)                                           \
+  FIELD(ImmutableLinkedHashBase, data_offset)                                  \
   FIELD(LinkedHashBase, deleted_keys_offset)                                   \
   FIELD(LinkedHashBase, hash_mask_offset)                                      \
   FIELD(LinkedHashBase, index_offset)                                          \

@@ -506,7 +506,8 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
     const Slot& slot,
     StoreInstanceFieldInstr::Kind
         kind /* = StoreInstanceFieldInstr::Kind::kOther */,
-    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */) {
+    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
+    compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;

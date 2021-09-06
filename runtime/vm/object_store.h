@@ -136,7 +136,9 @@ class ObjectPointerVisitor;
   RW(Class, immutable_array_class)                                             \
   RW(Class, growable_object_array_class)                                       \
   RW(Class, linked_hash_map_class)                                             \
+  RW(Class, immutable_linked_hash_map_class)                                   \
   RW(Class, linked_hash_set_class)                                             \
+  RW(Class, immutable_linked_hash_set_class)                                   \
   RW(Class, float32x4_class)                                                   \
   RW(Class, int32x4_class)                                                     \
   RW(Class, float64x2_class)                                                   \

@@ -789,12 +789,14 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_be_smi = kValueCanBeSmi) override;
+                       CanBeSmi can_be_smi = kValueCanBeSmi,
+                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreCompressedIntoObject(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
       Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi) override;
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreBarrier(Register object,  // Object we are storing into.
                     Register value,   // Value we are storing.
                     CanBeSmi can_be_smi);
@@ -807,18 +809,25 @@ class Assembler : public AssemblerBase {
                                 Register value,   // Value we are storing.
                                 CanBeSmi can_be_smi = kValueCanBeSmi);
 
+  void StoreIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreCompressedIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value) override;
-  void StoreCompressedIntoObjectNoBarrier(Register object,
-                                          const Address& dest,
-                                          Register value) override;
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                const Object& value);
-  void StoreCompressedIntoObjectNoBarrier(Register object,
-                                          const Address& dest,
-                                          const Object& value);
+                                const Object& value,
+                                MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreCompressedIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -1063,10 +1072,22 @@ class Assembler : public AssemblerBase {
     TsanLoadAcquire(Address(address, offset));
 #endif
   }
-  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+  void StoreRelease(Register src,
+                    Register address,
+                    int32_t offset = 0) override {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     movq(Address(address, offset), src);
+#if defined(USING_THREAD_SANITIZER)
+    TsanStoreRelease(Address(address, offset));
+#endif
+  }
+  void StoreReleaseCompressed(Register src,
+                              Register address,
+                              int32_t offset = 0) {
+    // On intel stores have store-release behavior (i.e. stores are not
+    // re-ordered with other stores).
+    OBJ(mov)(Address(address, offset), src);
 #if defined(USING_THREAD_SANITIZER)
     TsanStoreRelease(Address(address, offset));
 #endif
