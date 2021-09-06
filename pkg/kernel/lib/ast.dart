@@ -64,7 +64,6 @@
 ///
 library kernel.ast;
 
-import 'dart:core';
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 

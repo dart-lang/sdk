@@ -71,6 +71,13 @@
   instance variable, and it brings the implementation behavior in line with
   the specification in all other cases.
 
+### Core libraries
+
+#### `dart:cli`
+
+- The experimental `waitFor` functionality, and the library containing only that
+  function, are now deprecated.
+
 ### Tools
 
 #### Dart command line
@@ -144,11 +151,6 @@
 
 - Added `void unawaited(Future)` top-level function to deal with the
   `unawaited_futures` lint.
-
-#### `dart:cli`
-
-- The experimental `waitFor` functionality, and the library containing only that
-  function, are now deprecated.
 
 #### `dart:core`
 
