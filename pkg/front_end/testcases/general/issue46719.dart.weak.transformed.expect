@@ -77,7 +77,7 @@ extension FunctionApplier on core::Function {
 static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
   return core::_GrowableList::_literal1<self::m::X%>(x);
 static method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
-  return core::print(core::Function::apply(#this, positionalArguments, #C2));
+  return core::print(core::Function::apply(#this, positionalArguments, #C1));
 static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
   return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
 static method test() → dynamic {
@@ -100,8 +100,8 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/issue46719.dart:32:18: Error: Couldn't find constructor 'm.applyAndPrint'.
   self.m<String>.applyAndPrint(['three']);
                  ^^^^^^^^^^^^^";
-  self::FunctionApplier|applyAndPrint(#C3, core::_GrowableList::_literal1<core::Object?>(2));
-  self::FunctionApplier|applyAndPrint(#C3, core::_GrowableList::_literal1<core::Object?>("three"));
+  self::FunctionApplier|applyAndPrint(#C2, core::_GrowableList::_literal1<core::Object?>(2));
+  self::FunctionApplier|applyAndPrint(#C2, core::_GrowableList::_literal1<core::Object?>("three"));
   invalid-expression "pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Member not found: 'named'.
   A.named.toString();
     ^^^^^".{core::Object::toString}(){() → core::String};
@@ -115,7 +115,6 @@ static method test() → dynamic {
 static method main() → void {}
 
 constants  {
-  #C1 = <dynamic>[]
-  #C2 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C1}
-  #C3 = static-tearoff self::A::n
+  #C1 = <core::Symbol*, dynamic>{)
+  #C2 = static-tearoff self::A::n
 }

@@ -361,7 +361,7 @@ constants  {
   #C2 = #getter
   #C3 = <core::Type*>[]
   #C4 = <dynamic>[]
-  #C5 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C4}
+  #C5 = <core::Symbol*, dynamic>{)
   #C6 = #field
   #C7 = #method
   #C8 = #finalField

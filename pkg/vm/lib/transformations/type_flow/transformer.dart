@@ -1906,6 +1906,13 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitDoubleConstant(DoubleConstant constant) {}
 
   @override
+  visitSetConstant(SetConstant constant) {
+    for (final entry in constant.entries) {
+      analyzeConstant(entry);
+    }
+  }
+
+  @override
   visitStringConstant(StringConstant constant) {}
 
   @override
@@ -1914,8 +1921,11 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   }
 
   @override
-  visitMapConstant(MapConstant node) {
-    throw 'The kernel2kernel constants transformation desugars const maps!';
+  visitMapConstant(MapConstant constant) {
+    for (final entry in constant.entries) {
+      analyzeConstant(entry.key);
+      analyzeConstant(entry.value);
+    }
   }
 
   @override

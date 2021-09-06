@@ -43,5 +43,5 @@ class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstruc
 
 
 Extra constant evaluation status:
-Evaluated: SetLiteral @ org-dartlang-testcase:///main.dart:7:27 -> InstanceConstant(const _UnmodifiableSet<Foo*>{_UnmodifiableSet._map: const _ImmutableMap<Foo*, Null>{_ImmutableMap._kvPairs: const <dynamic>[const Bar<dynamic>{}, null]}})
+Evaluated: SetLiteral @ org-dartlang-testcase:///main.dart:7:27 -> SetConstant(const <Foo*>{const Bar<dynamic>{}})
 Extra constant evaluation: evaluated: 4, effectively constant: 1

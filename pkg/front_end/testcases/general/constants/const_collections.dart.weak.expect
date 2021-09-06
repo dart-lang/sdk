@@ -420,8 +420,8 @@ static const field self::CustomIterable* customIterable = #C11;
 static const field core::List<core::String*>* barWithCustomIterableSpread3 = invalid-expression "Only lists and sets can be used in spreads in constant lists and sets.";
 static const field core::List<core::String*>* listConcat = invalid-expression "The method '+' can't be invoked on '<String>[\"Hello\"]' in a constant expression.";
 static const field core::Set<core::String*>* nullSet = #C3;
-static const field core::Set<core::String*>* baz = #C14;
-static const field core::Set<core::String*>* qux = #C17;
+static const field core::Set<core::String*>* baz = #C12;
+static const field core::Set<core::String*>* qux = #C13;
 static const field core::Set<core::String*>* quxWithNullSpread = invalid-expression "Null value during constant evaluation.";
 static const field core::Set<core::String*>* quxWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
 const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
@@ -439,8 +439,8 @@ static const field core::Set<dynamic>* setWithNonPrimitiveEquals = invalid-expre
  - 'WithEquals' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.";
 static const field core::Set<dynamic>* setWithDuplicates = invalid-expression "The element '42' conflicts with another existing element in the set.";
 static const field core::Map<core::String*, core::String*>* nullMap = #C3;
-static const field core::Map<core::String*, core::String*>* quux = #C19;
-static const field core::Map<core::String*, core::String*>* quuz = #C22;
+static const field core::Map<core::String*, core::String*>* quux = #C14;
+static const field core::Map<core::String*, core::String*>* quuz = #C16;
 static const field core::Map<core::String*, core::String*>* quuzWithNullSpread = invalid-expression "Null value during constant evaluation.";
 static const field core::Map<core::String*, core::String*>* quuzWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:58:60: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
 const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
@@ -453,7 +453,7 @@ const Map<String, String> mapWithSetSpread = {...baz};
                                              ^";
 static const field core::Map<core::String*, core::String*>* mapWithCustomMap1 = invalid-expression "Only maps can be used in spreads in constant maps.";
 static const field core::Map<core::String*, core::String*>* mapWithCustomMap2 = invalid-expression "Only maps can be used in spreads in constant maps.";
-static const field core::Map<core::String*, core::String*>* customMap = #C23;
+static const field core::Map<core::String*, core::String*>* customMap = #C17;
 static const field core::Map<core::String*, core::String*>* mapWithCustomMap3 = invalid-expression "Only maps can be used in spreads in constant maps.";
 static const field core::Map<dynamic, core::int*>* mapWithNonPrimitiveEqualsKey = invalid-expression "The key 'WithEquals {i: 42}' does not have a primitive operator '=='.
  - 'WithEquals' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.";
@@ -463,22 +463,22 @@ static get fooAsGetter() → core::List<core::String*>*
 static get barAsGetter() → core::List<core::String*>*
   return #C10;
 static get bazAsGetter() → core::Set<core::String*>*
-  return #C14;
+  return #C12;
 static get quxAsGetter() → core::Set<core::String*>*
-  return #C17;
+  return #C13;
 static get quuxAsGetter() → core::Map<core::String*, core::String*>*
-  return #C19;
+  return #C14;
 static get quuzAsGetter() → core::Map<core::String*, core::String*>*
-  return #C22;
+  return #C16;
 static method main() → dynamic {
   core::print(#C10);
-  core::print(#C17);
-  core::print(#C22);
+  core::print(#C13);
+  core::print(#C16);
   core::print( block {
     final core::Set<core::String*>* #t2 = col::LinkedHashSet::•<core::String*>();
     #t2.{core::Set::add}{Invariant}("hello"){(core::String*) →* core::bool*};
   } =>#t2);
-  core::print(#C26);
+  core::print(#C18);
 }
 
 constants  {
@@ -493,21 +493,13 @@ constants  {
   #C9 = "!"
   #C10 = <core::String*>[#C6, #C7, #C9]
   #C11 = self::CustomIterable {}
-  #C12 = <dynamic>[#C6, #C3, #C7, #C3]
-  #C13 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C12}
-  #C14 = col::_UnmodifiableSet<core::String*> {_map:#C13}
-  #C15 = <dynamic>[#C6, #C3, #C7, #C3, #C9, #C3]
-  #C16 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C15}
-  #C17 = col::_UnmodifiableSet<core::String*> {_map:#C16}
-  #C18 = <dynamic>[#C6, #C7]
-  #C19 = core::_ImmutableMap<core::String*, core::String*> {_kvPairs:#C18}
-  #C20 = "bye!"
-  #C21 = <dynamic>[#C6, #C7, #C9, #C20]
-  #C22 = core::_ImmutableMap<core::String*, core::String*> {_kvPairs:#C21}
-  #C23 = self::CustomMap {}
-  #C24 = <dynamic>[#C6, #C3]
-  #C25 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C24}
-  #C26 = col::_UnmodifiableSet<core::String*> {_map:#C25}
+  #C12 = <core::String*>{#C6, #C7}
+  #C13 = <core::String*>{#C6, #C7, #C9}
+  #C14 = <core::String*, core::String*>{#C6:#C7)
+  #C15 = "bye!"
+  #C16 = <core::String*, core::String*>{#C6:#C7, #C9:#C15)
+  #C17 = self::CustomMap {}
+  #C18 = <core::String*>{#C6}
 }
 
 

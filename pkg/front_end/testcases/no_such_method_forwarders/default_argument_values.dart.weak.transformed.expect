@@ -56,5 +56,5 @@ constants  {
   #C5 = 42
   #C6 = <core::Type*>[]
   #C7 = <dynamic>[]
-  #C8 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C7}
+  #C8 = <core::Symbol*, dynamic>{)
 }

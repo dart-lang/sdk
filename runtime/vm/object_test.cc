@@ -5304,6 +5304,216 @@ bool? lookupNull(Map map) => map[null];
   }
 }
 
+static bool IsLinkedHashBase(const Object& object) {
+  return object.IsLinkedHashMap() || object.IsLinkedHashSet();
+}
+
+// Checks that the non-constant and constant HashMap and HashSets are equal.
+//
+// Expects a script with a methods named `nonConstValue`, `constValue`, and
+// `init`.
+template <class LinkedHashBase, int kMutableCid, int kImmutableCid>
+static void HashBaseNonConstEqualsConst(const char* script,
+                                        bool check_data = true) {
+  Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, NULL);
+  EXPECT_VALID(init_result);
+  Dart_Handle non_const_result =
+      Dart_Invoke(lib, NewString("nonConstValue"), 0, NULL);
+  EXPECT_VALID(non_const_result);
+  Dart_Handle const_result = Dart_Invoke(lib, NewString("constValue"), 0, NULL);
+  EXPECT_VALID(const_result);
+
+  TransitionNativeToVM transition(Thread::Current());
+  const auto& non_const_object =
+      Object::Handle(Api::UnwrapHandle(non_const_result));
+  const auto& const_object = Object::Handle(Api::UnwrapHandle(const_result));
+  non_const_object.IsLinkedHashMap();
+  EXPECT(IsLinkedHashBase(non_const_object));
+  if (!IsLinkedHashBase(non_const_object)) return;
+  const auto& non_const_value = LinkedHashBase::Cast(non_const_object);
+  EXPECT(IsLinkedHashBase(const_object));
+  if (!IsLinkedHashBase(const_object)) return;
+  const auto& const_value = LinkedHashBase::Cast(const_object);
+  EXPECT_EQ(non_const_value.GetClassId(), kMutableCid);
+  EXPECT_EQ(const_value.GetClassId(), kImmutableCid);
+  EXPECT(!non_const_value.IsCanonical());
+  EXPECT(const_value.IsCanonical());
+  EXPECT(LinkedHashBaseEqual(non_const_value, const_value,
+                             /*print_diff=*/true, check_data));
+}
+
+static void HashMapNonConstEqualsConst(const char* script,
+                                       bool check_data = true) {
+  HashBaseNonConstEqualsConst<LinkedHashMap, kLinkedHashMapCid,
+                              kImmutableLinkedHashMapCid>(script, check_data);
+}
+
+static void HashSetNonConstEqualsConst(const char* script,
+                                       bool check_data = true) {
+  HashBaseNonConstEqualsConst<LinkedHashSet, kLinkedHashSetCid,
+                              kImmutableLinkedHashSetCid>(script, check_data);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_small) {
+  const char* kScript = R"(
+constValue() => const {1: 42, 'foo': 499, 2: 'bar'};
+
+nonConstValue() => {1: 42, 'foo': 499, 2: 'bar'};
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_null) {
+  const char* kScript = R"(
+constValue() => const {1: 42, 'foo': 499, null: 'bar'};
+
+nonConstValue() => {1: 42, 'foo': 499, null: 'bar'};
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_larger) {
+  const char* kScript = R"(
+enum ExperimentalFlag {
+  alternativeInvalidationStrategy,
+  constFunctions,
+  constantUpdate2018,
+  constructorTearoffs,
+  controlFlowCollections,
+  extensionMethods,
+  extensionTypes,
+  genericMetadata,
+  nonNullable,
+  nonfunctionTypeAliases,
+  setLiterals,
+  spreadCollections,
+  testExperiment,
+  tripleShift,
+  valueClass,
+  variance,
+}
+
+const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
+  ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
+  ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.testExperiment: false,
+  ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
+  ExperimentalFlag.variance: false,
+};
+
+final Map<ExperimentalFlag, bool> expiredExperimentalFlagsNonConst = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
+  ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
+  ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.testExperiment: false,
+  ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
+  ExperimentalFlag.variance: false,
+};
+
+constValue() => expiredExperimentalFlags;
+
+nonConstValue() => expiredExperimentalFlagsNonConst;
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_nested) {
+  const char* kScript = R"(
+enum Abi {
+  wordSize64,
+  wordSize32Align32,
+  wordSize32Align64,
+}
+
+enum NativeType {
+  kNativeType,
+  kNativeInteger,
+  kNativeDouble,
+  kPointer,
+  kNativeFunction,
+  kInt8,
+  kInt16,
+  kInt32,
+  kInt64,
+  kUint8,
+  kUint16,
+  kUint32,
+  kUnit64,
+  kIntptr,
+  kFloat,
+  kDouble,
+  kVoid,
+  kOpaque,
+  kStruct,
+  kHandle,
+}
+
+const nonSizeAlignment = <Abi, Map<NativeType, int>>{
+  Abi.wordSize64: {},
+  Abi.wordSize32Align32: {
+    NativeType.kDouble: 4,
+    NativeType.kInt64: 4,
+    NativeType.kUnit64: 4
+  },
+  Abi.wordSize32Align64: {},
+};
+
+final nonSizeAlignmentNonConst = <Abi, Map<NativeType, int>>{
+  Abi.wordSize64: {},
+  Abi.wordSize32Align32: {
+    NativeType.kDouble: 4,
+    NativeType.kInt64: 4,
+    NativeType.kUnit64: 4
+  },
+  Abi.wordSize32Align64: {},
+};
+
+constValue() => nonSizeAlignment;
+
+nonConstValue() => nonSizeAlignmentNonConst;
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript, false);
+}
+
 TEST_CASE(LinkedHashSet_iteration) {
   const char* kScript = R"(
 makeSet() {
@@ -5417,6 +5627,84 @@ bool containsFive(Set set) => set.contains(5);
     EXPECT(LinkedHashBaseEqual(non_const_set, const_set,
                                /*print_diff=*/true));
   }
+}
+
+TEST_CASE(ImmutableLinkedHashSet_small) {
+  const char* kScript = R"(
+constValue() => const {1, 2, 3, 5, 8, 13};
+
+nonConstValue() => {1, 2, 3, 5, 8, 13};
+
+void init() {
+  constValue().contains(null);
+}
+)";
+  HashSetNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashSet_larger) {
+  const char* kScript = R"(
+const Set<String> tokensThatMayFollowTypeArg = {
+  '(',
+  ')',
+  ']',
+  '}',
+  ':',
+  ';',
+  ',',
+  '.',
+  '?',
+  '==',
+  '!=',
+  '..',
+  '?.',
+  '\?\?',
+  '?..',
+  '&',
+  '|',
+  '^',
+  '+',
+  '*',
+  '%',
+  '/',
+  '~/'
+};
+
+final Set<String> tokensThatMayFollowTypeArgNonConst = {
+  '(',
+  ')',
+  ']',
+  '}',
+  ':',
+  ';',
+  ',',
+  '.',
+  '?',
+  '==',
+  '!=',
+  '..',
+  '?.',
+  '\?\?',
+  '?..',
+  '&',
+  '|',
+  '^',
+  '+',
+  '*',
+  '%',
+  '/',
+  '~/'
+};
+
+constValue() => tokensThatMayFollowTypeArg;
+
+nonConstValue() => tokensThatMayFollowTypeArgNonConst;
+
+void init() {
+  constValue().contains(null);
+}
+)";
+  HashSetNonConstEqualsConst(kScript);
 }
 
 static void CheckConcatAll(const String* data[], intptr_t n) {

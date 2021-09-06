@@ -24670,10 +24670,10 @@ void LinkedHashBase::ComputeAndSetHashMask() const {
 
   const auto& data_array = Array::Handle(zone, data());
   const intptr_t data_length = data_array.Length();
-  ASSERT(Utils::IsPowerOfTwo(data_length));
   const intptr_t index_size_mult = IsLinkedHashMap() ? 1 : 2;
   const intptr_t index_size = Utils::Maximum(LinkedHashBase::kInitialIndexSize,
                                              data_length * index_size_mult);
+  ASSERT(Utils::IsPowerOfTwo(index_size));
 
   const intptr_t hash_mask = IndexSizeToHashMask(index_size);
   set_hash_mask(hash_mask);

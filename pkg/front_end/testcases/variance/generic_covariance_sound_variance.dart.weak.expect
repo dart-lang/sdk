@@ -121,7 +121,7 @@ constants  {
   #C2 = #x
   #C3 = <core::Type*>[]
   #C4 = <dynamic>[]
-  #C5 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C4}
+  #C5 = <core::Symbol*, dynamic>{)
   #C6 = #method
   #C7 = #y=
   #C8 = #x=

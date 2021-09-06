@@ -44,6 +44,6 @@ constants  {
   #C1 = #org-dartlang-testcase:///issue41436c.dart::_#A#x
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C4 = <core::Symbol*, dynamic>{)
   #C5 = #org-dartlang-testcase:///issue41436c.dart::_#A#x=
 }

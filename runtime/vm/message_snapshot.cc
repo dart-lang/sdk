@@ -2450,10 +2450,16 @@ class WeakPropertyMessageDeserializationCluster
 class LinkedHashMapMessageSerializationCluster
     : public MessageSerializationCluster {
  public:
-  LinkedHashMapMessageSerializationCluster()
+  LinkedHashMapMessageSerializationCluster(Zone* zone,
+                                           bool is_canonical,
+                                           intptr_t cid)
       : MessageSerializationCluster("LinkedHashMap",
-                                    MessagePhase::kNonCanonicalInstances,
-                                    kLinkedHashMapCid) {}
+                                    is_canonical
+                                        ? MessagePhase::kCanonicalInstances
+                                        : MessagePhase::kNonCanonicalInstances,
+                                    cid,
+                                    is_canonical),
+        objects_(zone, 0) {}
   ~LinkedHashMapMessageSerializationCluster() {}
 
   void Trace(MessageSerializer* s, Object* object) {
@@ -2491,14 +2497,15 @@ class LinkedHashMapMessageSerializationCluster
 class LinkedHashMapMessageDeserializationCluster
     : public MessageDeserializationCluster {
  public:
-  explicit LinkedHashMapMessageDeserializationCluster(bool is_canonical)
-      : MessageDeserializationCluster("LinkedHashMap", is_canonical) {}
+  LinkedHashMapMessageDeserializationCluster(bool is_canonical, intptr_t cid)
+      : MessageDeserializationCluster("LinkedHashMap", is_canonical),
+        cid_(cid) {}
   ~LinkedHashMapMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
     intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashMap::NewUninitialized(kLinkedHashMapCid));
+      d->AssignRef(LinkedHashMap::NewUninitialized(cid_));
     }
   }
 
@@ -2514,16 +2521,41 @@ class LinkedHashMapMessageDeserializationCluster
     }
   }
 
-  ObjectPtr PostLoad(MessageDeserializer* d) { return PostLoadLinkedHash(d); }
+  ObjectPtr PostLoad(MessageDeserializer* d) {
+    if (!is_canonical()) {
+      ASSERT(cid_ == kLinkedHashMapCid);
+      return PostLoadLinkedHash(d);
+    }
+
+    ASSERT(cid_ == kImmutableLinkedHashMapCid);
+    SafepointMutexLocker ml(
+        d->isolate_group()->constant_canonicalization_mutex());
+    LinkedHashMap& instance = LinkedHashMap::Handle(d->zone());
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      instance ^= d->Ref(i);
+      instance ^= instance.CanonicalizeLocked(d->thread());
+      d->UpdateRef(i, instance);
+    }
+    return nullptr;
+  }
+
+ private:
+  const intptr_t cid_;
 };
 
 class LinkedHashSetMessageSerializationCluster
     : public MessageSerializationCluster {
  public:
-  LinkedHashSetMessageSerializationCluster()
+  LinkedHashSetMessageSerializationCluster(Zone* zone,
+                                           bool is_canonical,
+                                           intptr_t cid)
       : MessageSerializationCluster("LinkedHashSet",
-                                    MessagePhase::kNonCanonicalInstances,
-                                    kLinkedHashSetCid) {}
+                                    is_canonical
+                                        ? MessagePhase::kCanonicalInstances
+                                        : MessagePhase::kNonCanonicalInstances,
+                                    cid,
+                                    is_canonical),
+        objects_(zone, 0) {}
   ~LinkedHashSetMessageSerializationCluster() {}
 
   void Trace(MessageSerializer* s, Object* object) {
@@ -2561,14 +2593,15 @@ class LinkedHashSetMessageSerializationCluster
 class LinkedHashSetMessageDeserializationCluster
     : public MessageDeserializationCluster {
  public:
-  explicit LinkedHashSetMessageDeserializationCluster(bool is_canonical)
-      : MessageDeserializationCluster("LinkedHashSet", is_canonical) {}
+  LinkedHashSetMessageDeserializationCluster(bool is_canonical, intptr_t cid)
+      : MessageDeserializationCluster("LinkedHashSet", is_canonical),
+        cid_(cid) {}
   ~LinkedHashSetMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
     intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashSet::NewUninitialized(kLinkedHashSetCid));
+      d->AssignRef(LinkedHashSet::NewUninitialized(cid_));
     }
   }
 
@@ -2584,7 +2617,26 @@ class LinkedHashSetMessageDeserializationCluster
     }
   }
 
-  ObjectPtr PostLoad(MessageDeserializer* d) { return PostLoadLinkedHash(d); }
+  ObjectPtr PostLoad(MessageDeserializer* d) {
+    if (!is_canonical()) {
+      ASSERT(cid_ == kLinkedHashSetCid);
+      return PostLoadLinkedHash(d);
+    }
+
+    ASSERT(cid_ == kImmutableLinkedHashSetCid);
+    SafepointMutexLocker ml(
+        d->isolate_group()->constant_canonicalization_mutex());
+    LinkedHashSet& instance = LinkedHashSet::Handle(d->zone());
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      instance ^= d->Ref(i);
+      instance ^= instance.CanonicalizeLocked(d->thread());
+      d->UpdateRef(i, instance);
+    }
+    return nullptr;
+  }
+
+ private:
+  const intptr_t cid_;
 };
 
 class ArrayMessageSerializationCluster : public MessageSerializationCluster {
@@ -3336,9 +3388,13 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       ephemeron_cluster_ = new (Z) WeakPropertyMessageSerializationCluster();
       return ephemeron_cluster_;
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapMessageSerializationCluster();
+    case kImmutableLinkedHashMapCid:
+      return new (Z)
+          LinkedHashMapMessageSerializationCluster(Z, is_canonical, cid);
     case kLinkedHashSetCid:
-      return new (Z) LinkedHashSetMessageSerializationCluster();
+    case kImmutableLinkedHashSetCid:
+      return new (Z)
+          LinkedHashSetMessageSerializationCluster(Z, is_canonical, cid);
     case kArrayCid:
     case kImmutableArrayCid:
       return new (Z) ArrayMessageSerializationCluster(Z, is_canonical, cid);
@@ -3431,9 +3487,13 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
       ASSERT(!is_canonical);
       return new (Z) WeakPropertyMessageDeserializationCluster();
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapMessageDeserializationCluster(is_canonical);
+    case kImmutableLinkedHashMapCid:
+      return new (Z)
+          LinkedHashMapMessageDeserializationCluster(is_canonical, cid);
     case kLinkedHashSetCid:
-      return new (Z) LinkedHashSetMessageDeserializationCluster(is_canonical);
+    case kImmutableLinkedHashSetCid:
+      return new (Z)
+          LinkedHashSetMessageDeserializationCluster(is_canonical, cid);
     case kArrayCid:
     case kImmutableArrayCid:
       return new (Z) ArrayMessageDeserializationCluster(is_canonical, cid);

@@ -1589,10 +1589,6 @@ abstract class Map<K, V> extends Iterable {
   void operator []=(K key, V value) {}
 }
 
-abstract class _ImmutableMap<K, V> implements Map<K, V> {
-  dynamic _kvPairs;
-}
-
 abstract class pragma {
   String name;
   Object options;

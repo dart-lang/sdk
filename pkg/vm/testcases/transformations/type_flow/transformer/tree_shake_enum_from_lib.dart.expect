@@ -48,12 +48,12 @@ import self as self;
 import "dart:core" as core;
 
 abstract class ConstEnum extends core::Object implements core::Enum {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3281]  abstract get /*isLegacy*/ index() → core::int;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3273]  abstract get /*isLegacy*/ index() → core::int;
 }
 class ConstClass extends core::Object {
   synthetic constructor •() → self::ConstClass
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3282,getterSelectorId:3283]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3274,getterSelectorId:3275]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
     return [@vm.inferred-type.metadata=!] e.{self::ConstEnum::index}{core::int};
 }

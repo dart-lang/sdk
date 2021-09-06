@@ -27,6 +27,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
       isolate_(thread->isolate()),
+      isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
       string_data_(ExternalTypedData::Handle(Z)),
@@ -42,6 +43,7 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
     : thread_(thread),
       zone_(thread->zone()),
       isolate_(thread->isolate()),
+      isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
       string_data_(ExternalTypedData::Handle(Z)),
@@ -2180,7 +2182,7 @@ void KernelReaderHelper::SkipOptionalDartType() {
 
 void KernelReaderHelper::SkipInterfaceType(bool simple) {
   ReadNullability();  // read nullability.
-  ReadUInt();  // read klass_name.
+  ReadUInt();         // read klass_name.
   if (!simple) {
     SkipListOfDartTypes();  // read list of types.
   }
@@ -2364,14 +2366,14 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();  // read value.
       return;
     case kSuperPropertyGet:
-      ReadPosition();                // read position.
-      SkipName();                    // read name.
+      ReadPosition();                      // read position.
+      SkipName();                          // read name.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
-      ReadPosition();                // read position.
-      SkipName();                    // read name.
-      SkipExpression();              // read value.
+      ReadPosition();                      // read position.
+      SkipName();                          // read name.
+      SkipExpression();                    // read value.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kStaticGet:
@@ -2426,9 +2428,9 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();  // read expression.
       return;
     case kSuperMethodInvocation:
-      ReadPosition();                // read position.
-      SkipName();                    // read name.
-      SkipArguments();               // read arguments.
+      ReadPosition();                      // read position.
+      SkipName();                          // read name.
+      SkipArguments();                     // read arguments.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kStaticInvocation:
@@ -2464,7 +2466,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfExpressions();  // read list of expressions.
       return;
     case kIsExpression:
-      ReadPosition();    // read position.
+      ReadPosition();  // read position.
       if (translation_helper_.info().kernel_binary_version() >= 38) {
         SkipFlags();  // read flags.
       }
@@ -2852,8 +2854,8 @@ TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   // can store them as tighly as possible.
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
-  SkipBytes(ReadUInt());                         // skip uri.
-  SkipBytes(ReadUInt());                         // skip source.
+  SkipBytes(ReadUInt());  // skip uri.
+  SkipBytes(ReadUInt());  // skip source.
   const intptr_t line_start_count = ReadUInt();
   return reader_.ReadLineStartsData(line_start_count);
 }
