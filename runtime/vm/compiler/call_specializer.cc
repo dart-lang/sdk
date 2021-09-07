@@ -1010,8 +1010,8 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         Definition* d2i_instr = NULL;
         if (ic_data.HasDeoptReason(ICData::kDeoptDoubleToSmi)) {
           // Do not repeatedly deoptimize because result didn't fit into Smi.
-          d2i_instr = new (Z)
-              DoubleToIntegerInstr(new (Z) Value(input), call->deopt_id());
+          d2i_instr = new (Z) DoubleToIntegerInstr(
+              new (Z) Value(input), recognized_kind, call->deopt_id());
         } else {
           // Optimistically assume result fits into Smi.
           d2i_instr =

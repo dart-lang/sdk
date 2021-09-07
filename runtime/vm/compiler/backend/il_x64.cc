@@ -5216,12 +5216,44 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   const Register temp = locs()->temp(0).reg();
-  const XmmRegister value_double = locs()->in(0).fpu_reg();
+  XmmRegister value_double = locs()->in(0).fpu_reg();
   ASSERT(result != temp);
 
   DoubleToIntegerSlowPath* slow_path =
       new DoubleToIntegerSlowPath(this, value_double);
   compiler->AddSlowPathCode(slow_path);
+
+  if (recognized_kind() != MethodRecognizer::kDoubleToInteger) {
+    // In JIT mode VM knows target CPU features at compile time
+    // and can pick more optimal representation for DoubleToDouble
+    // conversion. In AOT mode we test if roundsd instruction is
+    // available at run time and fall back to stub if it isn't.
+    ASSERT(CompilerState::Current().is_aot());
+    if (FLAG_use_slow_path) {
+      __ jmp(slow_path->entry_label());
+      __ Bind(slow_path->exit_label());
+      return;
+    }
+    __ cmpb(
+        compiler::Address(
+            THR,
+            compiler::target::Thread::double_truncate_round_supported_offset()),
+        compiler::Immediate(0));
+    __ j(EQUAL, slow_path->entry_label());
+
+    __ xorps(FpuTMP, FpuTMP);
+    switch (recognized_kind()) {
+      case MethodRecognizer::kDoubleFloorToInt:
+        __ roundsd(FpuTMP, value_double, compiler::Assembler::kRoundDown);
+        break;
+      case MethodRecognizer::kDoubleCeilToInt:
+        __ roundsd(FpuTMP, value_double, compiler::Assembler::kRoundUp);
+        break;
+      default:
+        UNREACHABLE();
+    }
+    value_double = FpuTMP;
+  }
 
   __ OBJ(cvttsd2si)(result, value_double);
   // Overflow is signalled with minint.
@@ -5282,13 +5314,13 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ xorps(result, result);
   }
   switch (recognized_kind()) {
-    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleTruncateToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundToZero);
       break;
-    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleFloorToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundDown);
       break;
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleCeilToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundUp);
       break;
     default:

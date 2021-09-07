@@ -213,6 +213,7 @@
   FIELD(Thread, call_to_runtime_stub_offset)                                   \
   FIELD(Thread, dart_stream_offset)                                            \
   FIELD(Thread, dispatch_table_array_offset)                                   \
+  FIELD(Thread, double_truncate_round_supported_offset)                        \
   FIELD(Thread, optimize_entry_offset)                                         \
   FIELD(Thread, optimize_stub_offset)                                          \
   FIELD(Thread, deoptimize_entry_offset)                                       \

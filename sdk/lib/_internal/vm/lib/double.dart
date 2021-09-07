@@ -178,9 +178,14 @@ class _Double implements double {
   }
 
   int round() => roundToDouble().toInt();
+  int truncate() => toInt();
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   int floor() => floorToDouble().toInt();
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   int ceil() => ceilToDouble().toInt();
-  int truncate() => truncateToDouble().toInt();
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")

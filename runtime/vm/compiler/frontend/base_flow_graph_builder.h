@@ -451,12 +451,14 @@ class BaseFlowGraphBuilder {
                                intptr_t num_inputs);
 
   // Pops double value and converts it to double as specified
-  // by the recognized method (kDoubleTruncate,
-  // kDoubleFloor or kDoubleCeil).
+  // by the recognized method (kDoubleTruncateToDouble,
+  // kDoubleFloorToDouble or kDoubleCeilToDouble).
   Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
 
-  // Pops double value and converts it to int.
-  Fragment DoubleToInteger();
+  // Pops double value and converts it to int as specified
+  // by the recognized method (kDoubleToInteger,
+  // kDoubleFloorToInt or kDoubleCeilToInt).
+  Fragment DoubleToInteger(MethodRecognizer::Kind recognized_kind);
 
   // Pops double value and applies unary math operation.
   Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);

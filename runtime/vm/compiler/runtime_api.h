@@ -1056,6 +1056,7 @@ class MonomorphicSmiableCall : public AllStatic {
 class Thread : public AllStatic {
  public:
   static word api_top_scope_offset();
+  static word double_truncate_round_supported_offset();
   static word exit_through_ffi_offset();
   static uword exit_through_runtime_call();
   static uword exit_through_ffi();

@@ -497,6 +497,7 @@ struct BoxDoubleStubABI {
 // ABI for DoubleToIntegerStub.
 struct DoubleToIntegerStubABI {
   static const FpuRegister kInputReg = Q0;
+  static const Register kRecognizedKindReg = R0;
   static const Register kResultReg = R0;
 };
 

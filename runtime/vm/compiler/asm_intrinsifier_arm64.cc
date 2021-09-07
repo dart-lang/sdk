@@ -1148,12 +1148,12 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
 #if !defined(DART_COMPRESSED_POINTERS)
   // Convert double value to signed 64-bit int in R0 and back to a
   // double value in V1.
-  __ fcvtzdsx(R0, V0);
+  __ fcvtzsxd(R0, V0);
   __ scvtfdx(V1, R0);
 #else
   // Convert double value to signed 32-bit int in R0 and back to a
   // double value in V1.
-  __ fcvtzdsw(R0, V0);
+  __ fcvtzswd(R0, V0);
   __ scvtfdw(V1, R0);
 #endif
 

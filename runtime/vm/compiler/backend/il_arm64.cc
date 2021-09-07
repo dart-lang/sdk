@@ -4914,12 +4914,24 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   // First check for NaN. Checking for minint after the conversion doesn't work
-  // on ARM64 because fcvtzds gives 0 for NaN.
+  // on ARM64 because fcvtzs gives 0 for NaN.
   __ fcmpd(value_double, value_double);
   __ b(slow_path->entry_label(), VS);
 
-  __ fcvtzdsx(result, value_double);
-  // Overflow is signaled with minint.
+  switch (recognized_kind()) {
+    case MethodRecognizer::kDoubleToInteger:
+      __ fcvtzsxd(result, value_double);
+      break;
+    case MethodRecognizer::kDoubleFloorToInt:
+      __ fcvtmsxd(result, value_double);
+      break;
+    case MethodRecognizer::kDoubleCeilToInt:
+      __ fcvtpsxd(result, value_double);
+      break;
+    default:
+      UNREACHABLE();
+  }
+    // Overflow is signaled with minint.
 
 #if !defined(DART_COMPRESSED_POINTERS)
   // Check for overflow and that it fits into Smi.
@@ -4952,12 +4964,12 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   const VRegister value = locs()->in(0).fpu_reg();
   // First check for NaN. Checking for minint after the conversion doesn't work
-  // on ARM64 because fcvtzds gives 0 for NaN.
+  // on ARM64 because fcvtzs gives 0 for NaN.
   // TODO(zra): Check spec that this is true.
   __ fcmpd(value, value);
   __ b(deopt, VS);
 
-  __ fcvtzdsx(result, value);
+  __ fcvtzsxd(result, value);
 
 #if !defined(DART_COMPRESSED_POINTERS)
   // Check for overflow and that it fits into Smi.
