@@ -610,17 +610,28 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitConstructorName(ConstructorName node) {
     var element = node.staticElement?.declaration;
     element = _getActualConstructorElement(element);
-    // record relation
-    if (node.name != null) {
-      int offset = node.period!.offset;
-      int length = node.name!.end - offset;
-      recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
+
+    IndexRelationKind kind;
+    if (node.parent is ConstructorReference) {
+      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
+    } else if (node.parent is InstanceCreationExpression) {
+      kind = IndexRelationKind.IS_INVOKED_BY;
     } else {
-      int offset = node.type.end;
-      recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+      kind = IndexRelationKind.IS_REFERENCED_BY;
     }
+
+    int offset;
+    int length;
+    if (node.name != null) {
+      offset = node.period!.offset;
+      length = node.name!.end - offset;
+    } else {
+      offset = node.type.end;
+      length = 0;
+    }
+
+    recordRelationOffset(element, kind, offset, length, true);
+
     node.type.accept(this);
   }
 
@@ -735,11 +746,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period!.offset;
       int length = node.constructorName!.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, length, true);
     } else {
       int offset = node.thisKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
     }
     node.argumentList.accept(this);
   }
@@ -797,11 +808,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period!.offset;
       int length = node.constructorName!.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, length, true);
     } else {
       int offset = node.superKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
     }
     node.argumentList.accept(this);
   }

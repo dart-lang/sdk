@@ -73,6 +73,12 @@ enum IndexRelationKind : byte {
   /// Right: location.
   IS_REFERENCED_BY,
 
+  /// Left: a constructor.
+  ///   Is referenced by a constructor tear-off at, which is special because
+  ///   the name of the constructor is required (`new` for unnamed).
+  /// Right: location.
+  IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF,
+
   /// Left: unresolved member name.
   ///   Is read at.
   /// Right: location.

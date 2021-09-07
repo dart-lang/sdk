@@ -73,11 +73,12 @@ class Search {
 
     ElementKind kind = element.kind;
     if (element is ClassElement ||
-        element is ConstructorElement ||
         element is ExtensionElement ||
         element is PropertyAccessorElement && element.isSetter ||
         element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
+    } else if (element is ConstructorElement) {
+      return await _searchReferences_Constructor(element, searchedFiles);
     } else if (element is CompilationUnitElement) {
       return _searchReferences_CompilationUnit(element);
     } else if (element is PropertyAccessorElement && element.isGetter) {
@@ -323,6 +324,18 @@ class Search {
     return results;
   }
 
+  Future<List<SearchResult>> _searchReferences_Constructor(
+      ConstructorElement element, SearchedFiles searchedFiles) async {
+    List<SearchResult> results = <SearchResult>[];
+    await _addResults(results, element, searchedFiles, const {
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+      IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF:
+          SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+    });
+    return results;
+  }
+
   Future<List<SearchResult>> _searchReferences_Field(
       PropertyInducingElement field, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
@@ -562,7 +575,14 @@ class SearchResult {
 }
 
 /// The kind of reference in a [SearchResult].
-enum SearchResultKind { READ, READ_WRITE, WRITE, INVOCATION, REFERENCE }
+enum SearchResultKind {
+  READ,
+  READ_WRITE,
+  WRITE,
+  INVOCATION,
+  REFERENCE,
+  REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+}
 
 /// A single subtype of a type.
 class SubtypeResult {
