@@ -4833,6 +4833,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (type is ParserRecovery) {
       push(new ParserErrorGenerator(
           this, nameToken, fasta.messageSyntheticToken));
+    } else if (type is InvalidExpression) {
+      push(type);
     } else if (type is Expression) {
       push(createInstantiationAndInvocation(
           () => type, typeArguments, name, name, arguments,
