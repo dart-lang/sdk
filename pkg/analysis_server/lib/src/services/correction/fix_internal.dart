@@ -441,17 +441,17 @@ class FixProcessor extends BaseProcessor {
       ReplaceWithConditionalAssignment.newInstance,
     ],
     LintNames.prefer_const_constructors: [
-      AddConst.toInvocation,
+      AddConst.newInstance,
       ReplaceNewWithConst.newInstance,
     ],
     LintNames.prefer_const_constructors_in_immutables: [
-      AddConst.toDeclaration,
+      AddConst.newInstance,
     ],
     LintNames.prefer_const_declarations: [
       ReplaceFinalWithConst.newInstance,
     ],
     LintNames.prefer_const_literals_to_create_immutables: [
-      AddConst.toLiteral,
+      AddConst.newInstance,
     ],
     LintNames.prefer_contains: [
       ConvertToContains.newInstance,
