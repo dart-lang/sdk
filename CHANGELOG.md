@@ -1,3 +1,9 @@
+# 1.11.0
+
+- added support for constructor tear-offs to `avoid_redundant_argument_values`, 
+  `unnecessary_lambdas`, and `unnecessary_parenthesis`
+- new lint: `unnecessary_constructor_name` to flag unnecessary uses of `.new`
+
 # 1.10.0
 
 - improved regular expression parsing performance for common checks 
