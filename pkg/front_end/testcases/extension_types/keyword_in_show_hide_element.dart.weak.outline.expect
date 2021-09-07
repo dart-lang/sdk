@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method mixin() → void
+    ;
+  method as() → void
+    ;
+}
+extension type E1 on self::A {
+}
+extension type E2 on self::A {
+}
+static method main() → dynamic
+  ;

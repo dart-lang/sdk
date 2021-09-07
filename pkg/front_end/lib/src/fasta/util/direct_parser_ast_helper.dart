@@ -216,6 +216,19 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    DirectParserASTContentExtensionShowHideHandle data =
+        new DirectParserASTContentExtensionShowHideHandle(
+            DirectParserASTType.HANDLE,
+            showKeyword: showKeyword,
+            showElementCount: showElementCount,
+            hideKeyword: hideKeyword,
+            hideElementCount: hideElementCount);
+    seen(data);
+  }
+
+  @override
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     DirectParserASTContentClassHeaderHandle data =
         new DirectParserASTContentClassHeaderHandle(DirectParserASTType.HANDLE,
@@ -311,13 +324,15 @@ abstract class AbstractDirectParserASTListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
     DirectParserASTContentExtensionDeclarationEnd data =
         new DirectParserASTContentExtensionDeclarationEnd(
             DirectParserASTType.END,
             extensionKeyword: extensionKeyword,
             typeKeyword: typeKeyword,
             onKeyword: onKeyword,
+            showKeyword: showKeyword,
+            hideKeyword: hideKeyword,
             endToken: endToken);
     seen(data);
   }
@@ -2314,6 +2329,16 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
+  void handleShowHideIdentifier(Token? modifier, Token identifier) {
+    DirectParserASTContentShowHideIdentifierHandle data =
+        new DirectParserASTContentShowHideIdentifierHandle(
+            DirectParserASTType.HANDLE,
+            modifier: modifier,
+            identifier: identifier);
+    seen(data);
+  }
+
+  @override
   void handleIndexedExpression(
       Token? question, Token openSquareBracket, Token closeSquareBracket) {
     DirectParserASTContentIndexedExpressionHandle data =
@@ -3157,6 +3182,29 @@ class DirectParserASTContentClassOrMixinImplementsHandle
       };
 }
 
+class DirectParserASTContentExtensionShowHideHandle
+    extends DirectParserASTContent {
+  final Token? showKeyword;
+  final int showElementCount;
+  final Token? hideKeyword;
+  final int hideElementCount;
+
+  DirectParserASTContentExtensionShowHideHandle(DirectParserASTType type,
+      {this.showKeyword,
+      required this.showElementCount,
+      this.hideKeyword,
+      required this.hideElementCount})
+      : super("ExtensionShowHide", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "showKeyword": showKeyword,
+        "showElementCount": showElementCount,
+        "hideKeyword": hideKeyword,
+        "hideElementCount": hideElementCount,
+      };
+}
+
 class DirectParserASTContentClassHeaderHandle extends DirectParserASTContent {
   final Token begin;
   final Token classKeyword;
@@ -3317,12 +3365,16 @@ class DirectParserASTContentExtensionDeclarationEnd
   final Token extensionKeyword;
   final Token? typeKeyword;
   final Token onKeyword;
+  final Token? showKeyword;
+  final Token? hideKeyword;
   final Token endToken;
 
   DirectParserASTContentExtensionDeclarationEnd(DirectParserASTType type,
       {required this.extensionKeyword,
       this.typeKeyword,
       required this.onKeyword,
+      this.showKeyword,
+      this.hideKeyword,
       required this.endToken})
       : super("ExtensionDeclaration", type);
 
@@ -3331,6 +3383,8 @@ class DirectParserASTContentExtensionDeclarationEnd
         "extensionKeyword": extensionKeyword,
         "typeKeyword": typeKeyword,
         "onKeyword": onKeyword,
+        "showKeyword": showKeyword,
+        "hideKeyword": hideKeyword,
         "endToken": endToken,
       };
 }
@@ -6624,6 +6678,22 @@ class DirectParserASTContentIdentifierHandle extends DirectParserASTContent {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
+      };
+}
+
+class DirectParserASTContentShowHideIdentifierHandle
+    extends DirectParserASTContent {
+  final Token? modifier;
+  final Token identifier;
+
+  DirectParserASTContentShowHideIdentifierHandle(DirectParserASTType type,
+      {this.modifier, required this.identifier})
+      : super("ShowHideIdentifier", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "modifier": modifier,
+        "identifier": identifier,
       };
 }
 

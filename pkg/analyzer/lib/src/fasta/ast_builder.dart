@@ -258,6 +258,8 @@ class AstBuilder extends StackListener {
         _tmpSimpleIdentifier(),
         null,
       ), // extendedType is set in [endExtensionDeclaration]
+      showClause: null,
+      hideClause: null,
       leftBracket: Tokens.openCurlyBracket(),
       rightBracket: Tokens.closeCurlyBracket(),
       members: [],
@@ -1192,7 +1194,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token token) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
     if (typeKeyword != null && !enableExtensionTypes) {
       var feature = ExperimentalFeatures.extension_types;
       handleRecoverableError(
@@ -1203,11 +1205,29 @@ class AstBuilder extends StackListener {
           typeKeyword,
           typeKeyword);
     }
+
+    if ((showKeyword != null || hideKeyword != null) && !enableExtensionTypes) {
+      var feature = ExperimentalFeatures.extension_types;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          (showKeyword ?? hideKeyword)!,
+          (showKeyword ?? hideKeyword)!);
+    }
+
+    ShowClause? showClause = pop(NullValue.ShowClause) as ShowClause?;
+    HideClause? hideClause = pop(NullValue.HideClause) as HideClause?;
+
     var type = pop() as TypeAnnotation;
+
     extensionDeclaration!
       ..extendedType = type
       ..onKeyword = onKeyword
-      ..typeKeyword = typeKeyword;
+      ..typeKeyword = typeKeyword
+      ..showClause = showClause
+      ..hideClause = hideClause;
     extensionDeclaration = null;
   }
 
@@ -2706,6 +2726,29 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    assert(optionalOrNull('hide', hideKeyword));
+    assert(optionalOrNull('show', showKeyword));
+    debugEvent("ExtensionShowHide");
+
+    HideClause? hideClause;
+    if (hideKeyword != null) {
+      var elements = popTypedList2<ShowHideClauseElement>(hideElementCount);
+      hideClause = ast.hideClause(hideKeyword: hideKeyword, elements: elements);
+    }
+
+    ShowClause? showClause;
+    if (showKeyword != null) {
+      var elements = popTypedList2<ShowHideClauseElement>(showElementCount);
+      showClause = ast.showClause(showKeyword: showKeyword, elements: elements);
+    }
+
+    push(hideClause ?? NullValue.HideClause);
+    push(showClause ?? NullValue.ShowClause);
+  }
+
+  @override
   void handleFinallyBlock(Token finallyKeyword) {
     debugEvent("FinallyBlock");
     // The finally block is popped in "endTryStatement".
@@ -3476,6 +3519,22 @@ class AstBuilder extends StackListener {
     } else {
       doPropertyGet();
     }
+  }
+
+  @override
+  void handleShowHideIdentifier(Token? modifier, Token identifier) {
+    debugEvent("handleShowHideIdentifier");
+
+    assert(modifier == null ||
+        modifier.stringValue! == "get" ||
+        modifier.stringValue! == "set" ||
+        modifier.stringValue! == "operator");
+
+    SimpleIdentifier name = ast.simpleIdentifier(identifier);
+    ShowHideElement element =
+        ast.showHideElement(modifier: modifier, name: name);
+
+    push(element);
   }
 
   @override

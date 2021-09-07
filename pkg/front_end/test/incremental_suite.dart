@@ -299,8 +299,12 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
   checkIsEqual(normalDillData, initializedDillData);
 }
 
-Future<Map<String, List<int>>> createModules(Map module,
-    final List<int> sdkSummaryData, Target target, String sdkSummary) async {
+Future<Map<String, List<int>>> createModules(
+    Map module,
+    final List<int> sdkSummaryData,
+    Target target,
+    Target originalTarget,
+    String sdkSummary) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
@@ -332,6 +336,10 @@ Future<Map<String, List<int>>> createModules(Map module,
         moduleSources.add(uri);
       }
     }
+    bool outlineOnly = false;
+    if (originalTarget is DevCompilerTarget) {
+      outlineOnly = true;
+    }
     CompilerOptions options =
         getOptions(target: target, sdkSummary: sdkSummary);
     options.fileSystem = fs;
@@ -345,8 +353,8 @@ Future<Map<String, List<int>>> createModules(Map module,
     if (packagesUri != null) {
       options.packagesFileUri = packagesUri;
     }
-    TestIncrementalCompiler compiler =
-        new TestIncrementalCompiler(options, moduleSources.first, null);
+    TestIncrementalCompiler compiler = new TestIncrementalCompiler(
+        options, moduleSources.first, /* initializeFrom = */ null, outlineOnly);
     Component c = await compiler.computeDelta(entryPoints: moduleSources);
     c.computeCanonicalNames();
     List<Library> wantedLibs = <Library>[];
@@ -416,6 +424,7 @@ class NewWorldTest {
         throw "Unknown target name '$targetName'";
       }
     }
+    Target originalTarget = target;
     target = new TestTargetWrapper(target, targetFlags);
 
     String sdkSummary = computePlatformDillName(
@@ -442,8 +451,8 @@ class NewWorldTest {
     Map<String, Component>? moduleComponents;
 
     if (modules != null) {
-      moduleData =
-          await createModules(modules, sdkSummaryData, target, sdkSummary);
+      moduleData = await createModules(
+          modules, sdkSummaryData, target, originalTarget, sdkSummary);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
               filename: null, disableLazyReading: false)

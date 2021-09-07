@@ -27,11 +27,17 @@ constructor_tearoffs/issue46133: FormatterCrash
 constructor_tearoffs/issue47075: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
+extension_types/basic_show: FormatterCrash
+extension_types/keyword_in_show_hide_element: FormatterCrash
 extension_types/simple_getter_resolution: FormatterCrash
 extension_types/simple_method_resolution: FormatterCrash
 extension_types/simple_operator_resolution: FormatterCrash
 extension_types/simple_setter_resolution: FormatterCrash
+extension_types/simple_show_and_hide: FormatterCrash
 extension_types/simple_show_hide: FormatterCrash
+extension_types/simple_show_hide_conflicts: FormatterCrash
+extension_types/various_hide_elements: FormatterCrash
+extension_types/various_show_elements: FormatterCrash
 extensions/extension_constructor: FormatterCrash
 extensions/extension_field_with_type_parameter_usage: FormatterCrash
 extensions/issue38600: FormatterCrash

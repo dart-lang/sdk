@@ -1,0 +1,4 @@
+import 'dart:async';
+
+Future<int> foo<X extends Object?>(X x) async {}
+main() {}

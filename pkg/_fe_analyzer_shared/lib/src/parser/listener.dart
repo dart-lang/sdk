@@ -144,6 +144,14 @@ class Listener implements UnescapeErrorListener {
     logEvent("ClassImplements");
   }
 
+  /// Handle a show clause in an extension declaration.
+  /// Substructures:
+  /// - shown types and instance members
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    logEvent("ExtensionShowHide");
+  }
+
   /// Handle the header of a class declaration.  Substructures:
   /// - metadata
   /// - modifiers
@@ -238,7 +246,7 @@ class Listener implements UnescapeErrorListener {
   /// - on type
   /// - body
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
     logEvent('ExtensionDeclaration');
   }
 
@@ -1443,6 +1451,13 @@ class Listener implements UnescapeErrorListener {
   /// [context] indicates what kind of construct the identifier appears in.
   void handleIdentifier(Token token, IdentifierContext context) {
     logEvent("Identifier");
+  }
+
+  /// Handle an identifier token in a show or hide clause.
+  ///
+  /// [context] indicates what kind of construct the identifier appears in.
+  void handleShowHideIdentifier(Token? modifier, Token identifier) {
+    logEvent("ShowHideIdentifier");
   }
 
   void handleIndexedExpression(

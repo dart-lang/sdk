@@ -74,7 +74,6 @@ general/error_recovery/issue_39958_03: RuntimeError
 general/error_recovery/issue_39958_04: RuntimeError
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
-general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/getter_vs_setter_type: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError

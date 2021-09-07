@@ -82,7 +82,7 @@ Component transformComponent(
   return component;
 }
 
-ConstantCoverage transformLibraries(
+ConstantEvaluationData transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
     Map<String, String>? environmentDefines,
@@ -118,7 +118,10 @@ ConstantCoverage transformLibraries(
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
-  return constantsTransformer.constantEvaluator.getConstantCoverage();
+
+  return new ConstantEvaluationData(
+      constantsTransformer.constantEvaluator.getConstantCoverage(),
+      constantsTransformer.constantEvaluator.visitedLibraries);
 }
 
 void transformProcedure(
@@ -910,6 +913,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final NullConstant nullConstant = new NullConstant();
   final BoolConstant trueConstant = new BoolConstant(true);
   final BoolConstant falseConstant = new BoolConstant(false);
+
+  final Set<Library> visitedLibraries = {};
 
   InstanceBuilder? instanceBuilder;
   EvaluationEnvironment env;
@@ -2835,6 +2840,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitStaticGet(StaticGet node) {
     return withNewEnvironment(() {
       final Member target = node.target;
+      visitedLibraries.add(target.enclosingLibrary);
       if (target is Field) {
         if (target.isConst) {
           return _evaluateExpressionInContext(target, target.initializer!);
@@ -4026,6 +4032,13 @@ class ConstantCoverage {
   final Map<Uri, Set<Reference>> constructorCoverage;
 
   ConstantCoverage(this.constructorCoverage);
+}
+
+class ConstantEvaluationData {
+  final ConstantCoverage coverage;
+  final Set<Library> visitedLibraries;
+
+  ConstantEvaluationData(this.coverage, this.visitedLibraries);
 }
 
 /// Holds the necessary information for a constant object, namely

@@ -102,8 +102,7 @@ abstract class TypeEnvironment extends Types {
       List<DartType>? futureArguments =
           getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
       if (futureArguments != null) {
-        return _withDeclaredNullability(
-            futureArguments.single, t.declaredNullability);
+        return _withDeclaredNullability(futureArguments.single, t.nullability);
       }
     }
 

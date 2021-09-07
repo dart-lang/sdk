@@ -366,6 +366,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitGenericTypeAlias(GenericTypeAlias node) => visitTypeAlias(node);
 
   @override
+  R? visitHideClause(HideClause node) => visitNode(node);
+
+  @override
   R? visitHideCombinator(HideCombinator node) => visitCombinator(node);
 
   R? visitIdentifier(Identifier node) => visitExpression(node);
@@ -510,7 +513,13 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitSetOrMapLiteral(SetOrMapLiteral node) => visitTypedLiteral(node);
 
   @override
+  R? visitShowClause(ShowClause node) => visitNode(node);
+
+  @override
   R? visitShowCombinator(ShowCombinator node) => visitCombinator(node);
+
+  @override
+  R? visitShowHideElement(ShowHideElement node) => visitNode(node);
 
   @override
   R? visitSimpleFormalParameter(SimpleFormalParameter node) =>
@@ -991,6 +1000,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitHideClause(HideClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitHideCombinator(HideCombinator node) {
     node.visitChildren(this);
     return null;
@@ -1214,7 +1229,19 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitShowClause(ShowClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitShowCombinator(ShowCombinator node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitShowHideElement(ShowHideElement node) {
     node.visitChildren(this);
     return null;
   }
@@ -1570,6 +1597,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitGenericTypeAlias(GenericTypeAlias node) => null;
 
   @override
+  R? visitHideClause(HideClause node) => null;
+
+  @override
   R? visitHideCombinator(HideCombinator node) => null;
 
   @override
@@ -1683,7 +1713,13 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitSetOrMapLiteral(SetOrMapLiteral node) => null;
 
   @override
+  R? visitShowClause(ShowClause node) => null;
+
+  @override
   R? visitShowCombinator(ShowCombinator node) => null;
+
+  @override
+  R? visitShowHideElement(ShowHideElement node) => null;
 
   @override
   R? visitSimpleFormalParameter(SimpleFormalParameter node) => null;
@@ -1964,6 +2000,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
 
   @override
+  R? visitHideClause(HideClause node) => _throw(node);
+
+  @override
   R? visitHideCombinator(HideCombinator node) => _throw(node);
 
   @override
@@ -2078,7 +2117,13 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitSetOrMapLiteral(SetOrMapLiteral node) => _throw(node);
 
   @override
+  R? visitShowClause(ShowClause node) => _throw(node);
+
+  @override
   R? visitShowCombinator(ShowCombinator node) => _throw(node);
+
+  @override
+  R? visitShowHideElement(ShowHideElement node) => _throw(node);
 
   @override
   R? visitSimpleFormalParameter(SimpleFormalParameter node) => _throw(node);
@@ -2662,6 +2707,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitHideClause(HideClause node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitHideClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitHideCombinator(HideCombinator node) {
     stopwatch.start();
     T? result = _baseVisitor.visitHideCombinator(node);
@@ -2959,9 +3012,25 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitShowClause(ShowClause node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitShowClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitShowCombinator(ShowCombinator node) {
     stopwatch.start();
     T? result = _baseVisitor.visitShowCombinator(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitShowHideElement(ShowHideElement node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitShowHideElement(node);
     stopwatch.stop();
     return result;
   }
@@ -3383,6 +3452,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
 
   @override
+  R? visitHideClause(HideClause node) => visitNode(node);
+
+  @override
   R? visitHideCombinator(HideCombinator node) => visitNode(node);
 
   @override
@@ -3504,7 +3576,13 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitSetOrMapLiteral(SetOrMapLiteral node) => visitNode(node);
 
   @override
+  R? visitShowClause(ShowClause node) => visitNode(node);
+
+  @override
   R? visitShowCombinator(ShowCombinator node) => visitNode(node);
+
+  @override
+  R? visitShowHideElement(ShowHideElement node) => visitNode(node);
 
   @override
   R? visitSimpleFormalParameter(SimpleFormalParameter node) => visitNode(node);

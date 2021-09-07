@@ -223,6 +223,18 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    seen(showKeyword);
+    seen(hideKeyword);
+    doPrint('handleExtensionShowHide('
+        '$showKeyword, '
+        '$showElementCount, '
+        '$hideKeyword, '
+        '$hideElementCount)');
+  }
+
+  @override
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     seen(begin);
     seen(classKeyword);
@@ -300,16 +312,20 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
     indent--;
     seen(extensionKeyword);
     seen(typeKeyword);
     seen(onKeyword);
+    seen(showKeyword);
+    seen(hideKeyword);
     seen(endToken);
     doPrint('endExtensionDeclaration('
         '$extensionKeyword, '
         '$typeKeyword, '
         '$onKeyword, '
+        '$showKeyword, '
+        '$hideKeyword, '
         '$endToken)');
   }
 
@@ -2081,6 +2097,13 @@ class ParserTestListener implements Listener {
   void handleIdentifier(Token token, IdentifierContext context) {
     seen(token);
     doPrint('handleIdentifier(' '$token, ' '$context)');
+  }
+
+  @override
+  void handleShowHideIdentifier(Token? modifier, Token identifier) {
+    seen(modifier);
+    seen(identifier);
+    doPrint('handleShowHideIdentifier(' '$modifier, ' '$identifier)');
   }
 
   @override

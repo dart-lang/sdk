@@ -1,0 +1,20 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:moduleB/lib.dart";
+
+  static const field dart.core::bool constA = #C1;
+}
+library from "package:moduleB/lib.dart" as lib {
+
+  import "package:moduleC/lib.dart";
+
+  static const field dart.core::bool* constB = false || lib2::constC;
+}
+library from "package:moduleC/lib.dart" as lib2 {
+
+  static const field dart.core::bool* constC = true;
+}
+constants  {
+  #C1 = true
+}
