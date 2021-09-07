@@ -66,7 +66,7 @@ the following will not generate a lint:
 class Point {
   bool isEnabled;
   Point({bool enabled}) {
-    this.isEnabled = enable; // OK
+    this.isEnabled = enabled; // OK
   }
 }
 ```
