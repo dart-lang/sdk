@@ -33,8 +33,8 @@ import 'redirecting_factory_body.dart'
 
 List<LocatedMessage> verifyComponent(Component component, Target target,
     {bool? isOutline, bool? afterConst, bool skipPlatform: false}) {
-  FastaVerifyingVisitor verifier =
-      new FastaVerifyingVisitor(target, isOutline, afterConst, skipPlatform);
+  FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(target,
+      isOutline: isOutline, afterConst: afterConst, skipPlatform: skipPlatform);
   component.accept(verifier);
   return verifier.errors;
 }
@@ -47,9 +47,13 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   final List<TreeNode> treeNodeStack = <TreeNode>[];
   final bool skipPlatform;
 
-  FastaVerifyingVisitor(
-      this.target, bool? isOutline, bool? afterConst, this.skipPlatform)
-      : super(isOutline: isOutline, afterConst: afterConst);
+  FastaVerifyingVisitor(this.target,
+      {bool? isOutline, bool? afterConst, required this.skipPlatform})
+      : super(
+            isOutline: isOutline,
+            afterConst: afterConst,
+            constantsAreAlwaysInlined:
+                target.constantsBackend.alwaysInlineConstants);
 
   /// Invoked by all visit methods if the visited node is a [TreeNode].
   void enterTreeNode(TreeNode node) {

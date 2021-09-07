@@ -488,7 +488,7 @@ class VmTarget extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) => ConstantsBackend();
+  ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {

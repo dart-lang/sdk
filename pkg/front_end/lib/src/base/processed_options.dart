@@ -848,6 +848,8 @@ class ProcessedOptions {
       return null;
     }
   }
+
+  CompilerOptions get rawOptionsForTesting => _raw;
 }
 
 /// A [FileSystem] that only allows access to files that have been explicitly
