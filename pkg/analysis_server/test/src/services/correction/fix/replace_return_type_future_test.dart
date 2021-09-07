@@ -57,20 +57,15 @@ Future<List<int>> main() async {
     });
   }
 
-  @failingTest
   Future<void> test_complexTypeName_withoutImport() async {
     await resolveTestCode('''
 List<int> main() async {
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
-
 Future<List<int>> main() async {
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    });
+''');
   }
 
   Future<void> test_importedWithPrefix() async {
@@ -101,18 +96,13 @@ Future<int> main() async => 0;
     });
   }
 
-  @failingTest
   Future<void> test_simpleTypeName_withoutImport() async {
     await resolveTestCode('''
 int main() async => 0;
 ''');
     await assertHasFix('''
-import 'dart:async';
-
 Future<int> main() async => 0;
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    });
+''');
   }
 
   Future<void> test_withLibraryDirective_withImport() async {
