@@ -602,7 +602,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
       case Token::kNE: {
         // TODO(dartbug.com/32166): Support EQ, NE for nullable doubles.
         // (requires null-aware comparison instruction).
-        if (left_type->IsDouble() && right_type->IsDouble()) {
+        if (!left_type->is_nullable() && !right_type->is_nullable()) {
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) EqualityCompareInstr(
