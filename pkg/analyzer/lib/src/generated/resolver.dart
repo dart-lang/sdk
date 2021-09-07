@@ -1237,13 +1237,8 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    //
-    // We do not visit either the type name, because it won't be visited anyway,
-    // or the name, because it needs to be visited in the context of the
-    // constructor name.
-    //
+    node.type.accept(this);
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
@@ -2001,7 +1996,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
-  void visitTypeName(TypeName node) {}
+  void visitTypeName(TypeName node) {
+    // All TypeName(s) are already resolved, so we don't resolve it here.
+    // But there might be type arguments with Expression(s), such as default
+    // values for formal parameters of GenericFunctionType(s). These are
+    // invalid, but if they exist, they should be resolved.
+    node.typeArguments?.accept(this);
+  }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
