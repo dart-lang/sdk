@@ -93,6 +93,36 @@
   Support for `dart-ext:`-style native extensions has been removed as previously
   announced. Use `dart:ffi` to bind to native libraries instead.
 
+#### Linter
+
+Updated the Linter to `1.10.0`, which includes changes that
+- improves regular expression parsing performance for common checks
+  (`camel_case_types`, `file_names`, etc.).
+- (internal) migrates to analyzer 2.1.0 APIs.
+- fixes false positive in `use_build_context_synchronously` in awaits inside
+  anonymous functions.
+- fixes `overridden_fields` false positive w/ static fields.
+- fixes false positive in `avoid_null_checks_in_equality_operators` w/
+  non-nullable params.
+- fixes false positive for deferred imports in `prefer_const_constructors`.
+- marks `avoid_dynamic_calls` stable.
+- (internal) removes unused `MockPubVisitor` and `MockRule` classes.
+- fixes a `prefer_void_to_null` false positive w/ overridden properties.
+- (internal) removes references to `NodeLintRule` in lint rule declarations.
+- fixes `prefer_void_to_null` false positives on overriding returns.
+- fixes `prefer_generic_function_type_aliases` false positives w/ incomplete
+  statements.
+- fixes false positives for `prefer_initializing_formals` with factory
+  constructors.
+- fixes `void_checks` false positives with incomplete source.
+- updates `unnecessary_getters_setters` to only flag the getter.
+- improves messages for `avoid_renaming_method_parameters`.
+- fixes false positives in `prefer_void_to_null`.
+- fixes false positives in `omit_local_variable_types`.
+- fixes false positives in `use_rethrow_when_possible`.
+- improves performance for `annotate_overrides`, `prefer_contains`, and
+  `prefer_void_to_null`.
+
 ## 2.14.0
 
 ### Language
@@ -256,32 +286,7 @@
 
 #### Linter
 
-Updated the Linter to `1.10.0`, which includes changes that
-- improves regular expression parsing performance for common checks
-  (`camel_case_types`, `file_names`, etc.).
-- (internal) migrates to analyzer 2.1.0 APIs.
-- fixes false positive in `use_build_context_synchronously` in awaits inside
-  anonymous functions.
-- fixes `overridden_fields` false positive w/ static fields.
-- fixes false positive in `avoid_null_checks_in_equality_operators` w/
-  non-nullable params.
-- fixes false positive for deferred imports in `prefer_const_constructors`.
-- marks `avoid_dynamic_calls` stable.
-- (internal) removes unused `MockPubVisitor` and `MockRule` classes.
-- fixes a `prefer_void_to_null` false positive w/ overridden properties.
-- (internal) removes references to `NodeLintRule` in lint rule declarations.
-- fixes `prefer_void_to_null` false positives on overriding returns.
-- fixes `prefer_generic_function_type_aliases` false positives w/ incomplete
-  statements.
-- fixes false positives for `prefer_initializing_formals` with factory constructors.
-- fixes `void_checks` false positives with incomplete source.
-- updates `unnecessary_getters_setters` to only flag the getter.
-- improves messages for `avoid_renaming_method_parameters`.
-- fixes false positives in `prefer_void_to_null`.
-- fixes false positives in `omit_local_variable_types`.
-- fixes false positives in `use_rethrow_when_possible`.
-- improves performance for `annotate_overrides`, `prefer_contains`, and
-  `prefer_void_to_null`.
+Updated the Linter to `1.8.0`, which includes changes that
 - improve performance for `prefer_is_not_empty`.
 - fix false positives in `no_logic_in_create_state`.
 - improve `package_names` to allow dart identifiers as package names.
