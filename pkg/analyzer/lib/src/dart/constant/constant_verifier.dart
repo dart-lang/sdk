@@ -262,22 +262,43 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///
   /// See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
   void _checkForConstWithTypeParameters(TypeAnnotation type) {
-    // something wrong with AST
-    if (type is! TypeName) {
-      return;
-    }
-    TypeName typeName = type;
-    Identifier name = typeName.name;
-    // should not be a type parameter
-    if (name.staticElement is TypeParameterElement) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
-    }
-    // check type arguments
-    var typeArguments = typeName.typeArguments;
-    if (typeArguments != null) {
-      for (TypeAnnotation argument in typeArguments.arguments) {
-        _checkForConstWithTypeParameters(argument);
+    if (type is TypeName) {
+      Identifier name = type.name;
+      // Should not be a type parameter.
+      if (name.staticElement is TypeParameterElement) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
+      }
+      // Check type arguments.
+      var typeArguments = type.typeArguments;
+      if (typeArguments != null) {
+        for (TypeAnnotation argument in typeArguments.arguments) {
+          _checkForConstWithTypeParameters(argument);
+        }
+      }
+    } else if (type is GenericFunctionType) {
+      var returnType = type.returnType;
+      if (returnType != null) {
+        _checkForConstWithTypeParameters(returnType);
+      }
+      for (var parameter in type.parameters.parameters) {
+        // [parameter] cannot be a [DefaultFormalParameter], a
+        // [FieldFormalParameter], nor a [FunctionTypedFormalParameter].
+        if (parameter is SimpleFormalParameter) {
+          var parameterType = parameter.type;
+          if (parameterType != null) {
+            _checkForConstWithTypeParameters(parameterType);
+          }
+        }
+      }
+      var typeParameters = type.typeParameters;
+      if (typeParameters != null) {
+        for (var typeParameter in typeParameters.typeParameters) {
+          var bound = typeParameter.bound;
+          if (bound != null) {
+            _checkForConstWithTypeParameters(bound);
+          }
+        }
       }
     }
   }

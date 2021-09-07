@@ -16,26 +16,78 @@ main() {
 @reflectiveTest
 class ConstWithTypeParametersTest extends PubPackageResolutionTest {
   test_direct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode('''
 class A<T> {
-  static const V = const A<T>();
   const A();
+  void m() {
+    const A<T>();
+  }
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 40, 1),
-      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 40, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 51, 1),
     ]);
   }
 
   test_indirect() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode('''
 class A<T> {
-  static const V = const A<List<T>>();
   const A();
+  void m() {
+    const A<List<T>>();
+  }
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 45, 1),
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 45, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 56, 1),
+    ]);
+  }
+
+  test_indirect_functionType_returnType() async {
+    await assertErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    const A<T Function()>();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 51, 1),
+    ]);
+  }
+
+  test_indirect_functionType_simpleParameter() async {
+    await assertErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    const A<void Function(T)>();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 65, 1),
+    ]);
+  }
+
+  test_indirect_functionType_typeParameter() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    const A<void Function<U>()>();
+  }
+}
+''');
+  }
+
+  test_indirect_functionType_typeParameter_typeParameterBound() async {
+    await assertErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    const A<void Function<U extends T>()>();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 75, 1),
     ]);
   }
 }
