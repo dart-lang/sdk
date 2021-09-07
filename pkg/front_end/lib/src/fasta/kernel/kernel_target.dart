@@ -80,7 +80,8 @@ import 'constant_evaluator.dart' as constants
         EvaluationMode,
         transformLibraries,
         transformProcedure,
-        ConstantCoverage;
+        ConstantCoverage,
+        ConstantEvaluationData;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
@@ -1230,23 +1231,27 @@ class KernelTarget extends TargetImplementation {
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
-    constants.ConstantCoverage coverage = constants.transformLibraries(
-        loader.libraries,
-        backendTarget.constantsBackend(loader.coreTypes),
-        environmentDefines,
-        environment,
-        new KernelConstantErrorReporter(loader),
-        evaluationMode,
-        evaluateAnnotations: true,
-        enableTripleShift:
-            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-        enableConstFunctions:
-            isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-        enableConstructorTearOff:
-            isExperimentEnabledGlobally(ExperimentalFlag.constructorTearoffs),
-        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    constants.ConstantEvaluationData constantEvaluationData =
+        constants.transformLibraries(
+            loader.libraries,
+            backendTarget.constantsBackend(loader.coreTypes),
+            environmentDefines,
+            environment,
+            new KernelConstantErrorReporter(loader),
+            evaluationMode,
+            evaluateAnnotations: true,
+            enableTripleShift:
+                isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+            enableConstFunctions:
+                isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
+            enableConstructorTearOff: isExperimentEnabledGlobally(
+                ExperimentalFlag.constructorTearoffs),
+            errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
+    markLibrariesUsed(constantEvaluationData.visitedLibraries);
+
+    constants.ConstantCoverage coverage = constantEvaluationData.coverage;
     coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
       Source? source = uriToSource[fileUri];
       // ignore: unnecessary_null_comparison
@@ -1386,6 +1391,10 @@ class KernelTarget extends TargetImplementation {
   @override
   void releaseAncillaryResources() {
     component = null;
+  }
+
+  void markLibrariesUsed(Set<Library> visitedLibraries) {
+    // Default implementation does nothing.
   }
 }
 

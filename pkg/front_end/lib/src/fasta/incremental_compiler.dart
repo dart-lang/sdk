@@ -618,9 +618,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (trackNeededDillLibraries) {
       // Which dill builders were built?
       neededDillLibraries = new Set<Library>();
+
+      // Propagate data from constant evaluator: Libraries used in the constant
+      // evaluator - that comes from dill - are marked.
+      Set<Library> librariesUsedByConstantEvaluator = userCode!.librariesUsed;
+
       for (LibraryBuilder builder in dillLoadedData!.loader.builders.values) {
         if (builder is DillLibraryBuilder) {
-          if (builder.isBuiltAndMarked) {
+          if (builder.isBuiltAndMarked ||
+              librariesUsedByConstantEvaluator.contains(builder.library)) {
             neededDillLibraries!.add(builder.library);
           }
         }
@@ -2396,6 +2402,7 @@ class IncrementalKernelTarget extends KernelTarget
     implements ChangedStructureNotifier {
   Set<Class>? classHierarchyChanges;
   Set<Class>? classMemberChanges;
+  Set<Library> librariesUsed = {};
 
   IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
       DillTarget dillTarget, UriTranslator uriTranslator)
@@ -2414,5 +2421,10 @@ class IncrementalKernelTarget extends KernelTarget
   void registerClassHierarchyChange(Class cls) {
     classHierarchyChanges ??= <Class>{};
     classHierarchyChanges!.add(cls);
+  }
+
+  @override
+  void markLibrariesUsed(Set<Library> visitedLibraries) {
+    librariesUsed.addAll(visitedLibraries);
   }
 }
