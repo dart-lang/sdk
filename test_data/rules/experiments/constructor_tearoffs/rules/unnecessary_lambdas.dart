@@ -13,7 +13,7 @@ typedef Maker = Object Function();
 
 class C {
   int c;
-  C([this.c = 3]);
+  C([this.c = 3, int y]);
 }
 
 var l = <Maker>[
@@ -21,6 +21,19 @@ var l = <Maker>[
   () => C(), // LINT
   () => C(3), // OK
 ];
+
+void constructorTearOffs() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map((x) => C(x))) { // LINT
+    print(c.c);
+  }
+  for (var c in listOfInts.map((x) => C(3))) { // OK
+    print(c.c);
+  }
+  for (var c in listOfInts.map((x) => C(x, 3))) { // OK
+    print(c.c);
+  }
+}
 
 int count(String s) => s.length;
 final strings = ['a', 'bb', 'ccc', 'dddd'];

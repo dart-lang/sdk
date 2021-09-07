@@ -145,11 +145,33 @@ class _Visitor extends SimpleAstVisitor<void> {
         _visitInvocationExpression(expression, node);
       } else if (constructorTearOffsEnabled &&
           expression is InstanceCreationExpression) {
-        if (expression.argumentList.arguments.isEmpty) {
-          rule.reportLint(node);
-        }
+        _visitInstanceCreation(expression, node);
       }
     }
+  }
+
+  void _visitInstanceCreation(
+      InstanceCreationExpression expression, FunctionExpression node) {
+    var arguments = expression.argumentList.arguments;
+    var parameters = node.parameters?.parameters ?? <FormalParameter>[];
+    if (parameters.length != arguments.length) {
+      return;
+    }
+
+    bool _matches(Expression argument, FormalParameter parameter) {
+      if (argument is SimpleIdentifier) {
+        return argument.name == parameter.identifier?.name;
+      }
+      return false;
+    }
+
+    for (var i = 0; i < arguments.length; ++i) {
+      if (!_matches(arguments[i], parameters[i])) {
+        return;
+      }
+    }
+
+    rule.reportLint(node);
   }
 
   void _visitInvocationExpression(
