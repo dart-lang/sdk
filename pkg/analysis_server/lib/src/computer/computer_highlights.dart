@@ -662,6 +662,22 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    var constructorName = node.constructorName;
+    constructorName.type.accept(this);
+
+    // We have a `ConstructorReference` only when it is resolved.
+    // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,
+    //  but this is not expressed via types.
+    computer._addRegion_node(
+      constructorName.name!,
+      HighlightRegionType.CONSTRUCTOR_TEAR_OFF,
+      semanticTokenType: SemanticTokenTypes.method,
+      semanticTokenModifiers: {CustomSemanticTokenModifiers.constructor},
+    );
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     computer._addRegion_token(node.continueKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});

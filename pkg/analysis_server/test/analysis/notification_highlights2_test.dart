@@ -524,6 +524,49 @@ void f() {
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
+  Future<void> test_CONSTRUCTOR_TEAR_OFF_named() async {
+    addTestFile('''
+class A<T> {
+  A.named();
+}
+void f() {
+  A<int>.named;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'A<int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'named;');
+  }
+
+  Future<void> test_CONSTRUCTOR_TEAR_OFF_new_declared() async {
+    addTestFile('''
+class A<T> {
+  A.new();
+}
+void f() {
+  A<int>.new;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'A<int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'new;');
+  }
+
+  Future<void> test_CONSTRUCTOR_TEAR_OFF_new_synthetic() async {
+    addTestFile('''
+class A<T> {}
+void f() {
+  A<int>.new;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'A<int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'new;');
+  }
+
   Future<void> test_DIRECTIVE() async {
     addTestFile('''
 library lib;

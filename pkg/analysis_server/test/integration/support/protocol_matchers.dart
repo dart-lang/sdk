@@ -774,6 +774,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   COMMENT_DOCUMENTATION
 ///   COMMENT_END_OF_LINE
 ///   CONSTRUCTOR
+///   CONSTRUCTOR_TEAR_OFF
 ///   DIRECTIVE
 ///   DYNAMIC_TYPE
 ///   DYNAMIC_LOCAL_VARIABLE_DECLARATION
@@ -850,6 +851,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'COMMENT_DOCUMENTATION',
   'COMMENT_END_OF_LINE',
   'CONSTRUCTOR',
+  'CONSTRUCTOR_TEAR_OFF',
   'DIRECTIVE',
   'DYNAMIC_TYPE',
   'DYNAMIC_LOCAL_VARIABLE_DECLARATION',

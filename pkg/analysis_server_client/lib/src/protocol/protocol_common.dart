@@ -1854,6 +1854,7 @@ class HighlightRegion implements HasToJson {
 ///   COMMENT_DOCUMENTATION
 ///   COMMENT_END_OF_LINE
 ///   CONSTRUCTOR
+///   CONSTRUCTOR_TEAR_OFF
 ///   DIRECTIVE
 ///   DYNAMIC_TYPE
 ///   DYNAMIC_LOCAL_VARIABLE_DECLARATION
@@ -1943,6 +1944,9 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType CONSTRUCTOR =
       HighlightRegionType._('CONSTRUCTOR');
+
+  static const HighlightRegionType CONSTRUCTOR_TEAR_OFF =
+      HighlightRegionType._('CONSTRUCTOR_TEAR_OFF');
 
   static const HighlightRegionType DIRECTIVE =
       HighlightRegionType._('DIRECTIVE');
@@ -2162,6 +2166,7 @@ class HighlightRegionType implements Enum {
     COMMENT_DOCUMENTATION,
     COMMENT_END_OF_LINE,
     CONSTRUCTOR,
+    CONSTRUCTOR_TEAR_OFF,
     DIRECTIVE,
     DYNAMIC_TYPE,
     DYNAMIC_LOCAL_VARIABLE_DECLARATION,
@@ -2252,6 +2257,8 @@ class HighlightRegionType implements Enum {
         return COMMENT_END_OF_LINE;
       case 'CONSTRUCTOR':
         return CONSTRUCTOR;
+      case 'CONSTRUCTOR_TEAR_OFF':
+        return CONSTRUCTOR_TEAR_OFF;
       case 'DIRECTIVE':
         return DIRECTIVE;
       case 'DYNAMIC_TYPE':
