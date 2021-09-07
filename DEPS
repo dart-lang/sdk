@@ -89,7 +89,7 @@ vars = {
   "collection_rev": "75a7a5510979a3cd70143af85bcc1667ee233674",
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
   "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
-  "csslib_rev": "e411d862fd8cc50415c1badf2632e017373b3f47",
+  "csslib_rev": "6338de25a09d098a62c9a1992c175e9ceb5b994a",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
