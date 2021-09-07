@@ -67,6 +67,7 @@ class LocalScope;
 class CallSiteResetter;
 class CodeStatistics;
 class IsolateGroupReloadContext;
+class ObjectGraphCopier;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -864,6 +865,7 @@ class Object {
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
   friend class InstanceDeserializationCluster;
+  friend class ObjectGraphCopier;  // For Object::InitializeObject
   friend class Simd128MessageDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;

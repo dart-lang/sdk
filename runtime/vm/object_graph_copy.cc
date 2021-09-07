@@ -1858,12 +1858,11 @@ class ObjectGraphCopier {
       auto to = fast_forward_map.raw_from_to_[i + 1];
       const uword tags = TagsFromUntaggedObject(from.untag());
       const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
-      const intptr_t size = UntaggedObject::SizeTag::decode(tags);
       // External typed data is already initialized.
       if (!IsExternalTypedDataClassId(cid) && !IsTypedDataViewClassId(cid)) {
-        memset(reinterpret_cast<void*>(to.untag()), 0,
-               from.untag()->HeapSize());
-        SetNewSpaceTaggingWord(to, cid, size);
+        Object::InitializeObject(reinterpret_cast<uword>(to.untag()), cid,
+                                 from.untag()->HeapSize(),
+                                 /*compressed=*/cid != kContextCid);
         UpdateLengthField(cid, from, to);
       }
     }
