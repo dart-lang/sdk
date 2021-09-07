@@ -1877,6 +1877,7 @@ class HighlightRegion implements HasToJson {
 ///   INSTANCE_GETTER_REFERENCE
 ///   INSTANCE_METHOD_DECLARATION
 ///   INSTANCE_METHOD_REFERENCE
+///   INSTANCE_METHOD_TEAR_OFF
 ///   INSTANCE_SETTER_DECLARATION
 ///   INSTANCE_SETTER_REFERENCE
 ///   INVALID_STRING_ESCAPE
@@ -1891,6 +1892,7 @@ class HighlightRegion implements HasToJson {
 ///   LITERAL_STRING
 ///   LOCAL_FUNCTION_DECLARATION
 ///   LOCAL_FUNCTION_REFERENCE
+///   LOCAL_FUNCTION_TEAR_OFF
 ///   LOCAL_VARIABLE
 ///   LOCAL_VARIABLE_DECLARATION
 ///   LOCAL_VARIABLE_REFERENCE
@@ -1908,10 +1910,12 @@ class HighlightRegion implements HasToJson {
 ///   STATIC_GETTER_REFERENCE
 ///   STATIC_METHOD_DECLARATION
 ///   STATIC_METHOD_REFERENCE
+///   STATIC_METHOD_TEAR_OFF
 ///   STATIC_SETTER_DECLARATION
 ///   STATIC_SETTER_REFERENCE
 ///   TOP_LEVEL_FUNCTION_DECLARATION
 ///   TOP_LEVEL_FUNCTION_REFERENCE
+///   TOP_LEVEL_FUNCTION_TEAR_OFF
 ///   TOP_LEVEL_GETTER_DECLARATION
 ///   TOP_LEVEL_GETTER_REFERENCE
 ///   TOP_LEVEL_SETTER_DECLARATION
@@ -2017,6 +2021,9 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
       HighlightRegionType._('INSTANCE_METHOD_REFERENCE');
 
+  static const HighlightRegionType INSTANCE_METHOD_TEAR_OFF =
+      HighlightRegionType._('INSTANCE_METHOD_TEAR_OFF');
+
   static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
       HighlightRegionType._('INSTANCE_SETTER_DECLARATION');
 
@@ -2056,6 +2063,9 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
       HighlightRegionType._('LOCAL_FUNCTION_REFERENCE');
+
+  static const HighlightRegionType LOCAL_FUNCTION_TEAR_OFF =
+      HighlightRegionType._('LOCAL_FUNCTION_TEAR_OFF');
 
   /// Deprecated - no longer sent.
   static const HighlightRegionType LOCAL_VARIABLE =
@@ -2115,6 +2125,9 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType STATIC_METHOD_REFERENCE =
       HighlightRegionType._('STATIC_METHOD_REFERENCE');
 
+  static const HighlightRegionType STATIC_METHOD_TEAR_OFF =
+      HighlightRegionType._('STATIC_METHOD_TEAR_OFF');
+
   static const HighlightRegionType STATIC_SETTER_DECLARATION =
       HighlightRegionType._('STATIC_SETTER_DECLARATION');
 
@@ -2126,6 +2139,9 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
       HighlightRegionType._('TOP_LEVEL_FUNCTION_REFERENCE');
+
+  static const HighlightRegionType TOP_LEVEL_FUNCTION_TEAR_OFF =
+      HighlightRegionType._('TOP_LEVEL_FUNCTION_TEAR_OFF');
 
   static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_GETTER_DECLARATION');
@@ -2189,6 +2205,7 @@ class HighlightRegionType implements Enum {
     INSTANCE_GETTER_REFERENCE,
     INSTANCE_METHOD_DECLARATION,
     INSTANCE_METHOD_REFERENCE,
+    INSTANCE_METHOD_TEAR_OFF,
     INSTANCE_SETTER_DECLARATION,
     INSTANCE_SETTER_REFERENCE,
     INVALID_STRING_ESCAPE,
@@ -2203,6 +2220,7 @@ class HighlightRegionType implements Enum {
     LITERAL_STRING,
     LOCAL_FUNCTION_DECLARATION,
     LOCAL_FUNCTION_REFERENCE,
+    LOCAL_FUNCTION_TEAR_OFF,
     LOCAL_VARIABLE,
     LOCAL_VARIABLE_DECLARATION,
     LOCAL_VARIABLE_REFERENCE,
@@ -2220,10 +2238,12 @@ class HighlightRegionType implements Enum {
     STATIC_GETTER_REFERENCE,
     STATIC_METHOD_DECLARATION,
     STATIC_METHOD_REFERENCE,
+    STATIC_METHOD_TEAR_OFF,
     STATIC_SETTER_DECLARATION,
     STATIC_SETTER_REFERENCE,
     TOP_LEVEL_FUNCTION_DECLARATION,
     TOP_LEVEL_FUNCTION_REFERENCE,
+    TOP_LEVEL_FUNCTION_TEAR_OFF,
     TOP_LEVEL_GETTER_DECLARATION,
     TOP_LEVEL_GETTER_REFERENCE,
     TOP_LEVEL_SETTER_DECLARATION,
@@ -2303,6 +2323,8 @@ class HighlightRegionType implements Enum {
         return INSTANCE_METHOD_DECLARATION;
       case 'INSTANCE_METHOD_REFERENCE':
         return INSTANCE_METHOD_REFERENCE;
+      case 'INSTANCE_METHOD_TEAR_OFF':
+        return INSTANCE_METHOD_TEAR_OFF;
       case 'INSTANCE_SETTER_DECLARATION':
         return INSTANCE_SETTER_DECLARATION;
       case 'INSTANCE_SETTER_REFERENCE':
@@ -2331,6 +2353,8 @@ class HighlightRegionType implements Enum {
         return LOCAL_FUNCTION_DECLARATION;
       case 'LOCAL_FUNCTION_REFERENCE':
         return LOCAL_FUNCTION_REFERENCE;
+      case 'LOCAL_FUNCTION_TEAR_OFF':
+        return LOCAL_FUNCTION_TEAR_OFF;
       case 'LOCAL_VARIABLE':
         return LOCAL_VARIABLE;
       case 'LOCAL_VARIABLE_DECLARATION':
@@ -2365,6 +2389,8 @@ class HighlightRegionType implements Enum {
         return STATIC_METHOD_DECLARATION;
       case 'STATIC_METHOD_REFERENCE':
         return STATIC_METHOD_REFERENCE;
+      case 'STATIC_METHOD_TEAR_OFF':
+        return STATIC_METHOD_TEAR_OFF;
       case 'STATIC_SETTER_DECLARATION':
         return STATIC_SETTER_DECLARATION;
       case 'STATIC_SETTER_REFERENCE':
@@ -2373,6 +2399,8 @@ class HighlightRegionType implements Enum {
         return TOP_LEVEL_FUNCTION_DECLARATION;
       case 'TOP_LEVEL_FUNCTION_REFERENCE':
         return TOP_LEVEL_FUNCTION_REFERENCE;
+      case 'TOP_LEVEL_FUNCTION_TEAR_OFF':
+        return TOP_LEVEL_FUNCTION_TEAR_OFF;
       case 'TOP_LEVEL_GETTER_DECLARATION':
         return TOP_LEVEL_GETTER_DECLARATION;
       case 'TOP_LEVEL_GETTER_REFERENCE':

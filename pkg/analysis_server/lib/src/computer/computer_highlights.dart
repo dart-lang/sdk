@@ -303,6 +303,8 @@ class DartUnitHighlightsComputer {
     if (element is! FunctionElement) {
       return false;
     }
+    var parent = node.parent;
+    var isInvocation = parent is MethodInvocation && parent.methodName == node;
     HighlightRegionType type;
     var isTopLevel = element.enclosingElement is CompilationUnitElement;
     if (node.inDeclarationContext()) {
@@ -311,8 +313,12 @@ class DartUnitHighlightsComputer {
           : HighlightRegionType.LOCAL_FUNCTION_DECLARATION;
     } else {
       type = isTopLevel
-          ? HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE
-          : HighlightRegionType.LOCAL_FUNCTION_REFERENCE;
+          ? isInvocation
+              ? HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE
+              : HighlightRegionType.TOP_LEVEL_FUNCTION_TEAR_OFF
+          : isInvocation
+              ? HighlightRegionType.LOCAL_FUNCTION_REFERENCE
+              : HighlightRegionType.LOCAL_FUNCTION_TEAR_OFF;
     }
     return _addRegion_node(node, type);
   }
@@ -397,6 +403,8 @@ class DartUnitHighlightsComputer {
       return false;
     }
     var isStatic = element.isStatic;
+    var parent = node.parent;
+    var isInvocation = parent is MethodInvocation && parent.methodName == node;
     // OK
     HighlightRegionType type;
     if (node.inDeclarationContext()) {
@@ -407,9 +415,13 @@ class DartUnitHighlightsComputer {
       }
     } else {
       if (isStatic) {
-        type = HighlightRegionType.STATIC_METHOD_REFERENCE;
+        type = isInvocation
+            ? HighlightRegionType.STATIC_METHOD_REFERENCE
+            : HighlightRegionType.STATIC_METHOD_TEAR_OFF;
       } else {
-        type = HighlightRegionType.INSTANCE_METHOD_REFERENCE;
+        type = isInvocation
+            ? HighlightRegionType.INSTANCE_METHOD_REFERENCE
+            : HighlightRegionType.INSTANCE_METHOD_TEAR_OFF;
       }
     }
     return _addRegion_node(node, type);
