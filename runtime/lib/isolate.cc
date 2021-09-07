@@ -655,7 +655,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     parent_isolate_ = nullptr;
 
     if (isolate == nullptr) {
-      FailedSpawn(error);
+      FailedSpawn(error, /*has_current_isolate=*/false);
       free(error);
       return;
     }
@@ -681,7 +681,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     parent_isolate_ = nullptr;
 
     if (isolate == nullptr) {
-      FailedSpawn(error, false);
+      FailedSpawn(error, /*has_current_isolate=*/false);
       free(error);
       return;
     }
@@ -854,7 +854,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     if (has_current_isolate) {
       ASSERT(IsolateGroup::Current() == state_->isolate_group());
       state_ = nullptr;
-    } else {
+    } else if (state_->isolate_group() != nullptr) {
       ASSERT(IsolateGroup::Current() == nullptr);
       const bool kBypassSafepoint = false;
       const bool result = Thread::EnterIsolateGroupAsHelper(
@@ -862,6 +862,10 @@ class SpawnIsolateTask : public ThreadPool::Task {
       ASSERT(result);
       state_ = nullptr;
       Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+    } else {
+      // The state won't need a current isolate group, because it belongs to a
+      // [Isolate.spawnUri] call.
+      state_ = nullptr;
     }
   }
 
