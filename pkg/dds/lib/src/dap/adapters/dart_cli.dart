@@ -10,24 +10,17 @@ import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
-import '../exceptions.dart';
 import '../logging.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import 'dart.dart';
+import 'mixins.dart';
 
 /// A DAP Debug Adapter for running and debugging Dart CLI scripts.
 class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
-    DartAttachRequestArguments> {
+        DartAttachRequestArguments>
+    with PidTracker, VmServiceInfoFileUtils, PackageConfigUtils {
   Process? _process;
-
-  /// Process IDs to terminate during shutdown.
-  ///
-  /// This may be populated with pids from the VM Service to ensure we clean up
-  /// properly where signals may not be passed through the shell to the
-  /// underlying VM process.
-  /// https://github.com/Dart-Code/Dart-Code/issues/907
-  final pidsToTerminate = <int>{};
 
   @override
   final parseLaunchArgs = DartLaunchRequestArguments.fromJson;
@@ -75,45 +68,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// Called by [disconnectRequest] to request that we forcefully shut down the
   /// app being run (or in the case of an attach, disconnect).
   Future<void> disconnectImpl() async {
-    // TODO(dantup): In Dart-Code DAP, we first try again with sigint and wait
-    // for a few seconds before sending sigkill.
-    pidsToTerminate.forEach(
-      (pid) => Process.killPid(pid, ProcessSignal.sigkill),
-    );
-  }
-
-  /// Waits for [vmServiceInfoFile] to exist and become valid before returning
-  /// the VM Service URI contained within.
-  Future<Uri> waitForVmServiceInfoFile(File vmServiceInfoFile) async {
-    final completer = Completer<Uri>();
-    late final StreamSubscription<FileSystemEvent> vmServiceInfoFileWatcher;
-
-    Uri? tryParseServiceInfoFile(FileSystemEvent event) {
-      final uri = _readVmServiceInfoFile(vmServiceInfoFile);
-      if (uri != null && !completer.isCompleted) {
-        vmServiceInfoFileWatcher.cancel();
-        completer.complete(uri);
-      }
-    }
-
-    vmServiceInfoFileWatcher = vmServiceInfoFile.parent
-        .watch(events: FileSystemEvent.all)
-        .where((event) => event.path == vmServiceInfoFile.path)
-        .listen(
-          tryParseServiceInfoFile,
-          onError: (e) => logger?.call('Ignoring exception from watcher: $e'),
-        );
-
-    // After setting up the watcher, also check if the file already exists to
-    // ensure we don't miss it if it was created right before we set the
-    // watched up.
-    final uri = _readVmServiceInfoFile(vmServiceInfoFile);
-    if (uri != null && !completer.isCompleted) {
-      unawaited(vmServiceInfoFileWatcher.cancel());
-      completer.complete(uri);
-    }
-
-    return completer.future;
+    terminatePids(ProcessSignal.sigkill);
   }
 
   /// Called by [launchRequest] to request that we actually start the app to be
@@ -128,25 +83,15 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final debug = !(args.noDebug ?? false);
     if (debug) {
-      // Create a temp folder for the VM to write the service-info-file into.
-      // Using tmpDir.createTempory() is flakey on Windows+Linux (at least
-      // on GitHub Actions) complaining the file does not exist when creating a
-      // watcher. Creating/watching a folder and writing the file into it seems
-      // to be reliable.
-      final serviceInfoFilePath = path.join(
-        Directory.systemTemp.createTempSync('dart-vm-service').path,
-        'vm.json',
-      );
-
-      vmServiceInfoFile = File(serviceInfoFilePath);
-      unawaited(waitForVmServiceInfoFile(vmServiceInfoFile)
+      vmServiceInfoFile = generateVmServiceInfoFile();
+      unawaited(waitForVmServiceInfoFile(logger, vmServiceInfoFile)
           .then((uri) => connectDebugger(uri, resumeIfStarting: true)));
     }
 
     final vmArgs = <String>[
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
-        '--pause_isolates_on_start=true',
+        '--pause_isolates_on_start',
         if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
       '--disable-dart-dev',
@@ -156,10 +101,11 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ],
       // Default to asserts on, this seems like the most useful behaviour for
       // editor-spawned debug sessions.
-      if (args.enableAsserts ?? true) '--enable-asserts'
+      if (args.enableAsserts ?? true) '--enable-asserts',
     ];
     final processArgs = [
       ...vmArgs,
+      ...?args.toolArgs,
       args.program,
       ...?args.args,
     ];
@@ -171,7 +117,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     var possibleRoot = path.isAbsolute(args.program)
         ? path.dirname(args.program)
         : path.dirname(path.normalize(path.join(args.cwd ?? '', args.program)));
-    final packageConfig = _findPackageConfigFile(possibleRoot);
+    final packageConfig = findPackageConfigFile(possibleRoot);
     if (packageConfig != null) {
       this.usePackageConfigFile(packageConfig);
     }
@@ -209,9 +155,12 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     final vmServiceInfoFile = args.vmServiceInfoFile;
 
     if ((vmServiceUri == null) == (vmServiceInfoFile == null)) {
-      throw DebugAdapterException(
-        'To attach, provide exactly one of vmServiceUri/vmServiceInfoFile',
+      sendOutput(
+        'console',
+        '\nTo attach, provide exactly one of vmServiceUri/vmServiceInfoFile',
       );
+      handleSessionTerminate();
+      return;
     }
 
     // Find the package_config file for this script.
@@ -220,7 +169,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     //   necessary.
     final cwd = args.cwd;
     if (cwd != null) {
-      final packageConfig = _findPackageConfigFile(cwd);
+      final packageConfig = findPackageConfigFile(cwd);
       if (packageConfig != null) {
         this.usePackageConfigFile(packageConfig);
       }
@@ -228,7 +177,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final uri = vmServiceUri != null
         ? Uri.parse(vmServiceUri)
-        : await waitForVmServiceInfoFile(File(vmServiceInfoFile!));
+        : await waitForVmServiceInfoFile(logger, File(vmServiceInfoFile!));
 
     unawaited(connectDebugger(uri, resumeIfStarting: false));
   }
@@ -297,42 +246,10 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     unawaited(process.exitCode.then(_handleExitCode));
   }
 
-  /// Find the `package_config.json` file for the program being launched.
-  ///
-  /// TODO(dantup): Remove this once
-  ///   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-  ///   necessary.
-  File? _findPackageConfigFile(String possibleRoot) {
-    File? packageConfig;
-    while (true) {
-      packageConfig =
-          File(path.join(possibleRoot, '.dart_tool', 'package_config.json'));
-
-      // If this packageconfig exists, use it.
-      if (packageConfig.existsSync()) {
-        break;
-      }
-
-      final parent = path.dirname(possibleRoot);
-
-      // If we can't go up anymore, the search failed.
-      if (parent == possibleRoot) {
-        packageConfig = null;
-        break;
-      }
-
-      possibleRoot = parent;
-    }
-
-    return packageConfig;
-  }
-
   /// Called by [terminateRequest] to request that we gracefully shut down the
   /// app being run (or in the case of an attach, disconnect).
   Future<void> terminateImpl() async {
-    pidsToTerminate.forEach(
-      (pid) => Process.killPid(pid, ProcessSignal.sigint),
-    );
+    terminatePids(ProcessSignal.sigint);
     await _process?.exitCode;
   }
 
@@ -348,20 +265,5 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
   void _handleStdout(List<int> data) {
     sendOutput('stdout', utf8.decode(data));
-  }
-
-  /// Attempts to read VM Service info from a watcher event.
-  ///
-  /// If successful, returns the URI. Otherwise, returns null.
-  Uri? _readVmServiceInfoFile(File file) {
-    try {
-      final content = file.readAsStringSync();
-      final json = jsonDecode(content);
-      return Uri.parse(json['uri']);
-    } catch (e) {
-      // It's possible we tried to read the file before it was completely
-      // written so ignore and try again on the next event.
-      logger?.call('Ignoring error parsing vm-service-info file: $e');
-    }
   }
 }

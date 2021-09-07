@@ -1654,10 +1654,18 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// enabling debugging.
   final bool? noDebug;
 
+  /// The program/Dart script to be run.
   final String program;
+
+  /// Arguments to be passed to [program].
   final List<String>? args;
+
+  /// Arguments to be passed to the tool that will run [program] (for example,
+  /// the VM or Flutter tool).
+  final List<String>? toolArgs;
+
   final int? vmServicePort;
-  final List<String>? vmAdditionalArgs;
+
   final bool? enableAsserts;
 
   /// Which console to run the program in.
@@ -1678,7 +1686,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     required this.program,
     this.args,
     this.vmServicePort,
-    this.vmAdditionalArgs,
+    this.toolArgs,
     this.console,
     this.enableAsserts,
     String? name,
@@ -1705,7 +1713,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         noDebug = obj['noDebug'] as bool?,
         program = obj['program'] as String,
         args = (obj['args'] as List?)?.cast<String>(),
-        vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
+        toolArgs = (obj['toolArgs'] as List?)?.cast<String>(),
         vmServicePort = obj['vmServicePort'] as int?,
         console = obj['console'] as String?,
         enableAsserts = obj['enableAsserts'] as bool?,
@@ -1718,7 +1726,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         if (noDebug != null) 'noDebug': noDebug,
         'program': program,
         if (args != null) 'args': args,
-        if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
+        if (toolArgs != null) 'toolArgs': toolArgs,
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (console != null) 'console': console,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,

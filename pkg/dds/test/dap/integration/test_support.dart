@@ -88,7 +88,7 @@ Future<Process> startDartProcessPaused(
   vmArgs ??= [];
   vmArgs.addAll([
     '--enable-vm-service=0',
-    '--pause_isolates_on_start=true',
+    '--pause_isolates_on_start',
   ]);
   final processArgs = [
     ...vmArgs,
