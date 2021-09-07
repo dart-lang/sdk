@@ -568,6 +568,21 @@ void main() {
 ''');
   }
 
+  test_method_result_unassigned_parameterNotDefinedAndCascaded() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'value')
+  int foo([int? value]) => value ?? 0;
+}
+
+void main() {
+  A().foo()..toString();
+}
+''');
+  }
+
   test_topLevelFunction_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -667,21 +682,6 @@ void main() {
     ]);
   }
 
-  test_topLevelFunction_result_unassigned_cascade() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-@useResult
-int foo() => 0;
-
-void main() {
-  foo()..toString();
-}
-''', [
-      error(HintCode.UNUSED_RESULT, 78, 3),
-    ]);
-  }
-
   test_topLevelFunction_result_unassigned_parameterDefined() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -723,6 +723,19 @@ void main() {
 ''', [
       error(HintCode.UNUSED_RESULT, 146, 3),
     ]);
+  }
+
+  test_topLevelFunction_result_used_in_cascade() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  foo()..toString();
+}
+''');
   }
 
   test_topLevelVariable_assigned() async {

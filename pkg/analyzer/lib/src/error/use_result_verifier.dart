@@ -140,9 +140,11 @@ class UseResultVerifier {
       return false;
     }
 
-    if (parent is ParenthesizedExpression ||
-        parent is ConditionalExpression ||
-        parent is CascadeExpression) {
+    if (parent is CascadeExpression) {
+      return parent.target == node;
+    }
+
+    if (parent is ParenthesizedExpression || parent is ConditionalExpression) {
       return _isUsed(parent);
     }
 
