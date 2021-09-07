@@ -1932,13 +1932,6 @@ void PatchableCallHandler::DoMonomorphicMissJIT(
   // The target didn't change, so we can stay inside monomorphic state.
   if (ic_data.NumberOfChecksIs(1) &&
       (ic_data.GetReceiverClassIdAt(0) == receiver().GetClassId())) {
-    // We got a miss because the old target code got disabled.
-    // Notice the reverse is not true: If the old code got disabled, the call
-    // might still have a different receiver then last time and possibly a
-    // different target.
-    ASSERT(miss_handler_ == MissHandler::kFixCallersTargetMonomorphic ||
-           !IsolateGroup::Current()->ContainsOnlyOneIsolate());
-
     // No need to update ICData - it's already up-to-date.
 
     if (FLAG_trace_ic) {
