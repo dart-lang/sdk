@@ -21,7 +21,7 @@ foo1() {
   return C.JSString_methods.codeUnitAt$1("Hello", 1.5);
 }*/
 /*canary.member: foo2:function() {
-  return A.JSString_methods.codeUnitAt$1("Hello", B._asInt(1.5));
+  return B.JSString_methods.codeUnitAt$1("Hello", A._asInt(1.5));
 }*/
 foo2() {
   var a = 'Hello';
@@ -35,7 +35,7 @@ foo2() {
   return C.JSString_methods._codeUnitAt$1("Hello", 55);
 }*/
 /*canary.member: foo3:function() {
-  return A.JSString_methods._codeUnitAt$1("Hello", 55);
+  return B.JSString_methods._codeUnitAt$1("Hello", 55);
 }*/
 foo3() {
   var a = 'Hello';
