@@ -446,6 +446,8 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList? typeParameters,
           required Token onKeyword,
           required TypeAnnotation extendedType,
+          ShowClause? showClause,
+          HideClause? hideClause,
           required Token leftBracket,
           required List<ClassMember> members,
           required Token rightBracket}) =>
@@ -458,6 +460,8 @@ class AstFactoryImpl extends AstFactory {
           typeParameters as TypeParameterListImpl?,
           onKeyword,
           extendedType as TypeAnnotationImpl,
+          showClause as ShowClauseImpl?,
+          hideClause as HideClauseImpl?,
           leftBracket,
           members,
           rightBracket);
@@ -728,6 +732,12 @@ class AstFactoryImpl extends AstFactory {
           equals,
           type as TypeAnnotationImpl,
           semicolon);
+
+  @override
+  HideClauseImpl hideClause(
+          {required Token hideKeyword,
+          required List<ShowHideClauseElement> elements}) =>
+      HideClauseImpl(hideKeyword, elements);
 
   @override
   HideCombinatorImpl hideCombinator(
@@ -1077,9 +1087,20 @@ class AstFactoryImpl extends AstFactory {
           leftBracket, elements, rightBracket);
 
   @override
+  ShowClauseImpl showClause(
+          {required Token showKeyword,
+          required List<ShowHideClauseElement> elements}) =>
+      ShowClauseImpl(showKeyword, elements);
+
+  @override
   ShowCombinatorImpl showCombinator(
           Token keyword, List<SimpleIdentifier> shownNames) =>
       ShowCombinatorImpl(keyword, shownNames);
+
+  @override
+  ShowHideElementImpl showHideElement(
+          {required Token? modifier, required SimpleIdentifier name}) =>
+      ShowHideElementImpl(modifier, name);
 
   @override
   SimpleFormalParameterImpl simpleFormalParameter2(

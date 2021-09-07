@@ -862,6 +862,12 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleShowHideIdentifier(Token? modifier, Token? identifier) {
+    debugEvent("");
+    // Do nothing
+  }
+
+  @override
   void beginClassOrMixinBody(DeclarationKind kind, Token token) {
     assert(checkState(token, [
       ValueKinds.Token,
@@ -928,7 +934,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
     debugEvent("endExtensionDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }

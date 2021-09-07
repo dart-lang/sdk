@@ -342,6 +342,8 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.typeParameters?.accept(this);
     _token(node.onKeyword);
     node.extendedType.accept(this);
+    node.showClause?.accept(this);
+    node.hideClause?.accept(this);
     _token(node.leftBracket);
     node.members.accept(this);
     _token(node.rightBracket);

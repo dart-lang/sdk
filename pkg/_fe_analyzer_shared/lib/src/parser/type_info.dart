@@ -36,6 +36,9 @@ abstract class TypeInfo {
   /// void Function foo(int x);
   bool get isFunctionType;
 
+  /// Returns true if the type has type arguments.
+  bool get hasTypeArguments;
+
   /// Call this function when the token after [token] must be a type (not void).
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type, inserting a synthetic type reference if

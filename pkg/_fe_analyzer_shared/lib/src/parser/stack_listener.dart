@@ -48,6 +48,7 @@ enum NullValue {
   FunctionBody,
   FunctionBodyAsyncToken,
   FunctionBodyStarToken,
+  HideClause,
   Identifier,
   IdentifierList,
   Initializers,
@@ -55,8 +56,10 @@ enum NullValue {
   Metadata,
   Modifiers,
   Name,
+  OperatorList,
   ParameterDefaultValue,
   Prefix,
+  ShowClause,
   StringLiteral,
   SwitchScope,
   Token,
@@ -343,6 +346,12 @@ abstract class StackListener extends Listener {
   void handleClassOrMixinImplements(
       Token? implementsKeyword, int interfacesCount) {
     debugEvent("ClassImplements");
+  }
+
+  @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    debugEvent("ExtensionShow");
   }
 
   @override

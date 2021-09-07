@@ -1,0 +1,50 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class I1<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I1<self::I1::X%, self::I1::Y%>
+    ;
+}
+class I2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I2<self::I2::X%, self::I2::Y%, self::I2::Z%>
+    ;
+}
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A implements self::I1<core::int, core::int> {
+  synthetic constructor •() → self::B
+    ;
+  method methodB() → void
+    ;
+  method methodB2() → void
+    ;
+  get getterB() → core::int
+    ;
+  set setterB(core::int value) → void
+    ;
+  operator *(self::B other) → self::B
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends self::C implements self::I2<core::int, core::int, core::int> {
+  synthetic constructor •() → self::D
+    ;
+  method methodD() → void
+    ;
+  get getterD() → core::int
+    ;
+  set setterD(core::int value) → void
+    ;
+  operator +(self::D other) → self::D
+    ;
+}
+extension type E on self::D {
+}
+static method main() → dynamic
+  ;

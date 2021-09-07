@@ -519,6 +519,8 @@ class AstTestFactory {
           required bool isExtensionTypeDeclaration,
           TypeParameterList? typeParameters,
           required TypeAnnotation extendedType,
+          ShowClause? showClause,
+          HideClause? hideClause,
           List<ClassMember> members = const []}) =>
       astFactory.extensionDeclaration(
           comment: null,
@@ -531,6 +533,8 @@ class AstTestFactory {
           typeParameters: typeParameters,
           onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),
           extendedType: extendedType,
+          showClause: showClause,
+          hideClause: hideClause,
           leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
           members: members,
           rightBracket:
@@ -719,6 +723,11 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.EQ),
           functionType,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static HideClauseImpl hideClause(List<ShowHideClauseElement> elements) =>
+      astFactory.hideClause(
+          hideKeyword: TokenFactory.tokenFromString("hide"),
+          elements: elements);
 
   static HideCombinatorImpl hideCombinator(
           List<SimpleIdentifier> identifiers) =>
@@ -1205,6 +1214,11 @@ class AstTestFactory {
         rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
       );
 
+  static ShowClauseImpl showClause(List<ShowHideClauseElement> elements) =>
+      astFactory.showClause(
+          showKeyword: TokenFactory.tokenFromString("show"),
+          elements: elements);
+
   static ShowCombinatorImpl showCombinator(
           List<SimpleIdentifier> identifiers) =>
       astFactory.showCombinator(
@@ -1213,6 +1227,24 @@ class AstTestFactory {
   static ShowCombinatorImpl showCombinator2(List<String> identifiers) =>
       astFactory.showCombinator(
           TokenFactory.tokenFromString("show"), identifierList(identifiers));
+
+  static ShowHideElementImpl showHideElement(String name) =>
+      astFactory.showHideElement(modifier: null, name: identifier3(name));
+
+  static ShowHideElementImpl showHideElementGetter(String name) =>
+      astFactory.showHideElement(
+          modifier: TokenFactory.tokenFromString("get"),
+          name: identifier3(name));
+
+  static ShowHideElementImpl showHideElementOperator(String name) =>
+      astFactory.showHideElement(
+          modifier: TokenFactory.tokenFromString("operator"),
+          name: identifier3(name));
+
+  static ShowHideElementImpl showHideElementSetter(String name) =>
+      astFactory.showHideElement(
+          modifier: TokenFactory.tokenFromString("set"),
+          name: identifier3(name));
 
   static SimpleFormalParameterImpl simpleFormalParameter(
           Keyword keyword, String parameterName) =>

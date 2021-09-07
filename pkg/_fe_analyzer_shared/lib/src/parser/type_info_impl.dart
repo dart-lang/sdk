@@ -99,6 +99,9 @@ class NoType implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  bool get hasTypeArguments => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -141,6 +144,9 @@ class PrefixedType implements TypeInfo {
 
   @override
   bool get couldBeExpression => true;
+
+  @override
+  bool get hasTypeArguments => false;
 
   @override
   bool get isNullable => false;
@@ -229,6 +235,9 @@ class SimpleTypeWith1Argument implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  bool get hasTypeArguments => true;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -306,6 +315,9 @@ class SimpleType implements TypeInfo {
   bool get couldBeExpression => true;
 
   @override
+  bool get hasTypeArguments => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -352,6 +364,9 @@ class VoidType implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  bool get hasTypeArguments => false;
 
   @override
   bool get isNullable => false;
@@ -491,6 +506,9 @@ class ComplexTypeInfo implements TypeInfo {
   @override
   bool get couldBeExpression =>
       typeArguments == noTypeParamOrArg && typeVariableStarters.isEmpty;
+
+  @override
+  bool get hasTypeArguments => typeArguments is! NoTypeParamOrArg;
 
   @override
   bool get isNullable => beforeQuestionMark != null;
@@ -828,11 +846,8 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
     listener.beginTypeVariable(token);
     listener.handleTypeVariablesDefined(token, /* count = */ 1);
     listener.handleNoType(token);
-    listener.endTypeVariable(
-        endGroup,
-        /* index = */ 0,
-        /* extendsOrSuper = */ null,
-        /* variance = */ null);
+    listener.endTypeVariable(endGroup, /* index = */ 0,
+        /* extendsOrSuper = */ null, /* variance = */ null);
     listener.endTypeVariables(beginGroup, endGroup);
     return endGroup;
   }

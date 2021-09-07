@@ -545,6 +545,11 @@ abstract class AstFactory {
       TypeAnnotation type,
       Token semicolon);
 
+  /// Returns a newly created hide clause.
+  HideClause hideClause(
+      {required Token hideKeyword,
+      required List<ShowHideClauseElement> elements});
+
   /// Returns a newly created import show combinator.
   HideCombinator hideCombinator(
       Token keyword, List<SimpleIdentifier> hiddenNames);
@@ -792,9 +797,18 @@ abstract class AstFactory {
       required List<CollectionElement> elements,
       required Token rightBracket});
 
+  /// Returns a newly created show clause.
+  ShowClause showClause(
+      {required Token showKeyword,
+      required List<ShowHideClauseElement> elements});
+
   /// Returns a newly created import show combinator.
   ShowCombinator showCombinator(
       Token keyword, List<SimpleIdentifier> shownNames);
+
+  /// Returns a newly created element of a show or hide clause.
+  ShowHideElement showHideElement(
+      {required Token? modifier, required SimpleIdentifier name});
 
   /// Returns a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
