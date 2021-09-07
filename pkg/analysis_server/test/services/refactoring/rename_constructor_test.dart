@@ -101,6 +101,7 @@ class B extends A {
 }
 main() {
   new A();
+  A.new;
 }
 ''');
     // configure refactoring
@@ -121,6 +122,7 @@ class B extends A {
 }
 main() {
   new A.newName();
+  A.newName;
 }
 ''');
   }
@@ -136,6 +138,7 @@ class B extends A {
 }
 main() {
   new A();
+  A.new;
 }
 ''');
     // configure refactoring
@@ -157,6 +160,7 @@ class B extends A {
 }
 main() {
   new A.newName();
+  A.newName;
 }
 ''');
   }
@@ -173,6 +177,7 @@ class B extends A {
 }
 main() {
   new A.test();
+  A.test;
 }
 ''');
     // configure refactoring
@@ -193,6 +198,7 @@ class B extends A {
 }
 main() {
   new A.newName();
+  A.newName;
 }
 ''');
   }
@@ -238,6 +244,7 @@ class B extends A {
 }
 main() {
   new A.test();
+  A.test;
 }
 ''');
     // configure refactoring
@@ -258,6 +265,7 @@ class B extends A {
 }
 main() {
   new A();
+  A.new;
 }
 ''');
   }
