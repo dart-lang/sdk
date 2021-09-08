@@ -8,9 +8,12 @@ import 'ast.dart';
 import 'transformations/flags.dart';
 import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
 
-void verifyComponent(Component component, {bool? isOutline, bool? afterConst}) {
+void verifyComponent(Component component,
+    {bool? isOutline, bool? afterConst, bool constantsAreAlwaysInlined: true}) {
   VerifyingVisitor.check(component,
-      isOutline: isOutline, afterConst: afterConst);
+      isOutline: isOutline,
+      afterConst: afterConst,
+      constantsAreAlwaysInlined: constantsAreAlwaysInlined);
 }
 
 class VerificationError {
@@ -67,6 +70,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   /// a verification error for anything that should have been removed by it.
   final bool afterConst;
 
+  /// If true, constant fields and local variables are expected to be inlined.
+  final bool constantsAreAlwaysInlined;
+
   AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
 
   bool inCatchBlock = false;
@@ -88,12 +94,20 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   TreeNode? get currentClassOrExtensionOrMember =>
       currentMember ?? currentClass ?? currentExtension;
 
-  static void check(Component component, {bool? isOutline, bool? afterConst}) {
-    component.accept(
-        new VerifyingVisitor(isOutline: isOutline, afterConst: afterConst));
+  static void check(Component component,
+      {bool? isOutline,
+      bool? afterConst,
+      required bool constantsAreAlwaysInlined}) {
+    component.accept(new VerifyingVisitor(
+        isOutline: isOutline,
+        afterConst: afterConst,
+        constantsAreAlwaysInlined: constantsAreAlwaysInlined));
   }
 
-  VerifyingVisitor({bool? isOutline, bool? afterConst})
+  VerifyingVisitor(
+      {bool? isOutline,
+      bool? afterConst,
+      required this.constantsAreAlwaysInlined})
       : isOutline = isOutline ?? false,
         afterConst = afterConst ?? !(isOutline ?? false);
 
@@ -577,10 +591,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     declareVariable(node);
     if (afterConst && node.isConst) {
       Expression? initializer = node.initializer;
-      if (!(initializer is InvalidExpression ||
-          initializer is ConstantExpression &&
-              initializer.constant is UnevaluatedConstant)) {
-        problem(node, "Constant VariableDeclaration");
+      if (constantsAreAlwaysInlined) {
+        if (!(initializer is InvalidExpression ||
+            initializer is ConstantExpression &&
+                initializer.constant is UnevaluatedConstant)) {
+          problem(node, "Constant VariableDeclaration");
+        }
       }
     }
   }
@@ -589,7 +605,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitVariableGet(VariableGet node) {
     checkVariableInScope(node.variable, node);
     visitChildren(node);
-    if (afterConst && node.variable.isConst) {
+    if (constantsAreAlwaysInlined && afterConst && node.variable.isConst) {
       problem(node, "VariableGet of const variable '${node.variable}'.");
     }
   }
@@ -621,7 +637,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (node.target.isInstanceMember) {
       problem(node, "StaticGet of '${node.target}' that's an instance member.");
     }
-    if (afterConst && node.target is Field && node.target.isConst) {
+    if (constantsAreAlwaysInlined &&
+        afterConst &&
+        node.target is Field &&
+        node.target.isConst) {
       problem(node, "StaticGet of const field '${node.target}'.");
     }
   }

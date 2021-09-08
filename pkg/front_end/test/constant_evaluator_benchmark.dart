@@ -80,7 +80,7 @@ void benchmark(Component component, List<Library> libraries) {
         stopwatch.reset();
         CoreTypes coreTypes = new CoreTypes(component);
         ConstantsBackend constantsBackend =
-            target.backendTarget.constantsBackend(coreTypes);
+            target.backendTarget.constantsBackend;
         ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
         TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
         if (verbose) {

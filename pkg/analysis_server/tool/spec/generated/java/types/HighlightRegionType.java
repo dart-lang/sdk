@@ -29,6 +29,8 @@ public class HighlightRegionType {
 
   public static final String CONSTRUCTOR = "CONSTRUCTOR";
 
+  public static final String CONSTRUCTOR_TEAR_OFF = "CONSTRUCTOR_TEAR_OFF";
+
   public static final String DIRECTIVE = "DIRECTIVE";
 
   /**

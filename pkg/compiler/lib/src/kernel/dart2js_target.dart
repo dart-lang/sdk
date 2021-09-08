@@ -233,7 +233,7 @@ class Dart2jsTarget extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+  ConstantsBackend get constantsBackend =>
       const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
 }
 

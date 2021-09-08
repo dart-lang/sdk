@@ -691,6 +691,14 @@ class ConstantsTransformer extends RemovingTransformer {
     Instantiation result =
         super.visitInstantiation(node, removalSentinel) as Instantiation;
     Expression expression = result.expression;
+    if (expression is StaticGet && expression.target.isConst) {
+      // Handle [StaticGet] of constant fields also when these are not inlined.
+      expression = (expression.target as Field).initializer!;
+    } else if (expression is VariableGet && expression.variable.isConst) {
+      // Handle [VariableGet] of constant locals also when these are not
+      // inlined.
+      expression = expression.variable.initializer!;
+    }
     if (expression is ConstantExpression) {
       if (result.typeArguments.every(isInstantiated)) {
         return evaluateAndTransformWithContext(node, result);
@@ -882,6 +890,9 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   bool shouldInline(Expression initializer) {
+    if (backend.alwaysInlineConstants) {
+      return true;
+    }
     if (initializer is ConstantExpression) {
       return backend.shouldInlineConstant(initializer);
     }

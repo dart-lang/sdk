@@ -879,8 +879,7 @@ class StressConstantEvaluatorStep
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     KernelTarget target = result.sourceTarget;
-    ConstantsBackend constantsBackend =
-        target.backendTarget.constantsBackend(target.loader.coreTypes);
+    ConstantsBackend constantsBackend = target.backendTarget.constantsBackend;
     TypeEnvironment environment =
         new TypeEnvironment(target.loader.coreTypes, target.loader.hierarchy);
     StressConstantEvaluatorVisitor stressConstantEvaluatorVisitor =
@@ -1971,19 +1970,20 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
 
     Component component = result.component;
     StringBuffer messages = new StringBuffer();
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (messages.isNotEmpty) {
-              messages.write("\n");
-            }
-            messages.writeAll(message.plainTextFormatted, "\n");
-          });
-    return await CompilerContext.runWithOptions(options,
-        (compilerContext) async {
+    void Function(DiagnosticMessage)? previousOnDiagnostics =
+        result.options.rawOptionsForTesting.onDiagnostic;
+    result.options.rawOptionsForTesting.onDiagnostic =
+        (DiagnosticMessage message) {
+      if (messages.isNotEmpty) {
+        messages.write("\n");
+      }
+      messages.writeAll(message.plainTextFormatted, "\n");
+    };
+    Result<ComponentResult> verifyResult = await CompilerContext.runWithOptions(
+        result.options, (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
-          component, options.target,
+          component, result.options.target,
           isOutline: !fullCompile, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
@@ -1993,6 +1993,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
             null, context.expectationSet["VerificationError"], "$messages");
       }
     }, errorOnMissingInput: false);
+    result.options.rawOptionsForTesting.onDiagnostic = previousOnDiagnostics;
+    return verifyResult;
   }
 }
 

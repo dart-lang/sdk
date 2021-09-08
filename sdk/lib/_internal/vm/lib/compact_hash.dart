@@ -248,8 +248,6 @@ class _InternalImmutableLinkedHashMap<K, V> extends _HashVMImmutableBase
   }
 
   void _createIndex() {
-    assert(_indexNullable == null);
-
     final size = max(_data.length, _HashBase._INITIAL_INDEX_SIZE);
     assert(size == _roundUpToPowerOfTwo(size));
     final newIndex = new Uint32List(size);
@@ -827,8 +825,6 @@ class _CompactImmutableLinkedHashSet<E> extends _HashVMImmutableBase
   }
 
   void _createIndex() {
-    assert(_indexNullable == null);
-
     final size = _roundUpToPowerOfTwo(
         max(_data.length * 2, _HashBase._INITIAL_INDEX_SIZE));
     final index = new Uint32List(size);
