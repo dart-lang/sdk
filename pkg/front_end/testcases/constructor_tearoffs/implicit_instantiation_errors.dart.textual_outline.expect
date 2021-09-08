@@ -1,0 +1,10 @@
+T id<T>(T t, int i) => t;
+T Function<T>(T, int i)? alias = id;
+
+class Class {
+  T call<T>(T t, int i) => t;
+}
+
+method(int Function(int, int?) f) {}
+test() {}
+main() {}

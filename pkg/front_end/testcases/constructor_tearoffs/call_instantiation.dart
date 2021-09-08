@@ -4,11 +4,11 @@
 
 T func<T>(T value) => value;
 var funcValue = func;
-int Function(int) f = funcValue.call; // Disallowed!
-int Function(int) g = funcValue.call<int>; // Disallowed!
+int Function(int) f = funcValue.call;
+int Function(int) g = funcValue.call<int>;
 
 test(Function f) {
-  int Function(int) g = f.call<int>; // Disallowed!
+  int Function(int) g = f.call<int>;
 }
 
 main() {}

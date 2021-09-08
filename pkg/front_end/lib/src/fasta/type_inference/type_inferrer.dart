@@ -550,6 +550,20 @@ class TypeInferrerImpl implements TypeInferrer {
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null);
 
+    if (assignabilityResult.needsTearOff) {
+      TypedTearoff typedTearoff =
+          _tearOffCall(expression, expressionType as InterfaceType, fileOffset);
+      expression = typedTearoff.tearoff;
+      expressionType = typedTearoff.tearoffType;
+    }
+    if (assignabilityResult.implicitInstantiation != null) {
+      ExpressionInferenceResult instantiationResult =
+          _applyImplicitInstantiation(assignabilityResult.implicitInstantiation,
+              expressionType, expression);
+      expression = instantiationResult.expression;
+      expressionType = instantiationResult.inferredType;
+    }
+
     Expression result;
     switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
@@ -561,21 +575,6 @@ class TypeInferrerImpl implements TypeInferrer {
           ..isTypeError = true
           ..isForNonNullableByDefault = isNonNullableByDefault
           ..isForDynamic = expressionType is DynamicType
-          ..fileOffset = fileOffset;
-        break;
-      case AssignabilityKind.assignableTearoff:
-        result = _tearOffCall(
-                expression, expressionType as InterfaceType, fileOffset)
-            .tearoff;
-        break;
-      case AssignabilityKind.assignableTearoffCast:
-        result = new AsExpression(
-            _tearOffCall(
-                    expression, expressionType as InterfaceType, fileOffset)
-                .tearoff,
-            initialContextType)
-          ..isTypeError = true
-          ..isForNonNullableByDefault = isNonNullableByDefault
           ..fileOffset = fileOffset;
         break;
       case AssignabilityKind.unassignable:
@@ -602,17 +601,6 @@ class TypeInferrerImpl implements TypeInferrer {
                 expressionType, contextType, isNonNullableByDefault),
             expression.fileOffset,
             noLength);
-        break;
-      case AssignabilityKind.unassignableTearoff:
-        TypedTearoff typedTearoff = _tearOffCall(
-            expression, expressionType as InterfaceType, fileOffset);
-        result = _wrapUnassignableExpression(
-            typedTearoff.tearoff,
-            typedTearoff.tearoffType,
-            contextType,
-            errorTemplate.withArguments(typedTearoff.tearoffType,
-                declaredContextType ?? contextType, isNonNullableByDefault));
-
         break;
       case AssignabilityKind.unassignableCantTearoff:
         result = _wrapTearoffErrorExpression(
@@ -660,30 +648,6 @@ class TypeInferrerImpl implements TypeInferrer {
               contextType,
               nullabilityPartErrorTemplate.withArguments(
                   expressionType,
-                  declaredContextType ?? contextType,
-                  assignabilityResult.subtype!,
-                  assignabilityResult.supertype!,
-                  isNonNullableByDefault));
-        }
-        break;
-      case AssignabilityKind.unassignableNullabilityTearoff:
-        TypedTearoff typedTearoff = _tearOffCall(
-            expression, expressionType as InterfaceType, fileOffset);
-        if (expressionType == assignabilityResult.subtype &&
-            contextType == assignabilityResult.supertype) {
-          result = _wrapUnassignableExpression(
-              typedTearoff.tearoff,
-              typedTearoff.tearoffType,
-              contextType,
-              nullabilityErrorTemplate.withArguments(typedTearoff.tearoffType,
-                  declaredContextType ?? contextType, isNonNullableByDefault));
-        } else {
-          result = _wrapUnassignableExpression(
-              typedTearoff.tearoff,
-              typedTearoff.tearoffType,
-              contextType,
-              nullabilityPartErrorTemplate.withArguments(
-                  typedTearoff.tearoffType,
                   declaredContextType ?? contextType,
                   assignabilityResult.subtype!,
                   assignabilityResult.supertype!,
@@ -807,7 +771,8 @@ class TypeInferrerImpl implements TypeInferrer {
           needsTearoff = true;
           if (isNonNullableByDefault && expressionType.isPotentiallyNullable) {
             return const AssignabilityResult(
-                AssignabilityKind.unassignableCantTearoff);
+                AssignabilityKind.unassignableCantTearoff,
+                needsTearOff: false);
           }
           expressionType =
               getGetterTypeForMemberTarget(callMember, expressionType)
@@ -815,9 +780,20 @@ class TypeInferrerImpl implements TypeInferrer {
         }
       }
     }
+    ImplicitInstantiation? implicitInstantiation;
+    if (library.enableConstructorTearOffsInLibrary) {
+      implicitInstantiation =
+          computeImplicitInstantiation(expressionType, contextType);
+      if (implicitInstantiation != null) {
+        expressionType = implicitInstantiation.instantiatedType;
+      }
+    }
 
     if (expressionType is VoidType && !isVoidAllowed) {
-      return const AssignabilityResult(AssignabilityKind.unassignableVoid);
+      assert(implicitInstantiation == null);
+      assert(!needsTearoff);
+      return const AssignabilityResult(AssignabilityKind.unassignableVoid,
+          needsTearOff: false);
     }
 
     IsSubtypeOf isDirectSubtypeResult = typeSchemaEnvironment
@@ -826,9 +802,9 @@ class TypeInferrerImpl implements TypeInferrer {
         ? isDirectSubtypeResult.isSubtypeWhenUsingNullabilities()
         : isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities();
     if (isDirectlyAssignable) {
-      return needsTearoff
-          ? const AssignabilityResult(AssignabilityKind.assignableTearoff)
-          : const AssignabilityResult(AssignabilityKind.assignable);
+      return new AssignabilityResult(AssignabilityKind.assignable,
+          needsTearOff: needsTearoff,
+          implicitInstantiation: implicitInstantiation);
     }
 
     bool isIndirectlyAssignable = isNonNullableByDefault
@@ -839,30 +815,30 @@ class TypeInferrerImpl implements TypeInferrer {
     if (!isIndirectlyAssignable) {
       if (isNonNullableByDefault &&
           isDirectSubtypeResult.isSubtypeWhenIgnoringNullabilities()) {
-        return needsTearoff
-            ? new AssignabilityResult.withTypes(
-                AssignabilityKind.unassignableNullabilityTearoff,
-                isDirectSubtypeResult.subtype,
-                isDirectSubtypeResult.supertype)
-            : new AssignabilityResult.withTypes(
-                AssignabilityKind.unassignableNullability,
-                isDirectSubtypeResult.subtype,
-                isDirectSubtypeResult.supertype);
+        return new AssignabilityResult.withTypes(
+            AssignabilityKind.unassignableNullability,
+            isDirectSubtypeResult.subtype,
+            isDirectSubtypeResult.supertype,
+            needsTearOff: needsTearoff,
+            implicitInstantiation: implicitInstantiation);
       } else {
-        return needsTearoff
-            ? const AssignabilityResult(AssignabilityKind.unassignableTearoff)
-            : const AssignabilityResult(AssignabilityKind.unassignable);
+        return new AssignabilityResult(AssignabilityKind.unassignable,
+            needsTearOff: needsTearoff,
+            implicitInstantiation: implicitInstantiation);
       }
     }
     if (isExpressionTypePrecise) {
       // The type of the expression is known precisely, so an implicit
       // downcast is guaranteed to fail.  Insert a compile-time error.
-      return const AssignabilityResult(AssignabilityKind.unassignablePrecise);
+      assert(implicitInstantiation == null);
+      assert(!needsTearoff);
+      return const AssignabilityResult(AssignabilityKind.unassignablePrecise,
+          needsTearOff: false);
     }
     // Insert an implicit downcast.
-    return needsTearoff
-        ? const AssignabilityResult(AssignabilityKind.assignableTearoffCast)
-        : const AssignabilityResult(AssignabilityKind.assignableCast);
+    return new AssignabilityResult(AssignabilityKind.assignableCast,
+        needsTearOff: needsTearoff,
+        implicitInstantiation: implicitInstantiation);
   }
 
   bool isNull(DartType type) {
@@ -3909,10 +3885,11 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
-  /// Performs the type inference steps necessary to instantiate a tear-off
-  /// (if necessary).
-  ExpressionInferenceResult instantiateTearOff(
-      DartType tearoffType, DartType context, Expression expression) {
+  /// Computes the implicit instantiation from an expression of [tearOffType]
+  /// to the [context] type. Return `null` if an implicit instantiation is not
+  /// necessary or possible.
+  ImplicitInstantiation? computeImplicitInstantiation(
+      DartType tearoffType, DartType context) {
     if (tearoffType is FunctionType &&
         context is FunctionType &&
         context.typeParameters.isEmpty) {
@@ -3924,19 +3901,42 @@ class TypeInferrerImpl implements TypeInferrer {
         FunctionType instantiatedType = functionType.withoutTypeParameters;
         typeSchemaEnvironment.inferGenericFunctionOrType(instantiatedType,
             typeParameters, [], [], context, inferredTypes, library.library);
-        if (!isTopLevel) {
-          checkBoundsInInstantiation(
-              functionType, inferredTypes, expression.fileOffset,
-              inferred: true);
-          expression = new Instantiation(expression, inferredTypes)
-            ..fileOffset = expression.fileOffset;
-        }
         Substitution substitution =
             Substitution.fromPairs(typeParameters, inferredTypes);
         tearoffType = substitution.substituteType(instantiatedType);
+        return new ImplicitInstantiation(
+            inferredTypes, functionType, tearoffType);
       }
     }
-    return new ExpressionInferenceResult(tearoffType, expression);
+    return null;
+  }
+
+  ExpressionInferenceResult _applyImplicitInstantiation(
+      ImplicitInstantiation? implicitInstantiation,
+      DartType tearOffType,
+      Expression expression) {
+    if (implicitInstantiation != null) {
+      if (!isTopLevel) {
+        checkBoundsInInstantiation(implicitInstantiation.functionType,
+            implicitInstantiation.typeArguments, expression.fileOffset,
+            inferred: true);
+      }
+      expression =
+          new Instantiation(expression, implicitInstantiation.typeArguments)
+            ..fileOffset = expression.fileOffset;
+      tearOffType = implicitInstantiation.instantiatedType;
+    }
+    return new ExpressionInferenceResult(tearOffType, expression);
+  }
+
+  /// Performs the type inference steps necessary to instantiate a tear-off
+  /// (if necessary).
+  ExpressionInferenceResult instantiateTearOff(
+      DartType tearoffType, DartType context, Expression expression) {
+    ImplicitInstantiation? implicitInstantiation =
+        computeImplicitInstantiation(tearoffType, context);
+    return _applyImplicitInstantiation(
+        implicitInstantiation, tearoffType, expression);
   }
 
   /// True if the returned [type] has non-covariant occurrences of any of
@@ -5211,12 +5211,6 @@ enum AssignabilityKind {
   /// Assignable, but needs an implicit downcast.
   assignableCast,
 
-  /// Assignable, but needs a tearoff due to a function context.
-  assignableTearoff,
-
-  /// Assignable, but needs both a tearoff and an implicit downcast.
-  assignableTearoffCast,
-
   /// Unconditionally unassignable.
   unassignable,
 
@@ -5226,30 +5220,27 @@ enum AssignabilityKind {
   /// The right-hand side type is precise, and the downcast will fail.
   unassignablePrecise,
 
-  /// Unassignable, but needs a tearoff of "call" for better error reporting.
-  unassignableTearoff,
-
   /// Unassignable because the tear-off can't be done on the nullable receiver.
   unassignableCantTearoff,
 
   /// Unassignable only because of nullability modifiers.
   unassignableNullability,
-
-  /// Unassignable because of nullability and needs a tearoff of "call" for
-  /// better error reporting.
-  unassignableNullabilityTearoff,
 }
 
 class AssignabilityResult {
   final AssignabilityKind kind;
   final DartType? subtype; // Can be null.
   final DartType? supertype; // Can be null.
+  final bool needsTearOff;
+  final ImplicitInstantiation? implicitInstantiation;
 
-  const AssignabilityResult(this.kind)
+  const AssignabilityResult(this.kind,
+      {required this.needsTearOff, this.implicitInstantiation})
       : subtype = null,
         supertype = null;
 
-  AssignabilityResult.withTypes(this.kind, this.subtype, this.supertype);
+  AssignabilityResult.withTypes(this.kind, this.subtype, this.supertype,
+      {required this.needsTearOff, this.implicitInstantiation});
 }
 
 /// Convenient way to return both a tear-off expression and its type.
@@ -5331,3 +5322,17 @@ class _WhyNotPromotedVisitor
 // TODO(johnniwinther): Should we have a special DartType implementation for
 // this.
 final DartType noInferredType = new UnknownType();
+
+class ImplicitInstantiation {
+  /// The type arguments for the instantiation.
+  final List<DartType> typeArguments;
+
+  /// The function type before the instantiation.
+  final FunctionType functionType;
+
+  /// The function type after the instantiation.
+  final DartType instantiatedType;
+
+  ImplicitInstantiation(
+      this.typeArguments, this.functionType, this.instantiatedType);
+}

@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method call<T extends core::Object? = dynamic>(self::Class::call::T% t, core::int i) → self::Class::call::T%
+    ;
+}
+static field <T extends core::Object? = dynamic>(T%, core::int) →? T% alias;
+static method id<T extends core::Object? = dynamic>(self::id::T% t, core::int i) → self::id::T%
+  ;
+static method method((core::int, core::int?) → core::int f) → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
