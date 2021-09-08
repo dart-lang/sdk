@@ -114,6 +114,15 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    super.visitConstructorReference(node);
+    if (node.inConstantContext) {
+      _checkForConstWithTypeParameters(node.constructorName.type,
+          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF);
+    }
+  }
+
+  @override
   void visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
@@ -123,7 +132,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
       TypeName typeName = node.constructorName.type;
-      _checkForConstWithTypeParameters(typeName);
+      _checkForConstWithTypeParameters(
+          typeName, CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
 
       node.argumentList.accept(this);
 
@@ -261,25 +271,25 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Verify that the given [type] does not reference any type parameters.
   ///
   /// See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
-  void _checkForConstWithTypeParameters(TypeAnnotation type) {
+  void _checkForConstWithTypeParameters(
+      TypeAnnotation type, ErrorCode errorCode) {
     if (type is TypeName) {
       Identifier name = type.name;
       // Should not be a type parameter.
       if (name.staticElement is TypeParameterElement) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
+        _errorReporter.reportErrorForNode(errorCode, name);
       }
       // Check type arguments.
       var typeArguments = type.typeArguments;
       if (typeArguments != null) {
         for (TypeAnnotation argument in typeArguments.arguments) {
-          _checkForConstWithTypeParameters(argument);
+          _checkForConstWithTypeParameters(argument, errorCode);
         }
       }
     } else if (type is GenericFunctionType) {
       var returnType = type.returnType;
       if (returnType != null) {
-        _checkForConstWithTypeParameters(returnType);
+        _checkForConstWithTypeParameters(returnType, errorCode);
       }
       for (var parameter in type.parameters.parameters) {
         // [parameter] cannot be a [DefaultFormalParameter], a
@@ -287,7 +297,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (parameter is SimpleFormalParameter) {
           var parameterType = parameter.type;
           if (parameterType != null) {
-            _checkForConstWithTypeParameters(parameterType);
+            _checkForConstWithTypeParameters(parameterType, errorCode);
           }
         }
       }
@@ -296,7 +306,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         for (var typeParameter in typeParameters.typeParameters) {
           var bound = typeParameter.bound;
           if (bound != null) {
-            _checkForConstWithTypeParameters(bound);
+            _checkForConstWithTypeParameters(bound, errorCode);
           }
         }
       }

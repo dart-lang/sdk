@@ -9,8 +9,51 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConstWithTypeParametersConstructorTearoffTest);
     defineReflectiveTests(ConstWithTypeParametersTest);
   });
+}
+
+@reflectiveTest
+class ConstWithTypeParametersConstructorTearoffTest
+    extends PubPackageResolutionTest {
+  test_direct() async {
+    await assertErrorsInCode('''
+class A<T> {
+  void m() {
+    const c = A<T>.new;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+          42, 1),
+    ]);
+  }
+
+  test_indirect() async {
+    await assertErrorsInCode('''
+class A<T> {
+  void m() {
+    const c = A<List<T>>.new;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+          47, 1),
+    ]);
+  }
+
+  test_nonConst() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  void m() {
+    A<T>.new;
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -89,5 +132,16 @@ class A<T> {
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 75, 1),
     ]);
+  }
+
+  test_nonConstContext() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    A<T>();
+  }
+}
+''');
   }
 }

@@ -2644,6 +2644,8 @@ C f(int i) => C(i);
 
 ### const_with_type_parameters
 
+_A constant constructor tearoff can't use a type parameter as a type argument._
+
 _A constant creation can't use a type parameter as a type argument._
 
 #### Description

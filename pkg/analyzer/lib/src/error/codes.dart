@@ -2887,6 +2887,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF = CompileTimeErrorCode(
+          'CONST_WITH_TYPE_PARAMETERS',
+          "A constant constructor tearoff can't use a type parameter as a type "
+              "argument.",
+          correction: "Try replacing the type parameter with a different type.",
+          uniqueName: 'CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF',
+          hasPublishedDocs: true);
+
+  /**
    * 16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
    * a constant constructor declared by the type <i>T</i>.
    *
