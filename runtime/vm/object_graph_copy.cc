@@ -593,8 +593,6 @@ class ObjectCopyBase {
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
       HANDLE_ILLEGAL_CASE(Pointer)
-      HANDLE_ILLEGAL_CASE(FfiDynamicLibrary)
-      HANDLE_ILLEGAL_CASE(FfiPointer)
       HANDLE_ILLEGAL_CASE(FunctionType)
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(ReceivePort)

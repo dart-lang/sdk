@@ -1374,7 +1374,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
 
   // Now verify field offsets of 'Pointer' class.
-  cls = class_table.At(kFfiPointerCid);
+  cls = class_table.At(kPointerCid);
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   ASSERT(cls.NumTypeParameters() == 1);

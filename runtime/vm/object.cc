@@ -662,12 +662,12 @@ void Object::InitVtables() {
 
   {
     Pointer fake_handle;
-    builtin_vtables_[kFfiPointerCid] = fake_handle.vtable();
+    builtin_vtables_[kPointerCid] = fake_handle.vtable();
   }
 
   {
     DynamicLibrary fake_handle;
-    builtin_vtables_[kFfiDynamicLibraryCid] = fake_handle.vtable();
+    builtin_vtables_[kDynamicLibraryCid] = fake_handle.vtable();
   }
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -2310,12 +2310,12 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiNativeFunction(), lib);
 
-    cls = Class::NewPointerClass(kFfiPointerCid, isolate_group);
+    cls = Class::NewPointerClass(kPointerCid, isolate_group);
     object_store->set_ffi_pointer_class(cls);
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiPointer(), lib);
 
-    cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kFfiDynamicLibraryCid,
+    cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kDynamicLibraryCid,
                                                           isolate_group);
     cls.set_instance_size(DynamicLibrary::InstanceSize(),
                           compiler::target::RoundedAllocationSize(
@@ -2433,10 +2433,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid,
                                               isolate_group);
 
-    cls = Class::NewPointerClass(kFfiPointerCid, isolate_group);
+    cls = Class::NewPointerClass(kPointerCid, isolate_group);
     object_store->set_ffi_pointer_class(cls);
 
-    cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kFfiDynamicLibraryCid,
+    cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kDynamicLibraryCid,
                                                           isolate_group);
 
     cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate_group,
@@ -2781,12 +2781,6 @@ ObjectPtr Object::Clone(const Object& orig,
 bool Class::HasCompressedPointers() const {
   const intptr_t cid = id();
   switch (cid) {
-    // Only a couple of FFI cids correspond to actual Dart classes. so they're
-    // explicitly listed here.
-    case kFfiPointerCid:
-      return Pointer::ContainsCompressedPointers();
-    case kFfiDynamicLibraryCid:
-      return DynamicLibrary::ContainsCompressedPointers();
     case kByteBufferCid:
       return ByteBuffer::ContainsCompressedPointers();
 #define HANDLE_CASE(clazz)                                                     \
@@ -4923,9 +4917,9 @@ const char* Class::GenerateUserVisibleName() const {
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().ToCString();
 
-    case kFfiPointerCid:
+    case kPointerCid:
       return Symbols::FfiPointer().ToCString();
-    case kFfiDynamicLibraryCid:
+    case kDynamicLibraryCid:
       return Symbols::FfiDynamicLibrary().ToCString();
 
 #if !defined(PRODUCT)
@@ -20280,7 +20274,7 @@ bool AbstractType::IsDartClosureType() const {
 }
 
 bool AbstractType::IsFfiPointerType() const {
-  return HasTypeClass() && type_class_id() == kFfiPointerCid;
+  return HasTypeClass() && type_class_id() == kPointerCid;
 }
 
 AbstractTypePtr AbstractType::UnwrapFutureOr() const {
@@ -25206,11 +25200,11 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
   type_args = type_args.Canonicalize(thread, nullptr);
 
   const Class& cls =
-      Class::Handle(IsolateGroup::Current()->class_table()->At(kFfiPointerCid));
+      Class::Handle(IsolateGroup::Current()->class_table()->At(kPointerCid));
   cls.EnsureIsAllocateFinalized(Thread::Current());
 
   Pointer& result = Pointer::Handle(zone);
-  result ^= Object::Allocate(kFfiPointerCid, Pointer::InstanceSize(), space,
+  result ^= Object::Allocate(kPointerCid, Pointer::InstanceSize(), space,
                              Pointer::ContainsCompressedPointers());
   result.SetTypeArguments(type_args);
   result.SetNativeAddress(native_address);
@@ -25228,7 +25222,7 @@ const char* Pointer::ToCString() const {
 DynamicLibraryPtr DynamicLibrary::New(void* handle, Heap::Space space) {
   DynamicLibrary& result = DynamicLibrary::Handle();
   result ^=
-      Object::Allocate(kFfiDynamicLibraryCid, DynamicLibrary::InstanceSize(),
+      Object::Allocate(kDynamicLibraryCid, DynamicLibrary::InstanceSize(),
                        space, DynamicLibrary::ContainsCompressedPointers());
   NoSafepointScope no_safepoint;
   result.SetHandle(handle);
