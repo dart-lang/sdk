@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/utilities_general.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -196,7 +195,7 @@ class NonNullableFunction {
 
   @override
   int get hashCode =>
-      JenkinsSmiHash.hash3(library.hashCode, type.hashCode, name.hashCode);
+      Object.hash(library.hashCode, type.hashCode, name.hashCode);
 
   /// Two [NonNullableFunction] objects are equal if their [library], [type],
   /// and [name] are equal, for the purpose of discovering whether a function
