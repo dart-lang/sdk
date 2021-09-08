@@ -133,7 +133,7 @@ class Class extends self::Super implements self::Interface {
     return super.{self::Super::field1} = #externalFieldValue;
   abstract get field2() → core::String;
   forwarding-stub forwarding-semi-stub set field2(covariant core::String #externalFieldValue) → void
-    return super.{self::Super::field2} = #externalFieldValue;
+    return super.{self::Super::field2} = #externalFieldValue as core::num;
   abstract get field3() → core::int;
   abstract set field3(core::int #externalFieldValue) → void;
   abstract get field4() → core::int;

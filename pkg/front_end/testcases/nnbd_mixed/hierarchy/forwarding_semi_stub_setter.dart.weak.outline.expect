@@ -72,7 +72,7 @@ class Class extends self::Super implements self::Interface {
   forwarding-stub forwarding-semi-stub set setter1(covariant core::int i) → void
     return super.{self::Super::setter1} = i;
   forwarding-stub forwarding-semi-stub set setter2(covariant core::String i) → void
-    return super.{self::Super::setter2} = i;
+    return super.{self::Super::setter2} = i as core::num;
   abstract set setter3(core::int i) → void;
   abstract set setter4(covariant core::int i) → void;
   abstract set setter5(covariant core::num n) → void;

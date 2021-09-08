@@ -1,0 +1,10 @@
+class A {
+  void m(num n, int i) {}
+}
+
+class B extends A {
+  void m(covariant int i, covariant num n);
+}
+
+main() {}
+throws(void Function() f) {}

@@ -9980,6 +9980,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   bool get isConst => flags & FlagConst != 0;
 
   /// Whether the parameter is declared with the `covariant` keyword.
+  // TODO(johnniwinther): Rename to isCovariantByDeclaration
   bool get isCovariant => flags & FlagCovariant != 0;
 
   /// Whether the variable is declared as a field formal parameter of
@@ -9993,6 +9994,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
+  // TODO(johnniwinther): Rename to isCovariantByClass
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
 
   /// Whether the variable is declared with the `late` keyword.
