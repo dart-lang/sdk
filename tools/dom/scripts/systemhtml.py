@@ -10,6 +10,7 @@ import logging
 import monitored
 import os
 import re
+from collections import OrderedDict
 from generator import *
 from htmldartgenerator import *
 from htmlrenamer import generateCallbackInterface
@@ -719,7 +720,9 @@ class HtmlDartInterfaceGenerator(object):
 
         implements_str = ''
         if implements:
-            implements_str = ' implements ' + ', '.join(set(implements))
+            # Get rid of duplicates using OrderedDict.
+            implements = list(OrderedDict([(i, None) for i in implements]))
+            implements_str = ' implements ' + ', '.join(implements)
 
         mixins = self._backend.Mixins()
 
