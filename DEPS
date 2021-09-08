@@ -118,7 +118,6 @@ vars = {
   "http_parser_rev": "202391286ddc13c4c3c284ac5b511f04697250ed",
   "http_rev": "778174bca2c13becd88ef3353309190b1e8b9479",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
@@ -170,7 +169,7 @@ vars = {
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "6448ce532445a8a458fa191d9346df071ae0acad",
-  "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
+  "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "832b096c0c24798d3df46faa7b7661fe930573c2",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
   "yaml_rev": "2af44871f684c89e973a96e39026b8b88dda1987",
@@ -297,10 +296,6 @@ deps = {
   Var("dart_root") + "/third_party/icu":
       Var("chromium_git") + "/chromium/deps/icu.git" +
       "@" + Var("icu_rev"),
-
-  Var("dart_root") + "/tools/idl_parser":
-      Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
-      "@" + Var("idl_parser_rev"),
 
   Var("dart_root") + "/third_party/WebCore":
       Var("dart_git") + "webcore.git" + "@" + Var("WebCore_rev"),
