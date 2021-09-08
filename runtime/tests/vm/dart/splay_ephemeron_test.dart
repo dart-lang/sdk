@@ -7,6 +7,8 @@
 // continuously makes small changes to a large, long-lived data structure,
 // stressing lots of combinations of references between new-gen and old-gen
 // objects, and between marked and unmarked objects.
+// The ephemeron variant of this test replaces the direct child pointers in the
+// tree with Expandos to stress the handling of WeakProperties/ephemerons.
 
 // VMOptions=
 // VMOptions=--no_concurrent_mark --no_concurrent_sweep
@@ -26,7 +28,7 @@
 // VMOptions=--verify_before_gc --verify_after_gc
 // VMOptions=--verify_store_buffer
 // VMOptions=--stress_write_barrier_elimination
-// VMOptions=--old_gen_heap_size=100
+// VMOptions=--old_gen_heap_size=150
 
 import "dart:math";
 import 'package:benchmark_harness/benchmark_harness.dart';
@@ -118,8 +120,21 @@ class Leaf {
 
 
 class Payload {
-  Payload(this.left, this.right);
-  var left, right;
+  Payload(left, right) {
+    this.left = left;
+    this.right = right;
+  }
+
+  // This ordering of fields is delibrate: one key is visited before the expando
+  // and one after.
+  final leftKey = new Object();
+  final expando = new Expando();
+  final rightKey = new Object();
+
+  get left => expando[leftKey];
+  set left(value) => expando[leftKey] = value;
+  get right => expando[rightKey];
+  set right(value) => expando[rightKey] = value;
 
   static generate(depth, tag) {
     if (depth == 0) return new Leaf(tag);
@@ -311,7 +326,16 @@ class Node {
   final num key;
   final Object? value;
 
-  Node? left, right;
+  // This ordering of fields is delibrate: one key is visited before the expando
+  // and one after.
+  final leftKey = new Object();
+  final expando = new Expando<Node>();
+  final rightKey = new Object();
+
+  Node? get left => expando[leftKey];
+  set left(Node? value) => expando[leftKey] = value;
+  Node? get right => expando[rightKey];
+  set right(Node? value) => expando[rightKey] = value;
 
   /**
    * Performs an ordered traversal of the subtree starting here.
