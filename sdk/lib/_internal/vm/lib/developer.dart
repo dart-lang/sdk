@@ -18,10 +18,12 @@ import "dart:isolate" show SendPort;
 // part "timeline.dart"
 
 @patch
-bool debugger({bool when: true, String? message}) native "Developer_debugger";
+@pragma("vm:external-name", "Developer_debugger")
+external bool debugger({bool when: true, String? message});
 
 @patch
-Object? inspect(Object? object) native "Developer_inspect";
+@pragma("vm:external-name", "Developer_inspect")
+external Object? inspect(Object? object);
 
 @patch
 void log(String message,
@@ -50,20 +52,21 @@ void log(String message,
 
 int _nextSequenceNumber = 0;
 
-_log(String message, int timestamp, int sequenceNumber, int level, String name,
-    Zone? zone, Object? error, StackTrace? stackTrace) native "Developer_log";
+@pragma("vm:external-name", "Developer_log")
+external _log(String message, int timestamp, int sequenceNumber, int level,
+    String name, Zone? zone, Object? error, StackTrace? stackTrace);
 
 @patch
-void _postEvent(String eventKind, String eventData)
-    native "Developer_postEvent";
+@pragma("vm:external-name", "Developer_postEvent")
+external void _postEvent(String eventKind, String eventData);
 
 @patch
-ServiceExtensionHandler? _lookupExtension(String method)
-    native "Developer_lookupExtension";
+@pragma("vm:external-name", "Developer_lookupExtension")
+external ServiceExtensionHandler? _lookupExtension(String method);
 
 @patch
-_registerExtension(String method, ServiceExtensionHandler handler)
-    native "Developer_registerExtension";
+@pragma("vm:external-name", "Developer_registerExtension")
+external _registerExtension(String method, ServiceExtensionHandler handler);
 
 // This code is only invoked when there is no other Dart code on the stack.
 @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
@@ -152,18 +155,22 @@ _postResponse(SendPort replyPort, Object id, ServiceExtensionResponse response,
 }
 
 @patch
-int _getServiceMajorVersion() native "Developer_getServiceMajorVersion";
+@pragma("vm:external-name", "Developer_getServiceMajorVersion")
+external int _getServiceMajorVersion();
 
 @patch
-int _getServiceMinorVersion() native "Developer_getServiceMinorVersion";
+@pragma("vm:external-name", "Developer_getServiceMinorVersion")
+external int _getServiceMinorVersion();
 
 @patch
-void _getServerInfo(SendPort sendPort) native "Developer_getServerInfo";
+@pragma("vm:external-name", "Developer_getServerInfo")
+external void _getServerInfo(SendPort sendPort);
 
 @patch
-void _webServerControl(SendPort sendPort, bool enable, bool? silenceOutput)
-    native "Developer_webServerControl";
+@pragma("vm:external-name", "Developer_webServerControl")
+external void _webServerControl(
+    SendPort sendPort, bool enable, bool? silenceOutput);
 
 @patch
-String _getIsolateIDFromSendPort(SendPort sendPort)
-    native "Developer_getIsolateIDFromSendPort";
+@pragma("vm:external-name", "Developer_getIsolateIDFromSendPort")
+external String _getIsolateIDFromSendPort(SendPort sendPort);

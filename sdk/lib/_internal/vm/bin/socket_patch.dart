@@ -41,8 +41,8 @@ class RawSocketOption {
     return _optionsCache[key] ??= _getNativeOptionValue(key);
   }
 
-  static int _getNativeOptionValue(int key)
-      native "RawSocketOption_GetOptionValue";
+  @pragma("vm:external-name", "RawSocketOption_GetOptionValue")
+  external static int _getNativeOptionValue(int key);
 }
 
 @patch
@@ -114,7 +114,8 @@ class NetworkInterface {
         type: type);
   }
 
-  static bool _listSupported() native "NetworkInterface_ListSupported";
+  @pragma("vm:external-name", "NetworkInterface_ListSupported")
+  external static bool _listSupported();
 }
 
 void _throwOnBadPort(int port) {
@@ -351,11 +352,13 @@ class _InternetAddress implements InternetAddress {
     return "InternetAddress('$address', ${type.name})";
   }
 
-  static String _rawAddrToString(Uint8List address)
-      native "InternetAddress_RawAddrToString";
-  static dynamic /* int | OSError */ _parseScopedLinkLocalAddress(
-      String address) native "InternetAddress_ParseScopedLinkLocalAddress";
-  static Uint8List? _parse(String address) native "InternetAddress_Parse";
+  @pragma("vm:external-name", "InternetAddress_RawAddrToString")
+  external static String _rawAddrToString(Uint8List address);
+  @pragma("vm:external-name", "InternetAddress_ParseScopedLinkLocalAddress")
+  external static dynamic /* int | OSError */ _parseScopedLinkLocalAddress(
+      String address);
+  @pragma("vm:external-name", "InternetAddress_Parse")
+  external static Uint8List? _parse(String address);
 }
 
 class _NetworkInterface implements NetworkInterface {
@@ -375,7 +378,8 @@ class _NetworkInterface implements NetworkInterface {
 class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
 
 /// Returns error code that corresponds to EINPROGRESS OS error.
-int get _inProgressErrorCode native "OSError_inProgressErrorCode";
+@pragma("vm:external-name", "OSError_inProgressErrorCode")
+external int get _inProgressErrorCode;
 
 // The _NativeSocket class encapsulates an OS socket.
 class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
@@ -1526,46 +1530,66 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         interfaceAddr?._in_addr, interfaceIndex);
   }
 
-  void nativeSetSocketId(int id, int typeFlags) native "Socket_SetSocketId";
-  int nativeAvailable() native "Socket_Available";
-  bool nativeAvailableDatagram() native "Socket_AvailableDatagram";
-  Uint8List? nativeRead(int len) native "Socket_Read";
-  Datagram? nativeRecvFrom() native "Socket_RecvFrom";
-  int nativeWrite(List<int> buffer, int offset, int bytes)
-      native "Socket_WriteList";
-  int nativeSendTo(List<int> buffer, int offset, int bytes, Uint8List address,
-      int port) native "Socket_SendTo";
-  nativeCreateConnect(Uint8List addr, int port, int scope_id)
-      native "Socket_CreateConnect";
-  nativeCreateUnixDomainConnect(String addr, _Namespace namespace)
-      native "Socket_CreateUnixDomainConnect";
-  nativeCreateBindConnect(Uint8List addr, int port, Uint8List sourceAddr,
-      int scope_id) native "Socket_CreateBindConnect";
-  nativeCreateUnixDomainBindConnect(String addr, String sourceAddr,
-      _Namespace namespace) native "Socket_CreateUnixDomainBindConnect";
-  bool isBindError(int errorNumber) native "SocketBase_IsBindError";
-  nativeCreateBindListen(Uint8List addr, int port, int backlog, bool v6Only,
-      bool shared, int scope_id) native "ServerSocket_CreateBindListen";
-  nativeCreateUnixDomainBindListen(String addr, int backlog, bool shared,
-      _Namespace namespace) native "ServerSocket_CreateUnixDomainBindListen";
-  nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
-      bool reusePort, int ttl) native "Socket_CreateBindDatagram";
-  bool nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
-  dynamic nativeGetPort() native "Socket_GetPort";
-  List nativeGetRemotePeer() native "Socket_GetRemotePeer";
-  int nativeGetSocketId() native "Socket_GetSocketId";
-  OSError nativeGetError() native "Socket_GetError";
-  nativeGetOption(int option, int protocol) native "Socket_GetOption";
-  void nativeGetRawOption(int level, int option, Uint8List data)
-      native "Socket_GetRawOption";
-  void nativeSetOption(int option, int protocol, value)
-      native "Socket_SetOption";
-  void nativeSetRawOption(int level, int option, Uint8List data)
-      native "Socket_SetRawOption";
-  void nativeJoinMulticast(Uint8List addr, Uint8List? interfaceAddr,
-      int interfaceIndex) native "Socket_JoinMulticast";
-  void nativeLeaveMulticast(Uint8List addr, Uint8List? interfaceAddr,
-      int interfaceIndex) native "Socket_LeaveMulticast";
+  @pragma("vm:external-name", "Socket_SetSocketId")
+  external void nativeSetSocketId(int id, int typeFlags);
+  @pragma("vm:external-name", "Socket_Available")
+  external int nativeAvailable();
+  @pragma("vm:external-name", "Socket_AvailableDatagram")
+  external bool nativeAvailableDatagram();
+  @pragma("vm:external-name", "Socket_Read")
+  external Uint8List? nativeRead(int len);
+  @pragma("vm:external-name", "Socket_RecvFrom")
+  external Datagram? nativeRecvFrom();
+  @pragma("vm:external-name", "Socket_WriteList")
+  external int nativeWrite(List<int> buffer, int offset, int bytes);
+  @pragma("vm:external-name", "Socket_SendTo")
+  external int nativeSendTo(
+      List<int> buffer, int offset, int bytes, Uint8List address, int port);
+  @pragma("vm:external-name", "Socket_CreateConnect")
+  external nativeCreateConnect(Uint8List addr, int port, int scope_id);
+  @pragma("vm:external-name", "Socket_CreateUnixDomainConnect")
+  external nativeCreateUnixDomainConnect(String addr, _Namespace namespace);
+  @pragma("vm:external-name", "Socket_CreateBindConnect")
+  external nativeCreateBindConnect(
+      Uint8List addr, int port, Uint8List sourceAddr, int scope_id);
+  @pragma("vm:external-name", "Socket_CreateUnixDomainBindConnect")
+  external nativeCreateUnixDomainBindConnect(
+      String addr, String sourceAddr, _Namespace namespace);
+  @pragma("vm:external-name", "SocketBase_IsBindError")
+  external bool isBindError(int errorNumber);
+  @pragma("vm:external-name", "ServerSocket_CreateBindListen")
+  external nativeCreateBindListen(Uint8List addr, int port, int backlog,
+      bool v6Only, bool shared, int scope_id);
+  @pragma("vm:external-name", "ServerSocket_CreateUnixDomainBindListen")
+  external nativeCreateUnixDomainBindListen(
+      String addr, int backlog, bool shared, _Namespace namespace);
+  @pragma("vm:external-name", "Socket_CreateBindDatagram")
+  external nativeCreateBindDatagram(
+      Uint8List addr, int port, bool reuseAddress, bool reusePort, int ttl);
+  @pragma("vm:external-name", "ServerSocket_Accept")
+  external bool nativeAccept(_NativeSocket socket);
+  @pragma("vm:external-name", "Socket_GetPort")
+  external dynamic nativeGetPort();
+  @pragma("vm:external-name", "Socket_GetRemotePeer")
+  external List nativeGetRemotePeer();
+  @pragma("vm:external-name", "Socket_GetSocketId")
+  external int nativeGetSocketId();
+  @pragma("vm:external-name", "Socket_GetError")
+  external OSError nativeGetError();
+  @pragma("vm:external-name", "Socket_GetOption")
+  external nativeGetOption(int option, int protocol);
+  @pragma("vm:external-name", "Socket_GetRawOption")
+  external void nativeGetRawOption(int level, int option, Uint8List data);
+  @pragma("vm:external-name", "Socket_SetOption")
+  external void nativeSetOption(int option, int protocol, value);
+  @pragma("vm:external-name", "Socket_SetRawOption")
+  external void nativeSetRawOption(int level, int option, Uint8List data);
+  @pragma("vm:external-name", "Socket_JoinMulticast")
+  external void nativeJoinMulticast(
+      Uint8List addr, Uint8List? interfaceAddr, int interfaceIndex);
+  @pragma("vm:external-name", "Socket_LeaveMulticast")
+  external void nativeLeaveMulticast(
+      Uint8List addr, Uint8List? interfaceAddr, int interfaceIndex);
 }
 
 class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {

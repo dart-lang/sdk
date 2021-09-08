@@ -8,7 +8,8 @@
 class ClassID {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  static int getID(Object? value) native "ClassID_getID";
+  @pragma("vm:external-name", "ClassID_getID")
+  external static int getID(Object? value);
 
   @pragma("vm:entry-point")
   static final int cidArray = 0;

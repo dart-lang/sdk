@@ -13,7 +13,8 @@ class List<E> {
 
   @patch
   @pragma("vm:recognized", "other")
-  factory List([int? length]) native "List_new";
+  @pragma("vm:external-name", "List_new")
+  external factory List([int? length]);
 
   @patch
   factory List.filled(int length, E fill, {bool growable: false}) {

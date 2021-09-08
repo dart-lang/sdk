@@ -4551,7 +4551,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-patch\\/"
         "array.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,\"endTokenPos\":"
-        "7758},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "7917},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"},\"typeParameters\":[{"
         "\"type\":\"@"
         "Instance\",\"_vmType\":\"TypeParameter\",\"class\":{\"type\":\"@"
@@ -4559,8 +4559,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"\",\"uri\":\"dart:core-patch\\/"
-        "type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":1584,"
-        "\"endTokenPos\":1729},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":1749,"
+        "\"endTokenPos\":1894},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":",
         buffer);

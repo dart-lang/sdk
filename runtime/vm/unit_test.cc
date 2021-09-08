@@ -219,10 +219,14 @@ bool TestCase::IsNNBD() {
 }
 
 #ifndef PRODUCT
-static const char* kIsolateReloadTestLibSource =
-    "void reloadTest() native 'Test_Reload';\n"
-    "void collectNewSpace() native 'Test_CollectNewSpace';\n"
-    "void collectOldSpace() native 'Test_CollectOldSpace';\n";
+static const char* kIsolateReloadTestLibSource = R"(
+@pragma("vm:external-name", "Test_Reload")
+external void reloadTest();
+@pragma("vm:external-name", "Test_CollectNewSpace")
+external void collectNewSpace();
+@pragma("vm:external-name", "Test_CollectOldSpace")
+external void collectOldSpace();
+)";
 
 static const char* IsolateReloadTestLibUri() {
   return "test:isolate_reload_helper";

@@ -16,15 +16,20 @@ class UserTag {
 
 @pragma("vm:entry-point")
 class _UserTag implements UserTag {
-  factory _UserTag(String label) native "UserTag_new";
-  String get label native "UserTag_label";
-  UserTag makeCurrent() native "UserTag_makeCurrent";
+  @pragma("vm:external-name", "UserTag_new")
+  external factory _UserTag(String label);
+  @pragma("vm:external-name", "UserTag_label")
+  external String get label;
+  @pragma("vm:external-name", "UserTag_makeCurrent")
+  external UserTag makeCurrent();
 }
 
 @patch
 UserTag getCurrentTag() => _getCurrentTag();
 @pragma("vm:recognized", "asm-intrinsic")
-UserTag _getCurrentTag() native "Profiler_getCurrentTag";
+@pragma("vm:external-name", "Profiler_getCurrentTag")
+external UserTag _getCurrentTag();
 
 @pragma("vm:recognized", "asm-intrinsic")
-UserTag _getDefaultTag() native "UserTag_defaultTag";
+@pragma("vm:external-name", "UserTag_defaultTag")
+external UserTag _getDefaultTag();

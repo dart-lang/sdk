@@ -101,7 +101,8 @@ double _doublePow(double base, double exponent) {
   return _pow(base.toDouble(), exponent.toDouble());
 }
 
-double _pow(double base, double exponent) native "Math_doublePow";
+@pragma("vm:external-name", "Math_doublePow")
+external double _pow(double base, double exponent);
 
 @pragma("vm:recognized", "other")
 int _intPow(int base, int exponent) {
@@ -163,34 +164,44 @@ double log(num x) => _log(x.toDouble());
 
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _atan2(double a, double b) native "Math_atan2";
+@pragma("vm:external-name", "Math_atan2")
+external double _atan2(double a, double b);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _sin(double x) native "Math_sin";
+@pragma("vm:external-name", "Math_sin")
+external double _sin(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _cos(double x) native "Math_cos";
+@pragma("vm:external-name", "Math_cos")
+external double _cos(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _tan(double x) native "Math_tan";
+@pragma("vm:external-name", "Math_tan")
+external double _tan(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _acos(double x) native "Math_acos";
+@pragma("vm:external-name", "Math_acos")
+external double _acos(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _asin(double x) native "Math_asin";
+@pragma("vm:external-name", "Math_asin")
+external double _asin(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _atan(double x) native "Math_atan";
+@pragma("vm:external-name", "Math_atan")
+external double _atan(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _sqrt(double x) native "Math_sqrt";
+@pragma("vm:external-name", "Math_sqrt")
+external double _sqrt(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _exp(double x) native "Math_exp";
+@pragma("vm:external-name", "Math_exp")
+external double _exp(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-double _log(double x) native "Math_log";
+@pragma("vm:external-name", "Math_log")
+external double _log(double x);
 
 // TODO(iposva): Handle patch methods within a patch class correctly.
 @patch
@@ -235,7 +246,8 @@ class _Random implements Random {
   // fail with --throw_on_javascript_int_overflow.
   // TODO(regis): Implement in Dart and remove Random_nextState in math.cc.
   @pragma("vm:recognized", "asm-intrinsic")
-  void _nextState() native "Random_nextState";
+  @pragma("vm:external-name", "Random_nextState")
+  external void _nextState();
 
   int nextInt(int max) {
     const limit = 0x3FFFFFFF;
@@ -278,9 +290,11 @@ class _Random implements Random {
   // This is a native to prevent 64-bit operations in Dart, which
   // fail with --throw_on_javascript_int_overflow.
   // TODO(regis): Implement here in Dart and remove native in math.cc.
-  static Uint32List _setupSeed(int seed) native "Random_setupSeed";
+  @pragma("vm:external-name", "Random_setupSeed")
+  external static Uint32List _setupSeed(int seed);
   // Get a seed from the VM's random number provider.
-  static Uint32List _initialSeed() native "Random_initialSeed";
+  @pragma("vm:external-name", "Random_initialSeed")
+  external static Uint32List _initialSeed();
 
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
@@ -296,7 +310,8 @@ class _SecureRandom implements Random {
   }
 
   // Return count bytes of entropy as a positive integer; count <= 8.
-  static int _getBytes(int count) native "SecureRandom_getBytes";
+  @pragma("vm:external-name", "SecureRandom_getBytes")
+  external static int _getBytes(int count);
 
   int nextInt(int max) {
     RangeError.checkValueInInterval(

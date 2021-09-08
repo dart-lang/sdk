@@ -54,7 +54,8 @@ class Asset {
   String toString() => '$name ($mimeType)';
 }
 
-List _decodeAssets(Uint8List data) native 'VMService_DecodeAssets';
+@pragma("vm:external-name", "VMService_DecodeAssets")
+external List _decodeAssets(Uint8List data);
 
 Map<String, Asset>? _assets;
 Map<String, Asset> get assets {

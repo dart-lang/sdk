@@ -11,10 +11,14 @@ class _LibraryPrefix {
     throw "Unreachable";
   }
 
-  bool _isLoaded() native "LibraryPrefix_isLoaded";
-  void _setLoaded() native "LibraryPrefix_setLoaded";
-  Object _loadingUnit() native "LibraryPrefix_loadingUnit";
-  static void _issueLoad(Object unit) native "LibraryPrefix_issueLoad";
+  @pragma("vm:external-name", "LibraryPrefix_isLoaded")
+  external bool _isLoaded();
+  @pragma("vm:external-name", "LibraryPrefix_setLoaded")
+  external void _setLoaded();
+  @pragma("vm:external-name", "LibraryPrefix_loadingUnit")
+  external Object _loadingUnit();
+  @pragma("vm:external-name", "LibraryPrefix_issueLoad")
+  external static void _issueLoad(Object unit);
 
   static final _loads = new Map<Object, Completer<void>>();
 }

@@ -522,4 +522,5 @@ class Server {
   }
 }
 
-void _notifyServerState(String uri) native 'VMServiceIO_NotifyServerState';
+@pragma("vm:external-name", "VMServiceIO_NotifyServerState")
+external void _notifyServerState(String uri);

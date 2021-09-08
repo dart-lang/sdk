@@ -351,8 +351,12 @@ class KernelLoader : public ValueObject {
       const Library& core_lib =
           Library::Handle(zone_, dart::Library::CoreLibrary());
       pragma_class_ = core_lib.LookupLocalClass(Symbols::Pragma());
+      pragma_name_field_ = pragma_class_.LookupField(Symbols::name());
+      pragma_options_field_ = pragma_class_.LookupField(Symbols::options());
     }
     ASSERT(!pragma_class_.IsNull());
+    ASSERT(!pragma_name_field_.IsNull());
+    ASSERT(!pragma_options_field_.IsNull());
     ASSERT(pragma_class_.is_declaration_loaded());
   }
 
@@ -404,6 +408,8 @@ class KernelLoader : public ValueObject {
   Object& static_field_value_;
 
   Class& pragma_class_;
+  Field& pragma_name_field_;
+  Field& pragma_options_field_;
 
   Smi& name_index_handle_;
 

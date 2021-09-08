@@ -65,9 +65,11 @@ String _makeSignatureString(
   return buf.toString();
 }
 
-SourceLocation? _location(reflectee) native "DeclarationMirror_location";
+@pragma("vm:external-name", "DeclarationMirror_location")
+external SourceLocation? _location(reflectee);
 
-List<dynamic> _metadata(reflectee) native 'DeclarationMirror_metadata';
+@pragma("vm:external-name", "DeclarationMirror_metadata")
+external List<dynamic> _metadata(reflectee);
 
 List<InstanceMirror> _wrapMetadata(List reflectees) {
   var mirrors = <InstanceMirror>[];
@@ -77,7 +79,8 @@ List<InstanceMirror> _wrapMetadata(List reflectees) {
   return new UnmodifiableListView<InstanceMirror>(mirrors);
 }
 
-bool _subtypeTest(Type a, Type b) native 'TypeMirror_subtypeTest';
+@pragma("vm:external-name", "TypeMirror_subtypeTest")
+external bool _subtypeTest(Type a, Type b);
 
 class _MirrorSystem extends MirrorSystem {
   final TypeMirror dynamicType = new _SpecialTypeMirror._('dynamic');
@@ -97,7 +100,8 @@ class _MirrorSystem extends MirrorSystem {
     return _libraries;
   }
 
-  static List<dynamic> _computeLibraries() native "MirrorSystem_libraries";
+  @pragma("vm:external-name", "MirrorSystem_libraries")
+  external static List<dynamic> _computeLibraries();
 
   IsolateMirror? _isolate;
   IsolateMirror get isolate {
@@ -106,7 +110,8 @@ class _MirrorSystem extends MirrorSystem {
     return _isolate = _computeIsolate();
   }
 
-  static IsolateMirror _computeIsolate() native "MirrorSystem_isolate";
+  @pragma("vm:external-name", "MirrorSystem_isolate")
+  external static IsolateMirror _computeIsolate();
 
   String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
@@ -145,7 +150,8 @@ class _IsolateMirror extends Mirror implements IsolateMirror {
     return result;
   }
 
-  static LibraryMirror? _loadUri(String uri) native "IsolateMirror_loadUri";
+  @pragma("vm:external-name", "IsolateMirror_loadUri")
+  external static LibraryMirror? _loadUri(String uri);
 }
 
 class _SyntheticAccessor implements MethodMirror {
@@ -333,15 +339,17 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     return reflect(this._invoke(_reflectee, _n(memberName), arguments, names));
   }
 
-  _invoke(reflectee, functionName, arguments, argumentNames)
-      native 'InstanceMirror_invoke';
+  @pragma("vm:external-name", "InstanceMirror_invoke")
+  external _invoke(reflectee, functionName, arguments, argumentNames);
 
-  _invokeGetter(reflectee, getterName) native 'InstanceMirror_invokeGetter';
+  @pragma("vm:external-name", "InstanceMirror_invokeGetter")
+  external _invokeGetter(reflectee, getterName);
 
-  _invokeSetter(reflectee, setterName, value)
-      native 'InstanceMirror_invokeSetter';
+  @pragma("vm:external-name", "InstanceMirror_invokeSetter")
+  external _invokeSetter(reflectee, setterName, value);
 
-  static _computeType(reflectee) native 'InstanceMirror_computeType';
+  @pragma("vm:external-name", "InstanceMirror_computeType")
+  external static _computeType(reflectee);
 }
 
 class _ClosureMirror extends _InstanceMirror implements ClosureMirror {
@@ -361,7 +369,8 @@ class _ClosureMirror extends _InstanceMirror implements ClosureMirror {
 
   String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
 
-  static _computeFunction(reflectee) native 'ClosureMirror_function';
+  @pragma("vm:external-name", "ClosureMirror_function")
+  external static _computeFunction(reflectee);
 }
 
 abstract class _TypeMirror {
@@ -712,45 +721,51 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return false;
   }
 
-  static String _libraryUri(reflectee) native "ClassMirror_libraryUri";
+  @pragma("vm:external-name", "ClassMirror_libraryUri")
+  external static String _libraryUri(reflectee);
 
-  static Type? _supertype(reflectedType) native "ClassMirror_supertype";
+  @pragma("vm:external-name", "ClassMirror_supertype")
+  external static Type? _supertype(reflectedType);
 
-  static Type? _supertypeInstantiated(reflectedType)
-      native "ClassMirror_supertype_instantiated";
+  @pragma("vm:external-name", "ClassMirror_supertype_instantiated")
+  external static Type? _supertypeInstantiated(reflectedType);
 
-  static List<dynamic> _nativeInterfaces(reflectedType)
-      native "ClassMirror_interfaces";
+  @pragma("vm:external-name", "ClassMirror_interfaces")
+  external static List<dynamic> _nativeInterfaces(reflectedType);
 
-  static List<dynamic> _nativeInterfacesInstantiated(reflectedType)
-      native "ClassMirror_interfaces_instantiated";
+  @pragma("vm:external-name", "ClassMirror_interfaces_instantiated")
+  external static List<dynamic> _nativeInterfacesInstantiated(reflectedType);
 
-  static Type? _nativeMixin(reflectedType) native "ClassMirror_mixin";
+  @pragma("vm:external-name", "ClassMirror_mixin")
+  external static Type? _nativeMixin(reflectedType);
 
-  static Type? _nativeMixinInstantiated(reflectedType, instantiator)
-      native "ClassMirror_mixin_instantiated";
+  @pragma("vm:external-name", "ClassMirror_mixin_instantiated")
+  external static Type? _nativeMixinInstantiated(reflectedType, instantiator);
 
-  static List<dynamic> _computeMembers(owner, reflectee, instantiator)
-      native "ClassMirror_members";
+  @pragma("vm:external-name", "ClassMirror_members")
+  external static List<dynamic> _computeMembers(owner, reflectee, instantiator);
 
-  List<dynamic> _computeConstructors(reflectee, instantiator)
-      native "ClassMirror_constructors";
+  @pragma("vm:external-name", "ClassMirror_constructors")
+  external List<dynamic> _computeConstructors(reflectee, instantiator);
 
-  _invoke(reflectee, memberName, arguments, argumentNames)
-      native 'ClassMirror_invoke';
+  @pragma("vm:external-name", "ClassMirror_invoke")
+  external _invoke(reflectee, memberName, arguments, argumentNames);
 
-  _invokeGetter(reflectee, getterName) native 'ClassMirror_invokeGetter';
+  @pragma("vm:external-name", "ClassMirror_invokeGetter")
+  external _invokeGetter(reflectee, getterName);
 
-  _invokeSetter(reflectee, setterName, value) native 'ClassMirror_invokeSetter';
+  @pragma("vm:external-name", "ClassMirror_invokeSetter")
+  external _invokeSetter(reflectee, setterName, value);
 
-  static _invokeConstructor(reflectee, type, constructorName, arguments,
-      argumentNames) native 'ClassMirror_invokeConstructor';
+  @pragma("vm:external-name", "ClassMirror_invokeConstructor")
+  external static _invokeConstructor(
+      reflectee, type, constructorName, arguments, argumentNames);
 
-  static List<dynamic> _ClassMirror_type_variables(reflectee)
-      native "ClassMirror_type_variables";
+  @pragma("vm:external-name", "ClassMirror_type_variables")
+  external static List<dynamic> _ClassMirror_type_variables(reflectee);
 
-  static List<dynamic> _computeTypeArguments(reflectee)
-      native "ClassMirror_type_arguments";
+  @pragma("vm:external-name", "ClassMirror_type_arguments")
+  external static List<dynamic> _computeTypeArguments(reflectee);
 }
 
 class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
@@ -802,14 +817,14 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
-  MethodMirror _FunctionTypeMirror_call_method(signatureReflectee)
-      native "FunctionTypeMirror_call_method";
+  @pragma("vm:external-name", "FunctionTypeMirror_call_method")
+  external MethodMirror _FunctionTypeMirror_call_method(signatureReflectee);
 
-  static Type _FunctionTypeMirror_return_type(signatureReflectee)
-      native "FunctionTypeMirror_return_type";
+  @pragma("vm:external-name", "FunctionTypeMirror_return_type")
+  external static Type _FunctionTypeMirror_return_type(signatureReflectee);
 
-  List<dynamic> _FunctionTypeMirror_parameters(signatureReflectee)
-      native "FunctionTypeMirror_parameters";
+  @pragma("vm:external-name", "FunctionTypeMirror_parameters")
+  external List<dynamic> _FunctionTypeMirror_parameters(signatureReflectee);
 }
 
 abstract class _DeclarationMirror extends Mirror implements DeclarationMirror {
@@ -906,11 +921,11 @@ class _TypeVariableMirror extends _DeclarationMirror
         _subtypeTest(otherReflectedType, _reflectedType);
   }
 
-  static DeclarationMirror _TypeVariableMirror_owner(reflectee)
-      native "TypeVariableMirror_owner";
+  @pragma("vm:external-name", "TypeVariableMirror_owner")
+  external static DeclarationMirror _TypeVariableMirror_owner(reflectee);
 
-  static Type _TypeVariableMirror_upper_bound(reflectee)
-      native "TypeVariableMirror_upper_bound";
+  @pragma("vm:external-name", "TypeVariableMirror_upper_bound")
+  external static Type _TypeVariableMirror_upper_bound(reflectee);
 }
 
 Symbol _asSetter(Symbol getter, LibraryMirror library) {
@@ -977,18 +992,20 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
             _libraryDependencies(_reflectee).cast<LibraryDependencyMirror>());
   }
 
-  List<dynamic> _libraryDependencies(reflectee)
-      native 'LibraryMirror_libraryDependencies';
+  @pragma("vm:external-name", "LibraryMirror_libraryDependencies")
+  external List<dynamic> _libraryDependencies(reflectee);
 
-  _invoke(reflectee, memberName, arguments, argumentNames)
-      native 'LibraryMirror_invoke';
+  @pragma("vm:external-name", "LibraryMirror_invoke")
+  external _invoke(reflectee, memberName, arguments, argumentNames);
 
-  _invokeGetter(reflectee, getterName) native 'LibraryMirror_invokeGetter';
+  @pragma("vm:external-name", "LibraryMirror_invokeGetter")
+  external _invokeGetter(reflectee, getterName);
 
-  _invokeSetter(reflectee, setterName, value)
-      native 'LibraryMirror_invokeSetter';
+  @pragma("vm:external-name", "LibraryMirror_invokeSetter")
+  external _invokeSetter(reflectee, setterName, value);
 
-  List<dynamic> _computeMembers(reflectee) native "LibraryMirror_members";
+  @pragma("vm:external-name", "LibraryMirror_members")
+  external List<dynamic> _computeMembers(reflectee);
 }
 
 class _LibraryDependencyMirror extends Mirror
@@ -1037,8 +1054,8 @@ class _LibraryDependencyMirror extends Mirror
     });
   }
 
-  static LibraryMirror _tryUpgradePrefix(libraryPrefix)
-      native "LibraryMirror_fromPrefix";
+  @pragma("vm:external-name", "LibraryMirror_fromPrefix")
+  external static LibraryMirror _tryUpgradePrefix(libraryPrefix);
 
   SourceLocation? get location => null;
 }
@@ -1169,16 +1186,17 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
 
   String toString() => "MethodMirror on '${MirrorSystem.getName(simpleName)}'";
 
-  static dynamic _MethodMirror_owner(reflectee, instantiator)
-      native "MethodMirror_owner";
+  @pragma("vm:external-name", "MethodMirror_owner")
+  external static dynamic _MethodMirror_owner(reflectee, instantiator);
 
-  static dynamic _MethodMirror_return_type(reflectee, instantiator)
-      native "MethodMirror_return_type";
+  @pragma("vm:external-name", "MethodMirror_return_type")
+  external static dynamic _MethodMirror_return_type(reflectee, instantiator);
 
-  List<dynamic> _MethodMirror_parameters(reflectee)
-      native "MethodMirror_parameters";
+  @pragma("vm:external-name", "MethodMirror_parameters")
+  external List<dynamic> _MethodMirror_parameters(reflectee);
 
-  static String? _MethodMirror_source(reflectee) native "MethodMirror_source";
+  @pragma("vm:external-name", "MethodMirror_source")
+  external static String? _MethodMirror_source(reflectee);
 }
 
 class _VariableMirror extends _DeclarationMirror implements VariableMirror {
@@ -1217,8 +1235,8 @@ class _VariableMirror extends _DeclarationMirror implements VariableMirror {
   String toString() =>
       "VariableMirror on '${MirrorSystem.getName(simpleName)}'";
 
-  static _VariableMirror_type(reflectee, instantiator)
-      native "VariableMirror_type";
+  @pragma("vm:external-name", "VariableMirror_type")
+  external static _VariableMirror_type(reflectee, instantiator);
 }
 
 class _ParameterMirror extends _VariableMirror implements ParameterMirror {
@@ -1282,8 +1300,9 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
 
   String toString() => "ParameterMirror on '${_n(simpleName)}'";
 
-  static Type _ParameterMirror_type(_reflectee, _position, instantiator)
-      native "ParameterMirror_type";
+  @pragma("vm:external-name", "ParameterMirror_type")
+  external static Type _ParameterMirror_type(
+      _reflectee, _position, instantiator);
 }
 
 class _SpecialTypeMirror extends Mirror
@@ -1347,12 +1366,12 @@ class _Mirrors {
         : new _InstanceMirror._(reflectee);
   }
 
-  static _ClassMirror _makeLocalClassMirror(Type key)
-      native "Mirrors_makeLocalClassMirror";
-  static TypeMirror _makeLocalTypeMirror(Type key)
-      native "Mirrors_makeLocalTypeMirror";
-  static Type _instantiateGenericType(Type key, typeArguments)
-      native "Mirrors_instantiateGenericType";
+  @pragma("vm:external-name", "Mirrors_makeLocalClassMirror")
+  external static _ClassMirror _makeLocalClassMirror(Type key);
+  @pragma("vm:external-name", "Mirrors_makeLocalTypeMirror")
+  external static TypeMirror _makeLocalTypeMirror(Type key);
+  @pragma("vm:external-name", "Mirrors_instantiateGenericType")
+  external static Type _instantiateGenericType(Type key, typeArguments);
 
   static Expando<_ClassMirror> _declarationCache = new Expando("ClassMirror");
   static Expando<TypeMirror> _instantiationCache = new Expando("TypeMirror");

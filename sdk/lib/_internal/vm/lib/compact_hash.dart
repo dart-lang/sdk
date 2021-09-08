@@ -51,42 +51,52 @@ abstract class _HashVMBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
   @pragma("vm:prefer-inline")
-  Uint32List get _index native "LinkedHashBase_getIndex";
+  @pragma("vm:external-name", "LinkedHashBase_getIndex")
+  external Uint32List get _index;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _index(Uint32List value) native "LinkedHashBase_setIndex";
+  @pragma("vm:external-name", "LinkedHashBase_setIndex")
+  external void set _index(Uint32List value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get _hashMask native "LinkedHashBase_getHashMask";
+  @pragma("vm:external-name", "LinkedHashBase_getHashMask")
+  external int get _hashMask;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _hashMask(int value) native "LinkedHashBase_setHashMask";
+  @pragma("vm:external-name", "LinkedHashBase_setHashMask")
+  external void set _hashMask(int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_List")
   @pragma("vm:prefer-inline")
-  List get _data native "LinkedHashBase_getData";
+  @pragma("vm:external-name", "LinkedHashBase_getData")
+  external List get _data;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _data(List value) native "LinkedHashBase_setData";
+  @pragma("vm:external-name", "LinkedHashBase_setData")
+  external void set _data(List value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get _usedData native "LinkedHashBase_getUsedData";
+  @pragma("vm:external-name", "LinkedHashBase_getUsedData")
+  external int get _usedData;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _usedData(int value) native "LinkedHashBase_setUsedData";
+  @pragma("vm:external-name", "LinkedHashBase_setUsedData")
+  external void set _usedData(int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get _deletedKeys native "LinkedHashBase_getDeletedKeys";
+  @pragma("vm:external-name", "LinkedHashBase_getDeletedKeys")
+  external int get _deletedKeys;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  void set _deletedKeys(int value) native "LinkedHashBase_setDeletedKeys";
+  @pragma("vm:external-name", "LinkedHashBase_setDeletedKeys")
+  external void set _deletedKeys(int value);
 }
 
 // Base class for VM-internal classes; keep in sync with _HashFieldBase.

@@ -9,17 +9,19 @@
 class DateTime {
   // Natives.
   // The natives have been moved up here to work around Issue 10401.
-  static int _getCurrentMicros() native "DateTime_currentTimeMicros";
+  @pragma("vm:external-name", "DateTime_currentTimeMicros")
+  external static int _getCurrentMicros();
 
-  static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch)
-      native "DateTime_timeZoneName";
+  @pragma("vm:external-name", "DateTime_timeZoneName")
+  external static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch);
 
-  static int _timeZoneOffsetInSecondsForClampedSeconds(int secondsSinceEpoch)
-      native "DateTime_timeZoneOffsetInSeconds";
+  @pragma("vm:external-name", "DateTime_timeZoneOffsetInSeconds")
+  external static int _timeZoneOffsetInSecondsForClampedSeconds(
+      int secondsSinceEpoch);
 
   // Daylight-savings independent adjustment for the local time zone.
-  static int _localTimeZoneAdjustmentInSeconds()
-      native "DateTime_localTimeZoneAdjustmentInSeconds";
+  @pragma("vm:external-name", "DateTime_localTimeZoneAdjustmentInSeconds")
+  external static int _localTimeZoneAdjustmentInSeconds();
 
   static const _MICROSECOND_INDEX = 0;
   static const _MILLISECOND_INDEX = 1;

@@ -3125,7 +3125,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   result_ = Type::New(klass, type_arguments, nullability);
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
-    ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(result_);
   }
 }
