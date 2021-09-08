@@ -14,5 +14,3 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-static method _#D2#new#tearOff<X extends core::num>() → self::A<self::_#D2#new#tearOff::X>
-  return new self::A::•<self::_#D2#new#tearOff::X>();
