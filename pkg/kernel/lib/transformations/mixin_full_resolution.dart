@@ -146,7 +146,9 @@ class MixinFullResolution {
         class_.addField(clone);
       }
       class_.procedures.clear();
-      class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
+      class_.procedures
+        ..addAll(nonSetters.values)
+        ..addAll(setters.values);
     }
 
     // Existing procedures in the class should only be forwarding stubs.
@@ -190,6 +192,17 @@ class MixinFullResolution {
             // and don't add several procedures with the same name to the class.
             continue outer;
           }
+          if (procedure.isAbstract &&
+              (originalProcedure.stubKind ==
+                      ProcedureStubKind.ConcreteForwardingStub ||
+                  originalProcedure.stubKind ==
+                      ProcedureStubKind.ConcreteMixinStub)) {
+            // Don't replace concrete stubs with abstract methods.
+            originalProcedure.stubKind = ProcedureStubKind.Regular;
+            originalProcedure.stubTarget = null;
+            continue outer;
+          }
+
           originalIndex = i;
           break;
         }

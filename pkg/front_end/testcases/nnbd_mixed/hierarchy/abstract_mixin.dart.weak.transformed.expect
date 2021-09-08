@@ -30,7 +30,8 @@ class Class extends self::Super implements self::Interface, self::Mixin /*isElim
     ;
   abstract method extendedConcreteMixedInAbstractMethod() → void;
   method extendedConcreteMixedInConcreteMethod() → void {}
-  abstract method extendedConcreteMixedInAbstractImplementedMethod(covariant core::int i) → void;
+  method extendedConcreteMixedInAbstractImplementedMethod(covariant core::int i) → void
+    return super.{self::Super::extendedConcreteMixedInAbstractImplementedMethod}(i);
   method extendedConcreteMixedInConcreteImplementedMethod(covariant core::int i) → void {}
 }
 class Sub extends self::Class {
