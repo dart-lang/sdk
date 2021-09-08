@@ -267,13 +267,23 @@ class GenericInstantiation {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! GenericInstantiation) return false;
-    return functionType == other.functionType &&
-        equalElements(typeArguments, other.typeArguments);
+    if (functionType == other.functionType &&
+        equalElements(typeArguments, other.typeArguments)) {
+      assert(
+          this.hashCode == other.hashCode,
+          '\nthis:  ${this.hashCode}  $this'
+          '\nthis:  ${other.hashCode}  $other');
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
   String toString() {
-    return 'GenericInstantiation(functionType:$functionType,'
-        'typeArguments:$typeArguments)';
+    return 'GenericInstantiation('
+        'functionType:$functionType,'
+        'typeArguments:$typeArguments'
+        ')';
   }
 }

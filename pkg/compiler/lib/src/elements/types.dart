@@ -480,6 +480,9 @@ class FunctionTypeVariable extends DartType {
   }
 
   @override
+  int get hashCode => index * 113; // ignore bound which can have cycles.
+
+  @override
   bool _equals(DartType other, _Assumptions assumptions) {
     if (identical(this, other)) return true;
     if (other is! FunctionTypeVariable) return false;
