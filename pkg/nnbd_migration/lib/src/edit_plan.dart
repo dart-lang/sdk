@@ -15,7 +15,6 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 Map<int?, List<AtomicEdit>>? _removeCode(
     int offset, int end, _RemovalStyle removalStyle, AtomicEditInfo? info) {
