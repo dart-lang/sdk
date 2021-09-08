@@ -112,6 +112,7 @@ import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
 import 'pubspec/test_all.dart' as pubspec;
 import 'qualify_reference_test.dart' as qualify_reference;
+import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
@@ -296,6 +297,7 @@ void main() {
     organize_imports.main();
     pubspec.main();
     qualify_reference.main();
+    remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
     remove_await.main();

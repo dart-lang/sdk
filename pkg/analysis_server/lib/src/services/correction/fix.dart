@@ -713,6 +713,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Use '{0}'",
   );
+  static const REMOVE_ABSTRACT = FixKind(
+    'dart.fix.remove.abstract',
+    DartFixKindPriority.DEFAULT,
+    "Remove the 'abstract' keyword",
+  );
+  static const REMOVE_ABSTRACT_MULTI = FixKind(
+    'dart.fix.remove.abstract.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove the 'abstract' keyword everywhere in file",
+  );
   static const REMOVE_ANNOTATION = FixKind(
     'dart.fix.remove.annotation',
     DartFixKindPriority.DEFAULT,

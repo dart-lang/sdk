@@ -178,6 +178,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
+import 'dart/remove_abstract.dart';
+
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
 
@@ -1216,6 +1218,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.UNUSED_SHOWN_NAME: [
       RemoveNameFromCombinator.newInstance,
+    ],
+    ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
+      RemoveAbstract.newInstance,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.newInstance,
