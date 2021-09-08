@@ -119,7 +119,7 @@ abstract class EntityDataMapBase<E extends _Indexed, D>
   D getData(E entity) {
     int index = entity._index;
     if (index < _list.length && index >= _data.length) {
-      throw new StateError(
+      throw StateError(
           'Data is in the process of being created for ${_list[index]}.');
     }
     return _data[index];
@@ -169,7 +169,7 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
   /// Calls [f] for each non-null entity with its corresponding data object.
   void forEach<E0 extends E, D0 extends D>(void f(E0 entity, D0 data)) {
     if (_list.length != _data.length) {
-      throw new StateError('Data is in the process of being created.');
+      throw StateError('Data is in the process of being created.');
     }
     for (int index = 0; index < _list.length; index++) {
       E entity = _list[index];
@@ -190,7 +190,7 @@ abstract class EntityDataEnvMapBase<E extends _Indexed, D, V>
   V getEnv(E entity) {
     int index = entity._index;
     if (index < _list.length && index >= _env.length) {
-      throw new StateError(
+      throw StateError(
           'Env is in the process of being created for ${_list[index]}.');
     }
     return _env[index];
@@ -244,10 +244,10 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
   void forEach<E0 extends E, D0 extends D, V0 extends V>(
       void f(E0 entity, D0 data, V0 env)) {
     if (_list.length != _data.length) {
-      throw new StateError('Data is in the process of being created.');
+      throw StateError('Data is in the process of being created.');
     }
     if (_list.length != _env.length) {
-      throw new StateError('Env is in the process of being created.');
+      throw StateError('Env is in the process of being created.');
     }
     for (int index = 0; index < _list.length; index++) {
       E entity = _list[index];

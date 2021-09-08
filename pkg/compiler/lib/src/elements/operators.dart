@@ -23,23 +23,23 @@ class UnaryOperator {
 
   bool get isUserDefinable => selectorName != null;
 
-  Selector get selector => new Selector(SelectorKind.OPERATOR,
-      new PublicName(selectorName), CallStructure.NO_ARGS);
+  Selector get selector => Selector(
+      SelectorKind.OPERATOR, PublicName(selectorName), CallStructure.NO_ARGS);
 
   @override
   String toString() => name;
 
   /// The unary ! operator.
   static const UnaryOperator NOT =
-      const UnaryOperator(UnaryOperatorKind.NOT, '!', null);
+      UnaryOperator(UnaryOperatorKind.NOT, '!', null);
 
   /// The unary - operator.
   static const UnaryOperator NEGATE =
-      const UnaryOperator(UnaryOperatorKind.NEGATE, '-', 'unary-');
+      UnaryOperator(UnaryOperatorKind.NEGATE, '-', 'unary-');
 
   /// The unary ~ operator.
   static const UnaryOperator COMPLEMENT =
-      const UnaryOperator(UnaryOperatorKind.COMPLEMENT, '~', '~');
+      UnaryOperator(UnaryOperatorKind.COMPLEMENT, '~', '~');
 
   static UnaryOperator parse(String value) {
     switch (value) {
@@ -109,90 +109,87 @@ class BinaryOperator {
 
   /// The == operator.
   static const BinaryOperator EQ =
-      const BinaryOperator._(BinaryOperatorKind.EQ, '==');
+      BinaryOperator._(BinaryOperatorKind.EQ, '==');
 
   /// The != operator.
-  static const BinaryOperator NOT_EQ = const _NotEqualsOperator();
+  static const BinaryOperator NOT_EQ = _NotEqualsOperator();
 
   /// The [] operator.
   static const BinaryOperator INDEX =
-      const BinaryOperator._(BinaryOperatorKind.INDEX, '[]');
+      BinaryOperator._(BinaryOperatorKind.INDEX, '[]');
 
   /// The binary + operator.
   static const BinaryOperator ADD =
-      const BinaryOperator._(BinaryOperatorKind.ADD, '+');
+      BinaryOperator._(BinaryOperatorKind.ADD, '+');
 
   /// The binary - operator.
   static const BinaryOperator SUB =
-      const BinaryOperator._(BinaryOperatorKind.SUB, '-');
+      BinaryOperator._(BinaryOperatorKind.SUB, '-');
 
   /// The binary * operator.
   static const BinaryOperator MUL =
-      const BinaryOperator._(BinaryOperatorKind.MUL, '*');
+      BinaryOperator._(BinaryOperatorKind.MUL, '*');
 
   /// The binary / operator.
   static const BinaryOperator DIV =
-      const BinaryOperator._(BinaryOperatorKind.DIV, '/');
+      BinaryOperator._(BinaryOperatorKind.DIV, '/');
 
   /// The binary ~/ operator.
   static const BinaryOperator IDIV =
-      const BinaryOperator._(BinaryOperatorKind.IDIV, '~/');
+      BinaryOperator._(BinaryOperatorKind.IDIV, '~/');
 
   /// The binary % operator.
   static const BinaryOperator MOD =
-      const BinaryOperator._(BinaryOperatorKind.MOD, '%');
+      BinaryOperator._(BinaryOperatorKind.MOD, '%');
 
   /// The binary << operator.
   static const BinaryOperator SHL =
-      const BinaryOperator._(BinaryOperatorKind.SHL, '<<');
+      BinaryOperator._(BinaryOperatorKind.SHL, '<<');
 
   /// The binary >> operator.
   static const BinaryOperator SHR =
-      const BinaryOperator._(BinaryOperatorKind.SHR, '>>');
+      BinaryOperator._(BinaryOperatorKind.SHR, '>>');
 
   /// The binary >>> operator.
   static const BinaryOperator SHRU =
-      const BinaryOperator._(BinaryOperatorKind.SHRU, '>>>');
+      BinaryOperator._(BinaryOperatorKind.SHRU, '>>>');
 
   /// The binary >= operator.
   static const BinaryOperator GTEQ =
-      const BinaryOperator._(BinaryOperatorKind.GTEQ, '>=');
+      BinaryOperator._(BinaryOperatorKind.GTEQ, '>=');
 
   /// The binary > operator.
-  static const BinaryOperator GT =
-      const BinaryOperator._(BinaryOperatorKind.GT, '>');
+  static const BinaryOperator GT = BinaryOperator._(BinaryOperatorKind.GT, '>');
 
   /// The binary <= operator.
   static const BinaryOperator LTEQ =
-      const BinaryOperator._(BinaryOperatorKind.LTEQ, '<=');
+      BinaryOperator._(BinaryOperatorKind.LTEQ, '<=');
 
   /// The binary < operator.
-  static const BinaryOperator LT =
-      const BinaryOperator._(BinaryOperatorKind.LT, '<');
+  static const BinaryOperator LT = BinaryOperator._(BinaryOperatorKind.LT, '<');
 
   /// The binary & operator.
   static const BinaryOperator AND =
-      const BinaryOperator._(BinaryOperatorKind.AND, '&');
+      BinaryOperator._(BinaryOperatorKind.AND, '&');
 
   /// The binary | operator.
-  static const BinaryOperator OR =
-      const BinaryOperator._(BinaryOperatorKind.OR, '|');
+  static const BinaryOperator OR = BinaryOperator._(BinaryOperatorKind.OR, '|');
 
   /// The binary ^ operator.
   static const BinaryOperator XOR =
-      const BinaryOperator._(BinaryOperatorKind.XOR, '^');
+      BinaryOperator._(BinaryOperatorKind.XOR, '^');
 
   /// The logical && operator.
   static const BinaryOperator LOGICAL_AND =
-      const _LogicalOperator(BinaryOperatorKind.LOGICAL_AND, '&&');
+      _LogicalOperator(BinaryOperatorKind.LOGICAL_AND, '&&');
 
   /// The binary | operator.
   static const BinaryOperator LOGICAL_OR =
-      const _LogicalOperator(BinaryOperatorKind.LOGICAL_OR, '||');
+      _LogicalOperator(BinaryOperatorKind.LOGICAL_OR, '||');
 
   /// The if-null ?? operator.
   static const BinaryOperator IF_NULL =
-      const _IfNullOperator(BinaryOperatorKind.IF_NULL, '??');
+      _IfNullOperator(BinaryOperatorKind.IF_NULL, '??');
 
   static BinaryOperator parse(String value) {
     switch (value) {
