@@ -234,6 +234,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add super constructor {0} invocation',
   );
+  static const ADD_SWITCH_CASE_BREAK = FixKind(
+    'dart.fix.add.switchCaseReturn',
+    DartFixKindPriority.DEFAULT,
+    "Add 'break'",
+  );
+  static const ADD_SWITCH_CASE_BREAK_MULTI = FixKind(
+    'dart.fix.add.switchCaseReturn.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add 'break' everywhere in file",
+  );
   static const ADD_TYPE_ANNOTATION = FixKind(
     'dart.fix.add.typeAnnotation',
     DartFixKindPriority.DEFAULT,

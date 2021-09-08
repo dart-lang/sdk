@@ -28,6 +28,7 @@ import 'package:analysis_server/src/services/correction/dart/add_required_keywor
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
@@ -927,6 +928,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
       MakeReturnTypeNullable.newInstance,
       ReplaceReturnType.newInstance,
+    ],
+    CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
+      AddSwitchCaseBreak.newInstance,
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
       ChangeTo.classOrMixin,
