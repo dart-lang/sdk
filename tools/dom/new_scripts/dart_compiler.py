@@ -34,7 +34,7 @@ Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
 import abc
 from optparse import OptionParser
 import os
-import cPickle as pickle
+import pickle
 
 from idl_reader import IdlReader
 from utilities import write_file

@@ -7,6 +7,7 @@ import os
 import sys
 
 import idl_definitions
+from generator import MultitypeSortKey
 from idl_types import IdlType, IdlNullableType, IdlUnionType, IdlArrayOrSequenceType
 import dependency
 
@@ -88,12 +89,18 @@ class IDLNode(object):
         """Returns string of extra info for __repr__()."""
         return ''
 
-    def __cmp__(self, other):
-        """Override default compare operation.
+    def __eq__(self, other):
+        """Override default equals operation.
     IDLNodes are equal if all their properties are equal."""
         if other is None or not isinstance(other, IDLNode):
             return 1
-        return self.__dict__.__cmp__(other.__dict__)
+        return self.__dict__.__eq__(other.__dict__)
+
+    def __hash__(self):
+        """Define default hashing behavior.
+    In order to comply with a == b => hash(a) == hash(b), we recursively iterate
+    self.__dict__ and convert all objects to hashable objects."""
+        return self.to_hash()
 
     def reset_id(self, newId):
         """Reset the id of the Node.  This is typically done during a normalization
@@ -152,7 +159,36 @@ class IDLNode(object):
             res[k] = v
         return res
 
-    def _find_all(self, ast, label, max_results=sys.maxint):
+    def to_hash(self):
+        return hash(self._to_hashable(self))
+
+    def _to_hashable(self, obj):
+        # By default, lists and dicts are not hashable, and user-defined objects
+        # are unordered. In order to make a consistent hash for a given object,
+        # this converts unhashable types and sorts properties.
+        if isinstance(obj, list):
+            # Convert lists to tuples.
+            new_obj = []
+            for item in obj:
+                new_obj.append(self._to_hashable(item))
+            return tuple(new_obj)
+        elif isinstance(obj, dict):
+            # Convert dicts to frozensets of tuples.
+            new_obj = set()
+            # Sort to ensure fixed order.
+            for (k2, v2) in sorted(obj.items(), key=MultitypeSortKey):
+                new_obj.add((self._to_hashable(k2), self._to_hashable(v2)))
+            return frozenset(new_obj)
+        elif hasattr(obj, '__dict__'):
+            items = []
+            # Sort properties to ensure fixed order.
+            for (k, v) in sorted(obj.__dict__.items(), key=MultitypeSortKey):
+                items.append((k, self._to_hashable(v)))
+            return tuple(items)
+        else:
+            return obj
+
+    def _find_all(self, ast, label, max_results=sys.maxsize):
         """Searches the AST for tuples with a given label. The PegParser
     output is composed of lists and tuples, where the tuple 1st argument
     is a label. If ast root is a list, will search recursively inside each
@@ -452,9 +488,9 @@ class IDLFile(IDLNode):
                     interface_info = dependency.get_interfaces_info()[interface.
                                                                       id]
 
-                    implements = interface_info[
-                        'implements_interfaces'] if interface_info.has_key(
-                            'implements_interfaces') else []
+                    implements = []
+                    if 'implements_interfaces' in interface_info:
+                        implements = interface_info['implements_interfaces']
                     if not (blink_interface.is_partial) and len(implements) > 0:
                         implementor = new_asts[interface.id].interfaces.get(
                             interface.id)

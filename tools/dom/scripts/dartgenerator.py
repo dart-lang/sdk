@@ -72,13 +72,11 @@ class DartGenerator(object):
 
     def LoadAuxiliary(self, auxiliary_dir):
 
-        def Visitor(_, dirname, names):
+        for (dirname, _, names) in os.walk(auxiliary_dir):
             for name in names:
                 if name.endswith('.dart'):
                     name = name[0:-5]  # strip off ".dart"
                 self._auxiliary_files[name] = os.path.join(dirname, name)
-
-        os.path.walk(auxiliary_dir, Visitor, None)
 
     def FilterMembersWithUnidentifiedTypes(self, database):
         """Removes unidentified types.
@@ -106,10 +104,13 @@ class DartGenerator(object):
                     return False
                 return True
 
-            interface.constants = filter(IsIdentified, interface.constants)
-            interface.attributes = filter(IsIdentified, interface.attributes)
-            interface.operations = filter(IsIdentified, interface.operations)
-            interface.parents = filter(IsIdentified, interface.parents)
+            interface.constants = list(filter(IsIdentified,
+                                              interface.constants))
+            interface.attributes = list(
+                filter(IsIdentified, interface.attributes))
+            interface.operations = list(
+                filter(IsIdentified, interface.operations))
+            interface.parents = list(filter(IsIdentified, interface.parents))
 
     def FilterInterfaces(self,
                          database,

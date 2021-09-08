@@ -10,6 +10,8 @@ import json
 import monitored
 import os
 import re
+from functools import cmp_to_key
+from itertools import zip_longest
 from htmlrenamer import custom_html_constructors, html_interface_renames, \
     typed_array_renames
 
@@ -216,7 +218,7 @@ _suppressed_native_constructors = monitored.Set(
     ])
 
 _custom_types = monitored.Set('generator._custom_types',
-                              typed_array_renames.keys())
+                              list(typed_array_renames.keys()))
 
 
 def IsCustomType(interface_name):
@@ -399,6 +401,19 @@ def MatchSourceFilter(thing):
     return 'WebKit' in thing.annotations or 'Dart' in thing.annotations
 
 
+# Legacy Python 2 way to sort lists. Group by type, and then sort by value.
+class MultitypeSortKey:
+
+    def __init__(self, value):
+        self.value = value
+
+    def __lt__(self, other):
+        try:
+            return self.value < other.value
+        except TypeError:
+            return str(type(self)) < str(type(other))
+
+
 class ParamInfo(object):
     """Holder for various information about a parameter of a Dart operation.
 
@@ -497,7 +512,8 @@ def _BuildArguments(args, interface, constructor=False):
 
     # Given a list of overloaded default values, choose a suitable one.
     def OverloadedDefault(args):
-        defaults = sorted(set(arg.default_value for arg in args))
+        defaults = sorted(set(arg.default_value for arg in args),
+                          key=MultitypeSortKey)
         if len(set(DartType(arg.type.id) for arg in args)) == 1:
             null_default = False
             for arg in args:
@@ -509,14 +525,12 @@ def _BuildArguments(args, interface, constructor=False):
     result = []
 
     is_optional = False
-
     # Process overloaded arguments across a set of overloaded operations.
     # Each tuple in args corresponds to overloaded arguments with the same name.
-    for arg_tuple in map(lambda *x: x, *args):
+    for arg_tuple in list(zip_longest(*args)):
         is_optional = is_optional or any(
             arg is None or IsOptional(arg) for arg in arg_tuple)
-
-        filtered = filter(None, arg_tuple)
+        filtered = list(filter(None, arg_tuple))
         (type_id, is_nullable) = OverloadedType(filtered)
         name = OverloadedName(filtered)
         (default_value, default_value_is_null) = OverloadedDefault(filtered)
@@ -608,9 +622,9 @@ def ConvertToFuture(info):
             return 'Callback' not in type_id
 
     # Success callback is the first argument (change if this no longer holds).
-    new_info.callback_args = filter(lambda x: not IsNotCallbackType(x),
-                                    new_info.param_infos)
-    new_info.param_infos = filter(IsNotCallbackType, new_info.param_infos)
+    new_info.callback_args = list(
+        filter(lambda x: not IsNotCallbackType(x), new_info.param_infos))
+    new_info.param_infos = list(filter(IsNotCallbackType, new_info.param_infos))
     new_info.type_name = 'Future'
 
     return new_info
@@ -745,9 +759,10 @@ class OperationInfo(object):
             # TODO(terry): This may have to change for dart2js for code shaking the
             #              return types (unions) needs to be emitted with @create
             #              annotations and/or with JS('type1|type2',...)
-            if hasattr(rename_type,
-                       'im_self') and rename_type.im_self._database.HasTypeDef(
-                           param.type_id):
+            if hasattr(
+                    rename_type,
+                    '__self__') and rename_type.__self__._database.HasTypeDef(
+                        param.type_id):
                 dart_type = 'dynamic'
             else:
                 dart_type = rename_type(
@@ -783,7 +798,7 @@ class OperationInfo(object):
         def FormatParam(dec):
             return dec[0] + dec[1]
 
-        argtexts = map(FormatParam, required)
+        argtexts = list(map(FormatParam, required))
         if optional:
             left_bracket, right_bracket = '{}' if needs_named else '[]'
             argtexts.append(left_bracket +
@@ -799,7 +814,7 @@ class OperationInfo(object):
         """ Returns a number of required arguments in Dart declaration of
     the operation.
     """
-        return len(filter(lambda i: not i.is_optional, self.param_infos))
+        return len(list(filter(lambda i: not i.is_optional, self.param_infos)))
 
     def ParametersAsArgumentList(self,
                                  parameter_count=None,
@@ -939,9 +954,12 @@ class OperationInfo(object):
             return rename_type(self.type_name)
 
 
-def ConstantOutputOrder(a, b):
+def _ConstantOutputOrder(a, b):
     """Canonical output ordering for constants."""
     return (a.id > b.id) - (a.id < b.id)
+
+
+ConstantOutputOrder = cmp_to_key(_ConstantOutputOrder)
 
 
 def _FormatNameList(names):

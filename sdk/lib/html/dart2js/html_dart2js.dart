@@ -10100,10 +10100,6 @@ class Document extends Node {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitExitFullscreen() native;
 
-  // From NonElementParentNode
-
-  Element? getElementById(String elementId) native;
-
   // From DocumentOrShadowRoot
 
   Element? get activeElement native;
@@ -10125,6 +10121,10 @@ class Document extends Node {
   // From FontFaceSource
 
   FontFaceSet? get fonts native;
+
+  // From NonElementParentNode
+
+  Element? getElementById(String elementId) native;
 
   // From ParentNode
 

@@ -29,7 +29,7 @@ class MultiEmitterTestCase(unittest.TestCase):
             files.append((file, ''.join(contents)))
 
         m.Flush(_Collect)
-        self.assertEquals(expected, files)
+        self.assertEqual(expected, files)
 
     def testExample(self):
         m = multiemitter.MultiEmitter()
