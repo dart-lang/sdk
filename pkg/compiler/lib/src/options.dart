@@ -86,12 +86,15 @@ class FeatureOptions {
     bool _shouldPrint(FeatureOption feature) {
       return feature.isNegativeFlag ? feature.isDisabled : feature.isEnabled;
     }
+
     String _toString(FeatureOption feature) {
       return feature.isNegativeFlag ? 'no-${feature.flag}' : feature.flag;
     }
+
     Iterable<String> _listToString(List<FeatureOption> options) {
       return options.where(_shouldPrint).map(_toString);
     }
+
     return _listToString(shipping).followedBy(_listToString(canary)).join(', ');
   }
 
@@ -152,6 +155,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// use a list of outline files for modular compiles, and only use full kernel
   /// files for linking.
   List<Uri>? dillDependencies;
+
+  Uri? writeModularAnalysisUri;
+
+  /// Helper to determine if compiler is being run just for modular analysis.
+  bool get modularMode => writeModularAnalysisUri != null;
+
+  List<Uri>? modularAnalysisInputs;
 
   /// Location from which serialized inference data is read.
   ///
@@ -637,6 +647,10 @@ class CompilerOptions implements DiagnosticOptions {
           _extractUriListOption(options, '${Flags.dillDependencies}')
       ..readProgramSplit =
           _extractUriOption(options, '${Flags.readProgramSplit}=')
+      ..writeModularAnalysisUri =
+          _extractUriOption(options, '${Flags.writeModularAnalysis}=')
+      ..modularAnalysisInputs =
+          _extractUriListOption(options, '${Flags.readModularAnalysis}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
       ..noClosedWorldInData = _hasOption(options, Flags.noClosedWorldInData)

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
+import 'package:front_end/src/fasta/util/bytes_sink.dart';
 import '../../compiler_new.dart' as api;
 import '../backend_strategy.dart';
 import '../commandline_options.dart' show Flags;
@@ -16,6 +17,7 @@ import '../elements/entities.dart';
 import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../ir/modular.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
@@ -180,6 +182,67 @@ class SerializationTask extends CompilerTask {
     ir.Component component = await deserializeComponent();
     updateOptionsFromComponent(component);
     return component;
+  }
+
+  void serializeModuleData(
+      ModuleData data, ir.Component component, Set<Uri> includedLibraries) {
+    measureSubtask('serialize transformed dill', () {
+      _reporter.log('Writing dill to ${_options.outputUri}');
+      var dillOutput = _outputProvider.createBinarySink(_options.outputUri);
+      var irSink = BinaryOutputSinkAdapter(dillOutput);
+      ir.BinaryPrinter printer = ir.BinaryPrinter(irSink,
+          libraryFilter: (ir.Library l) =>
+              includedLibraries.contains(l.importUri));
+      printer.writeComponentFile(component);
+      irSink.close();
+    });
+
+    measureSubtask('serialize module data', () {
+      _reporter.log('Writing data to ${_options.writeModularAnalysisUri}');
+      api.BinaryOutputSink dataOutput =
+          _outputProvider.createBinarySink(_options.writeModularAnalysisUri);
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
+      data.toDataSink(sink);
+      sink.close();
+    });
+  }
+
+  void testModuleSerialization(ModuleData data, ir.Component component) {
+    if (_options.testMode) {
+      // TODO(joshualitt):
+      // Consider using a strategy like we do for the global data, so we can also
+      // test it with the objectSink/objectSource:
+      //   List<Object> encoding = [];
+      //   DataSink sink = new ObjectSink(encoding, useDataKinds: true);
+      //   data.toDataSink(sink);
+      //   DataSource source = new ObjectSource(encoding, useDataKinds: true);
+      //   source.registerComponentLookup(new ComponentLookup(component));
+      //   ModuleData.fromDataSource(source);
+
+      BytesSink bytes = BytesSink();
+      BinarySink binarySink = BinarySink(bytes, useDataKinds: true);
+      data.toDataSink(binarySink);
+      binarySink.close();
+      var source =
+          BinarySourceImpl(bytes.builder.toBytes(), useDataKinds: true);
+      source.registerComponentLookup(ComponentLookup(component));
+      ModuleData.fromDataSource(source);
+    }
+  }
+
+  Future<List<ModuleData>> deserializeModuleData(ir.Component component) async {
+    return await measureIoSubtask('deserialize module data', () async {
+      _reporter.log('Reading data from ${_options.modularAnalysisInputs}');
+      List<ModuleData> results = [];
+      for (Uri uri in _options.modularAnalysisInputs) {
+        api.Input<List<int>> dataInput =
+            await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
+        DataSource source = BinarySourceImpl(dataInput.data);
+        source.registerComponentLookup(ComponentLookup(component));
+        results.add(ModuleData.fromDataSource(source));
+      }
+      return results;
+    });
   }
 
   void serializeClosedWorld(JsClosedWorld closedWorld) {

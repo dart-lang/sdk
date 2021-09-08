@@ -574,7 +574,7 @@ class ImpactDataImpl implements ImpactData {
     _redirectingInitializers = source.readList(
         () => new _RedirectingInitializer.fromDataSource(source),
         emptyAsNull: true);
-    _fieldInitializers = source.readMemberNodes(emptyAsNull: true);
+    _fieldInitializers = source.readMemberNodes<ir.Field>(emptyAsNull: true);
     _fieldConstantInitializers =
         source.readMemberNodeMap(source.readTreeNodes, emptyAsNull: true);
     _typeLiterals = source.readList(
@@ -601,16 +601,16 @@ class ImpactDataImpl implements ImpactData {
     _setLiterals = source.readList(
         () => new _ContainerLiteral.fromDataSource(source),
         emptyAsNull: true);
-    _symbolLiterals = source.readStrings(emptyAsNull: true).toSet();
-    _stringLiterals = source.readStrings(emptyAsNull: true).toSet();
+    _symbolLiterals = source.readStrings(emptyAsNull: true)?.toSet();
+    _stringLiterals = source.readStrings(emptyAsNull: true)?.toSet();
     _boolLiterals =
-        source.readList(() => source.readBool(), emptyAsNull: true).toSet();
+        source.readList(() => source.readBool(), emptyAsNull: true)?.toSet();
     _doubleLiterals = source
         .readList(() => source.readDoubleValue(), emptyAsNull: true)
-        .toSet();
+        ?.toSet();
     _intLiterals = source
         .readList(() => source.readIntegerValue(), emptyAsNull: true)
-        .toSet();
+        ?.toSet();
     _runtimeTypeUses = source.readList(
         () => new _RuntimeTypeUse.fromDataSource(source),
         emptyAsNull: true);
@@ -1563,6 +1563,7 @@ class _ContainerLiteral {
     ir.DartType elementType = source.readDartTypeNode();
     bool isConst = source.readBool();
     bool isEmpty = source.readBool();
+    source.end(tag);
     return new _ContainerLiteral(elementType,
         isConst: isConst, isEmpty: isEmpty);
   }
@@ -1594,6 +1595,7 @@ class _RuntimeTypeUse {
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
     ir.DartType receiverType = source.readDartTypeNode();
     ir.DartType argumentType = source.readDartTypeNode(allowNull: true);
+    source.end(tag);
     return new _RuntimeTypeUse(node, kind, receiverType, argumentType);
   }
 

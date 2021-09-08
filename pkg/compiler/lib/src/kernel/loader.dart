@@ -72,7 +72,10 @@ class KernelLoaderTask extends CompilerTask {
       }
 
       ir.Component component;
-      var isDill = resolvedUri.path.endsWith('.dill');
+      List<Uri> moduleLibraries = const [];
+      var isDill = resolvedUri.path.endsWith('.dill') ||
+          resolvedUri.path.endsWith('.gdill') ||
+          resolvedUri.path.endsWith('.mdill');
 
       void inferNullSafetyMode(bool isSound) {
         if (_options.nullSafetyMode == NullSafetyMode.unspecified) {
@@ -94,6 +97,10 @@ class KernelLoaderTask extends CompilerTask {
         }
 
         await read(resolvedUri);
+        if (_options.modularMode) {
+          moduleLibraries =
+              component.libraries.map((lib) => lib.importUri).toList();
+        }
 
         var isStrongDill =
             component.mode == ir.NonNullableByDefaultCompiledMode.Strong;
@@ -109,13 +116,19 @@ class KernelLoaderTask extends CompilerTask {
         inferNullSafetyMode(isStrongDill);
         validateNullSafetyMode();
 
+        // Modular compiles do not include the platform on the input dill
+        // either.
+        if (_options.platformBinaries != null) {
+          var platformUri =
+              _options.platformBinaries.resolve(getPlatformFilename());
+          // Modular analysis can be run on the sdk by providing directly the
+          // path to the platform.dill file. In that case, we do not load the
+          // platform file implicitly.
+          // TODO(joshualitt): Change how we detect this case so it is less
+          // brittle.
+          if (platformUri != resolvedUri) await read(platformUri);
+        }
         if (_options.dillDependencies != null) {
-          // Modular compiles do not include the platform on the input dill
-          // either.
-          if (_options.platformBinaries != null) {
-            await read(
-                _options.platformBinaries.resolve(getPlatformFilename()));
-          }
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
           }
@@ -123,7 +136,7 @@ class KernelLoaderTask extends CompilerTask {
 
         // This is not expected to be null when creating a whole-program .dill
         // file, but needs to be checked for modular inputs.
-        if (component.mainMethod == null) {
+        if (component.mainMethod == null && !_options.modularMode) {
           // TODO(sigmund): move this so that we use the same error template
           // from the CFE.
           _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
@@ -201,14 +214,14 @@ class KernelLoaderTask extends CompilerTask {
         component = new ir.Component();
         new BinaryBuilder(data).readComponent(component);
       }
-      return _toResult(component);
+      return _toResult(component, moduleLibraries);
     });
   }
 
-  KernelResult _toResult(ir.Component component) {
+  KernelResult _toResult(ir.Component component, List<Uri> moduleLibraries) {
     Uri rootLibraryUri = null;
     Iterable<ir.Library> libraries = component.libraries;
-    if (component.mainMethod != null) {
+    if (!_options.modularMode && component.mainMethod != null) {
       var root = component.mainMethod.enclosingLibrary;
       rootLibraryUri = root.importUri;
 
@@ -235,7 +248,7 @@ class KernelLoaderTask extends CompilerTask {
       libraries = libraries.where(seen.contains);
     }
     return new KernelResult(component, rootLibraryUri,
-        libraries.map((lib) => lib.importUri).toList());
+        libraries.map((lib) => lib.importUri).toList(), moduleLibraries);
   }
 }
 
@@ -244,6 +257,8 @@ class KernelResult {
   final ir.Component component;
 
   /// The [Uri] of the root library containing main.
+  /// Note: rootLibraryUri will be null for some modules, for example in the
+  /// case of dependent libraries processed modularly.
   final Uri rootLibraryUri;
 
   /// Returns the [Uri]s of all libraries that have been loaded that are
@@ -252,10 +267,18 @@ class KernelResult {
   /// Note that [component] may contain some libraries that are excluded here.
   final Iterable<Uri> libraries;
 
-  KernelResult(this.component, this.rootLibraryUri, this.libraries) {
-    assert(rootLibraryUri != null);
-  }
+  /// When running only dart2js modular analysis, returns the [Uri]s for
+  /// libraries loaded in the input module.
+  ///
+  /// This excludes other libraries reachable from them that were loaded as
+  /// dependencies. The result of [moduleLibraries] is always a subset of
+  /// [libraries].
+  final Iterable<Uri> moduleLibraries;
+
+  KernelResult(this.component, this.rootLibraryUri, this.libraries,
+      this.moduleLibraries);
 
   @override
-  String toString() => 'root=$rootLibraryUri,libraries=${libraries}';
+  String toString() =>
+      'root=$rootLibraryUri,libraries=$libraries,module=$moduleLibraries';
 }

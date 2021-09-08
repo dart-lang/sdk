@@ -13,7 +13,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
 import 'common/codegen.dart';
-import 'common/names.dart' show Selectors, Uris;
+import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -38,6 +38,7 @@ import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
+import 'ir/modular.dart';
 import 'js_backend/backend.dart' show CodegenInputs, JavaScriptImpactStrategy;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
@@ -300,16 +301,17 @@ abstract class Compiler {
 
       frontendStrategy.registerLoadedLibraries(result);
 
-      // TODO(efortuna, sigmund): These validation steps should be done in the
-      // front end for the Kernel path since Kernel doesn't have the notion of
-      // imports (everything has already been resolved). (See
-      // https://github.com/dart-lang/sdk/issues/29368)
-      if (result.libraries.contains(Uris.dart_mirrors)) {
-        reporter.reportWarningMessage(NO_LOCATION_SPANNABLE,
-            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE);
+      if (options.modularMode) {
+        await runModularAnalysis(result);
+      } else {
+        List<ModuleData> data;
+        if (options.modularAnalysisInputs != null) {
+          data =
+              await serializationTask.deserializeModuleData(result.component);
+        }
+        frontendStrategy.registerModuleData(data);
+        await compileFromKernel(result.rootLibraryUri, result.libraries);
       }
-
-      await compileFromKernel(result.rootLibraryUri, result.libraries);
     }
   }
 
@@ -409,6 +411,24 @@ abstract class Compiler {
     JClosedWorld closedWorld =
         closeResolution(mainFunction, resolutionEnqueuer.worldBuilder);
     return closedWorld;
+  }
+
+  void runModularAnalysis(KernelResult result) {
+    _userCodeLocations
+        .addAll(result.moduleLibraries.map((module) => CodeLocation(module)));
+    selfTask.measureSubtask('runModularAnalysis', () {
+      impactStrategy = JavaScriptImpactStrategy(
+          impactCacheDeleter, dumpInfoTask,
+          supportDeferredLoad: true, supportDumpInfo: true);
+      var included = result.moduleLibraries.toSet();
+      var elementMap = (frontendStrategy as KernelFrontendStrategy).elementMap;
+      var moduleData = computeModuleData(result.component, included, options,
+          reporter, environment, elementMap);
+      if (compilationFailed) return;
+      serializationTask.testModuleSerialization(moduleData, result.component);
+      serializationTask.serializeModuleData(
+          moduleData, result.component, included);
+    });
   }
 
   GlobalTypeInferenceResults performGlobalTypeInference(
