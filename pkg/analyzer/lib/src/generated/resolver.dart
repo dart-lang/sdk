@@ -1423,15 +1423,17 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _enclosingFunction = outerFunction;
     }
 
-    // TODO(scheglov) encapsulate
-    var bodyContext = BodyInferenceContext.of(
-      node.functionExpression.body,
-    );
-    checkForBodyMayCompleteNormally(
-      returnType: bodyContext?.contextType,
-      body: node.functionExpression.body,
-      errorNode: node.name,
-    );
+    if (!node.isSetter) {
+      // TODO(scheglov) encapsulate
+      var bodyContext = BodyInferenceContext.of(
+        node.functionExpression.body,
+      );
+      checkForBodyMayCompleteNormally(
+        returnType: bodyContext?.contextType,
+        body: node.functionExpression.body,
+        errorNode: node.name,
+      );
+    }
     flowAnalysis.executableDeclaration_exit(
       node.functionExpression.body,
       isLocal,
@@ -1650,13 +1652,15 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _thisType = null;
     }
 
-    // TODO(scheglov) encapsulate
-    var bodyContext = BodyInferenceContext.of(node.body);
-    checkForBodyMayCompleteNormally(
-      returnType: bodyContext?.contextType,
-      body: node.body,
-      errorNode: node.name,
-    );
+    if (!node.isSetter) {
+      // TODO(scheglov) encapsulate
+      var bodyContext = BodyInferenceContext.of(node.body);
+      checkForBodyMayCompleteNormally(
+        returnType: bodyContext?.contextType,
+        body: node.body,
+        errorNode: node.name,
+      );
+    }
     flowAnalysis.executableDeclaration_exit(node.body, false);
     flowAnalysis.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
