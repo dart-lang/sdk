@@ -185,8 +185,10 @@ SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
                                      intptr_t samples_per_block) {
   const intptr_t size = Utils::RoundUp(
       blocks * samples_per_block * sizeof(Sample), VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -341,8 +343,10 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
 AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity) {
   const intptr_t size =
       Utils::RoundUp(capacity * sizeof(Sample), VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }

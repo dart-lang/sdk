@@ -84,8 +84,8 @@ static void TestFreeList(VirtualMemory* region,
 TEST_CASE(FreeList) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
-  VirtualMemory* region =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, "test");
+  VirtualMemory* region = VirtualMemory::Allocate(
+      kBlobSize, /* is_executable */ false, /* is_compressed */ false, "test");
 
   TestFreeList(region, free_list, false);
 
@@ -97,8 +97,8 @@ TEST_CASE(FreeList) {
 TEST_CASE(FreeListProtected) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
-  VirtualMemory* region =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, "test");
+  VirtualMemory* region = VirtualMemory::Allocate(
+      kBlobSize, /*is_executable*/ false, /*is_compressed*/ false, "test");
 
   TestFreeList(region, free_list, true);
 
@@ -113,8 +113,8 @@ TEST_CASE(FreeListProtectedTinyObjects) {
   const intptr_t kObjectSize = 2 * kWordSize;
   uword* objects = new uword[kBlobSize / kObjectSize];
 
-  VirtualMemory* blob =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, "test");
+  VirtualMemory* blob = VirtualMemory::Allocate(
+      kBlobSize, /*is_executable*/ false, /*is_compressed*/ false, "test");
   ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Protect(VirtualMemory::kReadWrite);
 
@@ -154,8 +154,8 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
     objects[i] = static_cast<uword>(NULL);
   }
 
-  VirtualMemory* blob =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, "test");
+  VirtualMemory* blob = VirtualMemory::Allocate(
+      kBlobSize, /*is_executable*/ false, /*is_compressed*/ false, "test");
   blob->Protect(VirtualMemory::kReadWrite);
 
   // Enqueue the large blob as one free block.
@@ -197,9 +197,9 @@ static void TestRegress38528(intptr_t header_overlap) {
   // "<other code>" region is also still executable (and not writable).
   std::unique_ptr<FreeList> free_list(new FreeList());
   const uword page = VirtualMemory::PageSize();
-  std::unique_ptr<VirtualMemory> blob(
-      VirtualMemory::Allocate(2 * page,
-                              /*is_executable=*/false, "test"));
+  std::unique_ptr<VirtualMemory> blob(VirtualMemory::Allocate(
+      2 * page,
+      /*is_executable=*/false, /*is_compressed*/ false, "test"));
   const intptr_t remainder_size = page / 2;
   const intptr_t alloc_size = page - header_overlap * kObjectAlignment;
   void* const other_code =

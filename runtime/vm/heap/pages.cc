@@ -47,9 +47,11 @@ OldPage* OldPage::Allocate(intptr_t size_in_words,
                            PageType type,
                            const char* name) {
   const bool executable = type == kExecutable;
+  const bool compressed = !executable;
 
   VirtualMemory* memory = VirtualMemory::AllocateAligned(
-      size_in_words << kWordSizeLog2, kOldPageSize, executable, name);
+      size_in_words << kWordSizeLog2, kOldPageSize, executable, compressed,
+      name);
   if (memory == NULL) {
     return NULL;
   }

@@ -160,7 +160,10 @@ void VirtualMemory::Init() {
   if (FLAG_dual_map_code) {
     intptr_t size = PageSize();
     intptr_t alignment = kOldPageSize;
-    VirtualMemory* vm = AllocateAligned(size, alignment, true, "memfd-test");
+    bool executable = true;
+    bool compressed = false;
+    VirtualMemory* vm =
+        AllocateAligned(size, alignment, executable, compressed, "memfd-test");
     if (vm == nullptr) {
       LOG_INFO("memfd_create not supported; disabling dual mapping of code.\n");
       FLAG_dual_map_code = false;
@@ -280,6 +283,7 @@ static void* MapAligned(void* hint,
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
+                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -293,7 +297,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(name != nullptr);
 
 #if defined(DART_COMPRESSED_POINTERS)
-  if (!is_executable) {
+  if (is_compressed) {
+    RELEASE_ASSERT(!is_executable);
     MemoryRegion region =
         VirtualMemoryCompressedHeap::Allocate(size, alignment);
     if (region.pointer() == nullptr) {
