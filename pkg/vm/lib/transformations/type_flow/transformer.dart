@@ -315,13 +315,7 @@ class AnnotateKernel extends RecursiveVisitor {
     Constant? constantValue;
     bool isInt = false;
 
-    // Note: the explicit type `bool` is needed because the checked-in version
-    // of the CFE that we use for bootstrapping doesn't yet have constructor
-    // tearoffs enabled, and the fix for bug
-    // https://github.com/dart-lang/language/issues/1785 only takes effect when
-    // constructor tearoffs are enabled.  TODO(paulberry): remove the type after
-    // the bootstrap CFE enables constructor tearoffs.
-    final bool nullable = type is NullableType;
+    final nullable = type is NullableType;
     if (nullable) {
       type = type.baseType;
     }
