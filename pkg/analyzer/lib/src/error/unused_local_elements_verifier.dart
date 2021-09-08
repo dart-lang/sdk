@@ -92,6 +92,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    usedElements.addElement(node.staticElement);
+    super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement;
     usedElements.addMember(element);
