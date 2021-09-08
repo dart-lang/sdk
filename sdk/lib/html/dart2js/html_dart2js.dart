@@ -3285,45 +3285,6 @@ class Coordinates extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-typedef void CreateHtmlCallback(String input,
-    [Object? arg1,
-    Object? arg2,
-    Object? arg3,
-    Object? arg4,
-    Object? arg5,
-    Object? arg6]);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef void CreateScriptCallback(String input,
-    [Object? arg1,
-    Object? arg2,
-    Object? arg3,
-    Object? arg4,
-    Object? arg5,
-    Object? arg6]);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef void CreateScriptUrlCallback(String input,
-    [Object? arg1,
-    Object? arg2,
-    Object? arg3,
-    Object? arg4,
-    Object? arg5,
-    Object? arg6]);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 @Native("Credential")
 class Credential extends Interceptor {
   // To suppress missing implicit constructor warnings.
@@ -30730,26 +30691,9 @@ class TrustedHtml extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  @JSName('toJSON')
-  String toJson() native;
+  static TrustedHtml escape(String html) native;
 
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@Native("TrustedScript")
-class TrustedScript extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory TrustedScript._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @JSName('toJSON')
-  String toJson() native;
-
-  String toString() native;
+  static TrustedHtml unsafelyCreate(String html) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30762,94 +30706,7 @@ class TrustedScriptUrl extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  @JSName('toJSON')
-  String toJson() native;
-
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@Native("TrustedTypePolicy")
-class TrustedTypePolicy extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory TrustedTypePolicy._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  String? get name native;
-
-  @JSName('createHTML')
-  TrustedHtml createHtml(String input,
-      [Object? arg1,
-      Object? arg2,
-      Object? arg3,
-      Object? arg4,
-      Object? arg5,
-      Object? arg6]) native;
-
-  TrustedScript createScript(String input,
-      [Object? arg1,
-      Object? arg2,
-      Object? arg3,
-      Object? arg4,
-      Object? arg5,
-      Object? arg6]) native;
-
-  @JSName('createScriptURL')
-  TrustedScriptUrl createScriptUrl(String input,
-      [Object? arg1,
-      Object? arg2,
-      Object? arg3,
-      Object? arg4,
-      Object? arg5,
-      Object? arg6]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@Native("TrustedTypePolicyFactory")
-class TrustedTypePolicyFactory extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory TrustedTypePolicyFactory._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  TrustedTypePolicy? get defaultPolicy native;
-
-  @JSName('emptyHTML')
-  TrustedHtml? get emptyHtml native;
-
-  TrustedScript? get emptyScript native;
-
-  TrustedTypePolicy createPolicy(String policyName, [Map? policyOptions]) {
-    if (policyOptions != null) {
-      var policyOptions_1 = convertDartToNative_Dictionary(policyOptions);
-      return _createPolicy_1(policyName, policyOptions_1);
-    }
-    return _createPolicy_2(policyName);
-  }
-
-  @JSName('createPolicy')
-  TrustedTypePolicy _createPolicy_1(policyName, policyOptions) native;
-  @JSName('createPolicy')
-  TrustedTypePolicy _createPolicy_2(policyName) native;
-
-  String? getAttributeType(String tagName, String attribute,
-      [String? elementNs, String? attrNs]) native;
-
-  String? getPropertyType(String tagName, String property, [String? elementNs])
-      native;
-
-  @JSName('isHTML')
-  bool isHtml(Object value) native;
-
-  bool isScript(Object value) native;
-
-  @JSName('isScriptURL')
-  bool isScriptUrl(Object value) native;
+  static TrustedScriptUrl unsafelyCreate(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32981,8 +32838,6 @@ class Window extends EventTarget
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   dynamic get _get_top native;
-
-  TrustedTypePolicyFactory? get trustedTypes native;
 
   VisualViewport? get visualViewport native;
 

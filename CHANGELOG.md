@@ -78,20 +78,6 @@
 - The experimental `waitFor` functionality, and the library containing only that
   function, are now deprecated.
 
-#### `dart:html`
-
-- **Breaking Change**: Trusted Types APIs have been updated to comply to the
-  latest [W3C spec]. This includes adding `TrustedScript`, `TrustedScriptURL`,
-  `TrustedTypePolicy`, and `TrustedTypePolicyFactory`, as well as modifying the
-  methods within the types, like removing the now deprecated `escape` and
-  and `unsafelyCreate` methods. These deprecated methods are already unsupported
-  on most modern browsers, so this would simply make them static failures now.
-  Users of the old API are encouraged to use the `TrustedTypePolicy` to create
-  Trusted Types. Please see the [MDN Web Docs] for examples.
-
-[W3C spec]: https://w3c.github.io/webappsec-trusted-types/dist/spec/
-[MDN Web Docs]: https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API#interfaces
-
 ### Tools
 
 #### Dart command line

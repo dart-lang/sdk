@@ -5133,18 +5133,6 @@
     },
     "support_level": "deprecated"
   },
-  "CreateHTMLCallback": {
-    "members": {},
-    "support_level": "untriaged"
-  },
-  "CreateScriptCallback": {
-    "members": {},
-    "support_level": "untriaged"
-  },
-  "CreateScriptURLCallback": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "Credential": {
     "members": {
       "avatarURL": {
@@ -22498,24 +22486,7 @@
       "escape": {
         "support_level": "untriaged"
       },
-      "toJSON": {
-        "support_level": "untriaged"
-      },
-      "toString": {
-        "support_level": "untriaged"
-      },
       "unsafelyCreate": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "TrustedScript": {
-    "members": {
-      "toJSON": {
-        "support_level": "untriaged"
-      },
-      "toString": {
         "support_level": "untriaged"
       }
     },
@@ -22523,62 +22494,7 @@
   },
   "TrustedScriptURL": {
     "members": {
-      "toJSON": {
-        "support_level": "untriaged"
-      },
-      "toString": {
-        "support_level": "untriaged"
-      },
       "unsafelyCreate": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "TrustedTypePolicy": {
-    "members": {
-      "createHTML": {
-        "support_level": "untriaged"
-      },
-      "createScript": {
-        "support_level": "untriaged"
-      },
-      "createScriptURL": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "TrustedTypePolicyFactory": {
-    "members": {
-      "createPolicy": {
-        "support_level": "untriaged"
-      },
-      "defaultPolicy": {
-        "support_level": "untriaged"
-      },
-      "emptyHTML": {
-        "support_level": "untriaged"
-      },
-      "emptyScript": {
-        "support_level": "untriaged"
-      },
-      "getAttributeType": {
-        "support_level": "untriaged"
-      },
-      "getPropertyType": {
-        "support_level": "untriaged"
-      },
-      "isHTML": {
-        "support_level": "untriaged"
-      },
-      "isScript": {
-        "support_level": "untriaged"
-      },
-      "isScriptURL": {
         "support_level": "untriaged"
       }
     },
@@ -30815,9 +30731,6 @@
       "toString": {},
       "toolbar": {},
       "top": {},
-      "trustedTypes": {
-        "support_level": "untriaged"
-      },
       "visualViewport": {
         "support_level": "untriaged"
       },
