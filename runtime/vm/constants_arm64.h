@@ -337,6 +337,7 @@ struct BoxDoubleStubABI {
 // ABI for DoubleToIntegerStub.
 struct DoubleToIntegerStubABI {
   static const FpuRegister kInputReg = V0;
+  static const Register kRecognizedKindReg = R0;
   static const Register kResultReg = R0;
 };
 
@@ -930,7 +931,9 @@ enum FPIntCvtOp {
   FMOVSR = FPIntCvtFixed | B18 | B17 | B16,
   FMOVRD = FPIntCvtFixed | B22 | B18 | B17,
   FMOVDR = FPIntCvtFixed | B22 | B18 | B17 | B16,
-  FCVTZDS = FPIntCvtFixed | B22 | B20 | B19,
+  FCVTZS_D = FPIntCvtFixed | B22 | B20 | B19,
+  FCVTMS_D = FPIntCvtFixed | B22 | B20,
+  FCVTPS_D = FPIntCvtFixed | B22 | B19,
   SCVTFD = FPIntCvtFixed | B22 | B17,
 };
 

@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/implicit_instantiation.dart:18:25: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+//   int Function(int) f = alias;
+//                         ^
+//
+// pkg/front_end/testcases/general/implicit_instantiation.dart:20:7: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+//   g = alias;
+//       ^
+//
+// pkg/front_end/testcases/general/implicit_instantiation.dart:21:21: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+//   int Function(int) h = c;
+//                     ^
+//
+// pkg/front_end/testcases/general/implicit_instantiation.dart:22:3: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+//   g = c;
+//   ^
+//
+// pkg/front_end/testcases/general/implicit_instantiation.dart:23:10: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'int Function(int)'.
+//   method(alias);
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method call<T extends core::Object? = dynamic>(self::Class::call::T% t) → self::Class::call::T%
+    return t;
+}
+static field <T extends core::Object? = dynamic>(T%) → T% alias = #C1;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  return t;
+static method method((core::int) → core::int f) → dynamic {}
+static method test() → dynamic {
+  self::Class c = new self::Class::•();
+  (core::int) → core::int f = invalid-expression "pkg/front_end/testcases/general/implicit_instantiation.dart:18:25: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+  int Function(int) f = alias;
+                        ^" in self::alias as{TypeError,ForNonNullableByDefault} (core::int) → core::int;
+  (core::int) → core::int g;
+  g = invalid-expression "pkg/front_end/testcases/general/implicit_instantiation.dart:20:7: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+  g = alias;
+      ^" in self::alias as{TypeError,ForNonNullableByDefault} (core::int) → core::int;
+  (core::int) → core::int h = invalid-expression "pkg/front_end/testcases/general/implicit_instantiation.dart:21:21: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+  int Function(int) h = c;
+                    ^" in (let final self::Class #t1 = c in #t1 == null ?{<T extends core::Object? = dynamic>(T%) → T%} null : #t1.{self::Class::call}{<T extends core::Object? = dynamic>(T%) → T%}) as{TypeError,ForNonNullableByDefault} (core::int) → core::int;
+  g = invalid-expression "pkg/front_end/testcases/general/implicit_instantiation.dart:22:3: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+  g = c;
+  ^" in (let final self::Class #t2 = c in #t2 == null ?{<T extends core::Object? = dynamic>(T%) → T%} null : #t2.{self::Class::call}{<T extends core::Object? = dynamic>(T%) → T%}) as{TypeError,ForNonNullableByDefault} (core::int) → core::int;
+  self::method(invalid-expression "pkg/front_end/testcases/general/implicit_instantiation.dart:23:10: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'int Function(int)'.
+  method(alias);
+         ^" in self::alias as{TypeError,ForNonNullableByDefault} (core::int) → core::int);
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::id
+}

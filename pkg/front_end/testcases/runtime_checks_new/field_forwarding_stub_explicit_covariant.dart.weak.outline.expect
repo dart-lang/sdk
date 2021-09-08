@@ -49,7 +49,7 @@ class D extends self::C implements self::B {
   synthetic constructor •() → self::D*
     ;
   forwarding-stub set x(covariant core::num* value) → void
-    return super.{self::C::x} = value;
+    return super.{self::C::x} = value as core::int*;
 }
 static method main() → void
   ;

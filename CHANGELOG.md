@@ -95,7 +95,11 @@
 
 #### Linter
 
-Updated the Linter to `1.10.0`, which includes changes that
+Updated the Linter to `1.11.0`, which includes changes that
+- adds support for constructor tear-offs to `avoid_redundant_argument_values`, 
+  `unnecessary_lambdas`, and `unnecessary_parenthesis`.
+- adds a new lint: `unnecessary_constructor_name` to flag unnecessary uses of 
+  `.new`.
 - improves regular expression parsing performance for common checks
   (`camel_case_types`, `file_names`, etc.).
 - (internal) migrates to analyzer 2.1.0 APIs.

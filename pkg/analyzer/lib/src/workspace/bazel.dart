@@ -187,6 +187,9 @@ class BazelWorkspace extends Workspace
   @override
   final String root;
 
+  /// Either `blaze` or `bazel`.
+  final String symlinkPrefix;
+
   /// The absolute path to the optional read only workspace root, in the
   /// `READONLY` folder if a git-based workspace, or `null`.
   final String? readonly;
@@ -214,6 +217,7 @@ class BazelWorkspace extends Workspace
   BazelWorkspace._(
     this.provider,
     this.root,
+    this.symlinkPrefix,
     this.readonly,
     this.binPaths,
     this.genfiles, {
@@ -260,9 +264,14 @@ class BazelWorkspace extends Workspace
       if (relative == '.') {
         return null;
       }
-      // First check genfiles and bin directories
-      var generatedCandidates = <String>[genfiles, ...binPaths]
-          .map((prefix) => context.join(prefix, relative));
+      // First check genfiles and bin directories. Note that we always use the
+      // symlinks and not the [binPaths] or [genfiles] to make sure we use the
+      // files corresponding to the most recent build configuration and get
+      // consistent view of all the generated files.
+      var generatedCandidates = [
+        '$symlinkPrefix-genfiles',
+        '$symlinkPrefix-bin'
+      ].map((prefix) => context.join(root, context.join(prefix, relative)));
       for (var path in generatedCandidates) {
         File file = provider.getFile(path);
         if (file.exists) {
@@ -454,8 +463,8 @@ class BazelWorkspace extends Workspace
           String symlinkPrefix =
               _findSymlinkPrefix(provider, root, binPaths: binPaths);
           binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
-          return BazelWorkspace._(provider, root, readonlyRoot, binPaths,
-              context.join(root, '$symlinkPrefix-genfiles'),
+          return BazelWorkspace._(provider, root, symlinkPrefix, readonlyRoot,
+              binPaths, context.join(root, '$symlinkPrefix-genfiles'),
               lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
         }
       }
@@ -467,7 +476,12 @@ class BazelWorkspace extends Workspace
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
-        return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
+        return BazelWorkspace._(
+            provider,
+            root,
+            symlinkPrefix,
+            null /* readonly */,
+            binPaths,
             context.join(root, '$symlinkPrefix-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
@@ -479,7 +493,12 @@ class BazelWorkspace extends Workspace
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
-        return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
+        return BazelWorkspace._(
+            provider,
+            root,
+            symlinkPrefix,
+            null /* readonly */,
+            binPaths,
             context.join(root, '$symlinkPrefix-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }

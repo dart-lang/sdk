@@ -50,12 +50,15 @@ class VirtualMemory {
   // the requested size cannot be allocated, NULL is returned.
   static VirtualMemory* Allocate(intptr_t size,
                                  bool is_executable,
+                                 bool is_compressed,
                                  const char* name) {
-    return AllocateAligned(size, PageSize(), is_executable, name);
+    return AllocateAligned(size, PageSize(), is_executable, is_compressed,
+                           name);
   }
   static VirtualMemory* AllocateAligned(intptr_t size,
                                         intptr_t alignment,
                                         bool is_executable,
+                                        bool is_compressed,
                                         const char* name);
 
   // Returns the cached page size. Use only if Init() has been called.

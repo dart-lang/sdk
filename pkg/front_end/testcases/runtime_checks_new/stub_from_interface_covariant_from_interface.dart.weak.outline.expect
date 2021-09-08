@@ -37,7 +37,7 @@ abstract class C extends self::B implements self::I {
   synthetic constructor •() → self::C*
     ;
   forwarding-stub method f(covariant core::int* x, core::Object* y) → void
-    return super.{self::B::f}(x, y);
+    return super.{self::B::f}(x, y as core::int*);
 }
 static method main() → void
   ;

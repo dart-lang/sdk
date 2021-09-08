@@ -445,6 +445,10 @@ class Thread : public ThreadState {
   void EnterApiScope();
   void ExitApiScope();
 
+  static intptr_t double_truncate_round_supported_offset() {
+    return OFFSET_OF(Thread, double_truncate_round_supported_);
+  }
+
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
@@ -1088,6 +1092,7 @@ class Thread : public ThreadState {
   // JumpToExceptionHandler state:
   ObjectPtr active_exception_;
   ObjectPtr active_stacktrace_;
+
   ObjectPoolPtr global_object_pool_;
   uword resume_pc_;
   uword saved_shadow_call_stack_ = 0;
@@ -1097,6 +1102,7 @@ class Thread : public ThreadState {
   TypedDataPtr ffi_callback_stack_return_;
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
+  uint8_t double_truncate_round_supported_;
 
   // ---- End accessed from generated code. ----
 

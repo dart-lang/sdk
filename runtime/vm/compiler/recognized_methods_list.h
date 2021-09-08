@@ -88,11 +88,13 @@ namespace dart {
   V(_Double, _mul, DoubleMul, 0x1f98c76c)                                      \
   V(_Double, _div, DoubleDiv, 0x287d3791)                                      \
   V(_Double, _modulo, DoubleMod, 0xfdb397ef)                                   \
-  V(_Double, ceilToDouble, DoubleCeil, 0x5f1bced9)                             \
-  V(_Double, floorToDouble, DoubleFloor, 0x54b4cb48)                           \
-  V(_Double, roundToDouble, DoubleRound, 0x5649ca00)                           \
+  V(_Double, ceil, DoubleCeilToInt, 0xcef8d7c5)                                \
+  V(_Double, ceilToDouble, DoubleCeilToDouble, 0x5f1bced9)                     \
+  V(_Double, floor, DoubleFloorToInt, 0x2a323f88)                              \
+  V(_Double, floorToDouble, DoubleFloorToDouble, 0x54b4cb48)                   \
+  V(_Double, roundToDouble, DoubleRoundToDouble, 0x5649ca00)                   \
   V(_Double, toInt, DoubleToInteger, 0x676f20a9)                               \
-  V(_Double, truncateToDouble, DoubleTruncate, 0x62d48659)                     \
+  V(_Double, truncateToDouble, DoubleTruncateToDouble, 0x62d48659)             \
   V(::, min, MathMin, 0x504a28df)                                              \
   V(::, max, MathMax, 0xead7161a)                                              \
   V(::, _doublePow, MathDoublePow, 0x989f3334)                                 \

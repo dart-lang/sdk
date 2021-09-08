@@ -669,9 +669,10 @@ NewPage* NewPage::Allocate() {
   if (memory == nullptr) {
     const intptr_t alignment = kNewPageSize;
     const bool is_executable = false;
+    const bool compressed = true;
     const char* const name = Heap::RegionName(Heap::kNew);
-    memory =
-        VirtualMemory::AllocateAligned(size, alignment, is_executable, name);
+    memory = VirtualMemory::AllocateAligned(size, alignment, is_executable,
+                                            compressed, name);
   }
   if (memory == nullptr) {
     return nullptr;  // Out of memory.

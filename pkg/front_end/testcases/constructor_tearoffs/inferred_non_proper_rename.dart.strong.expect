@@ -49,12 +49,6 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method _#F#new#tearOff<X extends core::num>() → self::A<self::_#F#new#tearOff::X>
-  return new self::A::•<self::_#F#new#tearOff::X>();
-static method _#G#new#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
-  return new self::A::•<core::int>();
-static method _#H#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#new#tearOff::X%>
-  return new self::A::•<self::_#H#new#tearOff::X%>();
 
 constants  {
   #C1 = constructor-tearoff self::A::•

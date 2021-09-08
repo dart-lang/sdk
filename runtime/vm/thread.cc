@@ -4,6 +4,7 @@
 
 #include "vm/thread.h"
 
+#include "vm/cpu.h"
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/heap/safepoint.h"
@@ -83,6 +84,8 @@ Thread::Thread(bool is_vm_isolate)
       ffi_callback_code_(GrowableObjectArray::null()),
       ffi_callback_stack_return_(TypedData::null()),
       api_top_scope_(NULL),
+      double_truncate_round_supported_(
+          TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(),

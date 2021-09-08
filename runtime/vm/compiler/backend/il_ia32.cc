@@ -5021,6 +5021,7 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
 }
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(recognized_kind() == MethodRecognizer::kDoubleToInteger);
   const Register result = locs()->out(0).reg();
   const XmmRegister value_double = locs()->in(0).fpu_reg();
 
@@ -5075,13 +5076,13 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   XmmRegister result = locs()->out(0).fpu_reg();
   switch (recognized_kind()) {
-    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleTruncateToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundToZero);
       break;
-    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleFloorToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundDown);
       break;
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleCeilToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundUp);
       break;
     default:

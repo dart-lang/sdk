@@ -1,0 +1,15 @@
+abstract class I {
+  void f(covariant A a);
+}
+
+class A {}
+
+class B extends A {}
+
+class C {
+  void f(B b) {}
+}
+
+class D extends C implements I {}
+
+void main() {}

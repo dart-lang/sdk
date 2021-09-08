@@ -301,9 +301,22 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
   Exceptions::ThrowArgumentError(value);
 }
 
-DEFINE_RUNTIME_ENTRY(DoubleToInteger, 0) {
+DEFINE_RUNTIME_ENTRY(DoubleToInteger, 1) {
   // Unboxed value is passed through a dedicated slot in Thread.
-  const double val = arguments.thread()->unboxed_double_runtime_arg();
+  double val = arguments.thread()->unboxed_double_runtime_arg();
+  const Smi& recognized_kind = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  switch (recognized_kind.Value()) {
+    case MethodRecognizer::kDoubleToInteger:
+      break;
+    case MethodRecognizer::kDoubleFloorToInt:
+      val = floor(val);
+      break;
+    case MethodRecognizer::kDoubleCeilToInt:
+      val = ceil(val);
+      break;
+    default:
+      UNREACHABLE();
+  }
   arguments.SetReturn(Integer::Handle(zone, DoubleToInteger(zone, val)));
 }
 

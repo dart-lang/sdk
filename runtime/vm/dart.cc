@@ -340,6 +340,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
+  TargetCPUFeatures::Init();
 
 #if defined(USING_SIMULATOR)
   Simulator::Init();
@@ -387,7 +388,6 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
     Object::InitNullAndBool(vm_isolate_->group());
     vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
-    TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
     OffsetsTable::Init();
     ArgumentsDescriptor::Init();

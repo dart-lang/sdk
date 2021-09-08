@@ -314,6 +314,25 @@ abstract class CombinedMemberSignatureBase<T> {
     return candidateType;
   }
 
+  DartType getMemberTypeForTarget(Member target) {
+    DartType candidateType = _computeMemberType(thisType, target);
+    if (!classBuilder.library.isNonNullableByDefault) {
+      DartType? legacyErasure;
+      if (target == hierarchy.coreTypes.objectEquals) {
+        // In legacy code we special case `Object.==` to infer `dynamic`
+        // instead `Object!`.
+        legacyErasure = new FunctionType([const DynamicType()],
+            hierarchy.coreTypes.boolLegacyRawType, Nullability.legacy);
+      } else {
+        legacyErasure = rawLegacyErasure(candidateType);
+      }
+      if (legacyErasure != null) {
+        candidateType = legacyErasure;
+      }
+    }
+    return candidateType;
+  }
+
   void _ensureCombinedMemberSignatureType() {
     if (!_isCombinedMemberSignatureTypeComputed) {
       _isCombinedMemberSignatureTypeComputed = true;
@@ -466,7 +485,7 @@ abstract class CombinedMemberSignatureBase<T> {
               member, combinedMemberSignatureType!,
               isGenericCovariantImpl: parameter.isGenericCovariantImpl,
               isCovariant: parameter.isCovariant,
-              parameterName: parameter.name,
+              parameter: parameter,
               copyLocation: copyLocation);
           break;
         case ProcedureKind.Method:
@@ -545,7 +564,7 @@ abstract class CombinedMemberSignatureBase<T> {
   Procedure _createSetterMemberSignature(Member member, DartType type,
       {required bool isCovariant,
       required bool isGenericCovariantImpl,
-      String? parameterName,
+      VariableDeclaration? parameter,
       required bool copyLocation}) {
     // ignore: unnecessary_null_comparison
     assert(isCovariant != null);
@@ -574,9 +593,12 @@ abstract class CombinedMemberSignatureBase<T> {
       new FunctionNode(null,
           returnType: const VoidType(),
           positionalParameters: [
-            new VariableDeclaration(parameterName ?? 'value',
+            new VariableDeclaration(parameter?.name ?? 'value',
                 type: type, isCovariant: isCovariant)
               ..isGenericCovariantImpl = isGenericCovariantImpl
+              ..fileOffset = copyLocation
+                  ? parameter?.fileOffset ?? fileOffset
+                  : fileOffset
           ]),
       isAbstract: true,
       fileUri: fileUri,
@@ -617,7 +639,8 @@ abstract class CombinedMemberSignatureBase<T> {
       DartType parameterType = functionType.positionalParameters[i];
       positionalParameters.add(new VariableDeclaration(parameter.name,
           type: parameterType, isCovariant: parameter.isCovariant)
-        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
+        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
+        ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
     }
     List<VariableDeclaration> namedParameters = [];
     int namedParameterCount = function.namedParameters.length;
@@ -628,7 +651,8 @@ abstract class CombinedMemberSignatureBase<T> {
           type: namedType.type,
           isRequired: namedType.isRequired,
           isCovariant: parameter.isCovariant)
-        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
+        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
+        ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
       for (NamedType namedType in functionType.namedParameters) {
@@ -641,7 +665,8 @@ abstract class CombinedMemberSignatureBase<T> {
             type: namedParameterType.type,
             isRequired: namedParameterType.isRequired,
             isCovariant: parameter.isCovariant)
-          ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
+          ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
+          ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
       }
     }
     return new Procedure(

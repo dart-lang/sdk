@@ -897,10 +897,10 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       return true;
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
-    case MethodRecognizer::kDoubleRound:
-    case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleRoundToDouble:
+    case MethodRecognizer::kDoubleTruncateToDouble:
+    case MethodRecognizer::kDoubleFloorToDouble:
+    case MethodRecognizer::kDoubleCeilToDouble:
     case MethodRecognizer::kMathDoublePow:
     case MethodRecognizer::kMathSin:
     case MethodRecognizer::kMathCos:
@@ -913,6 +913,16 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kMathLog:
     case MethodRecognizer::kMathSqrt:
       return FlowGraphCompiler::SupportsUnboxedDoubles();
+    case MethodRecognizer::kDoubleCeilToInt:
+    case MethodRecognizer::kDoubleFloorToInt:
+      if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+#if defined(TARGET_ARCH_X64)
+      return CompilerState::Current().is_aot();
+#elif defined(TARGET_ARCH_ARM64)
+      return true;
+#else
+      return false;
+#endif
     default:
       return false;
   }
@@ -1540,15 +1550,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadIndexed(kIntPtrCid);
       body += Box(kUnboxedIntPtr);
     } break;
-    case MethodRecognizer::kDoubleToInteger: {
+    case MethodRecognizer::kDoubleToInteger:
+    case MethodRecognizer::kDoubleCeilToInt:
+    case MethodRecognizer::kDoubleFloorToInt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += DoubleToInteger();
+      body += DoubleToInteger(kind);
     } break;
     case MethodRecognizer::kDoubleMod:
-    case MethodRecognizer::kDoubleRound:
-    case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleRoundToDouble:
+    case MethodRecognizer::kDoubleTruncateToDouble:
+    case MethodRecognizer::kDoubleFloorToDouble:
+    case MethodRecognizer::kDoubleCeilToDouble:
     case MethodRecognizer::kMathDoublePow:
     case MethodRecognizer::kMathSin:
     case MethodRecognizer::kMathCos:
@@ -1564,9 +1576,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       }
       if (!CompilerState::Current().is_aot() &&
           TargetCPUFeatures::double_truncate_round_supported() &&
-          ((kind == MethodRecognizer::kDoubleTruncate) ||
-           (kind == MethodRecognizer::kDoubleFloor) ||
-           (kind == MethodRecognizer::kDoubleCeil))) {
+          ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
+           (kind == MethodRecognizer::kDoubleFloorToDouble) ||
+           (kind == MethodRecognizer::kDoubleCeilToDouble))) {
         body += DoubleToDouble(kind);
       } else {
         body += InvokeMathCFunction(kind, function.NumParameters());

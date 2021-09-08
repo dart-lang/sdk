@@ -143,8 +143,10 @@ class BacktrackStack {
     // https://github.com/flutter/flutter/issues/29007 for examples.
     // So intead we directly ask OS to provide us memory.
     if (memory_ == nullptr) {
+      const bool executable = false;
+      const bool compressed = false;
       memory_ = std::unique_ptr<VirtualMemory>(VirtualMemory::Allocate(
-          sizeof(intptr_t) * kBacktrackStackSize, /*is_executable=*/false,
+          sizeof(intptr_t) * kBacktrackStackSize, executable, compressed,
           "regexp-backtrack-stack"));
     }
   }

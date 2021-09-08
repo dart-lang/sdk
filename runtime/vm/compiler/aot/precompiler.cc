@@ -552,7 +552,7 @@ void Precompiler::DoCompileAll() {
 
       // With the nnbd experiment enabled, these non-nullable type arguments may
       // not be retained, although they will be used and expected to be
-      // canonical.
+      // canonical by Dart_NewListOfType.
       AddTypeArguments(
           TypeArguments::Handle(Z, IG->object_store()->type_argument_int()));
       AddTypeArguments(

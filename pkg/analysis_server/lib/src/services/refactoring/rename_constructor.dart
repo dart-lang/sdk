@@ -62,8 +62,13 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       references.add(_createDeclarationReference());
     }
     // update references
-    var replacement = newName.isEmpty ? '' : '.$newName';
     for (var reference in references) {
+      String replacement;
+      if (newName.isNotEmpty) {
+        replacement = '.$newName';
+      } else {
+        replacement = reference.isConstructorTearOff ? '.new' : '';
+      }
       reference.addEdit(change, replacement);
     }
   }

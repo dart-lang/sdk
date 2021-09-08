@@ -82,6 +82,7 @@ bool VirtualMemory::DualMappingEnabled() {
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
+                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -91,7 +92,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsAligned(alignment, PageSize()));
 
 #if defined(DART_COMPRESSED_POINTERS)
-  if (!is_executable) {
+  if (is_compressed) {
+    RELEASE_ASSERT(!is_executable);
     MemoryRegion region =
         VirtualMemoryCompressedHeap::Allocate(size, alignment);
     if (region.pointer() == nullptr) {

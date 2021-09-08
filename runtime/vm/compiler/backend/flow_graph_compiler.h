@@ -298,9 +298,11 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
   const Register result_;
 };
 
-class DoubleToIntegerSlowPath : public TemplateSlowPathCode<Instruction> {
+class DoubleToIntegerSlowPath
+    : public TemplateSlowPathCode<DoubleToIntegerInstr> {
  public:
-  DoubleToIntegerSlowPath(Instruction* instruction, FpuRegister value_reg)
+  DoubleToIntegerSlowPath(DoubleToIntegerInstr* instruction,
+                          FpuRegister value_reg)
       : TemplateSlowPathCode(instruction), value_reg_(value_reg) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);

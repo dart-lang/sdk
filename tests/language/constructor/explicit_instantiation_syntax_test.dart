@@ -42,6 +42,7 @@ void g(_) {}
 void h(_1, [_2]) {}
 
 int i = 0;
+bool boolVar = true;
 
 class Test {
   var x;
@@ -108,16 +109,17 @@ class Test {
 
     g(C<int, int> . named());
 
-    g(C<int, int> .. toString());
+    h(C<int, int> .. toString()); //# 13: syntax error
+    g((C<int, int>) .. toString());
 
-    h(C<int, int> ...); //# 13: syntax error
+    h(C<int, int> ...); //# 14: syntax error
 
-    h(C<int, int> ...?); //# 14: syntax error
+    h(C<int, int> ...?); //# 15: syntax error
 
-    h(C<int, int> / 1); //# 15: syntax error
+    h(C<int, int> / 1); //# 16: syntax error
     g((C<int, int>) / 1);
 
-    g(C<int, int> /**/); //# 16: ok
+    g(C<int, int> /**/); //# 17: ok
     f(C<int, int> /**/ - 1);
 
     g(C<int, int> //
@@ -126,38 +128,38 @@ class Test {
         -
         1);
 
-    h(C<int, int> /= 1); //# 17: syntax error
+    h(C<int, int> /= 1); //# 18: syntax error
 
     g({C<int, int> : 1});
 
-    C<int, int> ; //# 18: ok
+    C<int, int> ; //# 19: ok
 
-    h(C<int, int> < 1); //# 19: syntax error
+    h(C<int, int> < 1); //# 20: syntax error
     g((C<int, int>) < 1);
 
-    h(C<int, int> << 1); //# 20: syntax error
+    h(C<int, int> << 1); //# 21: syntax error
     g((C<int, int>) << 1);
 
-    h(C<int, int> <<= 1); //# 21: syntax error
+    h(C<int, int> <<= 1); //# 22: syntax error
 
-    h(C<int, int> <= 1); //# 22: syntax error
+    h(C<int, int> <= 1); //# 23: syntax error
     g((C<int, int>) <= 1);
 
-    h(C<int, int> = 1); //# 23: syntax error
+    h(C<int, int> = 1); //# 24: syntax error
 
     g(C<int, int> == 1);
 
-    h(C<int, int> =>); //# 24: syntax error
+    h(C<int, int> =>); //# 25: syntax error
 
     // The operator `>>` is a single token in the grammar.
-    h(C<int, int> > 1); //# 25: syntax error
+    h(C<int, int> > 1); //# 26: syntax error
     h((C<int, int>) > 1);
 
-    h(true + C<int, int> ? 1 : 1); //# 26: syntax error
+    h(true + C<int, int> ? 1 : 1); //# 27: syntax error
     g(true + (C<int, int>) ? 1 : 1);
 
-    g(C<int, int> ?. toString()); //# 27: syntax error
-    g((C<int, int>) ?. toString()); //# 28: static type warning
+    g(C<int, int> ?. toString()); //# 28: syntax error
+    g((boolVar ? null : C<int, int>) ?. toString());
 
     h(C<int, int> ?.. toString()); //# 29: syntax error
 

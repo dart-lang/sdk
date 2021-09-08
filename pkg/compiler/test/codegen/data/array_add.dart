@@ -17,8 +17,8 @@
   return t1;
 }*/
 /*canary.member: test1:function() {
-  var t1 = B._setArrayType([], type$.JSArray_int);
-  A.JSArray_methods.add$1(t1, 1);
+  var t1 = A._setArrayType([], type$.JSArray_int);
+  B.JSArray_methods.add$1(t1, 1);
   return t1;
 }*/
 test1() {
@@ -29,7 +29,7 @@ test1() {
   F.test1();
 }*/
 /*canary.member: main:function() {
-  B.test1();
+  A.test1();
 }*/
 main() {
   test1();

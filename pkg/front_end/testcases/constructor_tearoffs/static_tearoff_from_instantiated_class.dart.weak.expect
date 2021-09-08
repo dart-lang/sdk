@@ -80,8 +80,6 @@ Try removing the type arguments or placing them after the member name.
                    ^^^";
 }
 static method main() → dynamic {}
-static method _#D2#new#tearOff<X extends core::num>() → self::A<self::_#D2#new#tearOff::X>
-  return new self::A::•<self::_#D2#new#tearOff::X>();
 
 constants  {
   #C1 = static-tearoff self::A::foo
