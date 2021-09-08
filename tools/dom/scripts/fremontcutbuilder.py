@@ -183,6 +183,7 @@ def main(parallel=False, logging_level=logging.WARNING, examine_idls=False):
         'networkinfo',  # Not yet used in Blink yet
         'vibration',  # Not yet used in Blink yet
         'inspector',
+        'idl_parser',  # idl_parser has test IDL files.
     ]
 
     # TODO(terry): Integrate this into the htmlrenamer's _removed_html_interfaces
