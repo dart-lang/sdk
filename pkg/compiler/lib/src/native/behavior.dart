@@ -437,7 +437,7 @@ class NativeBehavior {
         validTags == null || (validTags.toSet()..removeAll(validTags)).isEmpty);
     if (validTags == null) validTags = knownTags;
 
-    Map<String, String> values = <String, String>{};
+    Map<String, String> values = {};
 
     for (String spec in specs) {
       List<String> tagAndValue = spec.split(':');
