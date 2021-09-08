@@ -117,6 +117,7 @@ import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
+import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_dead_code_test.dart' as remove_dead_code;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
@@ -300,6 +301,7 @@ void main() {
     remove_await.main();
     remove_comparison.main();
     remove_const.main();
+    remove_constructor_name.main();
     remove_dead_code.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();

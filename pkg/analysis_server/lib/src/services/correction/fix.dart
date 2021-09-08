@@ -755,6 +755,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Remove const',
   );
+  static const REMOVE_CONSTRUCTOR_NAME = FixKind(
+    'dart.fix.remove.constructorName',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'new'",
+  );
+  static const REMOVE_CONSTRUCTOR_NAME_MULTI = FixKind(
+    'dart.fix.remove.constructorName.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove constructor names in file',
+  );
   static const REMOVE_DEAD_CODE = FixKind(
     'dart.fix.remove.deadCode',
     DartFixKindPriority.DEFAULT,

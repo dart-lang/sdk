@@ -97,6 +97,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
@@ -556,6 +557,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_const: [
       RemoveUnnecessaryConst.newInstance,
+    ],
+    LintNames.unnecessary_constructor_name: [
+      RemoveConstructorName.newInstance,
     ],
     LintNames.unnecessary_final: [
       ReplaceFinalWithVar.newInstance,
