@@ -4966,7 +4966,6 @@ class Library : public Object {
   static LibraryPtr MirrorsLibrary();
 #endif
   static LibraryPtr NativeWrappersLibrary();
-  static LibraryPtr ProfilerLibrary();
   static LibraryPtr TypedDataLibrary();
   static LibraryPtr VMServiceLibrary();
 

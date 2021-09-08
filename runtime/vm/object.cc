@@ -13862,10 +13862,6 @@ LibraryPtr Library::NativeWrappersLibrary() {
   return IsolateGroup::Current()->object_store()->native_wrappers_library();
 }
 
-LibraryPtr Library::ProfilerLibrary() {
-  return IsolateGroup::Current()->object_store()->profiler_library();
-}
-
 LibraryPtr Library::TypedDataLibrary() {
   return IsolateGroup::Current()->object_store()->typed_data_library();
 }
