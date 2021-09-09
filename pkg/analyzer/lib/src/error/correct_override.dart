@@ -69,7 +69,8 @@ class CorrectOverrideHelper {
   /// Fill [_thisTypeForSubtype]. If [_thisMember] has covariant formal
   /// parameters, replace their types with `Object?` or `Object`.
   void _computeThisTypeForSubtype() {
-    var parameters = _thisMember.parameters;
+    var type = _thisMember.type;
+    var parameters = type.parameters;
 
     List<ParameterElement>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
@@ -84,7 +85,6 @@ class CorrectOverrideHelper {
       }
     }
 
-    var type = _thisMember.type;
     if (newParameters != null) {
       _thisTypeForSubtype = FunctionTypeImpl(
         typeFormals: type.typeFormals,
