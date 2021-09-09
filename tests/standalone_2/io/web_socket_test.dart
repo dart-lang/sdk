@@ -46,9 +46,10 @@ class SecurityConfiguration {
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
-  Future<WebSocket> createClient(int port, {HttpClient customClient}) =>
-      // TODO(whesse): Add client context argument to WebSocket.connect
-      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
+  Future<WebSocket> createClient(int port, {HttpClient customClient}) => secure
+      ? WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
+          customClient: customClient ?? HttpClient(context: clientContext))
+      : WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
           customClient: customClient);
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
@@ -566,7 +567,8 @@ class SecurityConfiguration {
         webSocket.close();
         asyncEnd();
       });
-      var client = HttpClient()..userAgent = 'New User Agent';
+      var client = HttpClient(context: secure ? clientContext : null)
+        ..userAgent = 'New User Agent';
       WebSocket.userAgent = 'Default User Agent';
       createClient(server.port, customClient: client).then((webSocket) {
         webSocket.close();
@@ -608,6 +610,5 @@ class SecurityConfiguration {
 
 main() {
   new SecurityConfiguration(secure: false).runTests();
-  // TODO(whesse): Make WebSocket.connect() take an optional context: parameter.
-  // new SecurityConfiguration(secure: true).runTests();
+  new SecurityConfiguration(secure: true).runTests();
 }
