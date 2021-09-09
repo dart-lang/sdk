@@ -194,7 +194,7 @@ static void CanonicalizeTAV(TypeArguments* tav) {
 }
 
 struct TTSTestCase {
-  const Instance& instance;
+  const Object& instance;
   const TypeArguments& instantiator_tav;
   const TypeArguments& function_tav;
   // Whether the result of the test should be a type error.
@@ -217,7 +217,7 @@ struct TTSTestCase {
               bool should_fail = false,
               bool should_be_false_negative = false,
               bool should_respecialize = false)
-      : instance(Instance::Cast(obj)),
+      : instance(obj),
         instantiator_tav(i_tav),
         function_tav(f_tav),
         should_fail(should_fail),
@@ -264,7 +264,8 @@ struct TTSTestCase {
     if (cls.NumTypeArguments() == 0) {
       return true;
     }
-    return instance.GetTypeArguments() == other.instance.GetTypeArguments();
+    return Instance::Cast(instance).GetTypeArguments() ==
+           Instance::Cast(other.instance).GetTypeArguments();
   }
 
   bool HasSTCEntry(const SubtypeTestCache& cache,
@@ -293,7 +294,7 @@ struct TTSTestCase {
     const auto& cls = Class::Handle(instance.clazz());
     auto& instance_type_arguments = TypeArguments::Handle();
     if (cls.NumTypeArguments() > 0) {
-      instance_type_arguments = instance.GetTypeArguments();
+      instance_type_arguments = Instance::Cast(instance).GetTypeArguments();
     }
     return cache.HasCheck(id_smi, dst_type, instance_type_arguments,
                           instantiator_tav, function_tav,

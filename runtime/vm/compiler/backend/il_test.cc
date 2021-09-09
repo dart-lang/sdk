@@ -469,7 +469,10 @@ ISOLATE_UNIT_TEST_CASE(HierarchyInfo_Object_Subtype) {
   GrowableArray<intptr_t> expected_abstract_cids;
   for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
     if (!class_table->HasValidClassAt(cid)) continue;
-    if (cid == kNullCid && is_nullable) continue;
+    if (cid == kNullCid) continue;
+    if (cid == kNeverCid) continue;
+    if (cid == kDynamicCid && !is_nullable) continue;
+    if (cid == kVoidCid && !is_nullable) continue;
     to_check = class_table->At(cid);
     // Only add concrete classes.
     if (to_check.is_abstract()) {

@@ -19,6 +19,15 @@ class InvalidImplementationOverrideTest extends PubPackageResolutionTest
     with InvalidImplementationOverrideTestCases {}
 
 mixin InvalidImplementationOverrideTestCases on PubPackageResolutionTest {
+  test_class_generic_method_generic_hasCovariantParameter() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  void foo<U>(covariant Object a, U b) {}
+}
+class B extends A<int> {}
+''');
+  }
+
   test_getter_abstractOverridesConcrete() async {
     await assertErrorsInCode('''
 class A {

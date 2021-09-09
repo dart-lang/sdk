@@ -158,7 +158,7 @@ class Object {
   /// class SomeObject {
   ///   final Object a, b, c;
   ///   SomeObject(this.a, this.b, this.c);
-  ///   bool operator=(Object other) =>
+  ///   bool operator ==(Object other) =>
   ///       other is SomeObject && a == other.a && b == other.b && c == other.c;
   ///   int get hashCode => Object.hash(a, b, c);
   /// }
@@ -482,7 +482,7 @@ class Object {
   /// class SomeObject {
   ///   final List<String> path;
   ///   SomeObject(this.path);
-  ///   bool operator=(Object other) {
+  ///   bool operator ==(Object other) {
   ///     if (other is SomeObject) {
   ///       if (path.length != other.path.length) return false;
   ///       for (int i = 0; i < path.length; i++) {

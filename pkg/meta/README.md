@@ -30,5 +30,5 @@ Questions and discussions are welcome at the
 See the [LICENSE][license] file.
 
 [issues]: https://github.com/dart-lang/sdk/issues
-[license]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/LICENSE
+[license]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/LICENSE
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
