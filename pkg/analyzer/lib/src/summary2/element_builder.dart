@@ -1025,7 +1025,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   bool _shouldBeConstField(FieldDeclaration node) {
     var fields = node.fields;
     return fields.isConst ||
-        fields.isFinal && _enclosingContext.hasConstConstructor;
+        !node.isStatic &&
+            fields.isFinal &&
+            _enclosingContext.hasConstConstructor;
   }
 
   void _visitPropertyFirst<T extends AstNode>(List<AstNode> nodes) {
