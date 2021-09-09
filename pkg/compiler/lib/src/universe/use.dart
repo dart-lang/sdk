@@ -129,7 +129,7 @@ class DynamicUse {
     }
   }
 
-  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
+  List<DartType> get typeArguments => _typeArguments ?? const [];
 
   @override
   int get hashCode => Hashing.listHash(

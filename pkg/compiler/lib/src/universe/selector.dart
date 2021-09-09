@@ -17,9 +17,8 @@ import 'call_structure.dart' show CallStructure;
 
 class SelectorKind {
   final String name;
-  @override
-  final int hashCode;
-  const SelectorKind(this.name, this.hashCode);
+  final int index;
+  const SelectorKind(this.name, this.index);
 
   static const SelectorKind GETTER = SelectorKind('getter', 0);
   static const SelectorKind SETTER = SelectorKind('setter', 1);
@@ -28,12 +27,13 @@ class SelectorKind {
   static const SelectorKind INDEX = SelectorKind('index', 4);
   static const SelectorKind SPECIAL = SelectorKind('special', 5);
 
-  int get index => hashCode;
+  @override
+  int get hashCode => index;
 
   @override
   String toString() => name;
 
-  static List<SelectorKind> values = const <SelectorKind>[
+  static const List<SelectorKind> values = [
     GETTER,
     SETTER,
     CALL,
@@ -109,8 +109,7 @@ class Selector {
   factory Selector(SelectorKind kind, Name name, CallStructure callStructure) {
     // TODO(johnniwinther): Maybe use equality instead of implicit hashing.
     int hashCode = computeHashCode(kind, name, callStructure);
-    List<Selector> list =
-        canonicalizedValues.putIfAbsent(hashCode, () => <Selector>[]);
+    List<Selector> list = canonicalizedValues.putIfAbsent(hashCode, () => []);
     for (int i = 0; i < list.length; i++) {
       Selector existing = list[i];
       if (existing.match(kind, name, callStructure)) {

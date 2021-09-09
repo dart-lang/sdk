@@ -199,7 +199,7 @@ class InstantiationInfo {
   /// Register [type] as the instantiation [kind] using [constructor].
   void addInstantiation(
       ConstructorEntity constructor, InterfaceType type, Instantiation kind) {
-    instantiationMap ??= <ConstructorEntity, Set<Instance>>{};
+    instantiationMap ??= {};
     instantiationMap
         .putIfAbsent(constructor, () => Set<Instance>())
         .add(Instance(type, kind));
@@ -259,36 +259,30 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   /// Instantiation information for all classes with instantiated types.
   ///
   /// Invariant: Elements are declaration elements.
-  final Map<ClassEntity, InstantiationInfo> _instantiationInfo =
-      <ClassEntity, InstantiationInfo>{};
+  final Map<ClassEntity, InstantiationInfo> _instantiationInfo = {};
 
   /// Classes implemented by directly instantiated classes.
-  final Set<ClassEntity> _implementedClasses = Set<ClassEntity>();
+  final Set<ClassEntity> _implementedClasses = {};
 
   /// The set of all referenced static fields.
   ///
   /// Invariant: Elements are declaration elements.
-  final Set<FieldEntity> _allReferencedStaticFields = Set<FieldEntity>();
+  final Set<FieldEntity> _allReferencedStaticFields = {};
 
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: Elements are declaration elements.
-  final Set<FunctionEntity> _methodsNeedingSuperGetter = Set<FunctionEntity>();
-  final Map<String, Map<Selector, SelectorConstraints>> _invokedNames =
-      <String, Map<Selector, SelectorConstraints>>{};
-  final Map<String, Map<Selector, SelectorConstraints>> _invokedGetters =
-      <String, Map<Selector, SelectorConstraints>>{};
-  final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
-      <String, Map<Selector, SelectorConstraints>>{};
+  final Set<FunctionEntity> _methodsNeedingSuperGetter = {};
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedNames = {};
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedGetters = {};
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters = {};
 
-  final Map<ClassEntity, ClassUsage> _processedClasses =
-      <ClassEntity, ClassUsage>{};
+  final Map<ClassEntity, ClassUsage> _processedClasses = {};
 
   Map<ClassEntity, ClassUsage> get classUsageForTesting => _processedClasses;
 
   /// Map of registered usage of members of live classes.
-  final Map<MemberEntity, MemberUsage> _memberUsage =
-      <MemberEntity, MemberUsage>{};
+  final Map<MemberEntity, MemberUsage> _memberUsage = {};
 
   Map<MemberEntity, MemberUsage> get memberUsageForTesting => _memberUsage;
 
@@ -297,30 +291,26 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   ///
   /// A method is fully invoked if all is optional parameter have been passed
   /// in some invocation.
-  final Map<String, Set<MemberUsage>> _invokableInstanceMembersByName =
-      <String, Set<MemberUsage>>{};
+  final Map<String, Set<MemberUsage>> _invokableInstanceMembersByName = {};
 
   /// Map containing instance members of live classes that have not yet been
   /// read from dynamically.
-  final Map<String, Set<MemberUsage>> _readableInstanceMembersByName =
-      <String, Set<MemberUsage>>{};
+  final Map<String, Set<MemberUsage>> _readableInstanceMembersByName = {};
 
   /// Map containing instance members of live classes that have not yet been
   /// written to dynamically.
-  final Map<String, Set<MemberUsage>> _writableInstanceMembersByName =
-      <String, Set<MemberUsage>>{};
+  final Map<String, Set<MemberUsage>> _writableInstanceMembersByName = {};
 
-  final Set<FieldEntity> _fieldSetters = Set<FieldEntity>();
+  final Set<FieldEntity> _fieldSetters = {};
 
-  final Set<DartType> _isChecks = Set<DartType>();
+  final Set<DartType> _isChecks = {};
   final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
 
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
-  final Set<Local> _localFunctions = Set<Local>();
+  final Set<Local> _localFunctions = {};
 
-  final Set<FunctionEntity> _closurizedMembersWithFreeTypeVariables =
-      Set<FunctionEntity>();
+  final Set<FunctionEntity> _closurizedMembersWithFreeTypeVariables = {};
 
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
@@ -343,13 +333,13 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   bool _closed = false;
   KClosedWorld _closedWorldCache;
-  final Set<MemberEntity> _liveInstanceMembers = Set<MemberEntity>();
+  final Set<MemberEntity> _liveInstanceMembers = {};
 
-  final Set<ConstantValue> _constantValues = Set<ConstantValue>();
+  final Set<ConstantValue> _constantValues = {};
 
-  final Set<Local> _genericLocalFunctions = Set<Local>();
+  final Set<Local> _genericLocalFunctions = {};
 
-  Set<MemberEntity> _processedMembers = Set<MemberEntity>();
+  Set<MemberEntity> _processedMembers = {};
 
   bool get isClosed => _closed;
 
@@ -402,7 +392,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   // TODO(johnniwinther): Improve semantic precision.
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
-    Set<ClassEntity> classes = Set<ClassEntity>();
+    Set<ClassEntity> classes = {};
     getInstantiationMap().forEach((ClassEntity cls, InstantiationInfo info) {
       if (info.hasInstantiation) {
         classes.add(cls);
@@ -465,18 +455,18 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   Iterable<CallStructure> _getMatchingCallStructures(
       Map<Selector, SelectorConstraints> selectors, MemberEntity member) {
-    if (selectors == null) return const <CallStructure>[];
+    if (selectors == null) return const [];
     Set<CallStructure> callStructures;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
         if (masks.canHit(member, selector.memberName, this)) {
-          callStructures ??= Set<CallStructure>();
+          callStructures ??= {};
           callStructures.add(selector.callStructure);
         }
       }
     }
-    return callStructures ?? const <CallStructure>[];
+    return callStructures ?? const [];
   }
 
   bool _hasMatchingSelector(
@@ -624,7 +614,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
 
     MemberEntity element = staticUse.element;
-    EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
+    EnumSet<MemberUse> useSet = EnumSet();
     MemberUsage usage = _getMemberUsage(element, useSet);
 
     if ((element.isStatic || element.isTopLevel) && element.isField) {
@@ -753,8 +743,8 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     // [f] might add elements to [: map[memberName] :] during the loop below
     // so we create a new list for [: map[memberName] :] and prepend the
     // [remaining] members after the loop.
-    map[memberName] = Set<MemberUsage>();
-    Set<MemberUsage> remaining = Set<MemberUsage>();
+    map[memberName] = {};
+    Set<MemberUsage> remaining = {};
     for (MemberUsage usage in members) {
       if (!updateUsage(usage)) {
         remaining.add(usage);
@@ -850,7 +840,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
     MemberUsage usage = _memberUsage[member];
     if (usage == null) {
-      EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
+      EnumSet<MemberUse> useSet = EnumSet();
       usage = _getMemberUsage(member, useSet,
           checkEnqueuerConsistency: checkEnqueuerConsistency);
       if (useSet.isNotEmpty) {
@@ -867,7 +857,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         usage = usage.clone();
       }
       if (usage.hasPendingDynamicUse) {
-        EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
+        EnumSet<MemberUse> useSet = EnumSet();
         if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
           useSet.addAll(usage.read(Accesses.dynamicAccess));
         }
@@ -919,8 +909,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {
-    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
-        Map<ClassEntity, Set<ClassEntity>>();
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses = {};
 
     // Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     // properties of the [ClassHierarchyNode] for [cls].
@@ -938,8 +927,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       ClassEntity superclass = _classQueries.getSuperClass(cls);
       while (superclass != null) {
         Set<ClassEntity> typesImplementedBySubclassesOfCls =
-            typesImplementedBySubclasses.putIfAbsent(
-                superclass, () => Set<ClassEntity>());
+            typesImplementedBySubclasses.putIfAbsent(superclass, () => {});
         for (InterfaceType current in _classQueries.getSupertypes(cls)) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
@@ -957,7 +945,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   Iterable<MemberEntity> computeAssignedInstanceMembers() {
-    Set<MemberEntity> assignedInstanceMembers = Set<MemberEntity>();
+    Set<MemberEntity> assignedInstanceMembers = {};
     for (MemberEntity instanceMember in _liveInstanceMembers) {
       if (_hasInvokedSetter(instanceMember)) {
         assignedInstanceMembers.add(instanceMember);
@@ -1025,7 +1013,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
           "Member $member is processed but has not usage.");
     }
 
-    Set<InterfaceType> instantiatedTypes = Set<InterfaceType>();
+    Set<InterfaceType> instantiatedTypes = {};
     getInstantiationMap().forEach((_, InstantiationInfo info) {
       if (info.instantiationMap != null) {
         for (Set<Instance> instances in info.instantiationMap.values) {
