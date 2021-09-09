@@ -78,6 +78,10 @@
 - The experimental `waitFor` functionality, and the library containing only that
   function, are now deprecated.
 
+### `dart:core`
+
+- Add `Enum.compareByIndex` helper function for comparing enum values by index.
+
 ### Tools
 
 #### Dart command line
