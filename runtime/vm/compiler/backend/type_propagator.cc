@@ -1531,31 +1531,41 @@ CompileType StringToCharCodeInstr::ComputeType() const {
 
 CompileType LoadStaticFieldInstr::ComputeType() const {
   const Field& field = this->field();
-  bool is_nullable = CompileType::kCanBeNull;
+  ASSERT(field.is_static());
+  bool is_nullable = true;
   intptr_t cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
+
   AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());
   TraceStrongModeType(this, *abstract_type);
-  ASSERT(field.is_static());
+  if (abstract_type->IsStrictlyNonNullable()) {
+    is_nullable = false;
+  }
+
   auto& obj = Object::Handle();
   const bool is_initialized = IsFieldInitialized(&obj);
   if (field.is_final() && is_initialized) {
     if (!obj.IsNull()) {
-      is_nullable = CompileType::kCannotBeNull;
+      is_nullable = false;
       cid = obj.GetClassId();
       abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
     }
   }
+
   if ((field.guarded_cid() != kIllegalCid) &&
       (field.guarded_cid() != kDynamicCid)) {
     cid = field.guarded_cid();
-    is_nullable = field.is_nullable();
+    if (!field.is_nullable()) {
+      is_nullable = false;
+    }
     abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
   }
+
   if (field.needs_load_guard()) {
     // Should be kept in sync with Slot::Get.
     DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
   }
+
   const bool can_be_sentinel = !calls_initializer() && field.is_late() &&
                                field.is_final() && !field.has_initializer();
   return CompileType(is_nullable, can_be_sentinel, cid, abstract_type);
