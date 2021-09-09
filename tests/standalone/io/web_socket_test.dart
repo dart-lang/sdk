@@ -560,12 +560,12 @@ class SecurityConfiguration {
     asyncStart();
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
-        Expect.equals('Default User Agent', WebSocket.userAgent);
+        Expect.equals('Custom User Agent', WebSocket.userAgent);
         server.close();
         webSocket.close();
         asyncEnd();
       });
-      WebSocket.userAgent = 'Default User Agent';
+      WebSocket.userAgent = 'Custom User Agent';
       createClient(server.port, customUserAgent: 'New User Agent').then((webSocket) {
         webSocket.close();
       });
