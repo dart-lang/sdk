@@ -522,7 +522,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
   }
 
   if (add_to_remembered_set) {
-    object->untag()->AddToRememberedSet(thread);
+    object->untag()->EnsureInRememberedSet(thread);
   }
 
   // For incremental write barrier elimination, we need to ensure that the
