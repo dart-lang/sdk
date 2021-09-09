@@ -266,21 +266,31 @@ class AstRewriter {
       return node;
     }
     var receiver = node.target!;
-    if (receiver is! FunctionReference) {
-      return node;
-    }
     var propertyName = node.propertyName;
     if (propertyName.isSynthetic) {
       // This isn't a constructor reference.
       return node;
     }
-    // A [ConstructorReference] with explicit type arguments is initially parsed
-    // as a [PropertyAccess] with a [FunctionReference] target; for example:
-    // `List<int>.filled` or `core.List<int>.filled`.
-    var receiverIdentifier = receiver.function;
-    if (receiverIdentifier is! Identifier) {
-      // If [receiverIdentifier] is not an Identifier then [node] is not a
-      // ConstructorReference.
+
+    Identifier receiverIdentifier;
+    TypeArgumentList? typeArguments;
+    if (receiver is PrefixedIdentifier) {
+      receiverIdentifier = receiver;
+    } else if (receiver is FunctionReference) {
+      // A [ConstructorReference] with explicit type arguments is initially
+      // parsed as a [PropertyAccess] with a [FunctionReference] target; for
+      // example: `List<int>.filled` or `core.List<int>.filled`.
+      var function = receiver.function;
+      if (function is! Identifier) {
+        // If [receiverIdentifier] is not an Identifier then [node] is not a
+        // ConstructorReference.
+        return node;
+      }
+      receiverIdentifier = function;
+      typeArguments = receiver.typeArguments;
+    } else {
+      // If the receiver is not (initially) a prefixed identifier or a function
+      // reference, then [node] is not a constructor reference.
       return node;
     }
 
@@ -310,7 +320,7 @@ class AstRewriter {
       return _toConstructorReference_propertyAccess(
         node: node,
         receiver: receiverIdentifier,
-        typeArguments: receiver.typeArguments!,
+        typeArguments: typeArguments,
         classElement: element,
       );
     } else if (element is TypeAliasElement) {
@@ -323,7 +333,7 @@ class AstRewriter {
         return _toConstructorReference_propertyAccess(
           node: node,
           receiver: receiverIdentifier,
-          typeArguments: receiver.typeArguments!,
+          typeArguments: typeArguments,
           classElement: aliasedType.element,
         );
       }
@@ -393,12 +403,24 @@ class AstRewriter {
     return constructorReference;
   }
 
-  ConstructorReference _toConstructorReference_propertyAccess({
+  AstNode _toConstructorReference_propertyAccess({
     required PropertyAccess node,
     required Identifier receiver,
-    required TypeArgumentList typeArguments,
+    required TypeArgumentList? typeArguments,
     required ClassElement classElement,
   }) {
+    var name = node.propertyName.name;
+    var constructorElement = name == 'new'
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(name);
+    if (constructorElement == null && typeArguments == null) {
+      // If there is no constructor by this name, and no type arguments,
+      // do not rewrite the node. If there _are_ type arguments (like
+      // `prefix.C<int>.name`, then it looks more like a constructor tearoff
+      // than anything else, so continue with the rewrite.
+      return node;
+    }
+
     var operator = node.operator;
 
     var typeName = astFactory.typeName(receiver, typeArguments);
