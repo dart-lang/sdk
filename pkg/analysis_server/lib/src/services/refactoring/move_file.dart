@@ -8,8 +8,10 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -177,8 +179,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   }
 
   bool _isPackageReference(SourceReference reference) {
-    var source = reference.element.source!;
-    var quotedImportUri = source.contents.data.substring(reference.range.offset,
+    var unitSourceContent = reference.element.unitSourceContent;
+    if (unitSourceContent == null) {
+      return false;
+    }
+    var quotedImportUri = unitSourceContent.substring(reference.range.offset,
         reference.range.offset + reference.range.length);
     return packagePrefixedStringPattern.hasMatch(quotedImportUri);
   }
@@ -213,5 +218,12 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       var newUri = _getRelativeUri(elementPath, newDir);
       builder.addSimpleReplacement(range.node(uriNode), "'$newUri'");
     }
+  }
+}
+
+extension on Element {
+  String? get unitSourceContent {
+    var unitElement = thisOrAncestorOfType<CompilationUnitElementImpl>();
+    return unitElement?.sourceContent;
   }
 }
