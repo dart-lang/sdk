@@ -46,10 +46,10 @@ class SecurityConfiguration {
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
-  Future<WebSocket> createClient(int port, {HttpClient customClient}) =>
+  Future<WebSocket> createClient(int port, {String customUserAgent}) =>
       WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
-          customClient: customClient ?? secure
-              ? HttpClient(context: clientContext)
+          customClient: secure
+              ? (HttpClient(context: clientContext)..userAgent = customUserAgent)
               : null);
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
@@ -567,10 +567,8 @@ class SecurityConfiguration {
         webSocket.close();
         asyncEnd();
       });
-      var client = HttpClient(context: secure ? clientContext : null)
-        ..userAgent = 'New User Agent';
       WebSocket.userAgent = 'Default User Agent';
-      createClient(server.port, customClient: client).then((webSocket) {
+      createClient(server.port, customUserAgent: 'New User Agent').then((webSocket) {
         webSocket.close();
       });
     });
