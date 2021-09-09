@@ -152,7 +152,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Maximum number of polymorphic check, otherwise it is megamorphic.")       \
   P(max_equality_polymorphic_checks, int, 32,                                  \
     "Maximum number of polymorphic checks in equality operator,")              \
-  P(new_gen_semi_max_size, int, (kWordSize <= 4) ? 8 : 16,                     \
+  P(new_gen_semi_max_size, int, kDefaultNewGenSemiMaxSize,                     \
     "Max size of new gen semi space in MB")                                    \
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \

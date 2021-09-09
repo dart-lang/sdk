@@ -89,6 +89,52 @@ UNIT_TEST_CASE(DartAPI_DartInitializeCallsCodeObserver) {
   EXPECT(Dart_Cleanup() == NULL);
 }
 
+UNIT_TEST_CASE(DartAPI_DartInitializeHeapSizes) {
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create_group = TesterState::create_callback;
+  params.shutdown_isolate = TesterState::shutdown_callback;
+  params.cleanup_group = TesterState::group_cleanup_callback;
+  params.start_kernel_isolate = true;
+
+  // Initialize with a normal heap size specification.
+  const char* options_1[] = {"--old-gen-heap-size=3192",
+                             "--new-gen-semi-max-size=32"};
+  EXPECT(Dart_SetVMFlags(2, options_1) == NULL);
+  EXPECT(Dart_Initialize(&params) == NULL);
+  EXPECT(FLAG_old_gen_heap_size == 3192);
+  EXPECT(FLAG_new_gen_semi_max_size == 32);
+  EXPECT(Dart_Cleanup() == NULL);
+
+  const char* options_2[] = {"--old-gen-heap-size=16384",
+                             "--new-gen-semi-max-size=16384"};
+  EXPECT(Dart_SetVMFlags(2, options_2) == NULL);
+  EXPECT(Dart_Initialize(&params) == NULL);
+  if (kMaxAddrSpaceMB == 4096) {
+    EXPECT(FLAG_old_gen_heap_size == 0);
+    EXPECT(FLAG_new_gen_semi_max_size == kDefaultNewGenSemiMaxSize);
+  } else {
+    EXPECT(FLAG_old_gen_heap_size == 16384);
+    EXPECT(FLAG_new_gen_semi_max_size == 16384);
+  }
+  EXPECT(Dart_Cleanup() == NULL);
+
+  const char* options_3[] = {"--old-gen-heap-size=30720",
+                             "--new-gen-semi-max-size=30720"};
+  EXPECT(Dart_SetVMFlags(2, options_3) == NULL);
+  EXPECT(Dart_Initialize(&params) == NULL);
+  if (kMaxAddrSpaceMB == 4096) {
+    EXPECT(FLAG_old_gen_heap_size == 0);
+    EXPECT(FLAG_new_gen_semi_max_size == kDefaultNewGenSemiMaxSize);
+  } else {
+    EXPECT(FLAG_old_gen_heap_size == 30720);
+    EXPECT(FLAG_new_gen_semi_max_size == 30720);
+  }
+  EXPECT(Dart_Cleanup() == NULL);
+}
+
 TEST_CASE(Dart_KillIsolate) {
   const char* kScriptChars =
       "int testMain() {\n"
