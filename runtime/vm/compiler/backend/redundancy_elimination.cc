@@ -3914,7 +3914,7 @@ class TryCatchAnalyzer : public ValueObject {
 
         for (auto phi : *join->phis()) {
           phi->mark_dead();
-          if (HasNonPhiUse(phi)) {
+          if (HasActualUse(phi)) {
             MarkLive(phi);
           }
         }
@@ -3922,7 +3922,7 @@ class TryCatchAnalyzer : public ValueObject {
     }
 
     for (auto info : parameter_info_) {
-      if (HasNonPhiUse(info->instr)) {
+      if (HasActualUse(info->instr)) {
         MarkLive(info->instr);
       }
     }
@@ -3962,6 +3962,8 @@ class TryCatchAnalyzer : public ValueObject {
           worklist_.Add(param);
         }
       }
+    } else if (UnboxInstr* unbox = defn->AsUnbox()) {
+      MarkLive(unbox->value()->definition());
     }
   }
 
@@ -4003,10 +4005,16 @@ class TryCatchAnalyzer : public ValueObject {
   }
 
   // Returns true if definition has a use in an instruction which is not a phi.
-  static bool HasNonPhiUse(Definition* defn) {
+  // Skip over Unbox instructions which may be inserted for unused phis.
+  static bool HasActualUse(Definition* defn) {
     for (Value* use = defn->input_use_list(); use != nullptr;
          use = use->next_use()) {
-      if (!use->instruction()->IsPhi()) {
+      Instruction* use_instruction = use->instruction();
+      if (UnboxInstr* unbox = use_instruction->AsUnbox()) {
+        if (HasActualUse(unbox)) {
+          return true;
+        }
+      } else if (!use_instruction->IsPhi()) {
         return true;
       }
     }
