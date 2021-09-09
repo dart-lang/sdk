@@ -35,7 +35,7 @@ GOMA_RBE = {
 
 RELEASE_CHANNELS = ["beta", "dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
-BRANCHES = ["master"] + RELEASE_CHANNELS
+BRANCHES = ["main"] + RELEASE_CHANNELS
 
 TEST_PY_PATHS = "pkg/(async_helper|expect|smith|status_file|test_runner)/.+"
 
@@ -238,7 +238,7 @@ luci.console_view(
     name = "be",
     repo = "https://dart.googlesource.com/sdk",
     title = "SDK Bleeding Edge Console",
-    refs = ["refs/heads/master"],
+    refs = ["refs/heads/main"],
     header = "console-header.textpb",
 )
 
@@ -246,7 +246,7 @@ luci.console_view(
     name = "alt",
     repo = "https://dart.googlesource.com/sdk",
     title = "SDK Bleeding Edge Console (alternative)",
-    refs = ["refs/heads/master"],
+    refs = ["refs/heads/main"],
     header = "console-header.textpb",
 )
 
@@ -283,7 +283,7 @@ luci.console_view(
     name = "flutter",
     repo = DART_GIT,
     title = "Dart/Flutter Console",
-    refs = ["refs/heads/master"],
+    refs = ["refs/heads/main"],
 )
 
 luci.console_view(
@@ -302,7 +302,7 @@ luci.console_view(
     name = "fyi",
     repo = DART_GIT,
     title = "SDK FYI Console",
-    refs = ["refs/heads/master"],
+    refs = ["refs/heads/main"],
 )
 
 luci.list_view(
@@ -370,7 +370,7 @@ def dart_poller(name, bucket = "ci", branches = BRANCHES, paths = None):
         )
 
 dart_poller("dart-gitiles-trigger", branches = BRANCHES)
-dart_poller("dart-vm-gitiles-trigger", branches = ["master"], paths = VM_PATHS)
+dart_poller("dart-vm-gitiles-trigger", branches = ["main"], paths = VM_PATHS)
 
 luci.gitiles_poller(
     name = "dart-flutter-engine-trigger",
@@ -684,7 +684,7 @@ def dart_builder(
                 properties,
             )
             builder = name + "-" + channel if channel else name
-            branch = channel if channel else "master"
+            branch = channel if channel else "main"
             if schedule == "triggered" and triggered_by:
                 triggered_by = [
                     trigger.replace("%s", branch)
@@ -1662,7 +1662,7 @@ dart_infra_builder(
     },
     notifies = "infra",
     triggered_by = [
-        "dart-gitiles-trigger-master",
+        "dart-gitiles-trigger-main",
         "dart-flutter-engine-trigger",
         "dart-flutter-flutter-trigger",
     ],
