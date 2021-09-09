@@ -16,7 +16,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -76,11 +75,7 @@ class AnalyzerStatusParams implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => isAnalyzing.hashCode;
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -163,12 +158,7 @@ class ClosingLabel implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, range.hashCode);
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(range, label);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -260,12 +250,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(file, offset);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -482,17 +467,8 @@ class DartCompletionItemResolutionInfo
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, libId.hashCode);
-    hash = JenkinsSmiHash.combine(hash, displayUri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, rOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, iLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, rLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode =>
+      Object.hash(libId, displayUri, rOffset, iLength, rLength, file, offset);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -554,11 +530,7 @@ class DartDiagnosticServer implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, port.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => port.hashCode;
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -724,16 +696,8 @@ class Element implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, range.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, typeParameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode =>
+      Object.hash(range, name, kind, parameters, typeParameters, returnType);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -980,19 +944,16 @@ class FlutterOutline implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    hash = JenkinsSmiHash.combine(hash, className.hashCode);
-    hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, lspHashCode(attributes));
-    hash = JenkinsSmiHash.combine(hash, dartElement.hashCode);
-    hash = JenkinsSmiHash.combine(hash, range.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
-    hash = JenkinsSmiHash.combine(hash, lspHashCode(children));
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+      kind,
+      label,
+      className,
+      variableName,
+      lspHashCode(attributes),
+      dartElement,
+      range,
+      codeRange,
+      lspHashCode(children));
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1099,13 +1060,7 @@ class FlutterOutlineAttribute implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    hash = JenkinsSmiHash.combine(hash, valueRange.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(name, label, valueRange);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1243,14 +1198,8 @@ class Outline implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = JenkinsSmiHash.combine(hash, range.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
-    hash = JenkinsSmiHash.combine(hash, lspHashCode(children));
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode =>
+      Object.hash(element, range, codeRange, lspHashCode(children));
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1365,13 +1314,7 @@ class PubPackageCompletionItemResolutionInfo
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, packageName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(packageName, file, offset);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1461,12 +1404,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, lspHashCode(labels));
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(uri, lspHashCode(labels));
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1552,12 +1490,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(uri, outline);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1641,12 +1574,7 @@ class PublishOutlineParams implements ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(uri, outline);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -1764,13 +1692,7 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, insertTextFormat.hashCode);
-    hash = JenkinsSmiHash.combine(hash, range.hashCode);
-    hash = JenkinsSmiHash.combine(hash, newText.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(insertTextFormat, range, newText);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
