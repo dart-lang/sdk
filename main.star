@@ -492,6 +492,7 @@ def dart_recipe(name):
     return luci.recipe(
         name = name,
         cipd_package = "dart/recipe_bundles/dart.googlesource.com/recipes",
+        cipd_version = "refs/heads/main",
         use_bbagent = True,
     )
 
