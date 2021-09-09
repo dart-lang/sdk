@@ -36,6 +36,6 @@ yourself with the [design principles][design] that guide this tool's UX.
 Please file feature requests and bugs in the Dart SDK [issue tracker][tracker]
 with label `area-dart-cli`.
 
-[contributing]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
-[design] https://github.com/dart-lang/sdk/blob/master/pkg/dartdev/doc/design.md
+[contributing]: https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md
+[design] https://github.com/dart-lang/sdk/blob/main/pkg/dartdev/doc/design.md
 [tracker]: https://github.com/dart-lang/sdk/labels/area-dart-cli
