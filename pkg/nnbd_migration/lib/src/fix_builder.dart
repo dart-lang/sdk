@@ -35,7 +35,6 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';

@@ -8,7 +8,8 @@
 
 // Equivalent of AbstractTypeLayout.
 abstract class _AbstractType implements Type {
-  String toString() native "AbstractType_toString";
+  @pragma("vm:external-name", "AbstractType_toString")
+  external String toString();
 }
 
 // Equivalent of TypeLayout.
@@ -20,11 +21,13 @@ class _Type extends _AbstractType {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int get hashCode native "Type_getHashCode";
+  @pragma("vm:external-name", "Type_getHashCode")
+  external int get hashCode;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
-  bool operator ==(other) native "Type_equality";
+  @pragma("vm:external-name", "Type_equality")
+  external bool operator ==(other);
 }
 
 // Equivalent of FunctionTypeLayout.
@@ -36,11 +39,13 @@ class _FunctionType extends _AbstractType {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int get hashCode native "FunctionType_getHashCode";
+  @pragma("vm:external-name", "FunctionType_getHashCode")
+  external int get hashCode;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
-  bool operator ==(other) native "FunctionType_equality";
+  @pragma("vm:external-name", "FunctionType_equality")
+  external bool operator ==(other);
 }
 
 // Equivalent of TypeRefLayout.

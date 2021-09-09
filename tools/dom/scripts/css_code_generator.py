@@ -86,12 +86,11 @@ def GenerateCssTemplateFile():
     # TODO(efortuna): do we also want CSSPropertyNames.in?
     data = [d.strip() for d in data if not isCommentLine(d) and not '=' in d]
 
-    browser_props = [readCssProperties(file) for file in BROWSER_PATHS]
-    universal_properties = reduce(lambda a, b: set(a).intersection(b),
-                                  browser_props)
+    browser_props = [set(readCssProperties(file)) for file in BROWSER_PATHS]
+    universal_properties = set.intersection(*browser_props)
     universal_properties = universal_properties.difference(['cssText'])
     universal_properties = universal_properties.intersection(
-        map(camelCaseName, data))
+        list(map(camelCaseName, data)))
 
     class_file = open(TEMPLATE_FILE, 'w')
 

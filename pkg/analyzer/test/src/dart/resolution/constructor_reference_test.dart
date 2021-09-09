@@ -696,6 +696,108 @@ bar() {
     );
   }
 
+  test_prefixedAlias_nonGeneric_named() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  A.foo();
+}
+typedef TA = A;
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.TA.foo;
+}
+''');
+
+    var classElement =
+        findElement.importFind('package:test/a.dart').class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('a.TA.foo;'),
+      classElement.getNamedConstructor('foo'),
+      classElement,
+      'A Function()',
+      expectedPrefix: findElement.import('package:test/a.dart').prefix,
+      expectedTypeNameElement:
+          findElement.importFind('package:test/a.dart').typeAlias('TA'),
+    );
+  }
+
+  test_prefixedAlias_nonGeneric_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  A();
+}
+typedef TA = A;
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.TA.new;
+}
+''');
+
+    var classElement =
+        findElement.importFind('package:test/a.dart').class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('a.TA.new;'),
+      classElement.unnamedConstructor,
+      classElement,
+      'A Function()',
+      expectedPrefix: findElement.import('package:test/a.dart').prefix,
+      expectedTypeNameElement:
+          findElement.importFind('package:test/a.dart').typeAlias('TA'),
+    );
+  }
+
+  test_prefixedClass_nonGeneric_named() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  A.foo();
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.A.foo;
+}
+''');
+
+    var classElement =
+        findElement.importFind('package:test/a.dart').class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('a.A.foo;'),
+      classElement.getNamedConstructor('foo'),
+      classElement,
+      'A Function()',
+      expectedPrefix: findElement.import('package:test/a.dart').prefix,
+    );
+  }
+
+  test_prefixedClass_nonGeneric_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  A();
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+bar() {
+  a.A.new;
+}
+''');
+
+    var classElement =
+        findElement.importFind('package:test/a.dart').class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('a.A.new;'),
+      classElement.unnamedConstructor,
+      classElement,
+      'A Function()',
+      expectedPrefix: findElement.import('package:test/a.dart').prefix,
+    );
+  }
+
   test_typeAlias_generic_const() async {
     await assertNoErrorsInCode('''
 class A<T> {

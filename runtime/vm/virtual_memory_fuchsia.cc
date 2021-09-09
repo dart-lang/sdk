@@ -52,6 +52,22 @@ intptr_t VirtualMemory::CalculatePageSize() {
 }
 
 void VirtualMemory::Init() {
+  if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --old_gen_heap_size %d is larger than"
+        " the physically addressable range, using 0(unlimited) instead.`\n",
+        FLAG_old_gen_heap_size);
+    FLAG_old_gen_heap_size = 0;
+  }
+  if (FLAG_new_gen_semi_max_size < 0 ||
+      FLAG_new_gen_semi_max_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --new_gen_semi_max_size %d is larger"
+        " than the physically addressable range, using %" Pd " instead.`\n",
+        FLAG_new_gen_semi_max_size, kDefaultNewGenSemiMaxSize);
+    FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
+  }
+
 #if defined(DART_COMPRESSED_POINTERS)
   if (compressed_heap_vmar_ == ZX_HANDLE_INVALID) {
     const zx_vm_option_t align_flag =

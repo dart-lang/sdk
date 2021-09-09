@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
+import '../serialization/serialization.dart';
 import 'constants.dart';
 import 'impact_data.dart';
 import 'runtime_type_analysis.dart';
@@ -707,7 +708,7 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
     }
     node.accept(this);
     return new ImpactBuilderData(
-        impactData, typeMapsForTesting, getStaticTypeCache());
+        node, impactData, typeMapsForTesting, getStaticTypeCache());
   }
 }
 
@@ -716,12 +717,32 @@ List<String> _getNamedArguments(ir.Arguments arguments) =>
     arguments.named.map((n) => n.name).toList();
 
 class ImpactBuilderData {
+  static const String tag = 'ImpactBuilderData';
+
+  final ir.Member node;
   final ImpactData impactData;
   final Map<ir.Expression, TypeMap> typeMapsForTesting;
   final StaticTypeCache cachedStaticTypes;
 
-  ImpactBuilderData(
-      this.impactData, this.typeMapsForTesting, this.cachedStaticTypes);
+  ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting,
+      this.cachedStaticTypes);
+
+  factory ImpactBuilderData.fromDataSource(DataSource source) {
+    source.begin(tag);
+    var node = source.readMemberNode();
+    var data = ImpactData.fromDataSource(source);
+    var cache = StaticTypeCache.readFromDataSource(source, node);
+    source.end(tag);
+    return ImpactBuilderData(node, data, const {}, cache);
+  }
+
+  void toDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    impactData.toDataSink(sink);
+    cachedStaticTypes.writeToDataSink(sink, node);
+    sink.end(tag);
+  }
 }
 
 class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {

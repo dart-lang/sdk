@@ -37,7 +37,6 @@ _custom_factories = [
     'EventSource',
 ]
 
-
 class HtmlDartGenerator(object):
 
     def __init__(self, interface, options, dart_use_blink, logger):
@@ -82,10 +81,10 @@ class HtmlDartGenerator(object):
             # one synthesized class (WebGL).
             self._gl_constants.extend(interface.constants)
         else:
-            for const in sorted(interface.constants, ConstantOutputOrder):
+            for const in sorted(interface.constants, key=ConstantOutputOrder):
                 self.AddConstant(const)
 
-        for attr in sorted(interface.attributes, ConstantOutputOrder):
+        for attr in sorted(interface.attributes, key=ConstantOutputOrder):
             if attr.type.id != 'EventHandler' and attr.type.id != 'EventListener':
                 self.AddAttribute(attr, declare_only)
 
@@ -132,12 +131,13 @@ class HtmlDartGenerator(object):
             _logger.warn('Interface %s has duplicate parent interfaces %s - ' \
                          'ignoring duplicates. Please file a bug with the dart:html team.' % (interface.id, parent_list))
 
-        for parent_interface in sorted(secondary_parents):
+        for parent_interface in sorted(secondary_parents,
+                                       key=ConstantOutputOrder):
             if isinstance(parent_interface, str):
                 continue
 
             for attr in sorted(parent_interface.attributes,
-                               ConstantOutputOrder):
+                               key=ConstantOutputOrder):
                 if not FindMatchingAttribute(interface, attr):
                     if attr.type.id != 'EventHandler':
                         self.SecondaryContext(parent_interface)
@@ -172,7 +172,6 @@ class HtmlDartGenerator(object):
         # are pure interfaces (mixins to this interface).
         if (IsPureInterface(parent_name, self._database)):
             return
-
         for operation in parent.operations:
             if operation.id in operationsByName:
                 operations = operationsByName[operation.id]
@@ -242,8 +241,10 @@ class HtmlDartGenerator(object):
 
         if (operation.id in operations_by_name and
                 len(operations_by_name[operation.id]) > 1 and len(
-                    filter(lambda overload: overload.startswith(operation_str),
-                           renamed_overloads.keys())) == 0 and
+                    list(
+                        filter(
+                            lambda overload: overload.startswith(operation_str),
+                            renamed_overloads.keys()))) == 0 and
                 operation_str not in keep_overloaded_members and
                 operation_str not in overloaded_and_renamed and
                 operation_str not in renamed_html_members and

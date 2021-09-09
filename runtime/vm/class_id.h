@@ -159,11 +159,9 @@ typedef uint16_t ClassIdTagType;
   V(Handle)
 
 #define CLASS_LIST_FFI(V)                                                      \
-  V(Pointer)                                                                   \
   V(NativeFunction)                                                            \
   CLASS_LIST_FFI_TYPE_MARKER(V)                                                \
   V(NativeType)                                                                \
-  V(DynamicLibrary)                                                            \
   V(Struct)
 
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
@@ -389,7 +387,7 @@ inline bool IsExternalTypedDataClassId(intptr_t index) {
 
 inline bool IsFfiTypeClassId(intptr_t index) {
   switch (index) {
-    case kFfiPointerCid:
+    case kPointerCid:
     case kFfiNativeFunctionCid:
 #define CASE_FFI_CID(name) case kFfi##name##Cid:
       CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
@@ -403,6 +401,8 @@ inline bool IsFfiTypeClassId(intptr_t index) {
 
 inline bool IsFfiPredefinedClassId(classid_t class_id) {
   switch (class_id) {
+    case kPointerCid:
+    case kDynamicLibraryCid:
 #define CASE_FFI_CID(name) case kFfi##name##Cid:
     CLASS_LIST_FFI(CASE_FFI_CID)
 #undef CASE_FFI_CID
@@ -414,11 +414,11 @@ inline bool IsFfiPredefinedClassId(classid_t class_id) {
 }
 
 inline bool IsFfiPointerClassId(intptr_t index) {
-  return index == kFfiPointerCid;
+  return index == kPointerCid;
 }
 
 inline bool IsFfiDynamicLibraryClassId(intptr_t index) {
-  return index == kFfiDynamicLibraryCid;
+  return index == kDynamicLibraryCid;
 }
 
 inline bool IsInternalVMdefinedClassId(intptr_t index) {

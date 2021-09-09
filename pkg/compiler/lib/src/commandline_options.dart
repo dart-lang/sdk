@@ -119,6 +119,8 @@ class Flags {
   static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';
   static const String writeCodegen = '--write-codegen';
+  static const String readModularAnalysis = '--read-modular-analysis';
+  static const String writeModularAnalysis = '--write-modular-analysis';
   static const String codegenShard = '--codegen-shard';
   static const String codegenShards = '--codegen-shards';
   static const String cfeOnly = '--cfe-only';

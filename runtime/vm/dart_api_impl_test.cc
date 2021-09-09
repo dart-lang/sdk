@@ -89,6 +89,52 @@ UNIT_TEST_CASE(DartAPI_DartInitializeCallsCodeObserver) {
   EXPECT(Dart_Cleanup() == NULL);
 }
 
+UNIT_TEST_CASE(DartAPI_DartInitializeHeapSizes) {
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create_group = TesterState::create_callback;
+  params.shutdown_isolate = TesterState::shutdown_callback;
+  params.cleanup_group = TesterState::group_cleanup_callback;
+  params.start_kernel_isolate = true;
+
+  // Initialize with a normal heap size specification.
+  const char* options_1[] = {"--old-gen-heap-size=3192",
+                             "--new-gen-semi-max-size=32"};
+  EXPECT(Dart_SetVMFlags(2, options_1) == NULL);
+  EXPECT(Dart_Initialize(&params) == NULL);
+  EXPECT(FLAG_old_gen_heap_size == 3192);
+  EXPECT(FLAG_new_gen_semi_max_size == 32);
+  EXPECT(Dart_Cleanup() == NULL);
+
+  const char* options_2[] = {"--old-gen-heap-size=16384",
+                             "--new-gen-semi-max-size=16384"};
+  EXPECT(Dart_SetVMFlags(2, options_2) == NULL);
+  EXPECT(Dart_Initialize(&params) == NULL);
+  if (kMaxAddrSpaceMB == 4096) {
+    EXPECT(FLAG_old_gen_heap_size == 0);
+    EXPECT(FLAG_new_gen_semi_max_size == kDefaultNewGenSemiMaxSize);
+  } else {
+    EXPECT(FLAG_old_gen_heap_size == 16384);
+    EXPECT(FLAG_new_gen_semi_max_size == 16384);
+  }
+  EXPECT(Dart_Cleanup() == NULL);
+
+  const char* options_3[] = {"--old-gen-heap-size=30720",
+                             "--new-gen-semi-max-size=30720"};
+  EXPECT(Dart_SetVMFlags(2, options_3) == NULL);
+  EXPECT(Dart_Initialize(&params) == NULL);
+  if (kMaxAddrSpaceMB == 4096) {
+    EXPECT(FLAG_old_gen_heap_size == 0);
+    EXPECT(FLAG_new_gen_semi_max_size == kDefaultNewGenSemiMaxSize);
+  } else {
+    EXPECT(FLAG_old_gen_heap_size == 30720);
+    EXPECT(FLAG_new_gen_semi_max_size == 30720);
+  }
+  EXPECT(Dart_Cleanup() == NULL);
+}
+
 TEST_CASE(Dart_KillIsolate) {
   const char* kScriptChars =
       "int testMain() {\n"
@@ -478,8 +524,8 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   EXPECT_STREQ("inspectStack", cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ(test_lib, cstr);
-  EXPECT_EQ(1, line_number);
-  EXPECT_EQ(47, column_number);
+  EXPECT_EQ(3, line_number);
+  EXPECT_EQ(24, column_number);
 
   // Second frame is foo() positioned at call to inspectStack().
   result = Dart_GetActivationFrame(stacktrace, 1, &frame);
@@ -491,7 +537,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ(test_lib, cstr);
-  EXPECT_EQ(2, line_number);
+  EXPECT_EQ(4, line_number);
   EXPECT_EQ(20, column_number);
 
   // Middle frames positioned at the recursive call.
@@ -506,7 +552,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
     EXPECT_STREQ("foo", cstr);
     Dart_StringToCString(script_url, &cstr);
     EXPECT_STREQ(test_lib, cstr);
-    EXPECT_EQ(2, line_number);
+    EXPECT_EQ(4, line_number);
     EXPECT_EQ(37, column_number);
   }
 
@@ -520,7 +566,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ(test_lib, cstr);
-  EXPECT_EQ(3, line_number);
+  EXPECT_EQ(5, line_number);
   EXPECT_EQ(15, column_number);
 
   // Out-of-bounds frames.
@@ -543,10 +589,12 @@ static Dart_NativeFunction CurrentStackTraceNativeLookup(
 }
 
 TEST_CASE(DartAPI_CurrentStackTraceInfo) {
-  const char* kScriptChars =
-      "inspectStack() native 'CurrentStackTraceNatve';\n"
-      "foo(n) => n == 1 ? inspectStack() : foo(n-1);\n"
-      "testMain() => foo(100);\n";
+  const char* kScriptChars = R"(
+@pragma("vm:external-name", "CurrentStackTraceNatve")
+external inspectStack();
+foo(n) => n == 1 ? inspectStack() : foo(n-1);
+testMain() => foo(100);
+  )";
 
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &CurrentStackTraceNativeLookup);
@@ -692,16 +740,18 @@ static Dart_NativeFunction PropagateError_native_lookup(
 }
 
 TEST_CASE(DartAPI_PropagateCompileTimeError) {
-  const char* kScriptChars =
-      "raiseCompileError() {\n"
-      "  return missing_semicolon\n"
-      "}\n"
-      "\n"
-      "void nativeFunc(closure) native 'Test_nativeFunc';\n"
-      "\n"
-      "void Func1() {\n"
-      "  nativeFunc(() => raiseCompileError());\n"
-      "}\n";
+  const char* kScriptChars = R"(
+raiseCompileError() {
+  return missing_semicolon
+}
+
+@pragma("vm:external-name", "Test_nativeFunc")
+external void nativeFunc(closure);
+
+void Func1() {
+  nativeFunc(() => raiseCompileError());
+}
+)";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &PropagateError_native_lookup);
   Dart_Handle result;
@@ -733,16 +783,18 @@ TEST_CASE(DartAPI_PropagateCompileTimeError) {
 }
 
 TEST_CASE(DartAPI_PropagateError) {
-  const char* kScriptChars =
-      "void throwException() {\n"
-      "  throw new Exception('myException');\n"
-      "}\n"
-      "\n"
-      "void nativeFunc(closure) native 'Test_nativeFunc';\n"
-      "\n"
-      "void Func2() {\n"
-      "  nativeFunc(() => throwException());\n"
-      "}\n";
+  const char* kScriptChars = R"(
+void throwException() {
+  throw new Exception('myException');
+}
+
+@pragma("vm:external-name", "Test_nativeFunc")
+external void nativeFunc(closure);
+
+void Func2() {
+  nativeFunc(() => throwException());
+}
+)";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &PropagateError_native_lookup);
   Dart_Handle result;
@@ -2149,28 +2201,30 @@ static Dart_NativeFunction ByteDataNativeResolver(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_ByteDataAccess) {
-  const char* kScriptChars =
-      "import 'dart:typed_data';\n"
-      "class Expect {\n"
-      "  static equals(a, b) {\n"
-      "    if (a != b) {\n"
-      "      throw 'not equal. expected: $a, got: $b';\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "ByteData createByteData() native 'CreateByteData';"
-      "ByteData main() {"
-      "  var length = 16;"
-      "  var a = createByteData();"
-      "  Expect.equals(length, a.lengthInBytes);"
-      "  for (int i = 0; i < length; i+=1) {"
-      "    a.setInt8(i, 0x42);"
-      "  }"
-      "  for (int i = 0; i < length; i+=2) {"
-      "    Expect.equals(0x4242, a.getInt16(i));"
-      "  }"
-      "  return a;"
-      "}\n";
+  const char* kScriptChars = R"(
+import 'dart:typed_data';
+class Expect {
+  static equals(a, b) {
+    if (a != b) {
+      throw 'not equal. expected: $a, got: $b';
+    }
+  }
+}
+@pragma("vm:external-name", "CreateByteData")
+external ByteData createByteData();
+ByteData main() {
+  var length = 16;
+  var a = createByteData();
+  Expect.equals(length, a.lengthInBytes);
+  for (int i = 0; i < length; i+=1) {
+    a.setInt8(i, 0x42);
+  }
+  for (int i = 0; i < length; i+=2) {
+    Expect.equals(0x4242, a.getInt16(i));
+  }
+  return a;
+}
+)";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -2212,32 +2266,34 @@ static Dart_NativeFunction ExternalByteDataNativeResolver(
 TEST_CASE(DartAPI_ExternalByteDataAccess) {
   // TODO(asiva): Once we have getInt16LE and getInt16BE support use the
   // appropriate getter instead of the host endian format used now.
-  const char* kScriptChars =
-      "import 'dart:typed_data';\n"
-      "class Expect {\n"
-      "  static equals(a, b) {\n"
-      "    if (a != b) {\n"
-      "      throw 'not equal. expected: $a, got: $b';\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "ByteData createExternalByteData() native 'CreateExternalByteData';"
-      "ByteData main() {"
-      "  var length = 16;"
-      "  var a = createExternalByteData();"
-      "  Expect.equals(length, a.lengthInBytes);"
-      "  for (int i = 0; i < length; i+=2) {"
-      "    Expect.equals(0x4241, a.getInt16(i, Endian.little));"
-      "  }"
-      "  for (int i = 0; i < length; i+=2) {"
-      "    a.setInt8(i, 0x24);"
-      "    a.setInt8(i + 1, 0x28);"
-      "  }"
-      "  for (int i = 0; i < length; i+=2) {"
-      "    Expect.equals(0x2824, a.getInt16(i, Endian.little));"
-      "  }"
-      "  return a;"
-      "}\n";
+  const char* kScriptChars = R"(
+import 'dart:typed_data';
+class Expect {
+  static equals(a, b) {
+    if (a != b) {
+      throw 'not equal. expected: $a, got: $b';
+    }
+  }
+}
+@pragma("vm:external-name", "CreateExternalByteData")
+external ByteData createExternalByteData();
+ByteData main() {
+  var length = 16;
+  var a = createExternalByteData();
+  Expect.equals(length, a.lengthInBytes);
+  for (int i = 0; i < length; i+=2) {
+    Expect.equals(0x4241, a.getInt16(i, Endian.little));
+  }
+  for (int i = 0; i < length; i+=2) {
+    a.setInt8(i, 0x24);
+    a.setInt8(i + 1, 0x28);
+  }
+  for (int i = 0; i < length; i+=2) {
+    Expect.equals(0x2824, a.getInt16(i, Endian.little));
+  }
+  return a;
+}
+)";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -2347,31 +2403,33 @@ static Dart_NativeFunction OptExternalByteDataNativeResolver(
 }
 
 TEST_CASE(DartAPI_OptimizedExternalByteDataAccess) {
-  const char* kScriptChars =
-      "import 'dart:typed_data';\n"
-      "class Expect {\n"
-      "  static equals(a, b) {\n"
-      "    if (a != b) {\n"
-      "      throw 'not equal. expected: $a, got: $b';\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "ByteData createExternalByteData() native 'CreateExternalByteData';"
-      "access(ByteData a) {"
-      "  Expect.equals(0x04030201, a.getUint32(0, Endian.little));"
-      "  Expect.equals(0x08070605, a.getUint32(4, Endian.little));"
-      "  Expect.equals(0x0c0b0a09, a.getUint32(8, Endian.little));"
-      "  Expect.equals(0x100f0e0d, a.getUint32(12, Endian.little));"
-      "}"
-      "ByteData main() {"
-      "  var length = 16;"
-      "  var a = createExternalByteData();"
-      "  Expect.equals(length, a.lengthInBytes);"
-      "  for (int i = 0; i < 20; i++) {"
-      "    access(a);"
-      "  }"
-      "  return a;"
-      "}\n";
+  const char* kScriptChars = R"(
+import 'dart:typed_data';
+class Expect {
+  static equals(a, b) {
+    if (a != b) {
+      throw 'not equal. expected: $a, got: $b';
+    }
+  }
+}
+@pragma("vm:external-name", "CreateExternalByteData")
+external ByteData createExternalByteData();
+access(ByteData a) {
+  Expect.equals(0x04030201, a.getUint32(0, Endian.little));
+  Expect.equals(0x08070605, a.getUint32(4, Endian.little));
+  Expect.equals(0x0c0b0a09, a.getUint32(8, Endian.little));
+  Expect.equals(0x100f0e0d, a.getUint32(12, Endian.little));
+}
+ByteData main() {
+  var length = 16;
+  var a = createExternalByteData();
+  Expect.equals(length, a.lengthInBytes);
+  for (int i = 0; i < 20; i++) {
+    access(a);
+  }
+  return a;
+}
+)";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -4141,9 +4199,12 @@ TEST_CASE(DartAPI_WeakPersistentHandleUpdateSize) {
     import "dart:nativewrappers";
     class ExampleResource extends NativeFieldWrapperClass1 {
       ExampleResource() { _allocate(); }
-      void _allocate() native "ExampleResource_Allocate";
-      void use() native "ExampleResource_Use";
-      void dispose() native "ExampleResource_Dispose";
+      @pragma("vm:external-name", "ExampleResource_Allocate")
+      external void _allocate();
+      @pragma("vm:external-name", "ExampleResource_Use")
+      external void use();
+      @pragma("vm:external-name", "ExampleResource_Dispose")
+      external void dispose();
     }
     main() {
       var res = new ExampleResource();
@@ -4185,7 +4246,8 @@ TEST_CASE(DartAPI_NativeFieldAccess) {
     import 'dart:nativewrappers';
     class SecretKeeper extends NativeFieldWrapperClass1 {
       SecretKeeper(int secret) { _keepSecret(secret); }
-      void _keepSecret(int secret) native "SecretKeeper_KeepSecret";
+      @pragma("vm:external-name", "SecretKeeper_KeepSecret")
+      external void _keepSecret(int secret);
     }
     main() => getNativeField(SecretKeeper(321));
   )";
@@ -5346,29 +5408,32 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(
-          nullptr,
-          "import 'dart:nativewrappers';"
-          "class NativeFields extends NativeFieldWrapperClass2 {\n"
-          "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-          "  int fld1;\n"
-          "  final int fld2;\n"
-          "  static int%s fld3;\n"
-          "  static const int fld4 = 10;\n"
-          "  int%s initNativeFlds() native 'TestNativeFieldsAccess_init';\n"
-          "  int%s accessNativeFlds(int%s i) native "
-          "'TestNativeFieldsAccess_access';\n"
-          "}\n"
-          "class NoNativeFields {\n"
-          "  int neitherATypedDataNorNull = 0;\n"
-          "  invalidAccess() native 'TestNativeFieldsAccess_invalidAccess';\n"
-          "}\n"
-          "NativeFields testMain() {\n"
-          "  NativeFields obj = new NativeFields(10, 20);\n"
-          "  obj.initNativeFlds();\n"
-          "  obj.accessNativeFlds(null);\n"
-          "  new NoNativeFields().invalidAccess();\n"
-          "  return obj;\n"
-          "}\n",
+          nullptr, R"(
+          import 'dart:nativewrappers';
+          class NativeFields extends NativeFieldWrapperClass2 {
+            NativeFields(int i, int j) : fld1 = i, fld2 = j {}
+            int fld1;
+            final int fld2;
+            static int%s fld3;
+            static const int fld4 = 10;
+            @pragma('vm:external-name', 'TestNativeFieldsAccess_init')
+            external int%s initNativeFlds();
+            @pragma('vm:external-name', 'TestNativeFieldsAccess_access')
+            external int%s accessNativeFlds(int%s i);
+          }
+          class NoNativeFields {
+            int neitherATypedDataNorNull = 0;
+            @pragma('vm:external-name', 'TestNativeFieldsAccess_invalidAccess')
+            external invalidAccess();
+          }
+          NativeFields testMain() {
+            NativeFields obj = new NativeFields(10, 20);
+            obj.initNativeFlds();
+            obj.accessNativeFlds(null);
+            new NoNativeFields().invalidAccess();
+            return obj;
+          }
+          )",
           nullable_tag, nullable_tag, nullable_tag, nullable_tag),
       std::free);
   // clang-format on
@@ -6937,30 +7002,32 @@ static Dart_NativeFunction native_args_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_GetNativeArguments) {
-  const char* kScriptChars =
-      "import 'dart:nativewrappers';"
-      "class MyObject extends NativeFieldWrapperClass2 {"
-      "  static MyObject createObject() native 'NativeArgument_Create';"
-      "  int accessFields(int arg1,"
-      "                   int arg2,"
-      "                   bool arg3,"
-      "                   double arg4,"
-      "                   String arg5,"
-      "                   String arg6,"
-      "                   MyObject arg7) native 'NativeArgument_Access';"
-      "}"
-      "int testMain(String extstr) {"
-      "  String str = 'abcdefg';"
-      "  MyObject obj1 = MyObject.createObject();"
-      "  MyObject obj2 = MyObject.createObject();"
-      "  return obj1.accessFields(77,"
-      "                           0x8000000000000000,"
-      "                           true,"
-      "                           3.14,"
-      "                           str,"
-      "                           extstr,"
-      "                           obj2);"
-      "}";
+  const char* kScriptChars = R"(
+import 'dart:nativewrappers';
+class MyObject extends NativeFieldWrapperClass2 {
+  @pragma("vm:external-name", "NativeArgument_Create")
+  external static MyObject createObject();
+  @pragma("vm:external-name", "NativeArgument_Access")
+  external int accessFields(int arg1,
+                   int arg2,
+                   bool arg3,
+                   double arg4,
+                   String arg5,
+                   String arg6,
+                   MyObject arg7);
+}
+int testMain(String extstr) {
+  String str = 'abcdefg';
+  MyObject obj1 = MyObject.createObject();
+  MyObject obj2 = MyObject.createObject();
+  return obj1.accessFields(77,
+                           0x8000000000000000,
+                           true,
+                           3.14,
+                           str,
+                           extstr,
+                           obj2);
+})";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_args_lookup);
 
@@ -6994,14 +7061,15 @@ static Dart_NativeFunction gnac_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_GetNativeArgumentCount) {
-  const char* kScriptChars =
-      "class MyObject {"
-      "  int method1(int i, int j) native 'Name_Does_Not_Matter';"
-      "}"
-      "testMain() {"
-      "  MyObject obj = new MyObject();"
-      "  return obj.method1(77, 125);"
-      "}";
+  const char* kScriptChars = R"(
+class MyObject {
+  @pragma("vm:external-name", "Name_Does_Not_Matter")
+  external int method1(int i, int j);
+}
+testMain() {
+  MyObject obj = new MyObject();
+  return obj.method1(77, 125);
+})";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, gnac_lookup);
 
@@ -9164,19 +9232,20 @@ static Dart_NativeFunction HintFreed_native_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_HintFreed) {
-  const char* kScriptChars =
-      "void hintFreed(int size) native 'Test_nativeFunc';\n"
-      "void main() {\n"
-      "  var v;\n"
-      "  for (var i = 0; i < 100; i++) {\n"
-      "    var t = [];\n"
-      "    for (var j = 0; j < 10000; j++) {\n"
-      "      t.add(List.filled(100, null));\n"
-      "    }\n"
-      "    v = t;\n"
-      "    hintFreed(100 * 10000 * 4);\n"
-      "  }\n"
-      "}\n";
+  const char* kScriptChars = R"(
+@pragma("vm:external-name", "Test_nativeFunc")
+external void hintFreed(int size);
+void main() {
+  var v;
+  for (var i = 0; i < 100; i++) {
+    var t = [];
+    for (var j = 0; j < 10000; j++) {
+      t.add(List.filled(100, null));
+    }
+    v = t;
+    hintFreed(100 * 10000 * 4);
+  }
+})";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &HintFreed_native_lookup);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -9195,19 +9264,20 @@ static Dart_NativeFunction NotifyIdleShort_native_lookup(
 }
 
 TEST_CASE(DartAPI_NotifyIdleShort) {
-  const char* kScriptChars =
-      "void notifyIdle() native 'Test_nativeFunc';\n"
-      "void main() {\n"
-      "  var v;\n"
-      "  for (var i = 0; i < 100; i++) {\n"
-      "    var t = [];\n"
-      "    for (var j = 0; j < 10000; j++) {\n"
-      "      t.add(List.filled(100, null));\n"
-      "    }\n"
-      "    v = t;\n"
-      "    notifyIdle();\n"
-      "  }\n"
-      "}\n";
+  const char* kScriptChars = R"(
+@pragma("vm:external-name", "Test_nativeFunc")
+external void notifyIdle();
+void main() {
+  var v;
+  for (var i = 0; i < 100; i++) {
+    var t = [];
+    for (var j = 0; j < 10000; j++) {
+      t.add(List.filled(100, null));
+    }
+    v = t;
+    notifyIdle();
+  }
+})";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyIdleShort_native_lookup);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -9226,19 +9296,21 @@ static Dart_NativeFunction NotifyIdleLong_native_lookup(
 }
 
 TEST_CASE(DartAPI_NotifyIdleLong) {
-  const char* kScriptChars =
-      "void notifyIdle() native 'Test_nativeFunc';\n"
-      "void main() {\n"
-      "  var v;\n"
-      "  for (var i = 0; i < 100; i++) {\n"
-      "    var t = [];\n"
-      "    for (var j = 0; j < 10000; j++) {\n"
-      "      t.add(List.filled(100, null));\n"
-      "    }\n"
-      "    v = t;\n"
-      "    notifyIdle();\n"
-      "  }\n"
-      "}\n";
+  const char* kScriptChars = R"(
+@pragma("vm:external-name", "Test_nativeFunc")
+external void notifyIdle();
+void main() {
+  var v;
+  for (var i = 0; i < 100; i++) {
+    var t = [];
+    for (var j = 0; j < 10000; j++) {
+      t.add(List.filled(100, null));
+    }
+    v = t;
+    notifyIdle();
+  }
+}
+)";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyIdleLong_native_lookup);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -9257,20 +9329,21 @@ static Dart_NativeFunction NotifyLowMemory_native_lookup(
 }
 
 TEST_CASE(DartAPI_NotifyLowMemory) {
-  const char* kScriptChars =
-      "import 'dart:isolate';\n"
-      "void notifyLowMemory() native 'Test_nativeFunc';\n"
-      "void main() {\n"
-      "  var v;\n"
-      "  for (var i = 0; i < 100; i++) {\n"
-      "    var t = [];\n"
-      "    for (var j = 0; j < 10000; j++) {\n"
-      "      t.add(List.filled(100, null));\n"
-      "    }\n"
-      "    v = t;\n"
-      "    notifyLowMemory();\n"
-      "  }\n"
-      "}\n";
+  const char* kScriptChars = R"(
+import 'dart:isolate';
+@pragma("vm:external-name", "Test_nativeFunc")
+external void notifyLowMemory();
+void main() {
+  var v;
+  for (var i = 0; i < 100; i++) {
+    var t = [];
+    for (var j = 0; j < 10000; j++) {
+      t.add(List.filled(100, null));
+    }
+    v = t;
+    notifyLowMemory();
+  }
+})";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyLowMemory_native_lookup);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);

@@ -21,7 +21,8 @@ abstract class _C&A&B extends self::A implements self::B<core::num> /*isAnonymou
   synthetic constructor •() → self::_C&A&B
     : super self::A::•()
     ;
-  abstract method foo(generic-covariant-impl core::num x) → core::num;
+  method foo(generic-covariant-impl core::num x) → core::num
+    return super.{self::A::foo}(x);
 }
 class C extends self::_C&A&B {
   synthetic constructor •() → self::C

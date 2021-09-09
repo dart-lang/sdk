@@ -236,9 +236,9 @@ class DatabaseBuilder(object):
                         ext_attrs_node[
                             type_valued_attribute_name] = strip_modules(value)
 
-        map(rename_node, idl_file.all(IDLInterface))
-        map(rename_node, idl_file.all(IDLType))
-        map(rename_ext_attrs, idl_file.all(IDLExtAttrs))
+        list(map(rename_node, idl_file.all(IDLInterface)))
+        list(map(rename_node, idl_file.all(IDLType)))
+        list(map(rename_ext_attrs, idl_file.all(IDLExtAttrs)))
 
     def _annotate(self, interface, import_options):
         """Adds @ annotations based on the source and source_attributes
@@ -259,10 +259,10 @@ class DatabaseBuilder(object):
 
         add_source_annotation(interface)
 
-        map(add_source_annotation, interface.parents)
-        map(add_source_annotation, interface.constants)
-        map(add_source_annotation, interface.attributes)
-        map(add_source_annotation, interface.operations)
+        list(map(add_source_annotation, interface.parents))
+        list(map(add_source_annotation, interface.constants))
+        list(map(add_source_annotation, interface.attributes))
+        list(map(add_source_annotation, interface.operations))
 
     def _sign(self, node):
         """Computes a unique signature for the node, for merging purposed, by
@@ -480,7 +480,8 @@ class DatabaseBuilder(object):
                 def has_annotations(idl_node):
                     return len(idl_node.annotations)
 
-                old_interface.__dict__[what] = filter(has_annotations, old_list)
+                old_interface.__dict__[what] = \
+                    list(filter(has_annotations, old_list))
 
             return changed
 
@@ -619,7 +620,7 @@ class DatabaseBuilder(object):
 
     def _process_ast(self, filename, ast):
         if len(ast) == 1:
-            ast = ast.values()[0]
+            ast = next(iter(ast.values()))
         else:
             print('ERROR: Processing AST: ' + os.path.basename(file_name))
         new_asts[filename] = ast
@@ -664,8 +665,8 @@ class DatabaseBuilder(object):
                          (interface.id, import_options.source,
                           os.path.basename(idl_file.filename)))
 
-            interface.attributes = filter(enabled, interface.attributes)
-            interface.operations = filter(enabled, interface.operations)
+            interface.attributes = list(filter(enabled, interface.attributes))
+            interface.operations = list(filter(enabled, interface.operations))
             self._imported_interfaces.append((interface, import_options))
 
         # If an IDL dictionary then there is no implementsStatements.
@@ -769,15 +770,15 @@ class DatabaseBuilder(object):
                     if (source in idl_node.annotations and
                             idl_node.annotations[source]):
                         annotation = idl_node.annotations[source]
-                        for name, value in annotation.items():
+                        for name, value in list(annotation.items()):
                             if (name in top_level_annotation and
                                     value == top_level_annotation[name]):
                                 del annotation[name]
 
-                map(normalize, interface.parents)
-                map(normalize, interface.constants)
-                map(normalize, interface.attributes)
-                map(normalize, interface.operations)
+                list(map(normalize, interface.parents))
+                list(map(normalize, interface.constants))
+                list(map(normalize, interface.attributes))
+                list(map(normalize, interface.operations))
 
     def map_dictionaries(self):
         """Changes the type of operations/constructors arguments from an IDL
@@ -790,12 +791,12 @@ class DatabaseBuilder(object):
                 type_node.id = 'Dictionary'
 
         def all_types(node):
-            map(dictionary_to_map, node.all(IDLType))
+            list(map(dictionary_to_map, node.all(IDLType)))
 
         for interface in self._database.GetInterfaces():
-            map(all_types, interface.all(IDLExtAttrFunctionValue))
-            map(all_types, interface.attributes)
-            map(all_types, interface.operations)
+            list(map(all_types, interface.all(IDLExtAttrFunctionValue)))
+            list(map(all_types, interface.attributes))
+            list(map(all_types, interface.operations))
 
     def fetch_constructor_data(self, options):
         window_interface = self._database.GetInterface('Window')
@@ -1023,7 +1024,7 @@ Examination Complete
             self._no_interfaces_used_types = []
             constructor_function = self._no_interface_constructor_types
 
-        map(constructor_function, interface.all(IDLExtAttrFunctionValue))
+        list(map(constructor_function, interface.all(IDLExtAttrFunctionValue)))
 
         self._mark_usage(interface, check_dictionaries=check_dictionaries)
 
@@ -1040,7 +1041,7 @@ Examination Complete
             self._no_interfaces_used_types = []
             used = self._no_interface_used
 
-        map(used, operation_attribute.all(IDLType))
+        list(map(used, operation_attribute.all(IDLType)))
 
         self._remember_usage(
             operation_attribute, check_dictionaries=check_dictionaries)
@@ -1053,14 +1054,14 @@ Examination Complete
     # (IDLExtAttrFunctionValue) that have a dictionary reference.
     def _dictionary_constructor_types(self, node):
         self._dictionaries_used_types = []
-        map(self._dictionary_used, node.all(IDLType))
+        list(map(self._dictionary_used, node.all(IDLType)))
         self._remember_usage(node)
 
     # Iterator function for map to iterate over all constructor types
     # (IDLExtAttrFunctionValue) that reference an interface with NoInterfaceObject.
     def _no_interface_constructor_types(self, node):
         self._no_interfaces_used_types = []
-        map(self._no_interface_used, node.all(IDLType))
+        list(map(self._no_interface_used, node.all(IDLType)))
         self._remember_usage(node, check_dictionaries=False)
 
     # Maximum width of each column.

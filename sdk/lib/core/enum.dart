@@ -20,4 +20,14 @@ abstract class Enum {
   /// This is also the index of the value in the
   /// enumerated type's static `values` list.
   int get index;
+
+  /// Compares two enum values by their [index].
+  ///
+  /// A generic [Comparator] function for enum types which
+  /// orders enum values by their [index] value, which corresponds
+  /// to the source order of the enum element declarations in
+  /// the `enum` declaration.
+  @Since("2.15")
+  static int compareByIndex<T extends Enum>(T value1, T value2) =>
+      value1.index - value2.index;
 }

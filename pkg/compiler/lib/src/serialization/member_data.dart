@@ -30,12 +30,12 @@ class ComponentLookup {
 /// Returns a name uniquely identifying a member within its enclosing library
 /// or class.
 String _computeMemberName(ir.Member member) {
-  if (member.name.isPrivate &&
-      member.name.libraryName != member.enclosingLibrary.reference) {
-    // TODO(33732): Handle noSuchMethod forwarders for private members from
-    // other libraries.
-    return null;
-  }
+  // This should mostly be empty except when serializing the name of nSM
+  // forwarders (see dartbug.com/33732).
+  String libraryPrefix = member.name.isPrivate &&
+          member.name.libraryName != member.enclosingLibrary.reference
+      ? '${member.name.libraryName.canonicalName.name}:'
+      : '';
   String name = member.name.text;
   if (member is ir.Constructor) {
     name = '.$name';
@@ -46,7 +46,7 @@ String _computeMemberName(ir.Member member) {
       name += "=";
     }
   }
-  return name;
+  return '${libraryPrefix}${name}';
 }
 
 /// Helper for looking up classes and members from an [ir.Library] node.

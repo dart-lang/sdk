@@ -93,6 +93,21 @@ main() {
   Expect.type<Enum>(Enum1._);
   Enum enumValue = Enum1._;
   Expect.equals(0, enumValue.index);
+
+  // Enum.compareByIndex orders enums correctly.
+  var enumValues = [Enum5.G, Enum5.H, Enum5.F];
+  for (var i = 0; i < 10; i++) {
+    enumValues.sort(Enum.compareByIndex);
+    enumValues.fold<int>(-1, (previousValue, element) {
+      Expect.isTrue(previousValue < element.index, "$enumValues");
+      return element.index;
+    });
+    enumValues.shuffle();
+  }
+  // Can be used at the type `Enum` to compare different enums.
+  Expect.isTrue(Enum.compareByIndex<Enum>(Enum4.D, Enum5.H) < 0);
+  Expect.isTrue(Enum.compareByIndex<Enum>(Enum4.E, Enum5.F) > 0);
+  Expect.isTrue(Enum.compareByIndex<Enum>(Enum4.D, Enum5.F) == 0);
 }
 
 test1(Enum1 e) {

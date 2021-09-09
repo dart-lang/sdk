@@ -197,6 +197,6 @@ class StringBuffer {
   /**
    * Create a [String] from the UFT-16 code units in buffer.
    */
-  static String _create(Uint16List buffer, int length, bool isLatin1)
-      native "StringBuffer_createStringFromUint16Array";
+  @pragma("vm:external-name", "StringBuffer_createStringFromUint16Array")
+  external static String _create(Uint16List buffer, int length, bool isLatin1);
 }

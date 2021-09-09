@@ -174,7 +174,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
         break;
       }
 #undef SIZE_FROM_CLASS
-    case kFfiPointerCid:
+    case kPointerCid:
       instance_size = Pointer::InstanceSize();
       break;
     case kTypeArgumentsCid: {
@@ -325,17 +325,6 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
     case kByteBufferCid: {
       InstancePtr raw_obj = static_cast<InstancePtr>(this);
       size = UntaggedInstance::VisitInstancePointers(raw_obj, visitor);
-      break;
-    }
-    case kFfiPointerCid: {
-      PointerPtr raw_obj = static_cast<PointerPtr>(this);
-      size = UntaggedPointer::VisitPointerPointers(raw_obj, visitor);
-      break;
-    }
-    case kFfiDynamicLibraryCid: {
-      DynamicLibraryPtr raw_obj = static_cast<DynamicLibraryPtr>(this);
-      size =
-          UntaggedDynamicLibrary::VisitDynamicLibraryPointers(raw_obj, visitor);
       break;
     }
 #define RAW_VISITPOINTERS(clazz) case kFfi##clazz##Cid:

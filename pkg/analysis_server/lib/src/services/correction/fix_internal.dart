@@ -28,6 +28,7 @@ import 'package:analysis_server/src/services/correction/dart/add_required_keywor
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
@@ -96,6 +97,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
@@ -175,6 +177,8 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
+
+import 'dart/remove_abstract.dart';
 
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
@@ -556,6 +560,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_const: [
       RemoveUnnecessaryConst.newInstance,
     ],
+    LintNames.unnecessary_constructor_name: [
+      RemoveConstructorName.newInstance,
+    ],
     LintNames.unnecessary_final: [
       ReplaceFinalWithVar.newInstance,
     ],
@@ -928,6 +935,9 @@ class FixProcessor extends BaseProcessor {
       MakeReturnTypeNullable.newInstance,
       ReplaceReturnType.newInstance,
     ],
+    CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
+      AddSwitchCaseBreak.newInstance,
+    ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
@@ -1208,6 +1218,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.UNUSED_SHOWN_NAME: [
       RemoveNameFromCombinator.newInstance,
+    ],
+    ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
+      RemoveAbstract.newInstance,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.newInstance,

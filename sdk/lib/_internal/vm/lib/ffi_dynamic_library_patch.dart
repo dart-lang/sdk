@@ -8,9 +8,12 @@ import "dart:_internal" show patch;
 import 'dart:typed_data';
 import 'dart:isolate';
 
-DynamicLibrary _open(String path) native "Ffi_dl_open";
-DynamicLibrary _processLibrary() native "Ffi_dl_processLibrary";
-DynamicLibrary _executableLibrary() native "Ffi_dl_executableLibrary";
+@pragma("vm:external-name", "Ffi_dl_open")
+external DynamicLibrary _open(String path);
+@pragma("vm:external-name", "Ffi_dl_processLibrary")
+external DynamicLibrary _processLibrary();
+@pragma("vm:external-name", "Ffi_dl_executableLibrary")
+external DynamicLibrary _executableLibrary();
 
 @patch
 @pragma("vm:entry-point")
@@ -27,15 +30,17 @@ class DynamicLibrary {
   factory DynamicLibrary.executable() => _executableLibrary();
 
   @patch
-  Pointer<T> lookup<T extends NativeType>(String symbolName)
-      native "Ffi_dl_lookup";
+  @pragma("vm:external-name", "Ffi_dl_lookup")
+  external Pointer<T> lookup<T extends NativeType>(String symbolName);
 
   @patch
-  bool providesSymbol(String symbolName) native "Ffi_dl_providesSymbol";
+  @pragma("vm:external-name", "Ffi_dl_providesSymbol")
+  external bool providesSymbol(String symbolName);
 
   // TODO(dacoharkes): Expose this to users, or extend Pointer?
   // https://github.com/dart-lang/sdk/issues/35881
-  int getHandle() native "Ffi_dl_getHandle";
+  @pragma("vm:external-name", "Ffi_dl_getHandle")
+  external int getHandle();
 
   @patch
   bool operator ==(Object other) {

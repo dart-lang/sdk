@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-09-01T12:41:37.776425",
+  "generated": "2021-09-08T14:55:24.803714",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -70,7 +70,7 @@
       "name": "analysis_server",
       "rootUri": "../pkg/analysis_server",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analysis_server_client",

@@ -128,7 +128,6 @@ class ObjectPointerVisitor;
   RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
-  RW(Library, builtin_library)                                                 \
   RW(Library, core_library)                                                    \
   RW(Library, collection_library)                                              \
   RW(Library, convert_library)                                                 \
@@ -139,7 +138,6 @@ class ObjectPointerVisitor;
   RW(Library, math_library)                                                    \
   RW(Library, mirrors_library)                                                 \
   RW(Library, native_wrappers_library)                                         \
-  RW(Library, profiler_library)                                                \
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \

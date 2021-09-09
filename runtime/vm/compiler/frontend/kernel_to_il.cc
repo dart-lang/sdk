@@ -1381,9 +1381,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           Box(LoadIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
       if (kind == MethodRecognizer::kFfiLoadPointer) {
         const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+        ASSERT(class_table->HasValidClassAt(kPointerCid));
         const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
 
         // We find the reified type to use for the pointer allocation.
         //
@@ -1441,9 +1441,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       if (kind == MethodRecognizer::kFfiStorePointer) {
         // Do type check before anything untagged is on the stack.
         const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+        ASSERT(class_table->HasValidClassAt(kPointerCid));
         const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
         const auto& pointer_type_param =
             TypeParameter::ZoneHandle(pointer_class.TypeParameterAt(0));
 
@@ -1506,9 +1506,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     } break;
     case MethodRecognizer::kFfiFromAddress: {
       const auto class_table = thread_->isolate_group()->class_table();
-      ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+      ASSERT(class_table->HasValidClassAt(kPointerCid));
       const auto& pointer_class =
-          Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+          Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
 
       ASSERT(function.NumTypeParameters() == 1);
       ASSERT_EQUAL(function.NumParameters(), 1);

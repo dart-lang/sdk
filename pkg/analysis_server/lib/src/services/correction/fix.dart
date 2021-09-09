@@ -234,6 +234,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add super constructor {0} invocation',
   );
+  static const ADD_SWITCH_CASE_BREAK = FixKind(
+    'dart.fix.add.switchCaseReturn',
+    DartFixKindPriority.DEFAULT,
+    "Add 'break'",
+  );
+  static const ADD_SWITCH_CASE_BREAK_MULTI = FixKind(
+    'dart.fix.add.switchCaseReturn.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add 'break' everywhere in file",
+  );
   static const ADD_TYPE_ANNOTATION = FixKind(
     'dart.fix.add.typeAnnotation',
     DartFixKindPriority.DEFAULT,
@@ -703,6 +713,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Use '{0}'",
   );
+  static const REMOVE_ABSTRACT = FixKind(
+    'dart.fix.remove.abstract',
+    DartFixKindPriority.DEFAULT,
+    "Remove the 'abstract' keyword",
+  );
+  static const REMOVE_ABSTRACT_MULTI = FixKind(
+    'dart.fix.remove.abstract.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove the 'abstract' keyword everywhere in file",
+  );
   static const REMOVE_ANNOTATION = FixKind(
     'dart.fix.remove.annotation',
     DartFixKindPriority.DEFAULT,
@@ -744,6 +764,16 @@ class DartFixKind {
     'dart.fix.remove.const',
     DartFixKindPriority.DEFAULT,
     'Remove const',
+  );
+  static const REMOVE_CONSTRUCTOR_NAME = FixKind(
+    'dart.fix.remove.constructorName',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'new'",
+  );
+  static const REMOVE_CONSTRUCTOR_NAME_MULTI = FixKind(
+    'dart.fix.remove.constructorName.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove constructor names in file',
   );
   static const REMOVE_DEAD_CODE = FixKind(
     'dart.fix.remove.deadCode',

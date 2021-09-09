@@ -5226,7 +5226,7 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   {                                                                            \
     JSONArray internals(&map, #clazz);                                         \
     DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
-    DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
+    DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                             \
     DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)

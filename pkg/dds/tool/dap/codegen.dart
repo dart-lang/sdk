@@ -646,7 +646,7 @@ class CodeGenerator {
       }
       buffer.write(')');
     } else if (type.isSpecType) {
-      buffer.write('$opBang$dartType.canParse($valueCode)');
+      buffer.write('$opBang${type.asDartType()}.canParse($valueCode)');
     } else {
       throw 'Unable to type check $valueCode against $type';
     }

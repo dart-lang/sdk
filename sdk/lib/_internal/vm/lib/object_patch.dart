@@ -6,14 +6,16 @@
 
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Smi")
-int _getHash(obj) native "Object_getHash";
+@pragma("vm:external-name", "Object_getHash")
+external int _getHash(obj);
 
 /// Set hash code associated with the object if it is not set yet
 /// and return the current hash code. See [Object._objectHashCode]
 /// for why this function needs to check for already set hash code.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Smi")
-int _setHashIfNotSetYet(obj, int hash) native "Object_setHashIfNotSetYet";
+@pragma("vm:external-name", "Object_setHashIfNotSetYet")
+external int _setHashIfNotSetYet(obj, int hash);
 
 @patch
 @pragma("vm:entry-point")
@@ -23,7 +25,8 @@ class Object {
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:prefer-inline")
-  bool operator ==(Object other) native "Object_equals";
+  @pragma("vm:external-name", "Object_equals")
+  external bool operator ==(Object other);
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
   // in a weak table in the VM (32 bit) or in the header of the object (64
@@ -52,9 +55,11 @@ class Object {
   int get _identityHashCode => _objectHashCode(this);
 
   @patch
-  String toString() native "Object_toString";
+  @pragma("vm:external-name", "Object_toString")
+  external String toString();
   // A statically dispatched version of Object.toString.
-  static String _toString(obj) native "Object_toString";
+  @pragma("vm:external-name", "Object_toString")
+  external static String _toString(obj);
 
   @patch
   @pragma("vm:entry-point", "call")
@@ -66,22 +71,26 @@ class Object {
   @patch
   @pragma("vm:recognized", "asm-intrinsic")
   // Result type is either "dart:core#_Type" or "dart:core#_FunctionType".
-  Type get runtimeType native "Object_runtimeType";
+  @pragma("vm:external-name", "Object_runtimeType")
+  external Type get runtimeType;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:entry-point", "call")
   @pragma("vm:exact-result-type", bool)
-  static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
+  @pragma("vm:external-name", "Object_haveSameRuntimeType")
+  external static bool _haveSameRuntimeType(a, b);
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
   @pragma("vm:entry-point", "call")
-  bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type)
-      native "Object_instanceOf";
+  @pragma("vm:external-name", "Object_instanceOf")
+  external bool _instanceOf(
+      instantiatorTypeArguments, functionTypeArguments, type);
 
   // Group of functions for implementing fast simple instance of.
   @pragma("vm:entry-point", "call")
-  bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
+  @pragma("vm:external-name", "Object_simpleInstanceOf")
+  external bool _simpleInstanceOf(type);
   @pragma("vm:entry-point", "call")
   bool _simpleInstanceOfTrue(type) => true;
   @pragma("vm:entry-point", "call")

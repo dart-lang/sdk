@@ -72,7 +72,7 @@ vars = {
   "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
 
   # Revisions of /third_party/* dependencies.
-  "args_rev": "bf4c8796881b62fd5d3f6d86ab43014f9651eb20",
+  "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
   "async_rev": "ecb3835c5b746f7762327d5f57bdc92e0a2e0450",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
@@ -118,7 +118,6 @@ vars = {
   "http_parser_rev": "202391286ddc13c4c3c284ac5b511f04697250ed",
   "http_rev": "778174bca2c13becd88ef3353309190b1e8b9479",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
@@ -140,7 +139,7 @@ vars = {
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
   "pub_rev": "cd7a43f2109f7e5eb22e73c7f4e15d25fd57598e",
-  "pub_semver_rev": "f50d80ef10c4b2fa5f4c8878036a4d9342c0cc82",
+  "pub_semver_rev": "baeea5ac3503546269d25c66523d4334c784a4f9",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
@@ -161,7 +160,7 @@ vars = {
   "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
   "test_process_rev": "7c73ec8a8a6e0e63d0ec27d70c21ca4323fb5e8f",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
-  "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
+  "test_reflective_loader_rev": "fcfce37666672edac849d2af6dffc0f8df236a94",
   "test_rev": "099dcc4d052a30c6921489cfbefa1c8531d12975",
   "typed_data_rev": "29ce5a92b03326d0b8035916ac04f528874994bd",
   "usage_rev": "e0780cd8b2f8af69a28dc52678ffe8492da27d06",
@@ -170,7 +169,7 @@ vars = {
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "6448ce532445a8a458fa191d9346df071ae0acad",
-  "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
+  "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "832b096c0c24798d3df46faa7b7661fe930573c2",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
   "yaml_rev": "2af44871f684c89e973a96e39026b8b88dda1987",
@@ -297,10 +296,6 @@ deps = {
   Var("dart_root") + "/third_party/icu":
       Var("chromium_git") + "/chromium/deps/icu.git" +
       "@" + Var("icu_rev"),
-
-  Var("dart_root") + "/tools/idl_parser":
-      Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
-      "@" + Var("idl_parser_rev"),
 
   Var("dart_root") + "/third_party/WebCore":
       Var("dart_git") + "webcore.git" + "@" + Var("WebCore_rev"),

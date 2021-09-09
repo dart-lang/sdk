@@ -8,8 +8,9 @@
 @patch
 class int {
   @patch
-  const factory int.fromEnvironment(String name, {int defaultValue = 0})
-      native "Integer_fromEnvironment";
+  @pragma("vm:external-name", "Integer_fromEnvironment")
+  external const factory int.fromEnvironment(String name,
+      {int defaultValue = 0});
 
   int _bitAndFromSmi(_Smi other);
   int _bitAndFromInteger(int other);

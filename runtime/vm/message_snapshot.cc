@@ -3128,8 +3128,6 @@ void MessageSerializer::Trace(Object* object) {
     // here that cannot happen in reality)
     ILLEGAL(DynamicLibrary)
     ILLEGAL(Pointer)
-    ILLEGAL(FfiDynamicLibrary)
-    ILLEGAL(FfiPointer)
 
 #undef ILLEGAL
 

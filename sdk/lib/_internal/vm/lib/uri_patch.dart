@@ -26,7 +26,8 @@ class Uri {
 class _Uri {
   static final bool _isWindowsCached = _isWindowsPlatform;
 
-  static bool get _isWindowsPlatform native "Uri_isWindowsPlatform";
+  @pragma("vm:external-name", "Uri_isWindowsPlatform")
+  external static bool get _isWindowsPlatform;
 
   @patch
   static bool get _isWindows => _isWindowsCached;

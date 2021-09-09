@@ -65,13 +65,15 @@ bool _isDirectIOCapableTypedList(List<int> buffer) {
 @patch
 class OSError {
   @patch
-  static int inProgressErrorCode() native "OSError_inProgressErrorCode";
+  @pragma("vm:external-name", "OSError_inProgressErrorCode")
+  external static int inProgressErrorCode();
 }
 
 @patch
 class _IOCrypto {
   @patch
-  static Uint8List getRandomBytes(int count) native "Crypto_GetRandomBytes";
+  @pragma("vm:external-name", "Crypto_GetRandomBytes")
+  external static Uint8List getRandomBytes(int count);
 }
 
 @pragma("vm:entry-point", "call")

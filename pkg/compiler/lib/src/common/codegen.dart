@@ -253,7 +253,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    _asyncMarkers ??= EnumSet<AsyncMarker>();
+    _asyncMarkers ??= EnumSet();
     _asyncMarkers.add(asyncMarker);
   }
 

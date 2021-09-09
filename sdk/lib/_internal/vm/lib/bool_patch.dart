@@ -8,11 +8,13 @@
 @pragma("vm:entry-point")
 class bool {
   @patch
-  const factory bool.fromEnvironment(String name, {bool defaultValue: false})
-      native "Bool_fromEnvironment";
+  @pragma("vm:external-name", "Bool_fromEnvironment")
+  external const factory bool.fromEnvironment(String name,
+      {bool defaultValue: false});
 
   @patch
-  const factory bool.hasEnvironment(String name) native "Bool_hasEnvironment";
+  @pragma("vm:external-name", "Bool_hasEnvironment")
+  external const factory bool.hasEnvironment(String name);
 
   @patch
   int get hashCode => this ? 1231 : 1237;

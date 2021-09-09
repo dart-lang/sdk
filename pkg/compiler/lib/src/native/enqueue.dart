@@ -37,8 +37,8 @@ class NativeEnqueuer {
 }
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
-  final Set<ClassEntity> _registeredClasses = Set<ClassEntity>();
-  final Set<ClassEntity> _unusedClasses = Set<ClassEntity>();
+  final Set<ClassEntity> _registeredClasses = {};
+  final Set<ClassEntity> _unusedClasses = {};
 
   @override
   bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
@@ -92,7 +92,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     }
 
     int unusedBefore = _unusedClasses.length;
-    Set<ClassEntity> matchingClasses = Set<ClassEntity>();
+    Set<ClassEntity> matchingClasses = {};
     for (var type in behavior.typesInstantiated) {
       if (type is SpecialType) {
         if (type == SpecialType.JsObject) {
@@ -182,7 +182,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   /// The set of all native classes.  Each native class is in [nativeClasses]
   /// and exactly one of [unusedClasses] and [registeredClasses].
-  final Set<ClassEntity> _nativeClasses = Set<ClassEntity>();
+  final Set<ClassEntity> _nativeClasses = {};
 
   NativeResolutionEnqueuer(
       CompilerOptions options,
@@ -224,7 +224,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   final Iterable<ClassEntity> _nativeClasses;
   final NativeData _nativeData;
 
-  final Set<ClassEntity> _doneAddSubtypes = Set<ClassEntity>();
+  final Set<ClassEntity> _doneAddSubtypes = {};
 
   NativeCodegenEnqueuer(
       CompilerOptions options,
@@ -246,7 +246,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     }
 
     // HACK HACK - add all the resolved classes.
-    Set<ClassEntity> matchingClasses = Set<ClassEntity>();
+    Set<ClassEntity> matchingClasses = {};
     for (ClassEntity classElement in _nativeClasses) {
       if (_unusedClasses.contains(classElement)) {
         matchingClasses.add(classElement);
