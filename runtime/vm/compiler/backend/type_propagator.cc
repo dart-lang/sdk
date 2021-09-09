@@ -1353,6 +1353,30 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
     return *inferred_type;
   }
 
+  // Include special cases of type inference for int operations.
+  // This helps if both type feedback and results of TFA
+  // are not available (e.g. in AOT unit tests).
+  switch (token_kind()) {
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL:
+    case Token::kMOD:
+      if ((ArgumentCount() == 2) &&
+          ArgumentValueAt(0)->Type()->IsNullableInt() &&
+          ArgumentValueAt(1)->Type()->IsNullableInt()) {
+        return CompileType::Int();
+      }
+      break;
+    case Token::kNEGATE:
+      if ((ArgumentCount() == 1) &&
+          ArgumentValueAt(0)->Type()->IsNullableInt()) {
+        return CompileType::Int();
+      }
+      break;
+    default:
+      break;
+  }
+
   const Function& target = interface_target();
   if (!target.IsNull()) {
     const AbstractType& result_type =

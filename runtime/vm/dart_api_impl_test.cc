@@ -6233,7 +6233,7 @@ TEST_CASE(DartAPI_NewListOfType) {
   const char* kScriptChars =
       "class ZXHandle {}\n"
       "class ChannelReadResult {\n"
-      "  final List<ZXHandle> handles;\n"
+      "  final List<ZXHandle?> handles;\n"
       "  ChannelReadResult(this.handles);\n"
       "}\n"
       "void expectListOfString(List<String> _) {}\n"
