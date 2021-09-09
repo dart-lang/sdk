@@ -316,7 +316,11 @@ class ElementMatcher {
         ElementKind.setterKind
       ];
     } else if (node is PropertyAccess) {
-      return const [ElementKind.getterKind, ElementKind.setterKind];
+      return const [
+        ElementKind.fieldKind,
+        ElementKind.getterKind,
+        ElementKind.setterKind
+      ];
     } else if (node is SimpleIdentifier) {
       return _kindsForNode(node.parent, child: node);
     }

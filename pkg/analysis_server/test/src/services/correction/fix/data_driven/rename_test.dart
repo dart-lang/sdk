@@ -623,6 +623,37 @@ void f(C c) {
 ''');
   }
 
+  Future<void> test_instance_reference_inPropertyAccess() async {
+    setPackageContent('''
+class A {
+  static B m() => B();
+}
+class B {
+  @deprecated
+  final String f = '';
+  final C g = C();
+}
+class C {
+  final String h = '';
+}
+''');
+    setPackageData(_rename(['f', 'B'], 'g.h'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  A.m().f;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  A.m().g.h;
+}
+''');
+  }
+
   Future<void> test_instance_reference_removed() async {
     setPackageContent('''
 class C {
