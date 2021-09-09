@@ -1,5 +1,5 @@
 # Configuration for move-issues - https://github.com/dessant/move-issues
-# See also: https://github.com/dart-lang/sdk/blob/master/.github/move.yml
+# See also: https://github.com/dart-lang/sdk/blob/main/.github/move.yml
 
 # Delete the command comment when it contains no other content
 deleteCommand: true

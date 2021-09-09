@@ -294,7 +294,7 @@ class ScoreCard {
   static Future<List<String>> _getLintsWithAssists() async {
     var client = http.Client();
     var req = await client.get(Uri.parse(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/assist.dart'));
+        'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/correction/assist.dart'));
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'assist.dart');
     var assistKindClass = cu.declarations.firstWhere(
@@ -308,7 +308,7 @@ class ScoreCard {
   static Future<List<String>> _getLintsWithFixes() async {
     var client = http.Client();
     var req = await client.get(Uri.parse(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/linter/lint_names.dart'));
+        'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/linter/lint_names.dart'));
 
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'lint_names.dart');
