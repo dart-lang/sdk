@@ -46,11 +46,11 @@ class SecurityConfiguration {
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
-  Future<WebSocket> createClient(int port, {HttpClient customClient}) => secure
-      ? WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
-          customClient: customClient ?? HttpClient(context: clientContext))
-      : WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
-          customClient: customClient);
+  Future<WebSocket> createClient(int port, {HttpClient customClient}) =>
+      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
+          customClient: customClient ?? secure
+              ? HttpClient(context: clientContext)
+              : null);
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
     Expect.equals(
