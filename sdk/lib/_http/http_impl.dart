@@ -1429,8 +1429,6 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       headers.chunkedTransferEncoding = true;
     }
 
-    _profileData?.finishRequest(request: this);
-
     _responseCompleter.future.then((response) {
       _profileData?.requestEvent('Waiting (TTFB)');
       _profileData?.startResponse(
@@ -2144,6 +2142,9 @@ class _HttpClientConnection {
     // data).
     _httpParser.isHead = method == "HEAD";
     _streamFuture = outgoing.done.then<Socket>((Socket s) {
+      // Request sent, details available for profiling
+      profileData?.finishRequest(request: request);
+
       // Request sent, set up response completer.
       var nextResponseCompleter = new Completer<_HttpIncoming>();
       _nextResponseCompleter = nextResponseCompleter;
