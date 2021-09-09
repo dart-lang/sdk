@@ -1348,60 +1348,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return result;
   }
 
-  /// If there is a single type which is at least as specific as all of the
-  /// types in [types], return it.  Otherwise return `null`.
-  static DartType? findMostSpecificType(
-      List<DartType> types, TypeSystemImpl typeSystem) {
-    // The << relation ("more specific than") is a partial ordering on types,
-    // so to find the most specific type of a set, we keep a bucket of the most
-    // specific types seen so far such that no type in the bucket is more
-    // specific than any other type in the bucket.
-    List<DartType> bucket = <DartType>[];
-
-    // Then we consider each type in turn.
-    for (DartType type in types) {
-      // If any existing type in the bucket is more specific than this type,
-      // then we can ignore this type.
-      if (bucket.any((DartType t) => typeSystem.isSubtypeOf(t, type))) {
-        continue;
-      }
-      // Otherwise, we need to add this type to the bucket and remove any types
-      // that are less specific than it.
-      bool added = false;
-      int i = 0;
-      while (i < bucket.length) {
-        if (typeSystem.isSubtypeOf(type, bucket[i])) {
-          if (added) {
-            if (i < bucket.length - 1) {
-              bucket[i] = bucket.removeLast();
-            } else {
-              bucket.removeLast();
-            }
-          } else {
-            bucket[i] = type;
-            i++;
-            added = true;
-          }
-        } else {
-          i++;
-        }
-      }
-      if (!added) {
-        bucket.add(type);
-      }
-    }
-
-    // Now that we are finished, if there is exactly one type left in the
-    // bucket, it is the most specific type.
-    if (bucket.length == 1) {
-      return bucket[0];
-    }
-
-    // Otherwise, there is no single type that is more specific than the
-    // others.
-    return null;
-  }
-
   /// Returns a "smart" version of the "least upper bound" of the given types.
   ///
   /// If these types have the same element and differ only in terms of the type
