@@ -17,6 +17,21 @@ main() {
 @reflectiveTest
 class ConstWithTypeParametersConstructorTearoffTest
     extends PubPackageResolutionTest {
+  test_asExpression_functionType() async {
+    await assertErrorsInCode('''
+void f<T>(T a) {}
+void g() {
+  const [f as void Function<T>(T, [int])];
+}
+''', [
+      // This error is reported because the cast fails if the type on the right
+      // has type parameters.
+      // TODO(srawlins): Deduplicate these two errors.
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 31),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 60, 1),
+    ]);
+  }
+
   test_direct() async {
     await assertErrorsInCode('''
 class A<T> {
@@ -42,6 +57,18 @@ class A<T> {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
           47, 1),
+    ]);
+  }
+
+  test_isExpression_functionType() async {
+    await assertErrorsInCode('''
+class A<T> {
+  void m() {
+    const [false is void Function(T)];
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 60, 1),
     ]);
   }
 

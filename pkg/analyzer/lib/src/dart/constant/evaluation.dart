@@ -1140,6 +1140,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl visitGenericFunctionType(GenericFunctionType node) {
+    return DartObjectImpl(
+      typeSystem,
+      _typeProvider.typeType,
+      TypeState(node.type),
+    );
+  }
+
+  @override
   DartObjectImpl? visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     if (!node.isConst) {

@@ -446,6 +446,16 @@ void foo<T>(T a) {}
     expect(result.isValid, isTrue);
   }
 
+  test_literal_list_explicitType() async {
+    var result = await _getExpressionValue("const <String>['a', 'b', 'c']");
+    expect(result.isValid, isTrue);
+  }
+
+  test_literal_list_explicitType_functionType() async {
+    var result = await _getExpressionValue("const <void Function()>[]");
+    expect(result.isValid, isTrue);
+  }
+
   test_literal_list_forElement() async {
     var result = await _getExpressionValue('''
 const [for (var i = 0; i < 4; i++) i]
