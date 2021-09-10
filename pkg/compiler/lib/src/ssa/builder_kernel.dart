@@ -1409,7 +1409,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       if (targetChecks.checkAllParameters ||
           (targetChecks.checkCovariantParameters &&
-              (variable.isGenericCovariantImpl || variable.isCovariant))) {
+              (variable.isCovariantByClass || variable.isCovariantByDeclaration))) {
         newParameter = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             targetElement, newParameter, type);
       } else {

@@ -1592,7 +1592,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isLocalFunction: false,
       bool isLate: false,
       bool isRequired: false,
@@ -1606,7 +1606,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isFinal: isFinal,
             isConst: isConst,
             isFieldFormal: isFieldFormal,
-            isCovariant: isCovariant,
+            isCovariantByDeclaration: isCovariantByDeclaration,
             isLate: isLate,
             isRequired: isRequired,
             isLowered: isLowered);

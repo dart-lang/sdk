@@ -801,7 +801,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   bool _useTypeCheckForParameter(VariableDeclaration decl) {
-    return decl.isCovariant || decl.isGenericCovariantImpl;
+    return decl.isCovariantByDeclaration || decl.isCovariantByClass;
   }
 
   Args<Type> rawArguments(Selector selector) {

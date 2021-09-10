@@ -116,7 +116,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
 
-  bool get isCovariant => (modifiers & covariantMask) != 0;
+  bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
 
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
@@ -142,7 +142,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           isFinal: isFinal,
           isConst: isConst,
           isFieldFormal: isInitializingFormal,
-          isCovariant: isCovariant,
+          isCovariantByDeclaration: isCovariantByDeclaration,
           isRequired: isNamedRequired,
           hasDeclaredInitializer: hasDeclaredInitializer,
           isLowered: isExtensionThis)

@@ -276,14 +276,15 @@ class _CovarianceTransformer extends RecursiveVisitor {
 
   _CovarianceTransformer(this._library);
 
-  /// Transforms [_library], eliminating unncessary checks for private members.
+  /// Transforms [_library], eliminating unnecessary checks for private members.
   ///
   /// Kernel will mark covariance checks on members, for example:
-  /// - a field with [Field.isGenericCovariantImpl] or [Field.isCovariant].
+  /// - a field with [Field.isCovariantByClass] or
+  ///   [Field.isCovariantByDeclaration].
   /// - a method/setter with parameter(s) or type parameter(s) that have
-  ///   `isGenericCovariantImpl` or `isCovariant` set.
+  ///   `isCovariantByClass` or `isCovariantByDeclaration` set.
   ///
-  /// If the check can be safely eliminanted, those properties will be set to
+  /// If the check can be safely eliminated, those properties will be set to
   /// false so the JS compiler does not emit checks.
   ///
   /// Public members always need covariance checks (we cannot see all potential
@@ -319,13 +320,13 @@ class _CovarianceTransformer extends RecursiveVisitor {
     // Update the tree based on the methods that need checks.
     for (var field in _privateFields) {
       if (!_checkedMembers.contains(field)) {
-        field.isCovariant = false;
-        field.isGenericCovariantImpl = false;
+        field.isCovariantByDeclaration = false;
+        field.isCovariantByClass = false;
       }
     }
     void clearCovariant(VariableDeclaration parameter) {
-      parameter.isCovariant = false;
-      parameter.isGenericCovariantImpl = false;
+      parameter.isCovariantByDeclaration = false;
+      parameter.isCovariantByClass = false;
     }
 
     for (var member in _privateProcedures) {
@@ -334,7 +335,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
         function.positionalParameters.forEach(clearCovariant);
         function.namedParameters.forEach(clearCovariant);
         for (var t in function.typeParameters) {
-          t.isGenericCovariantImpl = false;
+          t.isCovariantByClass = false;
         }
       }
     }

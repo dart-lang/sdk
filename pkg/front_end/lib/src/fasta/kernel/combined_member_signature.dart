@@ -483,8 +483,8 @@ abstract class CombinedMemberSignatureBase<T> {
               member.function.positionalParameters.first;
           combinedMemberSignature = _createSetterMemberSignature(
               member, combinedMemberSignatureType!,
-              isGenericCovariantImpl: parameter.isGenericCovariantImpl,
-              isCovariant: parameter.isCovariant,
+              isCovariantByClass: parameter.isCovariantByClass,
+              isCovariantByDeclaration: parameter.isCovariantByDeclaration,
               parameter: parameter,
               copyLocation: copyLocation);
           break;
@@ -503,8 +503,8 @@ abstract class CombinedMemberSignatureBase<T> {
       if (forSetter) {
         combinedMemberSignature = _createSetterMemberSignature(
             member, combinedMemberSignatureType!,
-            isGenericCovariantImpl: member.isGenericCovariantImpl,
-            isCovariant: member.isCovariant,
+            isCovariantByClass: member.isCovariantByClass,
+            isCovariantByDeclaration: member.isCovariantByDeclaration,
             copyLocation: copyLocation);
       } else {
         combinedMemberSignature = _createGetterMemberSignature(
@@ -559,17 +559,18 @@ abstract class CombinedMemberSignatureBase<T> {
   }
 
   /// Creates a setter member signature for [member] with the given
-  /// [type]. The flags of parameter is set according to [isCovariant] and
-  /// [isGenericCovariantImpl] and the [parameterName] is used, if provided.
+  /// [type]. The flags of parameter is set according to
+  /// [isCovariantByDeclaration] and [isCovariantByClass] and the name of the
+  /// [parameter] is used, if provided.
   Procedure _createSetterMemberSignature(Member member, DartType type,
-      {required bool isCovariant,
-      required bool isGenericCovariantImpl,
+      {required bool isCovariantByDeclaration,
+      required bool isCovariantByClass,
       VariableDeclaration? parameter,
       required bool copyLocation}) {
     // ignore: unnecessary_null_comparison
-    assert(isCovariant != null);
+    assert(isCovariantByDeclaration != null);
     // ignore: unnecessary_null_comparison
-    assert(isGenericCovariantImpl != null);
+    assert(isCovariantByClass != null);
     // ignore: unnecessary_null_comparison
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
@@ -594,8 +595,8 @@ abstract class CombinedMemberSignatureBase<T> {
           returnType: const VoidType(),
           positionalParameters: [
             new VariableDeclaration(parameter?.name ?? 'value',
-                type: type, isCovariant: isCovariant)
-              ..isGenericCovariantImpl = isGenericCovariantImpl
+                type: type, isCovariantByDeclaration: isCovariantByDeclaration)
+              ..isCovariantByClass = isCovariantByClass
               ..fileOffset = copyLocation
                   ? parameter?.fileOffset ?? fileOffset
                   : fileOffset
@@ -638,8 +639,9 @@ abstract class CombinedMemberSignatureBase<T> {
       VariableDeclaration parameter = function.positionalParameters[i];
       DartType parameterType = functionType.positionalParameters[i];
       positionalParameters.add(new VariableDeclaration(parameter.name,
-          type: parameterType, isCovariant: parameter.isCovariant)
-        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
+          type: parameterType,
+          isCovariantByDeclaration: parameter.isCovariantByDeclaration)
+        ..isCovariantByClass = parameter.isCovariantByClass
         ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
     }
     List<VariableDeclaration> namedParameters = [];
@@ -650,8 +652,8 @@ abstract class CombinedMemberSignatureBase<T> {
       namedParameters.add(new VariableDeclaration(parameter.name,
           type: namedType.type,
           isRequired: namedType.isRequired,
-          isCovariant: parameter.isCovariant)
-        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
+          isCovariantByDeclaration: parameter.isCovariantByDeclaration)
+        ..isCovariantByClass = parameter.isCovariantByClass
         ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
@@ -664,8 +666,8 @@ abstract class CombinedMemberSignatureBase<T> {
         namedParameters.add(new VariableDeclaration(parameter.name,
             type: namedParameterType.type,
             isRequired: namedParameterType.isRequired,
-            isCovariant: parameter.isCovariant)
-          ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
+            isCovariantByDeclaration: parameter.isCovariantByDeclaration)
+          ..isCovariantByClass = parameter.isCovariantByClass
           ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
       }
     }

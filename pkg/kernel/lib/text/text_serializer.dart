@@ -1980,7 +1980,7 @@ const Map<int, String> fieldFlagToName = const {
   Field.FlagConst: "const",
   Field.FlagStatic: "static",
   Field.FlagCovariant: "covariant",
-  Field.FlagGenericCovariantImpl: "generic-covariant-impl",
+  Field.FlagCovariantByClass: "generic-covariant-impl",
   Field.FlagLate: "late",
   Field.FlagExtensionMember: "extension-member",
   Field.FlagNonNullableByDefault: "non-nullable-by-default",

@@ -546,7 +546,7 @@ class TypeCheck extends Statement {
 
   TypeCheck(this.arg, this.type, this.node, this.staticType, this.kind)
       : isTestedOnlyOnCheckedEntryPoint =
-            node is VariableDeclaration && !node.isCovariant;
+            node is VariableDeclaration && !node.isCovariantByDeclaration;
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitTypeCheck(this);

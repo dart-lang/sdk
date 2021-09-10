@@ -346,7 +346,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         function.typeParameters.add(parameter);
         if (needsCheckVisitor != null) {
           if (parameter.bound.accept(needsCheckVisitor)) {
-            parameter.isGenericCovariantImpl = true;
+            parameter.isCovariantByClass = true;
           }
         }
       }
@@ -358,7 +358,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
             nonInstanceContext: !isConstructor && !isDeclarationInstanceMember);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
-            parameter.isGenericCovariantImpl = true;
+            parameter.isCovariantByClass = true;
           }
         }
         if (formal.isNamed) {
