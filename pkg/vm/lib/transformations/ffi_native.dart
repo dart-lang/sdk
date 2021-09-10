@@ -151,7 +151,7 @@ class FfiNativeTransformer extends Transformer {
       parent.addField(funcPtrField);
     } else {
       throw 'Unexpected parent of @FfiNative function. '
-        'Expected Class or Library, but found ${parent}.';
+          'Expected Class or Library, but found ${parent}.';
     }
 
     // _@FfiNative__square_root(x)
