@@ -422,7 +422,9 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   List<TypeParameter> aTypeParameters = a.typeParameters;
   List<TypeParameter> bTypeParameters = b.typeParameters;
   int typeParameterCount = aTypeParameters.length;
-  if (typeParameterCount != bTypeParameters.length) return false;
+  if (typeParameterCount != bTypeParameters.length) {
+    return false;
+  }
   Substitution? substitution;
   if (typeParameterCount != 0) {
     List<DartType> types = new List<DartType>.generate(
@@ -434,11 +436,15 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
     for (int i = 0; i < typeParameterCount; i++) {
       DartType aBound = aTypeParameters[i].bound;
       DartType bBound = substitution.substituteType(bTypeParameters[i].bound);
-      if (aBound != bBound) return false;
+      if (aBound != bBound) {
+        return false;
+      }
     }
   }
 
-  if (a.requiredParameterCount != b.requiredParameterCount) return false;
+  if (a.requiredParameterCount != b.requiredParameterCount) {
+    return false;
+  }
   List<VariableDeclaration> aPositionalParameters = a.positionalParameters;
   List<VariableDeclaration> bPositionalParameters = b.positionalParameters;
   if (aPositionalParameters.length != bPositionalParameters.length) {
@@ -447,7 +453,10 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   for (int i = 0; i < aPositionalParameters.length; i++) {
     VariableDeclaration aParameter = aPositionalParameters[i];
     VariableDeclaration bParameter = bPositionalParameters[i];
-    if (aParameter.isCovariant != bParameter.isCovariant) return false;
+    if (aParameter.isCovariantByDeclaration !=
+        bParameter.isCovariantByDeclaration) {
+      return false;
+    }
     DartType aType = aParameter.type;
     DartType bType = bParameter.type;
     if (substitution != null) {
@@ -458,18 +467,27 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
 
   List<VariableDeclaration> aNamedParameters = a.namedParameters;
   List<VariableDeclaration> bNamedParameters = b.namedParameters;
-  if (aNamedParameters.length != bNamedParameters.length) return false;
+  if (aNamedParameters.length != bNamedParameters.length) {
+    return false;
+  }
   for (int i = 0; i < aNamedParameters.length; i++) {
     VariableDeclaration aParameter = aNamedParameters[i];
     VariableDeclaration bParameter = bNamedParameters[i];
-    if (aParameter.isCovariant != bParameter.isCovariant) return false;
-    if (aParameter.name != bParameter.name) return false;
+    if (aParameter.isCovariantByDeclaration !=
+        bParameter.isCovariantByDeclaration) {
+      return false;
+    }
+    if (aParameter.name != bParameter.name) {
+      return false;
+    }
     DartType aType = aParameter.type;
     DartType bType = bParameter.type;
     if (substitution != null) {
       bType = substitution.substituteType(bType);
     }
-    if (aType != bType) return false;
+    if (aType != bType) {
+      return false;
+    }
   }
 
   DartType aReturnType = a.returnType;

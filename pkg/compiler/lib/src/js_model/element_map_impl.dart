@@ -882,7 +882,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
     DartType getParameterType(ir.VariableDeclaration variable) {
       // isCovariant implies this FunctionNode is a class Procedure.
-      var isCovariant = variable.isCovariant || variable.isGenericCovariantImpl;
+      var isCovariant =
+          variable.isCovariantByDeclaration || variable.isCovariantByClass;
       var isFromNonNullableByDefaultLibrary = isCovariant &&
           (node.parent as ir.Procedure).enclosingLibrary.isNonNullableByDefault;
       return types.getTearOffParameterType(getDartType(variable.type),

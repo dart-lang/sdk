@@ -81,6 +81,8 @@ def _CheckFormat(input_api,
     for git_file in input_api.AffectedTextFiles():
         if git_file.LocalPath().startswith("pkg/front_end/testcases/"):
             continue
+        if git_file.LocalPath().startswith("pkg/front_end/parser_testcases/"):
+            continue
         if should_skip(git_file.LocalPath()):
             continue
         filename = git_file.AbsoluteLocalPath()

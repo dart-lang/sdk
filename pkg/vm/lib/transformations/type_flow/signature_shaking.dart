@@ -190,7 +190,7 @@ class _ParameterInfo {
     // Covariant parameters have implicit type checks, which count as reads.
     // When run in weak mode with null assertions enabled, parameters with
     // non-nullable types have implicit null checks, which count as reads.
-    if ((param.isCovariant || param.isGenericCovariantImpl) ||
+    if ((param.isCovariantByDeclaration || param.isCovariantByClass) ||
         (!shaker.typeFlowAnalysis.target.flags.enableNullSafety &&
             param.type.nullability == Nullability.nonNullable &&
             (type == null || type is NullableType))) {

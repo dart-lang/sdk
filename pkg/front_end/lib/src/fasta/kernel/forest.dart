@@ -645,7 +645,7 @@ class Forest {
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isLocalFunction: false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
@@ -655,7 +655,7 @@ class Forest {
         isFinal: isFinal,
         isConst: isConst,
         isFieldFormal: isFieldFormal,
-        isCovariant: isCovariant,
+        isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
         hasDeclaredInitializer: initializer != null);
   }

@@ -60,12 +60,12 @@ The easiest way to contribute to Dart is to [file issues][dartbug].
 You can also contribute patches, as described in [Contributing][contrib].
 
 [website]: https://dart.dev
-[license]: https://github.com/dart-lang/sdk/blob/master/LICENSE
+[license]: https://github.com/dart-lang/sdk/blob/main/LICENSE
 [repo]: https://github.com/dart-lang/sdk
 [lang]: https://dart.dev/guides/language/language-tour
 [tools]: https://dart.dev/tools
 [codelabs]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
-[contrib]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
+[contrib]: https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md
 [pubsite]: https://pub.dev
-[patent_grant]: https://github.com/dart-lang/sdk/blob/master/PATENT_GRANT
+[patent_grant]: https://github.com/dart-lang/sdk/blob/main/PATENT_GRANT

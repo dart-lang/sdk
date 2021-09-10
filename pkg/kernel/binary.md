@@ -368,8 +368,8 @@ type Field extends Member {
   UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  UInt flags (isFinal, isConst, isStatic, isCovariant,
-                isGenericCovariantImpl, isLate, isExtensionMember,
+  UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
+                isCovariantByClass, isLate, isExtensionMember,
                 isNonNullableByDefault, isInternalImplementation);
   Name name;
   List<Expression> annotations;
@@ -1377,8 +1377,8 @@ type VariableDeclarationPlain {
 
   List<Expression> annotations;
 
-  Byte flags (isFinal, isConst, isFieldFormal, isCovariant,
-              isGenericCovariantImpl, isLate, isRequired, isLowered);
+  Byte flags (isFinal, isConst, isFieldFormal, isCovariantByDeclaration,
+              isCovariantByClass, isLate, isRequired, isLowered);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1501,7 +1501,7 @@ type TypedefType {
 
 type TypeParameter {
   // Note: there is no tag on TypeParameter
-  Byte flags (isGenericCovariantImpl);
+  Byte flags (isCovariantByClass);
   List<Expression> annotations;
   Byte variance; // Index into the Variance enum above
   StringReference name; // Cosmetic, may be empty, not unique.

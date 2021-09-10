@@ -139,8 +139,8 @@ class MixinFullResolution {
           setters.remove(field.name);
           VariableDeclaration parameter =
               setter.function.positionalParameters.first;
-          clone.isCovariant = parameter.isCovariant;
-          clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+          clone.isCovariantByDeclaration = parameter.isCovariantByDeclaration;
+          clone.isCovariantByClass = parameter.isCovariantByClass;
         }
         nonSetters.remove(field.name);
         class_.addField(clone);
@@ -225,10 +225,10 @@ class MixinFullResolution {
         // TODO(kernel team): The named parameters are not sorted,
         // this might not be correct.
         for (int j = 0; j < src.namedParameters.length; ++j) {
-          dst.namedParameters[j].isCovariant =
-              src.namedParameters[j].isCovariant;
-          dst.namedParameters[j].isGenericCovariantImpl =
-              src.namedParameters[j].isGenericCovariantImpl;
+          dst.namedParameters[j].isCovariantByDeclaration =
+              src.namedParameters[j].isCovariantByDeclaration;
+          dst.namedParameters[j].isCovariantByClass =
+              src.namedParameters[j].isCovariantByClass;
         }
 
         class_.procedures[originalIndex] = clone;

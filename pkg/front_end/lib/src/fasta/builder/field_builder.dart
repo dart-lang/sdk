@@ -50,7 +50,7 @@ abstract class FieldBuilder implements MemberBuilder {
 
   TypeBuilder? get type;
 
-  bool get isCovariant;
+  bool get isCovariantByDeclaration;
 
   bool get isLate;
 
@@ -154,7 +154,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           isAbstract: isAbstract,
           isExternal: isExternal,
           isFinal: isFinal,
-          isCovariant: isCovariant,
+          isCovariantByDeclaration: isCovariantByDeclaration,
           isNonNullableByDefault: library.isNonNullableByDefault);
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
@@ -175,7 +175,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetSetterReference,
               lateGetterReference,
               lateSetterReference,
-              isCovariant,
+              isCovariantByDeclaration,
               isSetStrategy);
         } else {
           _fieldEncoding = new LateFieldWithInitializerEncoding(
@@ -190,7 +190,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetSetterReference,
               lateGetterReference,
               lateSetterReference,
-              isCovariant,
+              isCovariantByDeclaration,
               isSetStrategy);
         }
       } else {
@@ -207,7 +207,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetSetterReference,
               lateGetterReference,
               lateSetterReference,
-              isCovariant,
+              isCovariantByDeclaration,
               isSetStrategy);
         } else {
           _fieldEncoding = new LateFieldWithoutInitializerEncoding(
@@ -222,7 +222,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetSetterReference,
               lateGetterReference,
               lateSetterReference,
-              isCovariant,
+              isCovariantByDeclaration,
               isSetStrategy);
         }
       }
@@ -244,7 +244,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             lateIsSetSetterReference,
             lateGetterReference,
             lateSetterReference,
-            isCovariant,
+            isCovariantByDeclaration,
             isSetStrategy);
       } else {
         _fieldEncoding = new LateFieldWithInitializerEncoding(
@@ -259,7 +259,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             lateIsSetSetterReference,
             lateGetterReference,
             lateSetterReference,
-            isCovariant,
+            isCovariantByDeclaration,
             isSetStrategy);
       }
     } else {
@@ -320,7 +320,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   bool get isLate => (modifiers & lateMask) != 0;
 
   @override
-  bool get isCovariant => (modifiers & covariantMask) != 0;
+  bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
 
   @override
   bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
@@ -665,7 +665,7 @@ class RegularFieldEncoding implements FieldEncoding {
   @override
   void build(
       SourceLibraryBuilder libraryBuilder, SourceFieldBuilder fieldBuilder) {
-    _field..isCovariant = fieldBuilder.isCovariant;
+    _field..isCovariantByDeclaration = fieldBuilder.isCovariantByDeclaration;
     if (fieldBuilder.isExtensionMember) {
       _field
         ..isStatic = true
@@ -695,7 +695,7 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   void setGenericCovariantImpl() {
-    _field.isGenericCovariantImpl = true;
+    _field.isCovariantByClass = true;
   }
 
   @override
@@ -814,7 +814,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
-      bool isCovariant,
+      bool isCovariantByDeclaration,
       late_lowering.IsSetStrategy isSetStrategy)
       : fileOffset = charOffset,
         fileEndOffset = charEndOffset,
@@ -867,7 +867,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         fileUri,
         charOffset,
         lateSetterReference,
-        isCovariant: isCovariant);
+        isCovariantByDeclaration: isCovariantByDeclaration);
   }
 
   late_lowering.IsSetEncoding get isSetEncoding {
@@ -975,11 +975,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   Procedure? _createSetter(
       Name name, Uri fileUri, int charOffset, Reference? reference,
-      {required bool isCovariant}) {
+      {required bool isCovariantByDeclaration}) {
     // ignore: unnecessary_null_comparison
-    assert(isCovariant != null);
+    assert(isCovariantByDeclaration != null);
     VariableDeclaration parameter = new VariableDeclaration(null)
-      ..isCovariant = isCovariant
+      ..isCovariantByDeclaration = isCovariantByDeclaration
       ..fileOffset = fileOffset;
     return new Procedure(
         name,
@@ -1025,9 +1025,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void setGenericCovariantImpl() {
-    _field.isGenericCovariantImpl = true;
-    _lateSetter?.function.positionalParameters.single.isGenericCovariantImpl =
-        true;
+    _field.isCovariantByClass = true;
+    _lateSetter?.function.positionalParameters.single.isCovariantByClass = true;
   }
 
   @override
@@ -1198,7 +1197,7 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
-      bool isCovariant,
+      bool isCovariantByDeclaration,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
             name,
@@ -1212,7 +1211,7 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             lateIsSetSetterReference,
             lateGetterReference,
             lateSetterReference,
-            isCovariant,
+            isCovariantByDeclaration,
             isSetStrategy);
 }
 
@@ -1230,7 +1229,7 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
-      bool isCovariant,
+      bool isCovariantByDeclaration,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
             name,
@@ -1244,7 +1243,7 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
             lateIsSetSetterReference,
             lateGetterReference,
             lateSetterReference,
-            isCovariant,
+            isCovariantByDeclaration,
             isSetStrategy);
 
   @override
@@ -1277,7 +1276,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
-      bool isCovariant,
+      bool isCovariantByDeclaration,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
             name,
@@ -1291,7 +1290,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             lateIsSetSetterReference,
             lateGetterReference,
             lateSetterReference,
-            isCovariant,
+            isCovariantByDeclaration,
             isSetStrategy);
 
   @override
@@ -1325,7 +1324,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
-      bool isCovariant,
+      bool isCovariantByDeclaration,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
             name,
@@ -1339,7 +1338,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
             lateIsSetSetterReference,
             lateGetterReference,
             lateSetterReference,
-            isCovariant,
+            isCovariantByDeclaration,
             isSetStrategy);
   @override
   Statement _createGetterBody(
@@ -1360,7 +1359,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   @override
   Procedure? _createSetter(
           Name name, Uri fileUri, int charOffset, Reference? reference,
-          {required bool isCovariant}) =>
+          {required bool isCovariantByDeclaration}) =>
       null;
 
   @override
@@ -1537,7 +1536,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       {required this.isAbstract,
       required this.isExternal,
       required bool isFinal,
-      required bool isCovariant,
+      required bool isCovariantByDeclaration,
       required bool isNonNullableByDefault})
       // ignore: unnecessary_null_comparison
       : assert(isAbstract != null),
@@ -1546,7 +1545,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         // ignore: unnecessary_null_comparison
         assert(isFinal != null),
         // ignore: unnecessary_null_comparison
-        assert(isCovariant != null),
+        assert(isCovariantByDeclaration != null),
         // ignore: unnecessary_null_comparison
         assert(isNonNullableByDefault != null),
         _isExtensionInstanceMember = isExternal &&
@@ -1567,7 +1566,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       if (!isFinal) {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue")
-              ..isCovariant = isCovariant
+              ..isCovariantByDeclaration = isCovariantByDeclaration
               ..fileOffset = charOffset;
         _setter = new Procedure(
             nameScheme.getProcedureName(ProcedureKind.Setter, name),
@@ -1600,7 +1599,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       if (!isFinal) {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue")
-              ..isCovariant = isCovariant
+              ..isCovariantByDeclaration = isCovariantByDeclaration
               ..fileOffset = charOffset;
         _setter = new Procedure(
             nameScheme.getFieldName(FieldNameType.Setter, name,
@@ -1742,7 +1741,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
 
   @override
   void setGenericCovariantImpl() {
-    _setter!.function.positionalParameters.first.isGenericCovariantImpl = true;
+    _setter!.function.positionalParameters.first.isCovariantByClass = true;
   }
 
   @override

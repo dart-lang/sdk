@@ -3719,7 +3719,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   void _emitCovarianceBoundsCheck(
       List<TypeParameter> typeFormals, List<js_ast.Statement> body) {
     for (var t in typeFormals) {
-      if (t.isGenericCovariantImpl && !_types.isTop(t.bound)) {
+      if (t.isCovariantByClass && !_types.isTop(t.bound)) {
         body.add(runtimeStatement('checkTypeBound(#, #, #)', [
           _emitTypeParameterType(TypeParameterType(t, Nullability.undetermined),
               emitNullability: false),

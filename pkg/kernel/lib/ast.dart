@@ -1865,7 +1865,7 @@ class Field extends Member {
   Field.mutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isFinal: false,
       bool isStatic: false,
       bool isLate: false,
@@ -1879,7 +1879,7 @@ class Field extends Member {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
-    this.isCovariant = isCovariant;
+    this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isStatic = isStatic;
     this.isLate = isLate;
@@ -1889,7 +1889,7 @@ class Field extends Member {
   Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
@@ -1902,7 +1902,7 @@ class Field extends Member {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
-    this.isCovariant = isCovariant;
+    this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
@@ -1922,14 +1922,14 @@ class Field extends Member {
   static const int FlagConst = 1 << 1;
   static const int FlagStatic = 1 << 2;
   static const int FlagCovariant = 1 << 3;
-  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagExtensionMember = 1 << 6;
   static const int FlagNonNullableByDefault = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
-  bool get isCovariant => flags & FlagCovariant != 0;
+  bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
 
   bool get isFinal => flags & FlagFinal != 0;
 
@@ -1946,7 +1946,7 @@ class Field extends Member {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
@@ -1958,7 +1958,7 @@ class Field extends Member {
   // lowering.
   bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
-  void set isCovariant(bool value) {
+  void set isCovariantByDeclaration(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
 
@@ -1979,10 +1979,10 @@ class Field extends Member {
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   void set isLate(bool value) {
@@ -2396,8 +2396,8 @@ enum ProcedureStubKind {
   /// The stub target is `null`.
   Regular,
 
-  /// An abstract procedure inserted to add `isCovariant` and
-  /// `isGenericCovariantImpl` to parameters for a set of overridden members.
+  /// An abstract procedure inserted to add `isCovariantByDeclaration` and
+  /// `isCovariantByClass` to parameters for a set of overridden members.
   ///
   /// The stub is inserted when not all of the overridden members agree on
   /// the covariance flags. For instance:
@@ -2422,8 +2422,8 @@ enum ProcedureStubKind {
   /// The stub target is one of the overridden members.
   AbstractForwardingStub,
 
-  /// A concrete procedure inserted to add `isCovariant` and
-  /// `isGenericCovariantImpl` checks to parameters before calling the
+  /// A concrete procedure inserted to add `isCovariantByDeclaration` and
+  /// `isCovariantByClass` checks to parameters before calling the
   /// overridden member in the superclass.
   ///
   /// The stub is inserted when not all of the overridden members agree on
@@ -9927,7 +9927,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isLate: false,
       bool isRequired: false,
       bool isLowered: false}) {
@@ -9940,7 +9940,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isFinal = isFinal;
       this.isConst = isConst;
       this.isFieldFormal = isFieldFormal;
-      this.isCovariant = isCovariant;
+      this.isCovariantByDeclaration = isCovariantByDeclaration;
       this.isLate = isLate;
       this.isRequired = isRequired;
       this.isLowered = isLowered;
@@ -9981,7 +9981,7 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   /// Whether the parameter is declared with the `covariant` keyword.
   // TODO(johnniwinther): Rename to isCovariantByDeclaration
-  bool get isCovariant => flags & FlagCovariant != 0;
+  bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
 
   /// Whether the variable is declared as a field formal parameter of
   /// a constructor.
@@ -9995,7 +9995,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
   // TODO(johnniwinther): Rename to isCovariantByClass
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagGenericCovariantImpl != 0;
 
   /// Whether the variable is declared with the `late` keyword.
   ///
@@ -10040,7 +10040,7 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  void set isCovariant(bool value) {
+  void set isCovariantByDeclaration(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
 
@@ -10049,7 +10049,7 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
   }
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
         : (flags & ~FlagGenericCovariantImpl);
@@ -12032,7 +12032,7 @@ class TypeParameter extends TreeNode implements Annotatable {
         defaultType = defaultType ?? unsetDefaultTypeSentinel;
 
   // Must match serialized bit positions.
-  static const int FlagGenericCovariantImpl = 1 << 0;
+  static const int FlagCovariantByClass = 1 << 0;
 
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -12040,12 +12040,12 @@ class TypeParameter extends TreeNode implements Annotatable {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   @override

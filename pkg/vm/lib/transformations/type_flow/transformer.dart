@@ -880,8 +880,8 @@ class FieldMorpher {
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter = new VariableDeclaration('value', type: field.type)
-        ..isCovariant = field.isCovariant
-        ..isGenericCovariantImpl = field.isGenericCovariantImpl
+        ..isCovariantByDeclaration = field.isCovariantByDeclaration
+        ..isCovariantByClass = field.isCovariantByClass
         ..fileOffset = field.fileOffset;
       accessor = new Procedure(
           field.name,

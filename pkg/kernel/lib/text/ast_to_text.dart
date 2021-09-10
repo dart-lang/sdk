@@ -1123,8 +1123,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeModifier(node.isLate, 'late');
     writeModifier(node.isStatic, 'static');
-    writeModifier(node.isCovariant, 'covariant');
-    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(node.isCovariantByDeclaration, 'covariant');
+    writeModifier(node.isCovariantByClass, 'generic-covariant-impl');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -2404,8 +2404,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isLowered, 'lowered');
     writeModifier(node.isLate, 'late');
     writeModifier(node.isRequired, 'required');
-    writeModifier(node.isCovariant, 'covariant');
-    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(node.isCovariantByDeclaration, 'covariant');
+    writeModifier(node.isCovariantByClass, 'generic-covariant-impl');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // ignore: unnecessary_null_comparison
@@ -2623,7 +2623,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(node.isCovariantByClass, 'generic-covariant-impl');
     writeAnnotationList(node.annotations, separateLines: false);
     if (node.variance != Variance.covariant) {
       writeWord(const <String>[
