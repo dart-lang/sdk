@@ -92,86 +92,62 @@ class ReadOnlyHandles {
 
 class DartInitializationState {
  public:
-  enum class InitializationState {
-    kUnInitialized = 0,
-    kInitializing = 1,
-    kInitialized = 2,
-    kCleaningup = 3,
-  };
+  uint8_t kUnInitialized = 0;
+  uint8_t kInitializing = 1;
+  uint8_t kInitialized = 2;
+  uint8_t kCleaningup = 3;
 
-  DartInitializationState()
-      : state_(InitializationState::kUnInitialized),
-        in_use_(false),
-        lock_(nullptr) {
-    lock_ = new Monitor();
-  }
+  DartInitializationState() : state_(0), in_use_count_(0) {}
   ~DartInitializationState() {}
 
   bool SetInitializing() {
-    MonitorLocker ml(lock_);
-    if (state_ != InitializationState::kUnInitialized || in_use_) {
-      return false;
-    }
-    state_ = InitializationState::kInitializing;
-    return true;
+    ASSERT(in_use_count_.load() == 0);
+    return state_.compare_exchange_strong(kUnInitialized, kInitializing);
   }
 
   void ResetInitializing() {
-    MonitorLocker ml(lock_);
-    ASSERT((state_ == InitializationState::kInitializing) && !in_use_);
-    state_ = InitializationState::kUnInitialized;
+    ASSERT(in_use_count_.load() == 0);
+    bool result = state_.compare_exchange_strong(kInitializing, kUnInitialized);
+    ASSERT(result);
   }
 
   void SetInitialized() {
-    MonitorLocker ml(lock_);
-    ASSERT((state_ == InitializationState::kInitializing) && !in_use_);
-    state_ = InitializationState::kInitialized;
+    ASSERT(in_use_count_.load() == 0);
+    bool result = state_.compare_exchange_strong(kInitializing, kInitialized);
+    ASSERT(result);
   }
 
-  bool IsInitialized() const {
-    MonitorLocker ml(lock_);
-    return (state_ == InitializationState::kInitialized);
-  }
+  bool IsInitialized() const { return state_.load() == kInitialized; }
 
   bool SetCleaningup() {
-    MonitorLocker ml(lock_);
-    if (state_ != InitializationState::kInitialized) {
-      return false;
-    }
-    state_ = InitializationState::kCleaningup;
-    return true;
+    return state_.compare_exchange_strong(kInitialized, kCleaningup);
   }
 
   void SetUnInitialized() {
-    MonitorLocker ml(lock_);
-    ASSERT(state_ == InitializationState::kCleaningup);
-    while (in_use_) {
-      ml.Wait();
+    while (in_use_count_.load() > 0) {
+      OS::Sleep(1);  // Sleep for 1 millis waiting for it to not be in use.
     }
-    state_ = InitializationState::kUnInitialized;
+    bool result = state_.compare_exchange_strong(kCleaningup, kUnInitialized);
+    ASSERT(result);
   }
 
   bool SetInUse() {
-    MonitorLocker ml(lock_);
-    if (state_ != InitializationState::kInitialized) {
+    if (state_.load() != kInitialized) {
       return false;
     }
-    in_use_ = true;
+    in_use_count_ += 1;
     return true;
   }
 
   void ResetInUse() {
-    MonitorLocker ml(lock_);
-    ASSERT((state_ == InitializationState::kInitialized) ||
-           (state_ == InitializationState::kCleaningup));
-    in_use_ = false;
-    ml.NotifyAll();
+    uint8_t value = state_.load();
+    ASSERT((value == kInitialized) || (value == kCleaningup));
+    in_use_count_ -= 1;
   }
 
  private:
-  InitializationState state_;
-  bool in_use_;
-  Monitor* lock_;
+  std::atomic<uint8_t> state_;
+  std::atomic<uint64_t> in_use_count_;
 };
 static DartInitializationState init_state_;
 
