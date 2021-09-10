@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -15,13 +17,26 @@ main() {
 
 @reflectiveTest
 class ErrorSuppressionTest extends PubPackageResolutionTest {
+  static final ErrorCode _lintCode = AvoidTypesAsParameterNames().lintCode;
+
   String get ignoredCode => 'unused_element';
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+        lints: ['avoid_types_as_parameter_names'],
+      ),
+    );
+  }
 
   test_error_code_mismatch() async {
     await assertErrorsInCode('''
 // ignore: $ignoredCode
 int x = '';
-int _y = 0; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+int _y = 0; //INVALID_ASSIGNMENT
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 34, 2),
       error(HintCode.UNUSED_ELEMENT, 42, 2),
@@ -222,6 +237,62 @@ int x = (0 as int); // ignore: unnecessary_cast
 int y = (0 as int);
 ''', [
       error(HintCode.UNNECESSARY_CAST, 57, 8),
+    ]);
+  }
+
+  test_type_ignore_badType() async {
+    await assertErrorsInCode('''
+// ignore: type=wrong
+void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''', [
+      error(_lintCode, 34, 3),
+    ]);
+  }
+
+  test_type_ignore_match() async {
+    await assertNoErrorsInCode('''
+// ignore: type=lint
+void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''');
+  }
+
+  test_type_ignore_mismatch() async {
+    await assertErrorsInCode('''
+// ignore: type=lint
+int _x = 1;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 25, 2),
+    ]);
+  }
+
+  test_type_ignoreForFile_match() async {
+    await assertNoErrorsInCode('''
+// ignore_for_file: type=lint
+void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''');
+  }
+
+  test_type_ignoreForFile_match_upperCase() async {
+    await assertNoErrorsInCode('''
+// ignore_for_file: TYPE=LINT
+void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''');
+  }
+
+  test_type_ignoreForFile_match_withWhitespace() async {
+    await assertNoErrorsInCode('''
+// ignore_for_file: type = lint
+void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''');
+  }
+
+  test_type_ignoreForFile_mismatch() async {
+    await assertErrorsInCode('''
+// ignore_for_file: type=lint
+int a = 0;
+int _x = 1;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 45, 2),
     ]);
   }
 

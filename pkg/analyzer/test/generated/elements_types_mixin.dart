@@ -587,6 +587,16 @@ mixin ElementsTypesMixin {
     return element;
   }
 
+  DartType typeAliasTypeNone(
+    TypeAliasElement element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
   TypeParameterElementImpl typeParameter(String name,
       {DartType? bound, Variance? variance}) {
     var element = TypeParameterElementImpl.synthetic(name);
