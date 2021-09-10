@@ -519,6 +519,9 @@ class Scope extends MutableScope {
     scope._local.forEach(mergeMember);
     map = _setters;
     scope._setters.forEach(mergeMember);
+    if (scope._extensions != null) {
+      (_extensions ??= {}).addAll(scope._extensions!);
+    }
   }
 
   void forEach(f(String name, Builder member)) {
