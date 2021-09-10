@@ -41,7 +41,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   static final Version currentVersion = Version.parse(_currentVersion);
 
   /// The latest known language version.
-  static final Version latestSdkLanguageVersion = Version.parse('2.13.0');
+  static final Version latestSdkLanguageVersion = Version.parse('2.14.0');
 
   /// A map containing information about all known experimental flags.
   static final Map<String, ExperimentalFeature> knownFeatures = _knownFeatures;

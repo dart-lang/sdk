@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,9 +27,14 @@ class GenericMetadataDisabledParserTest extends FastaParserTestCase
       {List<ExpectedError>? errors, required ExpectedError? disabledError}) {
     var combinedErrors =
         disabledError == null ? errors : [disabledError, ...?errors];
-    return parseCompilationUnit(content,
-        errors: combinedErrors,
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.12'));
+    return parseCompilationUnit(
+      content,
+      errors: combinedErrors,
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: Version.parse('2.12.0'),
+        flags: [],
+      ),
+    );
   }
 }
 
