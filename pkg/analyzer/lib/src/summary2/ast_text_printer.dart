@@ -28,6 +28,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     _token(node.atSign);
     node.name.accept(this);
+    node.typeArguments?.accept(this);
     _token(node.period);
     node.constructorName?.accept(this);
     node.arguments?.accept(this);
