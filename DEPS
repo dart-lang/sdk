@@ -139,7 +139,7 @@ vars = {
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
   "pub_rev": "cd7a43f2109f7e5eb22e73c7f4e15d25fd57598e",
-  "pub_semver_rev": "baeea5ac3503546269d25c66523d4334c784a4f9",
+  "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
