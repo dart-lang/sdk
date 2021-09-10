@@ -1,0 +1,23 @@
+extension on Symbol {
+String operator >(_) => "Greater Than used";
+String call(_) => "Called";
+}
+
+void main() {
+print(#>>>(2));
+}
+
+abstract class Foo extends List<List<List<String>>> {}
+
+
+extension[KeywordToken] on[KeywordToken] Symbol[StringToken] {[BeginToken]
+String[StringToken] operator[KeywordToken] >[SimpleToken]([BeginToken]_[StringToken])[SimpleToken] =>[SimpleToken] "Greater Than used"[StringToken];[SimpleToken]
+String[StringToken] call[StringToken]([BeginToken]_[StringToken])[SimpleToken] =>[SimpleToken] "Called"[StringToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]#[SimpleToken]>>[SimpleToken]>[SimpleToken]([BeginToken]2[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+abstract[KeywordToken] class[KeywordToken] Foo[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]String[StringToken]>>[SimpleToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

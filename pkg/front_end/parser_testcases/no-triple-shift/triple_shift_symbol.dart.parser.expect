@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+print(#>>>*synthetic*);
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]#[SimpleToken]>>[SimpleToken]>[SimpleToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

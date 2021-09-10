@@ -1,0 +1,11 @@
+void main(List<String> arguments) {
+var x = 10 >>> 2;
+print('x: $x');
+}
+
+
+void[KeywordToken] main[StringToken]([BeginToken]List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken] arguments[StringToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] x[StringToken] =[SimpleToken] 10[StringToken] >>[SimpleToken]>[SimpleToken] 2[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]'x: [StringToken]$[SimpleToken]x[StringToken]'[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

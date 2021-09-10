@@ -162,6 +162,34 @@ abstract class TokenStreamRewriter {
     return replacement;
   }
 
+  /// Insert a new simple synthetic token of [newTokenType] after
+  /// [previousToken] instead of the [count] tokens actually coming after it and
+  /// return the new token.
+  /// The first old token will be linked from the new one (and the next ones can
+  /// be found via the next pointer chain on it) though, so it's not totally
+  /// gone.
+  ReplacementToken replaceNextTokensWithSyntheticToken(
+      Token previousToken, int count, TokenType newTokenType) {
+    assert(newTokenType is! Keyword,
+        'use an unwritten variation of insertSyntheticKeyword instead');
+
+    // [token] <--> [a_1] <--> ... <--> [a_n] <--> [b]
+    ReplacementToken replacement =
+        new ReplacementToken(newTokenType, previousToken.next!);
+    insertToken(previousToken, replacement);
+    // [token] <--> [replacement] <--> [a_1] <--> ... <--> [a_n] <--> [b]
+
+    Token end = replacement.next!;
+    while (count > 0) {
+      count--;
+      end = end.next!;
+    }
+    _setNext(replacement, end);
+    // [token] <--> [replacement] <--> [b]
+
+    return replacement;
+  }
+
   /// Insert a synthetic identifier after [token] and return the new identifier.
   Token insertSyntheticIdentifier(Token token, [String value = '']) {
     return insertToken(
