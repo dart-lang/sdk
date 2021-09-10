@@ -216,7 +216,7 @@ class Driver {
   /// to break the text when building edits.
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
-    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+    var featureSet = FeatureSet.latestLanguageVersion();
     var scanner = Scanner(_TestSource(), CharSequenceReader(text),
         error.AnalysisErrorListener.NULL_LISTENER)
       ..configureFeatures(
