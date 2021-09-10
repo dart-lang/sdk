@@ -73,7 +73,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
-  "async_rev": "ecb3835c5b746f7762327d5f57bdc92e0a2e0450",
+  "async_rev": "c64220396e0fa2f7b380590abfedbd25635cd7a0",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
