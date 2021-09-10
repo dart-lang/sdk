@@ -1287,8 +1287,11 @@ void Assembler::LoadObjectHelper(Register dst,
     }
   }
   if (CanLoadFromObjectPool(object)) {
-    const intptr_t index = is_unique ? object_pool_builder().AddObject(object)
-                                     : object_pool_builder().FindObject(object);
+    const intptr_t index =
+        is_unique ? object_pool_builder().AddObject(
+                        object, ObjectPoolBuilderEntry::kPatchable)
+                  : object_pool_builder().FindObject(
+                        object, ObjectPoolBuilderEntry::kNotPatchable);
     LoadWordFromPoolIndex(dst, index);
     return;
   }
