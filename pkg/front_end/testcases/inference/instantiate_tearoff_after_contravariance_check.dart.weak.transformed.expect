@@ -20,6 +20,6 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test(self::C<core::String*>* c) → void {
-  (core::int*) →* (core::String*) →* void tearoff = c.{self::C::f}{<U extends core::Object* = dynamic>(U*) →* (core::String*) →* void} as{TypeError,CovarianceCheck} <U extends core::Object* = dynamic>(U*) →* (core::String*) →* void<core::int*>;
+  (core::int*) →* (core::String*) →* void tearoff = (c.{self::C::f}{<U extends core::Object* = dynamic>(U*) →* (core::String*) →* void} as{TypeError,CovarianceCheck} <U extends core::Object* = dynamic>(U*) →* (core::String*) →* void)<core::int*>;
 }
 static method main() → dynamic {}

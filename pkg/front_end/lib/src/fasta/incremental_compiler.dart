@@ -11,7 +11,15 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
+
+import 'package:front_end/src/api_prototype/lowering_predicates.dart'
+    show isExtensionThisName;
+
 import 'package:front_end/src/base/nnbd_mode.dart';
+
+import 'package:front_end/src/fasta/builder/member_builder.dart'
+    show MemberBuilder;
+
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
@@ -34,6 +42,7 @@ import 'package:kernel/kernel.dart'
         Component,
         DartType,
         Expression,
+        Extension,
         FunctionNode,
         Library,
         LibraryDependency,
@@ -48,7 +57,8 @@ import 'package:kernel/kernel.dart'
         Source,
         Supertype,
         TreeNode,
-        TypeParameter;
+        TypeParameter,
+        VariableDeclaration;
 
 import 'package:kernel/canonical_name.dart'
     show CanonicalNameError, CanonicalNameSdkError;
@@ -70,6 +80,8 @@ import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import 'builder/builder.dart' show Builder;
 
 import 'builder/class_builder.dart' show ClassBuilder;
+
+import 'builder/extension_builder.dart' show ExtensionBuilder;
 
 import 'builder/field_builder.dart' show FieldBuilder;
 
@@ -1907,8 +1919,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<TypeParameter> typeDefinitions,
       String syntheticProcedureName,
       Uri libraryUri,
-      [String? className,
-      bool isStatic = false]) async {
+      {String? className,
+      String? methodName,
+      bool isStatic = false}) async {
     assert(dillLoadedData != null && userCode != null);
 
     return await context.runInContext((_) async {
@@ -1922,6 +1935,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             libraryBuilder.scopeBuilder[className] as ClassBuilder?;
         cls = classBuilder?.cls;
         if (cls == null) return null;
+      }
+      Extension? extension;
+      String? extensionName;
+      if (methodName != null) {
+        int indexOfDot = methodName.indexOf(".");
+        if (indexOfDot >= 0) {
+          String beforeDot = methodName.substring(0, indexOfDot);
+          String afterDot = methodName.substring(indexOfDot + 1);
+          Builder? builder = libraryBuilder.scopeBuilder[beforeDot];
+          extensionName = beforeDot;
+          if (builder is ExtensionBuilder) {
+            extension = builder.extension;
+            Builder? subBuilder = builder.scopeBuilder[afterDot];
+            if (subBuilder is MemberBuilder) {
+              if (subBuilder.isExtensionInstanceMember) {
+                isStatic = false;
+              }
+            }
+          }
+        }
       }
 
       userCode!.loader.resetSeenMessages();
@@ -1937,8 +1970,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           return null;
         }
       }
+      int index = 0;
       for (String name in definitions.keys) {
-        if (!isLegalIdentifier(name)) {
+        index++;
+        if (!(isLegalIdentifier(name) ||
+            (extension != null &&
+                !isStatic &&
+                index == 1 &&
+                isExtensionThisName(name)))) {
           userCode!.loader.addProblem(
               templateIncrementalCompilerIllegalParameter.withArguments(name),
               // TODO: pass variable declarations instead of
@@ -2009,13 +2048,29 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           positionalParameters: definitions.keys
               .map((name) =>
                   new VariableDeclarationImpl(name, 0, type: definitions[name])
-                    ..fileOffset =
-                        cls?.fileOffset ?? libraryBuilder.library.fileOffset)
+                    ..fileOffset = cls?.fileOffset ??
+                        extension?.fileOffset ??
+                        libraryBuilder.library.fileOffset)
               .toList());
+
+      VariableDeclaration? extensionThis;
+      if (extension != null &&
+          !isStatic &&
+          parameters.positionalParameters.isNotEmpty) {
+        // We expect the first parameter to be called #this and be special.
+        if (isExtensionThisName(parameters.positionalParameters.first.name)) {
+          extensionThis = parameters.positionalParameters.first;
+          extensionThis.isLowered = true;
+        }
+      }
 
       debugLibrary.build(userCode!.loader.coreLibrary, modifyTarget: false);
       Expression compiledExpression = await userCode!.loader.buildExpression(
-          debugLibrary, className, className != null && !isStatic, parameters);
+          debugLibrary,
+          className ?? extensionName,
+          (className != null && !isStatic) || extensionThis != null,
+          parameters,
+          extensionThis);
 
       Procedure procedure = new Procedure(
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
@@ -2026,7 +2081,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ..parent = parameters;
 
       procedure.fileUri = debugLibrary.fileUri;
-      procedure.parent = className != null ? cls : libraryBuilder.library;
+      procedure.parent = cls ?? libraryBuilder.library;
 
       userCode!.uriToSource.remove(debugExprUri);
       userCode!.loader.sourceBytes.remove(debugExprUri);

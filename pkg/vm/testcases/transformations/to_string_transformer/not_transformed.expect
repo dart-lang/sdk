@@ -48,7 +48,7 @@ static method main() → void {
   final self::IFoo foo = new self::Foo::•();
   core::print(foo.{self::IFoo::toString}(){() → core::String});
   core::print(new self::Keep::•().{self::Keep::toString}(){() → core::String});
-  core::print((#C7).{self::FooEnum::toString}(){() → core::String});
+  core::print(#C7.{self::FooEnum::toString}(){() → core::String});
 }
 constants  {
   #C1 = core::_Override {}

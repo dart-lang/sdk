@@ -79,3 +79,16 @@ class MiddlewareApi<State extends Built<State, StateBuilder>,
 main() {
   exit(0);
 }
+
+extension Foo on String {
+  int parseAsInt() {
+    int result = int.parse(this);
+    print("Parsed $this to $result");
+    print(getFortyTwo());
+    return result;
+  }
+
+  int getFortyTwo() {
+    return 42;
+  }
+}

@@ -20,7 +20,7 @@ import "dart:core" as $core;
 import "package:protobuf/protobuf.dart" as $pb;
 
 class AKeep extends pro::GeneratedMessage {
-[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t1 = new pro::BuilderInfo::•((#C1) ?{core::String} "" : "AKeep", #C2) in block {
+[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t1 = new pro::BuilderInfo::•(#C1 ?{core::String} "" : "AKeep", #C2) in block {
     [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::hasRequiredFields} = false;
   } =>#t1;
   constructor _() → self::AKeep
@@ -33,8 +33,8 @@ class AKeep extends pro::GeneratedMessage {
     return new self::AKeep::_();
 }
 class NameManglingKeep extends pro::GeneratedMessage {
-[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t2 = new pro::BuilderInfo::•((#C1) ?{core::String} "" : "NameManglingKeep", #C6) in block {
-    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>((#C1) ?{core::String} "" : "clone", #C2){(core::int, core::String, {protoName: core::String?, subBuilder: () →? self::AKeep}) → void};
+[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t2 = new pro::BuilderInfo::•(#C1 ?{core::String} "" : "NameManglingKeep", #C6) in block {
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>(#C1 ?{core::String} "" : "clone", #C2){(core::int, core::String, {protoName: core::String?, subBuilder: () →? self::AKeep}) → void};
     [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::hasRequiredFields} = false;
   } =>#t2;
   constructor _() → self::NameManglingKeep

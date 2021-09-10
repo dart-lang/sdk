@@ -72,7 +72,7 @@ import "dart:core" as core;
 class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
   const constructor •(core::int x) → self::Foo
-    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert((#C2) =={core::Object::==}{(core::Object) → core::bool} false, "foo was ${#C3}"), assert((#C4) =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(#C2 =={core::Object::==}{(core::Object) → core::bool} false, "foo was ${#C3}"), assert(#C4 =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
     ;
   const constructor withMessage(core::int x) → self::Foo
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "btw foo was ${#C5}"), super core::Object::•()
@@ -119,11 +119,11 @@ constants  {
   #C6 = 1
   #C7 = false
   #C8 = "foo was "
-  #C9 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} (#C7), "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} (#C7))}
+  #C9 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7, "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7)}
   #C10 = 42
   #C11 = "btw foo was "
   #C12 = eval self::Foo{x:#C10, assert(#C7, "${#C11}${const core::bool::fromEnvironment(#C1)}")}
-  #C13 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} (#C7), "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} (#C7))}
+  #C13 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7, "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7)}
 }
 
 Extra constant evaluation status:

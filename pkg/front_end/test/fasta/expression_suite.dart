@@ -140,6 +140,8 @@ class TestCase {
 
   final String className;
 
+  final String methodName;
+
   String expression;
 
   List<CompilationResult> results = [];
@@ -153,6 +155,7 @@ class TestCase {
       this.isStaticMethod,
       this.library,
       this.className,
+      this.methodName,
       this.expression);
 
   @override
@@ -260,6 +263,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     bool isStaticMethod = false;
     Uri library;
     String className;
+    String methodName;
     String expression;
 
     dynamic maps = loadYamlNode(contents, sourceUrl: uri);
@@ -281,6 +285,8 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           if (uri.fragment != null && uri.fragment != '') {
             className = uri.fragment;
           }
+        } else if (key == "method") {
+          methodName = value as String;
         } else if (key == "definitions") {
           definitions = (value as YamlList).map((x) => x as String).toList();
         } else if (key == "type_definitions") {
@@ -292,8 +298,17 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           expression = value;
         }
       }
-      var test = new TestCase(description, entryPoint, import, definitions,
-          typeDefinitions, isStaticMethod, library, className, expression);
+      var test = new TestCase(
+          description,
+          entryPoint,
+          import,
+          definitions,
+          typeDefinitions,
+          isStaticMethod,
+          library,
+          className,
+          methodName,
+          expression);
       var result = test.validate();
       if (result != null) {
         return new Result.fail(tests, result);
@@ -325,13 +340,15 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     }
 
     Procedure compiledProcedure = await compiler.compileExpression(
-        test.expression,
-        definitions,
-        typeParams,
-        "debugExpr",
-        test.library,
-        test.className,
-        test.isStaticMethod);
+      test.expression,
+      definitions,
+      typeParams,
+      "debugExpr",
+      test.library,
+      className: test.className,
+      methodName: test.methodName,
+      isStatic: test.isStaticMethod,
+    );
     List<DiagnosticMessage> errors = context.takeErrors();
     test.results.add(new CompilationResult(compiledProcedure, errors));
     if (compiledProcedure != null) {

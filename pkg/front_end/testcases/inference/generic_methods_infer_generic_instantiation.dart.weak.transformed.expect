@@ -113,15 +113,15 @@ static method test() → dynamic {
   self::takeDDN(#C3);
   self::takeIIO(#C2);
   self::takeDDO(#C3);
-  self::takeOOI((#C5) as{TypeError} (core::Object*, core::Object*) →* core::int*);
+  self::takeOOI(#C5 as{TypeError} (core::Object*, core::Object*) →* core::int*);
   self::takeIDI(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
-                                                                        ^" in (#C4) as{TypeError} (core::double*, core::int*) →* core::int*);
+                                                                        ^" in #C4 as{TypeError} (core::double*, core::int*) →* core::int*);
   self::takeDID(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:30:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
-                                                                        ^" in (#C4) as{TypeError} (core::int*, core::double*) →* core::double*);
-  self::takeOON((#C5) as{TypeError} (core::Object*, core::Object*) →* core::num*);
-  self::takeOOO((#C5) as{TypeError} (core::Object*, core::Object*) →* core::num*);
+                                                                        ^" in #C4 as{TypeError} (core::int*, core::double*) →* core::double*);
+  self::takeOON(#C5 as{TypeError} (core::Object*, core::Object*) →* core::num*);
+  self::takeOOO(#C5 as{TypeError} (core::Object*, core::Object*) →* core::num*);
   self::takeIII(#C7);
   self::takeDDD(#C8);
   self::takeNNN(#C9);
@@ -131,15 +131,15 @@ static method test() → dynamic {
   self::takeDDN(#C8);
   self::takeIIO(#C7);
   self::takeDDO(#C8);
-  self::takeOOI((#C10) as{TypeError} (core::Object*, core::Object*) →* core::int*);
+  self::takeOOI(#C10 as{TypeError} (core::Object*, core::Object*) →* core::int*);
   self::takeIDI(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
   takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
-                                                                       ^" in (#C9) as{TypeError} (core::double*, core::int*) →* core::int*);
+                                                                       ^" in #C9 as{TypeError} (core::double*, core::int*) →* core::int*);
   self::takeDID(invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
   takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
-                                                                       ^" in (#C9) as{TypeError} (core::int*, core::double*) →* core::double*);
-  self::takeOON((#C10) as{TypeError} (core::Object*, core::Object*) →* core::num*);
-  self::takeOOO((#C10) as{TypeError} (core::Object*, core::Object*) →* core::num*);
+                                                                       ^" in #C9 as{TypeError} (core::int*, core::double*) →* core::double*);
+  self::takeOON(#C10 as{TypeError} (core::Object*, core::Object*) →* core::num*);
+  self::takeOOO(#C10 as{TypeError} (core::Object*, core::Object*) →* core::num*);
   self::takeIII(new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::int*>);
   self::takeDDD(new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::double*>);
   self::takeNNN(new self::C::•().{self::C::m}{<T extends core::num*>(T*, T*) →* T*}<core::num*>);

@@ -27,7 +27,7 @@ static method FunctionApplier|applyAndPrint(lowered final core::Function #this, 
 static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
   return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
 static method test() → dynamic {
-  (#C3).{core::Object::toString}(){() → core::String};
+  #C3.{core::Object::toString}(){() → core::String};
 }
 static method main() → void {
   self::A<dynamic> a = new self::A::•<dynamic>();
@@ -39,8 +39,8 @@ static method main() → void {
   self::FunctionApplier|applyAndPrint(#C9, <core::Object?>["three"]);
   self::FunctionApplier|applyAndPrint(#C5, <core::Object?>[2]);
   self::FunctionApplier|applyAndPrint(#C6, <core::Object?>["three"]);
-  (#C2).{core::Object::toString}(){() → core::String};
-  (#C3).{core::Object::toString}(){() → core::String};
+  #C2.{core::Object::toString}(){() → core::String};
+  #C3.{core::Object::toString}(){() → core::String};
 }
 
 constants  {

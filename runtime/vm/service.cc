@@ -2721,6 +2721,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   String& klass_name = String::Handle(zone);
+  String& method_name = String::Handle(zone);
   String& library_uri = String::Handle(zone);
   bool isStatic = false;
 
@@ -2746,11 +2747,13 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         klass_name = cls.UserVisibleName();
       }
       library_uri = Library::Handle(zone, cls.library()).url();
+      method_name = frame->function().UserVisibleName();
       isStatic = true;
     } else {
       const Class& method_cls = Class::Handle(zone, frame->function().origin());
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();
+      method_name = frame->function().UserVisibleName();
       isStatic = false;
     }
   } else {
@@ -2829,6 +2832,9 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   if (!klass_name.IsNull()) {
     report.AddProperty("klass", klass_name.ToCString());
   }
+  if (!method_name.IsNull()) {
+    report.AddProperty("method", method_name.ToCString());
+  }
   report.AddProperty("isStatic", isStatic);
 }
 
@@ -2877,6 +2883,7 @@ static const MethodParameter* const compile_expression_params[] = {
     new StringParameter("libraryUri", true),
     new StringParameter("klass", false),
     new BoolParameter("isStatic", false),
+    new StringParameter("method", false),
     NULL,
 };
 
@@ -2922,7 +2929,8 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
           kernel_buffer, kernel_buffer_len, js->LookupParam("expression"),
           Array::Handle(Array::MakeFixedLength(params)),
           Array::Handle(Array::MakeFixedLength(type_params)),
-          js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
+          js->LookupParam("libraryUri"), js->LookupParam("klass"),
+          js->LookupParam("method"), is_static);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
