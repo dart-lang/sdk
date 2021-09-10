@@ -2004,6 +2004,29 @@ library
 ''');
   }
 
+  test_class_field_static_final_hasConstConstructor() async {
+    var library = await checkLibrary('''
+class C {
+  static final f = 0;
+  const C();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static final f @25
+            type: int
+        constructors
+          const @40
+        accessors
+          synthetic static get f @-1
+            returnType: int
+''');
+  }
+
   test_class_field_static_late() async {
     var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''

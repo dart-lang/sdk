@@ -148,7 +148,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
       _constraints = null;
       return true;
     }
-    _constraints ??= Set<StrongModeConstraint>();
+    _constraints ??= {};
     return _constraints.add(constraint);
   }
 
@@ -220,26 +220,23 @@ abstract class WorldBuilder {
 }
 
 abstract class WorldBuilderBase {
-  final Map<Entity, Set<DartType>> staticTypeArgumentDependencies =
-      <Entity, Set<DartType>>{};
+  final Map<Entity, Set<DartType>> staticTypeArgumentDependencies = {};
 
-  final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies =
-      <Selector, Set<DartType>>{};
+  final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies = {};
 
-  final Set<TypeVariableType> typeVariableTypeLiterals =
-      Set<TypeVariableType>();
+  final Set<TypeVariableType> typeVariableTypeLiterals = {};
 
   void _registerStaticTypeArgumentDependency(
       Entity element, List<DartType> typeArguments) {
     staticTypeArgumentDependencies
-        .putIfAbsent(element, () => Set<DartType>())
+        .putIfAbsent(element, () => {})
         .addAll(typeArguments);
   }
 
   void _registerDynamicTypeArgumentDependency(
       Selector selector, List<DartType> typeArguments) {
     dynamicTypeArgumentDependencies
-        .putIfAbsent(selector, () => Set<DartType>())
+        .putIfAbsent(selector, () => {})
         .addAll(typeArguments);
   }
 

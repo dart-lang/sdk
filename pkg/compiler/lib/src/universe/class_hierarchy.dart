@@ -261,7 +261,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   @override
   Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
-    if (hierarchy == null) return const <ClassEntity>[];
+    if (hierarchy == null) return const [];
     return hierarchy
         .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
   }
@@ -269,7 +269,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   @override
   Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return const <ClassEntity>[];
+    if (subclasses == null) return const [];
     return subclasses.subclassesByMask(
         ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
@@ -304,7 +304,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
-      return const <ClassEntity>[];
+      return const [];
     } else {
       return classSet
           .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
@@ -315,7 +315,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
-      return const <ClassEntity>[];
+      return const [];
     } else {
       return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
           strict: true);
@@ -326,7 +326,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   Iterable<ClassEntity> allSubtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
-      return const <ClassEntity>[];
+      return const [];
     } else {
       return classSet.subtypesByMask(ClassHierarchyNode.ALL);
     }
@@ -472,7 +472,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       // the common subclasses of "subclass of A" and "subtype of I" returns
       // "subclasses of {B, D}". The inclusion of class `C` is implied because
       // it is a subclass of `B`.
-      List<ClassEntity> classes = <ClassEntity>[];
+      List<ClassEntity> classes = [];
       forEachStrictSubclassOf(cls1, (ClassEntity subclass) {
         if (isSubtypeOf(subclass, cls2)) {
           classes.add(subclass);
@@ -494,7 +494,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
         return SubclassResult.SUBTYPE1;
       }
       // Find all the root subclasses of [cls2] of that implement [cls1].
-      List<ClassEntity> classes = <ClassEntity>[];
+      List<ClassEntity> classes = [];
       forEachStrictSubclassOf(cls2, (ClassEntity subclass) {
         if (isSubtypeOf(subclass, cls1)) {
           classes.add(subclass);
@@ -528,7 +528,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       // the common subclasses of "subtype of A" and "subtype of I" returns
       // "subclasses of {B, D, E}". The inclusion of classes `C` and `F` is
       // implied because they are subclasses of `B` and `E`, respectively.
-      List<ClassEntity> classes = <ClassEntity>[];
+      List<ClassEntity> classes = [];
       forEachStrictSubtypeOf(cls1, (ClassEntity subclass) {
         if (isSubtypeOf(subclass, cls2)) {
           classes.add(subclass);
@@ -569,11 +569,9 @@ class ClassHierarchyImpl implements ClassHierarchy {
 class ClassHierarchyBuilder {
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
-      <ClassEntity, ClassHierarchyNode>{};
-  final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
-  final Map<ClassEntity, Set<ClassEntity>> mixinUses =
-      Map<ClassEntity, Set<ClassEntity>>();
+  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes = {};
+  final Map<ClassEntity, ClassSet> _classSets = {};
+  final Map<ClassEntity, Set<ClassEntity>> mixinUses = {};
 
   final CommonElements _commonElements;
   final ClassQueries _classQueries;
@@ -668,8 +666,7 @@ class ClassHierarchyBuilder {
   void registerMixinUse(ClassEntity mixinApplication, ClassEntity mixin) {
     // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
-    Set<ClassEntity> users =
-        mixinUses.putIfAbsent(mixin, () => Set<ClassEntity>());
+    Set<ClassEntity> users = mixinUses.putIfAbsent(mixin, () => {});
     users.add(mixinApplication);
   }
 
@@ -764,7 +761,7 @@ class _InheritedInThisClassCache {
         builder._classHierarchyNodes[memberHoldingClass];
 
     if (_inheritingClasses == null) {
-      _inheritingClasses = Set<ClassEntity>();
+      _inheritingClasses = {};
       _inheritingClasses.addAll(memberHoldingClassNode
           .subclassesByMask(ClassHierarchyNode.ALL, strict: false));
       for (ClassHierarchyNode mixinApplication
@@ -774,7 +771,7 @@ class _InheritedInThisClassCache {
       }
     }
 
-    Set<ClassEntity> validatingSet = Set<ClassEntity>();
+    Set<ClassEntity> validatingSet = {};
 
     void processHierarchy(ClassHierarchyNode mixerNode) {
       for (ClassEntity inheritingClass in _inheritingClasses) {
@@ -839,7 +836,7 @@ class _InheritedInSubtypeCache {
         failedAt(
             x, "No ClassSet for $x (${x.runtimeType}): ${builder._classSets}"));
 
-    Set<ClassEntity> classes = Set<ClassEntity>();
+    Set<ClassEntity> classes = {};
 
     if (builder._isSubtypeOf(x, y)) {
       // [x] implements [y] itself, possible through supertypes.

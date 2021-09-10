@@ -17,7 +17,7 @@ abstract class AbstractUsage<T> {
 
   AbstractUsage.cloned(this._pendingUse);
 
-  AbstractUsage() : this._pendingUse = EnumSet<T>() {
+  AbstractUsage() : this._pendingUse = EnumSet() {
     _pendingUse.addAll(_originalUse);
   }
 
@@ -615,14 +615,12 @@ enum MemberUse {
 
 /// Common [EnumSet]s used for [MemberUse].
 class MemberUses {
-  static const EnumSet<MemberUse> NONE = EnumSet<MemberUse>.fixed(0);
-  static const EnumSet<MemberUse> NORMAL_ONLY = EnumSet<MemberUse>.fixed(1);
-  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY =
-      EnumSet<MemberUse>.fixed(2);
-  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY =
-      EnumSet<MemberUse>.fixed(4);
-  static const EnumSet<MemberUse> ALL_INSTANCE = EnumSet<MemberUse>.fixed(3);
-  static const EnumSet<MemberUse> ALL_STATIC = EnumSet<MemberUse>.fixed(5);
+  static const EnumSet<MemberUse> NONE = EnumSet.fixed(0);
+  static const EnumSet<MemberUse> NORMAL_ONLY = EnumSet.fixed(1);
+  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY = EnumSet.fixed(2);
+  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY = EnumSet.fixed(4);
+  static const EnumSet<MemberUse> ALL_INSTANCE = EnumSet.fixed(3);
+  static const EnumSet<MemberUse> ALL_STATIC = EnumSet.fixed(5);
 }
 
 typedef MemberUsedCallback = void Function(
@@ -666,10 +664,10 @@ enum ClassUse { INSTANTIATED, IMPLEMENTED }
 
 /// Common [EnumSet]s used for [ClassUse].
 class ClassUses {
-  static const EnumSet<ClassUse> NONE = EnumSet<ClassUse>.fixed(0);
-  static const EnumSet<ClassUse> INSTANTIATED_ONLY = EnumSet<ClassUse>.fixed(1);
-  static const EnumSet<ClassUse> IMPLEMENTED_ONLY = EnumSet<ClassUse>.fixed(2);
-  static const EnumSet<ClassUse> ALL = EnumSet<ClassUse>.fixed(3);
+  static const EnumSet<ClassUse> NONE = EnumSet.fixed(0);
+  static const EnumSet<ClassUse> INSTANTIATED_ONLY = EnumSet.fixed(1);
+  static const EnumSet<ClassUse> IMPLEMENTED_ONLY = EnumSet.fixed(2);
+  static const EnumSet<ClassUse> ALL = EnumSet.fixed(3);
 }
 
 typedef ClassUsedCallback = void Function(
@@ -820,15 +818,15 @@ enum Access {
 /// Access sets used for registration of member usage.
 class Accesses {
   /// Statically bound access of a member.
-  static const EnumSet<Access> staticAccess = EnumSet<Access>.fixed(1);
+  static const EnumSet<Access> staticAccess = EnumSet.fixed(1);
 
   /// Dynamically bound access of a member. This implies the statically bound
   /// access of the member.
-  static const EnumSet<Access> dynamicAccess = EnumSet<Access>.fixed(3);
+  static const EnumSet<Access> dynamicAccess = EnumSet.fixed(3);
 
   /// Direct access of a super class member. This implies the statically bound
   /// access of the member.
-  static const EnumSet<Access> superAccess = EnumSet<Access>.fixed(5);
+  static const EnumSet<Access> superAccess = EnumSet.fixed(5);
 }
 
 /// The accesses of a member collected during closed world computation.

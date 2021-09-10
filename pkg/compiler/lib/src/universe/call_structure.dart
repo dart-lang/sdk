@@ -85,10 +85,10 @@ class CallStructure {
   bool get isUnnamed => true;
 
   /// The names of the named arguments in call-site order.
-  List<String> get namedArguments => const <String>[];
+  List<String> get namedArguments => const [];
 
   /// The names of the named arguments in canonicalized order.
-  List<String> getOrderedNamedArguments() => const <String>[];
+  List<String> getOrderedNamedArguments() => const [];
 
   CallStructure get nonGeneric => typeArgumentCount == 0
       ? this
@@ -209,10 +209,9 @@ class NamedCallStructure extends CallStructure {
 
   NamedCallStructure(
       int argumentCount, List<String> namedArguments, int typeArgumentCount)
-      : this.internal(
-            argumentCount, namedArguments, typeArgumentCount, <String>[]);
+      : this._(argumentCount, namedArguments, typeArgumentCount, []);
 
-  NamedCallStructure.internal(int argumentCount, this.namedArguments,
+  NamedCallStructure._(int argumentCount, this.namedArguments,
       int typeArgumentCount, this._orderedNamedArguments)
       : assert(namedArguments.isNotEmpty),
         super.unnamed(argumentCount, typeArgumentCount);
@@ -233,7 +232,7 @@ class NamedCallStructure extends CallStructure {
   bool get isNormalized => namedArguments == _orderedNamedArguments;
 
   @override
-  CallStructure toNormalized() => NamedCallStructure.internal(
+  CallStructure toNormalized() => NamedCallStructure._(
       argumentCount,
       getOrderedNamedArguments(),
       typeArgumentCount,

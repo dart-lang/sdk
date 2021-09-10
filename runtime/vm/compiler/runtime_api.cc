@@ -55,10 +55,8 @@ namespace dart {
 namespace compiler {
 
 bool IsSameObject(const Object& a, const Object& b) {
-  if (a.IsMint() && b.IsMint()) {
-    return Mint::Cast(a).value() == Mint::Cast(b).value();
-  } else if (a.IsDouble() && b.IsDouble()) {
-    return Double::Cast(a).value() == Double::Cast(b).value();
+  if (a.IsInstance() && b.IsInstance()) {
+    return Instance::Cast(a).IsIdenticalTo(Instance::Cast(b));
   }
   return a.ptr() == b.ptr();
 }

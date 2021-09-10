@@ -295,7 +295,7 @@ class SideEffectsBuilder {
 
   void addInput(SideEffectsBuilder input) {
     if (_free) return;
-    (input._depending ??= Set<SideEffectsBuilder>()).add(this);
+    (input._depending ??= {}).add(this);
   }
 
   bool add(SideEffects input) {
@@ -305,8 +305,7 @@ class SideEffectsBuilder {
 
   SideEffects get sideEffects => _sideEffects;
 
-  Iterable<SideEffectsBuilder> get depending =>
-      _depending != null ? _depending : const <SideEffectsBuilder>[];
+  Iterable<SideEffectsBuilder> get depending => _depending ?? const [];
 
   MemberEntity get member => _member;
 
