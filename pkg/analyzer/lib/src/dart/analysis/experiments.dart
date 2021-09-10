@@ -40,9 +40,6 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// The current language version.
   static final Version currentVersion = Version.parse(_currentVersion);
 
-  /// The language version to use in tests.
-  static final Version testingSdkLanguageVersion = Version.parse('2.10.0');
-
   /// The latest known language version.
   static final Version latestSdkLanguageVersion = Version.parse('2.13.0');
 

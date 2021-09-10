@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -203,8 +202,8 @@ class ElementFactory {
     return spec;
   }
 
-  static LibraryElementImpl library(AnalysisContext context, String libraryName,
-      {bool isNonNullableByDefault = true}) {
+  static LibraryElementImpl library(
+      AnalysisContext context, String libraryName) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = LibraryElementImpl(
@@ -213,10 +212,7 @@ class ElementFactory {
       libraryName,
       0,
       libraryName.length,
-      FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
-        flags: isNonNullableByDefault ? [EnableString.non_nullable] : [],
-      ),
+      FeatureSet.latestLanguageVersion(),
     );
     library.definingCompilationUnit = unit;
     return library;

@@ -716,8 +716,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     Source source = FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
-    _definingLibrary =
-        ElementFactory.library(context, "test", isNonNullableByDefault: false);
+    _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = unit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
