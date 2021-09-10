@@ -480,6 +480,7 @@ class KernelCompilationRequest : public ValueObject {
       const Array& type_definitions,
       char const* library_uri,
       char const* klass,
+      char const* method,
       bool is_static,
       const MallocGrowableArray<char*>* experimental_flags) {
     if (port_ == ILLEGAL_PORT) {
@@ -563,6 +564,14 @@ class KernelCompilationRequest : public ValueObject {
       class_object.value.as_string = const_cast<char*>(klass);
     } else {
       class_object.type = Dart_CObject_kNull;
+    }
+
+    Dart_CObject method_object;
+    if (method != NULL) {
+      method_object.type = Dart_CObject_kString;
+      method_object.value.as_string = const_cast<char*>(method);
+    } else {
+      method_object.type = Dart_CObject_kNull;
     }
 
     Dart_CObject is_static_object;
@@ -654,6 +663,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &type_definitions_object,
                                    &library_uri_object,
                                    &class_object,
+                                   &method_object,
                                    &is_static_object,
                                    &dills_object,
                                    &num_blob_loads,
@@ -1133,6 +1143,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
     const Array& type_definitions,
     const char* library_url,
     const char* klass,
+    const char* method,
     bool is_static) {
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
@@ -1147,7 +1158,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
   ASSERT(is_static || (klass != nullptr));
   return request.SendAndWaitForResponse(
       kernel_port, platform_kernel, platform_kernel_size, expression,
-      definitions, type_definitions, library_url, klass, is_static,
+      definitions, type_definitions, library_url, klass, method, is_static,
       experimental_flags_);
 }
 

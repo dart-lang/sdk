@@ -188,11 +188,14 @@ class IncrementalCompiler {
       List<String> typeDefinitions,
       String libraryUri,
       String? klass,
+      String? method,
       bool isStatic) {
     Map<String, DartType> completeDefinitions = {};
-    for (String name in definitions) {
-      if (!isLegalIdentifier(name)) continue;
-      completeDefinitions[name] = new DynamicType();
+    for (int i = 0; i < definitions.length; i++) {
+      String name = definitions[i];
+      if (isLegalIdentifier(name) || (i == 0 && isExtensionThisName(name))) {
+        completeDefinitions[name] = new DynamicType();
+      }
     }
 
     List<TypeParameter> typeParameters = [];
@@ -204,6 +207,7 @@ class IncrementalCompiler {
     Uri library = Uri.parse(libraryUri);
 
     return _generator.compileExpression(expression, completeDefinitions,
-        typeParameters, kDebugProcedureName, library, klass, isStatic);
+        typeParameters, kDebugProcedureName, library,
+        className: klass, methodName: method, isStatic: isStatic);
   }
 }

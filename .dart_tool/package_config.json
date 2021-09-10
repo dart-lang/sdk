@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-09-08T14:55:24.803714",
+  "generated": "2021-09-10T10:06:41.987732",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -494,7 +494,7 @@
       "name": "observatory_2",
       "rootUri": "../runtime/observatory_2",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "observatory_test_package",

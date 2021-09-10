@@ -45,6 +45,7 @@ import 'package:kernel/ast.dart'
         Reference,
         Supertype,
         TreeNode,
+        VariableDeclaration,
         Version;
 
 import 'package:kernel/class_hierarchy.dart'
@@ -513,26 +514,32 @@ class SourceLoader extends Loader {
     }
   }
 
-  // TODO(johnniwinther,jensj): Handle expression in extensions?
   Future<Expression> buildExpression(
       SourceLibraryBuilder libraryBuilder,
-      String? enclosingClass,
+      String? enclosingClassOrExtension,
       bool isClassInstanceMember,
-      FunctionNode parameters) async {
+      FunctionNode parameters,
+      VariableDeclaration? extensionThis) async {
     Token token = await tokenize(libraryBuilder, suppressLexicalErrors: false);
     DietListener dietListener = createDietListener(libraryBuilder);
 
     Builder parent = libraryBuilder;
-    if (enclosingClass != null) {
+    if (enclosingClassOrExtension != null) {
       Builder? cls = dietListener.memberScope
-          .lookup(enclosingClass, -1, libraryBuilder.fileUri);
+          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (cls is ClassBuilder) {
         parent = cls;
         dietListener
           ..currentDeclaration = cls
           ..memberScope = cls.scope.copyWithParent(
               dietListener.memberScope.withTypeVariables(cls.typeVariables),
-              "debugExpression in $enclosingClass");
+              "debugExpression in class $enclosingClassOrExtension");
+      } else if (cls is ExtensionBuilder) {
+        parent = cls;
+        dietListener
+          ..currentDeclaration = cls
+          ..memberScope = cls.scope.copyWithParent(dietListener.memberScope,
+              "debugExpression in extension $enclosingClassOrExtension");
       }
     }
     ProcedureBuilder builder = new SourceProcedureBuilder(
@@ -562,7 +569,8 @@ class SourceLoader extends Loader {
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
-        isDeclarationInstanceMember: isClassInstanceMember);
+        isDeclarationInstanceMember: isClassInstanceMember,
+        extensionThis: extensionThis);
 
     return listener.parseSingleExpression(
         new Parser(listener,

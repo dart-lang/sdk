@@ -112,14 +112,14 @@ main() {
       await compiler.compile();
       compiler.accept();
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'main', <String>[], <String>[], main.uri.toString(), null, true);
+        Procedure? procedure = await compiler.compileExpression('main',
+            <String>[], <String>[], main.uri.toString(), null, null, true);
         expect(procedure, isNotNull);
         expect(errorsReported, equals(0));
       }
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'main1', <String>[], <String>[], main.uri.toString(), null, true);
+        Procedure? procedure = await compiler.compileExpression('main1',
+            <String>[], <String>[], main.uri.toString(), null, null, true);
         expect(procedure, isNotNull);
         expect(errorsReported, equals(1));
         errorsReported = 0;
@@ -1024,8 +1024,8 @@ main() {
       }
       compiler.accept();
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
+        Procedure? procedure = await compiler.compileExpression('a', <String>[],
+            <String>[], 'package:foo/bar.dart', 'A', null, true);
         expect(procedure, isNotNull);
       }
 
@@ -1039,8 +1039,8 @@ main() {
       }
       await compiler.reject();
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
+        Procedure? procedure = await compiler.compileExpression('a', <String>[],
+            <String>[], 'package:foo/bar.dart', 'A', null, true);
         expect(procedure, isNotNull);
       }
     });
@@ -1088,7 +1088,7 @@ main() {
       compiler.accept();
       {
         final Procedure procedure = (await compiler.compileExpression(
-            'a', <String>[], <String>[], barUri.toString(), 'A', true))!;
+            'a', <String>[], <String>[], barUri.toString(), 'A', null, true))!;
         // Verify that the expression only has links to the only bar we know
         // about.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
@@ -1133,7 +1133,7 @@ main() {
       }
       {
         final Procedure procedure = (await compiler.compileExpression(
-            'a', <String>[], <String>[], barUri.toString(), 'A', true))!;
+            'a', <String>[], <String>[], barUri.toString(), 'A', null, true))!;
         // Verify that the expression only has links to the original bar.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
         procedure.accept(lrc);

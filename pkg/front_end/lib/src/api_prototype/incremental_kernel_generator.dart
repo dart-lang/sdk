@@ -136,8 +136,9 @@ abstract class IncrementalKernelGenerator {
       List<TypeParameter> typeDefinitions,
       String syntheticProcedureName,
       Uri libraryUri,
-      [String? className,
-      bool isStatic = false]);
+      {String? className,
+      String? methodName,
+      bool isStatic = false});
 
   /// Sets experimental features.
   ///

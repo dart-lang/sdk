@@ -440,8 +440,8 @@ class ExpressionCompiler {
         scope.typeParameters,
         debugProcedureName,
         scope.library.importUri,
-        scope.cls?.name,
-        scope.isStatic);
+        className: scope.cls?.name,
+        isStatic: scope.isStatic);
 
     _log('Compiled expression to kernel');
 

@@ -95,6 +95,7 @@ evaluate_class_type_parameters_test: SkipByDesign # Debugger is disabled in AOT 
 evaluate_function_type_parameters_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_async_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_async_star_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
+evaluate_in_extension_method_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_frame_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_frame_with_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_sync_star_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
