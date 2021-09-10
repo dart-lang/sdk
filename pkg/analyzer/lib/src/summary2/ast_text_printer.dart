@@ -235,6 +235,11 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    node.constructorName.accept(this);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     _token(node.continueKeyword);
     node.label?.accept(this);
@@ -485,6 +490,12 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.function.accept(this);
     node.typeArguments?.accept(this);
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    node.function.accept(this);
+    node.typeArguments?.accept(this);
   }
 
   @override
