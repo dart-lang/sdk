@@ -14,6 +14,10 @@ main() {
   new A(); // LINT
   A(); // OK
 
+  // Constructor tear-offs.
+  new A.new(); // LINT
+  const A.new(); // OK
+
   new A.c1(); // LINT
   A.c1(); // OK
 

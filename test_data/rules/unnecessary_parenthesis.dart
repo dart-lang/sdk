@@ -6,6 +6,21 @@
 
 import 'dart:async';
 
+class D {
+  D.d([int? x, int? y]);
+}
+
+/// https://github.com/dart-lang/linter/issues/2907
+void constructorTearOffs() {
+  var makeD = D.d;
+  (makeD)(1); // LINT
+  (D.d)(1); // LINT
+  (List<int>.filled)(3, 0); // LINT
+  (List.filled)<int>(3, 0); // OK
+  var tearoff = (List<int>.filled); // LINT
+  (List<int>).toString(); //OK
+}
+
 var a, b, c, d;
 
 main() async {
