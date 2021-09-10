@@ -1884,7 +1884,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitInstantiation(Instantiation node) {
-    writeExpression(node.expression);
+    writeExpression(node.expression, Precedence.TYPE_LITERAL);
     writeSymbol('<');
     writeList(node.typeArguments, writeType);
     writeSymbol('>');
@@ -3090,7 +3090,7 @@ class Precedence implements ExpressionVisitor<int> {
   int visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => EXPRESSION;
 
   @override
-  int visitConstantExpression(ConstantExpression node) => EXPRESSION;
+  int visitConstantExpression(ConstantExpression node) => PRIMARY;
 
   @override
   int visitDynamicSet(DynamicSet node) => EXPRESSION;

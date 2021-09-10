@@ -7,8 +7,8 @@ import "org-dartlang-testcase:///const_lib.dart";
 
 static const field con::B* crossModule = #C3;
 static method main() → dynamic {
-  self::expect(2.71, (#C3).{con::A::d}{core::double*});
-  self::expect("default", (#C3).{con::A::s}{core::String*});
+  self::expect(2.71, #C3.{con::A::d}{core::double*});
+  self::expect("default", #C3.{con::A::s}{core::String*});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))

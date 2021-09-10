@@ -29,15 +29,15 @@ static const field core::int var3 = #C2;
 static const field core::int var4 = #C2;
 static const field core::int var5 = #C3;
 static method fn() → core::int
-  return (#C4).{self::A::y}{core::int};
+  return #C4.{self::A::y}{core::int};
 static method fn2() → core::int {
   self::A x = #C4;
   return x.{self::A::y}{core::int};
 }
 static method fn4() → core::int
-  return (#C5).{self::A::y}{core::int};
+  return #C5.{self::A::y}{core::int};
 static method fn5() → core::int
-  return (#C7).{self::C::y}{core::int};
+  return #C7.{self::C::y}{core::int};
 static method main() → void {
   exp::Expect::equals(#C2, 1);
   exp::Expect::equals(#C2, 1);

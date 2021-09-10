@@ -39,7 +39,7 @@ class Application = self::Base with self::Mixin /*hasConstConstructor*/  {
     ;
 }
 static method main() → dynamic {
-  self::expect(42, (#C2).{self::Base::x}{core::int*});
+  self::expect(42, #C2.{self::Base::x}{core::int*});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))

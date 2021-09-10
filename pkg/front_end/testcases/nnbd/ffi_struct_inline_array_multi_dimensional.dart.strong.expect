@@ -20,7 +20,7 @@ static method main() → dynamic {
   final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0}{ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>};
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = ffi::ArrayArray|[]<ffi::Array<ffi::Uint8>>(array, 0);
   ffi::ArrayArray|[]=<ffi::Array<ffi::Uint8>>(array, 1, subArray);
-  (#C4).{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
+  #C4.{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 
 constants  {

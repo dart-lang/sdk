@@ -207,8 +207,8 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
   null != nonNullableClass.method();
                                  ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null);
   core::print("EqualsNull (constant null)");
-  (#C1) == null;
-  !((#C1) == null);
+  #C1 == null;
+  !(#C1 == null);
   nonNullableObject == null;
   !(nonNullableObject == null);
   nonNullableObject == null;
@@ -221,24 +221,24 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass == nullValue;
-                      ^" in (#C1) as{TypeError,ForNonNullableByDefault} self::Class<core::String>?;
+                      ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class<core::String>?;
   !(nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:135:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass != nullValue;
-                      ^" in (#C1) as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
+                      ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
   nonNullableClass == null;
   !(nonNullableClass == null);
   nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:139:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass == nullValue;
-                   ^" in (#C1) as{TypeError,ForNonNullableByDefault} self::Class<core::String>?;
+                   ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class<core::String>?;
   !(nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:140:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass != nullValue;
-                   ^" in (#C1) as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
+                   ^" in #C1 as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
   nullableClass == null;
   !(nullableClass == null);
   dyn == null;

@@ -47,10 +47,10 @@ static method test() → dynamic {
       ^" in (self::alias<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) →? core::int;
   (core::int, core::int?) → core::int h = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:19:27: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
   int Function(int, int?) h = c;
-                          ^" in (let final self::Class #t1 = c in #t1 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t1.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) → core::int;
+                          ^" in ((let final self::Class #t1 = c in #t1 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t1.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) → core::int;
   g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:20:3: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)?' because 'int?' is nullable and 'int' isn't.
   g = c;
-  ^" in (let final self::Class #t2 = c in #t2 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t2.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) →? core::int;
+  ^" in ((let final self::Class #t2 = c in #t2 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t2.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) →? core::int;
   self::method(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:21:10: Error: The argument type 'int Function(int, int)?' can't be assigned to the parameter type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
   method(alias);
          ^" in (self::alias<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) → core::int);

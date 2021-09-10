@@ -16,7 +16,7 @@ static method fn() → dynamic {
 }
 static method fn2() → dynamic {
   try {
-    core::String x = (#C1).{core::String::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::String};
+    core::String x = #C1.{core::String::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::String};
   }
   on core::RangeError catch(no-exception-var) {
     return 2;
