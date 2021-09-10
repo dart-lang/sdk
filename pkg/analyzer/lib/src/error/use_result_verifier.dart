@@ -52,6 +52,11 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
+    if (node.parent is CommentReference) {
+      // Don't flag references in comments.
+      return;
+    }
+
     var annotation = _getUseResultMetadata(element);
     if (annotation == null) {
       return;
