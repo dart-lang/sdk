@@ -464,7 +464,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   const Array& ic_datas = Array::Handle(Array::New(kNumICData));
   ICData& ic_data = ICData::Handle();
   Function& owner = *CreateFunction("DummyFunction");
-  String& name = String::Handle(String::New("foo"));
+  String& name = String::Handle(Symbols::New(thread, "foo"));
   const Array& args_desc =
       Array::Handle(ArgumentsDescriptor::NewBoxed(0, 0, Object::empty_array()));
   for (intptr_t i = 0; i < kNumICData; i++) {

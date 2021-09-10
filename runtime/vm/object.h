@@ -2436,6 +2436,8 @@ class ICData : public CallSiteData {
     untag()->state_bits_.UpdateBool<ReceiverCannotBeSmiBit>(value);
   }
 
+  uword Hash() const;
+
  private:
   static ICDataPtr New();
 

@@ -15526,6 +15526,7 @@ const char* CallSiteData::ToCString() const {
 
 void CallSiteData::set_target_name(const String& value) const {
   ASSERT(!value.IsNull());
+  ASSERT(value.IsCanonical());
   untag()->set_target_name(value.ptr());
 }
 
@@ -15566,15 +15567,17 @@ void ICData::SetTargetAtPos(const Array& data,
 #endif
 }
 
+uword ICData::Hash() const {
+  return String::HashRawSymbol(target_name()) ^ deopt_id();
+}
+
 const char* ICData::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   const String& name = String::Handle(zone, target_name());
-  const intptr_t num_args = NumArgsTested();
-  const intptr_t num_checks = NumberOfChecks();
-  const intptr_t type_args_len = TypeArgsLen();
-  return zone->PrintToString(
-      "ICData(%s num-args: %" Pd " num-checks: %" Pd " type-args-len: %" Pd ")",
-      name.ToCString(), num_args, num_checks, type_args_len);
+  return zone->PrintToString("ICData(%s num-args: %" Pd " num-checks: %" Pd
+                             " type-args-len: %" Pd ", deopt-id: %" Pd ")",
+                             name.ToCString(), NumArgsTested(),
+                             NumberOfChecks(), TypeArgsLen(), deopt_id());
 }
 
 FunctionPtr ICData::Owner() const {

@@ -33,7 +33,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
       signature, function_name, UntaggedFunction::kRegularFunction, true, false,
       false, false, false, owner_class, TokenPosition::kNoSource));
 
-  const String& target_name = String::Handle(String::New("targetFunction"));
+  const String& target_name =
+      String::Handle(Symbols::New(thread, "targetFunction"));
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
   const Array& args_descriptor = Array::Handle(ArgumentsDescriptor::NewBoxed(
