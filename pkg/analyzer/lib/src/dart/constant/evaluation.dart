@@ -1093,6 +1093,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitConstructorReference(ConstructorReference node) {
+    // TODO(srawlins): record type arguments in DartObject as well, as in
+    // [visitFunctionReference] below.
     return _getConstantValue(node, node.constructorName.staticElement);
   }
 
@@ -1103,6 +1105,38 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       _typeProvider.doubleType,
       DoubleState(node.value),
     );
+  }
+
+  @override
+  DartObjectImpl? visitFunctionReference(FunctionReference node) {
+    var functionResult = node.function.accept(this);
+    if (functionResult == null) {
+      return functionResult;
+    }
+    var typeArgumentList = node.typeArguments;
+    if (typeArgumentList == null) {
+      return functionResult;
+    } else {
+      var typeArguments = <DartType>[];
+      var typeArgumentObjects = <DartObjectImpl>[];
+      for (var typeArgument in typeArgumentList.arguments) {
+        var object = typeArgument.accept(this);
+        if (object == null) {
+          return null;
+        }
+        var typeArgumentType = object.toTypeValue();
+        if (typeArgumentType == null) {
+          return null;
+        }
+        // TODO(srawlins): Test type alias types (`typedef i = int`) used as
+        // type arguments. Possibly change implementation based on
+        // canonicalization rules.
+        typeArguments.add(typeArgumentType);
+        typeArgumentObjects.add(object);
+      }
+      return _dartObjectComputer.typeInstantiate(
+          node, functionResult, typeArguments, typeArgumentObjects);
+    }
   }
 
   @override
@@ -2101,6 +2135,24 @@ class DartObjectComputer {
       }
     }
     return null;
+  }
+
+  DartObjectImpl? typeInstantiate(
+    FunctionReference node,
+    DartObjectImpl function,
+    List<DartType> typeArguments,
+    List<DartObjectImpl> typeArgumentObjects,
+  ) {
+    var rawType = function.type;
+    if (rawType is FunctionType) {
+      if (typeArguments.length != rawType.typeFormals.length) {
+        return null;
+      }
+      var type = rawType.instantiate(typeArguments);
+      return function.typeInstantiate(_typeSystem, type, typeArgumentObjects);
+    } else {
+      return null;
+    }
   }
 
   DartObjectImpl? typeTest(
