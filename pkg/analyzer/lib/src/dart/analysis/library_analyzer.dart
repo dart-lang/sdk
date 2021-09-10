@@ -416,16 +416,7 @@ class LibraryAnalyzer {
         return false;
       }
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = code.name;
-      if (ignoreInfo.ignoredAt(name, errorLine)) {
-        return true;
-      }
-      String uniqueName = code.uniqueName;
-      int period = uniqueName.indexOf('.');
-      if (period >= 0) {
-        uniqueName = uniqueName.substring(period + 1);
-      }
-      return uniqueName != name && ignoreInfo.ignoredAt(uniqueName, errorLine);
+      return ignoreInfo.ignoredAt(code, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
