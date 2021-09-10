@@ -108,6 +108,9 @@ class NoType implements TypeInfo {
   bool get isFunctionType => false;
 
   @override
+  bool get recovered => false;
+
+  @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     parser.reportRecoverableErrorWithToken(
         token.next!, codes.templateExpectedType);
@@ -153,6 +156,9 @@ class PrefixedType implements TypeInfo {
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -207,6 +213,9 @@ class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
   bool get isFunctionType => false;
 
   @override
+  bool get recovered => false;
+
+  @override
   Token parseTypeRest(Token start, Token token, Parser parser) {
     token = token.next!;
     assert(optional('?', token));
@@ -242,6 +251,9 @@ class SimpleTypeWith1Argument implements TypeInfo {
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -291,6 +303,9 @@ class SimpleNullableType extends SimpleType {
   bool get isFunctionType => false;
 
   @override
+  bool get recovered => false;
+
+  @override
   Token parseTypeRest(Token start, Parser parser) {
     Token token = start.next!;
     assert(optional('?', token));
@@ -322,6 +337,9 @@ class SimpleType implements TypeInfo {
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -373,6 +391,9 @@ class VoidType implements TypeInfo {
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -486,21 +507,30 @@ class ComplexTypeInfo implements TypeInfo {
   /// whether it has a return type, otherwise this is `null`.
   bool? gftHasReturnType;
 
+  @override
+  bool recovered;
+
   ComplexTypeInfo(Token beforeStart, this.typeArguments)
-      : this.start = beforeStart.next! {
+      : this.start = beforeStart.next!,
+        recovered = typeArguments.recovered {
     // ignore: unnecessary_null_comparison
     assert(typeArguments != null);
   }
 
   ComplexTypeInfo._nonNullable(this.start, this.typeArguments, this.end,
-      this.typeVariableStarters, this.gftHasReturnType);
+      this.typeVariableStarters, this.gftHasReturnType, this.recovered);
 
   @override
   TypeInfo get asNonNullable {
     return beforeQuestionMark == null
         ? this
-        : new ComplexTypeInfo._nonNullable(start, typeArguments,
-            beforeQuestionMark, typeVariableStarters, gftHasReturnType);
+        : new ComplexTypeInfo._nonNullable(
+            start,
+            typeArguments,
+            beforeQuestionMark,
+            typeVariableStarters,
+            gftHasReturnType,
+            recovered);
   }
 
   @override
@@ -689,7 +719,7 @@ class ComplexTypeInfo implements TypeInfo {
 
   /// Given a builtin, return the receiver so that parseType will report
   /// an error for the builtin used as a type.
-  TypeInfo computeBuiltinOrVarAsType(bool required) {
+  ComplexTypeInfo computeBuiltinOrVarAsType(bool required) {
     assert(start.type.isBuiltIn || optional('var', start));
 
     end = typeArguments.skip(start);
@@ -963,6 +993,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     while (true) {
       TypeInfo typeInfo =
           computeType(next, /* required = */ true, inDeclaration);
+      recovered = recovered | typeInfo.recovered;
       if (typeInfo == noType) {
         while (typeInfo == noType && optional('@', next.next!)) {
           next = skipMetadata(next);

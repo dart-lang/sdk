@@ -39,6 +39,8 @@ abstract class TypeInfo {
   /// Returns true if the type has type arguments.
   bool get hasTypeArguments;
 
+  bool get recovered => false;
+
   /// Call this function when the token after [token] must be a type (not void).
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type, inserting a synthetic type reference if
@@ -150,6 +152,7 @@ TypeInfo computeType(final Token token, bool required,
     [bool inDeclaration = false, bool acceptKeywordForSimpleType = false]) {
   Token next = token.next!;
   if (!isValidTypeReference(next)) {
+    // As next is not a valid type reference, this is all recovery.
     if (next.type.isBuiltIn) {
       TypeParamOrArgInfo typeParamOrArg =
           computeTypeParamOrArg(next, inDeclaration);
@@ -157,7 +160,8 @@ TypeInfo computeType(final Token token, bool required,
         // Recovery: built-in `<` ... `>`
         if (required || looksLikeName(typeParamOrArg.skip(next).next!)) {
           return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinOrVarAsType(required);
+              .computeBuiltinOrVarAsType(required)
+            ..recovered = true;
         }
       } else if (required || isGeneralizedFunctionType(next.next!)) {
         String? value = next.stringValue;
@@ -167,21 +171,25 @@ TypeInfo computeType(final Token token, bool required,
             !identical('operator', value) &&
             !(identical('typedef', value) && next.next!.isIdentifier))) {
           return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinOrVarAsType(required);
+              .computeBuiltinOrVarAsType(required)
+            ..recovered = true;
         }
       }
     } else if (required) {
       // Recovery
       if (optional('.', next)) {
         // Looks like prefixed type missing the prefix
-        return new ComplexTypeInfo(
+        TypeInfo result = new ComplexTypeInfo(
                 token, computeTypeParamOrArg(next, inDeclaration))
             .computePrefixedType(required);
+        if (result is ComplexTypeInfo) result.recovered = true;
+        return result;
       } else if (optional('var', next) &&
           isOneOf(next.next!, const ['<', ',', '>'])) {
         return new ComplexTypeInfo(
                 token, computeTypeParamOrArg(next, inDeclaration))
-            .computeBuiltinOrVarAsType(required);
+            .computeBuiltinOrVarAsType(required)
+          ..recovered = true;
       }
     }
     return noType;
