@@ -33,7 +33,7 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
     );
   }
 
-  /*test_bitAnd_int_int() async {
+  test_bitAnd_int_int() async {
     await _assertValueInt(74 & 42, "74 & 42");
   }
 
@@ -349,7 +349,7 @@ void foo<T>(T a) {}
     DartObject value = result.value!;
     assertType(value.type, 'bool');
     expect(value.toBoolValue(), false);
-  }*/
+  }
 
   test_identical_functionReference_explicitTypeArgs_sameElement() async {
     var result =
