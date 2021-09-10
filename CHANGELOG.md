@@ -131,7 +131,12 @@ Updated the Linter to `1.11.0`, which includes changes that
 - improves performance for `annotate_overrides`, `prefer_contains`, and
   `prefer_void_to_null`.
 
-## 2.14.0
+## 2.14.1 - 2021-09-09
+
+- Fixed an issue specific to the macOS ARM64 (Apple Silicon) SDK, where the Dart
+  commandline tools did not have the expected startup performance.
+
+## 2.14.0 - 2021-09-09
 
 ### Language
 
