@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:test/test.dart';
@@ -21,19 +22,24 @@ main() {
 
 @reflectiveTest
 class VarianceParserTest extends FastaParserTestCase {
+  final FeatureSet _disabledFeatureSet = FeatureSet.latestLanguageVersion();
+
+  final FeatureSet _enabledFeatureSet = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: ExperimentStatus.currentVersion,
+    flags: [EnableString.variance],
+  );
+
   @override
   CompilationUnitImpl parseCompilationUnit(String content,
       {List<ErrorCode>? codes,
       List<ExpectedError>? errors,
       FeatureSet? featureSet}) {
-    return super.parseCompilationUnit(content,
-        codes: codes,
-        errors: errors,
-        featureSet: featureSet ??
-            FeatureSet.forTesting(
-              sdkVersion: '2.5.0',
-              additionalFeatures: [Feature.variance],
-            ));
+    return super.parseCompilationUnit(
+      content,
+      codes: codes,
+      errors: errors,
+      featureSet: featureSet ?? _enabledFeatureSet,
+    );
   }
 
   void test_class_disabled_multiple() {
@@ -43,7 +49,7 @@ class VarianceParserTest extends FastaParserTestCase {
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 5),
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 3)
         ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+        featureSet: _disabledFeatureSet);
   }
 
   void test_class_disabled_single() {
@@ -51,7 +57,7 @@ class VarianceParserTest extends FastaParserTestCase {
         errors: [
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
         ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+        featureSet: _disabledFeatureSet);
   }
 
   void test_class_enabled_multiple() {
@@ -124,7 +130,7 @@ class VarianceParserTest extends FastaParserTestCase {
               ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 7, 2),
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
         ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+        featureSet: _disabledFeatureSet);
   }
 
   void test_function_enabled() {
@@ -139,7 +145,7 @@ class VarianceParserTest extends FastaParserTestCase {
         errors: [
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6),
         ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+        featureSet: _disabledFeatureSet);
   }
 
   void test_list_enabled() {
@@ -154,7 +160,7 @@ class VarianceParserTest extends FastaParserTestCase {
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
         ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+        featureSet: _disabledFeatureSet);
   }
 
   void test_mixin_disabled_single() {
@@ -162,7 +168,7 @@ class VarianceParserTest extends FastaParserTestCase {
         errors: [
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
         ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+        featureSet: _disabledFeatureSet);
   }
 
   void test_mixin_enabled_single() {
@@ -181,7 +187,7 @@ class VarianceParserTest extends FastaParserTestCase {
         errors: [
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
         ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+        featureSet: _disabledFeatureSet);
   }
 
   void test_typedef_enabled() {

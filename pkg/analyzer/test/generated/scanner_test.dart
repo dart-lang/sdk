@@ -82,7 +82,7 @@ class CharacterRangeReaderTest {
 
 @reflectiveTest
 class LineInfoTest {
-  final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+  final featureSet = FeatureSet.latestLanguageVersion();
 
   void test_lineInfo_multilineComment() {
     String source = "/*\r\n *\r\n */";
@@ -208,8 +208,8 @@ class ScannerTest with ResourceProviderMixin {
     expect(defaultFeatureSet.isEnabled(Feature.extension_methods), isTrue);
 
     scanner.configureFeatures(
-      featureSetForOverriding: FeatureSet.forTesting(),
-      featureSet: FeatureSet.forTesting(),
+      featureSetForOverriding: FeatureSet.latestLanguageVersion(),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
     scanner.tokenize();
 
@@ -221,7 +221,7 @@ class ScannerTest with ResourceProviderMixin {
     var scanner = _createScanner(r'''
 // @dart = 99999999999999999999999999999999.0
 ''');
-    var featureSet = FeatureSet.forTesting();
+    var featureSet = FeatureSet.latestLanguageVersion();
     scanner.configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,
@@ -234,7 +234,7 @@ class ScannerTest with ResourceProviderMixin {
     var scanner = _createScanner(r'''
 // @dart = 2.99999999999999999999999999999999
 ''');
-    var featureSet = FeatureSet.forTesting();
+    var featureSet = FeatureSet.latestLanguageVersion();
     scanner.configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,

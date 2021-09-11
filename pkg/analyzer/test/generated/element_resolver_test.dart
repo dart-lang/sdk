@@ -723,7 +723,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _definingLibrary.typeSystem = context.typeSystemLegacy;
     var inheritance = InheritanceManager3();
 
-    var featureSet = FeatureSet.forTesting();
+    var featureSet = FeatureSet.latestLanguageVersion();
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
         featureSet: featureSet,

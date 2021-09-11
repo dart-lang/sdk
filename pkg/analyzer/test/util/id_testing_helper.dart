@@ -29,15 +29,12 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 /// Test configuration used for testing the analyzer with constant evaluation.
 final TestConfig analyzerConstantUpdate2018Config = TestConfig(
     analyzerMarker, 'analyzer with constant-update-2018',
-    featureSet: FeatureSet.forTesting(
-        sdkVersion: '2.2.2',
-        additionalFeatures: [Feature.constant_update_2018]));
+    featureSet: FeatureSet.latestLanguageVersion());
 
 /// Test configuration used for testing the analyzer with NNBD.
 final TestConfig analyzerNnbdConfig = TestConfig(
     analyzerMarker, 'analyzer with NNBD',
-    featureSet: FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+    featureSet: FeatureSet.latestLanguageVersion());
 
 /// A fake absolute directory used as the root of a memory-file system in ID
 /// tests.

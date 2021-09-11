@@ -2,22 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test_base.dart' show ParserTestCase;
-import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -943,29 +938,10 @@ class A {
 E f() => g;
 ''';
 
-  final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-
   CompilationUnit? _unit;
 
   CompilationUnit get unit {
-    if (_unit == null) {
-      GatheringErrorListener listener =
-          GatheringErrorListener(checkRanges: true);
-      var source =
-          StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
-      var scanner = Scanner.fasta(source, listener)
-        ..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
-      Token tokens = scanner.tokenize();
-      _unit = Parser(
-        source,
-        listener,
-        featureSet: featureSet,
-      ).parseCompilationUnit(tokens);
-    }
-    return _unit!;
+    return _unit ??= parseString(content: contents).unit;
   }
 
   Token findToken(String lexeme) {
@@ -1005,15 +981,10 @@ E f() => g;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
 
-    GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
-    var source = StringSource('missing', 'PreviousTokenTest_missing.dart');
-    var scanner = Scanner.fasta(source, listener)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
-    Token missing = scanner.tokenize();
-
+    var missing = parseString(
+      content: 'missing',
+      throwIfDiagnostics: false,
+    ).unit.beginToken;
     expect(statement.findPrevious(missing), null);
   }
 

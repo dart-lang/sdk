@@ -45,11 +45,7 @@ class GenericMetadataEnabledParserTest extends FastaParserTestCase
   CompilationUnit _parseCompilationUnit(String content,
           {List<ExpectedError>? errors,
           required ExpectedError? disabledError}) =>
-      parseCompilationUnit(content,
-          errors: errors,
-          featureSet: FeatureSet.forTesting(
-              sdkVersion: '2.12',
-              additionalFeatures: [Feature.generic_metadata]));
+      parseCompilationUnit(content, errors: errors);
 }
 
 mixin GenericMetadataParserTest on FastaParserTestCase {

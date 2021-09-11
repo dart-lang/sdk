@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -68,10 +67,7 @@ abstract class AbstractTypeSystemWithoutNullSafetyTest with ElementsTypesMixin {
   late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
-    return FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: Version.parse('2.9.0'),
-      flags: [],
-    );
+    return FeatureSet.latestLanguageVersion();
   }
 
   void setUp() {
