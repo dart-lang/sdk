@@ -1,4 +1,4 @@
-# Dart
+# <img src="https://github.com/dart-lang/site-shared/blob/master/src/_assets/image/dart/logo/64.png" alt="Dart" width="28" height="28"/> Dart
 
 ## A client-optimized language for fast apps on any platform
 
