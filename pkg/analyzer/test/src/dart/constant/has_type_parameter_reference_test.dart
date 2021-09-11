@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class HasTypeParameterReferenceTest extends AbstractTypeSystemNullSafetyTest {
+class HasTypeParameterReferenceTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _checkFalse(dynamicNone);
   }

@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class GreatestClosureLegacyTest extends AbstractTypeSystemTest {
+class GreatestClosureLegacyTest
+    extends AbstractTypeSystemWithoutNullSafetyTest {
   late final TypeParameterElement T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;
@@ -141,7 +142,7 @@ class GreatestClosureLegacyTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class GreatestClosureNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
+class GreatestClosureNullSafetyTest extends AbstractTypeSystemTest {
   late final TypeParameterElement T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;

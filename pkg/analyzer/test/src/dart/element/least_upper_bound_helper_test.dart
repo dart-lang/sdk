@@ -21,7 +21,7 @@ main() {
 }
 
 @reflectiveTest
-class PathToObjectTest extends AbstractTypeSystemTest {
+class PathToObjectTest extends AbstractTypeSystemWithoutNullSafetyTest {
   @override
   final TestTypeProvider typeProvider = TestTypeProvider();
 
@@ -351,7 +351,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class SuperinterfaceSetTest extends AbstractTypeSystemTest {
+class SuperinterfaceSetTest extends AbstractTypeSystemWithoutNullSafetyTest {
   @override
   final TestTypeProvider typeProvider = TestTypeProvider();
 

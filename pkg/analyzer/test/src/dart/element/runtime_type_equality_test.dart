@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemNullSafetyTest {
+class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _equal(dynamicNone, dynamicNone);
     _notEqual(dynamicNone, voidNone);

@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class TopMergeTest extends AbstractTypeSystemNullSafetyTest {
+class TopMergeTest extends AbstractTypeSystemTest {
   test_differentStructure() {
     _checkThrows(
       intNone,

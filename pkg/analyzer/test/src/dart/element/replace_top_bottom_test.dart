@@ -18,7 +18,8 @@ main() {
 }
 
 @reflectiveTest
-class ReplaceTopBottomLegacyTest extends AbstractTypeSystemTest {
+class ReplaceTopBottomLegacyTest
+    extends AbstractTypeSystemWithoutNullSafetyTest {
   test_contravariant_bottom() {
     // Not contravariant.
     _check(nullStar, 'Null*');
@@ -77,7 +78,7 @@ class ReplaceTopBottomLegacyTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
+class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemTest {
   test_contravariant_bottom() {
     // Not contravariant.
     _check(neverNone, 'Never');

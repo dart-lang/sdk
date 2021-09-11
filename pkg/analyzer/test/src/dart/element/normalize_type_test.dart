@@ -19,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class NormalizeTypeTest extends AbstractTypeSystemNullSafetyTest {
+class NormalizeTypeTest extends AbstractTypeSystemTest {
   test_functionType_parameter() {
     _check(
       functionTypeNone(

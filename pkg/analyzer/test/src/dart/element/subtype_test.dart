@@ -5982,7 +5982,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   }
 }
 
-class _SubtypingTestBase extends AbstractTypeSystemNullSafetyTest {}
+class _SubtypingTestBase extends AbstractTypeSystemTest {}
 
 class _TypeParameterCollector extends TypeVisitor<void> {
   final Set<String> typeParameters = {};

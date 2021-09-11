@@ -3339,7 +3339,7 @@ class UpperBoundTest extends _BoundsTestBase {
 }
 
 @reflectiveTest
-class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
+class _BoundsTestBase extends AbstractTypeSystemTest {
   void _assertBottom(DartType type) {
     if (!typeSystem.isBottom(type)) {
       fail('isBottom must be true: ' + _typeString(type));
