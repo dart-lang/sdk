@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -36,9 +37,7 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
   late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
+    return FeatureSet.latestLanguageVersion();
   }
 
   void setUp() {
@@ -69,7 +68,10 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting();
+    return FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: Version.parse('2.9.0'),
+      flags: [],
+    );
   }
 
   void setUp() {
@@ -438,13 +440,6 @@ class AssignabilityTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class TryPromoteToTest extends AbstractTypeSystemTest {
-  @override
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
   void notPromotes(DartType from, DartType to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, isNull);

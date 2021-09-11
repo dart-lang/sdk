@@ -27,12 +27,6 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
 
   late final TypeSystemImpl typeSystem;
 
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
   @override
   DartType get voidType => typeProvider.voidType;
 
@@ -49,7 +43,7 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
 
   void setUp() {
     var analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
     typeProvider = analysisContext.typeProviderNonNullableByDefault;
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
