@@ -247,13 +247,13 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
 
   @override
   void registerDynamicUse(DynamicUse dynamicUse) {
-    _dynamicUses ??= Setlet.from(worldImpact.dynamicUses);
+    _dynamicUses ??= Setlet.of(worldImpact.dynamicUses);
     _dynamicUses.add(dynamicUse);
   }
 
   @override
   void registerTypeUse(TypeUse typeUse) {
-    _typeUses ??= Setlet.from(worldImpact.typeUses);
+    _typeUses ??= Setlet.of(worldImpact.typeUses);
     _typeUses.add(typeUse);
   }
 
@@ -264,7 +264,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
 
   @override
   void registerStaticUse(StaticUse staticUse) {
-    _staticUses ??= Setlet.from(worldImpact.staticUses);
+    _staticUses ??= Setlet.of(worldImpact.staticUses);
     _staticUses.add(staticUse);
   }
 
@@ -280,7 +280,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
 
   @override
   void registerConstantUse(ConstantUse constantUse) {
-    _constantUses ??= Setlet.from(worldImpact.constantUses);
+    _constantUses ??= Setlet.of(worldImpact.constantUses);
     _constantUses.add(constantUse);
   }
 
