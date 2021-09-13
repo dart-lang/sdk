@@ -45,6 +45,7 @@ class CommonMasks implements AbstractValueDomain {
   CommonElements get commonElements => _closedWorld.commonElements;
   DartTypes get dartTypes => _closedWorld.dartTypes;
 
+  TypeMask _internalTopType;
   TypeMask _dynamicType;
   TypeMask _nonNullType;
   TypeMask _nullType;
@@ -87,6 +88,11 @@ class CommonMasks implements AbstractValueDomain {
         _canonicalizedTypeMasks[flags] ??= <ClassEntity, TypeMask>{};
     return cachedMasks.putIfAbsent(base, createMask);
   }
+
+  @override
+  TypeMask get internalTopType => _internalTopType ??= TypeMask.subclass(
+      _closedWorld.commonElements.objectClass, _closedWorld,
+      hasLateSentinel: true);
 
   @override
   TypeMask get dynamicType => _dynamicType ??=
@@ -183,6 +189,9 @@ class CommonMasks implements AbstractValueDomain {
   // TODO(johnniwinther): Assert that the null type has been resolved.
   @override
   TypeMask get nullType => _nullType ??= TypeMask.empty();
+
+  @override
+  TypeMask get lateSentinelType => TypeMask.nonNullEmpty(hasLateSentinel: true);
 
   @override
   TypeMask get emptyType => TypeMask.nonNullEmpty();
@@ -390,6 +399,14 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask includeNull(TypeMask mask) => mask.nullable();
 
   @override
+  TypeMask excludeLateSentinel(TypeMask mask) =>
+      mask.withFlags(hasLateSentinel: false);
+
+  @override
+  TypeMask includeLateSentinel(TypeMask mask) =>
+      mask.withFlags(hasLateSentinel: true);
+
+  @override
   AbstractBool containsType(TypeMask typeMask, ClassEntity cls) {
     return AbstractBool.trueOrFalse(_containsType(typeMask, cls));
   }
@@ -438,8 +455,8 @@ class CommonMasks implements AbstractValueDomain {
       AbstractBool.trueOrMaybe(value.isEmpty);
 
   @override
-  AbstractBool isExact(TypeMask value) =>
-      AbstractBool.trueOrMaybe(value.isExact && !value.isNullable);
+  AbstractBool isExact(TypeMask value) => AbstractBool.trueOrMaybe(
+      value.isExact && !value.isNullable && !value.hasLateSentinel);
 
   @override
   ClassEntity getExactClass(TypeMask mask) {
@@ -474,6 +491,9 @@ class CommonMasks implements AbstractValueDomain {
       return AbstractBool.False;
     }
   }
+
+  @override
+  AbstractBool isLateSentinel(TypeMask value) => value.isLateSentinel;
 
   @override
   AbstractBool isPrimitive(TypeMask value) {
@@ -565,25 +585,29 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isInteger(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyInt(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyInt(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
   AbstractBool isUInt32(TypeMask value) {
     return AbstractBool.trueOrMaybe(!value.isNullable &&
+        !value.hasLateSentinel &&
         _isInstanceOfOrNull(value, commonElements.jsUInt32Class));
   }
 
   @override
   AbstractBool isUInt31(TypeMask value) {
     return AbstractBool.trueOrMaybe(!value.isNullable &&
+        !value.hasLateSentinel &&
         _isInstanceOfOrNull(value, commonElements.jsUInt31Class));
   }
 
   @override
   AbstractBool isPositiveInteger(TypeMask value) {
     return AbstractBool.trueOrMaybe(!value.isNullable &&
+        !value.hasLateSentinel &&
         _isInstanceOfOrNull(value, commonElements.jsPositiveIntClass));
   }
 
@@ -600,8 +624,9 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isNumber(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyNum(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyNum(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
@@ -614,8 +639,9 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isBoolean(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyBool(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyBool(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
@@ -628,7 +654,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isTruthy(TypeMask value) {
-    if (value is ValueTypeMask && !value.isNullable) {
+    if (value is ValueTypeMask && !value.isNullable && !value.hasLateSentinel) {
       PrimitiveConstantValue constant = value.value;
       if (constant is BoolConstantValue) {
         return constant.boolValue ? AbstractBool.True : AbstractBool.False;
@@ -640,8 +666,9 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isString(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyString(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyString(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
@@ -972,7 +999,10 @@ String formatType(DartTypes dartTypes, TypeMask type) {
     // a null value we accidentally printed out.
     if (type.isEmpty) return 'Empty';
     if (type.isEmptyOrFlagged) {
-      return [if (type.isNullable) 'Null'].join('');
+      return [
+        if (type.isNullable) 'Null',
+        if (type.hasLateSentinel) '\$',
+      ].join('');
     }
     String nullFlag = type.isNullable ? '?' : '';
     String subFlag = type.isExact
@@ -980,7 +1010,8 @@ String formatType(DartTypes dartTypes, TypeMask type) {
         : type.isSubclass
             ? '+'
             : '*';
-    return '${type.base.name}$nullFlag$subFlag';
+    String sentinelFlag = type.hasLateSentinel ? '\$' : '';
+    return '${type.base.name}$nullFlag$subFlag$sentinelFlag';
   }
   if (type is UnionTypeMask) {
     return type.disjointMasks.map((m) => formatType(dartTypes, m)).join(' | ');

@@ -49,7 +49,7 @@ abstract class TypeBuilder {
 
   /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
   /// no approximating type mask (i.e. the type mask would be `dynamic`).
-  AbstractValue trustTypeMask(DartType type) {
+  AbstractValue trustTypeMask(DartType type, {bool hasLateSentinel: false}) {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
     if (_closedWorld.dartTypes.isTopType(type)) return null;
@@ -59,15 +59,20 @@ abstract class TypeBuilder {
     if (type is! InterfaceType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
-    return includeNull
+    AbstractValue mask = includeNull
         ? _abstractValueDomain.createNullableSubtype(element)
         : _abstractValueDomain.createNonNullSubtype(element);
+    if (hasLateSentinel) mask = _abstractValueDomain.includeLateSentinel(mask);
+    return mask;
   }
 
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
     assert(type != null);
-    AbstractValue mask = trustTypeMask(type);
+    bool hasLateSentinel = _abstractValueDomain
+        .isLateSentinel(original.instructionType)
+        .isPotentiallyTrue;
+    AbstractValue mask = trustTypeMask(type, hasLateSentinel: hasLateSentinel);
     if (mask == null) return original;
     return new HTypeKnown.pinned(mask, original);
   }

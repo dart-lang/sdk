@@ -1147,6 +1147,9 @@ abstract class HInstruction implements Spannable {
   AbstractBool isNull(AbstractValueDomain domain) =>
       domain.isNull(instructionType);
 
+  AbstractBool isLateSentinel(AbstractValueDomain domain) =>
+      domain.isLateSentinel(instructionType);
+
   AbstractBool isConflicting(AbstractValueDomain domain) =>
       domain.isEmpty(instructionType);
 

@@ -110,25 +110,32 @@ enum TypeMaskKind {
 abstract class TypeMask implements AbstractValue {
   const TypeMask();
 
-  factory TypeMask.empty() = FlatTypeMask.empty;
+  factory TypeMask.empty({bool hasLateSentinel: false}) =>
+      FlatTypeMask.empty(hasLateSentinel: hasLateSentinel);
 
-  factory TypeMask.exact(ClassEntity base, JClosedWorld closedWorld) {
+  factory TypeMask.exact(ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
-    return FlatTypeMask.exact(base, closedWorld);
+    return FlatTypeMask.exact(base, closedWorld,
+        hasLateSentinel: hasLateSentinel);
   }
 
-  factory TypeMask.exactOrEmpty(ClassEntity base, JClosedWorld closedWorld) {
-    if (closedWorld.classHierarchy.isInstantiated(base))
-      return FlatTypeMask.exact(base, closedWorld);
-    return TypeMask.empty();
+  factory TypeMask.exactOrEmpty(ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
+    if (closedWorld.classHierarchy.isInstantiated(base)) {
+      return FlatTypeMask.exact(base, closedWorld,
+          hasLateSentinel: hasLateSentinel);
+    }
+    return TypeMask.empty(hasLateSentinel: hasLateSentinel);
   }
 
-  factory TypeMask.subclass(ClassEntity base, JClosedWorld closedWorld) {
+  factory TypeMask.subclass(ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
@@ -137,50 +144,62 @@ abstract class TypeMask implements AbstractValue {
             "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
-      return TypeMask.empty();
+      return TypeMask.empty(hasLateSentinel: hasLateSentinel);
     } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
-      return FlatTypeMask.subclass(topmost, closedWorld);
+      return FlatTypeMask.subclass(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     } else {
-      return TypeMask.exact(topmost, closedWorld);
+      return TypeMask.exact(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     }
   }
 
-  factory TypeMask.subtype(ClassEntity base, JClosedWorld closedWorld) {
+  factory TypeMask.subtype(ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
-      return TypeMask.empty();
+      return TypeMask.empty(hasLateSentinel: hasLateSentinel);
     }
     if (closedWorld.classHierarchy.hasOnlySubclasses(topmost)) {
-      return TypeMask.subclass(topmost, closedWorld);
+      return TypeMask.subclass(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     }
     if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
-      return FlatTypeMask.subtype(topmost, closedWorld);
+      return FlatTypeMask.subtype(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     } else {
-      return TypeMask.exact(topmost, closedWorld);
+      return TypeMask.exact(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     }
   }
 
-  factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
+  factory TypeMask.nonNullEmpty({bool hasLateSentinel: false}) =>
+      FlatTypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
 
-  factory TypeMask.nonNullExact(ClassEntity base, JClosedWorld closedWorld) {
+  factory TypeMask.nonNullExact(ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
-    return FlatTypeMask.nonNullExact(base, closedWorld);
+    return FlatTypeMask.nonNullExact(base, closedWorld,
+        hasLateSentinel: hasLateSentinel);
   }
 
   factory TypeMask.nonNullExactOrEmpty(
-      ClassEntity base, JClosedWorld closedWorld) {
+      ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
     if (closedWorld.classHierarchy.isInstantiated(base)) {
-      return FlatTypeMask.nonNullExact(base, closedWorld);
+      return FlatTypeMask.nonNullExact(base, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     }
-    return TypeMask.nonNullEmpty();
+    return TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
   }
 
-  factory TypeMask.nonNullSubclass(ClassEntity base, JClosedWorld closedWorld) {
+  factory TypeMask.nonNullSubclass(ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
@@ -189,26 +208,32 @@ abstract class TypeMask implements AbstractValue {
             "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
-      return TypeMask.nonNullEmpty();
+      return TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
     } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
-      return FlatTypeMask.nonNullSubclass(topmost, closedWorld);
+      return FlatTypeMask.nonNullSubclass(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     } else {
-      return TypeMask.nonNullExact(topmost, closedWorld);
+      return TypeMask.nonNullExact(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     }
   }
 
-  factory TypeMask.nonNullSubtype(ClassEntity base, JClosedWorld closedWorld) {
+  factory TypeMask.nonNullSubtype(ClassEntity base, JClosedWorld closedWorld,
+      {bool hasLateSentinel: false}) {
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
-      return TypeMask.nonNullEmpty();
+      return TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
     }
     if (closedWorld.classHierarchy.hasOnlySubclasses(topmost)) {
-      return TypeMask.nonNullSubclass(topmost, closedWorld);
+      return TypeMask.nonNullSubclass(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     }
     if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
-      return FlatTypeMask.nonNullSubtype(topmost, closedWorld);
+      return FlatTypeMask.nonNullSubtype(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     } else {
-      return TypeMask.nonNullExact(topmost, closedWorld);
+      return TypeMask.nonNullExact(topmost, closedWorld,
+          hasLateSentinel: hasLateSentinel);
     }
   }
 
@@ -308,9 +333,12 @@ abstract class TypeMask implements AbstractValue {
   /// Returns a non-nullable variant of [this] type mask.
   TypeMask nonNullable() => withFlags(isNullable: false);
 
-  TypeMask withoutFlags() => withFlags(isNullable: false);
+  /// Returns a variant of [this] type mask whose value is neither `null` nor
+  /// the late sentinel.
+  TypeMask withoutFlags() =>
+      withFlags(isNullable: false, hasLateSentinel: false);
 
-  TypeMask withFlags({bool isNullable});
+  TypeMask withFlags({bool isNullable, bool hasLateSentinel});
 
   /// Whether nothing matches this mask, not even null.
   bool get isEmpty;
@@ -321,7 +349,14 @@ abstract class TypeMask implements AbstractValue {
   /// Whether the only possible value in this mask is Null.
   bool get isNull;
 
-  /// Whether [this] mask is empty or only represents values tracked by flags.
+  /// Whether [this] is a sentinel for an uninitialized late variable.
+  AbstractBool get isLateSentinel;
+
+  /// Whether a late sentinel is a valid value of this mask.
+  bool get hasLateSentinel => isLateSentinel.isPotentiallyTrue;
+
+  /// Whether [this] mask is empty or only represents values tracked by flags
+  /// (i.e. `null` and the late sentinel).
   bool get isEmptyOrFlagged;
 
   /// Whether this mask only includes instances of an exact class, and none of

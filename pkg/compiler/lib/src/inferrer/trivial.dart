@@ -25,6 +25,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   const TrivialAbstractValueDomain();
 
   @override
+  AbstractValue get internalTopType => const TrivialAbstractValue();
+
+  @override
   AbstractValue get dynamicType => const TrivialAbstractValue();
 
   @override
@@ -287,6 +290,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isNull(AbstractValue value) => AbstractBool.Maybe;
 
   @override
+  AbstractBool isLateSentinel(AbstractValue value) => AbstractBool.Maybe;
+
+  @override
   ClassEntity getExactClass(AbstractValue value) => null;
 
   @override
@@ -317,6 +323,14 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue excludeNull(AbstractValue value) =>
+      const TrivialAbstractValue();
+
+  @override
+  AbstractValue includeLateSentinel(AbstractValue value) =>
+      const TrivialAbstractValue();
+
+  @override
+  AbstractValue excludeLateSentinel(AbstractValue value) =>
       const TrivialAbstractValue();
 
   @override
@@ -397,6 +411,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue get nonNullType => const TrivialAbstractValue();
+
+  @override
+  AbstractValue get lateSentinelType => const TrivialAbstractValue();
 
   @override
   AbstractValue get mapType => const TrivialAbstractValue();

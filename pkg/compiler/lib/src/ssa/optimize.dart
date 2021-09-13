@@ -447,7 +447,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   ConstantValue getConstantFromType(HInstruction node) {
     if (node.isValue(_abstractValueDomain) &&
-        node.isNull(_abstractValueDomain).isDefinitelyFalse) {
+        node.isNull(_abstractValueDomain).isDefinitelyFalse &&
+        node.isLateSentinel(_abstractValueDomain).isDefinitelyFalse) {
       ConstantValue value =
           _abstractValueDomain.getPrimitiveValue(node.instructionType);
       if (value.isBool) {
@@ -1167,13 +1168,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitIsLateSentinel(HIsLateSentinel node) {
     HInstruction value = node.inputs[0];
-    if (value is HConstant) {
-      return _graph.addConstantBool(
-          value.constant is LateSentinelConstantValue, _closedWorld);
+    AbstractBool isLateSentinel = value.isLateSentinel(_abstractValueDomain);
+    if (isLateSentinel.isDefinitelyTrue) {
+      return _graph.addConstantBool(true, _closedWorld);
+    } else if (isLateSentinel.isDefinitelyFalse) {
+      return _graph.addConstantBool(false, _closedWorld);
     }
-
-    // TODO(fishythefish): Simplify to `false` when the input cannot evalute to
-    // the sentinel. This can be implemented in the powerset domain.
 
     return super.visitIsLateSentinel(node);
   }

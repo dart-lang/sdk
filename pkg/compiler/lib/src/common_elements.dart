@@ -531,6 +531,22 @@ abstract class CommonElements {
   /// Most foreign helpers are located in the `dart:_foreign_helper` library.
   bool isForeignHelper(MemberEntity member);
 
+  /// Returns `true` if [member] is the `createJsSentinel` function defined in
+  /// dart:_foreign_helper.
+  bool isCreateJsSentinel(MemberEntity member);
+
+  /// Returns `true` if [member] is the `isJsSentinel` function defined in
+  /// dart:_foreign_helper.
+  bool isIsJsSentinel(MemberEntity member);
+
+  /// Returns `true` if [member] is the `_lateReadCheck` function defined in
+  /// dart:_internal.
+  bool isLateReadCheck(MemberEntity member);
+
+  /// Returns `true` if [member] is the `createSentinel` function defined in
+  /// dart:_internal.
+  bool isCreateSentinel(MemberEntity member);
+
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData);
 
@@ -643,10 +659,6 @@ abstract class JCommonElements implements CommonElements {
   ClassEntity get jsBuiltinEnum;
 
   bool isForeign(MemberEntity element);
-
-  /// Returns `true` if [member] is the `createSentinel` function defined in
-  /// dart:_internal.
-  bool isCreateSentinel(MemberEntity element);
 
   /// Returns `true` if the implementation of the 'operator ==' [function] is
   /// known to handle `null` as argument.
@@ -2117,13 +2129,28 @@ class CommonElementsImpl
         isCreateInvocationMirrorHelper(member);
   }
 
+  bool _isTopLevelFunctionNamed(String name, MemberEntity member) =>
+      member.name == name && member.isFunction && member.isTopLevel;
+
   @override
-  bool isCreateSentinel(MemberEntity member) {
-    return member.isTopLevel &&
-        member.isFunction &&
-        member.library == internalLibrary &&
-        member.name == 'createSentinel';
-  }
+  bool isCreateJsSentinel(MemberEntity member) =>
+      member.library == foreignLibrary &&
+      _isTopLevelFunctionNamed('createJsSentinel', member);
+
+  @override
+  bool isIsJsSentinel(MemberEntity member) =>
+      member.library == foreignLibrary &&
+      _isTopLevelFunctionNamed('isJsSentinel', member);
+
+  @override
+  bool isLateReadCheck(MemberEntity member) =>
+      member.library == lateHelperLibrary &&
+      _isTopLevelFunctionNamed('_lateReadCheck', member);
+
+  @override
+  bool isCreateSentinel(MemberEntity member) =>
+      member.library == internalLibrary &&
+      _isTopLevelFunctionNamed('createSentinel', member);
 
   @override
   bool operatorEqHandlesNullArgument(FunctionEntity function) {

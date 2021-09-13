@@ -20,6 +20,10 @@ abstract class ForwardingTypeMask extends TypeMask {
   @override
   bool get isNull => forwardTo.isNull;
   @override
+  bool get hasLateSentinel => forwardTo.hasLateSentinel;
+  @override
+  AbstractBool get isLateSentinel => forwardTo.isLateSentinel;
+  @override
   bool get isExact => forwardTo.isExact;
 
   @override
@@ -98,18 +102,22 @@ abstract class ForwardingTypeMask extends TypeMask {
       return this;
     }
     bool isNullable = this.isNullable || other.isNullable;
+    bool hasLateSentinel = this.hasLateSentinel || other.hasLateSentinel;
     if (isEmptyOrFlagged) {
-      return other.withFlags(isNullable: isNullable);
+      return other.withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     }
     if (other.isEmptyOrFlagged) {
-      return withFlags(isNullable: isNullable);
+      return withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     }
-    return _unionSpecialCases(other, domain, isNullable: isNullable) ??
+    return _unionSpecialCases(other, domain,
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel) ??
         forwardTo.union(other, domain);
   }
 
   TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-          {bool isNullable}) =>
+          {bool isNullable, bool hasLateSentinel}) =>
       null;
 
   @override
@@ -121,7 +129,9 @@ abstract class ForwardingTypeMask extends TypeMask {
   TypeMask intersection(TypeMask other, CommonMasks domain) {
     TypeMask forwardIntersection = forwardTo.intersection(other, domain);
     if (forwardIntersection.isEmptyOrFlagged) return forwardIntersection;
-    return withFlags(isNullable: forwardIntersection.isNullable);
+    return withFlags(
+        isNullable: forwardIntersection.isNullable,
+        hasLateSentinel: forwardIntersection.hasLateSentinel);
   }
 
   @override

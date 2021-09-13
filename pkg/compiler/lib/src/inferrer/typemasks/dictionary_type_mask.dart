@@ -60,13 +60,21 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  DictionaryTypeMask withFlags({bool isNullable}) {
+  DictionaryTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
     isNullable ??= this.isNullable;
-    if (isNullable == this.isNullable) {
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
       return this;
     }
-    return DictionaryTypeMask(forwardTo.withFlags(isNullable: isNullable),
-        allocationNode, allocationElement, keyType, valueType, _typeMap);
+    return DictionaryTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        allocationNode,
+        allocationElement,
+        keyType,
+        valueType,
+        _typeMap);
   }
 
   @override
@@ -80,8 +88,9 @@ class DictionaryTypeMask extends MapTypeMask {
 
   @override
   TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable}) {
+      {bool isNullable, bool hasLateSentinel}) {
     assert(isNullable != null);
+    assert(hasLateSentinel != null);
     if (other is DictionaryTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);

@@ -36,12 +36,17 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  ValueTypeMask withFlags({bool isNullable}) {
+  ValueTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
     isNullable ??= this.isNullable;
-    if (isNullable == this.isNullable) {
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
       return this;
     }
-    return ValueTypeMask(forwardTo.withFlags(isNullable: isNullable), value);
+    return ValueTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        value);
   }
 
   @override
@@ -49,12 +54,14 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   @override
   TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable}) {
+      {bool isNullable, bool hasLateSentinel}) {
     assert(isNullable != null);
+    assert(hasLateSentinel != null);
     if (other is ValueTypeMask &&
         forwardTo.withoutFlags() == other.forwardTo.withoutFlags() &&
         value == other.value) {
-      return withFlags(isNullable: isNullable);
+      return withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     }
     return null;
   }

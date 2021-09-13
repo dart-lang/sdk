@@ -58,13 +58,20 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  MapTypeMask withFlags({bool isNullable}) {
+  MapTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
     isNullable ??= this.isNullable;
-    if (isNullable == this.isNullable) {
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
       return this;
     }
-    return MapTypeMask(forwardTo.withFlags(isNullable: isNullable),
-        allocationNode, allocationElement, keyType, valueType);
+    return MapTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        allocationNode,
+        allocationElement,
+        keyType,
+        valueType);
   }
 
   @override
@@ -76,8 +83,9 @@ class MapTypeMask extends AllocationTypeMask {
 
   @override
   TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable}) {
+      {bool isNullable, bool hasLateSentinel}) {
     assert(isNullable != null);
+    assert(hasLateSentinel != null);
     if (other is MapTypeMask &&
         keyType != null &&
         other.keyType != null &&

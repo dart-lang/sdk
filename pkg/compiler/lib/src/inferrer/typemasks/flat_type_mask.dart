@@ -14,18 +14,22 @@ class FlatTypeMask extends TypeMask {
   static const String tag = 'flat-type-mask';
 
   static const int _NULL_INDEX = 0;
-  static const int _USED_INDICES = 1;
+  static const int _LATE_SENTINEL_INDEX = 1;
+  static const int _USED_INDICES = 2;
 
   static const int _NONE_MASK = 0;
   static const int _NULL_MASK = 1 << _NULL_INDEX;
+  static const int _LATE_SENTINEL_MASK = 1 << _LATE_SENTINEL_INDEX;
   static const int _ALL_MASK = (1 << _USED_INDICES) - 1;
 
   final ClassEntity base;
   final int flags;
 
-  static int _computeFlags(_FlatTypeMaskKind kind, {bool hasNull: false}) {
+  static int _computeFlags(_FlatTypeMaskKind kind,
+      {bool isNullable: false, bool hasLateSentinel: false}) {
     int mask = _NONE_MASK;
-    if (hasNull) mask |= _NULL_MASK;
+    if (isNullable) mask |= _NULL_MASK;
+    if (hasLateSentinel) mask |= _LATE_SENTINEL_MASK;
     return _computeFlagsRaw(kind.index, mask);
   }
 
@@ -35,36 +39,56 @@ class FlatTypeMask extends TypeMask {
   static _FlatTypeMaskKind _lookupKind(int flags) =>
       _FlatTypeMaskKind.values[flags >> _USED_INDICES];
 
-  static bool _hasNullFlag(int flags) => flags & _NULL_MASK != _NONE_MASK;
+  static bool _hasNullableFlag(int flags) => flags & _NULL_MASK != _NONE_MASK;
 
-  factory FlatTypeMask.exact(ClassEntity base, JClosedWorld world) =>
+  static bool _hasLateSentinelFlag(int flags) =>
+      flags & _LATE_SENTINEL_MASK != _NONE_MASK;
+
+  factory FlatTypeMask.exact(ClassEntity base, JClosedWorld world,
+          {bool hasLateSentinel: false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.exact, world,
-          isNullable: true);
-  factory FlatTypeMask.subclass(ClassEntity base, JClosedWorld world) =>
+          isNullable: true, hasLateSentinel: hasLateSentinel);
+  factory FlatTypeMask.subclass(ClassEntity base, JClosedWorld world,
+          {bool hasLateSentinel: false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subclass, world,
-          isNullable: true);
-  factory FlatTypeMask.subtype(ClassEntity base, JClosedWorld world) =>
+          isNullable: true, hasLateSentinel: hasLateSentinel);
+  factory FlatTypeMask.subtype(ClassEntity base, JClosedWorld world,
+          {bool hasLateSentinel: false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subtype, world,
-          isNullable: true);
+          isNullable: true, hasLateSentinel: hasLateSentinel);
 
-  factory FlatTypeMask.nonNullEmpty() => const FlatTypeMask._(null, _NONE_MASK);
+  factory FlatTypeMask.nonNullEmpty({bool hasLateSentinel: false}) =>
+      hasLateSentinel
+          ? const FlatTypeMask._(null, _LATE_SENTINEL_MASK)
+          : const FlatTypeMask._(null, _NONE_MASK);
 
-  factory FlatTypeMask.empty() => const FlatTypeMask._(null, _NULL_MASK);
+  factory FlatTypeMask.empty({bool hasLateSentinel: false}) => hasLateSentinel
+      ? const FlatTypeMask._(null, _NULL_MASK | _LATE_SENTINEL_MASK)
+      : const FlatTypeMask._(null, _NULL_MASK);
 
-  factory FlatTypeMask.nonNullExact(ClassEntity base, JClosedWorld world) =>
-      FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.exact, world);
-  factory FlatTypeMask.nonNullSubclass(ClassEntity base, JClosedWorld world) =>
-      FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subclass, world);
-  factory FlatTypeMask.nonNullSubtype(ClassEntity base, JClosedWorld world) =>
-      FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subtype, world);
+  factory FlatTypeMask.nonNullExact(ClassEntity base, JClosedWorld world,
+          {bool hasLateSentinel: false}) =>
+      FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.exact, world,
+          hasLateSentinel: hasLateSentinel);
+  factory FlatTypeMask.nonNullSubclass(ClassEntity base, JClosedWorld world,
+          {bool hasLateSentinel: false}) =>
+      FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subclass, world,
+          hasLateSentinel: hasLateSentinel);
+  factory FlatTypeMask.nonNullSubtype(ClassEntity base, JClosedWorld world,
+          {bool hasLateSentinel: false}) =>
+      FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subtype, world,
+          hasLateSentinel: hasLateSentinel);
 
   factory FlatTypeMask._canonicalize(
       ClassEntity base, _FlatTypeMaskKind kind, JClosedWorld world,
-      {bool isNullable: false}) {
+      {bool isNullable: false, bool hasLateSentinel: false}) {
     if (base == world.commonElements.nullClass) {
-      return FlatTypeMask.empty();
+      return FlatTypeMask.empty(hasLateSentinel: hasLateSentinel);
     }
-    return FlatTypeMask._(base, _computeFlags(kind, hasNull: isNullable));
+    return FlatTypeMask._(
+        base,
+        _computeFlags(kind,
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel));
   }
 
   const FlatTypeMask._(this.base, this.flags);
@@ -73,9 +97,10 @@ class FlatTypeMask extends TypeMask {
   /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
   factory FlatTypeMask.normalized(
       ClassEntity base, int flags, CommonMasks domain) {
-    bool isNullable = _hasNullFlag(flags);
+    bool isNullable = _hasNullableFlag(flags);
+    bool hasLateSentinel = _hasLateSentinelFlag(flags);
     if (base == domain.commonElements.nullClass) {
-      return FlatTypeMask.empty();
+      return FlatTypeMask.empty(hasLateSentinel: hasLateSentinel);
     }
     _FlatTypeMaskKind kind = _lookupKind(flags);
     if (kind == _FlatTypeMaskKind.empty || kind == _FlatTypeMaskKind.exact) {
@@ -84,12 +109,14 @@ class FlatTypeMask extends TypeMask {
     if (kind == _FlatTypeMaskKind.subtype) {
       if (!domain._closedWorld.classHierarchy.hasAnyStrictSubtype(base) ||
           domain._closedWorld.classHierarchy.hasOnlySubclasses(base)) {
-        flags = _computeFlags(_FlatTypeMaskKind.subclass, hasNull: isNullable);
+        flags = _computeFlags(_FlatTypeMaskKind.subclass,
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel);
       }
     }
     if (kind == _FlatTypeMaskKind.subclass &&
         !domain._closedWorld.classHierarchy.hasAnyStrictSubclass(base)) {
-      flags = _computeFlags(_FlatTypeMaskKind.exact, hasNull: isNullable);
+      flags = _computeFlags(_FlatTypeMaskKind.exact,
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     }
     return domain.getCachedMask(base, flags, () => FlatTypeMask._(base, flags));
   }
@@ -131,7 +158,17 @@ class FlatTypeMask extends TypeMask {
   @override
   bool get isExact => _kind == _FlatTypeMaskKind.exact;
   @override
-  bool get isNullable => _hasNullFlag(flags);
+  bool get isNullable => _hasNullableFlag(flags);
+  @override
+  bool get hasLateSentinel => _hasLateSentinelFlag(flags);
+  @override
+  AbstractBool get isLateSentinel {
+    if (!hasLateSentinel) return AbstractBool.False;
+    if (isEmptyOrFlagged && _mask == _LATE_SENTINEL_MASK) {
+      return AbstractBool.True;
+    }
+    return AbstractBool.Maybe;
+  }
 
   @override
   bool get isUnion => false;
@@ -155,8 +192,10 @@ class FlatTypeMask extends TypeMask {
   bool get isSubtype => _kind == _FlatTypeMaskKind.subtype;
 
   @override
-  FlatTypeMask withFlags({bool isNullable}) {
-    int newFlags = _computeFlags(_kind, hasNull: isNullable ?? this.isNullable);
+  FlatTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+    int newFlags = _computeFlags(_kind,
+        isNullable: isNullable ?? this.isNullable,
+        hasLateSentinel: hasLateSentinel ?? this.hasLateSentinel);
     if (newFlags == flags) return this;
     return FlatTypeMask._(base, newFlags);
   }
@@ -206,6 +245,9 @@ class FlatTypeMask extends TypeMask {
   bool isInMask(TypeMask other, JClosedWorld closedWorld) {
     // Quick check whether to handle null.
     if (isNullable && !other.isNullable) return false;
+    if (hasLateSentinel && !other.hasLateSentinel) {
+      return false;
+    }
     // The empty type contains no classes.
     if (isEmptyOrFlagged) return true;
     if (other.isEmptyOrFlagged) return false;
@@ -288,6 +330,7 @@ class FlatTypeMask extends TypeMask {
   ClassEntity singleClass(JClosedWorld closedWorld) {
     if (isEmptyOrFlagged) return null;
     if (isNullable) return null; // It is Null and some other class.
+    if (hasLateSentinel) return null;
     if (isExact) {
       return base;
     } else if (isSubclass) {
@@ -315,10 +358,13 @@ class FlatTypeMask extends TypeMask {
     if (other is! FlatTypeMask) return other.union(this, domain);
     FlatTypeMask flatOther = other;
     bool isNullable = this.isNullable || flatOther.isNullable;
+    bool hasLateSentinel = this.hasLateSentinel || flatOther.hasLateSentinel;
     if (isEmptyOrFlagged) {
-      return flatOther.withFlags(isNullable: isNullable);
+      return flatOther.withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     } else if (flatOther.isEmptyOrFlagged) {
-      return withFlags(isNullable: isNullable);
+      return withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     } else if (base == flatOther.base) {
       return unionSame(flatOther, domain);
     } else if (closedWorld.classHierarchy.isSubclassOf(flatOther.base, base)) {
@@ -332,7 +378,7 @@ class FlatTypeMask extends TypeMask {
     } else {
       return UnionTypeMask._internal(
           <FlatTypeMask>[withoutFlags(), flatOther.withoutFlags()],
-          isNullable: isNullable);
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
     }
   }
 
@@ -411,11 +457,14 @@ class FlatTypeMask extends TypeMask {
     ClassEntity otherBase = flatOther.base;
 
     bool includeNull = isNullable && flatOther.isNullable;
+    bool includeLateSentinel = hasLateSentinel && flatOther.hasLateSentinel;
 
     if (isEmptyOrFlagged) {
-      return withFlags(isNullable: includeNull);
+      return withFlags(
+          isNullable: includeNull, hasLateSentinel: includeLateSentinel);
     } else if (flatOther.isEmptyOrFlagged) {
-      return other.withFlags(isNullable: includeNull);
+      return other.withFlags(
+          isNullable: includeNull, hasLateSentinel: includeLateSentinel);
     }
 
     SubclassResult result = domain._closedWorld.classHierarchy
@@ -423,43 +472,58 @@ class FlatTypeMask extends TypeMask {
 
     switch (result.kind) {
       case SubclassResultKind.EMPTY:
-        return includeNull ? domain.nullType : domain.emptyType;
+        return includeNull
+            ? TypeMask.empty(hasLateSentinel: includeLateSentinel)
+            : TypeMask.nonNullEmpty(hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.EXACT1:
         assert(isExact);
-        return includeNull ? this : nonNullable();
+        return withFlags(
+            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.EXACT2:
         assert(other.isExact);
-        return includeNull ? other : other.nonNullable();
+        return other.withFlags(
+            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.SUBCLASS1:
         assert(isSubclass);
-        return includeNull ? this : nonNullable();
+        return withFlags(
+            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.SUBCLASS2:
         assert(flatOther.isSubclass);
-        return includeNull ? other : other.nonNullable();
+        return other.withFlags(
+            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.SUBTYPE1:
         assert(isSubtype);
-        return includeNull ? this : nonNullable();
+        return withFlags(
+            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.SUBTYPE2:
         assert(flatOther.isSubtype);
-        return includeNull ? other : other.nonNullable();
+        return other.withFlags(
+            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.SET:
       default:
         if (result.classes.isEmpty) {
-          return includeNull ? domain.nullType : domain.emptyType;
+          return includeNull
+              ? TypeMask.empty(hasLateSentinel: includeLateSentinel)
+              : TypeMask.nonNullEmpty(hasLateSentinel: includeLateSentinel);
         } else if (result.classes.length == 1) {
           ClassEntity cls = result.classes.first;
           return includeNull
-              ? TypeMask.subclass(cls, domain._closedWorld)
-              : TypeMask.nonNullSubclass(cls, domain._closedWorld);
+              ? TypeMask.subclass(cls, domain._closedWorld,
+                  hasLateSentinel: includeLateSentinel)
+              : TypeMask.nonNullSubclass(cls, domain._closedWorld,
+                  hasLateSentinel: includeLateSentinel);
         }
 
         List<FlatTypeMask> masks = List.from(result.classes.map(
             (ClassEntity cls) =>
                 TypeMask.nonNullSubclass(cls, domain._closedWorld)));
         if (masks.length > UnionTypeMask.MAX_UNION_LENGTH) {
-          return UnionTypeMask.flatten(masks, domain, includeNull: includeNull);
+          return UnionTypeMask.flatten(masks, domain,
+              includeNull: includeNull,
+              includeLateSentinel: includeLateSentinel);
         }
-        return UnionTypeMask._internal(masks, isNullable: includeNull);
+        return UnionTypeMask._internal(masks,
+            isNullable: includeNull, hasLateSentinel: includeLateSentinel);
     }
   }
 
@@ -469,6 +533,7 @@ class FlatTypeMask extends TypeMask {
     FlatTypeMask flatOther = other;
 
     if (isNullable && flatOther.isNullable) return false;
+    if (hasLateSentinel && flatOther.hasLateSentinel) return false;
     if (isEmptyOrFlagged || flatOther.isEmptyOrFlagged) return true;
     if (base == flatOther.base) return false;
     if (isExact && flatOther.isExact) return true;
@@ -548,7 +613,10 @@ class FlatTypeMask extends TypeMask {
 
   TypeMask intersectionEmpty(FlatTypeMask other) {
     bool isNullable = this.isNullable && other.isNullable;
-    return isNullable ? TypeMask.empty() : TypeMask.nonNullEmpty();
+    bool hasLateSentinel = this.hasLateSentinel && other.hasLateSentinel;
+    return isNullable
+        ? TypeMask.empty(hasLateSentinel: hasLateSentinel)
+        : TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
   }
 
   @override
@@ -651,6 +719,7 @@ class FlatTypeMask extends TypeMask {
     buffer.writeAll([
       if (isEmpty) 'empty',
       if (isNullable) 'null',
+      if (hasLateSentinel) 'sentinel',
       if (isExact) 'exact=${base.name}',
       if (isSubclass) 'subclass=${base.name}',
       if (isSubtype) 'subtype=${base.name}',

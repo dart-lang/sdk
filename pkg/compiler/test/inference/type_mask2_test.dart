@@ -35,6 +35,7 @@ checkMasks(JClosedWorld closedWorld, List<ClassEntity> allClasses,
     List<ClassEntity> containedClasses}) {
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   bool isNullable = masks.any((FlatTypeMask mask) => mask.isNullable);
+  bool hasLateSentinel = masks.any((FlatTypeMask mask) => mask.hasLateSentinel);
   List<FlatTypeMask> disjoint = <FlatTypeMask>[];
   UnionTypeMask.unionOfHelper(masks, disjoint, commonMasks);
   Expect.listEquals(disjointMasks, disjoint,
@@ -42,12 +43,12 @@ checkMasks(JClosedWorld closedWorld, List<ClassEntity> allClasses,
   if (flattened == null) {
     Expect.throws(
         () => UnionTypeMask.flatten(disjoint, commonMasks,
-            includeNull: isNullable),
+            includeNull: isNullable, includeLateSentinel: hasLateSentinel),
         (e) => e is ArgumentError,
         'Expect argument error on flattening of $disjoint.');
   } else {
-    TypeMask flattenResult =
-        UnionTypeMask.flatten(disjoint, commonMasks, includeNull: isNullable);
+    TypeMask flattenResult = UnionTypeMask.flatten(disjoint, commonMasks,
+        includeNull: isNullable, includeLateSentinel: hasLateSentinel);
     Expect.equals(
         flattened,
         flattenResult,
@@ -122,11 +123,20 @@ Future testUnionTypeMaskFlatten() async {
   }
 
   TypeMask empty = TypeMask.nonNullEmpty();
+  TypeMask sentinel = TypeMask.nonNullEmpty(hasLateSentinel: true);
   TypeMask subclassObject = TypeMask.nonNullSubclass(Object_, closedWorld);
+  TypeMask subclassObjectOrSentinel =
+      TypeMask.nonNullSubclass(Object_, closedWorld, hasLateSentinel: true);
   TypeMask exactA = TypeMask.nonNullExact(A, closedWorld);
+  TypeMask exactAOrSentinel =
+      TypeMask.nonNullExact(A, closedWorld, hasLateSentinel: true);
   TypeMask subclassA = TypeMask.nonNullSubclass(A, closedWorld);
   TypeMask subtypeA = TypeMask.nonNullSubtype(A, closedWorld);
+  TypeMask subtypeAOrSentinel =
+      TypeMask.nonNullSubtype(A, closedWorld, hasLateSentinel: true);
   TypeMask exactB = TypeMask.nonNullExact(B, closedWorld);
+  TypeMask exactBOrSentinel =
+      TypeMask.nonNullExact(B, closedWorld, hasLateSentinel: true);
   TypeMask subclassB = TypeMask.nonNullSubclass(B, closedWorld);
   TypeMask exactC = TypeMask.nonNullExact(C, closedWorld);
   TypeMask exactD = TypeMask.nonNullExact(D, closedWorld);
@@ -214,6 +224,52 @@ Future testUnionTypeMaskFlatten() async {
       disjointMasks: [subclassB, exactA],
       flattened: subclassObject,
       containedClasses: [A, B, E]);
+
+  check([sentinel],
+      result: sentinel,
+      disjointMasks: const [],
+      flattened: null,
+      containedClasses: const []);
+
+  check([sentinel, sentinel],
+      result: sentinel,
+      disjointMasks: const [],
+      flattened: null,
+      containedClasses: const []);
+
+  check([empty, sentinel],
+      result: sentinel,
+      disjointMasks: const [],
+      flattened: null,
+      containedClasses: const []);
+
+  check([sentinel, empty],
+      result: sentinel,
+      disjointMasks: const [],
+      flattened: null,
+      containedClasses: const []);
+
+  check([exactAOrSentinel],
+      result: exactAOrSentinel,
+      disjointMasks: [exactA],
+      flattened: subtypeAOrSentinel, // TODO(37602): Imprecise.
+      containedClasses: [A]);
+
+  check([exactA, exactAOrSentinel],
+      result: exactAOrSentinel,
+      disjointMasks: [exactA],
+      flattened: subtypeAOrSentinel, // TODO(37602): Imprecise.
+      containedClasses: [A]);
+
+  check([exactAOrSentinel, exactB],
+      disjointMasks: [exactA, exactB],
+      flattened: subclassObjectOrSentinel,
+      containedClasses: [A, B]);
+
+  check([exactAOrSentinel, exactBOrSentinel],
+      disjointMasks: [exactA, exactB],
+      flattened: subclassObjectOrSentinel,
+      containedClasses: [A, B]);
 }
 
 Future testStringSubtypes() async {

@@ -53,13 +53,19 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  SetTypeMask withFlags({bool isNullable}) {
+  SetTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
     isNullable ??= this.isNullable;
-    if (isNullable == this.isNullable) {
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
       return this;
     }
-    return SetTypeMask(forwardTo.withFlags(isNullable: isNullable),
-        allocationNode, allocationElement, elementType);
+    return SetTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        allocationNode,
+        allocationElement,
+        elementType);
   }
 
   @override
@@ -70,8 +76,9 @@ class SetTypeMask extends AllocationTypeMask {
 
   @override
   TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable}) {
+      {bool isNullable, bool hasLateSentinel}) {
     assert(isNullable != null);
+    assert(hasLateSentinel != null);
     if (other is SetTypeMask &&
         elementType != null &&
         other.elementType != null) {

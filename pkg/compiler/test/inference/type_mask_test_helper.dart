@@ -17,7 +17,8 @@ AbstractValue simplify(AbstractValue value, AbstractValueDomain domain) {
     return simplify(value.forwardTo, domain);
   } else if (value is UnionTypeMask) {
     return UnionTypeMask.flatten(value.disjointMasks, domain,
-        includeNull: value.isNullable);
+        includeNull: value.isNullable,
+        includeLateSentinel: value.hasLateSentinel);
   } else {
     return value;
   }

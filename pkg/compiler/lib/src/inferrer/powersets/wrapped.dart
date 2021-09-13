@@ -49,6 +49,10 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
   const WrappedAbstractValueDomain(this._abstractValueDomain);
 
   @override
+  AbstractValue get internalTopType =>
+      WrappedAbstractValue(_abstractValueDomain.internalTopType);
+
+  @override
   AbstractValue get dynamicType =>
       WrappedAbstractValue(_abstractValueDomain.dynamicType);
 
@@ -399,6 +403,10 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       _abstractValueDomain.isNull(value._abstractValue);
 
   @override
+  AbstractBool isLateSentinel(covariant WrappedAbstractValue value) =>
+      _abstractValueDomain.isLateSentinel(value._abstractValue);
+
+  @override
   ClassEntity getExactClass(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.getExactClass(value._abstractValue);
 
@@ -439,6 +447,16 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
   AbstractValue excludeNull(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
           _abstractValueDomain.excludeNull(value._abstractValue));
+
+  @override
+  AbstractValue includeLateSentinel(covariant WrappedAbstractValue value) =>
+      WrappedAbstractValue(
+          _abstractValueDomain.includeLateSentinel(value._abstractValue));
+
+  @override
+  AbstractValue excludeLateSentinel(covariant WrappedAbstractValue value) =>
+      WrappedAbstractValue(
+          _abstractValueDomain.excludeLateSentinel(value._abstractValue));
 
   @override
   AbstractBool couldBeTypedArray(covariant WrappedAbstractValue value) =>
@@ -536,6 +554,10 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
   @override
   AbstractValue get nonNullType =>
       WrappedAbstractValue(_abstractValueDomain.nonNullType);
+
+  @override
+  AbstractValue get lateSentinelType =>
+      WrappedAbstractValue(_abstractValueDomain.lateSentinelType);
 
   @override
   AbstractValue get mapType =>
