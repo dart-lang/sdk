@@ -28,6 +28,7 @@ DartLinter buildDriver(LintRule? rule, File file, {String? analysisOptions}) {
   }
 
   var options = LinterOptions([rule!], analysisOptions)
+    ..dartSdkPath = sdkRoot
     ..mockSdk = MockSdk(resourceProvider: memoryResourceProvider)
     ..resourceProvider = resourceProvider
     ..packageConfigPath = packageConfigPath;

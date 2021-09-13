@@ -120,6 +120,9 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   }
 
   var packageConfigFile = options['packages'] as String?;
+  packageConfigFile = packageConfigFile != null
+      ? _absoluteNormalizedPath(packageConfigFile)
+      : null;
 
   var stats = options['stats'] as bool;
   var benchmark = options['benchmark'] as bool;
@@ -133,7 +136,11 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   var filesToLint = <File>[];
   for (var path in options.rest) {
-    filesToLint.addAll(collectFiles(path));
+    filesToLint.addAll(
+      collectFiles(path)
+          .map((file) => _absoluteNormalizedPath(file.path))
+          .map((path) => File(path)),
+    );
   }
 
   if (benchmark) {
@@ -166,4 +173,11 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 $err
 $stack''');
   }
+}
+
+String _absoluteNormalizedPath(String path) {
+  var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+  return pathContext.normalize(
+    pathContext.absolute(path),
+  );
 }
