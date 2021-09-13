@@ -195,6 +195,38 @@ dynamic callConstructor(Object constr, List<Object?>? arguments) {
   //     return _wrapToDart(jsObj);
 }
 
+/// Unchecked version for 0 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callConstructorUnchecked0(Object constr) {
+  return JS('Object', 'new #()', constr);
+}
+
+/// Unchecked version for 1 argument, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callConstructorUnchecked1(Object constr, Object? arg1) {
+  return JS('Object', 'new #(#)', constr, arg1);
+}
+
+/// Unchecked version for 2 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callConstructorUnchecked2(Object constr, Object? arg1, Object? arg2) {
+  return JS('Object', 'new #(#, #)', constr, arg1, arg2);
+}
+
+/// Unchecked version for 3 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callConstructorUnchecked3(
+    Object constr, Object? arg1, Object? arg2, Object? arg3) {
+  return JS('Object', 'new #(#, #, #)', constr, arg1, arg2, arg3);
+}
+
+/// Unchecked version for 4 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callConstructorUnchecked4(
+    Object constr, Object? arg1, Object? arg2, Object? arg3, Object? arg4) {
+  return JS('Object', 'new #(#, #, #, #)', constr, arg1, arg2, arg3, arg4);
+}
+
 /// Exception for when the promise is rejected with a `null` or `undefined`
 /// value.
 ///

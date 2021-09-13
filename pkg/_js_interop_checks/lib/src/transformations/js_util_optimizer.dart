@@ -14,6 +14,8 @@ class JsUtilOptimizer extends Transformer {
   final Procedure _jsTarget;
   final Procedure _callMethodTarget;
   final List<Procedure> _callMethodUncheckedTargets;
+  final Procedure _callConstructorTarget;
+  final List<Procedure> _callConstructorUncheckedTargets;
   final Procedure _getPropertyTarget;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
@@ -43,6 +45,12 @@ class JsUtilOptimizer extends Transformer {
             5,
             (i) => _coreTypes.index.getTopLevelProcedure(
                 'dart:js_util', '_callMethodUnchecked$i')),
+        _callConstructorTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'callConstructor'),
+        _callConstructorUncheckedTargets = List<Procedure>.generate(
+            5,
+            (i) => _coreTypes.index.getTopLevelProcedure(
+                'dart:js_util', '_callConstructorUnchecked$i')),
         _getPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'getProperty'),
         _setPropertyTarget = _coreTypes.index
@@ -90,6 +98,8 @@ class JsUtilOptimizer extends Transformer {
       node = _lowerSetProperty(node);
     } else if (node.target == _callMethodTarget) {
       node = _lowerCallMethod(node);
+    } else if (node.target == _callConstructorTarget) {
+      node = _lowerCallConstructor(node);
     }
     node.transformChildren(this);
     return node;
@@ -147,70 +157,102 @@ class JsUtilOptimizer extends Transformer {
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
 
-    // Lower List.empty factory call.
-    var argumentsList = arguments.positional.last;
+    return _lowerToCallUnchecked(
+        node, _callMethodUncheckedTargets, arguments.positional.sublist(0, 2));
+  }
+
+  /// Lowers the given js_util `callConstructor` call to `_callConstructorUncheckedN`
+  /// when the additional validation checks on the arguments can be elided.
+  ///
+  /// Calls will be lowered when using a List literal or constant list with 0-4
+  /// elements for the `callConstructor` arguments, or the `List.empty()` factory.
+  /// Removing the checks allows further inlining by the compilers.
+  StaticInvocation _lowerCallConstructor(StaticInvocation node) {
+    Arguments arguments = node.arguments;
+    assert(arguments.types.isEmpty);
+    assert(arguments.positional.length == 2);
+    assert(arguments.named.isEmpty);
+
+    return _lowerToCallUnchecked(
+        node, _callConstructorUncheckedTargets, [arguments.positional.first]);
+  }
+
+  /// Helper to lower the given [node] to the relevant unchecked target in the
+  /// [callUncheckedTargets] based on whether the validation checks on the
+  /// [originalArguments] can be elided.
+  ///
+  /// Calls will be lowered when using a List literal or constant list with 0-4
+  /// arguments, or the `List.empty()` factory. Removing the checks allows further
+  /// inlining by the compilers.
+  StaticInvocation _lowerToCallUnchecked(
+      StaticInvocation node,
+      List<Procedure> callUncheckedTargets,
+      List<Expression> originalArguments) {
+    var argumentsList = node.arguments.positional.last;
+    // Lower arguments in a List.empty factory call.
     if (argumentsList is StaticInvocation &&
         argumentsList.target == _listEmptyFactory) {
-      return _createNewCallMethodNode([], arguments, node.fileOffset);
+      return _createCallUncheckedNode(callUncheckedTargets, [],
+          originalArguments, node.fileOffset, node.arguments.fileOffset);
     }
 
-    // Lower other kinds of Lists.
-    var callMethodArguments;
+    // Lower arguments in other kinds of Lists.
+    var callUncheckedArguments;
     var entryType;
     if (argumentsList is ListLiteral) {
-      if (argumentsList.expressions.length >=
-          _callMethodUncheckedTargets.length) {
+      if (argumentsList.expressions.length >= callUncheckedTargets.length) {
         return node;
       }
-      callMethodArguments = argumentsList.expressions;
+      callUncheckedArguments = argumentsList.expressions;
       entryType = argumentsList.typeArgument;
     } else if (argumentsList is ConstantExpression &&
         argumentsList.constant is ListConstant) {
       var argumentsListConstant = argumentsList.constant as ListConstant;
-      if (argumentsListConstant.entries.length >=
-          _callMethodUncheckedTargets.length) {
+      if (argumentsListConstant.entries.length >= callUncheckedTargets.length) {
         return node;
       }
-      callMethodArguments = argumentsListConstant.entries
+      callUncheckedArguments = argumentsListConstant.entries
           .map((constant) => ConstantExpression(
               constant, constant.getType(_staticTypeContext)))
           .toList();
       entryType = argumentsListConstant.typeArgument;
     } else {
-      // Skip lowering any other type of List.
+      // Skip lowering arguments in any other type of List.
       return node;
     }
 
-    // Check the overall List entry type, then verify each argument if needed.
+    // Check the arguments List type, then verify each argument if needed.
     if (!_allowedInteropType(entryType)) {
-      for (var argument in callMethodArguments) {
+      for (var argument in callUncheckedArguments) {
         if (!_allowedInterop(argument)) {
           return node;
         }
       }
     }
 
-    return _createNewCallMethodNode(
-        callMethodArguments, arguments, node.fileOffset);
+    return _createCallUncheckedNode(
+        callUncheckedTargets,
+        callUncheckedArguments,
+        originalArguments,
+        node.fileOffset,
+        node.arguments.fileOffset);
   }
 
-  /// Creates a new StaticInvocation node for `_callMethodUncheckedN` with the
-  /// given 0-4 arguments.
-  StaticInvocation _createNewCallMethodNode(
-      List<Expression> callMethodArguments,
-      Arguments arguments,
-      int nodeFileOffset) {
-    assert(callMethodArguments.length <= 4);
+  /// Creates a new StaticInvocation node for the relevant unchecked target
+  /// with the given 0-4 arguments.
+  StaticInvocation _createCallUncheckedNode(
+      List<Procedure> callUncheckedTargets,
+      List<Expression> callUncheckedArguments,
+      List<Expression> originalArguments,
+      int nodeFileOffset,
+      int argumentsFileOffset) {
+    assert(callUncheckedArguments.length <= 4);
     return StaticInvocation(
-        _callMethodUncheckedTargets[callMethodArguments.length],
+        callUncheckedTargets[callUncheckedArguments.length],
         Arguments(
-          [
-            arguments.positional[0],
-            arguments.positional[1],
-            ...callMethodArguments
-          ],
+          [...originalArguments, ...callUncheckedArguments],
           types: [],
-        )..fileOffset = arguments.fileOffset)
+        )..fileOffset = argumentsFileOffset)
       ..fileOffset = nodeFileOffset;
   }
 
