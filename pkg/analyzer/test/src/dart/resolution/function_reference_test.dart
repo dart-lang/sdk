@@ -109,6 +109,50 @@ bar() {
         findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
+  test_extension() async {
+    await assertErrorsInCode('''
+extension E<T> on String {}
+
+void foo() {
+  E<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 44, 1),
+    ]);
+
+    var reference = findNode.functionReference('E<int>;');
+    assertFunctionReference(
+      reference,
+      findElement.extension_('E'),
+      'dynamic',
+    );
+  }
+
+  test_extension_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E<T> on String {}
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as a;
+
+void foo() {
+  a.E<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 38, 3),
+    ]);
+
+    assertImportPrefix(findNode.simple('a.E'), findElement.prefix('a'));
+    var reference = findNode.functionReference('E<int>;');
+    assertFunctionReference(
+      reference,
+      findElement.importFind('package:test/a.dart').extension_('E'),
+      'dynamic',
+    );
+  }
+
   test_extensionGetter_extensionOverride() async {
     await assertErrorsInCode('''
 class A {}

@@ -387,7 +387,8 @@ class FunctionReferenceResolver {
         );
 
         if (methodElement == null) {
-          // TODO(srawlins): Can we get here?
+          // The target is known, but the method is not; [UNDEFINED_GETTER] is
+          // reported elsewhere.
           node.staticType = DynamicTypeImpl.instance;
           return;
         } else {
@@ -395,7 +396,7 @@ class FunctionReferenceResolver {
           return;
         }
       } else {
-        // TODO(srawlins): Can we get here?
+        // The prefix is unknown; [UNDEFINED_IDENTIFIER] is reported elsewhere.
         node.staticType = DynamicTypeImpl.instance;
         return;
       }
@@ -440,7 +441,7 @@ class FunctionReferenceResolver {
   void _resolveReceiverPrefix(
     FunctionReferenceImpl node,
     PrefixElement prefixElement,
-    PrefixedIdentifier prefix,
+    PrefixedIdentifierImpl prefix,
     Element element,
   ) {
     if (element is MultiplyDefinedElement) {
@@ -477,10 +478,19 @@ class FunctionReferenceResolver {
         name: element.name,
       );
       return;
+    } else if (element is ExtensionElement) {
+      prefix.identifier.staticElement = element;
+      prefix.identifier.staticType = DynamicTypeImpl.instance;
+      prefix.staticType = DynamicTypeImpl.instance;
+      _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
+      return;
     }
 
-    // TODO(srawlins): Report undefined prefixed identifier.
-
+    assert(
+      false,
+      'Member of prefixed element, $prefixElement, is not a class, mixin, '
+      'type alias, or executable element: $element (${element.runtimeType})',
+    );
     node.staticType = DynamicTypeImpl.instance;
   }
 
@@ -589,6 +599,11 @@ class FunctionReferenceResolver {
       function.staticElement = element;
       function.staticType = element.type;
       _resolve(node: node, rawType: element.type);
+      return;
+    } else if (element is ExtensionElement) {
+      function.staticElement = element;
+      function.staticType = DynamicTypeImpl.instance;
+      _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
       return;
     } else {
       _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
