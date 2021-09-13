@@ -11172,7 +11172,8 @@ ErrorPtr Field::InitializeStatic() const {
 }
 
 ObjectPtr Field::StaticConstFieldValue() const {
-  ASSERT(is_static() && is_const());
+  ASSERT(is_static() &&
+         (is_const() || (is_final() && has_trivial_initializer())));
 
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -11183,7 +11184,11 @@ ObjectPtr Field::StaticConstFieldValue() const {
   auto& value = Object::Handle(
       zone, initial_field_table->At(field_id(), /*concurrent_use=*/true));
   if (value.ptr() == Object::sentinel().ptr()) {
+    // Fields with trivial initializers get their initial value
+    // eagerly when they are registered.
+    ASSERT(is_const());
     ASSERT(has_initializer());
+    ASSERT(has_nontrivial_initializer());
     value = EvaluateInitializer();
     if (!value.IsError()) {
       ASSERT(value.IsNull() || value.IsInstance());

@@ -552,7 +552,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
 
   const char* kScript = R"(
     const y = 0xDEADBEEF;
-    final int x = 0xFEEDFEED;
+    final int x = int.parse('0xFEEDFEED');
 
     void main(List<String> args) {
       print(x);

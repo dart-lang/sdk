@@ -2776,6 +2776,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
              Class::Handle(field.Owner()).Name() == Symbols::ClassID().ptr());
       return Constant(Instance::ZoneHandle(
           Z, Instance::RawCast(field.StaticConstFieldValue())));
+    } else if (field.is_final() && field.has_trivial_initializer()) {
+      // Final fields with trivial initializers are effectively constant.
+      return Constant(Instance::ZoneHandle(
+          Z, Instance::RawCast(field.StaticConstFieldValue())));
     } else {
       const Class& owner = Class::Handle(Z, field.Owner());
       const String& getter_name = H.DartGetterName(target);

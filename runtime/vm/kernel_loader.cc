@@ -881,7 +881,8 @@ void KernelLoader::CheckForInitializer(const Field& field) {
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);
-    if (!has_simple_initializer || !converter.SimpleValue().IsNull()) {
+    if (!has_simple_initializer ||
+        (!field.is_static() && !converter.SimpleValue().IsNull())) {
       field.set_has_nontrivial_initializer(true);
     }
     return;
