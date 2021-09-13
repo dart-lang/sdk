@@ -648,7 +648,7 @@ class TypeSystem {
     // mapped iterable, we save the intermediate results to avoid computing them
     // again.
     var list = [];
-    bool isDynamicIngoringNull = false;
+    bool isDynamicIgnoringNull = false;
     bool mayBeNull = false;
     for (AbstractValue mask in masks) {
       // Don't do any work on computing unions if we know that after all that
@@ -656,12 +656,12 @@ class TypeSystem {
       // TODO(sigmund): change to `mask == dynamicType` so we can continue to
       // track the non-nullable bit.
       if (_abstractValueDomain.containsAll(mask).isPotentiallyTrue) {
-        isDynamicIngoringNull = true;
+        isDynamicIgnoringNull = true;
       }
       if (_abstractValueDomain.isNull(mask).isPotentiallyTrue) {
         mayBeNull = true;
       }
-      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
+      if (isDynamicIgnoringNull && mayBeNull) return dynamicType;
       list.add(mask);
     }
 
@@ -671,12 +671,12 @@ class TypeSystem {
           newType == null ? mask : _abstractValueDomain.union(newType, mask);
       // Likewise - stop early if we already reach dynamic.
       if (_abstractValueDomain.containsAll(newType).isPotentiallyTrue) {
-        isDynamicIngoringNull = true;
+        isDynamicIgnoringNull = true;
       }
       if (_abstractValueDomain.isNull(newType).isPotentiallyTrue) {
         mayBeNull = true;
       }
-      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
+      if (isDynamicIgnoringNull && mayBeNull) return dynamicType;
     }
 
     return newType ?? _abstractValueDomain.emptyType;

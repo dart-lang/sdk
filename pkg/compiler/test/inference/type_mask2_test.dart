@@ -41,12 +41,13 @@ checkMasks(JClosedWorld closedWorld, List<ClassEntity> allClasses,
       'Unexpected disjoint masks: $disjoint, expected $disjointMasks.');
   if (flattened == null) {
     Expect.throws(
-        () => UnionTypeMask.flatten(disjoint, isNullable, commonMasks),
+        () => UnionTypeMask.flatten(disjoint, commonMasks,
+            includeNull: isNullable),
         (e) => e is ArgumentError,
         'Expect argument error on flattening of $disjoint.');
   } else {
     TypeMask flattenResult =
-        UnionTypeMask.flatten(disjoint, isNullable, commonMasks);
+        UnionTypeMask.flatten(disjoint, commonMasks, includeNull: isNullable);
     Expect.equals(
         flattened,
         flattenResult,
@@ -120,16 +121,16 @@ Future testUnionTypeMaskFlatten() async {
         containedClasses: containedClasses);
   }
 
-  TypeMask empty = const TypeMask.nonNullEmpty();
-  TypeMask subclassObject = new TypeMask.nonNullSubclass(Object_, closedWorld);
-  TypeMask exactA = new TypeMask.nonNullExact(A, closedWorld);
-  TypeMask subclassA = new TypeMask.nonNullSubclass(A, closedWorld);
-  TypeMask subtypeA = new TypeMask.nonNullSubtype(A, closedWorld);
-  TypeMask exactB = new TypeMask.nonNullExact(B, closedWorld);
-  TypeMask subclassB = new TypeMask.nonNullSubclass(B, closedWorld);
-  TypeMask exactC = new TypeMask.nonNullExact(C, closedWorld);
-  TypeMask exactD = new TypeMask.nonNullExact(D, closedWorld);
-  TypeMask exactE = new TypeMask.nonNullExact(E, closedWorld);
+  TypeMask empty = TypeMask.nonNullEmpty();
+  TypeMask subclassObject = TypeMask.nonNullSubclass(Object_, closedWorld);
+  TypeMask exactA = TypeMask.nonNullExact(A, closedWorld);
+  TypeMask subclassA = TypeMask.nonNullSubclass(A, closedWorld);
+  TypeMask subtypeA = TypeMask.nonNullSubtype(A, closedWorld);
+  TypeMask exactB = TypeMask.nonNullExact(B, closedWorld);
+  TypeMask subclassB = TypeMask.nonNullSubclass(B, closedWorld);
+  TypeMask exactC = TypeMask.nonNullExact(C, closedWorld);
+  TypeMask exactD = TypeMask.nonNullExact(D, closedWorld);
+  TypeMask exactE = TypeMask.nonNullExact(E, closedWorld);
 
   check([],
       result: empty,
@@ -241,11 +242,10 @@ Future testStringSubtypes() async {
   Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(JSString));
   Expect.isTrue(closedWorld.classHierarchy.isInstantiated(JSString));
 
-  TypeMask subtypeString = new TypeMask.nonNullSubtype(String_, closedWorld);
-  TypeMask exactJSString = new TypeMask.nonNullExact(JSString, closedWorld);
-  TypeMask subtypeJSString = new TypeMask.nonNullSubtype(JSString, closedWorld);
-  TypeMask subclassJSString =
-      new TypeMask.nonNullSubclass(JSString, closedWorld);
+  TypeMask subtypeString = TypeMask.nonNullSubtype(String_, closedWorld);
+  TypeMask exactJSString = TypeMask.nonNullExact(JSString, closedWorld);
+  TypeMask subtypeJSString = TypeMask.nonNullSubtype(JSString, closedWorld);
+  TypeMask subclassJSString = TypeMask.nonNullSubclass(JSString, closedWorld);
 
   Expect.equals(exactJSString, subtypeString);
   Expect.equals(exactJSString, subtypeJSString);

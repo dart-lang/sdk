@@ -299,10 +299,6 @@ abstract class AbstractValueDomain {
   /// exact class at runtime.
   AbstractBool isExact(covariant AbstractValue value);
 
-  /// Returns an [AbstractBool] that describes whether [value] is an exact class
-  /// or `null` at runtime.
-  AbstractBool isExactOrNull(covariant AbstractValue value);
-
   /// Returns the [ClassEntity] if this [value] is a non-null instance of an
   /// exact class at runtime, and `null` otherwise.
   ClassEntity getExactClass(covariant AbstractValue value);
@@ -322,10 +318,6 @@ abstract class AbstractValueDomain {
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// bool at runtime.
   AbstractBool isPrimitiveBoolean(covariant AbstractValue value);
-
-  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
-  /// array at runtime.
-  AbstractBool isPrimitiveArray(covariant AbstractValue value);
 
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// string, array, native HTML list or `null` at runtime.

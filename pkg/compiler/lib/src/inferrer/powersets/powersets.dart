@@ -528,12 +528,6 @@ class PowersetDomain implements AbstractValueDomain {
           _abstractValueDomain.isIndexablePrimitive(value._abstractValue));
 
   @override
-  AbstractBool isPrimitiveArray(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-          _powersetBitsDomain.isPrimitiveArray(value._powersetBits),
-          _abstractValueDomain.isPrimitiveArray(value._abstractValue));
-
-  @override
   AbstractBool isPrimitiveBoolean(covariant PowersetValue value) =>
       AbstractBool.strengthen(
           _powersetBitsDomain.isPrimitiveBoolean(value._powersetBits),
@@ -559,12 +553,6 @@ class PowersetDomain implements AbstractValueDomain {
   @override
   ClassEntity getExactClass(covariant PowersetValue value) =>
       _abstractValueDomain.getExactClass(value._abstractValue);
-
-  @override
-  AbstractBool isExactOrNull(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-          _powersetBitsDomain.isExactOrNull(value._powersetBits),
-          _abstractValueDomain.isExactOrNull(value._abstractValue));
 
   @override
   AbstractBool isExact(covariant PowersetValue value) =>

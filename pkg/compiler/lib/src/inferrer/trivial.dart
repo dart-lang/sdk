@@ -275,9 +275,6 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isIndexablePrimitive(AbstractValue value) => AbstractBool.Maybe;
 
   @override
-  AbstractBool isPrimitiveArray(AbstractValue value) => AbstractBool.Maybe;
-
-  @override
   AbstractBool isPrimitiveBoolean(AbstractValue value) => AbstractBool.Maybe;
 
   @override
@@ -291,9 +288,6 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   ClassEntity getExactClass(AbstractValue value) => null;
-
-  @override
-  AbstractBool isExactOrNull(AbstractValue value) => AbstractBool.Maybe;
 
   @override
   AbstractBool isExact(AbstractValue value) => AbstractBool.Maybe;

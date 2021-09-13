@@ -281,8 +281,6 @@ class PowersetBitsDomain {
 
   AbstractBool isIndexablePrimitive(int value) => isOther(value);
 
-  AbstractBool isPrimitiveArray(int value) => isOther(value);
-
   AbstractBool isPrimitiveBoolean(int value) {
     if (isDefinitelyTrue(value) || isDefinitelyFalse(value)) {
       return AbstractBool.True;
@@ -299,8 +297,6 @@ class PowersetBitsDomain {
   AbstractBool isNull(int value) => isDefinitelyNull(value)
       ? AbstractBool.True
       : (isPotentiallyNull(value) ? AbstractBool.Maybe : AbstractBool.False);
-
-  AbstractBool isExactOrNull(int value) => AbstractBool.Maybe;
 
   AbstractBool isExact(int value) => AbstractBool.Maybe;
 

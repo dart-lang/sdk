@@ -383,10 +383,6 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       _abstractValueDomain.isIndexablePrimitive(value._abstractValue);
 
   @override
-  AbstractBool isPrimitiveArray(covariant WrappedAbstractValue value) =>
-      _abstractValueDomain.isPrimitiveArray(value._abstractValue);
-
-  @override
   AbstractBool isPrimitiveBoolean(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.isPrimitiveBoolean(value._abstractValue);
 
@@ -405,10 +401,6 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
   @override
   ClassEntity getExactClass(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.getExactClass(value._abstractValue);
-
-  @override
-  AbstractBool isExactOrNull(covariant WrappedAbstractValue value) =>
-      _abstractValueDomain.isExactOrNull(value._abstractValue);
 
   @override
   AbstractBool isExact(covariant WrappedAbstractValue value) =>
