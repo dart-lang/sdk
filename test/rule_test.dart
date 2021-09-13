@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -271,8 +272,14 @@ analyzer:
         var optionMap = optionsProvider.getOptionsFromString(analysisOptions);
         var optionsImpl = AnalysisOptionsImpl();
         applyToAnalysisOptions(optionsImpl, optionMap);
-        var featureSet = optionsImpl.contextFeatures;
-        Spelunker(file.absolute.path, featureSet: featureSet).spelunk();
+
+        // todo(pq): replace w/ `contextFeatures` when analyzer latestSdkLanguageVersion is updated to 2.14.0
+        var features = FeatureSet.forTesting(
+            sdkVersion: '2.14.0',
+            additionalFeatures: [Feature.constructor_tearoffs]);
+        // var features = optionsImpl.contextFeatures;
+
+        Spelunker(file.absolute.path, featureSet: features).spelunk();
         print('');
         // Lints.
         ResultReporter(lints).write();
