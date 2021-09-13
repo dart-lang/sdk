@@ -66,13 +66,13 @@ class AlwaysDeclareReturnTypes extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   static const LintCode functionCode = LintCode(
       "always_declare_return_types", // ignore: prefer_single_quotes
-      "The function {0} should have a return type but doesn't.",
+      "The function '{0}' should have a return type but doesn't.",
       correction:
           "Try adding a return type to the function."); // ignore: prefer_single_quotes
 
   static const LintCode methodCode = LintCode(
       "always_declare_return_types", // ignore: prefer_single_quotes
-      "The method {0} should have a return type but doesn't.",
+      "The method '{0}' should have a return type but doesn't.",
       correction:
           "Try adding a return type to the method."); // ignore: prefer_single_quotes
 
