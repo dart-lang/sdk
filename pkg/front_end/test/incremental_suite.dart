@@ -26,7 +26,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag, experimentEnabledVersion;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
-    show MemoryFileSystem;
+    show MemoryFileSystem, MemoryFileSystemEntity;
 
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 
@@ -308,7 +308,7 @@ Future<Map<String, List<int>>> createModules(
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
-  MemoryFileSystem fs = new MemoryFileSystem(base);
+  TestMemoryFileSystem fs = new TestMemoryFileSystem(base);
   fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
 
   // Setup all sources
@@ -508,7 +508,7 @@ class NewWorldTest {
       }
 
       if (brandNewWorld) {
-        fs = new MemoryFileSystem(base);
+        fs = new TestMemoryFileSystem(base);
       }
       fs!.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
       bool expectInitializeFromDill = false;
@@ -1989,5 +1989,21 @@ void doSimulateTransformer(Component c) {
           fileUri: c.fileUri);
       c.addField(field);
     }
+  }
+}
+
+class TestMemoryFileSystem extends MemoryFileSystem {
+  TestMemoryFileSystem(Uri currentDirectory) : super(currentDirectory);
+
+  @override
+  MemoryFileSystemEntity entityForUri(Uri uri) {
+    // Try to "sanitize" the uri as a real file system does, namely
+    // "a/b.dart" and "a//b.dart" returns the same file.
+    if (uri.pathSegments.contains("")) {
+      Uri newUri = uri.replace(
+          pathSegments: uri.pathSegments.where((element) => element != ""));
+      return super.entityForUri(newUri);
+    }
+    return super.entityForUri(uri);
   }
 }
