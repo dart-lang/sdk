@@ -541,6 +541,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RegressFlutter76919) {
   FlowGraphTypePropagator::Propagate(H.flow_graph());  // Should not crash.
 }
 
+#if defined(DART_PRECOMPILER)
+
 // This test verifies that LoadStaticField for non-nullable field
 // is non-nullable with sound null safety.
 // Regression test for https://github.com/dart-lang/sdk/issues/47119.
@@ -587,5 +589,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
 
   EXPECT_PROPERTY(load->AsLoadStaticField()->Type(), !it.is_nullable());
 }
+
+#endif  // defined(DART_PRECOMPILER)
 
 }  // namespace dart
