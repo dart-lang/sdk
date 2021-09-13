@@ -920,6 +920,35 @@ const double d = 3;
     expect(result.toDoubleValue(), 3.0);
   }
 
+  test_visitIsExpression_is_functionType_badTypes() async {
+    await resolveTestCode('''
+void foo(int a) {}
+const c = foo is void Function(String);
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_is_functionType_correctTypes() async {
+    await resolveTestCode('''
+void foo(int a) {}
+const c = foo is void Function(int);
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_functionType_nonFunction() async {
+    await resolveTestCode('''
+const c = false is void Function();
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
   test_visitIsExpression_is_instanceOfSameClass() async {
     await resolveTestCode('''
 const a = const A();

@@ -1094,11 +1094,11 @@ intptr_t ReturnIntPtr(intptr_t x) {
   return x;
 }
 
-static void* FfiNativeResolver(const char* name) {
-  if (strcmp(name, "ReturnIntPtr") == 0) {
+static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
+  if (strcmp(name, "ReturnIntPtr") == 0 && args_n == 1) {
     return reinterpret_cast<void*>(ReturnIntPtr);
   }
-  if (strcmp(name, "IsThreadInGenerated") == 0) {
+  if (strcmp(name, "IsThreadInGenerated") == 0 && args_n == 0) {
     return reinterpret_cast<void*>(IsThreadInGenerated);
   }
   // This should be unreachable in tests.

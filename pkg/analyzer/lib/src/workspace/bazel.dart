@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -674,7 +673,7 @@ class BazelWorkspacePackage extends WorkspacePackage {
           .join()
           .contains('dart_package(null_safety=True');
       if (hasNonNullableFlag) {
-        _enabledExperiments = [EnableString.non_nullable];
+        // Enabled by default.
       } else {
         _languageVersion = Version.parse('2.9.0');
       }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:test/test.dart';
@@ -24,17 +23,13 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
       List<ExpectedError>? errors,
       int? expectedEndOffset,
       bool inAsync = false}) {
-    return parseExpression(source,
-        codes: codes,
-        errors: errors,
-        expectedEndOffset: expectedEndOffset,
-        inAsync: inAsync,
-        featureSet: FeatureSet.forTesting(
-            sdkVersion: '2.0.0',
-            additionalFeatures: [
-              Feature.spread_collections,
-              Feature.control_flow_collections
-            ]));
+    return parseExpression(
+      source,
+      codes: codes,
+      errors: errors,
+      expectedEndOffset: expectedEndOffset,
+      inAsync: inAsync,
+    );
   }
 
   void test_listLiteral_for() {

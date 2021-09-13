@@ -185,11 +185,6 @@ class FixBuilder {
     var inheritanceManager = InheritanceManager3();
     // TODO(paulberry): is it a bad idea to throw away errors?
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
-    // TODO(paulberry): once the feature is no longer experimental, change the
-    // way we enable it in the resolver.
-    // ignore: invalid_use_of_visible_for_testing_member
-    var featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
     _resolver = ResolverVisitorForMigration(
         inheritanceManager,
         definingLibrary,
@@ -197,7 +192,10 @@ class FixBuilder {
         typeProvider,
         errorListener,
         _typeSystem,
-        featureSet,
+        FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: Feature.non_nullable.releaseVersion!,
+          flags: [],
+        ),
         migrationResolutionHooks);
   }
 

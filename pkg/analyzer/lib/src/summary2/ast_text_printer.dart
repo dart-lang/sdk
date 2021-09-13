@@ -28,6 +28,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     _token(node.atSign);
     node.name.accept(this);
+    node.typeArguments?.accept(this);
     _token(node.period);
     node.constructorName?.accept(this);
     node.arguments?.accept(this);
@@ -231,6 +232,11 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.type.accept(this);
     _token(node.period);
     node.name?.accept(this);
+  }
+
+  @override
+  void visitConstructorReference(ConstructorReference node) {
+    node.constructorName.accept(this);
   }
 
   @override
@@ -484,6 +490,12 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.function.accept(this);
     node.typeArguments?.accept(this);
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    node.function.accept(this);
+    node.typeArguments?.accept(this);
   }
 
   @override

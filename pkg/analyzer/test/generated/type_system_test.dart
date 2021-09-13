@@ -24,7 +24,7 @@ main() {
   });
 }
 
-abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
+abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   late TestAnalysisContext analysisContext;
 
   @override
@@ -36,9 +36,7 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
   late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
+    return FeatureSet.latestLanguageVersion();
   }
 
   void setUp() {
@@ -57,7 +55,7 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
   }
 }
 
-abstract class AbstractTypeSystemTest with ElementsTypesMixin {
+abstract class AbstractTypeSystemWithoutNullSafetyTest with ElementsTypesMixin {
   late TestAnalysisContext analysisContext;
 
   @override
@@ -69,7 +67,7 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting();
+    return FeatureSet.latestLanguageVersion();
   }
 
   void setUp() {
@@ -89,7 +87,7 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 }
 
 @reflectiveTest
-class AssignabilityTest extends AbstractTypeSystemTest {
+class AssignabilityTest extends AbstractTypeSystemWithoutNullSafetyTest {
   void test_isAssignableTo_bottom_isBottom() {
     var A = class_(name: 'A');
     List<DartType> interassignable = <DartType>[
@@ -437,14 +435,7 @@ class AssignabilityTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class TryPromoteToTest extends AbstractTypeSystemTest {
-  @override
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
+class TryPromoteToTest extends AbstractTypeSystemWithoutNullSafetyTest {
   void notPromotes(DartType from, DartType to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, isNull);

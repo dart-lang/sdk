@@ -1397,9 +1397,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall([]);
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
-        // Annotations could contain references to constant fields.
-        assert((node.target is Field) && (node.target as Field).isConst);
-        shaker.addUsedMember(node.target);
+        throw '${node.runtimeType} "$node" uses unreachable member '
+            '${node.target} at ${node.location}';
       }
       return node;
     }
@@ -1435,9 +1434,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
-        // Annotations could contain references to const constructors.
-        assert(node.isConst);
-        shaker.addUsedMember(node.target);
+        throw '${node.runtimeType} "$node" uses unreachable member '
+            '${node.target} at ${node.location}';
       }
       return node;
     }

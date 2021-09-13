@@ -99,7 +99,7 @@ intptr_t ObjectHash(const Object& obj) {
   if (obj.IsNull()) {
     return 2011;
   }
-  if (obj.IsString() || obj.IsNumber()) {
+  if (obj.IsInstance()) {
     return Instance::Cast(obj).CanonicalizeHash();
   }
   if (obj.IsCode()) {
@@ -111,6 +111,9 @@ intptr_t ObjectHash(const Object& obj) {
   }
   if (obj.IsField()) {
     return dart::String::HashRawSymbol(Field::Cast(obj).name());
+  }
+  if (obj.IsICData()) {
+    return ICData::Cast(obj).Hash();
   }
   // Unlikely.
   return obj.GetClassId();

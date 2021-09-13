@@ -21,7 +21,7 @@ main() {
 }
 
 @reflectiveTest
-class ClassHierarchyLegacyTest extends AbstractTypeSystemTest
+class ClassHierarchyLegacyTest extends AbstractTypeSystemWithoutNullSafetyTest
     with _AbstractClassHierarchyMixin {
   @override
   void setUp() {
@@ -46,7 +46,7 @@ class ClassHierarchyLegacyTest extends AbstractTypeSystemTest
 }
 
 @reflectiveTest
-class ClassHierarchyNullSafetyTest extends AbstractTypeSystemNullSafetyTest
+class ClassHierarchyNullSafetyTest extends AbstractTypeSystemTest
     with _AbstractClassHierarchyMixin {
   @override
   void setUp() {

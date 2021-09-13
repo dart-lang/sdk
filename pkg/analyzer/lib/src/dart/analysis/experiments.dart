@@ -40,12 +40,6 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// The current language version.
   static final Version currentVersion = Version.parse(_currentVersion);
 
-  /// The language version to use in tests.
-  static final Version testingSdkLanguageVersion = Version.parse('2.10.0');
-
-  /// The latest known language version.
-  static final Version latestSdkLanguageVersion = Version.parse('2.13.0');
-
   /// A map containing information about all known experimental flags.
   static final Map<String, ExperimentalFeature> knownFeatures = _knownFeatures;
 
@@ -73,7 +67,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
       explicitFlags.enabled[(feature as ExperimentalFeature).index] = true;
     }
 
-    var sdkLanguageVersion = latestSdkLanguageVersion;
+    var sdkLanguageVersion = currentVersion;
     var flags = restrictEnableFlagsToVersion(
       sdkLanguageVersion: sdkLanguageVersion,
       explicitEnabledFlags: explicitFlags.enabled,
@@ -130,7 +124,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// the flag appearing last.
   factory ExperimentStatus.fromStrings(List<String> flags) {
     return ExperimentStatus.fromStrings2(
-      sdkLanguageVersion: latestSdkLanguageVersion,
+      sdkLanguageVersion: currentVersion,
       flags: flags,
     );
   }
@@ -165,7 +159,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
 
   factory ExperimentStatus.latestLanguageVersion() {
     return ExperimentStatus.fromStrings2(
-      sdkLanguageVersion: latestSdkLanguageVersion,
+      sdkLanguageVersion: currentVersion,
       flags: [],
     );
   }

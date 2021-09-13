@@ -1671,8 +1671,11 @@ void Assembler::LoadObjectHelper(Register rd,
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   // Make sure that class CallPattern is able to decode this load from the
   // object pool.
-  const auto index = is_unique ? object_pool_builder().AddObject(object)
-                               : object_pool_builder().FindObject(object);
+  const auto index = is_unique
+                         ? object_pool_builder().AddObject(
+                               object, ObjectPoolBuilderEntry::kPatchable)
+                         : object_pool_builder().FindObject(
+                               object, ObjectPoolBuilderEntry::kNotPatchable);
   LoadWordFromPoolIndex(rd, index, pp, cond);
 }
 

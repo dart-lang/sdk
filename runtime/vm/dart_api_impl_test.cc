@@ -9585,8 +9585,9 @@ static intptr_t EchoInt(double x) {
   return x;
 }
 
-static void* FfiNativeResolver(const char* name) {
+static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   ASSERT(strcmp(name, "EchoInt") == 0);
+  ASSERT(args_n == 1);
   return reinterpret_cast<void*>(EchoInt);
 }
 
@@ -9628,7 +9629,7 @@ TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
       "Invalid argument(s): Library has no handler: 'file:///test-lib'.");
 }
 
-static void* NopResolver(const char* name) {
+static void* NopResolver(const char* name, uintptr_t args_n) {
   return nullptr;
 }
 

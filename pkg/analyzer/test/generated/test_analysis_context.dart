@@ -28,7 +28,7 @@ class TestAnalysisContext implements AnalysisContext {
 
   TestAnalysisContext({FeatureSet? featureSet}) {
     _analysisOptions = AnalysisOptionsImpl()
-      ..contextFeatures = featureSet ?? FeatureSet.forTesting();
+      ..contextFeatures = featureSet ?? FeatureSet.latestLanguageVersion();
 
     var sdkElements = MockSdkElements(this, _analysisSession);
 

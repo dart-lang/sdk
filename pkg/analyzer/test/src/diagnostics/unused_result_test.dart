@@ -765,6 +765,19 @@ void main() {
 ''');
   }
 
+  test_topLevelVariable_result_unusedInDoc() async {
+    // https://github.com/dart-lang/sdk/issues/47181
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get f => 1;
+
+/// I love [f].
+int g = 1;
+''');
+  }
+
   test_topLevelVariable_returned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

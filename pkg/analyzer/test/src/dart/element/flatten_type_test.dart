@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class FlattenTypeTest extends AbstractTypeSystemNullSafetyTest {
+class FlattenTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _check(dynamicNone, 'dynamic');
   }

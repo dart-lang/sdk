@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -22,9 +21,6 @@ main() {
 @reflectiveTest
 class ClassMemberParserTest extends FastaParserTestCase
     implements AbstractParserViaProxyTestCase {
-  final tripleShift = FeatureSet.forTesting(
-      sdkVersion: '2.0.0', additionalFeatures: [Feature.triple_shift]);
-
   void test_parse_member_called_late() {
     var unit = parseCompilationUnit(
         'class C { void late() { new C().late(); } }',
@@ -1032,8 +1028,8 @@ void Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseClassMember_operator_gtgtgt() {
     var unit = parseCompilationUnit(
-        'class C { bool operator >>>(other) => false; }',
-        featureSet: tripleShift);
+      'class C { bool operator >>>(other) => false; }',
+    );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var method = declaration.members[0] as MethodDeclaration;
 
@@ -1051,8 +1047,8 @@ void Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseClassMember_operator_gtgtgteq() {
     var unit = parseCompilationUnit(
-        'class C { foo(int value) { x >>>= value; } }',
-        featureSet: tripleShift);
+      'class C { foo(int value) { x >>>= value; } }',
+    );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var method = declaration.members[0] as MethodDeclaration;
     var blockFunctionBody = method.body as BlockFunctionBody;

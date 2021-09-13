@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -250,9 +249,7 @@ f(x) => l[x];
 f(x) => l?[x
 ''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f(x) => l?[x];
-''',
-        featureSet: FeatureSet.forTesting(
-            sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]));
+''');
   }
 
   void test_listLiteral_inner_last() {

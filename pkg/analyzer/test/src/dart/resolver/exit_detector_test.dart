@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -145,11 +143,6 @@ void f() { // ref
 /// See [ExitDetectorResolvedStatementTest] for tests that require the AST to be resolved.
 @reflectiveTest
 class ExitDetectorParsedStatementTest extends ParseBase {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.13', additionalFeatures: [Feature.constructor_tearoffs]);
-
   test_asExpression() async {
     _assertFalse('a as Object;');
   }

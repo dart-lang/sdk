@@ -31,11 +31,8 @@ class FlowTestBase {
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
-    TestResult<Set<_ReachabilityAssertion>> testResult = await checkTests(
-        code,
-        const _ReachabilityDataComputer(),
-        FeatureSet.forTesting(
-            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+    TestResult<Set<_ReachabilityAssertion>> testResult = await checkTests(code,
+        const _ReachabilityDataComputer(), FeatureSet.latestLanguageVersion());
     if (testResult.hasFailures) {
       fail('Failure(s)');
     }

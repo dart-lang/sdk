@@ -480,7 +480,7 @@ class SubstituteWithNullabilityTest extends _Base {
   }
 }
 
-class _Base extends AbstractTypeSystemNullSafetyTest {
+class _Base extends AbstractTypeSystemTest {
   void assertType(DartType type, String expected) {
     var typeStr = _typeStr(type);
     expect(typeStr, expected);

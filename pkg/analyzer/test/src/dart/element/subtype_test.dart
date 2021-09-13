@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -23,13 +22,6 @@ main() {
 
 @reflectiveTest
 class NonNullableSubtypingCompoundTest extends _SubtypingCompoundTestBase {
-  @override
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
   test_dynamic() {
     var equivalents = <DartType>[
       voidNone,
@@ -5990,7 +5982,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   }
 }
 
-class _SubtypingTestBase extends AbstractTypeSystemNullSafetyTest {}
+class _SubtypingTestBase extends AbstractTypeSystemTest {}
 
 class _TypeParameterCollector extends TypeVisitor<void> {
   final Set<String> typeParameters = {};

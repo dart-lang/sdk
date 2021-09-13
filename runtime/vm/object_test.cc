@@ -3209,7 +3209,7 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
 }
 
 ISOLATE_UNIT_TEST_CASE(MegamorphicCache) {
-  const auto& name = String::Handle(String::New("name"));
+  const auto& name = String::Handle(Symbols::New(thread, "name"));
   const auto& args_descriptor =
       Array::Handle(ArgumentsDescriptor::NewBoxed(1, 1, Object::null_array()));
 
