@@ -478,17 +478,16 @@ const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(
         "Try moving the library directive before any other directives.");
 
 const ParserErrorCode _LITERAL_WITH_CLASS = ParserErrorCode(
-    'LITERAL_WITH_CLASS',
-    r"The name of the class '#lexeme' can't be included in a #string literal.",
+    'LITERAL_WITH_CLASS', r"A #string literal can't be prefixed by '#lexeme'.",
     correction: "Try removing '#lexeme'");
 
 const ParserErrorCode _LITERAL_WITH_CLASS_AND_NEW = ParserErrorCode(
     'LITERAL_WITH_CLASS_AND_NEW',
-    r"Neither 'new' nor the name of the class '#lexeme' can be included in a #string literal.",
+    r"A #string literal can't be prefixed by 'new #lexeme'.",
     correction: "Try removing 'new' and '#lexeme'");
 
 const ParserErrorCode _LITERAL_WITH_NEW = ParserErrorCode(
-    'LITERAL_WITH_NEW', r"A literal can't use 'new'.",
+    'LITERAL_WITH_NEW', r"A literal can't be prefixed by 'new'.",
     correction: "Try removing 'new'");
 
 const ParserErrorCode _MEMBER_WITH_CLASS_NAME = ParserErrorCode(
