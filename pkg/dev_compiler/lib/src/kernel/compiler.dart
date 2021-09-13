@@ -4695,11 +4695,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitSuperPropertyGet(SuperPropertyGet node) {
     var target = node.interfaceTarget;
-    var jsTarget = _emitSuperTarget(target);
     if (_reifyTearoff(target)) {
-      return runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+      if (_superAllowed) {
+        var jsTarget = _emitSuperTarget(target);
+        return runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+      } else {
+        return _emitSuperTearoff(target);
+      }
     }
-    return jsTarget;
+    return _emitSuperTarget(target);
   }
 
   @override
@@ -5318,6 +5322,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // If we can't emit `super` in this context, generate a helper that does it
     // for us, and call the helper.
+    //
+    // NOTE: This is intended to help in the cases of calling a `super` getter,
+    // setter, or method. For the case of tearing off a `super` method in
+    // contexts where `super` isn't allowed, see [_emitSuperTearoff].
     var name = member.name.text;
     var jsMethod = _superHelpers.putIfAbsent(name, () {
       var isAccessor = member is Procedure ? member.isAccessor : true;
@@ -5349,6 +5357,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     });
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
+  }
+
+  /// Generates a helper method that is inserted into the class that binds a
+  /// tearoff of [member] from `super` and returns a call to the helper.
+  ///
+  /// This method assumes `super` is not allowed in the current context.
+  // TODO(nshahan) Replace with a kernel transform and synthetic method filters
+  // for devtools.
+  js_ast.Expression _emitSuperTearoff(Member member) {
+    var jsName = _emitMemberName(member.name.text, member: member);
+    var name = '_#super#tearOff#${member.name.text}';
+    var jsMethod = _superHelpers.putIfAbsent(name, () {
+      var jsReturnValue =
+          runtimeCall('bind(this, #, super[#])', [jsName, jsName]);
+      var fn = js.fun('function() { return #; }', [jsReturnValue]);
+      name = js_ast.friendlyNameForDartOperator[name] ?? name;
+      return js_ast.Method(_emitTemporaryId(name), fn);
+    });
+    return js_ast.Call(js_ast.PropertyAccess(js_ast.This(), jsMethod.name), []);
   }
 
   /// If [e] is a [TypeLiteral] or a [TypeLiteralConstant] expression, return
