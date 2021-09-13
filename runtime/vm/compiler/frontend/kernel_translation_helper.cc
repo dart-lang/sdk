@@ -2252,6 +2252,13 @@ void KernelReaderHelper::SkipListOfVariableDeclarations() {
   }
 }
 
+void KernelReaderHelper::SkipListOfCanonicalNameReferences() {
+  intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipCanonicalNameReference();
+  }
+}
+
 void KernelReaderHelper::SkipTypeParametersList() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {

@@ -501,6 +501,7 @@ gardening
 gen
 generation
 getable
+getable
 getables
 gets
 getter1a
@@ -959,6 +960,7 @@ queries
 quick
 quiver
 quoted
+qux
 r
 r'$creation
 r'\f
@@ -1109,6 +1111,7 @@ serve
 server
 service
 session
+setable
 setable
 setables
 setaf

@@ -30,15 +30,15 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-extension E1 on core::int {
+extension E1 on core::int show-types core::num {
 }
 extension E2 on core::int {
 }
 extension E3 on core::int {
 }
-extension E4 on core::int {
+extension E4 on core::int show-types core::num {
 }
-extension E5 on core::int {
+extension E5 on core::int show-types core::num {
 }
 extension E6 on core::int {
 }

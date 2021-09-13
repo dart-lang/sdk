@@ -81,6 +81,8 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 
 import '../import.dart' show Import;
 
+import '../kernel/class_hierarchy_builder.dart';
+
 import '../kernel/internal_ast.dart';
 
 import '../kernel/kernel_builder.dart'
@@ -116,6 +118,8 @@ import '../modifier.dart'
 
 import '../names.dart' show indexSetName;
 
+import '../operator.dart';
+
 import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
@@ -124,7 +128,7 @@ import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_extension_builder.dart' show SourceExtensionBuilder;
+import 'source_extension_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_type_alias_builder.dart';
 
@@ -892,7 +896,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // name is unique. Only the first of duplicate extensions is accessible
       // by name or by resolution and the remaining are dropped for the output.
       currentTypeParameterScopeBuilder.extensions!
-          .add(declaration as ExtensionBuilder);
+          .add(declaration as SourceExtensionBuilder);
     }
     if (declaration is PrefixBuilder) {
       _prefixBuilders ??= <PrefixBuilder>[];
@@ -1845,6 +1849,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String extensionName,
       List<TypeVariableBuilder>? typeVariables,
       TypeBuilder type,
+      ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder,
       bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
@@ -1877,6 +1882,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         extensionName,
         typeVariables,
         type,
+        extensionTypeShowHideClauseBuilder,
         classScope,
         this,
         isExtensionTypeDeclaration,
@@ -4154,6 +4160,213 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     checkUncheckedTypedefTypes(typeEnvironment);
   }
 
+  void computeShowHideElements(ClassHierarchyBuilder hierarchy) {
+    assert(currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.library);
+    for (SourceExtensionBuilder extensionBuilder
+        in currentTypeParameterScopeBuilder.extensions!) {
+      DartType onType = extensionBuilder.extension.onType;
+      if (onType is InterfaceType) {
+        ExtensionTypeShowHideClause showHideClause =
+            extensionBuilder.extension.showHideClause ??
+                new ExtensionTypeShowHideClause();
+
+        // TODO(dmitryas): Handle private names.
+        List<Supertype> supertypes =
+            hierarchy.getNodeFromClass(onType.classNode).superclasses;
+        Map<String, Supertype> supertypesByName = <String, Supertype>{};
+        for (Supertype supertype in supertypes) {
+          // TODO(dmitryas): Should only non-generic supertypes be allowed?
+          supertypesByName[supertype.classNode.name] = supertype;
+        }
+
+        // Handling elements of the 'show' clause.
+        for (String memberOrTypeName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownMembersOrTypes) {
+          Member? getableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName));
+          if (getableMember != null) {
+            if (getableMember is Field) {
+              showHideClause.shownGetters.add(getableMember.getterReference);
+            } else if (getableMember.hasGetter) {
+              showHideClause.shownGetters.add(getableMember.reference);
+            }
+          }
+          if (getableMember is Procedure &&
+              getableMember.kind == ProcedureKind.Method) {
+            showHideClause.shownMethods.add(getableMember.reference);
+          }
+          Member? setableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName),
+              setter: true);
+          if (setableMember != null) {
+            if (setableMember is Field) {
+              if (setableMember.setterReference != null) {
+                showHideClause.shownSetters.add(setableMember.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (setableMember.hasSetter) {
+              showHideClause.shownSetters.add(setableMember.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+          if (getableMember == null && setableMember == null) {
+            if (supertypesByName.containsKey(memberOrTypeName)) {
+              showHideClause.shownSupertypes
+                  .add(supertypesByName[memberOrTypeName]!);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+        }
+        for (String getterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownGetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(getterName));
+          if (member != null) {
+            if (member is Field) {
+              showHideClause.shownGetters.add(member.getterReference);
+            } else if (member.hasGetter) {
+              showHideClause.shownGetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Handle the erroneous case.
+            }
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+        for (String setterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownSetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(setterName),
+              setter: true);
+          if (member != null) {
+            if (member is Field) {
+              if (member.setterReference != null) {
+                showHideClause.shownSetters.add(member.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (member.hasSetter) {
+              showHideClause.shownSetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          } else {
+            // TODO(dmitryas): Search for a non-setter and report an error.
+          }
+        }
+        for (Operator operator in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownOperators) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(operatorToString(operator)));
+          if (member != null) {
+            showHideClause.shownOperators.add(member.reference);
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+
+        // TODO(dmitryas): Add a helper function to share logic between
+        // handling the 'show' and 'hide' parts.
+
+        // Handling elements of the 'hide' clause.
+        for (String memberOrTypeName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenMembersOrTypes) {
+          Member? getableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName));
+          if (getableMember != null) {
+            if (getableMember is Field) {
+              showHideClause.hiddenGetters.add(getableMember.getterReference);
+            } else if (getableMember.hasGetter) {
+              showHideClause.hiddenGetters.add(getableMember.reference);
+            }
+          }
+          if (getableMember is Procedure &&
+              getableMember.kind == ProcedureKind.Method) {
+            showHideClause.hiddenMethods.add(getableMember.reference);
+          }
+          Member? setableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName),
+              setter: true);
+          if (setableMember != null) {
+            if (setableMember is Field) {
+              if (setableMember.setterReference != null) {
+                showHideClause.hiddenSetters
+                    .add(setableMember.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (setableMember.hasSetter) {
+              showHideClause.hiddenSetters.add(setableMember.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+          if (getableMember == null && setableMember == null) {
+            if (supertypesByName.containsKey(memberOrTypeName)) {
+              showHideClause.hiddenSupertypes
+                  .add(supertypesByName[memberOrTypeName]!);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+        }
+        for (String getterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenGetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(getterName));
+          if (member != null) {
+            if (member is Field) {
+              showHideClause.hiddenGetters.add(member.getterReference);
+            } else if (member.hasGetter) {
+              showHideClause.hiddenGetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Handle the erroneous case.
+            }
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+        for (String setterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenSetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(setterName),
+              setter: true);
+          if (member != null) {
+            if (member is Field) {
+              if (member.setterReference != null) {
+                showHideClause.hiddenSetters.add(member.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (member.hasSetter) {
+              showHideClause.hiddenSetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          } else {
+            // TODO(dmitryas): Search for a non-setter and report an error.
+          }
+        }
+        for (Operator operator in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenOperators) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(operatorToString(operator)));
+          if (member != null) {
+            showHideClause.hiddenOperators.add(member.reference);
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+
+        extensionBuilder.extension.showHideClause ??= showHideClause;
+      }
+    }
+  }
+
   void registerImplicitlyTypedField(FieldBuilder fieldBuilder) {
     (_implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
   }
@@ -4279,7 +4492,7 @@ class TypeParameterScopeBuilder {
 
   final Map<String, MemberBuilder>? setters;
 
-  final Set<ExtensionBuilder>? extensions;
+  final Set<SourceExtensionBuilder>? extensions;
 
   final List<UnresolvedType> types = <UnresolvedType>[];
 
@@ -4320,7 +4533,7 @@ class TypeParameterScopeBuilder {
             <String, Builder>{},
             <String, MemberBuilder>{},
             null, // No support for constructors in library scopes.
-            <ExtensionBuilder>{},
+            <SourceExtensionBuilder>{},
             "<library>",
             -1,
             null);

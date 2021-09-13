@@ -909,16 +909,32 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.MetadataListOrNull
     ]));
     debugEvent("endExtensionDeclaration");
-    pop() as List<TypeBuilder>?; // Type elements of the 'hide' clause.
-    pop() as List<String>?; // Getter elements of the 'hide' clause.
-    pop() as List<String>?; // Member or type elements of the 'hide' clause.
-    pop() as List<String>?; // Setter elements of the 'hide' clause.
-    pop() as List<Operator>?; // Operator elements of the 'hide' clause.
-    pop() as List<TypeBuilder>?; // Type elements of the 'show' clause.
-    pop() as List<String>?; // Getter elements of the 'show' clause.
-    pop() as List<String>?; // Member or type elements of the 'show' clause.
-    pop() as List<String>?; // Setter elements of the 'show' clause.
-    pop() as List<Operator>?; // Operator elements of the 'show' clause.
+
+    List<TypeBuilder>? hiddenSupertypes = pop() as List<TypeBuilder>?;
+    List<String>? hiddenGetters = pop() as List<String>?;
+    List<String>? hiddenMembersOrTypes = pop() as List<String>?;
+    List<String>? hiddenSetters = pop() as List<String>?;
+    List<Operator>? hiddenOperators = pop() as List<Operator>?;
+
+    List<TypeBuilder>? shownSupertypes = pop() as List<TypeBuilder>?;
+    List<String>? shownGetters = pop() as List<String>?;
+    List<String>? shownMembersOrTypes = pop() as List<String>?;
+    List<String>? shownSetters = pop() as List<String>?;
+    List<Operator>? shownOperators = pop() as List<Operator>?;
+
+    ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder =
+        new ExtensionTypeShowHideClauseBuilder(
+            shownSupertypes: shownSupertypes ?? const <TypeBuilder>[],
+            shownGetters: shownGetters ?? const <String>[],
+            shownSetters: shownSetters ?? const <String>[],
+            shownMembersOrTypes: shownMembersOrTypes ?? const <String>[],
+            shownOperators: shownOperators ?? const <Operator>[],
+            hiddenSupertypes: hiddenSupertypes ?? const <TypeBuilder>[],
+            hiddenGetters: hiddenGetters ?? const <String>[],
+            hiddenSetters: hiddenSetters ?? const <String>[],
+            hiddenMembersOrTypes: hiddenMembersOrTypes ?? const <String>[],
+            hiddenOperators: hiddenOperators ?? const <Operator>[]);
+
     if (showKeyword != null && !libraryBuilder.enableExtensionTypesInLibrary) {
       addProblem(
           templateExperimentNotEnabled.withArguments('extension-types',
@@ -962,6 +978,7 @@ class OutlineBuilder extends StackListenerImpl {
         name,
         typeVariables,
         onType as TypeBuilder,
+        extensionTypeShowHideClauseBuilder,
         isExtensionTypeDeclaration,
         startOffset,
         nameOffset,

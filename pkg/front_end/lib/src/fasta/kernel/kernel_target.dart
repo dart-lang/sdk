@@ -335,6 +335,7 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
       loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
+      loader.computeShowHideElements();
       loader.installTypedefTearOffs();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);

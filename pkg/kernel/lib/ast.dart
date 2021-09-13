@@ -1529,7 +1529,15 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   ///   class A {}
   ///   extension B on A {}
   ///
+  /// The 'on clause' appears also in the experimental feature 'extension
+  /// types' as a part of an extension type declaration, for example:
+  ///
+  ///   class A {}
+  ///   extension type B on A {}
   late DartType onType;
+
+  /// The 'show' and 'hide' clauses of an extension type declaration.
+  ExtensionTypeShowHideClause? showHideClause;
 
   /// The members declared by the extension.
   ///
@@ -1598,6 +1606,10 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   void visitChildren(Visitor v) {
     visitList(typeParameters, v);
     onType.accept(v);
+    if (showHideClause != null) {
+      visitList(showHideClause!.shownSupertypes, v);
+      visitList(showHideClause!.hiddenSupertypes, v);
+    }
   }
 
   @override
@@ -1608,6 +1620,10 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     if (onType != null) {
       onType = v.visitDartType(onType);
     }
+    if (showHideClause != null) {
+      v.transformSupertypeList(showHideClause!.shownSupertypes);
+      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
+    }
   }
 
   @override
@@ -1617,6 +1633,10 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     // ignore: unnecessary_null_comparison
     if (onType != null) {
       onType = v.visitDartType(onType, cannotRemoveSentinel);
+    }
+    if (showHideClause != null) {
+      v.transformSupertypeList(showHideClause!.shownSupertypes);
+      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
     }
   }
 
@@ -1703,6 +1723,117 @@ class ExtensionMemberDescriptor {
     return 'ExtensionMemberDescriptor($name,$kind,'
         '${member.toStringInternal()},isStatic=${isStatic})';
   }
+}
+
+/// Elements of the 'show' and 'hide' clauses of an extension type declaration.
+class ExtensionTypeShowHideClause {
+  /// The types in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance A, B in:
+  ///
+  ///   class A {}
+  ///   class B {}
+  ///   class C extends B implements A {}
+  ///   extension type E on C show B, A {}
+  final List<Supertype> shownSupertypes = <Supertype>[];
+
+  /// The methods in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///   }
+  ///   extension type E on A show foo {}
+  final List<Reference> shownMethods = <Reference>[];
+
+  /// The getters in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar, baz in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///     int? bar;
+  ///     int get baz => 42;
+  ///   }
+  ///   extension type E on A show get foo, get bar, get baz {}
+  final List<Reference> shownGetters = <Reference>[];
+
+  /// The setters in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar in
+  ///
+  ///   class A {
+  ///     int? foo;
+  ///     void set bar(int value) {}
+  ///   }
+  ///   extension type E on A show set foo, set bar {}
+  final List<Reference> shownSetters = <Reference>[];
+
+  /// The operators in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance +, * in
+  ///
+  ///   class A {
+  ///     A operator+(A other) => other;
+  ///     A operator*(A other) => this;
+  ///   }
+  ///   extension type E on A show operator +, operator * {}
+  final List<Reference> shownOperators = <Reference>[];
+
+  /// The types in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance A, B in:
+  ///
+  ///   class A {}
+  ///   class B {}
+  ///   class C extends B implements A {}
+  ///   extension E on C hide A, B {}
+  final List<Supertype> hiddenSupertypes = <Supertype>[];
+
+  /// The methods in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///   }
+  ///   extension type E on A hide foo {}
+  final List<Reference> hiddenMethods = <Reference>[];
+
+  /// The getters in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar, baz in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///     int? bar;
+  ///     int get baz => 42;
+  ///   }
+  ///   extension type E on A hide get foo, get bar, get baz {}
+  final List<Reference> hiddenGetters = <Reference>[];
+
+  /// The setters in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar in
+  ///
+  ///   class A {
+  ///     int? foo;
+  ///     void set bar(int value) {}
+  ///   }
+  ///   extension type E on A hide set foo, set bar {}
+  final List<Reference> hiddenSetters = <Reference>[];
+
+  /// The operators in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance +, * in
+  ///
+  ///   class A {
+  ///     A operator+(A other) => other;
+  ///     A operator*(A other) => this;
+  ///   }
+  ///   extension type E on A hide operator +, operator * {}
+  final List<Reference> hiddenOperators = <Reference>[];
 }
 
 // ------------------------------------------------------------------------
@@ -14053,6 +14184,11 @@ final List<Constant> emptyListOfConstant =
 /// Almost const <String>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<String> emptyListOfString = List.filled(0, '', growable: false);
+
+/// Almost const <Reference>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Reference> emptyListOfReference =
+    List.filled(0, Reference(), growable: false);
 
 /// Almost const <Typedef>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
