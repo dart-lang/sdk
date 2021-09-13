@@ -782,6 +782,7 @@ void Precompiler::Iterate() {
 }
 
 void Precompiler::CollectCallbackFields() {
+  PRECOMPILER_TIMER_SCOPE(this, CollectCallbackFields);
   HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -883,6 +884,7 @@ void Precompiler::ProcessFunction(const Function& function) {
 }
 
 void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
+  PRECOMPILER_TIMER_SCOPE(this, AddCalleesOf);
   ASSERT(function.HasCode());
 
   const Code& code = Code::Handle(Z, function.CurrentCode());
@@ -987,6 +989,12 @@ static bool IsPotentialClosureCall(const String& selector) {
 void Precompiler::AddCalleesOfHelper(const Object& entry,
                                      String* temp_selector,
                                      Class* temp_cls) {
+  const intptr_t cid = entry.GetClassId();
+  if ((cid == kOneByteStringCid) || (cid == kNullCid)) {
+    // Skip common leaf constants early in order to
+    // process object pools faster.
+    return;
+  }
   if (entry.IsUnlinkedCall()) {
     const auto& call_site = UnlinkedCall::Cast(entry);
     // A dynamic call.
@@ -1603,6 +1611,7 @@ void Precompiler::AddAnnotatedRoots() {
 }
 
 void Precompiler::CheckForNewDynamicFunctions() {
+  PRECOMPILER_TIMER_SCOPE(this, CheckForNewDynamicFunctions);
   HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
