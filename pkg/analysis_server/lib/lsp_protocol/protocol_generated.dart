@@ -14165,10 +14165,10 @@ class FileOperationPatternKind {
   }
 
   /// The pattern matches a file only.
-  static const file = FileOperationPatternKind(r'file');
+  static const file = FileOperationPatternKind('file');
 
   /// The pattern matches a folder only.
-  static const folder = FileOperationPatternKind(r'folder');
+  static const folder = FileOperationPatternKind('folder');
 
   Object toJson() => _value;
 
@@ -14786,13 +14786,13 @@ class FoldingRangeKind {
   }
 
   /// Folding range for a comment
-  static const Comment = FoldingRangeKind(r'comment');
+  static const Comment = FoldingRangeKind('comment');
 
   /// Folding range for a imports or includes
-  static const Imports = FoldingRangeKind(r'imports');
+  static const Imports = FoldingRangeKind('imports');
 
   /// Folding range for a region (e.g. `#region`)
-  static const Region = FoldingRangeKind(r'region');
+  static const Region = FoldingRangeKind('region');
 
   Object toJson() => _value;
 
@@ -17957,18 +17957,18 @@ class MarkupKind {
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
     switch (obj) {
-      case r'plaintext':
-      case r'markdown':
+      case 'plaintext':
+      case 'markdown':
         return true;
     }
     return false;
   }
 
   /// Plain text is supported as a content format
-  static const PlainText = MarkupKind._(r'plaintext');
+  static const PlainText = MarkupKind._('plaintext');
 
   /// Markdown is supported as a content format
-  static const Markdown = MarkupKind._(r'markdown');
+  static const Markdown = MarkupKind._('markdown');
 
   Object toJson() => _value;
 
@@ -18163,16 +18163,16 @@ class Method {
   static const progress = Method(r'$/progress');
 
   /// Constant for the 'initialize' method.
-  static const initialize = Method(r'initialize');
+  static const initialize = Method('initialize');
 
   /// Constant for the 'initialized' method.
-  static const initialized = Method(r'initialized');
+  static const initialized = Method('initialized');
 
   /// Constant for the 'shutdown' method.
-  static const shutdown = Method(r'shutdown');
+  static const shutdown = Method('shutdown');
 
   /// Constant for the 'exit' method.
-  static const exit = Method(r'exit');
+  static const exit = Method('exit');
 
   /// Constant for the '$/logTrace' method.
   static const logTrace = Method(r'$/logTrace');
@@ -18181,231 +18181,231 @@ class Method {
   static const setTrace = Method(r'$/setTrace');
 
   /// Constant for the 'window/showMessage' method.
-  static const window_showMessage = Method(r'window/showMessage');
+  static const window_showMessage = Method('window/showMessage');
 
   /// Constant for the 'window/showMessageRequest' method.
-  static const window_showMessageRequest = Method(r'window/showMessageRequest');
+  static const window_showMessageRequest = Method('window/showMessageRequest');
 
   /// Constant for the 'window/showDocument' method.
-  static const window_showDocument = Method(r'window/showDocument');
+  static const window_showDocument = Method('window/showDocument');
 
   /// Constant for the 'window/logMessage' method.
-  static const window_logMessage = Method(r'window/logMessage');
+  static const window_logMessage = Method('window/logMessage');
 
   /// Constant for the 'window/workDoneProgress/create' method.
   static const window_workDoneProgress_create =
-      Method(r'window/workDoneProgress/create');
+      Method('window/workDoneProgress/create');
 
   /// Constant for the 'window/workDoneProgress/cancel' method.
   static const window_workDoneProgress_cancel =
-      Method(r'window/workDoneProgress/cancel');
+      Method('window/workDoneProgress/cancel');
 
   /// Constant for the 'telemetry/event' method.
-  static const telemetry_event = Method(r'telemetry/event');
+  static const telemetry_event = Method('telemetry/event');
 
   /// Constant for the 'client/registerCapability' method.
-  static const client_registerCapability = Method(r'client/registerCapability');
+  static const client_registerCapability = Method('client/registerCapability');
 
   /// Constant for the 'client/unregisterCapability' method.
   static const client_unregisterCapability =
-      Method(r'client/unregisterCapability');
+      Method('client/unregisterCapability');
 
   /// Constant for the 'workspace/workspaceFolders' method.
   static const workspace_workspaceFolders =
-      Method(r'workspace/workspaceFolders');
+      Method('workspace/workspaceFolders');
 
   /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
   static const workspace_didChangeWorkspaceFolders =
-      Method(r'workspace/didChangeWorkspaceFolders');
+      Method('workspace/didChangeWorkspaceFolders');
 
   /// Constant for the 'workspace/didChangeConfiguration' method.
   static const workspace_didChangeConfiguration =
-      Method(r'workspace/didChangeConfiguration');
+      Method('workspace/didChangeConfiguration');
 
   /// Constant for the 'workspace/configuration' method.
-  static const workspace_configuration = Method(r'workspace/configuration');
+  static const workspace_configuration = Method('workspace/configuration');
 
   /// Constant for the 'workspace/didChangeWatchedFiles' method.
   static const workspace_didChangeWatchedFiles =
-      Method(r'workspace/didChangeWatchedFiles');
+      Method('workspace/didChangeWatchedFiles');
 
   /// Constant for the 'workspace/symbol' method.
-  static const workspace_symbol = Method(r'workspace/symbol');
+  static const workspace_symbol = Method('workspace/symbol');
 
   /// Constant for the 'workspace/executeCommand' method.
-  static const workspace_executeCommand = Method(r'workspace/executeCommand');
+  static const workspace_executeCommand = Method('workspace/executeCommand');
 
   /// Constant for the 'workspace/applyEdit' method.
-  static const workspace_applyEdit = Method(r'workspace/applyEdit');
+  static const workspace_applyEdit = Method('workspace/applyEdit');
 
   /// Constant for the 'workspace/willCreateFiles' method.
-  static const workspace_willCreateFiles = Method(r'workspace/willCreateFiles');
+  static const workspace_willCreateFiles = Method('workspace/willCreateFiles');
 
   /// Constant for the 'workspace/didCreateFiles' method.
-  static const workspace_didCreateFiles = Method(r'workspace/didCreateFiles');
+  static const workspace_didCreateFiles = Method('workspace/didCreateFiles');
 
   /// Constant for the 'workspace/willRenameFiles' method.
-  static const workspace_willRenameFiles = Method(r'workspace/willRenameFiles');
+  static const workspace_willRenameFiles = Method('workspace/willRenameFiles');
 
   /// Constant for the 'workspace/didRenameFiles' method.
-  static const workspace_didRenameFiles = Method(r'workspace/didRenameFiles');
+  static const workspace_didRenameFiles = Method('workspace/didRenameFiles');
 
   /// Constant for the 'workspace/willDeleteFiles' method.
-  static const workspace_willDeleteFiles = Method(r'workspace/willDeleteFiles');
+  static const workspace_willDeleteFiles = Method('workspace/willDeleteFiles');
 
   /// Constant for the 'workspace/didDeleteFiles' method.
-  static const workspace_didDeleteFiles = Method(r'workspace/didDeleteFiles');
+  static const workspace_didDeleteFiles = Method('workspace/didDeleteFiles');
 
   /// Constant for the 'textDocument/didOpen' method.
-  static const textDocument_didOpen = Method(r'textDocument/didOpen');
+  static const textDocument_didOpen = Method('textDocument/didOpen');
 
   /// Constant for the 'textDocument/didChange' method.
-  static const textDocument_didChange = Method(r'textDocument/didChange');
+  static const textDocument_didChange = Method('textDocument/didChange');
 
   /// Constant for the 'textDocument/willSave' method.
-  static const textDocument_willSave = Method(r'textDocument/willSave');
+  static const textDocument_willSave = Method('textDocument/willSave');
 
   /// Constant for the 'textDocument/willSaveWaitUntil' method.
   static const textDocument_willSaveWaitUntil =
-      Method(r'textDocument/willSaveWaitUntil');
+      Method('textDocument/willSaveWaitUntil');
 
   /// Constant for the 'textDocument/didSave' method.
-  static const textDocument_didSave = Method(r'textDocument/didSave');
+  static const textDocument_didSave = Method('textDocument/didSave');
 
   /// Constant for the 'textDocument/didClose' method.
-  static const textDocument_didClose = Method(r'textDocument/didClose');
+  static const textDocument_didClose = Method('textDocument/didClose');
 
   /// Constant for the 'textDocument/publishDiagnostics' method.
   static const textDocument_publishDiagnostics =
-      Method(r'textDocument/publishDiagnostics');
+      Method('textDocument/publishDiagnostics');
 
   /// Constant for the 'textDocument/completion' method.
-  static const textDocument_completion = Method(r'textDocument/completion');
+  static const textDocument_completion = Method('textDocument/completion');
 
   /// Constant for the 'completionItem/resolve' method.
-  static const completionItem_resolve = Method(r'completionItem/resolve');
+  static const completionItem_resolve = Method('completionItem/resolve');
 
   /// Constant for the 'textDocument/hover' method.
-  static const textDocument_hover = Method(r'textDocument/hover');
+  static const textDocument_hover = Method('textDocument/hover');
 
   /// Constant for the 'textDocument/signatureHelp' method.
   static const textDocument_signatureHelp =
-      Method(r'textDocument/signatureHelp');
+      Method('textDocument/signatureHelp');
 
   /// Constant for the 'textDocument/declaration' method.
-  static const textDocument_declaration = Method(r'textDocument/declaration');
+  static const textDocument_declaration = Method('textDocument/declaration');
 
   /// Constant for the 'textDocument/definition' method.
-  static const textDocument_definition = Method(r'textDocument/definition');
+  static const textDocument_definition = Method('textDocument/definition');
 
   /// Constant for the 'textDocument/typeDefinition' method.
   static const textDocument_typeDefinition =
-      Method(r'textDocument/typeDefinition');
+      Method('textDocument/typeDefinition');
 
   /// Constant for the 'textDocument/implementation' method.
   static const textDocument_implementation =
-      Method(r'textDocument/implementation');
+      Method('textDocument/implementation');
 
   /// Constant for the 'textDocument/references' method.
-  static const textDocument_references = Method(r'textDocument/references');
+  static const textDocument_references = Method('textDocument/references');
 
   /// Constant for the 'textDocument/documentHighlight' method.
   static const textDocument_documentHighlight =
-      Method(r'textDocument/documentHighlight');
+      Method('textDocument/documentHighlight');
 
   /// Constant for the 'textDocument/documentSymbol' method.
   static const textDocument_documentSymbol =
-      Method(r'textDocument/documentSymbol');
+      Method('textDocument/documentSymbol');
 
   /// Constant for the 'textDocument/codeAction' method.
-  static const textDocument_codeAction = Method(r'textDocument/codeAction');
+  static const textDocument_codeAction = Method('textDocument/codeAction');
 
   /// Constant for the 'codeAction/resolve' method.
-  static const codeAction_resolve = Method(r'codeAction/resolve');
+  static const codeAction_resolve = Method('codeAction/resolve');
 
   /// Constant for the 'textDocument/codeLens' method.
-  static const textDocument_codeLens = Method(r'textDocument/codeLens');
+  static const textDocument_codeLens = Method('textDocument/codeLens');
 
   /// Constant for the 'codeLens/resolve' method.
-  static const codeLens_resolve = Method(r'codeLens/resolve');
+  static const codeLens_resolve = Method('codeLens/resolve');
 
   /// Constant for the 'workspace/codeLens/refresh' method.
   static const workspace_codeLens_refresh =
-      Method(r'workspace/codeLens/refresh');
+      Method('workspace/codeLens/refresh');
 
   /// Constant for the 'textDocument/documentLink' method.
-  static const textDocument_documentLink = Method(r'textDocument/documentLink');
+  static const textDocument_documentLink = Method('textDocument/documentLink');
 
   /// Constant for the 'documentLink/resolve' method.
-  static const documentLink_resolve = Method(r'documentLink/resolve');
+  static const documentLink_resolve = Method('documentLink/resolve');
 
   /// Constant for the 'textDocument/documentColor' method.
   static const textDocument_documentColor =
-      Method(r'textDocument/documentColor');
+      Method('textDocument/documentColor');
 
   /// Constant for the 'textDocument/colorPresentation' method.
   static const textDocument_colorPresentation =
-      Method(r'textDocument/colorPresentation');
+      Method('textDocument/colorPresentation');
 
   /// Constant for the 'textDocument/formatting' method.
-  static const textDocument_formatting = Method(r'textDocument/formatting');
+  static const textDocument_formatting = Method('textDocument/formatting');
 
   /// Constant for the 'textDocument/rangeFormatting' method.
   static const textDocument_rangeFormatting =
-      Method(r'textDocument/rangeFormatting');
+      Method('textDocument/rangeFormatting');
 
   /// Constant for the 'textDocument/onTypeFormatting' method.
   static const textDocument_onTypeFormatting =
-      Method(r'textDocument/onTypeFormatting');
+      Method('textDocument/onTypeFormatting');
 
   /// Constant for the 'textDocument/rename' method.
-  static const textDocument_rename = Method(r'textDocument/rename');
+  static const textDocument_rename = Method('textDocument/rename');
 
   /// Constant for the 'textDocument/prepareRename' method.
   static const textDocument_prepareRename =
-      Method(r'textDocument/prepareRename');
+      Method('textDocument/prepareRename');
 
   /// Constant for the 'textDocument/foldingRange' method.
-  static const textDocument_foldingRange = Method(r'textDocument/foldingRange');
+  static const textDocument_foldingRange = Method('textDocument/foldingRange');
 
   /// Constant for the 'textDocument/selectionRange' method.
   static const textDocument_selectionRange =
-      Method(r'textDocument/selectionRange');
+      Method('textDocument/selectionRange');
 
   /// Constant for the 'textDocument/prepareCallHierarchy' method.
   static const textDocument_prepareCallHierarchy =
-      Method(r'textDocument/prepareCallHierarchy');
+      Method('textDocument/prepareCallHierarchy');
 
   /// Constant for the 'callHierarchy/incomingCalls' method.
   static const callHierarchy_incomingCalls =
-      Method(r'callHierarchy/incomingCalls');
+      Method('callHierarchy/incomingCalls');
 
   /// Constant for the 'callHierarchy/outgoingCalls' method.
   static const callHierarchy_outgoingCalls =
-      Method(r'callHierarchy/outgoingCalls');
+      Method('callHierarchy/outgoingCalls');
 
   /// Constant for the 'textDocument/semanticTokens/full' method.
   static const textDocument_semanticTokens_full =
-      Method(r'textDocument/semanticTokens/full');
+      Method('textDocument/semanticTokens/full');
 
   /// Constant for the 'textDocument/semanticTokens/full/delta' method.
   static const textDocument_semanticTokens_full_delta =
-      Method(r'textDocument/semanticTokens/full/delta');
+      Method('textDocument/semanticTokens/full/delta');
 
   /// Constant for the 'textDocument/semanticTokens/range' method.
   static const textDocument_semanticTokens_range =
-      Method(r'textDocument/semanticTokens/range');
+      Method('textDocument/semanticTokens/range');
 
   /// Constant for the 'workspace/semanticTokens/refresh' method.
   static const workspace_semanticTokens_refresh =
-      Method(r'workspace/semanticTokens/refresh');
+      Method('workspace/semanticTokens/refresh');
 
   /// Constant for the 'textDocument/linkedEditingRange' method.
   static const textDocument_linkedEditingRange =
-      Method(r'textDocument/linkedEditingRange');
+      Method('textDocument/linkedEditingRange');
 
   /// Constant for the 'textDocument/moniker' method.
-  static const textDocument_moniker = Method(r'textDocument/moniker');
+  static const textDocument_moniker = Method('textDocument/moniker');
 
   Object toJson() => _value;
 
@@ -18629,14 +18629,14 @@ class MonikerKind {
   }
 
   /// The moniker represent a symbol that is imported into a project
-  static const import = MonikerKind(r'import');
+  static const import = MonikerKind('import');
 
   /// The moniker represents a symbol that is exported from a project
-  static const export = MonikerKind(r'export');
+  static const export = MonikerKind('export');
 
   /// The moniker represents a symbol that is local to a project (e.g. a local
   /// variable of a function, a class not visible outside the project, ...)
-  static const local = MonikerKind(r'local');
+  static const local = MonikerKind('local');
 
   Object toJson() => _value;
 
@@ -22624,16 +22624,16 @@ class SemanticTokenModifiers {
     return obj is String;
   }
 
-  static const declaration = SemanticTokenModifiers(r'declaration');
-  static const definition = SemanticTokenModifiers(r'definition');
-  static const readonly = SemanticTokenModifiers(r'readonly');
-  static const static = SemanticTokenModifiers(r'static');
-  static const deprecated = SemanticTokenModifiers(r'deprecated');
-  static const abstract = SemanticTokenModifiers(r'abstract');
-  static const async = SemanticTokenModifiers(r'async');
-  static const modification = SemanticTokenModifiers(r'modification');
-  static const documentation = SemanticTokenModifiers(r'documentation');
-  static const defaultLibrary = SemanticTokenModifiers(r'defaultLibrary');
+  static const declaration = SemanticTokenModifiers('declaration');
+  static const definition = SemanticTokenModifiers('definition');
+  static const readonly = SemanticTokenModifiers('readonly');
+  static const static = SemanticTokenModifiers('static');
+  static const deprecated = SemanticTokenModifiers('deprecated');
+  static const abstract = SemanticTokenModifiers('abstract');
+  static const async = SemanticTokenModifiers('async');
+  static const modification = SemanticTokenModifiers('modification');
+  static const documentation = SemanticTokenModifiers('documentation');
+  static const defaultLibrary = SemanticTokenModifiers('defaultLibrary');
 
   Object toJson() => _value;
 
@@ -22657,31 +22657,31 @@ class SemanticTokenTypes {
     return obj is String;
   }
 
-  static const namespace = SemanticTokenTypes(r'namespace');
+  static const namespace = SemanticTokenTypes('namespace');
 
   /// Represents a generic type. Acts as a fallback for types which can't be
   /// mapped to a specific type like class or enum.
-  static const type = SemanticTokenTypes(r'type');
-  static const class_ = SemanticTokenTypes(r'class');
-  static const enum_ = SemanticTokenTypes(r'enum');
-  static const interface = SemanticTokenTypes(r'interface');
-  static const struct = SemanticTokenTypes(r'struct');
-  static const typeParameter = SemanticTokenTypes(r'typeParameter');
-  static const parameter = SemanticTokenTypes(r'parameter');
-  static const variable = SemanticTokenTypes(r'variable');
-  static const property = SemanticTokenTypes(r'property');
-  static const enumMember = SemanticTokenTypes(r'enumMember');
-  static const event = SemanticTokenTypes(r'event');
-  static const function = SemanticTokenTypes(r'function');
-  static const method = SemanticTokenTypes(r'method');
-  static const macro = SemanticTokenTypes(r'macro');
-  static const keyword = SemanticTokenTypes(r'keyword');
-  static const modifier = SemanticTokenTypes(r'modifier');
-  static const comment = SemanticTokenTypes(r'comment');
-  static const string = SemanticTokenTypes(r'string');
-  static const number = SemanticTokenTypes(r'number');
-  static const regexp = SemanticTokenTypes(r'regexp');
-  static const operator = SemanticTokenTypes(r'operator');
+  static const type = SemanticTokenTypes('type');
+  static const class_ = SemanticTokenTypes('class');
+  static const enum_ = SemanticTokenTypes('enum');
+  static const interface = SemanticTokenTypes('interface');
+  static const struct = SemanticTokenTypes('struct');
+  static const typeParameter = SemanticTokenTypes('typeParameter');
+  static const parameter = SemanticTokenTypes('parameter');
+  static const variable = SemanticTokenTypes('variable');
+  static const property = SemanticTokenTypes('property');
+  static const enumMember = SemanticTokenTypes('enumMember');
+  static const event = SemanticTokenTypes('event');
+  static const function = SemanticTokenTypes('function');
+  static const method = SemanticTokenTypes('method');
+  static const macro = SemanticTokenTypes('macro');
+  static const keyword = SemanticTokenTypes('keyword');
+  static const modifier = SemanticTokenTypes('modifier');
+  static const comment = SemanticTokenTypes('comment');
+  static const string = SemanticTokenTypes('string');
+  static const number = SemanticTokenTypes('number');
+  static const regexp = SemanticTokenTypes('regexp');
+  static const operator = SemanticTokenTypes('operator');
 
   Object toJson() => _value;
 
@@ -30437,7 +30437,7 @@ class TokenFormat {
     return obj is String;
   }
 
-  static const Relative = TokenFormat(r'relative');
+  static const Relative = TokenFormat('relative');
 
   Object toJson() => _value;
 
@@ -30876,19 +30876,19 @@ class UniquenessLevel {
   }
 
   /// The moniker is only unique inside a document
-  static const document = UniquenessLevel(r'document');
+  static const document = UniquenessLevel('document');
 
   /// The moniker is unique inside a project for which a dump got created
-  static const project = UniquenessLevel(r'project');
+  static const project = UniquenessLevel('project');
 
   /// The moniker is unique inside the group to which a project belongs
-  static const group = UniquenessLevel(r'group');
+  static const group = UniquenessLevel('group');
 
   /// The moniker is unique inside the moniker scheme.
-  static const scheme = UniquenessLevel(r'scheme');
+  static const scheme = UniquenessLevel('scheme');
 
   /// The moniker is globally unique
-  static const global = UniquenessLevel(r'global');
+  static const global = UniquenessLevel('global');
 
   Object toJson() => _value;
 
