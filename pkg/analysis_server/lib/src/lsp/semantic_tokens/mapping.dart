@@ -4,16 +4,16 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-
-final highlightRegionMapper = RegionTypeMapper();
 
 /// A mapping from [HighlightRegionType] to a set of [SemanticTokenModifiers].
 final highlightRegionTokenModifiers =
     <HighlightRegionType, Set<SemanticTokenModifiers>>{
   HighlightRegionType.COMMENT_DOCUMENTATION: {
     SemanticTokenModifiers.documentation
+  },
+  HighlightRegionType.CONSTRUCTOR_TEAR_OFF: {
+    CustomSemanticTokenModifiers.constructor
   },
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION: {
     SemanticTokenModifiers.declaration
@@ -56,6 +56,7 @@ final highlightRegionTokenModifiers =
     SemanticTokenModifiers.static,
   },
   HighlightRegionType.STATIC_METHOD_REFERENCE: {SemanticTokenModifiers.static},
+  HighlightRegionType.STATIC_METHOD_TEAR_OFF: {SemanticTokenModifiers.static},
   HighlightRegionType.STATIC_SETTER_DECLARATION: {
     SemanticTokenModifiers.declaration,
     SemanticTokenModifiers.static,
@@ -87,6 +88,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.COMMENT_BLOCK: SemanticTokenTypes.comment,
   HighlightRegionType.COMMENT_DOCUMENTATION: SemanticTokenTypes.comment,
   HighlightRegionType.COMMENT_END_OF_LINE: SemanticTokenTypes.comment,
+  HighlightRegionType.CONSTRUCTOR_TEAR_OFF: SemanticTokenTypes.method,
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION:
       SemanticTokenTypes.variable,
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE:
@@ -104,6 +106,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.INSTANCE_GETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_METHOD_DECLARATION: SemanticTokenTypes.method,
   HighlightRegionType.INSTANCE_METHOD_REFERENCE: SemanticTokenTypes.method,
+  HighlightRegionType.INSTANCE_METHOD_TEAR_OFF: SemanticTokenTypes.method,
   HighlightRegionType.INSTANCE_SETTER_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_SETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.KEYWORD: SemanticTokenTypes.keyword,
@@ -114,6 +117,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.LITERAL_STRING: SemanticTokenTypes.string,
   HighlightRegionType.LOCAL_FUNCTION_DECLARATION: SemanticTokenTypes.function,
   HighlightRegionType.LOCAL_FUNCTION_REFERENCE: SemanticTokenTypes.function,
+  HighlightRegionType.LOCAL_FUNCTION_TEAR_OFF: SemanticTokenTypes.function,
   HighlightRegionType.LOCAL_VARIABLE_DECLARATION: SemanticTokenTypes.variable,
   HighlightRegionType.LOCAL_VARIABLE_REFERENCE: SemanticTokenTypes.variable,
   HighlightRegionType.PARAMETER_DECLARATION: SemanticTokenTypes.parameter,
@@ -123,11 +127,13 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.STATIC_GETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.STATIC_METHOD_DECLARATION: SemanticTokenTypes.method,
   HighlightRegionType.STATIC_METHOD_REFERENCE: SemanticTokenTypes.method,
+  HighlightRegionType.STATIC_METHOD_TEAR_OFF: SemanticTokenTypes.method,
   HighlightRegionType.STATIC_SETTER_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.STATIC_SETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION:
       SemanticTokenTypes.function,
   HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE: SemanticTokenTypes.function,
+  HighlightRegionType.TOP_LEVEL_FUNCTION_TEAR_OFF: SemanticTokenTypes.function,
   HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION: SemanticTokenTypes.property,
@@ -142,37 +148,3 @@ final highlightRegionTokenTypes = {
       CustomSemanticTokenTypes.source,
   HighlightRegionType.VALID_STRING_ESCAPE: SemanticTokenTypes.string,
 };
-
-/// A helper for converting from Server highlight regions to LSP semantic tokens.
-class RegionTypeMapper {
-  /// A map to get the [SemanticTokenTypes] index directly from a [HighlightRegionType].
-  final Map<HighlightRegionType, int> _tokenTypeIndexForHighlightRegion = {};
-
-  /// A map to get the [SemanticTokenModifiers] bitmask directly from a [HighlightRegionType].
-  final Map<HighlightRegionType, int> _tokenModifierBitmaskForHighlightRegion =
-      {};
-
-  RegionTypeMapper() {
-    // Build mappings that go directly from [HighlightRegionType] to index/bitmask
-    // for faster lookups.
-    for (final regionType in highlightRegionTokenTypes.keys) {
-      _tokenTypeIndexForHighlightRegion[regionType] = semanticTokenLegend
-          .indexForType(highlightRegionTokenTypes[regionType]!);
-    }
-
-    for (final regionType in highlightRegionTokenTypes.keys) {
-      _tokenModifierBitmaskForHighlightRegion[regionType] = semanticTokenLegend
-          .bitmaskForModifiers(highlightRegionTokenModifiers[regionType]);
-    }
-  }
-
-  /// Gets the [SemanticTokenModifiers] bitmask for a [HighlightRegionType]. Returns
-  /// null if the region type has not been mapped.
-  int bitmaskForModifier(HighlightRegionType type) =>
-      _tokenModifierBitmaskForHighlightRegion[type]!;
-
-  /// Gets the [SemanticTokenTypes] index for a [HighlightRegionType]. Returns
-  /// null if the region type has not been mapped.
-  int indexForToken(HighlightRegionType type) =>
-      _tokenTypeIndexForHighlightRegion[type]!;
-}

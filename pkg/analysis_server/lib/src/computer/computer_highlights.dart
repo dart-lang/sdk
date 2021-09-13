@@ -682,11 +682,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,
     //  but this is not expressed via types.
     computer._addRegion_node(
-      constructorName.name!,
-      HighlightRegionType.CONSTRUCTOR_TEAR_OFF,
-      semanticTokenType: SemanticTokenTypes.method,
-      semanticTokenModifiers: {CustomSemanticTokenModifiers.constructor},
-    );
+        constructorName.name!, HighlightRegionType.CONSTRUCTOR_TEAR_OFF);
   }
 
   @override
