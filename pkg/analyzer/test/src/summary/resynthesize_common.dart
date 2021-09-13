@@ -2158,6 +2158,85 @@ library
 ''');
   }
 
+  test_class_fields_late_inference_usingSuper_methodInvocation() async {
+    var library = await checkLibrary('''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  late var f = super.foo();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @16
+            returnType: int
+      class B @37
+        supertype: A
+        fields
+          late f @62
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @-1
+            returnType: int
+          synthetic set f @-1
+            parameters
+              requiredPositional _f @-1
+                type: int
+            returnType: void
+''');
+  }
+
+  test_class_fields_late_inference_usingSuper_propertyAccess() async {
+    var library = await checkLibrary('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  late var f = super.foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get foo @20
+            returnType: int
+      class B @39
+        supertype: A
+        fields
+          late f @64
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @-1
+            returnType: int
+          synthetic set f @-1
+            parameters
+              requiredPositional _f @-1
+                type: int
+            returnType: void
+''');
+  }
+
   test_class_getter_abstract() async {
     var library = await checkLibrary('abstract class C { int get x; }');
     checkElementText(library, r'''
