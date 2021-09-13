@@ -1098,6 +1098,16 @@ class SourceLoader extends Loader {
     ticker.logMs("Computed class hierarchy");
   }
 
+  void computeShowHideElements() {
+    for (LibraryBuilder libraryBuilder in builders.values) {
+      if (libraryBuilder.loader == this &&
+          libraryBuilder is SourceLibraryBuilder) {
+        libraryBuilder.computeShowHideElements(_builderHierarchy!);
+      }
+    }
+    ticker.logMs("Computed show and hide elements");
+  }
+
   void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
     addProblem(
         templateAmbiguousSupertypes.withArguments(cls.name, a.asInterfaceType,

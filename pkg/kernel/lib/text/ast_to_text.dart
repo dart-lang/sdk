@@ -1351,10 +1351,67 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
     writeType(node.onType);
+
+    ExtensionTypeShowHideClause? showHideClause = node.showHideClause;
+    if (showHideClause != null) {
+      // 'Show' clause elements.
+      if (showHideClause.shownSupertypes.isNotEmpty) {
+        writeSpaced('show-types');
+        writeList(showHideClause.shownSupertypes, visitSupertype);
+      }
+      if (showHideClause.shownMethods.isNotEmpty) {
+        writeSpaced('show-methods');
+        writeList(
+            showHideClause.shownMethods, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.shownGetters.isNotEmpty) {
+        writeSpaced('show-getters');
+        writeList(
+            showHideClause.shownGetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.shownSetters.isNotEmpty) {
+        writeSpaced('show-setters');
+        writeList(
+            showHideClause.shownSetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.shownOperators.isNotEmpty) {
+        writeSpaced('show-operators');
+        writeList(
+            showHideClause.shownOperators, writeMemberReferenceFromReference);
+      }
+
+      // 'Hide' clause elements.
+      if (showHideClause.hiddenSupertypes.isNotEmpty) {
+        writeSpaced('hide-types');
+        writeList(showHideClause.hiddenSupertypes, visitSupertype);
+      }
+      if (showHideClause.hiddenMethods.isNotEmpty) {
+        writeSpaced('hide-methods');
+        writeList(
+            showHideClause.hiddenMethods, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.hiddenGetters.isNotEmpty) {
+        writeSpaced('hide-getters');
+        writeList(
+            showHideClause.hiddenGetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.hiddenSetters.isNotEmpty) {
+        writeSpaced('hide-setters');
+        writeList(
+            showHideClause.hiddenSetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.hiddenOperators.isNotEmpty) {
+        writeSpaced('hide-operators');
+        writeList(
+            showHideClause.hiddenOperators, writeMemberReferenceFromReference);
+      }
+    }
+
     String endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
       endLineString += ' // from ${node.fileUri}';
     }
+
     endLine(endLineString);
     ++indentation;
     node.members.forEach((ExtensionMemberDescriptor descriptor) {

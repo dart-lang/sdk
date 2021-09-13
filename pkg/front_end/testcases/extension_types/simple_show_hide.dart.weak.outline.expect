@@ -2,13 +2,13 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-extension E1 on core::int {
+extension E1 on core::int show-types core::num {
 }
-extension E2 on core::int {
+extension E2 on core::int show-types core::num hide-methods core::int::ceil hide-getters core::int::ceil {
 }
-extension E3 on core::int {
+extension E3 on core::int hide-getters core::int::isEven {
 }
-extension type MyInt on core::int {
+extension type MyInt on core::int show-types core::num show-getters core::int::isEven hide-methods core::int::floor hide-getters core::int::floor {
   get twice = self::MyInt|get#twice;
 }
 static method test1(self::E1 e1) → dynamic

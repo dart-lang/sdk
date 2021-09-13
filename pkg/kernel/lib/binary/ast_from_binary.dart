@@ -529,6 +529,16 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
+  List<Reference> readNonNullReferenceList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      return emptyListOfReference;
+    }
+    return new List<Reference>.generate(
+        length, (_) => readNonNullMemberReference(),
+        growable: useGrowableLists);
+  }
+
   String? readStringOrNullIfEmpty() {
     String string = readStringReference();
     return string.isEmpty ? null : string;
@@ -1448,11 +1458,32 @@ class BinaryBuilder {
 
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType onType = readDartType();
+    List<Supertype> shownSupertypes = readSupertypeList();
+    List<Reference> shownMembers = readNonNullReferenceList();
+    List<Reference> shownGetters = readNonNullReferenceList();
+    List<Reference> shownSetters = readNonNullReferenceList();
+    List<Reference> shownOperators = readNonNullReferenceList();
+    List<Supertype> hiddenSupertypes = readSupertypeList();
+    List<Reference> hiddenMembers = readNonNullReferenceList();
+    List<Reference> hiddenGetters = readNonNullReferenceList();
+    List<Reference> hiddenSetters = readNonNullReferenceList();
+    List<Reference> hiddenOperators = readNonNullReferenceList();
     typeParameterStack.length = 0;
 
     node.name = name;
     node.fileUri = fileUri;
     node.onType = onType;
+    node.showHideClause = new ExtensionTypeShowHideClause()
+      ..shownSupertypes.addAll(shownSupertypes)
+      ..shownMethods.addAll(shownMembers)
+      ..shownGetters.addAll(shownGetters)
+      ..shownSetters.addAll(shownSetters)
+      ..shownOperators.addAll(shownOperators)
+      ..hiddenSupertypes.addAll(hiddenSupertypes)
+      ..hiddenMethods.addAll(hiddenMembers)
+      ..hiddenGetters.addAll(hiddenGetters)
+      ..hiddenSetters.addAll(hiddenSetters)
+      ..hiddenOperators.addAll(hiddenOperators);
 
     node.members = _readExtensionMemberDescriptorList();
 

@@ -2451,6 +2451,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeDartType(node.onType);
+    ExtensionTypeShowHideClause showHideClause =
+        node.showHideClause ?? new ExtensionTypeShowHideClause();
+    writeNodeList(showHideClause.shownSupertypes);
+    writeList(showHideClause.shownMethods, writeNonNullReference);
+    writeList(showHideClause.shownGetters, writeNonNullReference);
+    writeList(showHideClause.shownSetters, writeNonNullReference);
+    writeList(showHideClause.shownOperators, writeNonNullReference);
+    writeNodeList(showHideClause.hiddenSupertypes);
+    writeList(showHideClause.hiddenMethods, writeNonNullReference);
+    writeList(showHideClause.hiddenGetters, writeNonNullReference);
+    writeList(showHideClause.hiddenSetters, writeNonNullReference);
+    writeList(showHideClause.hiddenOperators, writeNonNullReference);
     leaveScope(typeParameters: node.typeParameters);
 
     final int len = node.members.length;

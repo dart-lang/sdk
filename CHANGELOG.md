@@ -77,6 +77,8 @@
 
 - The experimental `waitFor` functionality, and the library containing only that
   function, are now deprecated.
+- When a script is `dart run` it will always be precompiled, but with
+  incremental precompilation for following runs.
 
 ### `dart:core`
 
@@ -130,6 +132,15 @@ Updated the Linter to `1.11.0`, which includes changes that
 - fixes false positives in `use_rethrow_when_possible`.
 - improves performance for `annotate_overrides`, `prefer_contains`, and
   `prefer_void_to_null`.
+### Pub
+- Detect potential leaks in `dart pub publish`.
+  When publishing, pub will examine your files for potential secret keys, and
+  warn you.
+
+  To ignore a file that has a false positive, add it to a
+  [`false_secrets`](https://dart.dev/go/false-secrets) section of your
+  `pubspec.yaml`.
+- Fixes unicode terminal detection windows
 
 ## 2.14.1 - 2021-09-09
 

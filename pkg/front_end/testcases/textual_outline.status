@@ -29,6 +29,7 @@ dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/keyword_in_show_hide_element: FormatterCrash
+extension_types/show_hide_all_kinds: FormatterCrash
 extension_types/simple_getter_resolution: FormatterCrash
 extension_types/simple_method_resolution: FormatterCrash
 extension_types/simple_operator_resolution: FormatterCrash
