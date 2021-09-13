@@ -3046,7 +3046,7 @@ typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
  *
  * See Dart_SetFfiNativeResolver.
  */
-typedef void* (*Dart_FfiNativeResolver)(const char* name);
+typedef void* (*Dart_FfiNativeResolver)(const char* name, uintptr_t args_n);
 
 /*
  * ===========

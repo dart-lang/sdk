@@ -824,11 +824,11 @@ class FfiNative<T> {
 // Bootstrapping native for getting the FFI native C function pointer to look
 // up the FFI resolver.
 @pragma("vm:external-name", "Ffi_GetFfiNativeResolver")
-external Pointer<NativeFunction<IntPtr Function(Handle, Handle)>>
+external Pointer<NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>
     _get_ffi_native_resolver<T extends NativeFunction>();
 
 // Resolver for FFI Native C function pointers.
 @pragma('vm:entry-point')
-final _ffi_resolver =
-    _get_ffi_native_resolver<NativeFunction<IntPtr Function(Handle, Handle)>>()
-        .asFunction<int Function(Object, Object)>();
+final _ffi_resolver = _get_ffi_native_resolver<
+        NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>()
+    .asFunction<int Function(Object, Object, int)>();

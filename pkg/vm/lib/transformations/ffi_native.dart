@@ -102,22 +102,26 @@ class FfiNativeTransformer extends Transformer {
     final DartType dartType =
         node.function.computeThisFunctionType(Nullability.nonNullable);
     // Double Function(Double)
-    final nativeType = annotationConst.typeArguments[0];
+    final nativeType = annotationConst.typeArguments[0] as FunctionType;
     // InterfaceType(NativeFunction<Double Function(Double)>*)
     final DartType nativeInterfaceType =
         InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeType]);
 
+    // Derive number of arguments from the native function signature.
+    final args_n = nativeType.positionalParameters.length;
+
     // TODO(dartbug.com/31579): Add `..fileOffset`s once we can handle these in
     // patch files.
 
-    // _ffi_resolver('dart:math', 'Math_sqrt')
+    // _ffi_resolver('dart:math', 'Math_sqrt', 1)
     final resolverInvocation = FunctionInvocation(
         FunctionAccessKind.FunctionType,
         StaticGet(resolverField),
         Arguments([
           ConstantExpression(
               StringConstant(currentLibrary!.importUri.toString())),
-          ConstantExpression(functionName)
+          ConstantExpression(functionName),
+          ConstantExpression(IntConstant(args_n)),
         ]),
         functionType: resolverField.type as FunctionType);
 

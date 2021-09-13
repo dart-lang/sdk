@@ -276,7 +276,9 @@ DEFINE_NATIVE_ENTRY(DartApiDLInitializeData, 0, 0) {
 }
 
 // FFI native C function pointer resolver.
-static intptr_t FfiResolve(Dart_Handle lib_url, Dart_Handle name) {
+static intptr_t FfiResolve(Dart_Handle lib_url,
+                           Dart_Handle name,
+                           uintptr_t args_n) {
   DARTSCOPE(Thread::Current());
 
   const String& lib_url_str = Api::UnwrapStringHandle(T->zone(), lib_url);
@@ -296,7 +298,7 @@ static intptr_t FfiResolve(Dart_Handle lib_url, Dart_Handle name) {
     Exceptions::ThrowArgumentError(error);
   }
 
-  auto* f = resolver(function_name.ToCString());
+  auto* f = resolver(function_name.ToCString(), args_n);
   if (f == nullptr) {
     const String& error = String::Handle(String::NewFormatted(
         "Couldn't resolve function: '%s'.", function_name.ToCString()));
