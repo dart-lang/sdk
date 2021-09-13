@@ -93,6 +93,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final a = MyClass();
     final b = MyClass.named();
     final c = MyClass.factory();
+    final d = MyClass.named;
     ''';
 
     final expected = [
@@ -126,7 +127,13 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('factory', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.constructor])
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('d', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('named', SemanticTokenTypes.method,
+          [CustomSemanticTokenModifiers.constructor]),
     ];
 
     await initialize();
@@ -287,6 +294,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       final a = MyClass();
       a.myMethod();
       MyClass.myStaticMethod();
+      final b = a.myMethod;
+      final c = MyClass.myStaticMethod;
     }
     ''';
 
@@ -318,6 +327,17 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [CustomSemanticTokenModifiers.constructor]),
       _Token('a', SemanticTokenTypes.variable),
       _Token('myMethod', SemanticTokenTypes.method),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('myStaticMethod', SemanticTokenTypes.method,
+          [SemanticTokenModifiers.static]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('b', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.variable),
+      _Token('myMethod', SemanticTokenTypes.method),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('c', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('myStaticMethod', SemanticTokenTypes.method,
           [SemanticTokenModifiers.static]),
@@ -602,6 +622,38 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.documentation]),
       _Token(' */', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_local() async {
+    final content = '''
+    main() {
+      func(String a) => print(a);
+      final funcTearOff = func;
+    }
+    ''';
+
+    final expected = [
+      _Token('main', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('func', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration]),
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('print', SemanticTokenTypes.function),
+      _Token('a', SemanticTokenTypes.parameter),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('funcTearOff', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('func', SemanticTokenTypes.function),
     ];
 
     await initialize();
@@ -990,6 +1042,8 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
 
     /// abc docs
     bool get abc => true;
+
+    final funcTearOff = func;
     ''';
 
     final expected = [
@@ -1019,6 +1073,10 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       _Token('abc', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('true', CustomSemanticTokenTypes.boolean),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('funcTearOff', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('func', SemanticTokenTypes.function),
     ];
 
     await initialize();

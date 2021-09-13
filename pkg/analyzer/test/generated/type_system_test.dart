@@ -19,7 +19,7 @@ import 'test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssignabilityTest);
+    defineReflectiveTests(AssignabilityWithoutNullSafetyTest);
     defineReflectiveTests(TryPromoteToTest);
   });
 }
@@ -87,7 +87,8 @@ abstract class AbstractTypeSystemWithoutNullSafetyTest with ElementsTypesMixin {
 }
 
 @reflectiveTest
-class AssignabilityTest extends AbstractTypeSystemWithoutNullSafetyTest {
+class AssignabilityWithoutNullSafetyTest
+    extends AbstractTypeSystemWithoutNullSafetyTest {
   void test_isAssignableTo_bottom_isBottom() {
     var A = class_(name: 'A');
     List<DartType> interassignable = <DartType>[
@@ -435,7 +436,7 @@ class AssignabilityTest extends AbstractTypeSystemWithoutNullSafetyTest {
 }
 
 @reflectiveTest
-class TryPromoteToTest extends AbstractTypeSystemWithoutNullSafetyTest {
+class TryPromoteToTest extends AbstractTypeSystemTest {
   void notPromotes(DartType from, DartType to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, isNull);
