@@ -261,35 +261,27 @@ class Duration implements Comparable<Duration> {
   /// d.toString();  // "1:10:00.000500"
   /// ```
   String toString() {
-    var buffer = List<String>.filled(9, "");
     var microseconds = inMicroseconds;
 
     var hours = microseconds ~/ microsecondsPerHour;
     microseconds = microseconds.remainder(microsecondsPerHour);
 
     if (microseconds < 0) microseconds = -microseconds;
-    var hoursString = hours.toString();
-    buffer
-      ..[0] = hoursString
-      ..[1] = ":";
 
     var minutes = microseconds ~/ microsecondsPerMinute;
     microseconds = microseconds.remainder(microsecondsPerMinute);
 
-    if (minutes < 10) buffer[2] = "0";
-    buffer
-      ..[3] = minutes.toString()
-      ..[4] = ":";
+    var minutesPadding = minutes < 10 ? "0" : "";
 
     var seconds = microseconds ~/ microsecondsPerSecond;
     microseconds = microseconds.remainder(microsecondsPerSecond);
 
-    if (seconds < 10) buffer[5] = "0";
-    buffer
-      ..[6] = seconds.toString()
-      ..[7] = "."
-      ..[8] = microseconds.toString().padLeft(6, "0");
-    return buffer.join("");
+    var secondsPadding = seconds < 10 ? "0" : "";
+
+    var paddedMicroseconds = microseconds.toString().padLeft(6, "0");
+    return "$hours:"
+        "$minutesPadding$minutes:"
+        "$secondsPadding$seconds.$paddedMicroseconds";
   }
 
   /// Whether this [Duration] is negative.

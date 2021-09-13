@@ -282,15 +282,7 @@ class Thread : public ThreadState {
 
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
-#if defined(HAS_C11_THREAD_LOCAL)
     return static_cast<Thread*>(OSThread::CurrentVMThread());
-#else
-    BaseThread* thread = OSThread::GetCurrentTLS();
-    if (thread == NULL || thread->is_os_thread()) {
-      return NULL;
-    }
-    return static_cast<Thread*>(thread);
-#endif
   }
 
   // Makes the current thread enter 'isolate'.

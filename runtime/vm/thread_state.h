@@ -25,15 +25,7 @@ class ThreadState : public BaseThread {
  public:
   // The currently executing thread, or NULL if not yet initialized.
   static ThreadState* Current() {
-#if defined(HAS_C11_THREAD_LOCAL)
     return OSThread::CurrentVMThread();
-#else
-    BaseThread* thread = OSThread::GetCurrentTLS();
-    if (thread == NULL || thread->is_os_thread()) {
-      return NULL;
-    }
-    return static_cast<ThreadState*>(thread);
-#endif
   }
 
   explicit ThreadState(bool is_os_thread);
