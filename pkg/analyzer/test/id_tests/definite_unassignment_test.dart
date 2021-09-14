@@ -25,7 +25,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const _DefiniteAssignmentDataComputer(), [analyzerNnbdConfig]));
+          const _DefiniteAssignmentDataComputer(), [analyzerDefaultConfig]));
 }
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {

@@ -24,8 +24,8 @@ main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const ConstantsDataComputer(), [analyzerConstantUpdate2018Config]));
+      runTest:
+          runTestFor(const ConstantsDataComputer(), [analyzerDefaultConfig]));
 }
 
 class ConstantsDataComputer extends DataComputer<String> {

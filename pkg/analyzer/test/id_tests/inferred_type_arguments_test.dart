@@ -22,7 +22,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const _InferredTypeArgumentsDataComputer(), [analyzerNnbdConfig]));
+          const _InferredTypeArgumentsDataComputer(), [analyzerDefaultConfig]));
 }
 
 class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
