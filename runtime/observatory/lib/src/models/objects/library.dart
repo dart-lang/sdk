@@ -41,5 +41,5 @@ abstract class LibraryDependency {
   LibraryRef get target;
 
   /// [optional]
-  String get prefix;
+  String? get prefix;
 }

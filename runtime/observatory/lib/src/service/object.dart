@@ -2479,7 +2479,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
 class LibraryDependency implements M.LibraryDependency {
   final bool isImport;
   final bool isDeferred;
-  final String prefix;
+  final String? prefix;
   final Library target;
 
   bool get isExport => !isImport;
