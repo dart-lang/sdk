@@ -461,7 +461,7 @@ class BazelWorkspace extends Workspace
           var binPaths = _findBinFolderPaths(folder);
           String symlinkPrefix =
               _findSymlinkPrefix(provider, root, binPaths: binPaths);
-          binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
+          binPaths = binPaths..add(context.join(root, '$symlinkPrefix-bin'));
           return BazelWorkspace._(provider, root, symlinkPrefix, readonlyRoot,
               binPaths, context.join(root, '$symlinkPrefix-genfiles'),
               lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
@@ -474,7 +474,7 @@ class BazelWorkspace extends Workspace
         var binPaths = _findBinFolderPaths(parent);
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
-        binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
+        binPaths = binPaths..add(context.join(root, '$symlinkPrefix-bin'));
         return BazelWorkspace._(
             provider,
             root,
@@ -491,7 +491,7 @@ class BazelWorkspace extends Workspace
         var binPaths = _findBinFolderPaths(folder);
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
-        binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
+        binPaths = binPaths..add(context.join(root, '$symlinkPrefix-bin'));
         return BazelWorkspace._(
             provider,
             root,
@@ -516,11 +516,12 @@ class BazelWorkspace extends Workspace
   /// the immediate folders found in `$root/blaze-out/` and `$root/bazel-out/`
   /// for folders named "bin".
   ///
-  /// If no "bin" folder is found in any of those locations, `null` is returned.
-  static List<String>? _findBinFolderPaths(Folder root) {
+  /// If no "bin" folder is found in any of those locations, empty list is
+  /// returned.
+  static List<String> _findBinFolderPaths(Folder root) {
     var out = _firstExistingFolder(root, ['blaze-out', 'bazel-out']);
     if (out == null) {
-      return null;
+      return [];
     }
 
     List<String> binPaths = [];
@@ -532,7 +533,7 @@ class BazelWorkspace extends Workspace
         binPaths.add(possibleBin.path);
       }
     }
-    return binPaths.isEmpty ? null : binPaths;
+    return binPaths;
   }
 
   /// Return the symlink prefix, _X_, for folders `X-bin` or `X-genfiles`.
