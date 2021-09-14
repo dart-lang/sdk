@@ -73,6 +73,63 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
   EXPECT_EQ(peer, heap->GetPeer(after_obj.ptr()));
 }
 
+ISOLATE_UNIT_TEST_CASE(BecomeForwardObjectId) {
+  Heap* heap = IsolateGroup::Current()->heap();
+
+  const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
+  const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));
+  EXPECT(before_obj.ptr() != after_obj.ptr());
+
+  intptr_t id = 42;
+  intptr_t no_id = 0;
+  heap->SetObjectId(before_obj.ptr(), id);
+  EXPECT_EQ(id, heap->GetObjectId(before_obj.ptr()));
+  EXPECT_EQ(no_id, heap->GetObjectId(after_obj.ptr()));
+
+  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
+  before.SetAt(0, before_obj);
+  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
+  after.SetAt(0, after_obj);
+  Become::ElementsForwardIdentity(before, after);
+
+  EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT_EQ(id, heap->GetObjectId(before_obj.ptr()));
+  EXPECT_EQ(id, heap->GetObjectId(after_obj.ptr()));
+}
+
+ISOLATE_UNIT_TEST_CASE(BecomeForwardMessageId) {
+  Isolate* isolate = Isolate::Current();
+  isolate->set_forward_table_new(new WeakTable());
+  isolate->set_forward_table_old(new WeakTable());
+
+  const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
+  const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));
+  EXPECT(before_obj.ptr() != after_obj.ptr());
+
+  intptr_t id = 42;
+  intptr_t no_id = 0;
+  isolate->forward_table_old()->SetValueExclusive(before_obj.ptr(), id);
+  EXPECT_EQ(id,
+            isolate->forward_table_old()->GetValueExclusive(before_obj.ptr()));
+  EXPECT_EQ(no_id,
+            isolate->forward_table_old()->GetValueExclusive(after_obj.ptr()));
+
+  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
+  before.SetAt(0, before_obj);
+  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
+  after.SetAt(0, after_obj);
+  Become::ElementsForwardIdentity(before, after);
+
+  EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT_EQ(id,
+            isolate->forward_table_old()->GetValueExclusive(before_obj.ptr()));
+  EXPECT_EQ(id,
+            isolate->forward_table_old()->GetValueExclusive(after_obj.ptr()));
+
+  isolate->set_forward_table_new(nullptr);
+  isolate->set_forward_table_old(nullptr);
+}
+
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   const String& new_element = String::Handle(String::New("new", Heap::kNew));
   const String& old_element = String::Handle(String::New("old", Heap::kOld));

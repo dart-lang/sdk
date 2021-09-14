@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
@@ -84,6 +85,10 @@ class DecoratedTypeOperations
       return true;
     }
   }
+
+  @override
+  bool isTypeParameterType(DecoratedType type) =>
+      type.type is TypeParameterType;
 
   @override
   DecoratedType promoteToNonNull(DecoratedType type) {

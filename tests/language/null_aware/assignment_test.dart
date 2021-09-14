@@ -205,13 +205,13 @@ main() {
     bname?.v += 2;
 //  ^
 // [cfe] Operand of null-aware operation '?.' has type 'B' which excludes null.
-    //   ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    //     ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-    // [cfe] The getter 'v' isn't defined for the class 'B'.
-    // [cfe] The setter 'v' isn't defined for the class 'B'.
+//       ^^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+// [cfe] The getter 'v' isn't defined for the class 'B'.
+// [cfe] The setter 'v' isn't defined for the class 'B'.
   }
   {
     D d = new D(new E());
@@ -250,6 +250,7 @@ main() {
     // [cfe] The class 'D' cannot be null.
     //                        ^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    //                          ^
     // [cfe] A value of type 'C?' can't be assigned to a variable of type 'int'.
   }
   {

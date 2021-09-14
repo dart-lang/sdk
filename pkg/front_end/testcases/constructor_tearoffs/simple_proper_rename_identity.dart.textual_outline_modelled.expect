@@ -1,0 +1,25 @@
+class A1<T> {}
+
+class A2<T extends num> {}
+
+class A3<T extends List<dynamic>, S extends Never?> {}
+
+class A4<T extends num> {}
+
+class A5<T extends List<dynamic>, S extends Never?> {}
+
+class StaticIdentityTest {
+  const StaticIdentityTest(a, b) : assert(identical(a, b));
+}
+
+main() {}
+test1() => const StaticIdentityTest(A1.new, B1.new);
+test2() => const StaticIdentityTest(A2.new, B2.new);
+test3() => const StaticIdentityTest(A3.new, B3.new);
+test4() => const StaticIdentityTest(A4.new, B4.new);
+test5() => const StaticIdentityTest(A5.new, B5.new);
+typedef B1<T> = A1<T>;
+typedef B2<T extends num> = A2<T>;
+typedef B3<T extends List<Object?>, S extends Null> = A3<T, S>;
+typedef B4<T extends int> = A4<T>;
+typedef B5<T extends List<Object?>, S extends Null> = A5;

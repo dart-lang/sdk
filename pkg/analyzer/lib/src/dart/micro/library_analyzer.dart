@@ -348,10 +348,14 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(LinterVisitor(
+    unit.accept(
+      LinterVisitor(
         nodeRegistry,
-        LinterExceptionHandler(_analysisOptions.propagateLinterExceptions)
-            .logException));
+        LinterExceptionHandler(
+          propagateExceptions: _analysisOptions.propagateLinterExceptions,
+        ).logException,
+      ),
+    );
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
@@ -409,8 +413,7 @@ class LibraryAnalyzer {
 
     bool isIgnored(AnalysisError error) {
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String errorCode = error.errorCode.name.toLowerCase();
-      return ignoreInfo.ignoredAt(errorCode, errorLine);
+      return ignoreInfo.ignoredAt(error.errorCode.name, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
@@ -689,7 +692,7 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(VariableResolverVisitor(
+    unit.accept(ScopeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryElement.scope));
 
@@ -697,8 +700,8 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _typeSystem, false, unit.featureSet.isEnabled(Feature.non_nullable));
+    FlowAnalysisHelper flowAnalysisHelper =
+        FlowAnalysisHelper(_typeSystem, false, unit.featureSet);
 
     var resolverVisitor = ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,

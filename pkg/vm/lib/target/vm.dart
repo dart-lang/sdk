@@ -50,22 +50,20 @@ class VmTarget extends Target {
   bool get supportsSetLiterals => false;
 
   @override
-  int get enabledLateLowerings => flags.forceLateLoweringsForTesting;
+  int get enabledLateLowerings => LateLowering.none;
 
   @override
-  bool get supportsLateLoweringSentinel =>
-      flags.forceLateLoweringSentinelForTesting;
+  bool get supportsLateLoweringSentinel => false;
 
   @override
-  bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
+  bool get useStaticFieldLowering => false;
 
   @override
-  bool get supportsExplicitGetterCalls =>
-      !flags.forceNoExplicitGetterCallsForTesting;
+  bool get supportsExplicitGetterCalls => true;
 
   @override
   int get enabledConstructorTearOffLowerings =>
-      flags.forceConstructorTearOffLoweringForTesting;
+      ConstructorTearOffLowering.typedefs;
 
   @override
   String get name => 'vm';

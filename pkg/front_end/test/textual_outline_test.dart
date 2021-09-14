@@ -15,7 +15,7 @@ import "package:front_end/src/fasta/util/textual_outline.dart"
 const ScannerConfiguration scannerConfiguration =
     const ScannerConfiguration(enableExtensionMethods: true);
 
-main() {
+void main() {
   // Doesn't sort if not asked to perform modelling.
   String result = textualOutline(utf8.encode("""
 b() { print("hello"); }

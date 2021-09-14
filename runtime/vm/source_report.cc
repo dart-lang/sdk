@@ -22,14 +22,16 @@ const char* SourceReport::kCoverageStr = "Coverage";
 const char* SourceReport::kPossibleBreakpointsStr = "PossibleBreakpoints";
 const char* SourceReport::kProfileStr = "_Profile";
 
-SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
+SourceReport::SourceReport(intptr_t report_set,
+                           CompileMode compile_mode,
+                           bool report_lines)
     : report_set_(report_set),
       compile_mode_(compile_mode),
+      report_lines_(report_lines),
       thread_(NULL),
       script_(NULL),
       start_pos_(TokenPosition::kMinSource),
       end_pos_(TokenPosition::kMaxSource),
-      profile_(Isolate::Current()),
       next_script_index_(0) {}
 
 SourceReport::~SourceReport() {
@@ -219,6 +221,17 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
   }
 }
 
+intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
+                                         const TokenPosition& token_pos) {
+  if (!report_lines_) {
+    return token_pos.Pos();
+  }
+  intptr_t line = -1;
+  const bool found = script.GetTokenLocation(token_pos, &line);
+  ASSERT(found);
+  return line;
+}
+
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
                                      const Code& code) {
@@ -231,6 +244,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone(), code.pc_descriptors());
+  const Script& script = Script::Handle(zone(), function.script());
 
   const int kCoverageNone = 0;
   const int kCoverageMiss = 1;
@@ -277,20 +291,24 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   JSONObject cov(jsobj, "coverage");
   {
     JSONArray hits(&cov, "hits");
+    TokenPosition pos = begin_pos;
     for (int i = 0; i < func_length; i++) {
       if (coverage[i] == kCoverageHit) {
-        // Add the token position of the hit.
-        hits.AddValue(begin_pos.Pos() + i);
+        // Add the token position or line number of the hit.
+        hits.AddValue(GetTokenPosOrLine(script, pos));
       }
+      pos = pos.Next();
     }
   }
   {
     JSONArray misses(&cov, "misses");
+    TokenPosition pos = begin_pos;
     for (int i = 0; i < func_length; i++) {
       if (coverage[i] == kCoverageMiss) {
-        // Add the token position of the miss.
-        misses.AddValue(begin_pos.Pos() + i);
+        // Add the token position or line number of the miss.
+        misses.AddValue(GetTokenPosOrLine(script, pos));
       }
+      pos = pos.Next();
     }
   }
 }
@@ -312,6 +330,7 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
 
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone(), code.pc_descriptors());
+  const Script& script = Script::Handle(zone(), func.script());
 
   PcDescriptors::Iterator iter(descriptors, kSafepointKind);
   while (iter.MoveNext()) {
@@ -325,11 +344,13 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
   }
 
   JSONArray bpts(jsobj, "possibleBreakpoints");
+  TokenPosition pos = begin_pos;
   for (int i = 0; i < func_length; i++) {
     if (possible.Contains(i)) {
-      // Add the token position.
-      bpts.AddValue(begin_pos.Pos() + i);
+      // Add the token position or line number.
+      bpts.AddValue(GetTokenPosOrLine(script, pos));
     }
+    pos = pos.Next();
   }
 }
 
@@ -653,7 +674,7 @@ void SourceReport::CollectConstConstructorCoverageFromScripts(
         JSONObject cov(&range, "coverage");
         {
           JSONArray hits(&cov, "hits");
-          hits.AddValue(begin_pos);
+          hits.AddValue(GetTokenPosOrLine(scriptRef, begin_pos));
         }
         {
           JSONArray misses(&cov, "misses");

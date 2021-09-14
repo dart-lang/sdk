@@ -9,6 +9,8 @@
 //
 // VMOptions=--dedup-instructions
 
+// @dart = 2.9
+
 import 'hello_world_test.dart' as other;
 
 main() => other.main();

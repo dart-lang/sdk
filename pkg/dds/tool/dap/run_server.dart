@@ -26,7 +26,6 @@ class DapCommand extends Command {
   static const argIpv6 = 'ipv6';
   static const argDds = 'dds';
   static const argAuthCodes = 'auth-codes';
-  static const argVerbose = 'verbose';
 
   final Stream<List<int>> _inputStream;
   final StreamSink<List<int>> _outputSink;
@@ -41,6 +40,7 @@ class DapCommand extends Command {
     argParser
       ..addFlag(
         argIpv6,
+        defaultsTo: false,
         help: 'Whether to bind DAP/VM Service/DDS to IPv6 addresses',
       )
       ..addFlag(

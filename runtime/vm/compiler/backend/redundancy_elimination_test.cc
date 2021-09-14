@@ -219,7 +219,7 @@ static void TestAliasingViaRedefinition(
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
-  const Class& cls = Class::Handle(
+  const Class& cls = Class::ZoneHandle(
       lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
@@ -383,7 +383,7 @@ static void TestAliasingViaStore(
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
-  const Class& cls = Class::Handle(
+  const Class& cls = Class::ZoneHandle(
       lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());

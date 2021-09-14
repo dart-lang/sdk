@@ -93,11 +93,14 @@ class AstTestFactory {
 
   static ExpressionFunctionBodyImpl asyncExpressionFunctionBody(
           Expression expression) =>
-      astFactory.expressionFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-          TokenFactory.tokenFromType(TokenType.FUNCTION),
-          expression,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      astFactory.expressionFunctionBody2(
+        keyword:
+            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+        star: null,
+        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
+        expression: expression,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static BlockFunctionBodyImpl asyncGeneratorBlockFunctionBody(
           [List<Statement> statements = const []]) =>
@@ -105,6 +108,17 @@ class AstTestFactory {
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
           TokenFactory.tokenFromType(TokenType.STAR),
           block(statements));
+
+  static ExpressionFunctionBodyImpl asyncGeneratorExpressionFunctionBody(
+          Expression expression) =>
+      astFactory.expressionFunctionBody2(
+        keyword:
+            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+        star: TokenFactory.tokenFromType(TokenType.STAR),
+        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
+        expression: expression,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static AwaitExpressionImpl awaitExpression(Expression expression) =>
       astFactory.awaitExpression(
@@ -485,11 +499,13 @@ class AstTestFactory {
 
   static ExpressionFunctionBodyImpl expressionFunctionBody(
           Expression expression) =>
-      astFactory.expressionFunctionBody(
-          null,
-          TokenFactory.tokenFromType(TokenType.FUNCTION),
-          expression,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      astFactory.expressionFunctionBody2(
+        keyword: null,
+        star: null,
+        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
+        expression: expression,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static ExpressionStatementImpl expressionStatement(Expression expression) =>
       astFactory.expressionStatement(

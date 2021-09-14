@@ -12,12 +12,14 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "package:example/b.dart";
         main() {
           print("hello");
           b();
         }
       package_0.1.0/a.dart: |
+        // @dart=2.9
         a() {
           la1();
         }
@@ -25,6 +27,7 @@ worlds:
           print("v0.1.0");
         }
       package_0.1.0/b.dart: |
+        // @dart=2.9
         import "a.dart";
         b() {
           a();
@@ -38,12 +41,14 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
+        // @dart=2.9
         import "package:example/b.dart";
         main() {
           print("hello");
           b();
         }
       package_0.1.0/a.dart: |
+        // @dart=2.9
         a() {
           la1();
         }
@@ -51,11 +56,13 @@ worlds:
           print("v0.1.0");
         }
       package_0.1.0/b.dart: |
+        // @dart=2.9
         import "a.dart";
         b() {
           a();
         }
       package_0.1.1/b.dart: |
+        // @dart=2.9
         b() {
           print("hello from v0.1.1");
         }

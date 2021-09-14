@@ -8,9 +8,9 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   static factory first() → self::A*
-    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+    return new self::A::•();
   static factory second() → self::A*
-    let dynamic #redirecting_factory = self::A::first in invalid-expression;
+    return self::A::first();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

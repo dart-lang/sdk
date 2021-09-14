@@ -607,11 +607,6 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   ASSERT(data_buffer != nullptr);
   memmove(data_buffer, recv_buffer, bytes_read);
 
-  // Memory Sanitizer complains addr not being initialized, which is done
-  // through RecvFrom().
-  // Issue: https://github.com/google/sanitizers/issues/1201
-  MSAN_UNPOISON(&addr, sizeof(RawAddr));
-
   // Get the port and clear it in the sockaddr structure.
   int port = SocketAddress::GetAddrPort(addr);
   // TODO(21403): Add checks for AF_UNIX, if unix domain sockets
@@ -1258,24 +1253,20 @@ void FUNCTION_NAME(Socket_AvailableDatagram)(Dart_NativeArguments args) {
 
 static void NormalSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
-  if (socket->fd() >= 0) {
-    const int64_t flags = 1 << kCloseCommand;
-    socket->Retain();
-    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
-                                 socket->port(), flags);
-  }
-  socket->Release();
+  const int64_t flags = 1 << kCloseCommand;
+  socket->Retain();  // Bump reference till we send the message.
+  EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                               socket->port(), flags);
+  socket->Release();  // Release the reference we just added above.
 }
 
 static void ListeningSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
-  if (socket->fd() >= 0) {
-    const int64_t flags = (1 << kListeningSocket) | (1 << kCloseCommand);
-    socket->Retain();
-    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
-                                 socket->port(), flags);
-  }
-  socket->Release();
+  const int64_t flags = (1 << kListeningSocket) | (1 << kCloseCommand);
+  socket->Retain();  // Bump reference till we send the message.
+  EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                               socket->port(), flags);
+  socket->Release();  // Release the reference we just added above.
 }
 
 static void StdioSocketFinalizer(void* isolate_data, void* data) {
@@ -1288,15 +1279,11 @@ static void StdioSocketFinalizer(void* isolate_data, void* data) {
 
 static void SignalSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
-  if (socket->fd() >= 0) {
-    Process::ClearSignalHandlerByFd(socket->fd(), socket->isolate_port());
-    const int64_t flags = 1 << kCloseCommand;
-    socket->Retain();
-    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
-                                 socket->port(), flags);
-  }
-
-  socket->Release();
+  const int64_t flags = (1 << kSignalSocket) | (1 << kCloseCommand);
+  socket->Retain();  // Bump reference till we send the message.
+  EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                               socket->port(), flags);
+  socket->Release();  // Release the reference we just added above.
 }
 
 void Socket::ReuseSocketIdNativeField(Dart_Handle handle,

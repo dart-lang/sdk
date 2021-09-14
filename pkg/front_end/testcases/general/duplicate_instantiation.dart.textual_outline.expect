@@ -1,0 +1,8 @@
+// @dart = 2.14
+class Class<T> {
+  Class();
+  Class.named();
+}
+
+test() {}
+main() {}

@@ -14,15 +14,18 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import 'libExporter.dart';
         void foo() {
           int value = libField;
           libField = value+1;
         }
       libExporter.dart: |
+        // @dart=2.9
         export "lib.dart";
         String fromLibExporter = "hello";
       lib.dart: |
+        // @dart=2.9
         import "libExporter.dart";
         int libField = 42;
         void requireStuffFromLibExporter() {

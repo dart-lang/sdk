@@ -17,7 +17,7 @@ class A extends core::Object {
     : self::A::field = field, super core::Object::•()
     ;
   static factory redirect([core::int field]) → self::A
-    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+    return new self::A::•(field);
 }
 static method main() → dynamic {
   self::expect(42, new self::A::•().{self::A::field}{core::int});

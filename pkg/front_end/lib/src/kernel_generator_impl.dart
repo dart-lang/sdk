@@ -185,23 +185,30 @@ Future<CompilerResult> generateKernelInternal(
 /// Result object of [generateKernel].
 class InternalCompilerResult implements CompilerResult {
   /// The generated summary bytes, if it was requested.
+  @override
   final List<int>? summary;
 
   /// The generated component, if it was requested.
+  @override
   final Component? component;
 
+  @override
   final Component? sdkComponent;
 
+  @override
   final List<Component> loadedComponents;
 
   /// Dependencies traversed by the compiler. Used only for generating
   /// dependency .GN files in the dart-sdk build system.
   /// Note this might be removed when we switch to compute dependencies without
   /// using the compiler itself.
+  @override
   final List<Uri> deps;
 
+  @override
   final ClassHierarchy? classHierarchy;
 
+  @override
   final CoreTypes? coreTypes;
 
   /// The [KernelTarget] used to generated the component.

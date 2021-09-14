@@ -34,7 +34,7 @@ import 'package:front_end/src/testing/compiler_common.dart'
         invalidCoreLibsSpecUri,
         isDartCoreLibrary;
 
-main() {
+void main() {
   group('kernelForProgram', () {
     test('compiler fails if it cannot find sdk sources', () async {
       var errors = [];

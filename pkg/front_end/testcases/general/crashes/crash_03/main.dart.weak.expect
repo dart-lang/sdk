@@ -47,11 +47,11 @@ abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclara
  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '_hitTestBehavior'.
       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
-      ^^^^^^^^^^^^^^^^" =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
+      ^^^^^^^^^^^^^^^^" in this{<unresolved>}._hitTestBehavior =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:27: Error: The getter 'PlatformViewHitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'PlatformViewHitTestBehavior'.
       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^"{dynamic}.transparent);
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.PlatformViewHitTestBehavior{dynamic}.transparent);
 }
 static method main() → dynamic {}
 

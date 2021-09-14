@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.49.0';
+const String vmServiceVersion = '3.51.0';
 
 /// @optional
 const String optional = 'optional';
@@ -817,6 +817,13 @@ abstract class VmServiceInterface {
   /// compilation error, which could terminate the running Dart program. If this
   /// parameter is not provided, it is considered to have the value `false`.
   ///
+  /// The `reportLines` parameter changes the token positions in
+  /// `SourceReportRange.possibleBreakpoints` and `SourceReportCoverage` to be
+  /// line numbers. This is designed to reduce the number of RPCs that need to
+  /// be performed in the case that the client is only interested in line
+  /// numbers. If this parameter is not provided, it is considered to have the
+  /// value `false`.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -831,6 +838,7 @@ abstract class VmServiceInterface {
     int? tokenPos,
     int? endTokenPos,
     bool? forceCompile,
+    bool? reportLines,
   });
 
   /// The `getVersion` RPC is used to determine what version of the Service
@@ -1429,6 +1437,7 @@ class VmServerConnection {
             tokenPos: params['tokenPos'],
             endTokenPos: params['endTokenPos'],
             forceCompile: params['forceCompile'],
+            reportLines: params['reportLines'],
           );
           break;
         case 'getVersion':
@@ -1929,6 +1938,7 @@ class VmService implements VmServiceInterface {
     int? tokenPos,
     int? endTokenPos,
     bool? forceCompile,
+    bool? reportLines,
   }) =>
       _call('getSourceReport', {
         'isolateId': isolateId,
@@ -1937,6 +1947,7 @@ class VmService implements VmServiceInterface {
         if (tokenPos != null) 'tokenPos': tokenPos,
         if (endTokenPos != null) 'endTokenPos': endTokenPos,
         if (forceCompile != null) 'forceCompile': forceCompile,
+        if (reportLines != null) 'reportLines': reportLines,
       });
 
   @override
@@ -7287,12 +7298,12 @@ class SourceReportCoverage {
   static SourceReportCoverage? parse(Map<String, dynamic>? json) =>
       json == null ? null : SourceReportCoverage._fromJson(json);
 
-  /// A list of token positions in a SourceReportRange which have been executed.
-  /// The list is sorted.
+  /// A list of token positions (or line numbers if reportLines was enabled) in
+  /// a SourceReportRange which have been executed.  The list is sorted.
   List<int>? hits;
 
-  /// A list of token positions in a SourceReportRange which have not been
-  /// executed.  The list is sorted.
+  /// A list of token positions (or line numbers if reportLines was enabled) in
+  /// a SourceReportRange which have not been executed.  The list is sorted.
   List<int>? misses;
 
   SourceReportCoverage({
@@ -7352,9 +7363,9 @@ class SourceReportRange {
   SourceReportCoverage? coverage;
 
   /// Possible breakpoint information for this range, represented as a sorted
-  /// list of token positions.  Provided only when the when the
-  /// PossibleBreakpoint report has been requested and the range has been
-  /// compiled.
+  /// list of token positions (or line numbers if reportLines was enabled).
+  /// Provided only when the when the PossibleBreakpoint report has been
+  /// requested and the range has been compiled.
   @optional
   List<int>? possibleBreakpoints;
 

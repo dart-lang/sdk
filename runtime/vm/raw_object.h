@@ -2179,6 +2179,9 @@ class UntaggedContext : public UntaggedObject {
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
+  friend void UpdateLengthField(intptr_t,
+                                ObjectPtr,
+                                ObjectPtr);  // num_variables_
 };
 
 class UntaggedContextScope : public UntaggedObject {
@@ -2725,10 +2728,6 @@ class UntaggedString : public UntaggedInstance {
 
  private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
   friend class ImageWriter;
 };
@@ -2743,6 +2742,8 @@ class UntaggedOneByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 class UntaggedTwoByteString : public UntaggedString {
@@ -2755,6 +2756,8 @@ class UntaggedTwoByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
@@ -3206,6 +3209,8 @@ class UntaggedWeakProperty : public UntaggedInstance {
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class FastObjectCopy;  // For OFFSET_OF
+  friend class SlowObjectCopy;  // For OFFSET_OF
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

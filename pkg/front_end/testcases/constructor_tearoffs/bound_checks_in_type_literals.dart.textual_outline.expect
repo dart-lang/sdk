@@ -1,0 +1,6 @@
+class C<T extends num> {}
+
+test() => C<Object>;
+test2([Type t = C<Object>]) {}
+var test3 = (() => C<Object>)();
+main() {}

@@ -9,7 +9,7 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy,non-nullable
+    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import "dart:ffi";
@@ -33,7 +33,7 @@ worlds:
     expectedLibraryCount: 2
 
   - entry: main.dart
-    experiments: alternative-invalidation-strategy,non-nullable
+    experiments: alternative-invalidation-strategy
     expectInitializeFromDill: true
     invalidate:
       - lib.dart

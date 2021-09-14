@@ -1043,7 +1043,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (operatorType == TokenType.TILDE_SLASH) {
       return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
     } else {
-      // TODO(brianwilkerson) Figure out which error to report.
+      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+      // error code.
       _error(node, null);
       return null;
     }
@@ -1091,6 +1092,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl? visitConstructorReference(ConstructorReference node) {
+    return _getConstantValue(node, node.constructorName.staticElement);
+  }
+
+  @override
   DartObjectImpl visitDoubleLiteral(DoubleLiteral node) {
     return DartObjectImpl(
       typeSystem,
@@ -1103,7 +1109,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl? visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     if (!node.isConst) {
-      // TODO(brianwilkerson) Figure out which error to report.
+      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+      // error code.
       _error(node, null);
       return null;
     }
@@ -1204,7 +1211,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
       }
     }
-    // TODO(brianwilkerson) Figure out which error to report.
+    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+    // error code.
     _error(node, null);
     return null;
   }
@@ -1215,7 +1223,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitNode(AstNode node) {
-    // TODO(brianwilkerson) Figure out which error to report.
+    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+    // error code.
     _error(node, null);
     return null;
   }
@@ -1269,7 +1278,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (node.operator.type == TokenType.MINUS) {
       return _dartObjectComputer.negated(node, operand);
     } else {
-      // TODO(brianwilkerson) Figure out which error to report.
+      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+      // error code.
       _error(node, null);
       return null;
     }
@@ -1349,10 +1359,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitSimpleIdentifier(SimpleIdentifier node) {
-    if (_lexicalEnvironment != null &&
-        _lexicalEnvironment!.containsKey(node.name)) {
-      return _lexicalEnvironment![node.name];
+    var value = _lexicalEnvironment?[node.name];
+    if (value != null) {
+      return value;
     }
+
     return _getConstantValue(node, node.staticElement);
   }
 
@@ -1594,6 +1605,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (variableElement.isConst && value != null) {
         return value.value;
       }
+    } else if (variableElement is ConstructorElement) {
+      return DartObjectImpl(
+        typeSystem,
+        node.typeOrThrow,
+        FunctionState(variableElement),
+      );
     } else if (variableElement is ExecutableElement) {
       var function = element as ExecutableElement;
       if (function.isStatic) {
@@ -1643,7 +1660,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       // Constants may not refer to type parameters.
     }
 
-    // TODO(brianwilkerson) Figure out which error to report.
+    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+    // error code.
     _error(node, null);
     return null;
   }

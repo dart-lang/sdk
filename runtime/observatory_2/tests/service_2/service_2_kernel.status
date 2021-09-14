@@ -27,7 +27,6 @@ sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Pla
 coverage_optimized_function_test: Pass, Slow
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
-get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
 pause_on_exception_from_slow_path_test: Pass, Slow
 pause_on_unhandled_async_exceptions2_test: Pass, Slow
 
@@ -53,6 +52,7 @@ break_on_function_child_isolate_test: SkipByDesign # Debugger is disabled in AOT
 break_on_function_many_child_isolates_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_async_break_test: SkipByDesign # Debugger is disabled in AOT mode.
+breakpoint_gc_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_package_parts_class_file_uri_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_package_parts_class_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_parts_class_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -163,6 +163,7 @@ positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28443_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28980_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_34841_test: SkipByDesign # Debugger is disabled in AOT mode.
+regress_46419_test: SkipByDesign # Debugger is disabled in AOT mode.
 reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.
 rewind_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -211,6 +212,9 @@ valid_source_locations_test: Skip # Issue 34736, too slow.
 
 [ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $compiler == dartk ]
 complex_reload_test: RuntimeError
+
+[ $compiler == app_jitk && $system == linux ]
+get_vm_timeline_rpc_test: Skip # Timeout.
 
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.

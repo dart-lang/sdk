@@ -60,24 +60,24 @@ static method test(self::A a, self::E e, self::ET et) → dynamic {
  - 'A' is from 'pkg/front_end/testcases/extension_types/simple_method_resolution.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'baz'.
   a.baz(); // Error.
-    ^^^";
+    ^^^" in a{<unresolved>}.baz();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_method_resolution.dart:22:5: Error: The method 'foo' isn't defined for the extension 'E'.
 Try correcting the name to the name of an existing method, or defining a method name 'foo'.
   e.foo(); // Error.
-    ^^^";
+    ^^^" in e{<unresolved>}.foo();
   self::E|bar(e);
   invalid-expression "pkg/front_end/testcases/extension_types/simple_method_resolution.dart:24:5: Error: The method 'baz' isn't defined for the extension 'E'.
 Try correcting the name to the name of an existing method, or defining a method name 'baz'.
   e.baz(); // Error.
-    ^^^";
+    ^^^" in e{<unresolved>}.baz();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_method_resolution.dart:26:6: Error: The method 'foo' isn't defined for the extension 'ET'.
 Try correcting the name to the name of an existing method, or defining a method name 'foo'.
   et.foo(); // Error.
-     ^^^";
+     ^^^" in et{<unresolved>}.foo();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_method_resolution.dart:27:6: Error: The method 'bar' isn't defined for the extension 'ET'.
 Try correcting the name to the name of an existing method, or defining a method name 'bar'.
   et.bar(); // Error.
-     ^^^";
+     ^^^" in et{<unresolved>}.bar();
   self::ET|baz(et);
 }
 static method main() → dynamic {}

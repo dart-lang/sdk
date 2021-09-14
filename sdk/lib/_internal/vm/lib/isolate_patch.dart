@@ -14,7 +14,6 @@ import "dart:async"
 
 import "dart:collection" show HashMap;
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
-import "dart:_internal" show spawnFunction;
 
 /// These are the additional parts of this patch library:
 // part "timer_impl.dart";
@@ -175,14 +174,19 @@ class _RawReceivePortImpl implements RawReceivePort {
     return _portMap.values.map((e) => e['port']).toList();
   }
 
-  // Called from the VM to dispatch to the handler.
+  // Called from the VM to retrieve  the handler and handle a message.
   @pragma("vm:entry-point", "call")
-  static void _handleMessage(Function handler, var message) {
+  static _handleMessage(int id, var message) {
+    final handler = _portMap[id]?['handler'];
+    if (handler == null) {
+      return null;
+    }
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
     handler(message);
     _runPendingImmediateCallback();
+    return handler;
   }
 
   // Call into the VM to close the VM maintained mappings.
@@ -355,28 +359,29 @@ class Isolate {
       script = await Isolate.resolvePackageUri(script);
     }
 
-    const bool newIsolateGroup = false;
     final RawReceivePort readyPort =
         new RawReceivePort(null, 'Isolate.spawn ready');
     try {
-      spawnFunction(
-          readyPort.sendPort,
-          script.toString(),
-          entryPoint,
-          message,
-          paused,
-          errorsAreFatal,
-          onExit,
-          onError,
-          packageConfig,
-          newIsolateGroup,
-          debugName);
+      _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
+          paused, errorsAreFatal, onExit, onError, packageConfig, debugName);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       readyPort.close();
       return await new Future<Isolate>.error(e, st);
     }
   }
+
+  static void _spawnFunction(
+      SendPort readyPort,
+      String uri,
+      Function topLevelFunction,
+      var message,
+      bool paused,
+      bool errorsAreFatal,
+      SendPort? onExit,
+      SendPort? onError,
+      String? packageConfig,
+      String? debugName) native "Isolate_spawnFunction";
 
   @patch
   static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,

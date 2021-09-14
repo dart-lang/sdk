@@ -7,16 +7,22 @@
 // VMOptions=--no-enable-isolate-groups
 
 // Dart test program for testing serialization of messages.
-// VMOptions=--enable_type_checks --enable_asserts
+// VMOptions=--enable_type_checks --enable_asserts --enable-isolate-groups
+// VMOptions=--enable_type_checks --enable_asserts --no-enable-isolate-groups
 
 library MessageTest;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 import 'dart:isolate';
+
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'dart:typed_data';
+
+final bool isolateGroupsEnabled =
+    Platform.executableArguments.contains('--enable-isolate-groups');
 
 void echoMain(msg) {
   SendPort replyTo = msg[0];
@@ -408,7 +414,14 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(42, x.fun()); //     //# fun: continued
   }); //                               //# fun: continued
 
-  Expect.throws(() => ping.send(new E(new E(E.fooFun).instanceFun)));
+  if (isolateGroupsEnabled) {
+    ping.send(new E(new E(E.fooFun).instanceFun));
+    checks.add((x) {
+      Expect.equals(1234, (x as E).fun());
+    });
+  } else {
+    Expect.throws(() => ping.send(new E(new E(E.fooFun).instanceFun)));
+  }
 
   F nonConstF = new F();
   ping.send(nonConstF);

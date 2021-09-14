@@ -610,9 +610,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
-    listener?.endConstructorReference(start, periodBeforeName, endToken);
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
+    listener?.endConstructorReference(
+        start, periodBeforeName, endToken, constructorReferenceContext);
   }
 
   @override

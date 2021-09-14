@@ -939,8 +939,7 @@ void writeNavigationSubtree(
     } else if (entity is NavigationTreeFileNode) {
       if (enablePartialMigration) {
         var statusIcon = createIcon()..classes.add('status-icon');
-        if (entity is NavigationTreeFileNode &&
-            !entity.migrationStatusCanBeChanged!) {
+        if (!entity.migrationStatusCanBeChanged!) {
           statusIcon.classes.add('disabled');
         }
         updateIconsForNode(statusIcon, entity);

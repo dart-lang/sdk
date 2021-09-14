@@ -1054,11 +1054,14 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::CheckNullOptimized(TokenPosition position,
-                                                  const String& function_name) {
+Fragment BaseFlowGraphBuilder::CheckNullOptimized(
+    const String& function_name,
+    CheckNullInstr::ExceptionType exception_type,
+    TokenPosition position) {
   Value* value = Pop();
-  CheckNullInstr* check_null = new (Z) CheckNullInstr(
-      value, function_name, GetNextDeoptId(), InstructionSource(position));
+  CheckNullInstr* check_null =
+      new (Z) CheckNullInstr(value, function_name, GetNextDeoptId(),
+                             InstructionSource(position), exception_type);
   Push(check_null);  // Use the redefinition.
   return Fragment(check_null);
 }
@@ -1191,6 +1194,40 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
     }
   }
   return instructions;
+}
+
+Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
+    MethodRecognizer::Kind recognized_kind,
+    intptr_t num_inputs) {
+  InputsArray* args = GetArguments(num_inputs);
+  auto* instr = new (Z)
+      InvokeMathCFunctionInstr(args, GetNextDeoptId(), recognized_kind,
+                               InstructionSource(TokenPosition::kNoSource));
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::DoubleToDouble(
+    MethodRecognizer::Kind recognized_kind) {
+  Value* value = Pop();
+  auto* instr =
+      new (Z) DoubleToDoubleInstr(value, recognized_kind, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::DoubleToInteger() {
+  Value* value = Pop();
+  auto* instr = new (Z) DoubleToIntegerInstr(value, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
+  Value* value = Pop();
+  auto* instr = new (Z) MathUnaryInstr(kind, value, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
 }
 
 }  // namespace kernel

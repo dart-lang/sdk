@@ -1518,6 +1518,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the member
+   */
+  static const CompileTimeErrorCode
+      CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER = CompileTimeErrorCode(
+          'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+          "The instance member '{0}' can't be accessed on a class "
+              "instantiation.",
+          correction:
+              "Try changing the member name to the name of a constructor.",
+          uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER');
+
+  /**
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const CompileTimeErrorCode
+      CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER = CompileTimeErrorCode(
+          'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+          "The static member '{0}' can't be accessed on a class instantiation.",
+          correction: "Try removing the type arguments from the class name, or "
+              "changing the member name to the name of a constructor.",
+          uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER');
+
+  /**
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const CompileTimeErrorCode
+      CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER = CompileTimeErrorCode(
+          'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+          "The class '{0} doesn't have a constructor named '{1}.",
+          correction: "Try invoking a different constructor, or defining a "
+              "constructor named '{1}'.",
+          uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER');
+
+  /**
+   * Parameters:
    * 0: the name of the abstract method
    * 1: the name of the enclosing class
    */
@@ -1565,7 +1602,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the field
+   * 0: the name of the constructor and field
    */
   // #### Description
   //
@@ -1610,6 +1647,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the constructor and getter
+   */
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER =
+      CompileTimeErrorCode(
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+          "'{0}' can't be used to name both a constructor and a static getter "
+              "in this class.",
+          correction: "Try renaming either the constructor or the getter.",
+          hasPublishedDocs: true,
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER');
+
+  /**
+   * Parameters:
    * 0: the name of the constructor
    */
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD =
@@ -1620,6 +1670,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try renaming either the constructor or the method.",
           hasPublishedDocs: true,
           uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD');
+
+  /**
+   * Parameters:
+   * 0: the name of the constructor and setter
+   */
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER =
+      CompileTimeErrorCode(
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+          "'{0}' can't be used to name both a constructor and a static setter "
+              "in this class.",
+          correction: "Try renaming either the constructor or the setter.",
+          hasPublishedDocs: true,
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER');
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -2845,7 +2908,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-          "The class '{0}' doesn't have a default constant constructor.",
+          "The class '{0}' doesn't have an unnamed constant constructor.",
           correction: "Try calling a different constructor.");
 
   static const CompileTimeErrorCode CONTINUE_LABEL_ON_SWITCH =
@@ -3201,7 +3264,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
     'DUPLICATE_CONSTRUCTOR',
-    "The default constructor is already defined.",
+    "The unnamed constructor is already defined.",
     correction: "Try giving one of the constructors a name.",
     hasPublishedDocs: true,
     uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
@@ -5163,6 +5226,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "A generic function type can't be a type argument.",
           correction: "Try removing type parameters from the generic function "
               "type, or using 'dynamic' as the type argument here.");
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC = CompileTimeErrorCode(
+    'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
+    "A method tearoff on a target whose type is 'dynamic' can't have type "
+        "arguments.",
+    correction:
+        "Specify the type of the target, or remove the type arguments from the "
+        "method tearoff.",
+  );
 
   /**
    * 10.3 Setters: It is a compile-time error if a class has a setter named
@@ -7503,8 +7579,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   static const CompileTimeErrorCode LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR =
-      CompileTimeErrorCode('LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
-          "Can't have a late final field in a class with a const constructor.",
+      CompileTimeErrorCode(
+          'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+          "Can't have a late final field in a class with a generative "
+              "const constructor.",
           correction: "Try removing the 'late' modifier, or don't declare "
               "'const' constructors.",
           hasPublishedDocs: true);
@@ -7610,6 +7688,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
           "The element type '{0}' can't be assigned to the list type '{1}'.",
           hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the macro
+   * 1: the message
+   */
+  static const CompileTimeErrorCode MACRO_EXECUTION_ERROR =
+      CompileTimeErrorCode(
+          'MACRO_EXECUTION_ERROR', "Exception thrown by macro {0}: {1}");
 
   /**
    * No parameters.
@@ -8822,7 +8909,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-          "The class '{0}' doesn't have a default constructor.",
+          "The class '{0}' doesn't have an unnamed constructor.",
           correction:
               "Try using one of the named constructors defined in '{0}'.",
           hasPublishedDocs: true);
@@ -9929,8 +10016,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
       CompileTimeErrorCode(
           'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-          "The default constructor of superclass '{0}' (called by the implicit "
-              "default constructor of '{1}') must be a generative constructor, "
+          "The unnamed constructor of superclass '{0}' (called by the default "
+              "constructor of '{1}') must be a generative constructor, "
               "but factory found.",
           correction: "Try adding an explicit constructor that has a different "
               "superinitializer or changing the superclass constructor '{2}' "
@@ -11972,8 +12059,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * Parameters:
-   * 0: the modifier that makes the function a generator
+   * No parameters.
    */
   // #### Description
   //
@@ -12014,10 +12100,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode RETURN_IN_GENERATOR = CompileTimeErrorCode(
       'RETURN_IN_GENERATOR',
-      "Can't return a value from a generator function (using the '{0}' "
-          "modifier).",
-      correction: "Try removing the value, replacing 'return' with 'yield' or "
-          "changing the method body modifier.",
+      "Can't return a value from a generator function that uses the 'async*' "
+          "or 'sync*' modifier.",
+      // TODO(srawlins): Splitting this code into two cases, one for block-
+      // bodied, and one for expression-bodied, would improve each correction
+      // message. This split would have to be done in the parser.
+      correction: "Try replacing 'return' with 'yield', using a block function "
+          "body, or changing the method body modifier.",
       hasPublishedDocs: true);
 
   /**
@@ -12511,6 +12600,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS =
+      CompileTimeErrorCode(
+          'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+          "A generative constructor of an abstract class can't be torn off",
+          correction: "Try tearing off a constructor of a concrete class, or a "
+              "non-generative constructor.");
+
+  /**
    * Parameters:
    * 0: the type that can't be thrown
    */
@@ -12958,9 +13058,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true,
           uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE');
 
-  /**
-   * No parameters.
-   */
   // #### Description
   //
   // The analyzer produces this diagnostic when an expression whose type is
@@ -13016,16 +13113,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   }
   // }
   // ```
-  static const CompileTimeErrorCode UNCHECKED_USE_OF_NULLABLE_VALUE =
-      CompileTimeErrorCode(
-          'UNCHECKED_USE_OF_NULLABLE_VALUE',
-          "An expression whose value can be 'null' must be null-checked before "
-              "it can be dereferenced.",
-          correction:
-              "Try checking that the value isn't 'null' before dereferencing "
-              "it.",
-          hasPublishedDocs: true);
-
   static const CompileTimeErrorCode
       UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION = CompileTimeErrorCode(
           'UNCHECKED_USE_OF_NULLABLE_VALUE',

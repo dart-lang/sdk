@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import 'dart:collection' show ListMixin;
         class WithListMixin extends Object with ListMixin<int> {
           int length = 2;
@@ -26,6 +27,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'dart:collection' show ListMixin;
         class WithListMixin extends Object with ListMixin<int> {
           int length = 2;

@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:vm_service/vm_service.dart';
 
 import 'client.dart';
 import 'constants.dart';
+import 'cpu_samples_manager.dart';
 import 'dds_impl.dart';
+import 'utils/mutex.dart';
 
 /// This file contains functionality used to track the running state of
 /// all isolates in a given Dart process.
@@ -35,7 +38,11 @@ enum _IsolateState {
 }
 
 class _RunningIsolate {
-  _RunningIsolate(this.isolateManager, this.id, this.name);
+  _RunningIsolate(this.isolateManager, this.id, this.name)
+      : cpuSamplesManager = CpuSamplesManager(
+          isolateManager.dds,
+          id,
+        );
 
   // State setters.
   void pausedOnExit() => _state = _IsolateState.pauseExit;
@@ -103,6 +110,29 @@ class _RunningIsolate {
   /// Should always be called after an isolate is resumed.
   void clearResumeApprovals() => _resumeApprovalsByName.clear();
 
+  Map<String, dynamic> getCachedCpuSamples(String userTag) {
+    final repo = cpuSamplesManager.cpuSamplesCaches[userTag];
+    if (repo == null) {
+      throw json_rpc.RpcException.invalidParams(
+        'CPU sample caching is not enabled for tag: "$userTag"',
+      );
+    }
+    return repo.toJson();
+  }
+
+  void handleEvent(Event event) {
+    switch (event.kind) {
+      case EventKind.kUserTagChanged:
+        cpuSamplesManager.handleUserTagEvent(event);
+        return;
+      case EventKind.kCpuSamples:
+        cpuSamplesManager.handleCpuSamplesEvent(event);
+        return;
+      default:
+        return;
+    }
+  }
+
   int get _isolateStateMask => isolateStateToMaskMapping[_state] ?? 0;
 
   static const isolateStateToMaskMapping = {
@@ -112,6 +142,7 @@ class _RunningIsolate {
   };
 
   final IsolateManager isolateManager;
+  final CpuSamplesManager cpuSamplesManager;
   final String name;
   final String id;
   final Set<String?> _resumeApprovalsByName = {};
@@ -122,49 +153,62 @@ class IsolateManager {
   IsolateManager(this.dds);
 
   /// Handles state changes for isolates.
-  void handleIsolateEvent(json_rpc.Parameters parameters) {
-    final event = parameters['event'];
-    final eventKind = event['kind'].asString;
-
+  void handleIsolateEvent(Event event) {
     // There's no interesting information about isolate state associated with
     // and IsolateSpawn event.
-    if (eventKind == ServiceEvents.isolateSpawn) {
+    // TODO(bkonyi): why isn't IsolateSpawn in package:vm_service
+    if (event.kind! == ServiceEvents.isolateSpawn) {
       return;
     }
 
-    final isolateData = event['isolate'];
-    final id = isolateData['id'].asString;
-    final name = isolateData['name'].asString;
-    _updateIsolateState(id, name, eventKind);
+    final isolateData = event.isolate!;
+    final id = isolateData.id!;
+    final name = isolateData.name!;
+    _updateIsolateState(id, name, event.kind!);
+  }
+
+  void routeEventToIsolate(Event event) {
+    final isolateId = event.isolate!.id!;
+    if (isolates.containsKey(isolateId)) {
+      isolates[isolateId]!.handleEvent(event);
+    }
   }
 
   void _updateIsolateState(String id, String name, String eventKind) {
-    switch (eventKind) {
-      case ServiceEvents.isolateStart:
-        isolateStarted(id, name);
-        break;
-      case ServiceEvents.isolateExit:
-        isolateExited(id);
-        break;
-      default:
-        final isolate = isolates[id];
+    _mutex.runGuarded(
+      () {
         switch (eventKind) {
-          case ServiceEvents.pauseExit:
-            isolate!.pausedOnExit();
+          case ServiceEvents.isolateStart:
+            isolateStarted(id, name);
             break;
-          case ServiceEvents.pausePostRequest:
-            isolate!.pausedPostRequest();
-            break;
-          case ServiceEvents.pauseStart:
-            isolate!.pausedOnStart();
-            break;
-          case ServiceEvents.resume:
-            isolate!.resumed();
+          case ServiceEvents.isolateExit:
+            isolateExited(id);
             break;
           default:
-            break;
+            final isolate = isolates[id];
+            // The isolate may have disappeared after the state event was sent.
+            if (isolate == null) {
+              return;
+            }
+            switch (eventKind) {
+              case ServiceEvents.pauseExit:
+                isolate.pausedOnExit();
+                break;
+              case ServiceEvents.pausePostRequest:
+                isolate.pausedPostRequest();
+                break;
+              case ServiceEvents.pauseStart:
+                isolate.pausedOnStart();
+                break;
+              case ServiceEvents.resume:
+                isolate.resumed();
+                break;
+              default:
+                break;
+            }
         }
-    }
+      },
+    );
   }
 
   /// Initializes the set of running isolates.
@@ -172,25 +216,30 @@ class IsolateManager {
     if (_initialized) {
       return;
     }
-    final vm = await dds.vmServiceClient.sendRequest('getVM');
-    final List<Map> isolateRefs = vm['isolates'].cast<Map<String, dynamic>>();
-    // Check the pause event for each isolate to determine whether or not the
-    // isolate is already paused.
-    for (final isolateRef in isolateRefs) {
-      final id = isolateRef['id'];
-      final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
-        'isolateId': id,
-      });
-      final name = isolate['name'];
-      if (isolate.containsKey('pauseEvent')) {
-        isolates[id] = _RunningIsolate(this, id, name);
-        final eventKind = isolate['pauseEvent']['kind'];
-        _updateIsolateState(id, name, eventKind);
-      } else {
-        // If the isolate doesn't have a pauseEvent, assume it's running.
-        isolateStarted(id, name);
-      }
-    }
+    await _mutex.runGuarded(
+      () async {
+        final vm = await dds.vmServiceClient.sendRequest('getVM');
+        final List<Map> isolateRefs =
+            vm['isolates'].cast<Map<String, dynamic>>();
+        // Check the pause event for each isolate to determine whether or not the
+        // isolate is already paused.
+        for (final isolateRef in isolateRefs) {
+          final id = isolateRef['id'];
+          final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
+            'isolateId': id,
+          });
+          final name = isolate['name'];
+          if (isolate.containsKey('pauseEvent')) {
+            isolates[id] = _RunningIsolate(this, id, name);
+            final eventKind = isolate['pauseEvent']['kind'];
+            _updateIsolateState(id, name, eventKind);
+          } else {
+            // If the isolate doesn't have a pauseEvent, assume it's running.
+            isolateStarted(id, name);
+          }
+        }
+      },
+    );
     _initialized = true;
   }
 
@@ -218,16 +267,30 @@ class IsolateManager {
     DartDevelopmentServiceClient client,
     json_rpc.Parameters parameters,
   ) async {
+    return await _mutex.runGuarded(
+      () async {
+        final isolateId = parameters['isolateId'].asString;
+        final isolate = isolates[isolateId];
+        if (isolate == null) {
+          return RPCResponses.collectedSentinel;
+        }
+        if (isolate.shouldResume(resumingClient: client)) {
+          isolate.clearResumeApprovals();
+          return await _sendResumeRequest(isolateId, parameters);
+        }
+        return RPCResponses.success;
+      },
+    );
+  }
+
+  Map<String, dynamic> getCachedCpuSamples(json_rpc.Parameters parameters) {
     final isolateId = parameters['isolateId'].asString;
-    final isolate = isolates[isolateId];
-    if (isolate == null) {
+    if (!isolates.containsKey(isolateId)) {
       return RPCResponses.collectedSentinel;
     }
-    if (isolate.shouldResume(resumingClient: client)) {
-      isolate.clearResumeApprovals();
-      return await _sendResumeRequest(isolateId, parameters);
-    }
-    return RPCResponses.success;
+    final isolate = isolates[isolateId]!;
+    final userTag = parameters['userTag'].asString;
+    return isolate.getCachedCpuSamples(userTag);
   }
 
   /// Forwards a `resume` request to the VM service.
@@ -248,5 +311,6 @@ class IsolateManager {
 
   bool _initialized = false;
   final DartDevelopmentServiceImpl dds;
+  final _mutex = Mutex();
   final Map<String, _RunningIsolate> isolates = {};
 }

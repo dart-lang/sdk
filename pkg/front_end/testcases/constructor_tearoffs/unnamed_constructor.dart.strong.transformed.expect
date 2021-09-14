@@ -11,9 +11,9 @@ class A extends core::Object {
     : this self::A::•()
     ;
   static factory redirectingFactory() → self::A
-    let Never #redirecting_factory = self::A::• in invalid-expression;
+    return new self::A::•();
   static factory redirectingFactoryChild() → self::A
-    let Never #redirecting_factory = self::B::• in invalid-expression;
+    return new self::B::•();
 }
 class B extends self::A {
   synthetic constructor •() → self::B

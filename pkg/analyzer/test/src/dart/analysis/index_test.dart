@@ -659,43 +659,6 @@ part 'b.dart';
     // No exception, even though a.dart is a part of b.dart part.
   }
 
-  test_isReferencedBy_ConstructorElement() async {
-    await _indexTestUnit('''
-/// [new A.foo] 1
-/// [A.foo] 2
-/// [new A] 3
-class A implements B {
-  A() {}
-  A.foo() {}
-}
-class B extends A {
-  B() : super(); // 4
-  B.foo() : super.foo(); // 5
-  factory B.bar() = A.foo; // 6
-}
-main() {
-  new A(); // 7
-  new A.foo(); // 8
-}
-''');
-    var constA = findElement.unnamedConstructor('A');
-    var constA_foo = findElement.constructor('foo', of: 'A');
-    // A()
-    assertThat(constA)
-      ..hasRelationCount(3)
-      ..isReferencedAt('] 3', true, length: 0)
-      ..isReferencedAt('(); // 4', true, length: 0)
-      ..isReferencedAt('(); // 7', true, length: 0);
-    // A.foo()
-    assertThat(constA_foo)
-      ..hasRelationCount(5)
-      ..isReferencedAt('.foo] 1', true, length: 4)
-      ..isReferencedAt('.foo] 2', true, length: 4)
-      ..isReferencedAt('.foo(); // 5', true, length: 4)
-      ..isReferencedAt('.foo; // 6', true, length: 4)
-      ..isReferencedAt('.foo(); // 8', true, length: 4);
-  }
-
   test_isReferencedBy_ConstructorElement_classTypeAlias() async {
     await _indexTestUnit('''
 class M {}
@@ -735,6 +698,33 @@ main() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
+  test_isReferencedBy_ConstructorElement_named() async {
+    await _indexTestUnit('''
+/// [new A.foo] 1
+class A {
+  A.foo() {}
+  A.bar() : this.foo(); // 2
+}
+class B extends A {
+  B() : super.foo(); // 3
+  factory B.bar() = A.foo; // 4
+}
+void f() {
+  A.foo(); // 5
+  A.foo; // 6
+}
+''');
+    var element = findElement.constructor('foo');
+    assertThat(element)
+      ..hasRelationCount(6)
+      ..isReferencedAt('.foo] 1', true, length: 4)
+      ..isReferencedAt('.foo(); // 2', true, length: 4)
+      ..isReferencedAt('.foo(); // 3', true, length: 4)
+      ..isReferencedAt('.foo; // 4', true, length: 4)
+      ..isReferencedAt('.foo(); // 5', true, length: 4)
+      ..isReferencedAt('.foo; // 6', true, length: 4);
+  }
+
   test_isReferencedBy_ConstructorElement_namedOnlyWithDot() async {
     await _indexTestUnit('''
 class A {
@@ -766,16 +756,77 @@ class A {
     assertThat(constA_bar).isReferencedAt('.bar(); // 1', true, length: 4);
   }
 
-  test_isReferencedBy_ConstructorElement_synthetic() async {
+  test_isReferencedBy_ConstructorElement_unnamed_declared() async {
     await _indexTestUnit('''
-class A {}
-main() {
-  new A(); // 1
+/// [new A] 1
+class A {
+  A() {}
+}
+class B extends A {
+  B() : super(); // 2
+  factory B.bar() = A; // 3
+}
+void f() {
+  A(); // 4
+  A.new; // 5
 }
 ''');
-    var constA = findElement.unnamedConstructor('A');
-    // A()
-    assertThat(constA)..isReferencedAt('(); // 1', true, length: 0);
+    var element = findElement.unnamedConstructor('A');
+    assertThat(element)
+      ..hasRelationCount(5)
+      ..isReferencedAt('] 1', true, length: 0)
+      ..isReferencedAt('(); // 2', true, length: 0)
+      ..isReferencedAt('; // 3', true, length: 0)
+      ..isReferencedAt('(); // 4', true, length: 0)
+      ..isReferencedAt('.new; // 5', true, length: 4);
+  }
+
+  test_isReferencedBy_ConstructorElement_unnamed_declared_new() async {
+    await _indexTestUnit('''
+/// [new A] 1
+class A {
+  A.new() {}
+}
+class B extends A {
+  B() : super(); // 2
+  factory B.bar() = A; // 3
+}
+void f() {
+  A(); // 4
+  A.new; // 5
+}
+''');
+    var element = findElement.unnamedConstructor('A');
+    assertThat(element)
+      ..hasRelationCount(5)
+      ..isReferencedAt('] 1', true, length: 0)
+      ..isReferencedAt('(); // 2', true, length: 0)
+      ..isReferencedAt('; // 3', true, length: 0)
+      ..isReferencedAt('(); // 4', true, length: 0)
+      ..isReferencedAt('.new; // 5', true, length: 4);
+  }
+
+  test_isReferencedBy_ConstructorElement_unnamed_synthetic() async {
+    await _indexTestUnit('''
+/// [new A] 1
+class A {}
+class B extends A {
+  B() : super(); // 2
+  factory B.bar() = A; // 3
+}
+void f() {
+  A(); // 4
+  A.new; // 5
+}
+''');
+    var element = findElement.unnamedConstructor('A');
+    assertThat(element)
+      ..hasRelationCount(5)
+      ..isReferencedAt('] 1', true, length: 0)
+      ..isReferencedAt('(); // 2', true, length: 0)
+      ..isReferencedAt('; // 3', true, length: 0)
+      ..isReferencedAt('(); // 4', true, length: 0)
+      ..isReferencedAt('.new; // 5', true, length: 4);
   }
 
   test_isReferencedBy_DynamicElement() async {

@@ -14,7 +14,7 @@ class P<T> {
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.PREFIX_SHADOWED_BY_LOCAL_DECLARATION
     //    ^
-    // [cfe] Method not found: 'T.Library10'.
+    // [cfe] Couldn't find constructor 'T.Library10'.
   }
 }
 

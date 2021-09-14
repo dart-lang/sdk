@@ -4,6 +4,16 @@
 
 // part of "core_patch.dart";
 
+// This function takes care of rehashing of the expandos in [objects]. We
+// do this eagerly after snapshot deserialization.
+@pragma("vm:entry-point", "call")
+void _rehashObjects(List objects) {
+  final int length = objects.length;
+  for (int i = 0; i < length; ++i) {
+    objects[i]._rehash();
+  }
+}
+
 @patch
 @pragma("vm:entry-point")
 class Expando<T> {
@@ -96,7 +106,6 @@ class Expando<T> {
     this[object] = value; // Recursively add the value.
   }
 
-  @pragma("vm:entry-point", "call")
   _rehash() {
     // Determine the population count of the map to allocate an appropriately
     // sized map below.

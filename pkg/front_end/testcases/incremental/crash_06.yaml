@@ -8,7 +8,6 @@ type: newworld
 worlds:
   - entry: structs.dart
     errors: true
-    experiments: non-nullable
     sources:
       structs.dart: |
         import 'dart:ffi';
@@ -22,7 +21,6 @@ worlds:
 
   - entry: structs.dart
     errors: true
-    experiments: non-nullable
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

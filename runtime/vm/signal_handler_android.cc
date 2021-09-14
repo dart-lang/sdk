@@ -94,7 +94,7 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   return lr;
 }
 
-void SignalHandler::InstallImpl(SignalAction action) {
+void SignalHandler::Install(SignalAction action) {
   // Bionic implementation of setjmp temporary mangles SP register
   // in place which breaks signal delivery on the thread stack - when
   // kernel tries to deliver SIGPROF and we are in the middle of

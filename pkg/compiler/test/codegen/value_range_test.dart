@@ -248,22 +248,23 @@ Future expect(String code, int kind) {
   return compile(code, check: (String generated) {
     switch (kind) {
       case REMOVED:
-        Expect.isTrue(!generated.contains('ioore'));
+        Expect.isFalse(generated.contains('ioore'));
         break;
 
       case ABOVE_ZERO:
-        Expect.isTrue(!generated.contains('< 0'));
+        Expect.isFalse(generated.contains('< 0') || generated.contains('>= 0'));
         Expect.isTrue(generated.contains('ioore'));
         break;
 
       case BELOW_ZERO_CHECK:
-        Expect.isTrue(generated.contains('< 0'));
-        Expect.isTrue(!generated.contains('||'));
+        // May generate `!(ix < 0)` or `ix >= 0` depending if `ix` can be NaN
+        Expect.isTrue(generated.contains('< 0') || generated.contains('>= 0'));
+        Expect.isFalse(generated.contains('||') || generated.contains('&&'));
         Expect.isTrue(generated.contains('ioore'));
         break;
 
       case BELOW_LENGTH:
-        Expect.isTrue(!generated.contains('||'));
+        Expect.isFalse(generated.contains('||') || generated.contains('&&'));
         Expect.isTrue(generated.contains('ioore'));
         break;
 
@@ -272,13 +273,13 @@ Future expect(String code, int kind) {
         break;
 
       case ONE_CHECK:
-        RegExp regexp = new RegExp('ioore');
+        RegExp regexp = RegExp('ioore');
         Iterator matches = regexp.allMatches(generated).iterator;
         checkNumberOfMatches(matches, 1);
         break;
 
       case ONE_ZERO_CHECK:
-        RegExp regexp = new RegExp('< 0|>>> 0 !==');
+        RegExp regexp = RegExp('< 0|>>> 0 !==');
         Iterator matches = regexp.allMatches(generated).iterator;
         checkNumberOfMatches(matches, 1);
         break;

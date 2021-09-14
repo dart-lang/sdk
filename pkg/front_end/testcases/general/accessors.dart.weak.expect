@@ -34,7 +34,7 @@ class C extends core::Object {
  - 'C' is from 'pkg/front_end/testcases/general/accessors.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'onlySetter'.
       print(onlySetter);
-            ^^^^^^^^^^");
+            ^^^^^^^^^^" in this{<unresolved>}.onlySetter);
       throw "No error thrown";
     }
     on core::NoSuchMethodError* catch(final core::NoSuchMethodError* e) {
@@ -47,7 +47,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'C' is from 'pkg/front_end/testcases/general/accessors.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'onlySetter'.
     print(onlySetter);
-          ^^^^^^^^^^");
+          ^^^^^^^^^^" in this{<unresolved>}.onlySetter);
     this.{self::C::onlySetter} = "hest";
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

@@ -530,15 +530,26 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
   return (a_length - a_cursor);
 }
 
-static void AcceptCompilation(Thread* thread) {
+static ObjectPtr AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
   Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
   if (result.status != Dart_KernelCompilationStatus_Ok) {
-    FATAL1(
-        "An error occurred in the CFE while accepting the most recent"
+    if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
+      FATAL1(
+          "An error occurred while accepting the most recent"
+          " compilation results: %s",
+          result.error);
+    }
+    TIR_Print(
+        "An error occurred while accepting the most recent"
         " compilation results: %s",
         result.error);
+    Zone* zone = thread->zone();
+    const auto& error_str = String::Handle(zone, String::New(result.error));
+    free(result.error);
+    return ApiError::New(error_str);
   }
+  return Object::null();
 }
 
 // If [root_script_url] is null, attempt to load from [kernel_buffer].
@@ -639,7 +650,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // we have accepted the compilation to clear some state in the incremental
     // compiler.
     if (did_kernel_compilation) {
-      AcceptCompilation(thread);
+      const auto& result = Object::Handle(Z, AcceptCompilation(thread));
+      if (result.IsError()) {
+        const auto& error = Error::Cast(result);
+        AddReasonForCancelling(new Aborted(Z, error));
+        ReportReasonsForCancelling();
+        CommonFinalizeTail(num_old_libs_);
+        return false;
+      }
     }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return false;
@@ -704,18 +722,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   //
   // If loading the hot-reload diff succeeded we'll finalize the loading, which
   // will either commit or reject the reload request.
-  auto& result = Object::Handle(Z);
-  {
-    // We need to set an active isolate while loading kernel. The kernel loader
-    // itself is independent of the current isolate, but if the application
-    // needs native extensions, the kernel loader calls out to the embedder to
-    // load those, which requires currently an active isolate (since embedder
-    // will callback into VM using Dart API).
-    DisabledNoActiveIsolateScope active_isolate_scope(&no_active_isolate_scope);
-
-    result = IG->program_reload_context()->ReloadPhase2LoadKernel(
-        kernel_program.get(), root_lib_url_);
-  }
+  const auto& result =
+      Object::Handle(Z, IG->program_reload_context()->ReloadPhase2LoadKernel(
+                            kernel_program.get(), root_lib_url_));
 
   if (result.IsError()) {
     TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
@@ -737,6 +746,17 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       // discover untracked pointers (and other issues, like incorrect class
       // table).
       heap->CollectAllGarbage(Heap::kLowMemory);
+    }
+
+    // If we use the CFE and performed a compilation, we need to notify that
+    // we have accepted the compilation to clear some state in the incremental
+    // compiler.
+    if (did_kernel_compilation) {
+      const auto& result = Object::Handle(Z, AcceptCompilation(thread));
+      if (result.IsError()) {
+        const auto& error = Error::Cast(result);
+        AddReasonForCancelling(new Aborted(Z, error));
+      }
     }
 
     if (!FLAG_reload_force_rollback && !HasReasonsForCancelling()) {
@@ -828,13 +848,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         GrowableObjectArray::Handle(Z, IG->object_store()->libraries())
             .Length();
     CommonFinalizeTail(final_library_count);
-
-    // If we use the CFE and performed a compilation, we need to notify that
-    // we have accepted the compilation to clear some state in the incremental
-    // compiler.
-    if (did_kernel_compilation) {
-      AcceptCompilation(thread);
-    }
   }
 
   // Reenable concurrent marking if it was initially on.
@@ -915,9 +928,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
       if (!ns.IsNull()) {
         target = ns.target();
         target_url = target.url();
-        if (!target_url.StartsWith(Symbols::DartExtensionScheme())) {
-          (*imported_by)[target.index()]->Add(lib.index());
-        }
+        (*imported_by)[target.index()]->Add(lib.index());
       }
     }
 
@@ -2274,7 +2285,10 @@ class FieldInvalidator {
       instance_ ^= value.ptr();
       if (!instance_.IsAssignableTo(type_, instantiator_type_arguments_,
                                     function_type_arguments_)) {
-        ASSERT(!FLAG_identity_reload);
+        // Even if doing an identity reload, type check can fail if hot reload
+        // happens while constructor is still running and field is not
+        // initialized yet, so it has a null value.
+        ASSERT(!FLAG_identity_reload || instance_.IsNull());
         field.set_needs_load_guard(true);
       } else {
         cache_.AddCheck(instance_cid_or_signature_, type_,

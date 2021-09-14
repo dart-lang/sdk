@@ -1845,7 +1845,13 @@ abstract class C {
 _'{0}' can't be used to name both a constructor and a static field in this
 class._
 
+_'{0}' can't be used to name both a constructor and a static getter in this
+class._
+
 _'{0}' can't be used to name both a constructor and a static method in this
+class._
+
+_'{0}' can't be used to name both a constructor and a static setter in this
 class._
 
 #### Description
@@ -3346,7 +3352,7 @@ class F {}
 
 _The constructor with name '{0}' is already defined._
 
-_The default constructor is already defined._
+_The unnamed constructor is already defined._
 
 #### Description
 
@@ -7432,7 +7438,7 @@ void f() {
 
 ### late_final_field_with_const_constructor
 
-_Can't have a late final field in a class with a const constructor._
+_Can't have a late final field in a class with a generative const constructor._
 
 #### Description
 
@@ -8732,7 +8738,7 @@ name: example
 
 ### new_with_undefined_constructor_default
 
-_The class '{0}' doesn't have a default constructor._
+_The class '{0}' doesn't have an unnamed constructor._
 
 #### Description
 
@@ -11387,7 +11393,8 @@ class C {
 
 ### return_in_generator
 
-_Can't return a value from a generator function (using the '{0}' modifier)._
+_Can't return a value from a generator function that uses the 'async*' or
+'sync*' modifier._
 
 #### Description
 
@@ -12921,9 +12928,6 @@ _A nullable expression can't be used as an iterator in a for-in loop._
 _A nullable expression can't be used in a spread._
 
 _A nullable expression can't be used in a yield-each statement._
-
-_An expression whose value can be 'null' must be null-checked before it can be
-dereferenced._
 
 _The function can't be unconditionally invoked because it can be 'null'._
 

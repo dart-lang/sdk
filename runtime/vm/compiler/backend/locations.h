@@ -543,6 +543,8 @@ class SmallSet {
 
   bool IsEmpty() const { return data_ == 0; }
 
+  void Clear() { data_ = 0; }
+
   intptr_t data() const { return data_; }
 
  private:
@@ -704,6 +706,12 @@ class RegisterSet : public ValueObject {
 
   intptr_t cpu_registers() const { return cpu_registers_.data(); }
   intptr_t fpu_registers() const { return fpu_registers_.data(); }
+
+  void Clear() {
+    cpu_registers_.Clear();
+    fpu_registers_.Clear();
+    untagged_cpu_registers_.Clear();
+  }
 
  private:
   SmallSet<Register> cpu_registers_;

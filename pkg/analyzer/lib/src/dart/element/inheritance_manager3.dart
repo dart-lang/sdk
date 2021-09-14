@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
@@ -76,16 +75,16 @@ class InheritanceManager3 {
       return null;
     }
 
+    var targetLibrary = targetClass.library as LibraryElementImpl;
+    var typeSystem = targetLibrary.typeSystem;
+
     var validOverrides = <ExecutableElement>[];
     for (var i = 0; i < candidates.length; i++) {
       ExecutableElement? validOverride = candidates[i];
-      var overrideHelper = CorrectOverrideHelper(
-        library: targetClass.library as LibraryElementImpl,
-        thisMember: validOverride,
-      );
+      var validOverrideType = validOverride.type;
       for (var j = 0; j < candidates.length; j++) {
         var candidate = candidates[j];
-        if (!overrideHelper.isCorrectOverrideOf(superMember: candidate)) {
+        if (!typeSystem.isSubtypeOf(validOverrideType, candidate.type)) {
           validOverride = null;
           break;
         }

@@ -82,13 +82,22 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                  CURRENT_FUNC);
     return ILLEGAL_PORT;
   }
+  if (!Dart::SetActiveApiCall()) {
+    return ILLEGAL_PORT;
+  }
   // Start the native port without a current isolate.
   IsolateLeaveScope saver(Isolate::Current());
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
-  PortMap::SetPortState(port_id, PortMap::kLivePort);
-  nmh->Run(Dart::thread_pool(), NULL, NULL, 0);
+  if (port_id != ILLEGAL_PORT) {
+    PortMap::SetPortState(port_id, PortMap::kLivePort);
+    if (!nmh->Run(Dart::thread_pool(), NULL, NULL, 0)) {
+      PortMap::ClosePort(port_id);
+      port_id = ILLEGAL_PORT;
+    }
+  }
+  Dart::ResetActiveApiCall();
   return port_id;
 }
 
@@ -111,6 +120,11 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate == nullptr || !isolate->is_service_isolate());
   IsolateLeaveScope saver(isolate);
+
+  if (!Dart::IsInitialized()) {
+    *error = ::dart::Utils::StrDup("VM Service is not active.");
+    return false;
+  }
 
   // We only allow one isolate reload at a time.  If this turns out to be on the
   // critical path, we can change it to have a global datastructure which is
@@ -155,9 +169,21 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
   if (ServiceIsolate::SendServiceRpc(request_json, request_json_length, port,
                                      error)) {
     // We posted successfully and expect the vm-service to send the reply, so
-    // we will wait for it now.
-    auto wait_result = monitor.Wait();
-    ASSERT(wait_result == Monitor::kNotified);
+    // we will wait for it now. Since the service isolate could have shutdown
+    // after we sent the message we make sure to wake up periodically and
+    // check to see if the service isolate has shutdown.
+    do {
+      auto wait_result = monitor.Wait(1000); /* milliseconds */
+      if (wait_result == Monitor::kNotified) {
+        break;
+      }
+      if (!ServiceIsolate::IsRunning()) {
+        // Service Isolate has shutdown while we were waiting for a reply,
+        // We will not get a reply anymore, cleanup and return an error.
+        Dart_CloseNativePort(port);
+        return false;
+      }
+    } while (true);
 
     // The caller takes ownership of the data.
     *response_json = result_bytes;
@@ -235,7 +261,10 @@ struct RunInSafepointAndRWCodeArgs {
 
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
   if (strcmp(command, "gc-on-nth-allocation") == 0) {
-    TransitionNativeToVM _(Thread::Current());
+    Thread* const thread = Thread::Current();
+    Isolate* isolate = (thread == NULL) ? NULL : thread->isolate();
+    CHECK_ISOLATE(isolate);
+    TransitionNativeToVM _(thread);
     intptr_t argument = reinterpret_cast<intptr_t>(arg);
     ASSERT(argument > 0);
     IsolateGroup::Current()->heap()->CollectOnNthAllocation(argument);
@@ -243,7 +272,10 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
 
   } else if (strcmp(command, "gc-now") == 0) {
     ASSERT(arg == nullptr);  // Don't pass an argument to this command.
-    TransitionNativeToVM _(Thread::Current());
+    Thread* const thread = Thread::Current();
+    Isolate* isolate = (thread == NULL) ? NULL : thread->isolate();
+    CHECK_ISOLATE(isolate);
+    TransitionNativeToVM _(thread);
     IsolateGroup::Current()->heap()->CollectAllGarbage();
     return nullptr;
 
@@ -255,6 +287,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
 
   } else if (strcmp(command, "is-mutator-in-native") == 0) {
     Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
+    CHECK_ISOLATE(isolate);
     if (isolate->mutator_thread()->execution_state_cross_thread_for_testing() ==
         Thread::kThreadInNative) {
       return arg;
@@ -265,7 +298,9 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
   } else if (strcmp(command, "run-in-safepoint-and-rw-code") == 0) {
     const RunInSafepointAndRWCodeArgs* const args =
         reinterpret_cast<RunInSafepointAndRWCodeArgs*>(arg);
-    Thread::EnterIsolateAsHelper(args->isolate, Thread::TaskKind::kUnknownTask);
+    Isolate* const isolate = args->isolate;
+    CHECK_ISOLATE(isolate);
+    Thread::EnterIsolateAsHelper(isolate, Thread::TaskKind::kUnknownTask);
     Thread* const thread = Thread::Current();
     {
       GcSafepointOperationScope scope(thread);

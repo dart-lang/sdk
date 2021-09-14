@@ -16,7 +16,7 @@ void main() {
         return;
       }
 
-      test(Uri base, Uri uri) {
+      void test(Uri base, Uri uri) {
         String r = relativizeUri(base, uri, isWindows);
         Uri resolved = base.resolve(r);
         expect(resolved.scheme.toLowerCase(), uri.scheme.toLowerCase());

@@ -18,7 +18,7 @@ import 'package:kernel/ast.dart';
 
 const String cfeFromBuilderMarker = 'cfe:builder';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
   await runTests<String>(dataDir,
@@ -47,6 +47,7 @@ class InheritanceDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,

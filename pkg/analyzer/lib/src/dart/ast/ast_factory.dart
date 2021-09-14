@@ -413,8 +413,19 @@ class AstFactoryImpl extends AstFactory {
   @override
   ExpressionFunctionBodyImpl expressionFunctionBody(Token? keyword,
           Token functionDefinition, Expression expression, Token? semicolon) =>
-      ExpressionFunctionBodyImpl(
-          keyword, functionDefinition, expression as ExpressionImpl, semicolon);
+      ExpressionFunctionBodyImpl(keyword, null, functionDefinition,
+          expression as ExpressionImpl, semicolon);
+
+  @override
+  ExpressionFunctionBodyImpl expressionFunctionBody2({
+    Token? keyword,
+    Token? star,
+    required Token functionDefinition,
+    required Expression expression,
+    Token? semicolon,
+  }) =>
+      ExpressionFunctionBodyImpl(keyword, star, functionDefinition,
+          expression as ExpressionImpl, semicolon);
 
   @override
   ExpressionStatementImpl expressionStatement(
@@ -640,7 +651,7 @@ class AstFactoryImpl extends AstFactory {
   FunctionReferenceImpl functionReference(
           {required Expression function, TypeArgumentList? typeArguments}) =>
       FunctionReferenceImpl(function as ExpressionImpl,
-          typeArguments: typeArguments as TypeArgumentListImpl);
+          typeArguments: typeArguments as TypeArgumentListImpl?);
 
   @override
   FunctionTypeAliasImpl functionTypeAlias(

@@ -3,7 +3,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
 //
 // Problems in library:
 //
-// org-dartlang-test:///lib.dart:1:22: Error: Type 'NonExistingClass' not found.
+// org-dartlang-test:///lib.dart:2:22: Error: Type 'NonExistingClass' not found.
 // class B implements C<NonExistingClass> {}
 //                      ^^^^^^^^^^^^^^^^
 //
@@ -64,7 +64,7 @@ library from "org-dartlang-test:///nonexistingfile.dart" as non {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:2:8: Error: Error when reading 'org-dartlang-test:///nonexistingfile.dart': File org-dartlang-test:///nonexistingfile.dart does not exist.
+// org-dartlang-test:///main.dart:3:8: Error: Error when reading 'org-dartlang-test:///nonexistingfile.dart': File org-dartlang-test:///nonexistingfile.dart does not exist.
 // import 'nonexistingfile.dart';
 //        ^
 //

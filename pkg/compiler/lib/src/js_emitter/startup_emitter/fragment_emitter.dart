@@ -35,6 +35,15 @@ part of dart2js.js_emitter.startup_emitter.model_emitter;
 // reducing their size.
 const String _mainBoilerplate = '''
 (function dartProgram() {
+
+if (#startupMetrics) {
+  // Stash the metrics on the main unit IIFE.
+  // TODO(sra): When the JavaScript local renamer is more intelligent, we can
+  // simply use a local variable.
+  (dartProgram.$STARTUP_METRICS = ${ModelEmitter.startupMetricsGlobal})
+      .add("dartProgramMs");
+}
+
 // Copies the own properties from [from] to [to].
 function copyProperties(from, to) {
   var keys = Object.keys(from);
@@ -469,7 +478,7 @@ convertToFastObject(#staticState);
 
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
-})()
+})();
 ''';
 
 /// An expression that returns `true` if `__proto__` can be assigned to stitch
@@ -720,6 +729,7 @@ class FragmentEmitter {
       'staticStateDeclaration': DeferredHolderParameter(),
       'staticState': DeferredHolderParameter(),
       'holders': holderDeclaration,
+      'startupMetrics': _closedWorld.backendUsage.requiresStartupMetrics,
 
       // Tearoff parameters:
       'tpContainer': js.string(TearOffParametersPropertyNames.container),
@@ -1846,6 +1856,12 @@ class FragmentEmitter {
                 r'    ? Symbol("$ti")'
                 r'    : "$ti"')
             : js.js(r'Symbol("$ti")')));
+
+    if (_closedWorld.backendUsage.requiresStartupMetrics) {
+      // Copy the metrics object that was stored on the main unit IIFE.
+      globals.add(js.Property(
+          js.string(STARTUP_METRICS), js.js('dartProgram.$STARTUP_METRICS')));
+    }
 
     js.ObjectInitializer globalsObject =
         js.ObjectInitializer(globals, isOneLiner: false);

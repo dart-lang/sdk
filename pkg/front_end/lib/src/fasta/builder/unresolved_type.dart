@@ -26,5 +26,6 @@ class UnresolvedType {
     return builder.check(library, charOffset, fileUri);
   }
 
+  @override
   String toString() => "UnresolvedType(@$charOffset, $builder)";
 }

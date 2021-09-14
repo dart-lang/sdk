@@ -3524,54 +3524,6 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineMathCFunction(FlowGraph* flow_graph,
-                                Instruction* call,
-                                MethodRecognizer::Kind kind,
-                                GraphEntryInstr* graph_entry,
-                                FunctionEntryInstr** entry,
-                                Instruction** last,
-                                Definition** result) {
-  if (!CanUnboxDouble()) {
-    return false;
-  }
-
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    if (call->ArgumentAt(i)->Type()->ToCid() != kDoubleCid) {
-      return false;
-    }
-  }
-
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-
-  switch (kind) {
-    case MethodRecognizer::kMathSqrt: {
-      *last = new (Z)
-          MathUnaryInstr(MathUnaryInstr::kSqrt,
-                         new (Z) Value(call->ArgumentAt(0)), call->deopt_id());
-      break;
-    }
-    default: {
-      ZoneGrowableArray<Value*>* args =
-          new (Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
-      for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-        args->Add(new (Z) Value(call->ArgumentAt(i)));
-      }
-      *last = new (Z) InvokeMathCFunctionInstr(args, call->deopt_id(), kind,
-                                               call->source());
-      break;
-    }
-  }
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
-                       FlowGraph::kValue);
-  *result = (*last)->AsDefinition();
-  return true;
-}
-
 static Instruction* InlineMul(FlowGraph* flow_graph,
                               Instruction* cursor,
                               Definition* x,
@@ -4020,20 +3972,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Sub:
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
-
-    case MethodRecognizer::kMathSqrt:
-    case MethodRecognizer::kMathDoublePow:
-    case MethodRecognizer::kMathSin:
-    case MethodRecognizer::kMathCos:
-    case MethodRecognizer::kMathTan:
-    case MethodRecognizer::kMathAsin:
-    case MethodRecognizer::kMathAcos:
-    case MethodRecognizer::kMathAtan:
-    case MethodRecognizer::kMathAtan2:
-    case MethodRecognizer::kMathExp:
-    case MethodRecognizer::kMathLog:
-      return InlineMathCFunction(flow_graph, call, kind, graph_entry, entry,
-                                 last, result);
 
     case MethodRecognizer::kMathIntPow:
       return InlineMathIntPow(flow_graph, call, graph_entry, entry, last,

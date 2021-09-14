@@ -6,7 +6,6 @@
 
 import 'dart:io' hide Link;
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/deferred_load/deferred_load.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'deferred_loading_test_helper.dart';
 

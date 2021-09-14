@@ -75,6 +75,7 @@ class NullabilityBuilder {
     }
   }
 
+  @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
     writeNullabilityOn(buffer);

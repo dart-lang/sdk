@@ -151,6 +151,11 @@ abstract class String implements Comparable<String>, Pattern {
   /// must be consistent across all calls to `String.fromEnvironment`,
   /// [int.fromEnvironment], [bool.fromEnvironment] and [bool.hasEnvironment]
   /// in a single program.
+  ///
+  /// This constructor is only guaranteed to work when invoked as `const`.
+  /// It may work as a non-constant invocation on some platforms which
+  /// have access to compiler options at run-time, but most ahead-of-time
+  /// compiled platforms will not have this information.
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.
@@ -314,6 +319,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// string.substring(1);    // 'artlang'
   /// string.substring(1, 4); // 'art'
   /// ```
+  ///
+  /// Both [start] and [end] must be non-negative and no greater than [length], and
+  /// [end], if provided, must be greater than or equal to [start].
   String substring(int start, [int? end]);
 
   /// The string without any leading and trailing whitespace.

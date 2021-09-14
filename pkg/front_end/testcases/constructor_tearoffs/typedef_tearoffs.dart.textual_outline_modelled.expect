@@ -1,0 +1,39 @@
+A Function() test2() => DA1.new;
+A Function() test4() => DA2.new;
+A Function() test5() => DA2<String>.new;
+A Function() test6() => DA2<int>.new;
+B<String> Function() test10() => DB1.foo;
+B<String> Function() test11() => DB1.bar;
+B<String> Function() test24() => DB2.new;
+B<String> Function() test8() => DB1.new;
+B<Y> Function<Y, Z>() test23() => DB3.new;
+B<Y> Function<Y>() test17() => DB2.new;
+B<Y> Function<Y extends num, Z extends String>() test22() => DB3.new;
+B<Y> Function<Y extends num>() test16() => DB2.new;
+B<num> Function() test12() => DB2<num>.new;
+B<num> Function() test13() => DB2<num>.foo;
+B<num> Function() test14() => DB2<num>.bar;
+B<num> Function() test15() => DB2.new;
+B<num> Function() test18() => DB3<num, String>.new;
+B<num> Function() test19() => DB3<num, String>.foo;
+B<num> Function() test20() => DB3<num, String>.bar;
+B<num> Function() test21() => DB3.new;
+B<num> Function() test9() => DB1.new;
+DA1 Function() test1() => DA1.new;
+DA2<num> Function() test3() => DA2.new;
+DB1 Function() test7() => DB1.new;
+
+class A {}
+
+class B<X> {
+  B();
+  B.foo();
+  factory B.bar() => new B<X>();
+}
+
+main() {}
+typedef DA1 = A;
+typedef DA2<X extends num> = A;
+typedef DB1 = B<String>;
+typedef DB2<X extends num> = B<X>;
+typedef DB3<X extends num, Y extends String> = B<X>;

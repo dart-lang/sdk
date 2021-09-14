@@ -52,7 +52,7 @@ class WorldImpact {
   String toString() => dump(this);
 
   static String dump(WorldImpact worldImpact) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     printOn(sb, worldImpact);
     return sb.toString();
   }
@@ -113,7 +113,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   @override
   void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);
-    _dynamicUses ??= new Setlet<DynamicUse>();
+    _dynamicUses ??= Setlet<DynamicUse>();
     _dynamicUses.add(dynamicUse);
   }
 
@@ -125,7 +125,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   @override
   void registerTypeUse(TypeUse typeUse) {
     assert(typeUse != null);
-    _typeUses ??= new Setlet<TypeUse>();
+    _typeUses ??= Setlet<TypeUse>();
     _typeUses.add(typeUse);
   }
 
@@ -137,7 +137,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   @override
   void registerStaticUse(StaticUse staticUse) {
     assert(staticUse != null);
-    _staticUses ??= new Setlet<StaticUse>();
+    _staticUses ??= Setlet<StaticUse>();
     _staticUses.add(staticUse);
   }
 
@@ -149,7 +149,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   @override
   void registerConstantUse(ConstantUse constantUse) {
     assert(constantUse != null);
-    _constantUses ??= new Setlet<ConstantUse>();
+    _constantUses ??= Setlet<ConstantUse>();
     _constantUses.add(constantUse);
   }
 
@@ -166,11 +166,11 @@ class StagedWorldImpactBuilder implements WorldImpactBuilder {
   WorldImpactBuilderImpl _currentBuilder;
   List<WorldImpactBuilderImpl> _builders = <WorldImpactBuilderImpl>[];
 
-  StagedWorldImpactBuilder({this.collectImpacts: false});
+  StagedWorldImpactBuilder({this.collectImpacts = false});
 
   void _ensureBuilder() {
     if (_currentBuilder == null) {
-      _currentBuilder = new WorldImpactBuilderImpl();
+      _currentBuilder = WorldImpactBuilderImpl();
       if (collectImpacts) {
         _builders.add(_currentBuilder);
       }
@@ -248,7 +248,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   @override
   void registerDynamicUse(DynamicUse dynamicUse) {
     if (_dynamicUses == null) {
-      _dynamicUses = new Setlet<DynamicUse>();
+      _dynamicUses = Setlet<DynamicUse>();
       _dynamicUses.addAll(worldImpact.dynamicUses);
     }
     _dynamicUses.add(dynamicUse);
@@ -257,7 +257,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   @override
   void registerTypeUse(TypeUse typeUse) {
     if (_typeUses == null) {
-      _typeUses = new Setlet<TypeUse>();
+      _typeUses = Setlet<TypeUse>();
       _typeUses.addAll(worldImpact.typeUses);
     }
     _typeUses.add(typeUse);
@@ -271,7 +271,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   @override
   void registerStaticUse(StaticUse staticUse) {
     if (_staticUses == null) {
-      _staticUses = new Setlet<StaticUse>();
+      _staticUses = Setlet<StaticUse>();
       _staticUses.addAll(worldImpact.staticUses);
     }
     _staticUses.add(staticUse);
@@ -290,7 +290,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   @override
   void registerConstantUse(ConstantUse constantUse) {
     if (_constantUses == null) {
-      _constantUses = new Setlet<ConstantUse>();
+      _constantUses = Setlet<ConstantUse>();
       _constantUses.addAll(worldImpact.constantUses);
     }
     _constantUses.add(constantUse);
@@ -308,7 +308,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('TransformedWorldImpact($worldImpact)');
     WorldImpact.printOn(sb, this);
     return sb.toString();
@@ -352,7 +352,7 @@ abstract class WorldImpactVisitor {
 }
 
 // TODO(johnniwinther): Remove these when we get anonymous local classes.
-typedef void VisitUse<U>(MemberEntity member, U use);
+typedef VisitUse<U> = void Function(MemberEntity member, U use);
 
 class WorldImpactVisitorImpl implements WorldImpactVisitor {
   final VisitUse<StaticUse> _visitStaticUse;

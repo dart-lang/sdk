@@ -63,8 +63,7 @@ abstract class DartCompletionContributorTest
   }
 }
 
-abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
-    with WithNonFunctionTypeAliasesMixin {
+abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
   late String testFile;
   int _completionOffset = -1;

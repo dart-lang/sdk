@@ -1308,9 +1308,11 @@ class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<void> {
 class LinterExceptionHandler {
   /// Indicates whether linter exceptions should be propagated to the caller (by
   /// re-throwing them)
-  final bool propagateLinterExceptions;
+  final bool propagateExceptions;
 
-  LinterExceptionHandler(this.propagateLinterExceptions);
+  LinterExceptionHandler({
+    required this.propagateExceptions,
+  });
 
   /// A method that can be passed to the `LinterVisitor` constructor to handle
   /// exceptions that occur during linting.
@@ -1332,7 +1334,7 @@ class LinterExceptionHandler {
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
         SilentException(buffer.toString(), exception, stackTrace));
-    if (propagateLinterExceptions) {
+    if (propagateExceptions) {
       throw exception;
     }
   }

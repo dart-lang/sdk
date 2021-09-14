@@ -40,7 +40,7 @@ import 'kernel_type_parser_test.dart' show parseSdk;
 
 import "shared_type_tests.dart" show SubtypeTest;
 
-main() {
+void main() {
   final Ticker ticker = new Ticker(isVerbose: false);
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
@@ -73,15 +73,18 @@ class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
 
   FastaTypesTest(this.hierarchy, this.environment);
 
+  @override
   DartType toType(String text, TypeParserEnvironment environment) {
     return environment.parseType(text);
   }
 
+  @override
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
     return hierarchy.types
         .performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
+  @override
   TypeParserEnvironment extend(String typeParameters) {
     return environment.extendWithTypeParameters(typeParameters);
   }

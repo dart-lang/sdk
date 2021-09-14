@@ -10,7 +10,7 @@ abstract class A {
   static get baz => bar;
   //                ^^^
   // [analyzer] COMPILE_TIME_ERROR.INSTANCE_MEMBER_ACCESS_FROM_STATIC
-  // [cfe] Getter not found: 'bar'.
+  // [cfe] Undefined name 'bar'.
 }
 
 class B implements A {
@@ -21,7 +21,7 @@ class B implements A {
   static get baz => bar;
   //                ^^^
   // [analyzer] COMPILE_TIME_ERROR.INSTANCE_MEMBER_ACCESS_FROM_STATIC
-  // [cfe] Getter not found: 'bar'.
+  // [cfe] Undefined name 'bar'.
 
   B() {}
 }
@@ -34,7 +34,7 @@ class C extends B {
   static get baz => bar;
   //                ^^^
   // [analyzer] COMPILE_TIME_ERROR.INSTANCE_MEMBER_ACCESS_FROM_STATIC
-  // [cfe] Getter not found: 'bar'.
+  // [cfe] Undefined name 'bar'.
 }
 
 main() {

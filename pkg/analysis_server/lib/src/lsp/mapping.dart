@@ -132,6 +132,30 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
           .toList());
 }
 
+/// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
+WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
+  final changes =
+      <Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>[];
+
+  final rename = RenameFile(
+    oldUri: Uri.file(oldPath).toString(),
+    newUri: Uri.file(newPath).toString(),
+  );
+
+  final renameUnion =
+      Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(rename);
+
+  changes.add(renameUnion);
+
+  final edit = WorkspaceEdit(
+      documentChanges: Either2<
+          List<TextDocumentEdit>,
+          List<
+              Either4<TextDocumentEdit, CreateFile, RenameFile,
+                  DeleteFile>>>.t2(changes));
+  return edit;
+}
+
 /// Creates a [lsp.WorkspaceEdit] from a [server.SourceChange] that can include
 /// experimental [server.SnippetTextEdit]s if the client has indicated support
 /// for these in the experimental section of their client capabilities.
@@ -195,8 +219,12 @@ lsp.CompletionItemKind? declarationKindToCompletionItemKind(
       case dec.DeclarationKind.CONSTRUCTOR:
         return const [lsp.CompletionItemKind.Constructor];
       case dec.DeclarationKind.ENUM:
-      case dec.DeclarationKind.ENUM_CONSTANT:
         return const [lsp.CompletionItemKind.Enum];
+      case dec.DeclarationKind.ENUM_CONSTANT:
+        return const [
+          lsp.CompletionItemKind.EnumMember,
+          lsp.CompletionItemKind.Enum,
+        ];
       case dec.DeclarationKind.FUNCTION:
         return const [lsp.CompletionItemKind.Function];
       case dec.DeclarationKind.FUNCTION_TYPE_ALIAS:
@@ -205,6 +233,8 @@ lsp.CompletionItemKind? declarationKindToCompletionItemKind(
         return const [lsp.CompletionItemKind.Property];
       case dec.DeclarationKind.SETTER:
         return const [lsp.CompletionItemKind.Property];
+      case dec.DeclarationKind.TYPE_ALIAS:
+        return const [lsp.CompletionItemKind.Class];
       case dec.DeclarationKind.VARIABLE:
         return const [lsp.CompletionItemKind.Variable];
       default:
@@ -248,6 +278,8 @@ lsp.SymbolKind declarationKindToSymbolKind(
         return const [lsp.SymbolKind.Class];
       case server.DeclarationKind.SETTER:
         return const [lsp.SymbolKind.Property];
+      case server.DeclarationKind.TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
       case server.DeclarationKind.VARIABLE:
         return const [lsp.SymbolKind.Variable];
       default:
@@ -411,8 +443,12 @@ lsp.CompletionItemKind? elementKindToCompletionItemKind(
       case server.ElementKind.CONSTRUCTOR_INVOCATION:
         return const [lsp.CompletionItemKind.Constructor];
       case server.ElementKind.ENUM:
-      case server.ElementKind.ENUM_CONSTANT:
         return const [lsp.CompletionItemKind.Enum];
+      case server.ElementKind.ENUM_CONSTANT:
+        return const [
+          lsp.CompletionItemKind.EnumMember,
+          lsp.CompletionItemKind.Enum,
+        ];
       case server.ElementKind.FIELD:
         return const [lsp.CompletionItemKind.Field];
       case server.ElementKind.FILE:
@@ -642,6 +678,33 @@ List<lsp.DiagnosticTag>? getDiagnosticTags(
 
 bool isDartDocument(lsp.TextDocumentIdentifier? doc) =>
     doc?.uri.endsWith('.dart') ?? false;
+
+/// Merges two [WorkspaceEdit]s into a single one.
+///
+/// Will throw if given [WorkspaceEdit]s that do not use documentChanges.
+WorkspaceEdit mergeWorkspaceEdits(List<WorkspaceEdit> edits) {
+  // TODO(dantup): This method (and much other code here) should be
+  // significantly tidied up when nonfunction-type-aliases is available here.
+  final changes =
+      <Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>[];
+
+  for (final edit in edits) {
+    // Flatten the Either into just the Union side to get a flat list.
+    final flatResourceChanges = edit.documentChanges!.map(
+      (edits) => edits.map((e) =>
+          Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(e)),
+      (resources) => resources,
+    );
+    changes.addAll(flatResourceChanges);
+  }
+
+  return WorkspaceEdit(
+      documentChanges: Either2<
+          List<TextDocumentEdit>,
+          List<
+              Either4<TextDocumentEdit, CreateFile, RenameFile,
+                  DeleteFile>>>.t2(changes));
+}
 
 lsp.Location navigationTargetToLocation(
   String targetFilePath,

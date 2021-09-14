@@ -3,6 +3,7 @@ class A<X extends num> {
   A(X x) {}
   factory A.bar(X x) => new A<X>(x);
 }
+
 A<num> Function(num) test1() => A.foo;
 A<int> Function(int) test2() => A.foo;
 A<num> Function(num) test3() => A.new;

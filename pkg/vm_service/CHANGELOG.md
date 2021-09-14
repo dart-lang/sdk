@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.3.0
+- Update to version `3.51` of the spec.
+- Added optional `reportLines` parameter to `getSourceReport` RPC.
+
 ## 7.1.1
 - Update to version `3.48` of the spec.
 - Added `shows` and `hides` properties to `LibraryDependency`.

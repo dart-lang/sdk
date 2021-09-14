@@ -1,0 +1,57 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:11: Error: 'Link.create' is already declared in this scope.
+//   factory Link.create() = LinkFactory<T, S>.create;
+//           ^^^^^^^^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:11: Context: Previous declaration of 'Link.create'.
+//   factory Link.create() = LinkFactory<T>.create;
+//           ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:11:11: Error: The name of a constructor must match the name of the enclosing class.
+//   factory Link.create() {
+//           ^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:10:7: Context: The name of the enclosing class is 'LinkFactory'.
+// class LinkFactory {
+//       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:42: Error: Type 'S' not found.
+//   factory Link.create() = LinkFactory<T, S>.create;
+//                                          ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:27: Error: Expected 0 type arguments.
+//   factory Link.create() = LinkFactory<T, S>.create;
+//                           ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:27: Error: Expected 0 type arguments.
+//   factory Link.create() = LinkFactory<T>.create;
+//                           ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:12:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
+//  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+//     return null;
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Link<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Link::create]/*isLegacy*/;
+  static factory create<T extends core::Object? = dynamic>() → self::Link<self::Link::create::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:27: Error: Expected 0 type arguments.
+  factory Link.create() = LinkFactory<T>.create;
+                          ^";
+  static method _#create#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create#tearOff::T%>;
+}
+class LinkFactory extends core::Object {
+  static factory create() → self::LinkFactory {
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:12:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
+ - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+    return null;
+           ^" in let Null #t1 = null in #t1 == null ?{self::LinkFactory} #t1 as{TypeError,ForNonNullableByDefault} self::LinkFactory : #t1{self::LinkFactory};
+  }
+  static method _#create#tearOff() → self::LinkFactory
+    return self::LinkFactory::create();
+}
+static method main() → dynamic {}

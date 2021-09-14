@@ -12,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show StringToken;
 
-import 'package:kernel/kernel.dart' show Component, Statement;
+import 'package:kernel/kernel.dart' show Component;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -36,8 +36,6 @@ import '../base/nnbd_mode.dart' show NnbdMode;
 import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../kernel_generator_impl.dart' show generateKernelInternal;
-
-import '../fasta/kernel/redirecting_factory_body.dart' as redirecting;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
@@ -242,18 +240,24 @@ Iterable<String> getSupportedLibraryNames(
 /// constructor.
 // TODO(sigmund): Delete this API once `member.isRedirectingFactory`
 // is implemented correctly for patch files (Issue #33495).
-bool isRedirectingFactory(ir.Procedure member) {
-  if (member.kind == ir.ProcedureKind.Factory) {
-    Statement? body = member.function.body;
-    if (body is redirecting.RedirectingFactoryBody) return true;
-    if (body is ir.ExpressionStatement) {
-      ir.Expression expression = body.expression;
-      if (expression is ir.Let) {
-        if (expression.variable.name == redirecting.letName) {
-          return true;
-        }
-      }
-    }
+bool isRedirectingFactory(ir.Procedure member) => member.isRedirectingFactory;
+
+/// Determines what `ProcedureKind` the given extension [member] is based on
+/// the member name.
+///
+/// Note: classifies operators as `ProcedureKind.Method`.
+ir.ProcedureKind getExtensionMemberKind(ir.Procedure member) {
+  assert(member.isExtensionMember);
+  String name = member.name.text;
+  int pipeIndex = name.indexOf('|');
+  int poundIndex = name.indexOf('#');
+  assert(pipeIndex >= 0);
+  if (poundIndex >= 0) {
+    String getOrSet = name.substring(pipeIndex + 1, poundIndex);
+    return getOrSet == 'get'
+        ? ir.ProcedureKind.Getter
+        : ir.ProcedureKind.Setter;
+  } else {
+    return member.kind;
   }
-  return false;
 }

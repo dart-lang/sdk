@@ -1,0 +1,24 @@
+class A {
+  A(this.field1);
+  A.named(this.field1);
+  int field1 = 0;
+}
+
+class B<T> implements A {
+  B(this.field1, this.field2);
+  B.named(this.field1, this.field2);
+  T field2;
+  var field1;
+}
+
+main() {}
+typedef F<T> = A;
+typedef G<T extends num> = B;
+var A_named = A.named;
+var A_new = A.new;
+var B_named = B<int>.named;
+var B_new = B.new;
+var F_named = F.named;
+var F_new = F.new;
+var G_named = G<int>.named;
+var G_new = G.new;

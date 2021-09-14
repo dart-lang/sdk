@@ -46,7 +46,7 @@ Below is the result of running the file both without and with
 `--dwarf-stack-traces` in a 64-bit Linux development environment:
 
 ```bash
-$ python3 tools/build.py -a x64 -m release runtime_kernel runtime_precompiled
+$ python3 tools/build.py -a x64 -m release runtime runtime_precompiled
 
 $ pkg/vm/tool/gen_kernel --platform out/ReleaseX64/vm_platform_strong.dill -o throws.dill throws.dart
 

@@ -32,7 +32,9 @@ late
 int topLevelMethodAndSetter1() => 1;
 int topLevelMethodAndSetter2() => 1;
 main() {}
+@topLevelMethod
 test() {}
+var field = topLevelMethod;
 void set topLevelDuplicateFieldAndDuplicateSetter(int value) {}
 void set topLevelDuplicateFieldAndDuplicateSetter(int value) {}
 void set topLevelMethodAndSetter1(int value) {}

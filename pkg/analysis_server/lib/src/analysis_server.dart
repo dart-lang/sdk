@@ -24,6 +24,7 @@ import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/domain_kythe.dart';
 import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/domains/analysis/macro_files.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
@@ -54,6 +55,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:telemetry/crash_reporting.dart';
@@ -613,6 +615,10 @@ class AnalysisServerOptions {
   /// Base path where to cache data.
   String? cacheFolder;
 
+  /// The path to the package config file override.
+  /// If `null`, then the default discovery mechanism is used.
+  String? packagesFile;
+
   /// The analytics instance; note, this object can be `null`, and should be
   /// accessed via a null-aware operator.
   telemetry.Analytics? analytics;
@@ -718,7 +724,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   server.AnalysisNavigationParams _computeNavigationParams(
       String path, CompilationUnit unit) {
     var collector = NavigationCollectorImpl();
-    computeDartNavigation(resourceProvider, collector, unit, null, null);
+    computeDartNavigation(resourceProvider, collector, unit, null, null,
+        analyzerConverter: AnalyzerConverter(
+            locationProvider:
+                MacroElementLocationProvider(MacroFiles(resourceProvider))));
     collector.createRegions();
     return server.AnalysisNavigationParams(
         path, collector.regions, collector.targets, collector.files);

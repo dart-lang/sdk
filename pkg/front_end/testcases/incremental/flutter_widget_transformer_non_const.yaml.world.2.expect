@@ -30,6 +30,8 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
+    static method _#new#tearOff({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+      return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
   }
 }
 library from "org-dartlang-test:///foo.dart" as foo {
@@ -42,19 +44,25 @@ library from "org-dartlang-test:///foo.dart" as foo {
     constructor •({required dart.core::String name = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
       : foo::Foo::name = name, super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
+    static method _#new#tearOff({required dart.core::String name = #C1}) → foo::Foo
+      return new foo::Foo::•(name: name, $creationLocationd_0dea112b090073317d4: #C6);
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo foo = new foo::Foo::•(name: "foo", $creationLocationd_0dea112b090073317d4: #C6);
+  static field foo::Foo foo = new foo::Foo::•(name: "foo", $creationLocationd_0dea112b090073317d4: #C10);
 }
 constants  {
   #C1 = null
-  #C2 = "org-dartlang-test:///main.dart"
-  #C3 = 2.0
-  #C4 = 15.0
+  #C2 = "org-dartlang-test:///foo.dart"
+  #C3 = 3.0
+  #C4 = 1.0
   #C5 = "Foo"
   #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C5, parameterLocations:#C1}
+  #C7 = "org-dartlang-test:///main.dart"
+  #C8 = 2.0
+  #C9 = 15.0
+  #C10 = wid::_Location {file:#C7, line:#C8, column:#C9, name:#C5, parameterLocations:#C1}
 }

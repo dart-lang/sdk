@@ -216,6 +216,7 @@ abstract class BuilderImpl implements Builder {
   @override
   Builder get origin => this;
 
+  @override
   bool get hasProblem => false;
 
   @override

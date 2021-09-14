@@ -78,7 +78,7 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:20:20: Error: Too few positional arguments: 1 required, 0 given.
   Fisk.staticMethod();
                    ^";
-  let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:21:24: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:21:24: Error: Too few positional arguments: 1 required, 0 given.
   (null as Fisk).method();
                        ^" in (null as self::Fisk*).{self::Fisk::method}{<inapplicable>}.(){() →* invalid-type};
 }

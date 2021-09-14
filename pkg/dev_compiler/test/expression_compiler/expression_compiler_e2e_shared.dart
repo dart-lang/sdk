@@ -173,15 +173,15 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Error: Getter not found: 'typo'");
+          expectedError: "Error: Undefined name 'typo'");
     });
 
     test('local (trimmed scope)', () async {
@@ -215,15 +215,15 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Getter not found: \'typo\'");
+          expectedError: "Undefined name \'typo\'");
     });
 
     test('local', () async {
@@ -257,8 +257,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -366,15 +366,15 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'typo',
-          expectedError: "Getter not found: 'typo'.");
+          expectedError: "Undefined name 'typo'.");
     });
 
     test('local with primitive type', () async {
@@ -501,8 +501,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -649,8 +649,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -712,15 +712,15 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Getter not found: 'typo'.");
+          expectedError: "Undefined name 'typo'.");
     });
 
     test('expression using captured variables', () async {
@@ -780,8 +780,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('call function not using type', () async {
@@ -840,8 +840,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('expression using local', () async {
@@ -881,8 +881,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('(then) expression using local', () async {
@@ -894,7 +894,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'thenBP',
           expression: 'z',
-          expectedError: "Error: Getter not found: 'z'");
+          expectedError: "Error: Undefined name 'z'");
     });
 
     test('(else) expression using local', () async {
@@ -906,7 +906,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'elseBP',
           expression: 'y',
-          expectedError: "Error: Getter not found: 'y'");
+          expectedError: "Error: Undefined name 'y'");
     });
 
     test('(post) expression using local', () async {
@@ -918,14 +918,14 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'postBP',
           expression: 'z',
-          expectedError: "Error: Getter not found: 'z'");
+          expectedError: "Error: Undefined name 'z'");
     });
 
     test('(post) expression using local out of scope', () async {
       await driver.check(
           breakpointId: 'postBP',
           expression: 'y',
-          expectedError: "Error: Getter not found: 'y'");
+          expectedError: "Error: Undefined name 'y'");
     });
   });
 
@@ -948,8 +948,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('expression loop variable', () async {
@@ -975,8 +975,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('evaluate formals', () async {
@@ -1020,8 +1020,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('evaluation that non-destructively appends to the type container',

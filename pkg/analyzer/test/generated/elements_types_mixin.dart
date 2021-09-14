@@ -473,8 +473,11 @@ mixin ElementsTypesMixin {
     required DartType type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
@@ -485,8 +488,11 @@ mixin ElementsTypesMixin {
     required DartType type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED_REQUIRED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED_REQUIRED,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
@@ -498,8 +504,11 @@ mixin ElementsTypesMixin {
     bool isCovariant = false,
     String? defaultValueCode,
   }) {
-    var parameter = ParameterElementImpl(name ?? '', 0);
-    parameter.parameterKind = ParameterKind.POSITIONAL;
+    var parameter = ParameterElementImpl(
+      name: name ?? '',
+      nameOffset: 0,
+      parameterKind: ParameterKind.POSITIONAL,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     parameter.defaultValueCode = defaultValueCode;
@@ -556,8 +565,11 @@ mixin ElementsTypesMixin {
     required DartType type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(name ?? '', 0);
-    parameter.parameterKind = ParameterKind.REQUIRED;
+    var parameter = ParameterElementImpl(
+      name: name ?? '',
+      nameOffset: 0,
+      parameterKind: ParameterKind.REQUIRED,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;

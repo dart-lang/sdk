@@ -18,7 +18,7 @@ bool Expect::failed_ = false;
 
 void DynamicAssertionHelper::Print(const char* format,
                                    va_list arguments,
-                                   bool will_abort /* = false */) {
+                                   bool will_abort /* = false */) const {
   // Take only the last 1KB of the file name if it is longer.
   const intptr_t file_len = strlen(file_);
   const intptr_t file_offset = (file_len > (1 * KB)) ? file_len - (1 * KB) : 0;
@@ -43,7 +43,7 @@ void DynamicAssertionHelper::Print(const char* format,
 #endif  // defined(DART_HOST_OS_ANDROID)
 }
 
-void Assert::Fail(const char* format, ...) {
+void Assert::Fail(const char* format, ...) const {
   va_list arguments;
   va_start(arguments, format);
   Print(format, arguments, /*will_abort=*/true);
@@ -55,7 +55,7 @@ void Assert::Fail(const char* format, ...) {
   abort();
 }
 
-void Expect::Fail(const char* format, ...) {
+void Expect::Fail(const char* format, ...) const {
   va_list arguments;
   va_start(arguments, format);
   Print(format, arguments);

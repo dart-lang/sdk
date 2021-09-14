@@ -5304,4 +5304,228 @@ TEST_CASE(TypeParameterTypeRef) {
   EXPECT(!m.IsSubtypeOf(t, Heap::kNew));
 }
 
+static void FinalizeAndCanonicalize(AbstractType* type) {
+  *type ^= ClassFinalizer::FinalizeType(*type);
+  ASSERT(type->IsCanonical());
+}
+
+static void CheckSubtypeRelation(const Expect& expect,
+                                 const AbstractType& sub,
+                                 const AbstractType& super,
+                                 bool is_subtype) {
+  if (sub.IsSubtypeOf(super, Heap::kNew) != is_subtype) {
+    TextBuffer buffer(128);
+    buffer.AddString("Expected ");
+    sub.PrintName(Object::kScrubbedName, &buffer);
+    buffer.Printf(" to %s a subtype of ", is_subtype ? "be" : "not be");
+    super.PrintName(Object::kScrubbedName, &buffer);
+    expect.Fail("%s", buffer.buffer());
+  }
+}
+
+#define EXPECT_SUBTYPE(sub, super)                                             \
+  CheckSubtypeRelation(Expect(__FILE__, __LINE__), sub, super, true);
+#define EXPECT_NOT_SUBTYPE(sub, super)                                         \
+  CheckSubtypeRelation(Expect(__FILE__, __LINE__), sub, super, false);
+
+ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
+  const auto& closure_class =
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
+  const auto& closure_type = Type::Handle(closure_class.DeclarationType());
+  auto& closure_type_nullable = Type::Handle(
+      closure_type.ToNullability(Nullability::kNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&closure_type_nullable);
+  auto& closure_type_legacy = Type::Handle(
+      closure_type.ToNullability(Nullability::kLegacy, Heap::kNew));
+  FinalizeAndCanonicalize(&closure_type_legacy);
+  auto& closure_type_nonnullable = Type::Handle(
+      closure_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&closure_type_nonnullable);
+
+  const auto& function_type =
+      Type::Handle(IsolateGroup::Current()->object_store()->function_type());
+  auto& function_type_nullable = Type::Handle(
+      function_type.ToNullability(Nullability::kNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&function_type_nullable);
+  auto& function_type_legacy = Type::Handle(
+      function_type.ToNullability(Nullability::kLegacy, Heap::kNew));
+  FinalizeAndCanonicalize(&function_type_legacy);
+  auto& function_type_nonnullable = Type::Handle(
+      function_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&function_type_nonnullable);
+
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_nullable, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nullable, function_type_legacy);
+  // Nullable types are not a subtype of non-nullable types in strict mode.
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
+  } else {
+    EXPECT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
+  }
+
+  const auto& async_lib = Library::Handle(Library::AsyncLibrary());
+  const auto& future_or_class =
+      Class::Handle(async_lib.LookupClass(Symbols::FutureOr()));
+  auto& tav_function_nullable = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_nullable.SetTypeAt(0, function_type_nullable);
+  tav_function_nullable = tav_function_nullable.Canonicalize(thread, nullptr);
+  auto& tav_function_legacy = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_legacy.SetTypeAt(0, function_type_legacy);
+  tav_function_legacy = tav_function_legacy.Canonicalize(thread, nullptr);
+  auto& tav_function_nonnullable = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_nonnullable.SetTypeAt(0, function_type_nonnullable);
+  tav_function_nonnullable =
+      tav_function_nonnullable.Canonicalize(thread, nullptr);
+
+  auto& future_or_function_type_nullable =
+      Type::Handle(Type::New(future_or_class, tav_function_nullable));
+  FinalizeAndCanonicalize(&future_or_function_type_nullable);
+  auto& future_or_function_type_legacy =
+      Type::Handle(Type::New(future_or_class, tav_function_legacy));
+  FinalizeAndCanonicalize(&future_or_function_type_legacy);
+  auto& future_or_function_type_nonnullable =
+      Type::Handle(Type::New(future_or_class, tav_function_nonnullable));
+  FinalizeAndCanonicalize(&future_or_function_type_nonnullable);
+
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_legacy);
+  // Nullable types are not a subtype of non-nullable types in strict mode.
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(closure_type_nullable,
+                       future_or_function_type_nonnullable);
+  } else {
+    EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nonnullable);
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
+  const auto& type_object = Type::Handle(
+      IsolateGroup::Current()->object_store()->non_nullable_object_type());
+
+  auto& type_function_int_nullary =
+      FunctionType::Handle(FunctionType::New(0, Nullability::kNonNullable));
+  type_function_int_nullary.set_result_type(Type::Handle(Type::IntType()));
+  FinalizeAndCanonicalize(&type_function_int_nullary);
+
+  auto& type_nullable_function_int_nullary =
+      FunctionType::Handle(type_function_int_nullary.ToNullability(
+          Nullability::kNullable, Heap::kOld));
+  FinalizeAndCanonicalize(&type_nullable_function_int_nullary);
+
+  EXPECT_SUBTYPE(type_function_int_nullary, type_object);
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(type_nullable_function_int_nullary, type_object);
+  } else {
+    EXPECT_SUBTYPE(type_nullable_function_int_nullary, type_object);
+  }
+}
+
+#undef EXPECT_NOT_SUBTYPE
+#undef EXPECT_SUBTYPE
+
+TEST_CASE(Class_GetInstantiationOf) {
+  const char* kScript = R"(
+    class B<T> {}
+    class A1<X, Y> implements B<List<Y>> {}
+    class A2<X, Y> extends A1<Y, X> {}
+  )";
+  Dart_Handle api_lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(api_lib);
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+  const auto& class_b = Class::Handle(zone, GetClass(root_lib, "B"));
+  const auto& class_a1 = Class::Handle(zone, GetClass(root_lib, "A1"));
+  const auto& class_a2 = Class::Handle(zone, GetClass(root_lib, "A2"));
+
+  const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  const auto& class_list = Class::Handle(zone, GetClass(core_lib, "List"));
+
+  auto expect_type_equal = [](const AbstractType& expected,
+                              const AbstractType& got) {
+    if (got.Equals(expected)) return;
+    TextBuffer buffer(128);
+    buffer.AddString("Expected type ");
+    expected.PrintName(Object::kScrubbedName, &buffer);
+    buffer.AddString(", got ");
+    got.PrintName(Object::kScrubbedName, &buffer);
+    dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
+  };
+
+  const auto& decl_type_b = Type::Handle(zone, class_b.DeclarationType());
+  const auto& decl_type_list = Type::Handle(zone, class_list.DeclarationType());
+  const auto& null_tav = Object::null_type_arguments();
+
+  // Test that A1.GetInstantiationOf(B) returns B<List<A1::Y>>.
+  {
+    const auto& decl_type_a1 = Type::Handle(zone, class_a1.DeclarationType());
+    const auto& decl_type_args_a1 =
+        TypeArguments::Handle(zone, decl_type_a1.arguments());
+    const auto& type_arg_a1_y =
+        TypeParameter::CheckedHandle(zone, decl_type_args_a1.TypeAt(1));
+    auto& tav_a1_y = TypeArguments::Handle(TypeArguments::New(1));
+    tav_a1_y.SetTypeAt(0, type_arg_a1_y);
+    tav_a1_y = tav_a1_y.Canonicalize(thread, nullptr);
+    auto& type_list_a1_y = Type::CheckedHandle(
+        zone, decl_type_list.InstantiateFrom(tav_a1_y, null_tav, kAllFree,
+                                             Heap::kNew));
+    type_list_a1_y ^= type_list_a1_y.Canonicalize(thread, nullptr);
+    auto& tav_list_a1_y = TypeArguments::Handle(TypeArguments::New(1));
+    tav_list_a1_y.SetTypeAt(0, type_list_a1_y);
+    tav_list_a1_y = tav_list_a1_y.Canonicalize(thread, nullptr);
+    auto& type_b_list_a1_y = Type::CheckedHandle(
+        zone, decl_type_b.InstantiateFrom(tav_list_a1_y, null_tav, kAllFree,
+                                          Heap::kNew));
+    type_b_list_a1_y ^= type_b_list_a1_y.Canonicalize(thread, nullptr);
+
+    const auto& inst_b_a1 =
+        Type::Handle(zone, class_a1.GetInstantiationOf(zone, class_b));
+    EXPECT(!inst_b_a1.IsNull());
+    expect_type_equal(type_b_list_a1_y, inst_b_a1);
+  }
+
+  // Test that A2.GetInstantiationOf(B) returns B<List<A2::X>>.
+  {
+    const auto& decl_type_a2 = Type::Handle(zone, class_a2.DeclarationType());
+    const auto& decl_type_args_a2 =
+        TypeArguments::Handle(zone, decl_type_a2.arguments());
+    const auto& type_arg_a2_x =
+        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(1));
+    auto& tav_a2_x = TypeArguments::Handle(TypeArguments::New(1));
+    tav_a2_x.SetTypeAt(0, type_arg_a2_x);
+    tav_a2_x = tav_a2_x.Canonicalize(thread, nullptr);
+    auto& type_list_a2_x = Type::CheckedHandle(
+        zone, decl_type_list.InstantiateFrom(tav_a2_x, null_tav, kAllFree,
+                                             Heap::kNew));
+    type_list_a2_x ^= type_list_a2_x.Canonicalize(thread, nullptr);
+    auto& tav_list_a2_x = TypeArguments::Handle(TypeArguments::New(1));
+    tav_list_a2_x.SetTypeAt(0, type_list_a2_x);
+    tav_list_a2_x = tav_list_a2_x.Canonicalize(thread, nullptr);
+    auto& type_b_list_a2_x = Type::CheckedHandle(
+        zone, decl_type_b.InstantiateFrom(tav_list_a2_x, null_tav, kAllFree,
+                                          Heap::kNew));
+    type_b_list_a2_x ^= type_b_list_a2_x.Canonicalize(thread, nullptr);
+
+    const auto& inst_b_a2 =
+        Type::Handle(zone, class_a2.GetInstantiationOf(zone, class_b));
+    EXPECT(!inst_b_a2.IsNull());
+    expect_type_equal(type_b_list_a2_x, inst_b_a2);
+  }
+}
+
 }  // namespace dart

@@ -4,6 +4,8 @@
 //
 // VMOptions=--dwarf-stack-traces --save-debugging-info=async_no_causal_debug.so --no-lazy-async-stacks
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 

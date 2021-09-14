@@ -2,10 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.13
+
 finalLocalBool(int? x) {
   final bool b = x == null;
   if (!b) {
     /*nonNullable*/ x;
+  } else {
+    x;
+  }
+}
+
+finalLocalBool_untyped(int? x) {
+  final b = x == null;
+  if (!b) {
+    // No promotion due to https://github.com/dart-lang/language/issues/1785
+    x;
   } else {
     x;
   }
@@ -20,8 +32,28 @@ localBool(int? x) {
   }
 }
 
+localBool_untyped(int? x) {
+  var b = x == null;
+  if (!b) {
+    // No promotion due to https://github.com/dart-lang/language/issues/1785
+    x;
+  } else {
+    x;
+  }
+}
+
 localBool_assigned(int? x, bool b1) {
   bool b2 = b1;
+  b2 = x == null;
+  if (!b2) {
+    /*nonNullable*/ x;
+  } else {
+    x;
+  }
+}
+
+localBool_assigned_untyped(int? x, bool b1) {
+  var b2 = b1;
   b2 = x == null;
   if (!b2) {
     /*nonNullable*/ x;
@@ -41,6 +73,15 @@ localBool_assignedDynamic(int? x, bool b1) {
 }
 
 parameter_assigned(int? x, bool b) {
+  b = x == null;
+  if (!b) {
+    /*nonNullable*/ x;
+  } else {
+    x;
+  }
+}
+
+parameter_assigned_untyped(int? x, b) {
   b = x == null;
   if (!b) {
     /*nonNullable*/ x;
@@ -69,8 +110,30 @@ lateFinalLocalBool(int? x) {
   }
 }
 
+lateFinalLocalBool_untyped(int? x) {
+  late final b = x == null;
+  if (!b) {
+    // We don't promote based on the initializers of late locals because we
+    // don't know when they execute.
+    x;
+  } else {
+    x;
+  }
+}
+
 lateLocalBool(int? x) {
   late bool b = x == null;
+  if (!b) {
+    // We don't promote based on the initializers of late locals because we
+    // don't know when they execute.
+    x;
+  } else {
+    x;
+  }
+}
+
+lateLocalBool_untyped(int? x) {
+  late var b = x == null;
   if (!b) {
     // We don't promote based on the initializers of late locals because we
     // don't know when they execute.
@@ -90,8 +153,28 @@ lateLocalBool_assignedAndInitialized(int? x, bool b1) {
   }
 }
 
+lateLocalBool_assignedAndInitialized_untyped(int? x, bool b1) {
+  late var b2 = b1;
+  b2 = x == null;
+  if (!b2) {
+    /*nonNullable*/ x;
+  } else {
+    x;
+  }
+}
+
 lateLocalBool_assignedButNotInitialized(int? x) {
   late bool b;
+  b = x == null;
+  if (!b) {
+    /*nonNullable*/ x;
+  } else {
+    x;
+  }
+}
+
+lateLocalBool_assignedButNotInitialized_untyped(int? x) {
+  late var b;
   b = x == null;
   if (!b) {
     /*nonNullable*/ x;

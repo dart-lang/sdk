@@ -65,7 +65,7 @@ class Test {
   const Test(this.input, this.output, [this.typeParameters]);
 }
 
-main() {
+void main() {
   Env env = new Env('', isNonNullableByDefault: true);
   ClassHierarchy classHierarchy =
       new ClassHierarchy(env.component, env.coreTypes);

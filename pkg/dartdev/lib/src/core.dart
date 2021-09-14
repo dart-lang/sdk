@@ -50,13 +50,13 @@ abstract class DartdevCommand extends Command<int> {
 
   @override
   String get invocation {
+    String result = super.invocation;
     if (_verbose) {
-      final splitInvocation = super.invocation.split(' ');
-      splitInvocation.insert(1, '[vm-options]');
-      return splitInvocation.join(' ');
-    } else {
-      return super.invocation;
+      var firstSpace = result.indexOf(' ');
+      if (firstSpace < 0) firstSpace = result.length;
+      result = result.replaceRange(firstSpace, firstSpace, ' [vm-options]');
     }
+    return result;
   }
 
   /// Create the ArgParser instance for this command.
@@ -129,7 +129,7 @@ void _streamLineTransform(
   stream
       .transform(utf8.decoder)
       .transform(const LineSplitter())
-      .listen(handler);
+      .forEach(handler);
 }
 
 /// A representation of a project on disk.

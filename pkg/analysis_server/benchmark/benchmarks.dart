@@ -129,8 +129,10 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     var o = other as CompoundBenchMarkResult;
 
     var combined = CompoundBenchMarkResult(name);
-    var keys =
-        (<String>{}..addAll(results.keys)..addAll(o.results.keys)).toList();
+    var keys = (<String>{}
+          ..addAll(results.keys)
+          ..addAll(o.results.keys))
+        .toList();
 
     for (var key in keys) {
       combined.add(key, _combine(results[key], o.results[key]));

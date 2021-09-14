@@ -83,7 +83,7 @@ export 'internal_ast.dart'
         ArgumentsImpl,
         Cascade,
         DeferredCheck,
-        FactoryConstructorInvocationJudgment,
+        FactoryConstructorInvocation,
         FunctionDeclarationImpl,
         InvalidSuperInitializerJudgment,
         LoadLibraryTearOff,

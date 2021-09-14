@@ -58,9 +58,9 @@ void f() {
   }
 
   Future<void> test_constructor_named_potential() async {
-    // Constructors in other classes shouldn't be considered potential matches,
-    // nor should unresolved method calls, since constructor call sites are
-    // statically bound to their targets).
+    // Constructors in other classes shouldn't be considered potential matches.
+    // Unresolved method calls should also not be considered potential matches,
+    // because constructor call sites are statically bound to their targets.
     addTestFile('''
 class A {
   A.named(p); // A

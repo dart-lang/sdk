@@ -251,9 +251,6 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
   List<String> get experiments => [
-        EnableString.generic_metadata,
-        EnableString.nonfunction_type_aliases,
-        EnableString.triple_shift,
         EnableString.constructor_tearoffs,
       ];
 
@@ -412,16 +409,6 @@ mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
     await resolveTestFile();
     assertErrorsInResult(expectedErrorsWhenImplicitCastsDisabled);
   }
-}
-
-mixin WithNullSafetyMixin on PubPackageResolutionTest {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): This mixin is a no-op
-  // on PubPackageResolutionTest; remove its usage and remove it.
-  @override
-  String? get testPackageLanguageVersion => '2.14';
-
-  @override
-  bool get typeToStringWithNullability => true;
 }
 
 mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {

@@ -18,8 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class NullSafetyExperimentGlobalTest extends _FeaturesTest
-    with WithNullSafetyMixin {
+class NullSafetyExperimentGlobalTest extends _FeaturesTest {
   test_jsonConfig_legacyContext_nonNullDependency() async {
     _configureTestWithJsonConfig('''
 {
@@ -102,9 +101,6 @@ var z = pi;
 
 @reflectiveTest
 class NullSafetyUsingAllowedExperimentsTest extends _FeaturesTest {
-  @override
-  bool get typeToStringWithNullability => true;
-
   test_jsonConfig_disable_bin() async {
     _configureAllowedExperimentsTestNullSafety();
 

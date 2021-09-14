@@ -33,8 +33,9 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:status_file/canonical_status_file.dart';
 import 'package:status_file/expectation.dart';
+import 'package:status_file/src/expression.dart';
 
-StatusEntry filterExpectations(
+StatusEntry? filterExpectations(
     StatusEntry entry, List<Expectation> expectationsToKeep) {
   List<Expectation> remaining = entry.expectations
       .where(
@@ -45,14 +46,14 @@ StatusEntry filterExpectations(
       : StatusEntry(entry.path, entry.lineNumber, remaining, entry.comment);
 }
 
-Map<String, Map<int, String>> issues;
+late Map<String, Map<int, String>> issues;
 
 String getIssueState(String project, int issue) {
-  Map projectIssues = issues[project];
+  var projectIssues = issues[project];
   if (projectIssues == null) {
     throw "Cannot find project $project, not one of {${issues.keys.join(",")}}";
   }
-  String state = projectIssues[issue] ?? "";
+  var state = projectIssues[issue] ?? "";
   return "\t$state";
 }
 
@@ -61,7 +62,7 @@ String getIssueState(String project, int issue) {
 // sorted by issue number then timestamp ascending.
 //
 // The first line is expected to contain the field names and is skipped.
-void parseIssueFile() async {
+Future<void> parseIssueFile() async {
   issues = {};
   String issuesLog = await File("issues.log").readAsString();
   List<String> lines = issuesLog.split("\n");
@@ -91,13 +92,13 @@ List<RegExp> sdkIssuePatterns = [
 ];
 
 String getIssueText(String comment, bool resolveState) {
-  int issue;
-  String prefix;
-  String project;
-  for (RegExp pattern in co19IssuePatterns) {
-    Match match = pattern.firstMatch(comment);
+  int? issue;
+  late String prefix;
+  late String project;
+  for (var pattern in co19IssuePatterns) {
+    var match = pattern.firstMatch(comment);
     if (match != null) {
-      issue = int.tryParse(match[1]);
+      issue = int.tryParse(match[1]!);
       if (issue != null) {
         prefix = "https://github.com/dart-lang/co19/issues/";
         project = "dart-lang/co19";
@@ -106,10 +107,10 @@ String getIssueText(String comment, bool resolveState) {
     }
   }
   if (issue == null) {
-    for (RegExp pattern in sdkIssuePatterns) {
-      Match match = pattern.firstMatch(comment);
+    for (var pattern in sdkIssuePatterns) {
+      var match = pattern.firstMatch(comment);
       if (match != null) {
-        issue = int.tryParse(match[1]);
+        issue = int.tryParse(match[1]!);
         if (issue != null) {
           prefix = "https://dartbug.com/";
           project = "dart-lang/sdk";
@@ -119,7 +120,7 @@ String getIssueText(String comment, bool resolveState) {
     }
   }
   if (issue != null) {
-    String state = resolveState ? getIssueState(project, issue) : "";
+    var state = resolveState ? getIssueState(project, issue) : "";
     return "$prefix$issue$state";
   } else {
     return "";
@@ -143,7 +144,7 @@ Future<StatusFile> removeNonEssentialEntries(
         entries.add(entry);
         hasStatusEntries = true;
       } else if (entry is StatusEntry) {
-        StatusEntry newEntry = entry;
+        StatusEntry? newEntry = entry;
         if (entry.comment == null) {
           newEntry = filterExpectations(entry, expectationsToKeep);
         } else if (removeComments) {
@@ -155,8 +156,9 @@ Future<StatusFile> removeNonEssentialEntries(
             String expectations = entry.expectations.toString();
             // Remove '[' and ']'.
             expectations = expectations.substring(1, expectations.length - 1);
-            String conditionPrefix =
-                section.condition != null ? "${section.condition}" : "";
+            String conditionPrefix = section.condition != Expression.always
+                ? "${section.condition}"
+                : "";
             String issueText = await getIssueText(comment, resolveIssueState);
             String statusLine = "$conditionPrefix\t$testName\t$expectations"
                 "\t$comment\t$issueText";
@@ -171,16 +173,18 @@ Future<StatusFile> removeNonEssentialEntries(
         throw "Unknown entry type ${entry.runtimeType}";
       }
     }
-    bool isDefaultSection = section.condition == null;
+
+    var isDefaultSection = section.condition == Expression.always;
     if (hasStatusEntries ||
         (isDefaultSection && section.sectionHeaderComments.isNotEmpty)) {
-      StatusSection newSection =
+      var newSection =
           StatusSection(section.condition, -1, section.sectionHeaderComments);
       newSection.entries.addAll(entries);
       sections.add(newSection);
     }
   }
-  StatusFile newStatusFile = StatusFile(statusFile.path);
+
+  var newStatusFile = StatusFile(statusFile.path);
   newStatusFile.sections.addAll(sections);
   return newStatusFile;
 }

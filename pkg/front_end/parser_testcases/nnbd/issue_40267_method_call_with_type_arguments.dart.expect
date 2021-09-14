@@ -16,9 +16,9 @@ parser/nnbd/issue_40267_method_call_with_type_arguments:6:1: Expected an identif
 }
 ^
 
-parser/nnbd/issue_40267_method_call_with_type_arguments:6:1: Expected ';' after this.
-}
-^
+parser/nnbd/issue_40267_method_call_with_type_arguments:5:13: Expected ';' after this.
+  a?<Foo>(b);
+            ^
 
 beginCompilationUnit(f)
   beginMetadataStar(f)
@@ -101,7 +101,7 @@ beginCompilationUnit(f)
           handleNoArguments(})
           handleSend(, })
         endConditionalExpression(?, :)
-        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], }, })
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ;, ;)
         handleExpressionStatement(;)
       endBlockFunctionBody(3, {, })
     endTopLevelMethod(f, null, })

@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
@@ -129,6 +130,11 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     ClassElementFlags.write(_sink, element);
 
+    _writeList(
+      element.macroExecutionErrors,
+      _sink._writeMacroExecutionError,
+    );
+
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
@@ -160,18 +166,12 @@ class BundleWriter {
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
-    _resolutionSink.localElements.pushScope();
-    _resolutionSink.localElements.declareAll(element.parameters);
-    try {
+    _resolutionSink.localElements.withElements(element.parameters, () {
       _writeList(element.parameters, _writeParameterElement);
       _writeMacro(element.macro);
-      if (element.isConst || element.isFactory) {
-        _resolutionSink.writeElement(element.redirectedConstructor);
-        _resolutionSink._writeNodeList(element.constantInitializers);
-      }
-    } finally {
-      _resolutionSink.localElements.popScope();
-    }
+      _resolutionSink.writeElement(element.redirectedConstructor);
+      _resolutionSink._writeNodeList(element.constantInitializers);
+    });
   }
 
   void _writeEnumElement(ClassElement element) {
@@ -231,6 +231,10 @@ class BundleWriter {
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
+    _writeList(
+      element.macroExecutionErrors,
+      _sink._writeMacroExecutionError,
+    );
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.type);
     _resolutionSink._writeOptionalNode(element.constantInitializer);
@@ -282,12 +286,7 @@ class BundleWriter {
   }
 
   void _writeMacro(MacroGenerationData? macro) {
-    _sink.writeBool(macro != null);
-    if (macro != null) {
-      _sink.writeUInt30(macro.id);
-      _sink.writeStringUtf8(macro.code);
-      _sink.writeUint8List(macro.informative);
-    }
+    _sink.writeOptionalUInt30(macro?.id);
   }
 
   void _writeMethodElement(MethodElement element) {
@@ -437,14 +436,10 @@ class BundleWriter {
     List<TypeParameterElement> typeParameters,
     void Function() f,
   ) {
-    _resolutionSink.localElements.pushScope();
-    _resolutionSink.localElements.declareAll(typeParameters);
-    try {
+    _resolutionSink.localElements.withElements(typeParameters, () {
       _sink.writeList(typeParameters, _writeTypeParameterElement);
       f();
-    } finally {
-      _resolutionSink.localElements.popScope();
-    }
+    });
   }
 
   void _writeUnitElement(CompilationUnitElement unitElement) {
@@ -456,6 +451,7 @@ class BundleWriter {
     _sink.writeBool(unitElement.isSynthetic);
     _sink.writeOptionalStringUtf8(unitElement.sourceContent);
     _resolutionSink._writeAnnotationList(unitElement.metadata);
+    _writeUnitElementMacroGenerationDataList(unitElement);
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
@@ -473,6 +469,18 @@ class BundleWriter {
       unitElement.accessors.where((e) => !e.isSynthetic).toList(),
       _writePropertyAccessorElement,
     );
+  }
+
+  void _writeUnitElementMacroGenerationDataList(
+    CompilationUnitElementImpl unitElement,
+  ) {
+    var dataList = unitElement.macroGenerationDataList ?? [];
+    _writeList<MacroGenerationData>(dataList, (data) {
+      _sink.writeUInt30(data.id);
+      _sink.writeStringUtf8(data.code);
+      _sink.writeUint8List(data.informative);
+      _sink.writeOptionalUInt30(data.classDeclarationIndex);
+    });
   }
 
   static TypeParameterVarianceTag _encodeVariance(
@@ -739,9 +747,7 @@ class ResolutionSink extends _SummaryDataWriter {
     void Function() f, {
     required bool withAnnotations,
   }) {
-    localElements.pushScope();
-    localElements.declareAll(typeParameters);
-    try {
+    localElements.withElements(typeParameters, () {
       writeUInt30(typeParameters.length);
       for (var typeParameter in typeParameters) {
         _writeStringReference(typeParameter.name);
@@ -753,9 +759,7 @@ class ResolutionSink extends _SummaryDataWriter {
         }
       }
       f();
-    } finally {
-      localElements.popScope();
-    }
+    });
   }
 
   static List<DartType> _enclosingClassTypeArguments(
@@ -936,7 +940,6 @@ class _Library {
 
 class _LocalElementIndexer {
   final Map<Element, int> _index = Map.identity();
-  final List<int> _scopes = [];
   int _stackHeight = 0;
 
   int operator [](Element element) {
@@ -944,22 +947,17 @@ class _LocalElementIndexer {
         (throw ArgumentError('Unexpectedly not indexed: $element'));
   }
 
-  void declare(Element element) {
-    _index[element] = _stackHeight++;
-  }
-
-  void declareAll(List<Element> elements) {
+  void withElements(List<Element> elements, void Function() f) {
     for (var element in elements) {
-      declare(element);
+      _index[element] = _stackHeight++;
     }
-  }
 
-  void popScope() {
-    _stackHeight = _scopes.removeLast();
-  }
+    f();
 
-  void pushScope() {
-    _scopes.add(_stackHeight);
+    _stackHeight -= elements.length;
+    for (var element in elements) {
+      _index.remove(element);
+    }
   }
 }
 
@@ -984,6 +982,12 @@ class _SummaryDataWriter extends BufferedSink {
     } else {
       throw StateError('Unexpected parameter kind: $p');
     }
+  }
+
+  void _writeMacroExecutionError(macro.MacroExecutionError error) {
+    writeUInt30(error.annotationIndex);
+    _writeStringReference(error.macroName);
+    _writeStringReference(error.message);
   }
 
   void _writeOptionalStringReference(String? value) {

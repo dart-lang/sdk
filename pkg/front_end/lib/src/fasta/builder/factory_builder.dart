@@ -45,6 +45,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
+  @override
   final bool isExtensionInstanceMember = false;
 
   final Procedure _procedureInternal;
@@ -207,7 +208,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
     if (bodyInternal != null) {
       unexpected("null", "${bodyInternal.runtimeType}", charOffset, fileUri);
     }
-    bodyInternal = new RedirectingFactoryBody(target, typeArguments);
+    bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
     if (isPatch) {
@@ -307,7 +308,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           noLength, fileUri);
     }
 
-    bodyInternal = new RedirectingFactoryBody(target, typeArguments);
+    bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
     _procedure.isRedirectingFactory = true;
@@ -364,6 +365,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     return _procedureInternal;
   }
 
+  @override
   bool _hasBuiltOutlines = false;
 
   @override
@@ -436,7 +438,10 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             target.enclosingClass!.typeParameters.length, const DynamicType(),
             growable: true);
       }
-      member.function!.body = new RedirectingFactoryBody(target, typeArguments);
+
+      function.body =
+          new RedirectingFactoryBody(target, typeArguments, function);
+      function.body!.parent = function;
     }
     if (_factoryTearOff != null &&
         (target is Constructor || target is Procedure && target.isFactory)) {
@@ -452,6 +457,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _hasBuiltOutlines = true;
   }
 
+  @override
   void _finishPatch() {
     super._finishPatch();
 

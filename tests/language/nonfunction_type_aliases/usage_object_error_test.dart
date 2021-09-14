@@ -25,28 +25,27 @@ class C1 implements C {
 abstract class D2 extends C with T {}
 //             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Can't use 'Object' as a mixin because it has constructors.
 
 abstract class D3 implements T {}
 //             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] 'Object' can't be used in both 'extends' and 'implements' clauses.
 
 abstract class D4 = C with T;
 //             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Can't use 'Object' as a mixin because it has constructors.
 
 main() {
   T.named();
 //  ^^^^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Member not found: 'Object.named'.
 
   T.staticMethod<T>();
 //  ^^^^^^^^^^^^
 // [analyzer] unspecified
-// [cfe] Method not found: 'Object.staticMethod'.
-//  ^^^^^^^^^^^^
-// [cfe] A constructor invocation can't have type arguments on the constructor name.
+// [cfe] A constructor invocation can't have type arguments after the constructor name.
+// [cfe] Member not found: 'Object.staticMethod'.
 }

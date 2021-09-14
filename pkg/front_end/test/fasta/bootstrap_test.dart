@@ -106,5 +106,6 @@ class ComparisonFailed {
 
   ComparisonFailed(this.a, this.b);
 
-  toString() => "Error: $a is different from $b";
+  @override
+  String toString() => "Error: $a is different from $b";
 }

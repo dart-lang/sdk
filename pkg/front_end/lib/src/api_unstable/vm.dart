@@ -87,4 +87,7 @@ export '../fasta/kernel/utils.dart'
         serializeComponent,
         serializeProcedure;
 
-export '../fasta/resolve_input_uri.dart' show resolveInputUri;
+export 'package:_fe_analyzer_shared/src/util/options.dart';
+
+export 'package:_fe_analyzer_shared/src/util/resolve_input_uri.dart'
+    show resolveInputUri;

@@ -13,9 +13,13 @@ class ObjectPtr;
 // Makes a transitive copy of the object graph referenced by [object]. Will not
 // copy objects that can be safely shared - due to being immutable.
 //
-// The result will be an array of length 2 of the format
+// The result will be an array of length 3 of the format
 //
-//   [<copy-of-root>, <array-of-objects-to-rehash / null>]
+//   [
+//     <message>,
+//     <collection-lib-objects-to-rehash>,
+//     <core-lib-objects-to-rehash>,
+//   ]
 //
 // If the array of objects to rehash is not `null` the receiver should re-hash
 // those objects.

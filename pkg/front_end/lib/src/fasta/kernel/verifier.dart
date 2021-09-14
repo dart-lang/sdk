@@ -29,10 +29,7 @@ import '../fasta_codes.dart'
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'redirecting_factory_body.dart'
-    show
-        RedirectingFactoryBody,
-        getRedirectingFactoryBody,
-        isRedirectingFactory;
+    show RedirectingFactoryBody, isRedirectingFactory;
 
 List<LocatedMessage> verifyComponent(Component component, Target target,
     {bool? isOutline, bool? afterConst, bool skipPlatform: false}) {
@@ -182,7 +179,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
-  problem(TreeNode? node, String details,
+  void problem(TreeNode? node, String details,
       {TreeNode? context, TreeNode? origin}) {
     node ??= (context ?? currentClassOrExtensionOrMember);
     int offset = node?.fileOffset ?? -1;
@@ -284,13 +281,11 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     bool hasBody = isRedirectingFactory(node) ||
         RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
     bool hasFlag = node.isRedirectingFactory;
-    if (hasBody != hasFlag) {
-      String hasBodyString = hasBody ? "has" : "doesn't have";
-      String hasFlagString = hasFlag ? "has" : "doesn't have";
+    if (hasFlag && !hasBody) {
       problem(
           node,
-          "Procedure '${node.name}' ${hasBodyString} a body "
-          "of a redirecting factory, but ${hasFlagString} the "
+          "Procedure '${node.name}' doesn't have a body "
+          "of a redirecting factory, but has the "
           "'isRedirectingFactory' bit set.");
     }
 
@@ -429,10 +424,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   void visitStaticInvocation(StaticInvocation node) {
     enterTreeNode(node);
     super.visitStaticInvocation(node);
-    RedirectingFactoryBody? body = getRedirectingFactoryBody(node.target);
-    if (body != null) {
-      problem(node, "Attempt to invoke redirecting factory.");
-    }
     exitTreeNode(node);
   }
 
@@ -455,7 +446,7 @@ class FastaVerifyGetStaticType extends VerifyGetStaticType {
   FastaVerifyGetStaticType(TypeEnvironment env, this.skipPlatform) : super(env);
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     // 'dart:test' is used in the unit tests and isn't an actual part of the
     // platform.
     if (skipPlatform &&

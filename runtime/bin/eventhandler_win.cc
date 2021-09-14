@@ -17,6 +17,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/lockers.h"
+#include "bin/process.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -1152,6 +1153,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
         client_socket->Shutdown(SD_SEND);
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
+        if (IS_SIGNAL_SOCKET(msg->data)) {
+          Process::ClearSignalHandlerByFd(socket->fd(), socket->isolate_port());
+        }
         handle->SetPortAndMask(msg->dart_port, 0);
         handle->Close();
         socket->CloseFd();

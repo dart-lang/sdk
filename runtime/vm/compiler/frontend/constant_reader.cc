@@ -345,15 +345,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
                               type_arguments, function, context, Heap::kOld);
       break;
     }
-    case kStaticTearOffConstant: {
-      const NameIndex index = reader.ReadCanonicalNameReference();
-      Function& function =
-          Function::Handle(Z, H.LookupStaticMethodByKernelProcedure(index));
-      function = function.ImplicitClosureFunction();
-      instance = function.ImplicitStaticClosure();
-      break;
-    }
-    case kConstructorTearOffConstant: {
+    case kStaticTearOffConstant:
+    case kConstructorTearOffConstant:
+    case kRedirectingFactoryTearOffConstant: {
       const NameIndex index = reader.ReadCanonicalNameReference();
       Function& function = Function::Handle(Z);
       if (H.IsConstructor(index)) {

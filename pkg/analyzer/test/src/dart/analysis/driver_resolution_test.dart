@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -788,23 +787,6 @@ main() {
   }
 
   test_binaryExpression_gtGtGt() async {
-    var latestLanguageVersionStr = '${ExperimentStatus.currentVersion.major}.'
-        '${ExperimentStatus.currentVersion.minor}';
-
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: latestLanguageVersionStr,
-    );
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: [
-          EnableString.non_nullable,
-          EnableString.triple_shift,
-        ],
-      ),
-    );
-
     await resolveTestCode('''
 class A {
   A operator >>>(int amount) => this;
@@ -2643,7 +2625,7 @@ const c = a.codeUnitAt(b);
       invocation.methodName,
       elementMatcher(
         stringElement.getMethod('codeUnitAt'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
     );
 
@@ -8532,7 +8514,7 @@ main() {
         prefixed,
         element: elementMatcher(
           objectHashCode,
-          isLegacy: isNullSafetySdkAndLegacyLibrary,
+          isLegacy: isLegacyLibrary,
         ),
         type: 'int',
       );
@@ -8546,7 +8528,7 @@ main() {
         identifier,
         element: elementMatcher(
           objectHashCode,
-          isLegacy: isNullSafetySdkAndLegacyLibrary,
+          isLegacy: isLegacyLibrary,
         ),
         type: 'int',
       );

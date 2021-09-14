@@ -1,0 +1,32 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "tree_shake_field.lib.dart" as lib;
+
+import "file:pkg/vm/testcases/transformations/type_flow/transformer/tree_shake_field.lib.dart";
+
+class Class extends core::Object implements lib::Interface {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field core::int? field1 = null;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field core::int? field3 = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5]  set /*isLegacy*/ field2(core::int? value) → void;
+}
+static method method([@vm.inferred-type.metadata=#lib::Class] lib::Interface i) → void {
+  [@vm.direct-call.metadata=#lib::Class.field2] [@vm.inferred-type.metadata=!? (skip check)] i.{lib::Interface::field2} = [@vm.direct-call.metadata=#lib::Class.field1] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] i.{lib::Interface::field1}{core::int?};
+  [@vm.direct-call.metadata=#lib::Class.field3] [@vm.inferred-type.metadata=!? (skip check)] i.{lib::Interface::field3} = [@vm.direct-call.metadata=#lib::Class.field3] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] i.{lib::Interface::field3}{core::int?};
+}
+static method main() → dynamic {
+  self::method(new self::Class::•());
+}
+library tree_shake_field.lib.dart /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  abstract get /*isLegacy*/ field1() → core::int?;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5]  abstract set /*isLegacy*/ field2(core::int? value) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract get /*isLegacy*/ field3() → core::int?;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract set /*isLegacy*/ field3(core::int? value) → void;
+}

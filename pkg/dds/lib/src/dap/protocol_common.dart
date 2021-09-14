@@ -2,10 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 /// A base class for (spec-generated) classes that represent the `body` of a an
 /// event.
 abstract class EventBody {
   static bool canParse(Object? obj) => obj is Map<String, Object?>?;
+}
+
+/// A generic event body class that just supplies an object directly.
+///
+/// Used to support custom events sent by the debug adapter such as 'dart.log'.
+///
+/// The supplied [body] must be convertable to JSON.
+class RawEventBody extends EventBody {
+  final Object body;
+
+  RawEventBody(this.body)
+      : assert(() {
+          try {
+            jsonEncode(body);
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }(), 'body should be JSON encodable');
+
+  Object toJson() => body;
 }
 
 /// A generic arguments class that just supplies the arguments map directly.

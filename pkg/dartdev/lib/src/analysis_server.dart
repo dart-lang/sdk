@@ -24,12 +24,16 @@ void Function(String cmdName, List<FileSystemEntity> analysisRoots,
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
   AnalysisServer(
+    this.packagesFile,
     this.sdkPath,
     this.analysisRoots, {
+    this.cacheDirectoryPath,
     @required this.commandName,
     @required this.argResults,
   });
 
+  final String cacheDirectoryPath;
+  final File packagesFile;
   final Directory sdkPath;
   final List<FileSystemEntity> analysisRoots;
   final String commandName;
@@ -85,6 +89,8 @@ class AnalysisServer {
       '--disable-server-feature-search',
       '--sdk',
       sdkPath.path,
+      if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
+      if (packagesFile != null) '--packages=${packagesFile.path}',
     ];
 
     _process = await startDartProcess(sdk, command);

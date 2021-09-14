@@ -28,8 +28,6 @@ import '../scope.dart' show Scope;
 
 import '../source/source_library_builder.dart';
 
-import '../source/source_loader.dart' show SourceLoader;
-
 import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
@@ -56,10 +54,12 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// List of metadata builders for the metadata declared on this parameter.
   final List<MetadataBuilder>? metadata;
 
+  @override
   final int modifiers;
 
   final TypeBuilder? type;
 
+  @override
   final String name;
 
   @override
@@ -70,6 +70,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   FormalParameterKind kind = FormalParameterKind.mandatory;
 
   /// The variable declaration created for this formal parameter.
+  @override
   VariableDeclaration? variable;
 
   /// The first token of the default value, if any.
@@ -91,6 +92,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
         super(compilationUnit, charOffset);
 
+  @override
   String get debugName => "FormalParameterBuilder";
 
   // TODO(johnniwinther): Cleanup `isRequired` semantics in face of required
@@ -109,6 +111,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   bool get isOptional => !isRequired;
 
+  @override
   bool get isLocal => true;
 
   bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
@@ -118,6 +121,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
   // [ProcedureBuilder.computeFormalParameterInitializerScope]..
+  @override
   bool get isAssignable => variable!.isAssignable && !isInitializingFormal;
 
   @override
@@ -221,19 +225,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
-        if (library.loader is SourceLoader) {
-          SourceLoader loader = library.loader;
-          loader.transformPostInference(
-              variable!,
-              bodyBuilder.transformSetLiterals,
-              bodyBuilder.transformCollections,
-              library.library);
-        }
+        library.loader.transformPostInference(
+            variable!,
+            bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections,
+            library.library);
         initializerWasInferred = true;
-        bodyBuilder.resolveRedirectingFactoryTargets();
-        if (bodyBuilder.hasDelayedActions) {
-          delayedActionPerformers.add(bodyBuilder);
-        }
+        bodyBuilder.performBacklogComputations(delayedActionPerformers);
       }
     }
     initializerToken = null;

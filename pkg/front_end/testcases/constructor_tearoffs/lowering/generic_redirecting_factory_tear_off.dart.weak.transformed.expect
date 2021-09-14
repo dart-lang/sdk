@@ -42,7 +42,7 @@ class Class1<T extends core::Object? = dynamic> extends core::Object {
   static method _#_#tearOff<T extends core::Object? = dynamic>() → self::Class1<self::Class1::_#_#tearOff::T%>
     return new self::Class1::_<self::Class1::_#_#tearOff::T%>();
   static factory •<T extends core::Object? = dynamic>() → self::Class1<self::Class1::•::T%>
-    let Never #redirecting_factory = self::Class1::_ in let self::Class1::•::T% #typeArg0 = null in invalid-expression;
+    return new self::Class1::_<self::Class1::•::T%>();
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class1<self::Class1::_#new#tearOff::T%>
     return new self::Class1::_<self::Class1::_#new#tearOff::T%>();
 }
@@ -54,7 +54,7 @@ class Class2<T extends core::num> extends core::Object {
   static method _#_#tearOff<T extends core::num>() → self::Class2<self::Class2::_#_#tearOff::T>
     return new self::Class2::_<self::Class2::_#_#tearOff::T>();
   static factory •<T extends core::num>() → self::Class2<self::Class2::•::T>
-    let Never #redirecting_factory = self::Class2::_ in let self::Class2::•::T #typeArg0 = null in invalid-expression;
+    return new self::Class2::_<self::Class2::•::T>();
   static method _#new#tearOff<T extends core::num>() → self::Class2<self::Class2::_#new#tearOff::T>
     return new self::Class2::_<self::Class2::_#new#tearOff::T>();
 }
@@ -66,7 +66,7 @@ class Class3<T extends self::Class3::S% = dynamic, S extends core::Object? = dyn
   static method _#_#tearOff<T extends self::Class3::_#_#tearOff::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::_#_#tearOff::T%, self::Class3::_#_#tearOff::S%>
     return new self::Class3::_<self::Class3::_#_#tearOff::T%, self::Class3::_#_#tearOff::S%>();
   static factory •<T extends self::Class3::•::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::•::T%, self::Class3::•::S%>
-    let Never #redirecting_factory = self::Class3::_ in let self::Class3::•::T% #typeArg0 = null in let self::Class3::•::S% #typeArg1 = null in invalid-expression;
+    return new self::Class3::_<self::Class3::•::T%, self::Class3::•::S%>();
   static method _#new#tearOff<T extends self::Class3::_#new#tearOff::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::_#new#tearOff::T%, self::Class3::_#new#tearOff::S%>
     return new self::Class3::_<self::Class3::_#new#tearOff::T%, self::Class3::_#new#tearOff::S%>();
 }
@@ -78,7 +78,7 @@ class Class4<T extends self::Class4<self::Class4::T> = self::Class4<dynamic>> ex
   static method _#_#tearOff<T extends self::Class4<self::Class4::_#_#tearOff::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::_#_#tearOff::T>
     return new self::Class4::_<self::Class4::_#_#tearOff::T>();
   static factory •<T extends self::Class4<self::Class4::•::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::•::T>
-    let Never #redirecting_factory = self::Class4::_ in let self::Class4::•::T #typeArg0 = null in invalid-expression;
+    return new self::Class4::_<self::Class4::•::T>();
   static method _#new#tearOff<T extends self::Class4<self::Class4::_#new#tearOff::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::_#new#tearOff::T>
     return new self::Class4::_<self::Class4::_#new#tearOff::T>();
 }
@@ -90,7 +90,7 @@ class Class4int extends self::Class4<self::Class4int> {
   static method _#_#tearOff() → self::Class4int
     return new self::Class4int::_();
   static factory •() → self::Class4int
-    let Never #redirecting_factory = self::Class4int::_ in invalid-expression;
+    return new self::Class4int::_();
   static method _#new#tearOff() → self::Class4int
     return new self::Class4int::_();
 }
@@ -109,7 +109,7 @@ static method testGeneric() → dynamic {
   self::expect(true, c1b is{ForNonNullableByDefault} self::Class1<core::int>);
   self::expect(false, c1b is{ForNonNullableByDefault} self::Class1<core::String>);
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:27:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:27:8: Error: Expected 1 type arguments.
     f1a<int, String>(); // error
        ^" in f1a{<inapplicable>}.<core::int, core::String>();
   };
@@ -118,7 +118,7 @@ static method testGeneric() → dynamic {
   self::expect(true, c1c is{ForNonNullableByDefault} self::Class1<core::int>);
   self::expect(false, c1c is{ForNonNullableByDefault} self::Class1<core::String>);
   () → Null {
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:35:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:35:8: Error: Expected 0 type arguments.
     f1b<int>(); // error
        ^" in f1b{<inapplicable>}.<core::int>();
   };
@@ -138,7 +138,7 @@ static method testBounded() → dynamic {
   self::expect(false, c2b is{ForNonNullableByDefault} self::Class2<core::double>);
   () → Null {
     f2a<core::String>(){() → self::Class2<core::String>};
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:75:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:75:8: Error: Expected 1 type arguments.
     f2a<int, String>(); // error
        ^" in f2a{<inapplicable>}.<core::int, core::String>();
   };

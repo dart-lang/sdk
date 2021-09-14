@@ -2786,7 +2786,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         isStatic = false;
       }
       if (!cls.IsTopLevel() &&
-          (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid)) {
+          (IsInternalOnlyClassId(cls.id()) || cls.id() == kTypeArgumentsCid)) {
         js->PrintError(
             kInvalidParams,
             "Expressions can be evaluated only with regular Dart instances");
@@ -3353,6 +3353,9 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
     compile_mode = SourceReport::kForceCompile;
   }
 
+  bool report_lines =
+      BoolParameter::Parse(js->LookupParam("reportLines"), false);
+
   Script& script = Script::Handle();
   intptr_t start_pos = UIntParameter::Parse(js->LookupParam("tokenPos"));
   intptr_t end_pos = UIntParameter::Parse(js->LookupParam("endTokenPos"));
@@ -3383,7 +3386,7 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
       return;
     }
   }
-  SourceReport report(report_set, compile_mode);
+  SourceReport report(report_set, compile_mode, report_lines);
   report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
                    TokenPosition::Deserialize(end_pos));
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -5170,7 +5173,8 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
 #define DEFINE_ADD_VALUE_F_CID(clazz) DEFINE_ADD_VALUE_F(k##clazz##Cid)
   {
     JSONArray internals(&map, "<VM Internals>");
-    for (intptr_t id = kClassCid; id < kInstanceCid; ++id) {
+    for (intptr_t id = kFirstInternalOnlyCid; id <= kLastInternalOnlyCid;
+         ++id) {
       DEFINE_ADD_VALUE_F(id);
     }
     DEFINE_ADD_VALUE_F_CID(LibraryPrefix);
@@ -5207,7 +5211,6 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   {
     JSONArray internals(&map, "List");
     CLASS_LIST_ARRAYS(DEFINE_ADD_VALUE_F_CID)
-    DEFINE_ADD_VALUE_F_CID(GrowableObjectArray)
     DEFINE_ADD_VALUE_F_CID(ByteBuffer)
   }
   {

@@ -1028,6 +1028,18 @@ class Assembler : public AssemblerBase {
     movq(Address(base, offset), src);
   }
 
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    movsd(dst, Address(base, offset));
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    movsd(Address(base, offset), src);
+  }
+  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      movaps(dst, src);
+    }
+  }
+
 #if defined(USING_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);
   void TsanStoreRelease(Address addr);

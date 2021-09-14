@@ -702,10 +702,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     end('ConstructorReference');
-    super.endConstructorReference(start, periodBeforeName, endToken);
+    super.endConstructorReference(
+        start, periodBeforeName, endToken, constructorReferenceContext);
   }
 
   @override

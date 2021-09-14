@@ -391,6 +391,26 @@ abstract class HttpHeaders {
   static const acceptEncodingHeader = "accept-encoding";
   static const acceptLanguageHeader = "accept-language";
   static const acceptRangesHeader = "accept-ranges";
+  @Since("2.14")
+  static const accessControlAllowCredentialsHeader =
+      'access-control-allow-credentials';
+  @Since("2.14")
+  static const accessControlAllowHeadersHeader = 'access-control-allow-headers';
+  @Since("2.14")
+  static const accessControlAllowMethodsHeader = 'access-control-allow-methods';
+  @Since("2.14")
+  static const accessControlAllowOriginHeader = 'access-control-allow-origin';
+  @Since("2.14")
+  static const accessControlExposeHeadersHeader =
+      'access-control-expose-headers';
+  @Since("2.14")
+  static const accessControlMaxAgeHeader = 'access-control-max-age';
+  @Since("2.14")
+  static const accessControlRequestHeadersHeader =
+      'access-control-request-headers';
+  @Since("2.14")
+  static const accessControlRequestMethodHeader =
+      'access-control-request-method';
   static const ageHeader = "age";
   static const allowHeader = "allow";
   static const authorizationHeader = "authorization";
@@ -2303,7 +2323,9 @@ class HttpException implements IOException {
   const HttpException(this.message, {this.uri});
 
   String toString() {
-    var b = new StringBuffer()..write('HttpException: ')..write(message);
+    var b = new StringBuffer()
+      ..write('HttpException: ')
+      ..write(message);
     var uri = this.uri;
     if (uri != null) {
       b.write(', uri = $uri');

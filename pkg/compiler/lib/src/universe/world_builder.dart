@@ -94,7 +94,7 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
   @override
   StrongModeWorldConstraints createSelectorConstraints(
       Selector selector, Object initialConstraint) {
-    return new StrongModeWorldConstraints()
+    return StrongModeWorldConstraints()
       ..addReceiverConstraint(initialConstraint);
   }
 
@@ -148,7 +148,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
       _constraints = null;
       return true;
     }
-    _constraints ??= new Set<StrongModeConstraint>();
+    _constraints ??= Set<StrongModeConstraint>();
     return _constraints.add(constraint);
   }
 
@@ -177,7 +177,7 @@ class StrongModeConstraint {
       cls = commonElements.jsJavaScriptObjectClass;
       relation = ClassRelation.subtype;
     }
-    return new StrongModeConstraint.internal(cls, relation);
+    return StrongModeConstraint.internal(cls, relation);
   }
 
   const StrongModeConstraint.internal(this.cls, this.relation);
@@ -227,20 +227,20 @@ abstract class WorldBuilderBase {
       <Selector, Set<DartType>>{};
 
   final Set<TypeVariableType> typeVariableTypeLiterals =
-      new Set<TypeVariableType>();
+      Set<TypeVariableType>();
 
   void _registerStaticTypeArgumentDependency(
       Entity element, List<DartType> typeArguments) {
-    staticTypeArgumentDependencies.putIfAbsent(
-        element, () => new Set<DartType>())
-      ..addAll(typeArguments);
+    staticTypeArgumentDependencies
+        .putIfAbsent(element, () => Set<DartType>())
+        .addAll(typeArguments);
   }
 
   void _registerDynamicTypeArgumentDependency(
       Selector selector, List<DartType> typeArguments) {
-    dynamicTypeArgumentDependencies.putIfAbsent(
-        selector, () => new Set<DartType>())
-      ..addAll(typeArguments);
+    dynamicTypeArgumentDependencies
+        .putIfAbsent(selector, () => Set<DartType>())
+        .addAll(typeArguments);
   }
 
   void registerStaticInvocation(StaticUse staticUse) {

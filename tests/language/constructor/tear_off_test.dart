@@ -196,21 +196,21 @@ void main() {
   testImplicit<GFacRedir<int> Function(int)>(GFacRedir.named, GFacRedir.named);
 
   // Using a type variable, not a constant type expression.
-  // Results are not canonicalized and not equal.
+  // Canonicalization is unspecified, but equality holds.
   (<T>() {
     // Tear off with explicit instantation to the same non-constant type.
-    Expect.notEquals(GGen<T>.new, GGen<T>.new);
-    Expect.notEquals(GGen<T>.named, GGen<T>.named);
-    Expect.notEquals(GGenRedir<T>.new, GGenRedir<T>.new);
-    Expect.notEquals(GGenRedir<T>.named, GGenRedir<T>.named);
-    Expect.notEquals(GFac<T>.new, GFac<T>.new);
-    Expect.notEquals(GFac<T>.named, GFac<T>.named);
-    Expect.notEquals(GFacRedir<T>.new, GFacRedir<T>.new);
-    Expect.notEquals(GFacRedir<T>.named, GFacRedir<T>.named);
+    Expect.equals(GGen<T>.new, GGen<T>.new);
+    Expect.equals(GGen<T>.named, GGen<T>.named);
+    Expect.equals(GGenRedir<T>.new, GGenRedir<T>.new);
+    Expect.equals(GGenRedir<T>.named, GGenRedir<T>.named);
+    Expect.equals(GFac<T>.new, GFac<T>.new);
+    Expect.equals(GFac<T>.named, GFac<T>.named);
+    Expect.equals(GFacRedir<T>.new, GFacRedir<T>.new);
+    Expect.equals(GFacRedir<T>.named, GFacRedir<T>.named);
 
     // Tear off with implicit instantiation to the same non-constant type.
     void testImplicit2<T>(T f1, T f2) {
-      Expect.notEquals(f1, f2);
+      Expect.equals(f1, f2);
     }
 
     testImplicit2<GGen<T> Function(int)>(GGen.new, GGen.new);

@@ -651,6 +651,9 @@ void ScopeBuilder::VisitExpression() {
     case kInvalidExpression:
       helper_.ReadPosition();
       helper_.SkipStringReference();
+      if (helper_.ReadTag() == kSomething) {
+        VisitExpression();  // read expression.
+      }
       return;
     case kVariableGet: {
       helper_.ReadPosition();  // read position.
@@ -1489,7 +1492,7 @@ void ScopeBuilder::VisitTypeParameterType() {
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   // "Peek" ahead into the function node
-  intptr_t offset = helper_.ReaderOffset();
+  const intptr_t offset = helper_.ReaderOffset();
 
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
@@ -1530,6 +1533,14 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   helper_.SetOffset(offset);
 
   VisitFunctionNode();  // read function node.
+
+  // Remember if this closure and all closures nested within it don't
+  // capture any variables from outer scopes.
+  if (scope_->function_level() == 1) {
+    if (scope_->NumCapturedVariables() == 0) {
+      result_->closure_offsets_without_captures.Add(offset);
+    }
+  }
 
   ExitScope(function_node_helper.position_, function_node_helper.end_position_);
   depth_ = saved_depth_state;

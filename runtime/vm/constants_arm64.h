@@ -327,6 +327,19 @@ struct AllocateTypedDataArrayABI {
   static const Register kLengthReg = R4;
 };
 
+// ABI for BoxDoubleStub.
+struct BoxDoubleStubABI {
+  static const FpuRegister kValueReg = V0;
+  static const Register kTempReg = R1;
+  static const Register kResultReg = R0;
+};
+
+// ABI for DoubleToIntegerStub.
+struct DoubleToIntegerStubABI {
+  static const FpuRegister kInputReg = V0;
+  static const Register kResultReg = R0;
+};
+
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
 // table calls (though normal functions will not expect or use this
 // register). This ABI is added to distinguish memory corruption errors from

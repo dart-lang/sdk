@@ -13,6 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import '../scope.dart' show Scope;
 import 'stack_listener_impl.dart';
+import 'value_kinds.dart';
 
 export 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValue, ParserRecovery;
@@ -49,10 +50,16 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   void enterLocalScope(String debugName, [Scope? newScope]) {
     push(scope);
     scope = newScope ?? scope.createNestedScope(debugName);
+    assert(checkState(null, [
+      ValueKinds.Scope,
+    ]));
   }
 
   @override
   void exitLocalScope() {
+    assert(checkState(null, [
+      ValueKinds.Scope,
+    ]));
     scope = pop() as Scope;
     // ignore: unnecessary_null_comparison
     assert(scope != null);

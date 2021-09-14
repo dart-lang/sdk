@@ -14,5 +14,5 @@ main() {
   // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
   //                  ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Getter not found: 'x'.
+  // [cfe] Undefined name 'x'.
 }

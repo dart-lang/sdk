@@ -328,6 +328,8 @@ intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
   return path_size;
 }
 
+void Platform::SetProcessName(const char* name) {}
+
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
   Dart_PrepareToAbort();

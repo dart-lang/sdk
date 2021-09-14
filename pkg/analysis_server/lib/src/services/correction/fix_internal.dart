@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_key_to_constructors.dart';
@@ -140,6 +141,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_final_with_
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_var_with_dynamic.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
@@ -317,7 +319,7 @@ class FixProcessor extends BaseProcessor {
   /// used to create correction producers. The generators are then used to build
   /// fixes for those diagnostics. The generators used for non-lint diagnostics
   /// are in the [nonLintProducerMap].
-  static const Map<String, List<ProducerGenerator>> lintProducerMap = {
+  static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
       // TODO(brianwilkerson) Consider applying in bulk.
       AddReturnType.newInstance,
@@ -343,6 +345,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_init_to_null: [
       RemoveInitializer.newInstance,
+    ],
+    LintNames.avoid_null_checks_in_equality_operators: [
+      RemoveComparison.newInstanceBulkFixable,
     ],
     LintNames.avoid_private_typedef_functions: [
       InlineTypedef.newInstance,
@@ -404,6 +409,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.empty_statements: [
       RemoveEmptyStatement.newInstance,
       ReplaceWithBrackets.newInstance,
+    ],
+    LintNames.eol_at_end_of_file: [
+      AddEolAtEndOfFile.newInstance,
     ],
     LintNames.exhaustive_cases: [
       AddMissingEnumLikeCaseClauses.newInstance,
@@ -916,9 +924,11 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
       MakeReturnTypeNullable.newInstance,
+      ReplaceReturnType.newInstance,
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
       MakeReturnTypeNullable.newInstance,
+      ReplaceReturnType.newInstance,
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
       ChangeTo.classOrMixin,
@@ -930,15 +940,14 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
+      ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
-    ],
-    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
       AddNullCheck.newInstance,
@@ -1045,7 +1054,7 @@ class FixProcessor extends BaseProcessor {
     ],
 
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
-      ReplaceWithNullAware.newInstance,
+      ReplaceWithNullAware.inChain,
     ],
     HintCode.DEAD_CODE: [
       RemoveDeadCode.newInstance,
@@ -1328,6 +1337,12 @@ class FixProcessor extends BaseProcessor {
         await compute(generator());
       }
     }
+  }
+
+  /// Associate the given correction producer [generator] with the lint with the
+  /// given [lintName].
+  static void registerFixForLint(String lintName, ProducerGenerator generator) {
+    lintProducerMap.putIfAbsent(lintName, () => []).add(generator);
   }
 }
 

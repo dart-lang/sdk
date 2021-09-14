@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/deferred_load/deferred_load.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/element_map.dart';

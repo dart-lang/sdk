@@ -1808,6 +1808,18 @@ class Assembler : public AssemblerBase {
     StoreQToOffset(src, base, offset - kHeapObjectTag);
   }
 
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    LoadDFromOffset(dst, base, offset);
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    StoreDToOffset(src, base, offset);
+  }
+  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      fmovdd(dst, src);
+    }
+  }
+
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
   void LoadCompressedSmi(Register dest, const Address& slot);

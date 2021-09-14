@@ -713,6 +713,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // running, and the visitor must not allocate.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
+  void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
   void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
@@ -1097,6 +1098,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // block.
   SampleBlock* current_sample_block() const { return current_sample_block_; }
   void set_current_sample_block(SampleBlock* current);
+
+  void FreeSampleBlock(SampleBlock* block);
+  void ProcessFreeSampleBlocks(Thread* thread);
+  bool should_process_blocks() const {
+    return free_block_list_.load(std::memory_order_relaxed) != nullptr;
+  }
+  std::atomic<SampleBlock*> free_block_list_ = nullptr;
 
   // Returns the current SampleBlock used to track Dart allocation samples.
   //
@@ -1766,29 +1774,8 @@ class NoActiveIsolateScope : public StackResource {
   }
 
  private:
-  friend class DisabledNoActiveIsolateScope;
   Thread* thread_;
   Isolate* saved_isolate_;
-};
-
-// Can be used inside a [NoActiveIsolateScope] to set the current isolate.
-class DisabledNoActiveIsolateScope : public StackResource {
- public:
-  explicit DisabledNoActiveIsolateScope(NoActiveIsolateScope* scope)
-      : StackResource(Thread::Current()),
-        thread_(static_cast<Thread*>(thread())),
-        scope_(scope) {
-    ASSERT(thread_->isolate() == nullptr);
-    thread_->isolate_ = scope_->saved_isolate_;
-  }
-  ~DisabledNoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == scope_->saved_isolate_);
-    thread_->isolate_ = nullptr;
-  }
-
- private:
-  Thread* thread_;
-  NoActiveIsolateScope* scope_;
 };
 
 }  // namespace dart

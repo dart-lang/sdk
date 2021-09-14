@@ -28,7 +28,7 @@ import 'package:testing/testing.dart'
 
 import 'incremental_utils.dart' as util;
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
@@ -37,6 +37,7 @@ Future<Context> createContext(
 }
 
 class Context extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const RunTest(),
   ];
@@ -67,8 +68,10 @@ CompilerOptions getOptions() {
 class RunTest extends Step<TestDescription, TestDescription, Context> {
   const RunTest();
 
+  @override
   String get name => "run test";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
     Uri uri = description.uri;

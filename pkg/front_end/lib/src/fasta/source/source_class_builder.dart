@@ -39,7 +39,6 @@ import '../fasta_codes.dart';
 import '../kernel/combined_member_signature.dart';
 import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
-import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart'
     show Variance, computeTypeVariableBuilderVariance;
@@ -89,6 +88,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
+  @override
   TypeBuilder? mixedInTypeBuilder;
 
   bool isMixinDeclaration;
@@ -218,16 +218,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
-    if (mixedInType != null) {
-      Class superclass = mixedInType.classNode;
-      if (superclass.name == 'Function' &&
-          superclass.enclosingLibrary == coreLibrary.library) {
-        library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
-        mixedInType = null;
-        mixedInTypeBuilder = null;
-        actualCls.isAnonymousMixin = false;
-        isMixinDeclaration = false;
-      }
+    if (_isFunction(mixedInType, coreLibrary)) {
+      library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
+      mixedInType = null;
+      mixedInTypeBuilder = null;
+      actualCls.isAnonymousMixin = false;
+      isMixinDeclaration = false;
     }
     if (mixedInType == null && mixedInTypeBuilder is! NamedTypeBuilder) {
       mixedInTypeBuilder = null;
@@ -244,9 +240,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         Supertype? supertype =
             interfaceBuilders![i].buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
-          Class superclass = supertype.classNode;
-          if (superclass.name == 'Function' &&
-              superclass.enclosingLibrary == coreLibrary.library) {
+          if (_isFunction(supertype, coreLibrary)) {
             library.addProblem(
                 messageImplementFunction, charOffset, noLength, fileUri);
             continue;
@@ -290,6 +284,25 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     cls.procedures.sort(compareProcedures);
     return cls;
+  }
+
+  bool _isFunction(Supertype? supertype, LibraryBuilder coreLibrary) {
+    if (supertype != null) {
+      Class superclass = supertype.classNode;
+      if (superclass.name == 'Function' &&
+          // We use `superclass.parent` here instead of
+          // `superclass.enclosingLibrary` to handle platform compilation. If
+          // we are currently compiling the platform, the enclosing library of
+          // `Function` has not yet been set, so the accessing
+          // `enclosingLibrary` would result in a cast error. We assume that the
+          // SDK does not contain this error, which we otherwise not find. If we
+          // are _not_ compiling the platform, the `superclass.parent` has been
+          // set, if it is `Function` from `dart:core`.
+          superclass.parent == coreLibrary.library) {
+        return true;
+      }
+    }
+    return false;
   }
 
   TypeBuilder checkSupertype(TypeBuilder supertype) {
@@ -547,7 +560,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       } else {
         assert(
             // This is a synthesized constructor.
-            builder is DillConstructorBuilder && builder.member is Constructor,
+            builder is DillConstructorBuilder,
             "Unexpected constructor: $builder.");
       }
     }, includeInjectedConstructors: true);
@@ -924,42 +937,44 @@ class SourceClassBuilder extends ClassBuilderImpl
                 _addRedirectingConstructor(
                     declaration, library, getterReference);
               }
+              Member? targetNode;
               if (targetBuilder is FunctionBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments ??
-                    new List<DartType>.filled(
-                        targetBuilder
-                            .member.enclosingClass!.typeParameters.length,
-                        const UnknownType());
-                declaration.setRedirectingFactoryBody(
-                    targetBuilder.member, typeArguments);
+                targetNode = targetBuilder.member;
               } else if (targetBuilder is DillMemberBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments ??
-                    new List<DartType>.filled(
-                        targetBuilder
-                            .member.enclosingClass!.typeParameters.length,
-                        const UnknownType());
-                declaration.setRedirectingFactoryBody(
-                    targetBuilder.member, typeArguments);
+                targetNode = targetBuilder.member;
               } else if (targetBuilder is AmbiguousBuilder) {
-                addProblem(
+                addProblemForRedirectingFactory(
+                    declaration,
                     templateDuplicatedDeclarationUse
                         .withArguments(redirectionTarget.fullNameForErrors),
                     redirectionTarget.charOffset,
                     noLength);
-                // CoreTypes aren't computed yet, and this is the outline
-                // phase. So we can't and shouldn't create a method body.
-                declaration.body = new RedirectingFactoryBody.unresolved(
-                    redirectionTarget.fullNameForErrors);
               } else {
-                addProblem(
+                addProblemForRedirectingFactory(
+                    declaration,
                     templateRedirectionTargetNotFound
                         .withArguments(redirectionTarget.fullNameForErrors),
                     redirectionTarget.charOffset,
                     noLength);
-                // CoreTypes aren't computed yet, and this is the outline
-                // phase. So we can't and shouldn't create a method body.
-                declaration.body = new RedirectingFactoryBody.unresolved(
-                    redirectionTarget.fullNameForErrors);
+              }
+              if (targetNode != null &&
+                  targetNode is Constructor &&
+                  targetNode.enclosingClass.isAbstract) {
+                addProblemForRedirectingFactory(
+                    declaration,
+                    templateAbstractRedirectedClassInstantiation
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                targetNode = null;
+              }
+              if (targetNode != null) {
+                List<DartType> typeArguments = declaration.typeArguments ??
+                    new List<DartType>.filled(
+                        targetNode.enclosingClass!.typeParameters.length,
+                        const UnknownType());
+                declaration.setRedirectingFactoryBody(
+                    targetNode, typeArguments);
               }
             }
           }

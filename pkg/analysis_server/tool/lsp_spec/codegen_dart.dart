@@ -861,7 +861,9 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
   } else if (type is MapType) {
     buffer.write('($valueCode is Map');
     if (fullDartType != 'Object?') {
-      buffer..write(' && (')..write('$valueCode.keys.every((item) => ');
+      buffer
+        ..write(' && (')
+        ..write('$valueCode.keys.every((item) => ');
       _writeTypeCheckCondition(
           buffer, interface, 'item', type.indexType, reporter);
       buffer.write('&& $valueCode.values.every((item) => ');

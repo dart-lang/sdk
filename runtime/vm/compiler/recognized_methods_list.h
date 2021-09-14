@@ -87,10 +87,26 @@ namespace dart {
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \
   V(_Double, _mul, DoubleMul, 0x1f98c76c)                                      \
   V(_Double, _div, DoubleDiv, 0x287d3791)                                      \
+  V(_Double, _modulo, DoubleMod, 0xfdb397ef)                                   \
+  V(_Double, ceilToDouble, DoubleCeil, 0x5f1bced9)                             \
+  V(_Double, floorToDouble, DoubleFloor, 0x54b4cb48)                           \
+  V(_Double, roundToDouble, DoubleRound, 0x5649ca00)                           \
+  V(_Double, toInt, DoubleToInteger, 0x676f20a9)                               \
+  V(_Double, truncateToDouble, DoubleTruncate, 0x62d48659)                     \
   V(::, min, MathMin, 0x504a28df)                                              \
   V(::, max, MathMax, 0xead7161a)                                              \
   V(::, _doublePow, MathDoublePow, 0x989f3334)                                 \
   V(::, _intPow, MathIntPow, 0x68b6021e)                                       \
+  V(::, _sin, MathSin, 0x17dacdc4)                                             \
+  V(::, _cos, MathCos, 0xf4948106)                                             \
+  V(::, _tan, MathTan, 0xeb1a58f8)                                             \
+  V(::, _asin, MathAsin, 0x29e4d95f)                                           \
+  V(::, _acos, MathAcos, 0x200aa49c)                                           \
+  V(::, _atan, MathAtan, 0x10fa64b3)                                           \
+  V(::, _atan2, MathAtan2, 0x58d4f514)                                         \
+  V(::, _sqrt, MathSqrt, 0x03183751)                                           \
+  V(::, _exp, MathExp, 0x00f50391)                                             \
+  V(::, _log, MathLog, 0x09ae8823)                                             \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0x1845792b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0xd3b64002)                      \
   V(Float32x4, _Float32x4Splat, Float32x4Splat, 0x13a552c3)                    \
@@ -267,22 +283,9 @@ namespace dart {
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0xb6764495)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0xfecba6b3)          \
   V(_IntegerImplementation, <<, Integer_shl, 0x2d855b02)                       \
-  V(_Double, toInt, DoubleToInteger, 0x676f1ce8)                               \
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
-  V(::, sqrt, MathSqrt, 0x1c9a16a2)                                            \
   V(_Random, _nextState, Random_nextState, 0x7207677d)                         \
-
-#define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
-  V(::, sin, MathSin, 0xb79dea09)                                              \
-  V(::, cos, MathCos, 0x81a51dbd)                                              \
-  V(::, tan, MathTan, 0x64bc50f3)                                              \
-  V(::, asin, MathAsin, 0x7d26f0d4)                                            \
-  V(::, acos, MathAcos, 0xc3879f8b)                                            \
-  V(::, atan, MathAtan, 0xb5c4223e)                                            \
-  V(::, atan2, MathAtan2, 0xc03b8b85)                                          \
-  V(::, exp, MathExp, 0x7f5f1a67)                                              \
-  V(::, log, MathLog, 0xebc3f443)                                              \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(_Int8List, [], Int8ArrayGetIndexed, 0x35f3fab6)                            \
@@ -366,16 +369,10 @@ namespace dart {
   V(_IntegerImplementation, >>, Integer_sar, 0x4a3615a7)                       \
   V(_IntegerImplementation, >>>, Integer_shr, 0x2bac5209)                      \
   V(_Double, unary-, DoubleFlipSignBit, 0x3d39082b)                            \
-  V(_Double, truncateToDouble, DoubleTruncate, 0x62d48298)                     \
-  V(_Double, roundToDouble, DoubleRound, 0x5649c63f)                           \
-  V(_Double, floorToDouble, DoubleFloor, 0x54b4c787)                           \
-  V(_Double, ceilToDouble, DoubleCeil, 0x5f1bcb18)                             \
-  V(_Double, _modulo, DoubleMod, 0xfdb3942e)
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
   GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                          \
-  GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                             \
 
 #define DEVELOPER_LIB_INTRINSIC_LIST(V)                                        \
   V(::, _getDefaultTag, UserTag_defaultTag, 0x6c19c8a5)                        \

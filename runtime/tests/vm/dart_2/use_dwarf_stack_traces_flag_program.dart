@@ -4,6 +4,8 @@
 // Test that the full stacktrace in an error object matches the stacktrace
 // handed to the catch clause.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C {

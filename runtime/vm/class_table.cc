@@ -39,7 +39,8 @@ SharedClassTable::SharedClassTable()
         calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>)));
     // The following cids don't have a corresponding class object in Dart code.
     // We therefore need to initialize them eagerly.
-    for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
+    COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
+    for (intptr_t i = kObjectCid; i <= kLastInternalOnlyCid; i++) {
       table[i] = vm_shared_class_table->SizeAt(i);
     }
     table[kTypeArgumentsCid] = vm_shared_class_table->SizeAt(kTypeArgumentsCid);
@@ -105,7 +106,8 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
         static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr)));
     // The following cids don't have a corresponding class object in Dart code.
     // We therefore need to initialize them eagerly.
-    for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
+    COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
+    for (intptr_t i = kObjectCid; i <= kLastInternalOnlyCid; i++) {
       table[i] = vm_class_table->At(i);
     }
     table[kTypeArgumentsCid] = vm_class_table->At(kTypeArgumentsCid);

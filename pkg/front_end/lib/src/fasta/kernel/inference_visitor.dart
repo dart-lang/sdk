@@ -119,7 +119,22 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitDynamicGet(
       DynamicGet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    // The node has already been inferred, for instance as part of a for-in
+    // loop, so just compute the result type.
+    DartType resultType;
+    switch (node.kind) {
+      case DynamicAccessKind.Dynamic:
+        resultType = const DynamicType();
+        break;
+      case DynamicAccessKind.Never:
+        resultType = NeverType.fromNullability(inferrer.library.nonNullable);
+        break;
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        resultType = const InvalidType();
+        break;
+    }
+    return new ExpressionInferenceResult(resultType, node);
   }
 
   @override
@@ -334,9 +349,13 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitInvalidExpression(
       InvalidExpression node, DartType typeContext) {
-    // TODO(johnniwinther): The inferred type should be an InvalidType. Using
-    // BottomType leads to cascading errors so we use DynamicType for now.
-    return new ExpressionInferenceResult(const DynamicType(), node);
+    if (node.expression != null) {
+      ExpressionInferenceResult result = inferrer.inferExpression(
+          node.expression!, typeContext, !inferrer.isTopLevel,
+          isVoidAllowed: true);
+      node.expression = result.expression..parent = node;
+    }
+    return new ExpressionInferenceResult(const InvalidType(), node);
   }
 
   @override
@@ -384,7 +403,7 @@ class InferenceVisitor
           }
         }
       }
-    } else {
+    } else if (operandType is! InvalidType) {
       if (!inferrer.isTopLevel) {
         result = inferrer.helper!.buildProblem(
             templateInstantiationNonGenericFunctionType.withArguments(
@@ -884,6 +903,7 @@ class InferenceVisitor
     return const StatementInferenceResult();
   }
 
+  @override
   ExpressionInferenceResult visitDoubleLiteral(
       DoubleLiteral node, DartType typeContext) {
     return new ExpressionInferenceResult(
@@ -905,8 +925,8 @@ class InferenceVisitor
     return const StatementInferenceResult();
   }
 
-  ExpressionInferenceResult visitFactoryConstructorInvocationJudgment(
-      FactoryConstructorInvocationJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitFactoryConstructorInvocation(
+      FactoryConstructorInvocation node, DartType typeContext) {
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
 
     FunctionType functionType = node.target.function
@@ -935,8 +955,8 @@ class InferenceVisitor
         result.inferredType, result.applyResult(resultNode));
   }
 
-  ExpressionInferenceResult visitTypeAliasedConstructorInvocationJudgment(
-      TypeAliasedConstructorInvocationJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitTypeAliasedConstructorInvocation(
+      TypeAliasedConstructorInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType = node.target.function
@@ -960,8 +980,8 @@ class InferenceVisitor
         result.inferredType, result.applyResult(resultNode));
   }
 
-  ExpressionInferenceResult visitTypeAliasedFactoryInvocationJudgment(
-      TypeAliasedFactoryInvocationJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitTypeAliasedFactoryInvocation(
+      TypeAliasedFactoryInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType = node.target.function
@@ -4768,10 +4788,13 @@ class InferenceVisitor
             !isThisReceiver) {
           Member interfaceMember = readTarget.member!;
           if (interfaceMember is Procedure) {
+            DartType typeToCheck = inferrer.isNonNullableByDefault
+                ? interfaceMember.function
+                    .computeFunctionType(inferrer.library.nonNullable)
+                : interfaceMember.function.returnType;
             checkReturn =
                 TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
-                    interfaceMember.enclosingClass!,
-                    interfaceMember.function.returnType);
+                    interfaceMember.enclosingClass!, typeToCheck);
           } else if (interfaceMember is Field) {
             checkReturn =
                 TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
@@ -6224,6 +6247,7 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, node);
   }
 
+  @override
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
     inferrer.flowAnalysis.thisOrSuper(node, inferrer.thisType!);
@@ -6321,6 +6345,13 @@ class InferenceVisitor
       TypeLiteral node, DartType typeContext) {
     DartType inferredType =
         inferrer.coreTypes.typeRawType(inferrer.library.nonNullable);
+    if (inferrer.library.enableConstructorTearOffsInLibrary) {
+      inferrer.library.checkBoundsInType(
+          node.type,
+          inferrer.typeSchemaEnvironment,
+          inferrer.library.fileUri,
+          node.fileOffset);
+    }
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -6436,20 +6467,15 @@ class InferenceVisitor
     }
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
-      if (node.isImplicitlyTyped) {
-        if (inferrer.isNonNullableByDefault &&
-            initializerType is TypeParameterType) {
-          inferrer.flowAnalysis.promote(node, initializerType);
-        }
-      } else {
-        // TODO(paulberry): `initializerType` is sometimes `null` during top
-        // level inference.  Figure out how to prevent this.
-        // ignore: unnecessary_null_comparison
-        if (initializerType != null) {
-          inferrer.flowAnalysis.initialize(
-              node, initializerType, initializerResult.expression,
-              isFinal: node.isFinal, isLate: node.isLate);
-        }
+      // TODO(paulberry): `initializerType` is sometimes `null` during top
+      // level inference.  Figure out how to prevent this.
+      // ignore: unnecessary_null_comparison
+      if (initializerType != null) {
+        inferrer.flowAnalysis.initialize(
+            node, initializerType, initializerResult.expression,
+            isFinal: node.isFinal,
+            isLate: node.isLate,
+            isImplicitlyTyped: node.isImplicitlyTyped);
       }
       Expression initializer = inferrer.ensureAssignableResult(
           node.type, initializerResult,
@@ -6924,6 +6950,7 @@ class ForInResult {
   ForInResult(this.variable, this.iterable, this.syntheticAssignment,
       this.expressionSideEffects);
 
+  @override
   String toString() => 'ForInResult($variable,$iterable,'
       '$syntheticAssignment,$expressionSideEffects)';
 }
@@ -6942,6 +6969,7 @@ class LocalForInVariable implements ForInVariable {
 
   LocalForInVariable(this.variableSet);
 
+  @override
   DartType computeElementType(TypeInferrerImpl inferrer) {
     VariableDeclaration variable = variableSet.variable;
     DartType? promotedType;
@@ -6951,6 +6979,7 @@ class LocalForInVariable implements ForInVariable {
     return promotedType ?? variable.type;
   }
 
+  @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     DartType variableType =
         inferrer.computeGreatestClosure(variableSet.variable.type);

@@ -402,7 +402,8 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     void onTest(Uri uri),
-    List<TestConfig> testedConfigs = const []}) async {
+    List<TestConfig> testedConfigs = const [],
+    Map<String, List<String>> perTestOptions = const {}}) async {
   if (testedConfigs.isEmpty) testedConfigs = defaultInternalConfigs;
   Set<String> testedMarkers =
       testedConfigs.map((config) => config.marker).toSet();
@@ -431,6 +432,9 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
+    }
+    if (perTestOptions.containsKey(name)) {
+      testOptions.addAll(perTestOptions[name]);
     }
 
     if (setUpFunction != null) setUpFunction();

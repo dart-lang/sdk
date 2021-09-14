@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
@@ -16,7 +17,7 @@ class CreateMissingOverrides extends CorrectionProducer {
   int _numElements = 0;
 
   @override
-  List<Object> get fixArguments => [_numElements];
+  List<Object> get fixArguments => [_numElements, _numElements == 1 ? '' : 's'];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_MISSING_OVERRIDES;
@@ -27,8 +28,7 @@ class CreateMissingOverrides extends CorrectionProducer {
       return;
     }
     var targetClass = node.parent as ClassDeclaration;
-    var targetClassElement = targetClass.declaredElement;
-    utils.targetClassElement = targetClassElement;
+    utils.targetClassElement = targetClass.declaredElement;
     var signatures =
         InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
     // sort by name, getters before setters
@@ -52,12 +52,22 @@ class CreateMissingOverrides extends CorrectionProducer {
 
     var prefix = utils.getIndent(1);
     await builder.addDartFileEdit(file, (builder) {
+      final syntheticLeftBracket = targetClass.leftBracket.isSynthetic;
+      if (syntheticLeftBracket) {
+        var previousToLeftBracket = targetClass.leftBracket.previous!;
+        builder.addSimpleInsertion(previousToLeftBracket.end, ' {');
+      }
+
       builder.addInsertion(location.offset, (builder) {
         // Separator management.
         var numOfMembersWritten = 0;
         void addSeparatorBetweenDeclarations() {
           if (numOfMembersWritten == 0) {
-            builder.write(location.prefix);
+            var locationPrefix = location.prefix;
+            if (syntheticLeftBracket && locationPrefix.startsWith(eol)) {
+              locationPrefix = locationPrefix.substring(eol.length);
+            }
+            builder.write(locationPrefix);
           } else {
             builder.write(eol); // after the previous member
             builder.write(eol); // empty line separator
@@ -97,6 +107,19 @@ class CreateMissingOverrides extends CorrectionProducer {
           builder.writeOverride(element);
         }
         builder.write(location.suffix);
+
+        if (targetClass.rightBracket.isSynthetic) {
+          var next = targetClass.rightBracket.next!;
+          if (next.type != TokenType.CLOSE_CURLY_BRACKET) {
+            if (!syntheticLeftBracket) {
+              builder.write(eol);
+            }
+            builder.write('}');
+            if (syntheticLeftBracket) {
+              builder.write(eol);
+            }
+          }
+        }
       });
     });
     builder.setSelection(Position(file, location.offset));

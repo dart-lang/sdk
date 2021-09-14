@@ -5,11 +5,11 @@
 /*spec.library: 
  a_pre_fragments=[
   p1: {units: [1{lib1}], usedBy: [], needs: []},
-  p2: {units: [2{lib3}], usedBy: [], needs: []},
-  p3: {units: [3{lib1, lib3}], usedBy: [], needs: []}],
+  p2: {units: [3{lib3}], usedBy: [], needs: []},
+  p3: {units: [2{lib1, lib3}], usedBy: [], needs: []}],
  b_finalized_fragments=[
   f1: [1{lib1}],
-  f2: [2{lib3}]],
+  f2: [3{lib3}]],
  c_steps=[
   lib1=(f1),
   lib3=(f2)]
@@ -18,11 +18,11 @@
 /*two-frag|three-frag.library: 
  a_pre_fragments=[
   p1: {units: [1{lib1}], usedBy: [p3], needs: []},
-  p2: {units: [2{lib3}], usedBy: [p3], needs: []},
-  p3: {units: [3{lib1, lib3}], usedBy: [], needs: [p1, p2]}],
+  p2: {units: [3{lib3}], usedBy: [p3], needs: []},
+  p3: {units: [2{lib1, lib3}], usedBy: [], needs: [p1, p2]}],
  b_finalized_fragments=[
   f1: [1{lib1}],
-  f2: [2{lib3}]],
+  f2: [3{lib3}]],
  c_steps=[
   lib1=(f1),
   lib3=(f2)]
@@ -39,7 +39,7 @@ import 'lib3.dart' deferred as lib3;
   ConstructedConstant(A<B*>())=1{lib1},
   ConstructedConstant(A<F*>())=1{lib1},
   ConstructedConstant(C<D*>())=main{},
-  ConstructedConstant(E<F*>())=2{lib3}],
+  ConstructedConstant(E<F*>())=3{lib3}],
  member_unit=main{}
 */
 main() async {

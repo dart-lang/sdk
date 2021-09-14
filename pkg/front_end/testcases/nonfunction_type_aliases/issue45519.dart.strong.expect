@@ -29,3 +29,5 @@ static method test() → dynamic {
   self::C<(self::C<dynamic>) → self::C<dynamic>> a = throw 42;
 }
 static method main() → dynamic {}
+static method _#A#new#tearOff<X extends (self::C<self::_#A#new#tearOff::X>) → self::C<self::_#A#new#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
+  return new self::C::•<self::_#A#new#tearOff::X>();

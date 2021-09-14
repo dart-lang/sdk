@@ -3,13 +3,13 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:2:3: Error: 'await' can only be used in 'async' or 'async*' methods.
+// org-dartlang-test:///main.dart:3:3: Error: 'await' can only be used in 'async' or 'async*' methods.
 //   await foo();
 //   ^^^^^
 //
 
   static method main() → dynamic {
-    invalid-expression "org-dartlang-test:///main.dart:2:3: Error: 'await' can only be used in 'async' or 'async*' methods.\n  await foo();\n  ^^^^^";
+    invalid-expression "org-dartlang-test:///main.dart:3:3: Error: 'await' can only be used in 'async' or 'async*' methods.\n  await foo();\n  ^^^^^";
   }
   static method foo() → dynamic {}
 }

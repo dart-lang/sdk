@@ -37,21 +37,29 @@ library from "package:flutter/framework.dart" as fra {
     synthetic constructor •() → fra::State2
       : super fra::State::•()
       ;
+    static method _#new#tearOff() → fra::State2
+      return new fra::State2::•();
   }
   class StatefulWidget extends dart.core::Object {
     synthetic constructor •() → fra::StatefulWidget
       : super dart.core::Object::•()
       ;
+    static method _#new#tearOff() → fra::StatefulWidget
+      return new fra::StatefulWidget::•();
   }
   class Widget extends dart.core::Object {
     synthetic constructor •() → fra::Widget
       : super dart.core::Object::•()
       ;
+    static method _#new#tearOff() → fra::Widget
+      return new fra::Widget::•();
   }
   class BuildContext extends dart.core::Object {
     synthetic constructor •() → fra::BuildContext
       : super dart.core::Object::•()
       ;
+    static method _#new#tearOff() → fra::BuildContext
+      return new fra::BuildContext::•();
   }
   static final field fra::State<fra::StatefulWidget> state = new fra::State2::•();
   static method foo() → void {
@@ -81,11 +89,15 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     method build(fra::BuildContext* context) → fra::Widget* {}
     method afterFirstLayout(fra::BuildContext* context) → void {}
+    static method _#new#tearOff() → main::_HotReloadIssueState*
+      return new main::_HotReloadIssueState::•();
   }
   class HotReloadIssue extends fra::StatefulWidget {
     synthetic constructor •() → main::HotReloadIssue*
       : super fra::StatefulWidget::•()
       ;
+    static method _#new#tearOff() → main::HotReloadIssue*
+      return new main::HotReloadIssue::•();
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString

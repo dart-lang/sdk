@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
@@ -30,16 +31,16 @@ import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
   final SummaryDataReader _reader;
-  final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final Map<Uri, InformativeUnitData> _unitsInformativeData;
 
   final Map<String, LibraryReader> libraryMap = {};
 
   BundleReader({
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
-    Map<Uri, Uint8List> unitsInformativeBytes = const {},
+    Map<Uri, InformativeUnitData> unitsInformativeData = const {},
   })  : _reader = SummaryDataReader(resolutionBytes),
-        _unitsInformativeBytes = unitsInformativeBytes {
+        _unitsInformativeData = unitsInformativeData {
     _reader.offset = _reader.bytes.length - 4 * 4;
     var baseResolutionOffset = _reader.readUInt32();
     var librariesOffset = _reader.readUInt32();
@@ -69,7 +70,7 @@ class BundleReader {
       libraryMap[uriStr] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
-        unitsInformativeBytes: _unitsInformativeBytes,
+        unitsInformativeData: _unitsInformativeData,
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
         reference: reference,
@@ -162,11 +163,8 @@ class ConstructorElementLinkedData
     );
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
-    if (element.isConst || element.isFactory) {
-      element.redirectedConstructor =
-          reader.readElement() as ConstructorElement?;
-      element.constantInitializers = reader._readNodeList();
-    }
+    element.redirectedConstructor = reader.readElement() as ConstructorElement?;
+    element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();
   }
 }
@@ -415,11 +413,12 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 class LibraryReader {
   final LinkedElementFactory _elementFactory;
   final SummaryDataReader _reader;
-  final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final Map<Uri, InformativeUnitData> _unitsInformativeData;
   final int _baseResolutionOffset;
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
+  final Map<int, MacroGenerationData> _macroDeclarations = {};
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -429,7 +428,7 @@ class LibraryReader {
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
-    required Map<Uri, Uint8List> unitsInformativeBytes,
+    required Map<Uri, InformativeUnitData> unitsInformativeData,
     required int baseResolutionOffset,
     required _ReferenceReader referenceReader,
     required Reference reference,
@@ -437,7 +436,7 @@ class LibraryReader {
     required Uint32List classMembersLengths,
   })  : _elementFactory = elementFactory,
         _reader = reader,
-        _unitsInformativeBytes = unitsInformativeBytes,
+        _unitsInformativeData = unitsInformativeData,
         _baseResolutionOffset = baseResolutionOffset,
         _referenceReader = referenceReader,
         _reference = reference,
@@ -496,7 +495,7 @@ class LibraryReader {
     _declareDartCoreDynamicNever();
 
     InformativeDataApplier(_elementFactory).applyTo(
-      _unitsInformativeBytes,
+      _unitsInformativeData,
       libraryElement,
     );
 
@@ -529,6 +528,10 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
     ClassElementFlags.read(_reader, element);
+
+    element.macroExecutionErrors = _reader.readTypedList(
+      _readMacroExecutionError,
+    );
 
     element.typeParameters = _readTypeParameters();
 
@@ -762,6 +765,9 @@ class LibraryReader {
 
     FieldElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
+    element.macroExecutionErrors = _reader.readTypedList(
+      _readMacroExecutionError,
+    );
     element.createImplicitAccessors(classReference, name);
 
     return element;
@@ -854,17 +860,26 @@ class LibraryReader {
   }
 
   void _readMacro(Element element, HasMacroGenerationData hasMacro) {
-    if (_reader.readBool()) {
-      hasMacro.macro = MacroGenerationData(
-        _reader.readUInt30(),
-        _reader.readStringUtf8(),
-        Uint8List(0),
-      );
-      InformativeDataApplier(_elementFactory).applyToDeclaration(
+    var id = _reader.readOptionalUInt30();
+    if (id != null) {
+      var data = _macroDeclarations[id]!;
+      hasMacro.macro = data;
+      InformativeDataApplier(
+        _elementFactory,
+        baseOffset: data.codeOffset,
+      ).applyToDeclaration(
         element,
-        _reader.readUint8List(),
+        data.informative,
       );
     }
+  }
+
+  macro.MacroExecutionError _readMacroExecutionError() {
+    return macro.MacroExecutionError(
+      annotationIndex: _reader.readUInt30(),
+      macroName: _reader.readStringReference(),
+      message: _reader.readStringReference(),
+    );
   }
 
   List<MethodElementImpl> _readMethods(
@@ -972,20 +987,35 @@ class LibraryReader {
       ParameterElementImpl element;
       if (kind.isRequiredPositional) {
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(name, -1);
+          element = FieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         } else {
-          element = ParameterElementImpl(name, -1);
+          element = ParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         }
       } else {
         if (isInitializingFormal) {
-          element = DefaultFieldFormalParameterElementImpl(name, -1);
+          element = DefaultFieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         } else {
-          element = DefaultParameterElementImpl(name, -1);
+          element = DefaultParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         }
         element.reference = reference;
         reference.element = element;
       }
-      element.parameterKind = kind;
       ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
@@ -1238,6 +1268,7 @@ class LibraryReader {
     unitElement.isSynthetic = _reader.readBool();
     unitElement.sourceContent = _reader.readOptionalStringUtf8();
 
+    _readUnitMacroGenerationDataList(unitElement);
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
@@ -1253,6 +1284,28 @@ class LibraryReader {
     unitElement.accessors = accessors;
     unitElement.topLevelVariables = variables;
     return unitElement;
+  }
+
+  void _readUnitMacroGenerationDataList(
+    CompilationUnitElementImpl unitElement,
+  ) {
+    var length = _reader.readUInt30();
+    if (length == 0) {
+      return;
+    }
+
+    var dataList = List.generate(length, (index) {
+      return MacroGenerationData(
+        id: _reader.readUInt30(),
+        code: _reader.readStringUtf8(),
+        informative: _reader.readUint8List(),
+        classDeclarationIndex: _reader.readOptionalUInt30(),
+      );
+    });
+    unitElement.macroGenerationDataList = dataList;
+    for (var data in dataList) {
+      _macroDeclarations[data.id] = data;
+    }
   }
 
   static Variance? _decodeVariance(int index) {
@@ -1618,13 +1671,17 @@ class ResolutionReader {
       if (kind.isRequiredPositional) {
         ParameterElementImpl element;
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(name, -1)
-            ..parameterKind = kind
-            ..type = type;
+          element = FieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          )..type = type;
         } else {
-          element = ParameterElementImpl(name, -1)
-            ..parameterKind = kind
-            ..type = type;
+          element = ParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          )..type = type;
         }
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
@@ -1636,9 +1693,11 @@ class ResolutionReader {
         }
         return element;
       } else {
-        var element = DefaultParameterElementImpl(name, -1)
-          ..parameterKind = kind
-          ..type = type;
+        var element = DefaultParameterElementImpl(
+          name: name,
+          nameOffset: -1,
+          parameterKind: kind,
+        )..type = type;
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
         element.parameters = _readFormalParameters(unitElement);

@@ -8,42 +8,21 @@ import 'package:path/path.dart' as path;
 
 import 'core.dart';
 
-final Sdk sdk = Sdk();
-
-String get _computeSdkPath {
-  // The common case, and how cli_util.dart computes the Dart SDK directory,
-  // path.dirname called twice on Platform.resolvedExecutable. We confirm by
-  // asserting that the directory ./bin/snapshots/ exists after this directory:
-  var sdkPath =
-      path.absolute(path.dirname(path.dirname(Platform.resolvedExecutable)));
-  var snapshotsDir = path.join(sdkPath, 'bin', 'snapshots');
-  if (Directory(snapshotsDir).existsSync()) {
-    return sdkPath;
-  }
-
-  // This is the less common case where the user is in the checked out Dart SDK,
-  // and is executing dart via:
-  // ./out/ReleaseX64/dart ...
-  // We confirm in a similar manner with the snapshot directory existence and
-  // then return the correct sdk path:
-  snapshotsDir = path.absolute(path.dirname(Platform.resolvedExecutable),
-      'dart-sdk', 'bin', 'snapshots');
-  if (Directory(snapshotsDir).existsSync()) {
-    return path.absolute(path.dirname(Platform.resolvedExecutable), 'dart-sdk');
-  }
-
-  // If neither returned above, we return the common case:
-  return sdkPath;
-}
+final Sdk sdk = Sdk._instance;
 
 /// A utility class for finding and referencing paths within the Dart SDK.
 class Sdk {
+  static final Sdk _instance = _createSingleton();
+
+  /// Path to SDK directory.
   final String sdkPath;
+
+  /// The SDK's semantic versioning version (x.y.z-a.b.channel).
   final String version;
 
-  Sdk()
-      : sdkPath = _computeSdkPath,
-        version = Runtime.runtime.version;
+  factory Sdk() => _instance;
+
+  Sdk._(this.sdkPath, this.version);
 
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
@@ -78,13 +57,6 @@ class Sdk {
         'devtools',
       );
 
-  String get pubSnapshot => path.absolute(
-        sdkPath,
-        'bin',
-        'snapshots',
-        'pub.dart.snapshot',
-      );
-
   static bool checkArtifactExists(String path) {
     if (!File(path).existsSync()) {
       log.stderr('Could not find $path. Have you built the full '
@@ -93,27 +65,68 @@ class Sdk {
     }
     return true;
   }
+
+  static Sdk _createSingleton() {
+    // Find SDK path.
+
+    // The common case, and how cli_util.dart computes the Dart SDK directory,
+    // [path.dirname] called twice on Platform.resolvedExecutable. We confirm by
+    // asserting that the directory `./bin/snapshots/` exists in this directory:
+    var sdkPath =
+        path.absolute(path.dirname(path.dirname(Platform.resolvedExecutable)));
+    var snapshotsDir = path.join(sdkPath, 'bin', 'snapshots');
+    if (!Directory(snapshotsDir).existsSync()) {
+      // This is the less common case where the user is in
+      // the checked out Dart SDK, and is executing `dart` via:
+      // ./out/ReleaseX64/dart ...
+      // We confirm in a similar manner with the snapshot directory existence
+      // and then return the correct sdk path:
+      var altPath =
+          path.absolute(path.dirname(Platform.resolvedExecutable), 'dart-sdk');
+      var snapshotsDir = path.join(altPath, 'bin', 'snapshots');
+      if (Directory(snapshotsDir).existsSync()) {
+        sdkPath = altPath;
+      }
+      // If that snapshot dir does not exist either,
+      // we use the first guess anyway.
+    }
+
+    // Defer to [Runtime] for the version.
+    var version = Runtime.runtime.version;
+
+    return Sdk._(sdkPath, version);
+  }
 }
 
-/// Return information about the current runtime.
+/// Information about the current runtime.
 class Runtime {
-  static Runtime runtime = Runtime._();
+  static Runtime runtime = _createSingleton();
 
-  // Match "2.10.0-edge.0b2da6e7 (be) ...".
-  static final RegExp _channelRegex = RegExp(r'.* \(([\d\w]+)\) .*');
-
-  /// The SDK's version number (x.y.z-a.b.channel).
+  /// The SDK's semantic versioning version (x.y.z-a.b.channel).
   final String version;
 
   /// The SDK's release channel (`be`, `dev`, `beta`, `stable`).
-  final String channel;
+  ///
+  /// May be null if [Platform.version] does not have the expected format.
+  final String /*?*/ channel;
 
-  Runtime._()
-      : version = _computeVersion(Platform.version),
-        channel = _computeChannel(Platform.version);
+  Runtime._(this.version, this.channel);
 
-  static String _computeVersion(String version) =>
-      version.substring(0, version.indexOf(' '));
-  static String _computeChannel(String version) =>
-      _channelRegex.firstMatch(version)?.group(1);
+  static Runtime _createSingleton() {
+    var versionString = Platform.version;
+    // Exepcted format: "version (channel) ..."
+    var version = versionString;
+    String /*?*/ channel;
+    var versionEnd = versionString.indexOf(' ');
+    if (versionEnd > 0) {
+      version = versionString.substring(0, versionEnd);
+      var channelEnd = versionString.indexOf(' ', versionEnd + 1);
+      if (channelEnd < 0) channelEnd = versionString.length;
+      if (versionString.startsWith('(', versionEnd + 1) &&
+          versionString.startsWith(')', channelEnd - 1)) {
+        channel = versionString.substring(versionEnd + 2, channelEnd - 1);
+      }
+    }
+    return Runtime._(version, channel);
+  }
 }

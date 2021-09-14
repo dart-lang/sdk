@@ -22,13 +22,13 @@ class ChangeTypeAnnotationTest extends FixProcessorTest {
 
   Future<void> test_generic() async {
     await resolveTestCode('''
-main() {
+f() {
   String v = <int>[];
   print(v);
 }
 ''');
     await assertHasFix('''
-main() {
+f() {
   List<int> v = <int>[];
   print(v);
 }
@@ -37,7 +37,7 @@ main() {
 
   Future<void> test_multipleVariables() async {
     await resolveTestCode('''
-main() {
+f() {
   String a, b = '';
   print('\$a \$b');
 }
@@ -47,7 +47,7 @@ main() {
 
   Future<void> test_notVariableDeclaration() async {
     await resolveTestCode('''
-main() {
+f() {
   String v;
   v = 42;
   print(v);
@@ -56,15 +56,34 @@ main() {
     await assertNoFix();
   }
 
+  Future<void> test_privateType() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  _B b => _B();
+}
+class _B {}
+''');
+
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+f(A a) {
+  String v = a.b();
+  print(v);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_simple() async {
     await resolveTestCode('''
-main() {
+f() {
   String v = 'abc'.length;
   print(v);
 }
 ''');
     await assertHasFix('''
-main() {
+f() {
   int v = 'abc'.length;
   print(v);
 }

@@ -31,7 +31,7 @@ static method test() → dynamic {
   core::int* get_hashCode = d.{core::Object::hashCode}{core::int*};
   dynamic call_hashCode = invalid-expression "pkg/front_end/testcases/inference/dynamic_methods.dart:16:46: Error: 'hashCode' isn't a function or method and can't be invoked.
       d. /*@target=Object.hashCode*/ hashCode();
-                                             ^^^^...";
+                                             ^^^^..." in d.{core::Object::hashCode}{core::int*}{<unresolved>}.call();
   core::String* call_toString = d.{core::Object::toString}(){() →* core::String*};
   dynamic call_toStringArg = d{dynamic}.toString(color: "pink");
   dynamic call_foo0 = d{dynamic}.foo();

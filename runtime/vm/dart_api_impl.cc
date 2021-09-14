@@ -1972,6 +1972,7 @@ static void RunLoopDone(uword param) {
 
 DART_EXPORT Dart_Handle Dart_RunLoop() {
   Isolate* I;
+  bool result;
   {
     Thread* T = Thread::Current();
     I = T->isolate();
@@ -1988,14 +1989,21 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
-    I->message_handler()->Run(I->group()->thread_pool(), NULL, RunLoopDone,
-                              reinterpret_cast<uword>(&data));
-    while (!data.done) {
-      ml.Wait();
+    result =
+        I->message_handler()->Run(I->group()->thread_pool(), NULL, RunLoopDone,
+                                  reinterpret_cast<uword>(&data));
+    if (result) {
+      while (!data.done) {
+        ml.Wait();
+      }
     }
   }
   ::Dart_EnterIsolate(Api::CastIsolate(I));
-  if (I->sticky_error() != Object::null()) {
+  if (!result) {
+    Thread* T = Thread::Current();
+    TransitionNativeToVM transition(T);
+    return Api::NewError("Run method in isolate message handler failed");
+  } else if (I->sticky_error() != Object::null()) {
     Thread* T = Thread::Current();
     TransitionNativeToVM transition(T);
     return Api::NewHandle(T, I->StealStickyError());
@@ -2164,8 +2172,8 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
 
   const Object& object = Object::Handle(Z, Api::UnwrapHandle(handle));
   return PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                           object, port_id,
-                                           Message::kNormalPriority));
+                                           /* same_group */ false, object,
+                                           port_id, Message::kNormalPriority));
 }
 
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
@@ -6310,31 +6318,6 @@ DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
   return OS::GetCurrentMonotonicFrequency();
 }
 
-DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
-#if defined(SUPPORT_TIMELINE)
-  const bool api_enabled = (stream_mask & DART_TIMELINE_STREAM_API) != 0;
-  const bool compiler_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
-  const bool dart_enabled = (stream_mask & DART_TIMELINE_STREAM_DART) != 0;
-  const bool debugger_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_DEBUGGER) != 0;
-  const bool embedder_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0;
-  const bool gc_enabled = (stream_mask & DART_TIMELINE_STREAM_GC) != 0;
-  const bool isolate_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0;
-  const bool vm_enabled = (stream_mask & DART_TIMELINE_STREAM_VM) != 0;
-  Timeline::SetStreamAPIEnabled(api_enabled);
-  Timeline::SetStreamCompilerEnabled(compiler_enabled);
-  Timeline::SetStreamDartEnabled(dart_enabled);
-  Timeline::SetStreamDebuggerEnabled(debugger_enabled);
-  Timeline::SetStreamEmbedderEnabled(embedder_enabled);
-  Timeline::SetStreamGCEnabled(gc_enabled);
-  Timeline::SetStreamIsolateEnabled(isolate_enabled);
-  Timeline::SetStreamVMEnabled(vm_enabled);
-#endif
-}
-
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
                                     int64_t timestamp1_or_async_id,
@@ -6349,54 +6332,57 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (type > Dart_Timeline_Event_Flow_End) {
     return;
   }
+  if (!Dart::SetActiveApiCall()) {
+    return;
+  }
   TimelineStream* stream = Timeline::GetEmbedderStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
-  if (event == NULL) {
-    return;
+  if (event != NULL) {
+    switch (type) {
+      case Dart_Timeline_Event_Begin:
+        event->Begin(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_End:
+        event->End(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_Instant:
+        event->Instant(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_Duration:
+        event->Duration(label, timestamp0, timestamp1_or_async_id);
+        break;
+      case Dart_Timeline_Event_Async_Begin:
+        event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Async_End:
+        event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Async_Instant:
+        event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Counter:
+        event->Counter(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_Flow_Begin:
+        event->FlowBegin(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Flow_Step:
+        event->FlowStep(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Flow_End:
+        event->FlowEnd(label, timestamp1_or_async_id, timestamp0);
+        break;
+      default:
+        FATAL("Unknown Dart_Timeline_Event_Type");
+    }
+    event->SetNumArguments(argument_count);
+    for (intptr_t i = 0; i < argument_count; i++) {
+      event->CopyArgument(i, argument_names[i], argument_values[i]);
+    }
+    event->Complete();
   }
-  switch (type) {
-    case Dart_Timeline_Event_Begin:
-      event->Begin(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_End:
-      event->End(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_Instant:
-      event->Instant(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_Duration:
-      event->Duration(label, timestamp0, timestamp1_or_async_id);
-      break;
-    case Dart_Timeline_Event_Async_Begin:
-      event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Async_End:
-      event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Async_Instant:
-      event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Counter:
-      event->Counter(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_Flow_Begin:
-      event->FlowBegin(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Flow_Step:
-      event->FlowStep(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Flow_End:
-      event->FlowEnd(label, timestamp1_or_async_id, timestamp0);
-      break;
-    default:
-      FATAL("Unknown Dart_Timeline_Event_Type");
-  }
-  event->SetNumArguments(argument_count);
-  for (intptr_t i = 0; i < argument_count; i++) {
-    event->CopyArgument(i, argument_names[i], argument_values[i]);
-  }
-  event->Complete();
+  Dart::ResetActiveApiCall();
 #endif
 }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -51,7 +50,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
 var timerLibraryAnalyzerConst = Stopwatch();
-var timerLibraryAnalyzerFreshUnit = Stopwatch();
 var timerLibraryAnalyzerResolve = Stopwatch();
 var timerLibraryAnalyzerSplicer = Stopwatch();
 var timerLibraryAnalyzerVerify = Stopwatch();
@@ -106,24 +104,9 @@ class LibraryAnalyzer {
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync() {
     timerLibraryAnalyzer.start();
-    Map<FileState, CompilationUnitImpl> units = {};
-
-    // Parse all files.
-    timerLibraryAnalyzerFreshUnit.start();
-    for (FileState file in _library.libraryFiles) {
-      units[file] = _parse(file);
-    }
-    timerLibraryAnalyzerFreshUnit.stop();
-
-    // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library]!.featureSet;
-    units.forEach((file, unit) {
-      _validateFeatureSet(unit, featureSet);
-      _resolveUriBasedDirectives(file, unit);
-    });
 
     timerLibraryAnalyzerResolve.start();
-    _resolveDirectives(units);
+    var units = _resolveDirectives();
 
     units.forEach((file, unit) {
       _resolveFile(file, unit);
@@ -190,7 +173,9 @@ class LibraryAnalyzer {
     units.forEach((file, unit) {
       List<AnalysisError> errors = _getErrorListener(file).errors;
       errors = _filterIgnoredErrors(file, errors);
-      results[file] = UnitAnalysisResult(file, unit, errors);
+      var combinedResult = UnitAnalysisResult(file, unit, errors);
+      var writtenResult = _transformToWrittenCode(combinedResult);
+      results[file] = writtenResult;
     });
     timerLibraryAnalyzer.stop();
     return results;
@@ -352,10 +337,14 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(LinterVisitor(
+    unit.accept(
+      LinterVisitor(
         nodeRegistry,
-        LinterExceptionHandler(_analysisOptions.propagateLinterExceptions)
-            .logException));
+        LinterExceptionHandler(
+          propagateExceptions: _analysisOptions.propagateLinterExceptions,
+        ).logException,
+      ),
+    );
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
@@ -426,9 +415,8 @@ class LibraryAnalyzer {
           unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
-
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = code.name.toLowerCase();
+      String name = code.name;
       if (ignoreInfo.ignoredAt(name, errorLine)) {
         return true;
       }
@@ -437,8 +425,7 @@ class LibraryAnalyzer {
       if (period >= 0) {
         uniqueName = uniqueName.substring(period + 1);
       }
-      return uniqueName != name &&
-          ignoreInfo.ignoredAt(uniqueName.toLowerCase(), errorLine);
+      return uniqueName != name && ignoreInfo.ignoredAt(uniqueName, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
@@ -506,10 +493,16 @@ class LibraryAnalyzer {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  CompilationUnitImpl _parse(FileState file) {
+  CompilationUnitImpl _parse(
+    FileState file,
+    CompilationUnitElementImpl element,
+  ) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
-    String content = file.content;
-    var unit = file.parse(errorListener);
+    String content = element.macroGeneratedContent ?? file.content;
+    var unit = file.parse(
+      content: content,
+      errorListener: errorListener,
+    );
 
     LineInfo lineInfo = unit.lineInfo!;
     _fileToLineInfo[file] = lineInfo;
@@ -518,9 +511,17 @@ class LibraryAnalyzer {
     return unit;
   }
 
-  void _resolveDirectives(Map<FileState, CompilationUnitImpl> units) {
-    var definingCompilationUnit = units[_library]!;
-    definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
+  Map<FileState, CompilationUnitImpl> _resolveDirectives() {
+    var units = <FileState, CompilationUnitImpl>{};
+
+    var definingElement = _libraryElement.definingCompilationUnit;
+    definingElement as CompilationUnitElementImpl;
+
+    var definingUnit = _parse(_library, definingElement);
+    units[_library] = definingUnit;
+
+    definingUnit.element = definingElement;
+    _resolveUriBasedDirectives(_library, definingUnit);
 
     bool matchNodeElement(Directive node, Element element) {
       return node.keyword.offset == element.nameOffset;
@@ -533,7 +534,7 @@ class LibraryAnalyzer {
     var directivesToResolve = <DirectiveImpl>[];
     int partDirectiveIndex = 0;
     int partElementIndex = 0;
-    for (Directive directive in definingCompilationUnit.directives) {
+    for (Directive directive in definingUnit.directives) {
       if (directive is LibraryDirectiveImpl) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
@@ -576,10 +577,15 @@ class LibraryAnalyzer {
           continue;
         }
 
-        var partUnit = units[partFile]!;
         var partElement = _libraryElement.parts[partElementIndex++];
+        partElement as CompilationUnitElementImpl;
+
+        var partUnit = _parse(partFile, partElement);
+        units[partFile] = partUnit;
+
         partUnit.element = partElement;
         directive.element = partElement;
+        _resolveUriBasedDirectives(partFile, partUnit);
 
         Source? partSource = directive.uriSource;
         if (partSource == null) {
@@ -645,6 +651,7 @@ class LibraryAnalyzer {
     }
 
     // TODO(scheglov) remove DirectiveResolver class
+    return units;
   }
 
   void _resolveFile(FileState file, CompilationUnit unit) {
@@ -678,7 +685,7 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(VariableResolverVisitor(
+    unit.accept(ScopeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryElement.scope));
 
@@ -686,8 +693,8 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(_typeSystem,
-        _testingData != null, unit.featureSet.isEnabled(Feature.non_nullable));
+    FlowAnalysisHelper flowAnalysisHelper =
+        FlowAnalysisHelper(_typeSystem, _testingData != null, unit.featureSet);
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 
@@ -763,13 +770,74 @@ class LibraryAnalyzer {
     return directive.uri.stringValue ?? '';
   }
 
-  /// Validate that the feature set associated with the compilation [unit] is
-  /// the same as the [expectedSet] of features supported by the library.
-  void _validateFeatureSet(CompilationUnit unit, FeatureSet expectedSet) {
-    FeatureSet actualSet = unit.featureSet;
-    if (actualSet != expectedSet) {
-      // TODO(brianwilkerson) Generate a diagnostic.
+  /// The [combined] result was resolved, potentially with macro-generated
+  /// declarations. But the result (at least the version that corresponds to
+  /// the original, user-written file) should not include these declarations.
+  /// So, we remove these nodes, and correspondingly patch the token sequence.
+  ///
+  /// Similarly, we transform any reported diagnostics.
+  UnitAnalysisResult _transformToWrittenCode(UnitAnalysisResult combined) {
+    var unit = combined.unit;
+    var unitElement = unit.declaredElement as CompilationUnitElementImpl;
+
+    var macroGenerationDataList = unitElement.macroGenerationDataList;
+    if (macroGenerationDataList == null) {
+      return combined;
     }
+
+    for (var macroData in macroGenerationDataList.reversed) {
+      var classIndex = macroData.classDeclarationIndex;
+      if (classIndex != null) {
+        var classDeclaration = unit.declarations
+            .whereType<ClassDeclaration>()
+            .toList()[classIndex];
+        // A macro-generated declaration is always the last one.
+        var removed = classDeclaration.members.removeAt(
+          classDeclaration.members.length - 1,
+        );
+        // Patch the token sequence.
+        var followToken = removed.endToken.next!;
+        removed.beginToken.previous!.next = followToken;
+        // Shift the following tokens.
+        for (var t = followToken; t != unit.endToken; t = t.next!) {
+          t.offset -= macroData.insertLength;
+        }
+      } else {
+        // TODO(scheglov) implement top-level
+        throw UnimplementedError();
+      }
+    }
+
+    var errors = <AnalysisError>[];
+    for (var combinedError in combined.errors) {
+      var offset = combinedError.offset;
+      var isInWritten = true;
+      for (var macroData in macroGenerationDataList.reversed) {
+        if (offset > macroData.insertOffset) {
+          if (offset < macroData.insertOffset + macroData.insertLength) {
+            isInWritten = false;
+            break;
+          } else {
+            offset -= macroData.insertLength;
+          }
+        }
+      }
+      if (isInWritten) {
+        errors.add(
+          AnalysisError.forValues(
+            combinedError.source,
+            offset,
+            combinedError.length,
+            combinedError.errorCode,
+            combinedError.message,
+            combinedError.correction,
+            contextMessages: combinedError.contextMessages,
+          ),
+        );
+      }
+    }
+
+    return UnitAnalysisResult(combined.file, unit, errors);
   }
 
   /// Check the given [directive] to see if the referenced source exists and

@@ -98,12 +98,14 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
 
   bool hadTypesInferred = false;
 
+  @override
   bool hasBodyBeenBuilt = false;
 
   // TODO(johnniwinther): [parent] is not trust-worthy for determining
   //  properties since it is changed after the creation of the builder. For now
   //  we require it has an argument here. A follow-up should clean up the
   //  misuse of parent.
+  @override
   final bool isTopLevel;
 
   SourceFieldBuilder(
@@ -301,12 +303,16 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _typeEnsured = true;
   }
 
+  @override
   SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
 
+  @override
   Member get member => _fieldEncoding.field;
 
+  @override
   String get debugName => "FieldBuilder";
 
+  @override
   bool get isField => true;
 
   @override
@@ -340,6 +346,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
         isSynthetic: isSynthetic);
   }
 
+  @override
   bool get isEligibleForInference {
     return type == null && (hasInitializer || isClassInstanceMember);
   }
@@ -400,8 +407,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _fieldEncoding.completeSignature(coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
-      MetadataBuilder.buildAnnotations(
-          annotatable, metadata, library, classBuilder, this, fileUri);
+      MetadataBuilder.buildAnnotations(annotatable, metadata, library,
+          classBuilder, this, fileUri, classBuilder?.scope ?? library.scope);
     }
 
     // For modular compilation we need to include initializers of all const
@@ -423,9 +430,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           bodyBuilder,
           fieldType,
           bodyBuilder.parseFieldInitializer(_constInitializerToken!));
-      if (library.loader is SourceLoader &&
-          (bodyBuilder.transformSetLiterals ||
-              bodyBuilder.transformCollections)) {
+      if (bodyBuilder.transformSetLiterals ||
+          bodyBuilder.transformCollections) {
         // Wrap the initializer in a temporary parent expression; the
         // transformations need a parent relation.
         Not wrapper = new Not(initializer);
@@ -435,14 +441,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
         initializer = wrapper.operand;
       }
       buildBody(coreTypes, initializer);
-      bodyBuilder.resolveRedirectingFactoryTargets();
-      if (bodyBuilder.hasDelayedActions) {
-        delayedActionPerformers.add(bodyBuilder);
-      }
+      bodyBuilder.performBacklogComputations(delayedActionPerformers);
     }
     _constInitializerToken = null;
   }
 
+  @override
   DartType get fieldType => _fieldEncoding.type;
 
   void set fieldType(DartType value) {
@@ -503,6 +507,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     return fieldType;
   }
 
+  @override
   DartType get builtType => fieldType;
 
   List<ClassMember>? _localMembers;
@@ -1463,6 +1468,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
       // ignore: unnecessary_null_comparison
       : assert(isInternalImplementation != null);
 
+  @override
   Member getMember(ClassHierarchyBuilder hierarchy) {
     fieldBuilder._ensureType(hierarchy);
     return _member;

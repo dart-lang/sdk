@@ -73,7 +73,7 @@ class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
     : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
     ;
   const constructor method(self::Class::T t) → self::Class<self::Class::T>
-    : this self::Class::•(let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+    : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
@@ -96,14 +96,14 @@ static const field core::bool? barFromEnvOrNull0 = const core::bool::fromEnviron
 static const field core::bool barFromEnvOrNull = const core::bool::fromEnvironment("bar", defaultValue: self::barFromEnvOrNull0!);
 static const field core::bool notBarFromEnvOrNull = !self::barFromEnvOrNull;
 static const field core::bool conditionalOnNull = self::barFromEnvOrNull ?{core::bool} true : false;
-static const field core::bool nullAwareOnNull = let final core::bool #t2 = self::barFromEnvOrNull in #t2 == null ?{core::bool} true : #t2;
+static const field core::bool nullAwareOnNull = let final core::bool #t1 = self::barFromEnvOrNull in #t1 == null ?{core::bool} true : #t1;
 static const field core::bool andOnNull = self::barFromEnvOrNull && true;
 static const field core::bool andOnNull2 = true && self::barFromEnvOrNull;
 static const field core::bool orOnNull = self::barFromEnvOrNull || true;
 static const field core::bool orOnNull2 = self::barFromEnvOrNull || false;
 static const field core::bool orOnNull3 = true || self::barFromEnvOrNull;
 static const field core::bool orOnNull4 = false || self::barFromEnvOrNull;
-static const field core::int fromDeferredLib = let final dynamic #t3 = CheckLibraryIsLoaded(lib) in var::x;
+static const field core::int fromDeferredLib = let final dynamic #t2 = CheckLibraryIsLoaded(lib) in var::x;
 static const field self::Foo<core::int> x = const self::Foo::•<core::int>(42);
 static const field core::bool? y = true;
 static const field core::bool z = !self::y!;
@@ -159,21 +159,21 @@ static const field core::int x = 42;
 
 
 Extra constant evaluation status:
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:32:27 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:32:27 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:32:69 -> BoolConstant(false)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:33:21 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:33:21 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:33:63 -> BoolConstant(false)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:7:31 -> BoolConstant(false)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:8:30 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:7:31 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:8:30 -> BoolConstant(false)
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:9:67 -> NullConstant(null)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:9:39 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:9:39 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:11:53 -> NullConstant(null)
 Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:19:29 -> BoolConstant(true)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:22:29 -> IntConstant(42)
 Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///various.dart:37:17 -> InstanceConstant(const Foo<int*>{Foo.saved: false, Foo.saved2: false, Foo.initialized: null, Foo.value: 42})
 Evaluated: Not @ org-dartlang-testcase:///various.dart:40:16 -> BoolConstant(false)
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:42:46 -> BoolConstant(true)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:42:23 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:42:23 -> BoolConstant(false)
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:43:38 -> BoolConstant(false)
 Evaluated with empty environment: IsExpression @ org-dartlang-testcase:///various.dart:43:31 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:43:22 -> BoolConstant(true)
@@ -199,33 +199,33 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///various.dart:69:32 -> MapConsta
 Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:72:46 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:73:46 -> BoolConstant(true)
 Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///various.dart:76:11 -> SymbolConstant(#)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:76:25 -> StringConstant("")
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:76:25 -> StringConstant("")
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:77:44 -> SymbolConstant(#42)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:107:17 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:107:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:107:71 -> InstanceConstant(const C{})
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:108:17 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:108:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:108:69 -> InstanceConstant(const A{})
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:109:17 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:109:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:109:65 -> InstanceConstant(const C{})
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:110:38 -> InstanceConstant(const Class<A*>{})
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:110:17 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:110:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:110:53 -> InstanceConstant(const Class<A*>{})
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:111:38 -> InstanceConstant(const Class<B*>{})
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:111:17 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:111:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:111:53 -> InstanceConstant(const Class<B*>{})
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:112:38 -> InstanceConstant(const Subclass<A*>{})
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:112:17 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:112:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:112:53 -> InstanceConstant(const Subclass<A*>{})
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:113:38 -> InstanceConstant(const Subclass<B*>{})
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:113:17 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:113:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:113:53 -> InstanceConstant(const Subclass<B*>{})
 Evaluated: TypeLiteral @ org-dartlang-testcase:///various.dart:116:11 -> TypeLiteralConstant(int* Function(int*, {named: int*})*)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:125:48 -> InstanceConstant(const ConstClassWithF{ConstClassWithF.foo: procedure})
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:127:35 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:127:35 -> BoolConstant(false)
 Evaluated with empty environment: Not @ org-dartlang-testcase:///various.dart:128:33 -> BoolConstant(true)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:128:34 -> BoolConstant(false)
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:130:33 -> NullConstant(null)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:130:10 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:130:10 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:130:35 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:131:37 -> NullConstant(null)
-Extra constant evaluation: evaluated: 112, effectively constant: 69
+Extra constant evaluation: evaluated: 108, effectively constant: 69

@@ -63,9 +63,7 @@ class _UnitApiSignatureComputer {
       if (member is ConstructorDeclaration) {
         signature.addInt(_kindConstructorDeclaration);
         _addTokens(member.beginToken, member.parameters.endToken);
-        if (member.constKeyword != null) {
-          _addNodeList(member.initializers);
-        }
+        _addNodeList(member.initializers);
         _addNode(member.redirectedConstructor);
       } else if (member is FieldDeclaration) {
         signature.addInt(_kindFieldDeclaration);

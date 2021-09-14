@@ -1,3 +1,91 @@
+## 2.15.0
+
+### Language
+
+- Annotations on type parameters of classes can no longer refer to class members
+  without a prefix.  For example, this used to be permitted:
+
+  ```dart
+  class C<@Annotation(foo) T> {
+    static void foo() {}
+  }
+  ```
+
+  Now, the reference must be qualified with the class name, i.e.:
+
+  ```dart
+  class C<@Annotation(C.foo) T> {
+    static void foo() {}
+  }
+  ```
+
+  This brings the implementation behavior in line with the spec.
+
+- Initializer expressions on implicitly typed condition variables can now
+  contribute to type promotion.  For example, this program no longer produces a
+  compile-time error:
+
+  ```dart
+  f(int? i) {
+    var iIsNull = i == null;
+    if (!iIsNull) {
+      print(i + 1); // OK, because `i` is known to be non-null
+    }
+  }
+  ```
+
+  Previously, the above program had a compile-time error because type promotion
+  due to a bug ([#1785][]) which prevented the initializer expression (`i ==
+  null`) from being accounted for when the variable in question (`iIsNull`)
+  lacked an explicit type.
+
+  To avoid causing problems for packages that are intended to work with older
+  versions of Dart, the fix only takes effect when the "constructor tearoffs"
+  language feature is enabled.
+
+[#1785]: https://github.com/dart-lang/language/issues/1785
+
+- Restrictions on members of a class with a constant constructor are relaxed
+  such that they only apply when the class has a _generative_ constant
+  constructor.  For example, this used to be an error, but is now permitted:
+
+  ```dart
+  abstract class A {
+    var v1;
+    late final v2 = Random().nextInt(10);
+    late final v3;
+    const factory A() = B;
+  }
+
+  class B implements A {
+    get v1 => null;
+    set v1(_) => throw 'Cannot mutate B.v1';
+    final v2 = 0;
+    final v3;
+    set v3(_) => throw 'Cannot initialize B.v3';
+    const B([this.v3 = 1]);
+  }
+  ```
+
+  This implements a relaxation of the specified rule for a `late final`
+  instance variable, and it brings the implementation behavior in line with
+  the specification in all other cases.
+
+### Tools
+
+#### Dart command line
+
+- **Breaking Change** [#46100][]: The standalone `dart2native` tool has been
+  removed as previously announced. Its replacements are the
+  `dart compile exe` and `dart compile aot-snapshot` commands, which offer the
+  same functionality.
+
+#### Dart VM
+
+- **Breaking Change** [#45451][]: Support for `dart-ext:`-style native
+  extensions has been removed as previously announced. Use `dart:ffi` to bind
+  to native libraries instead.
+
 ## 2.14.0
 
 ### Language
@@ -57,6 +145,11 @@
 - Added `void unawaited(Future)` top-level function to deal with the
   `unawaited_futures` lint.
 
+#### `dart:cli`
+
+- The experimental `waitFor` functionality, and the library containing only that
+  function, are now deprecated.
+
 #### `dart:core`
 
 - Introduce `Enum` interface implemented by all `enum` declarations.
@@ -82,6 +175,7 @@
 - `convertNativeToDart_Dictionary()` now converts objects recursively, this
   fixes APIs like MediaStreamTrack.getCapabilities that convert between Maps and
   browser Dictionaries. [#44319]
+- Added some access-control HTTP header names to `HttpHeaders`.
 
 [#44319]: https://github.com/dart-lang/sdk/issues/44319
 
@@ -90,6 +184,7 @@
 - BREAKING CHANGE (for pre-migrated null safe code): `HttpClient`'s
   `.authenticate` and `.authenticateProxy` setter callbacks must now accept a
   nullable `realm` argument.
+- Added some access-control HTTP header names to `HttpHeaders`.
 
 #### `dart:typed_data`
 
@@ -159,9 +254,32 @@
 
 #### Linter
 
-Updated the Linter to `1.8.0`, which includes changes that
-
-
+Updated the Linter to `1.10.0`, which includes changes that
+- improves regular expression parsing performance for common checks
+  (`camel_case_types`, `file_names`, etc.).
+- (internal) migrates to analyzer 2.1.0 APIs.
+- fixes false positive in `use_build_context_synchronously` in awaits inside
+  anonymous functions.
+- fixes `overridden_fields` false positive w/ static fields.
+- fixes false positive in `avoid_null_checks_in_equality_operators` w/
+  non-nullable params.
+- fixes false positive for deferred imports in `prefer_const_constructors`.
+- marks `avoid_dynamic_calls` stable.
+- (internal) removes unused `MockPubVisitor` and `MockRule` classes.
+- fixes a `prefer_void_to_null` false positive w/ overridden properties.
+- (internal) removes references to `NodeLintRule` in lint rule declarations.
+- fixes `prefer_void_to_null` false positives on overriding returns.
+- fixes `prefer_generic_function_type_aliases` false positives w/ incomplete
+  statements.
+- fixes false positives for `prefer_initializing_formals` with factory constructors.
+- fixes `void_checks` false positives with incomplete source.
+- updates `unnecessary_getters_setters` to only flag the getter.
+- improves messages for `avoid_renaming_method_parameters`.
+- fixes false positives in `prefer_void_to_null`.
+- fixes false positives in `omit_local_variable_types`.
+- fixes false positives in `use_rethrow_when_possible`.
+- improves performance for `annotate_overrides`, `prefer_contains`, and
+  `prefer_void_to_null`.
 - improve performance for `prefer_is_not_empty`.
 - fix false positives in `no_logic_in_create_state`.
 - improve `package_names` to allow dart identifiers as package names.
@@ -171,7 +289,7 @@ Updated the Linter to `1.8.0`, which includes changes that
 - fix `curly_braces_in_flow_control_structures` to properly flag terminating `else-if`
   blocks.
 - improve `always_specify_types` to support type aliases.
-- fix a false positive in `unnecessary_string_interpolations` w/ nullable interpolated 
+- fix a false positive in `unnecessary_string_interpolations` w/ nullable interpolated
   strings
 - fix a false positive in `avoid_function_literals_in_foreach_calls` for nullable
   iterables.
@@ -259,7 +377,7 @@ Updated the Linter to `1.8.0`, which includes changes that
     `--legacy-javascript` flag will let you opt out of this update, but this
     flag will be removed in a future release. Modern browsers will not be
     affected, as Dart2JS continues to support [last two major releases][1] of
-    Edge, Safari, Firefox, and Chrome. 
+    Edge, Safari, Firefox, and Chrome.
 
 [#46545]: https://github.com/dart-lang/sdk/issues/46545
 [1]: https://dart.dev/faq#q-what-browsers-do-you-support-as-javascript-compilation-targets

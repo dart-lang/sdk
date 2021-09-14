@@ -163,19 +163,17 @@ void Zone::Segment::DecrementMemoryCapacity(uintptr_t size) {
 // is created within a new thread or ApiNativeScope when calculating high
 // watermarks or memory consumption.
 Zone::Zone()
-    : initial_buffer_(buffer_, kInitialChunkSize),
-      position_(initial_buffer_.start()),
-      limit_(initial_buffer_.end()),
+    : position_(reinterpret_cast<uword>(&buffer_)),
+      limit_(position_ + kInitialChunkSize),
       head_(NULL),
       large_segments_(NULL),
-      handles_(),
-      previous_(NULL) {
+      previous_(NULL),
+      handles_() {
   ASSERT(Utils::IsAligned(position_, kAlignment));
   Segment::IncrementMemoryCapacity(kInitialChunkSize);
 #ifdef DEBUG
   // Zap the entire initial buffer.
-  memset(initial_buffer_.pointer(), kZapUninitializedByte,
-         initial_buffer_.size());
+  memset(&buffer_, kZapUninitializedByte, kInitialChunkSize);
 #endif
 }
 
@@ -198,10 +196,10 @@ void Zone::DeleteAll() {
   }
 // Reset zone state.
 #ifdef DEBUG
-  memset(initial_buffer_.pointer(), kZapDeletedByte, initial_buffer_.size());
+  memset(&buffer_, kZapDeletedByte, kInitialChunkSize);
 #endif
-  position_ = initial_buffer_.start();
-  limit_ = initial_buffer_.end();
+  position_ = reinterpret_cast<uword>(&buffer_);
+  limit_ = position_ + kInitialChunkSize;
   small_segment_capacity_ = 0;
   head_ = NULL;
   large_segments_ = NULL;
@@ -215,9 +213,9 @@ uintptr_t Zone::SizeInBytes() const {
     size += s->size();
   }
   if (head_ == NULL) {
-    return size + (position_ - initial_buffer_.start());
+    return size + (position_ - reinterpret_cast<uword>(&buffer_));
   }
-  size += initial_buffer_.size();
+  size += kInitialChunkSize;
   for (Segment* s = head_->next(); s != NULL; s = s->next()) {
     size += s->size();
   }
@@ -230,9 +228,9 @@ uintptr_t Zone::CapacityInBytes() const {
     size += s->size();
   }
   if (head_ == NULL) {
-    return size + initial_buffer_.size();
+    return size + kInitialChunkSize;
   }
-  size += initial_buffer_.size();
+  size += kInitialChunkSize;
   for (Segment* s = head_; s != NULL; s = s->next()) {
     size += s->size();
   }

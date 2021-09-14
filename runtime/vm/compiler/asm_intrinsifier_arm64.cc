@@ -24,31 +24,6 @@ namespace compiler {
 
 #define __ assembler->
 
-intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
-  return -1;
-}
-
-void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
-  COMPILE_ASSERT(!IsAbiPreservedRegister(ARGS_DESC_REG));
-  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
-  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP2));
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
-
-  __ Comment("IntrinsicCallPrologue");
-  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(CALLEE_SAVED_TEMP, LR));
-  __ mov(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
-}
-
-void AsmIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
-  __ Comment("IntrinsicCallEpilogue");
-  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ mov(LR, CALLEE_SAVED_TEMP));
-  __ mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
-}
-
 // Allocate a GrowableObjectArray:: using the backing array specified.
 // On stack: type argument (+1), data (+0).
 void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -1158,35 +1133,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ LoadDFieldFromOffset(V0, R0, target::Double::value_offset());
-
-  // Explicit NaN check, since ARM gives an FPU exception if you try to
-  // convert NaN to an int.
-  __ fcmpd(V0, V0);
-  __ b(normal_ir_body, VS);
-
-  __ fcvtzdsx(R0, V0);
-
-#if !defined(DART_COMPRESSED_POINTERS)
-  // Overflow is signaled with minint.
-  // Check for overflow and that it fits into Smi.
-  __ CompareImmediate(R0, 0xC000000000000000);
-  __ b(normal_ir_body, MI);
-#else
-  // Overflow is signaled with minint.
-  // Check for overflow and that it fits into Smi.
-  __ AsrImmediate(TMP, R0, 30);
-  __ cmp(TMP, Operand(R0, ASR, 63));
-  __ b(normal_ir_body, NE);
-#endif
-  __ SmiTag(R0);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
@@ -1234,24 +1180,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ ret();
 
   // Fall into the native C++ implementation.
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
-  Label is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, normal_ir_body);
-  // Argument is double and is in R0.
-  __ LoadDFieldFromOffset(V1, R0, target::Double::value_offset());
-  __ Bind(&double_op);
-  __ fsqrtd(V0, V1);
-  const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
-  __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
-  __ ret();
-  __ Bind(&is_smi);
-  __ SmiUntag(R0);
-  __ scvtfdx(V1, R0);
-  __ b(&double_op);
   __ Bind(normal_ir_body);
 }
 
@@ -1339,6 +1267,14 @@ static void JumpIfNotString(Assembler* assembler,
                             Register tmp,
                             Label* target) {
   RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+             kIfNotInRange, target);
+}
+
+static void JumpIfNotList(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kArrayCid, kGrowableObjectArrayCid,
              kIfNotInRange, target);
 }
 
@@ -1432,7 +1368,7 @@ static void EquivalentClassIds(Assembler* assembler,
                                Register scratch,
                                bool testing_instance_cids) {
   Label different_cids, equal_cids_but_generic, not_integer,
-      not_integer_or_string;
+      not_integer_or_string, not_integer_or_string_or_list;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
@@ -1458,7 +1394,8 @@ static void EquivalentClassIds(Assembler* assembler,
   __ b(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
-  // different representations) or two integer types or two type types.
+  // different representations), two integer types, two list types or two type
+  // types.
   __ Bind(&different_cids);
   __ CompareImmediate(cid1, kNumPredefinedCids);
   __ b(not_equal, HI);
@@ -1483,9 +1420,20 @@ static void EquivalentClassIds(Assembler* assembler,
 
   if (testing_instance_cids) {
     __ Bind(&not_integer_or_string);
+    // Check if both are List types.
+    JumpIfNotList(assembler, cid1, scratch, &not_integer_or_string_or_list);
+
+    // First type is a List. Check if the second is a List too.
+    JumpIfNotList(assembler, cid2, scratch, not_equal);
+    ASSERT(compiler::target::Array::type_arguments_offset() ==
+           compiler::target::GrowableObjectArray::type_arguments_offset());
+    __ LoadImmediate(scratch, compiler::target::Array::type_arguments_offset());
+    __ b(&equal_cids_but_generic);
+
+    __ Bind(&not_integer_or_string_or_list);
     // Check if the first type is a Type. If it is not then types are not
     // equivalent because they have different class ids and they are not String
-    // or integer or Type.
+    // or integer or List or Type.
     JumpIfNotType(assembler, cid1, scratch, not_equal);
 
     // First type is a Type. Check if the second is a Type too.

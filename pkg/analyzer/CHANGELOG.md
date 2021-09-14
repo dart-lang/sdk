@@ -1,4 +1,7 @@
-## 2.1.0-dev
+## 2.2.0
+* Improvements in constructors tear-off implementation.
+
+## 2.1.0
 * Changed `AnalysisResult.path` to be non-nullable.
 * Changed `ParsedLibraryResult.units` to be non-nullable.
 * Changed `ResolvedLibraryResult.element` to be non-nullable.
@@ -14,6 +17,7 @@
 * Added `DartType.alias` with information about instantiated type alias.
   The type alias element and arguments are present or absent together.
 * Deprecated `DartType.aliasElement` and `DartType.aliasArguments`.
+* Updated the current language version to `2.15`.
 
 ## 2.0.0
 * Removed deprecated `Scope.lookup2()`.

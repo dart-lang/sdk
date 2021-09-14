@@ -10,13 +10,13 @@ main() {
   new lib11.Library11(1);
   //  ^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'lib11.Library11'.
+  // [cfe] Couldn't find constructor 'lib11.Library11'.
   lib11.Library11.static_func();
 //^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'lib11'.
+// [cfe] Undefined name 'lib11'.
   lib11.Library11.static_fld;
 //^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'lib11'.
+// [cfe] Undefined name 'lib11'.
 }

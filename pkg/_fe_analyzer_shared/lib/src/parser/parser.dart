@@ -21,6 +21,8 @@ export 'block_kind.dart' show BlockKind;
 
 export 'class_member_parser.dart' show ClassMemberParser;
 
+export 'constructor_reference_context.dart' show ConstructorReferenceContext;
+
 export 'formal_parameter_kind.dart' show FormalParameterKind;
 
 export 'identifier_context.dart' show IdentifierContext;
@@ -28,6 +30,8 @@ export 'identifier_context.dart' show IdentifierContext;
 export 'listener.dart' show Listener;
 
 export 'declaration_kind.dart' show DeclarationKind;
+
+export 'directive_context.dart' show DirectiveContext;
 
 export 'member_kind.dart' show MemberKind;
 
@@ -53,9 +57,11 @@ class ErrorCollectingListener extends Listener {
   }
 }
 
-List<ParserError> parse(Token tokens) {
+List<ParserError> parse(Token tokens,
+    {bool useImplicitCreationExpression: true}) {
   ErrorCollectingListener listener = new ErrorCollectingListener();
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener,
+      useImplicitCreationExpression: useImplicitCreationExpression);
   parser.parseUnit(tokens);
   return listener.recoverableErrors;
 }

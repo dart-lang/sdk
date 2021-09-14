@@ -10,6 +10,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerOptions,
         DiagnosticMessage,
         computePlatformBinariesLocation,
+        kernelForModule,
         kernelForProgram,
         parseExperimentalArguments,
         parseExperimentalFlags;
@@ -39,34 +40,53 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     bool enableSuperMixins = false,
     List<String>? experimentalFlags,
     Map<String, String>? environmentDefines,
-    Uri? packagesFileUri}) async {
-  final platformKernel =
-      computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-  target ??= new TestingVmTarget(new TargetFlags())
-    ..enableSuperMixins = enableSuperMixins;
-  environmentDefines ??= <String, String>{};
-  final options = new CompilerOptions()
-    ..target = target
-    ..additionalDills = <Uri>[platformKernel]
-    ..environmentDefines = environmentDefines
-    ..packagesFileUri = packagesFileUri
-    ..explicitExperimentalFlags =
-        parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
-            onError: (String message) {
-      throw message;
-    })
-    ..onDiagnostic = (DiagnosticMessage message) {
-      fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
-    };
+    Uri? packagesFileUri,
+    List<Uri>? linkedDependencies}) async {
+  Directory? tempDirectory;
+  try {
+    final platformKernel =
+        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+    target ??= new TestingVmTarget(new TargetFlags())
+      ..enableSuperMixins = enableSuperMixins;
+    environmentDefines ??= <String, String>{};
+    final options = new CompilerOptions()
+      ..target = target
+      ..additionalDills = <Uri>[platformKernel]
+      ..environmentDefines = environmentDefines
+      ..packagesFileUri = packagesFileUri
+      ..explicitExperimentalFlags =
+          parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
+              onError: (String message) {
+        throw message;
+      })
+      ..onDiagnostic = (DiagnosticMessage message) {
+        fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
+      };
+    if (linkedDependencies != null) {
+      final Component component =
+          (await kernelForModule(linkedDependencies, options)).component!;
+      tempDirectory = await Directory.systemTemp.createTemp();
+      Uri uri = tempDirectory.uri.resolve("generated.dill");
+      File generated = new File.fromUri(uri);
+      IOSink sink = generated.openWrite();
+      try {
+        new BinaryPrinter(sink).writeComponentFile(component);
+      } finally {
+        await sink.close();
+      }
+      options..additionalDills = <Uri>[platformKernel, uri];
+    }
 
-  final Component component =
-      (await kernelForProgram(sourceUri, options))!.component!;
+    final Component component =
+        (await kernelForProgram(sourceUri, options))!.component!;
 
-  // Make sure the library name is the same and does not depend on the order
-  // of test cases.
-  component.mainMethod!.enclosingLibrary.name = '#lib';
-
-  return component;
+    // Make sure the library name is the same and does not depend on the order
+    // of test cases.
+    component.mainMethod!.enclosingLibrary.name = '#lib';
+    return component;
+  } finally {
+    await tempDirectory?.delete(recursive: true);
+  }
 }
 
 String kernelLibraryToString(Library library) {

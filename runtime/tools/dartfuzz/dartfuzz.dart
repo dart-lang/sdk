@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.91';
+const String version = '1.92';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -1003,11 +1003,10 @@ class DartFuzz {
 
         emitNewline();
         emitTryCatchFinally(() {
-          var body = '';
           for (var i = 0; i < globalVars.length; i++) {
-            body += '\$$varName$i\\n';
+            emitPrint('$varName$i: \$$varName$i');
+            emitNewline();
           }
-          emitPrint('$body');
         }, () => emitPrint('print() throws'));
       });
 
@@ -1100,7 +1099,7 @@ class DartFuzz {
     }
     emitIndentation();
     // Emit a variable of the lhs type.
-    final emittedVar = emitVar(0, tp, isLhs: true)!;
+    final emittedVar = emitVar(0, tp, isLhs: true, assignOp: assignOp)!;
     var rhsFilter = RhsFilter.fromDartType(tp, emittedVar);
     emit(' $assignOp ');
     // Select one of the possible rhs types for the given lhs type and assign
@@ -1142,9 +1141,12 @@ class DartFuzz {
 
   // Emit a throw statement.
   bool emitThrow() {
-    var tp = oneOfSet(dartType.allTypes);
+    var tp;
+    do {
+      tp = oneOfSet(dartType.allTypes).toNonNullable();
+    } while (tp == DartType.NULL);
     emitLn('throw ', newline: false);
-    emitExpr(0, tp.toNonNullable(), includeSemicolon: true);
+    emitExpr(0, tp, includeSemicolon: true);
     return false;
   }
 
@@ -1890,12 +1892,20 @@ class DartFuzz {
   }
 
   String? emitSubscriptedVar(int depth, DartType tp,
-      {bool isLhs = false, RhsFilter? rhsFilter}) {
+      {bool isLhs = false, String? assignOp, RhsFilter? rhsFilter}) {
     String? ret;
     // Check if type tp is an indexable element of some other type.
     if (dartType.isIndexableElementType(tp)) {
       // Select a list or map type that contains elements of type tp.
-      final iterType = oneOfSet(dartType.indexableElementTypes(tp));
+      var iterType = oneOfSet(dartType.indexableElementTypes(tp));
+      // For `collection[key] <op>= value` to work, collection must not be a
+      // Map or Expando because their subscript operators return a nullable
+      // type.
+      if (assignOp != null && assignOp != "=") {
+        while (!DartType.isListType(iterType)) {
+          iterType = oneOfSet(dartType.indexableElementTypes(tp));
+        }
+      }
       // Get the index type for the respective list or map type.
       final indexType = dartType.indexType(iterType);
       // Emit a variable of the selected list or map type.
@@ -1920,14 +1930,14 @@ class DartFuzz {
   }
 
   String? emitVar(int depth, DartType tp,
-      {bool isLhs = false, RhsFilter? rhsFilter}) {
+      {bool isLhs = false, String? assignOp, RhsFilter? rhsFilter}) {
     switch (choose(2)) {
       case 0:
         return emitScalarVar(tp, isLhs: isLhs, rhsFilter: rhsFilter);
         break;
       default:
         return emitSubscriptedVar(depth, tp,
-            isLhs: isLhs, rhsFilter: rhsFilter);
+            isLhs: isLhs, assignOp: assignOp, rhsFilter: rhsFilter);
         break;
     }
   }

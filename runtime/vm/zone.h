@@ -141,14 +141,6 @@ class Zone {
   template <class ElementType>
   static inline void CheckLength(intptr_t len);
 
-  // This buffer is used for allocation before any segments.
-  // This would act as the initial stack allocated chunk so that we don't
-  // end up calling malloc/free on zone scopes that allocate less than
-  // kChunkSize
-  COMPILE_ASSERT(kAlignment <= 8);
-  ALIGN8 uint8_t buffer_[kInitialChunkSize];
-  MemoryRegion initial_buffer_;
-
   // The free region in the current (head) segment or the initial buffer is
   // represented as the half-open interval [position, limit). The 'position'
   // variable is guaranteed to be aligned as dictated by kAlignment.
@@ -169,11 +161,18 @@ class Zone {
   // List of large segments allocated in this zone; may be NULL.
   Segment* large_segments_;
 
+  // Used for chaining zones in order to allow unwinding of stacks.
+  Zone* previous_;
+
   // Structure for managing handles allocation.
   VMHandles handles_;
 
-  // Used for chaining zones in order to allow unwinding of stacks.
-  Zone* previous_;
+  // This buffer is used for allocation before any segments.
+  // This would act as the initial stack allocated chunk so that we don't
+  // end up calling malloc/free on zone scopes that allocate less than
+  // kChunkSize
+  COMPILE_ASSERT(kAlignment <= 8);
+  ALIGN8 uint8_t buffer_[kInitialChunkSize];
 
   friend class StackZone;
   friend class ApiZone;
@@ -274,23 +273,26 @@ inline ElementType* Zone::Realloc(ElementType* old_data,
                                   intptr_t new_len) {
   CheckLength<ElementType>(new_len);
   const intptr_t kElementSize = sizeof(ElementType);
-  uword old_end = reinterpret_cast<uword>(old_data) + (old_len * kElementSize);
-  // Resize existing allocation if nothing was allocated in between...
-  if (Utils::RoundUp(old_end, kAlignment) == position_) {
-    uword new_end =
-        reinterpret_cast<uword>(old_data) + (new_len * kElementSize);
-    // ...and there is sufficient space.
-    if (new_end <= limit_) {
-      ASSERT(new_len >= old_len);
-      position_ = Utils::RoundUp(new_end, kAlignment);
+  if (old_data != nullptr) {
+    uword old_end =
+        reinterpret_cast<uword>(old_data) + (old_len * kElementSize);
+    // Resize existing allocation if nothing was allocated in between...
+    if (Utils::RoundUp(old_end, kAlignment) == position_) {
+      uword new_end =
+          reinterpret_cast<uword>(old_data) + (new_len * kElementSize);
+      // ...and there is sufficient space.
+      if (new_end <= limit_) {
+        ASSERT(new_len >= old_len);
+        position_ = Utils::RoundUp(new_end, kAlignment);
+        return old_data;
+      }
+    }
+    if (new_len <= old_len) {
       return old_data;
     }
   }
-  if (new_len <= old_len) {
-    return old_data;
-  }
   ElementType* new_data = Alloc<ElementType>(new_len);
-  if (old_data != 0) {
+  if (old_data != nullptr) {
     memmove(reinterpret_cast<void*>(new_data),
             reinterpret_cast<void*>(old_data), old_len * kElementSize);
   }

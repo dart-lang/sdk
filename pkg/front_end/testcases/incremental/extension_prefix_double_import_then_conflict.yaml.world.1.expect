@@ -19,15 +19,15 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:5:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.
+// org-dartlang-test:///main.dart:6:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.
 //  - 'Object' is from 'dart:core'.
 // Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
 //   o.onObject;
 //     ^^^^^^^^
-// org-dartlang-test:///lib1.dart:2:14: Context: This is one of the extension members.
+// org-dartlang-test:///lib1.dart:3:14: Context: This is one of the extension members.
 //   String get onObject => "object #1";
 //              ^^^^^^^^
-// org-dartlang-test:///lib2.dart:2:14: Context: This is one of the extension members.
+// org-dartlang-test:///lib2.dart:3:14: Context: This is one of the extension members.
 //   String get onObject => "object #2";
 //              ^^^^^^^^
 //
@@ -37,6 +37,6 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method main() → dynamic {
     dart.core::Object* o = 1;
-    invalid-expression "org-dartlang-test:///main.dart:5:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.\n - 'Object' is from 'dart:core'.\nTry using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.\n  o.onObject;\n    ^^^^^^^^";
+    invalid-expression "org-dartlang-test:///main.dart:6:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.\n - 'Object' is from 'dart:core'.\nTry using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.\n  o.onObject;\n    ^^^^^^^^" in o{<unresolved>}.onObject;
   }
 }

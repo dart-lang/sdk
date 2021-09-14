@@ -112,7 +112,7 @@ Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:55:5 -> Bo
 Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2_lib.dart:17:27 -> TypeLiteralConstant(Object*)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:18:12 -> StaticTearOffConstant(identical)
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> InstantiationConstant(id2<int*>)
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various_2_lib.dart:20:11 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///various_2_lib.dart:20:11 -> BoolConstant(false)
 Evaluated with empty environment: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:41 -> InstantiationConstant(id1<int*>)
 Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:20:41 -> StaticTearOffConstant(id1)
 Evaluated with empty environment: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:47 -> InstantiationConstant(id2<int*>)

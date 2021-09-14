@@ -1300,6 +1300,10 @@ abstract class LabelElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement implements _ExistingElement {
+  /// Returns a list containing all of the extension elements accessible within
+  /// this library.
+  List<ExtensionElement> get accessibleExtensions;
+
   /// Return the compilation unit that defines this library.
   CompilationUnitElement get definingCompilationUnit;
 

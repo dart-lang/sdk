@@ -27,7 +27,7 @@ class PrefixExpressionResolver {
 
   PrefixExpressionResolver({
     required ResolverVisitor resolver,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -210,8 +210,7 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _resolver.flowAnalysis?.flow
-                ?.write(node, element, staticType, null);
+            _resolver.flowAnalysis.flow?.write(node, element, staticType, null);
           }
         }
       }
@@ -226,13 +225,13 @@ class PrefixExpressionResolver {
 
     operand.accept(_resolver);
     operand = node.operand;
-    var whyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(operand);
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(operand);
 
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
         whyNotPromoted: whyNotPromoted);
 
     _recordStaticType(node, _typeProvider.boolType);
 
-    _resolver.flowAnalysis?.flow?.logicalNot_end(node, operand);
+    _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
   }
 }

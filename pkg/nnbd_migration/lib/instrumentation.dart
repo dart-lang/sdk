@@ -240,6 +240,7 @@ abstract class EdgeOriginInfo {
 enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
+  angularAnnotation,
   argumentErrorCheckNotNull,
   callTearOff,
   compoundAssignment,

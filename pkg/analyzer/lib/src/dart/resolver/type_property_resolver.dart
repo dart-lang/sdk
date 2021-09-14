@@ -72,6 +72,12 @@ class TypePropertyResolver {
 
     receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
 
+    if (name == 'new') {
+      _needsGetterError = true;
+      _needsSetterError = true;
+      return _toResult();
+    }
+
     if (_typeSystem.isDynamicBounded(receiverType)) {
       _lookupInterfaceType(
         _typeProvider.objectType,
@@ -129,7 +135,7 @@ class TypePropertyResolver {
       }
 
       List<DiagnosticMessage> messages = [];
-      var flow = _resolver.flowAnalysis?.flow;
+      var flow = _resolver.flowAnalysis.flow;
       if (flow != null) {
         if (receiver != null) {
           messages = _resolver.computeWhyNotPromotedMessages(
@@ -143,8 +149,8 @@ class TypePropertyResolver {
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-          propertyErrorEntity, receiverType,
-          errorCode: errorCode, arguments: [name], messages: messages);
+          errorCode, propertyErrorEntity, receiverType,
+          arguments: [name], messages: messages);
       _reportedGetterError = true;
       _reportedSetterError = true;
 

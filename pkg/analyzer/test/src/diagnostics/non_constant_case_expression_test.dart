@@ -10,13 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionTest);
-    defineReflectiveTests(NonConstantCaseExpressionWithNullSafetyTest);
+    defineReflectiveTests(NonConstantCaseExpressionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class NonConstantCaseExpressionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with NonConstantCaseExpressionTestCases {}
+
+mixin NonConstantCaseExpressionTestCases on PubPackageResolutionTest {
   test_constField() async {
     await assertNoErrorsInCode(r'''
 void f(C e) {
@@ -66,5 +68,6 @@ void f(var e) {
 }
 
 @reflectiveTest
-class NonConstantCaseExpressionWithNullSafetyTest
-    extends NonConstantCaseExpressionTest with WithNullSafetyMixin {}
+class NonConstantCaseExpressionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with NonConstantCaseExpressionTestCases, WithoutNullSafetyMixin {}

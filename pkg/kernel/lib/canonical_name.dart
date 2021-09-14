@@ -263,6 +263,7 @@ class CanonicalName {
     }
   }
 
+  @override
   String toString() => _parent == null ? 'root' : '$parent::$name';
   String toStringInternal() {
     if (isRoot) return "";
@@ -438,6 +439,7 @@ class Reference {
     _node = node;
   }
 
+  @override
   String toString() {
     return "Reference to ${toStringInternal()}";
   }
@@ -597,12 +599,14 @@ class CanonicalNameError {
 
   CanonicalNameError(this.message);
 
+  @override
   String toString() => 'CanonicalNameError: $message';
 }
 
 class CanonicalNameSdkError extends CanonicalNameError {
   CanonicalNameSdkError(String message) : super(message);
 
+  @override
   String toString() => 'CanonicalNameSdkError: $message';
 }
 

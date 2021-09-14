@@ -51,6 +51,9 @@ abstract class BackendUsage {
   /// `true` if 'dart:mirrors' features are used.
   bool get isMirrorsUsed;
 
+  /// `true` if startup timestamps are used.
+  bool get requiresStartupMetrics;
+
   /// `true` if `noSuchMethod` is used.
   bool get isNoSuchMethodUsed;
 
@@ -119,6 +122,9 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   /// `true` if a core-library function requires the preamble file to function.
   bool requiresPreamble = false;
+
+  /// `true` if a core-library function accesses startup timestamps.
+  bool requiresStartupMetrics = false;
 
   @override
   bool isFunctionApplyUsed = false;
@@ -242,6 +248,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
       isFunctionApplyUsed = true;
     } else if (member.library == _commonElements.mirrorsLibrary) {
       isMirrorsUsed = true;
+    } else if (member == _commonElements.rawStartupMetrics) {
+      requiresStartupMetrics = true;
     }
   }
 
@@ -275,7 +283,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   @override
   BackendUsage close() {
-    return new BackendUsageImpl(
+    return BackendUsageImpl(
         globalFunctionDependencies: _globalFunctionDependencies,
         globalClassDependencies: _globalClassDependencies,
         helperFunctionsUsed: _helperFunctionsUsed,
@@ -283,6 +291,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         needToInitializeIsolateAffinityTag: _needToInitializeIsolateAffinityTag,
         needToInitializeDispatchProperty: _needToInitializeDispatchProperty,
         requiresPreamble: requiresPreamble,
+        requiresStartupMetrics: requiresStartupMetrics,
         runtimeTypeUses: _runtimeTypeUses,
         isFunctionApplyUsed: isFunctionApplyUsed,
         isMirrorsUsed: isMirrorsUsed,
@@ -317,6 +326,9 @@ class BackendUsageImpl implements BackendUsage {
   final bool requiresPreamble;
 
   @override
+  final bool requiresStartupMetrics;
+
+  @override
   final bool isFunctionApplyUsed;
 
   @override
@@ -336,6 +348,7 @@ class BackendUsageImpl implements BackendUsage {
       this.needToInitializeIsolateAffinityTag,
       this.needToInitializeDispatchProperty,
       this.requiresPreamble,
+      this.requiresStartupMetrics,
       Set<RuntimeTypeUse> runtimeTypeUses,
       this.isFunctionApplyUsed,
       this.isMirrorsUsed,
@@ -364,12 +377,13 @@ class BackendUsageImpl implements BackendUsage {
     bool needToInitializeIsolateAffinityTag = source.readBool();
     bool needToInitializeDispatchProperty = source.readBool();
     bool requiresPreamble = source.readBool();
+    bool requiresStartupMetrics = source.readBool();
     bool isFunctionApplyUsed = source.readBool();
     bool isMirrorsUsed = source.readBool();
     bool isNoSuchMethodUsed = source.readBool();
     bool isHtmlLoaded = source.readBool();
     source.end(tag);
-    return new BackendUsageImpl(
+    return BackendUsageImpl(
         globalFunctionDependencies: globalFunctionDependencies,
         globalClassDependencies: globalClassDependencies,
         helperFunctionsUsed: helperFunctionsUsed,
@@ -378,6 +392,7 @@ class BackendUsageImpl implements BackendUsage {
         needToInitializeIsolateAffinityTag: needToInitializeIsolateAffinityTag,
         needToInitializeDispatchProperty: needToInitializeDispatchProperty,
         requiresPreamble: requiresPreamble,
+        requiresStartupMetrics: requiresStartupMetrics,
         isFunctionApplyUsed: isFunctionApplyUsed,
         isMirrorsUsed: isMirrorsUsed,
         isNoSuchMethodUsed: isNoSuchMethodUsed,
@@ -399,6 +414,7 @@ class BackendUsageImpl implements BackendUsage {
     sink.writeBool(needToInitializeIsolateAffinityTag);
     sink.writeBool(needToInitializeDispatchProperty);
     sink.writeBool(requiresPreamble);
+    sink.writeBool(requiresStartupMetrics);
     sink.writeBool(isFunctionApplyUsed);
     sink.writeBool(isMirrorsUsed);
     sink.writeBool(isNoSuchMethodUsed);

@@ -7,11 +7,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -191,18 +193,19 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult resolveSimpleIdentifier({
-    required SimpleIdentifier node,
+    required SimpleIdentifierImpl node,
     required bool hasRead,
     required bool hasWrite,
   }) {
     Element? readElementRequested;
     Element? readElementRecovery;
     if (hasRead) {
-      var readLookup = _resolver.lexicalLookup(node: node, setter: false);
-      readElementRequested = readLookup.requested;
+      var readLookup = LexicalLookup.resolveGetter(node.scopeLookupResult!) ??
+          _resolver.thisLookupGetter(node);
+      readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
-        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(node, node.name,
+        _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(node, node.name,
             readElementRequested, readElementRequested.returnType);
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
@@ -211,9 +214,10 @@ class PropertyElementResolver {
     Element? writeElementRequested;
     Element? writeElementRecovery;
     if (hasWrite) {
-      var writeLookup = _resolver.lexicalLookup(node: node, setter: true);
-      writeElementRequested = writeLookup.requested;
-      writeElementRecovery = writeLookup.recovery;
+      var writeLookup = LexicalLookup.resolveSetter(node.scopeLookupResult!) ??
+          _resolver.thisLookupSetter(node);
+      writeElementRequested = _resolver.toLegacyElement(writeLookup?.requested);
+      writeElementRecovery = _resolver.toLegacyElement(writeLookup?.recovery);
 
       AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
         node: node,
@@ -372,7 +376,7 @@ class PropertyElementResolver {
       nameErrorEntity: propertyName,
     );
 
-    _resolver.flowAnalysis?.flow?.propertyGet(
+    _resolver.flowAnalysis.flow?.propertyGet(
         node,
         target,
         propertyName.name,
@@ -652,7 +656,7 @@ class PropertyElementResolver {
             );
           }
         }
-        _resolver.flowAnalysis?.flow?.propertyGet(
+        _resolver.flowAnalysis.flow?.propertyGet(
             node,
             target,
             propertyName.name,

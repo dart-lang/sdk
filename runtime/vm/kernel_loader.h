@@ -227,8 +227,6 @@ class KernelLoader : public ValueObject {
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
   void AnnotateNativeProcedures();
-  void LoadNativeExtensionLibraries();
-  void LoadNativeExtension(const Library& library, const String& uri_path);
   void EvaluateDelayedPragmas();
 
   void ReadVMAnnotations(const Library& library,
@@ -377,7 +375,7 @@ class KernelLoader : public ValueObject {
 
   Thread* thread_;
   Zone* zone_;
-  Isolate* isolate_;
+  NoActiveIsolateScope no_active_isolate_scope_;
   Array& patch_classes_;
   ActiveClass active_class_;
   // This is the offset of the current library within

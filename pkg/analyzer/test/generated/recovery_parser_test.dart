@@ -336,9 +336,9 @@ class B = Object with A {}''', codes:
     parser.parseCompilationUnit2();
     listener.assertErrors([
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 0),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 27, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 0)
     ]);
   }
 
@@ -906,8 +906,8 @@ class C {
   void test_incompleteLocalVariable_atTheEndOfBlock_modifierOnly() {
     Statement statement = parseStatement('final }', expectedEndOffset: 6);
     listener.assertErrors([
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
     ]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'final ;');
@@ -1411,8 +1411,8 @@ class C {
 
   void test_nonStringLiteralUri_import() {
     parseCompilationUnit("import dart:io; class C {}", errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 6),
       expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 7, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 11, 1),

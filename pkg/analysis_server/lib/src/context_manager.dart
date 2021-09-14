@@ -142,6 +142,10 @@ class ContextManagerImpl implements ContextManager {
   /// particular context.
   final DartSdkManager sdkManager;
 
+  /// The path to the package config file override.
+  /// If `null`, then the default discovery mechanism is used.
+  final String? packagesFile;
+
   /// The storage for cached results.
   final ByteStore _byteStore;
 
@@ -213,6 +217,7 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
       this.resourceProvider,
       this.sdkManager,
+      this.packagesFile,
       this._byteStore,
       this._fileContentCache,
       this._performanceLog,
@@ -428,6 +433,7 @@ class ContextManagerImpl implements ContextManager {
       resourceProvider: resourceProvider,
       scheduler: _scheduler,
       sdkPath: sdkManager.defaultSdkDirectory,
+      packagesFile: packagesFile,
       fileContentCache: _fileContentCache,
     );
 
@@ -501,7 +507,7 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  List<String> _getPossibelBazelBinPaths(_BazelWatchedFiles watched) => [
+  List<String> _getPossibleBazelBinPaths(_BazelWatchedFiles watched) => [
         pathContext.join(watched.workspace, 'bazel-bin'),
         pathContext.join(watched.workspace, 'blaze-bin'),
       ];
@@ -530,7 +536,7 @@ class ContextManagerImpl implements ContextManager {
     // we do, we'll simply recreate all contexts to make sure that we follow the
     // correct paths.
     var bazelSymlinkPaths = bazelWatchedPathsPerFolder.values
-        .expand((watched) => _getPossibelBazelBinPaths(watched))
+        .expand((watched) => _getPossibleBazelBinPaths(watched))
         .toSet();
     if (allEvents.any((event) => bazelSymlinkPaths.contains(event.path))) {
       refresh();
@@ -572,15 +578,16 @@ class ContextManagerImpl implements ContextManager {
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
 
-    final isPubpsec = file_paths.isPubspecYaml(pathContext, path);
+    final isPubspec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
+        file_paths.isBazelBuild(pathContext, path) ||
         file_paths.isDotPackages(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
-        isPubpsec ||
+        isPubspec ||
         false) {
       _createAnalysisContexts();
 
-      if (isPubpsec) {
+      if (isPubspec) {
         if (type == ChangeType.REMOVE) {
           callbacks.pubspecRemoved(path);
         } else {
@@ -684,7 +691,7 @@ class ContextManagerImpl implements ContextManager {
   void _startWatchingBazelBinPaths(_BazelWatchedFiles watched) {
     var watcherService = bazelWatcherService;
     if (watcherService == null) return;
-    var paths = _getPossibelBazelBinPaths(watched);
+    var paths = _getPossibleBazelBinPaths(watched);
     watcherService.startWatching(
         watched.workspace, BazelSearchInfo(paths[0], paths));
   }
@@ -693,7 +700,7 @@ class ContextManagerImpl implements ContextManager {
   void _stopWatchingBazelBinPaths(_BazelWatchedFiles watched) {
     var watcherService = bazelWatcherService;
     if (watcherService == null) return;
-    var paths = _getPossibelBazelBinPaths(watched);
+    var paths = _getPossibleBazelBinPaths(watched);
     watcherService.stopWatching(watched.workspace, paths[0]);
   }
 

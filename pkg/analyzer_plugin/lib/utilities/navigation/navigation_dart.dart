@@ -16,17 +16,26 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
 NavigationCollector computeDartNavigation(
-    ResourceProvider resourceProvider,
-    NavigationCollector collector,
-    CompilationUnit unit,
-    int? offset,
-    int? length) {
-  var dartCollector = _DartNavigationCollector(collector, offset, length);
+  ResourceProvider resourceProvider,
+  NavigationCollector collector,
+  CompilationUnit unit,
+  int? offset,
+  int? length, {
+  AnalyzerConverter? analyzerConverter,
+}) {
+  var dartCollector = _DartNavigationCollector(
+      collector, offset, length, analyzerConverter ?? AnalyzerConverter());
   var visitor = _DartNavigationComputerVisitor(resourceProvider, dartCollector);
   if (offset == null || length == null) {
     unit.accept(visitor);
   } else {
     var node = _getNodeForRange(unit, offset, length);
+    // Take the outer-most node that shares this offset/length so that we get
+    // things like ConstructorName instead of SimpleIdentifier.
+    // https://github.com/dart-lang/sdk/issues/46725
+    if (node != null) {
+      node = _getOutermostNode(node);
+    }
     node?.accept(visitor);
   }
   return collector;
@@ -42,14 +51,32 @@ AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
   return node;
 }
 
+/// Gets the outer-most node with the same offset/length as node.
+AstNode _getOutermostNode(AstNode node) {
+  AstNode? current = node;
+  while (current != null &&
+      current.parent != null &&
+      current != current.parent &&
+      current.offset == current.parent!.offset &&
+      current.length == current.parent!.length) {
+    current = current.parent;
+  }
+  return current ?? node;
+}
+
 /// A Dart specific wrapper around [NavigationCollector].
 class _DartNavigationCollector {
   final NavigationCollector collector;
   final int? requestedOffset;
   final int? requestedLength;
+  final AnalyzerConverter _analyzerConverter;
 
   _DartNavigationCollector(
-      this.collector, this.requestedOffset, this.requestedLength);
+    this.collector,
+    this.requestedOffset,
+    this.requestedLength,
+    this._analyzerConverter,
+  );
 
   void _addRegion(int offset, int length, Element? element) {
     element = element?.nonSynthetic;
@@ -66,15 +93,14 @@ class _DartNavigationCollector {
     if (!_isWithinRequestedRange(offset, length)) {
       return;
     }
-    var converter = AnalyzerConverter();
-    var kind = converter.convertElementKind(element.kind);
-    var location = converter.locationFromElement(element);
+    var kind = _analyzerConverter.convertElementKind(element.kind);
+    var location = _analyzerConverter.locationFromElement(element);
     if (location == null) {
       return;
     }
 
     var codeLocation = collector.collectCodeLocations
-        ? _getCodeLocation(element, location, converter)
+        ? _getCodeLocation(element, location)
         : null;
 
     collector.addRegion(offset, length, kind, location,
@@ -103,8 +129,8 @@ class _DartNavigationCollector {
   }
 
   /// Get the location of the code (excluding leading doc comments) for this element.
-  protocol.Location? _getCodeLocation(Element element,
-      protocol.Location location, AnalyzerConverter converter) {
+  protocol.Location? _getCodeLocation(
+      Element element, protocol.Location location) {
     var codeElement = element;
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
@@ -143,7 +169,7 @@ class _DartNavigationCollector {
       codeOffset = offsetAfterDocs;
     }
 
-    return converter.locationFromElement(element,
+    return _analyzerConverter.locationFromElement(element,
         offset: codeOffset, length: codeLength);
   }
 
@@ -284,13 +310,27 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    var parent = node.parent;
-    if (parent is InstanceCreationExpression &&
-        parent.constructorName == node) {
-      _addConstructorName(parent, node);
-    } else if (parent is ConstructorDeclaration &&
-        parent.redirectedConstructor == node) {
-      _addConstructorName(node, node);
+    Element? element = node.staticElement;
+    if (element == null) {
+      return;
+    }
+    // add regions
+    var typeName = node.type;
+    // [prefix].ClassName
+    {
+      var name = typeName.name;
+      var className = name;
+      if (name is PrefixedIdentifier) {
+        name.prefix.accept(this);
+        className = name.identifier;
+      }
+      computer._addRegionForNode(className, element);
+    }
+    // <TypeA, TypeB>
+    typeName.typeArguments?.accept(this);
+    // optional "name"
+    if (node.name != null) {
+      computer._addRegionForNode(node.name, element);
     }
   }
 
@@ -431,34 +471,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitVariableDeclarationList(node);
-  }
-
-  void _addConstructorName(AstNode parent, ConstructorName node) {
-    Element? element = node.staticElement;
-    if (element == null) {
-      return;
-    }
-    // add regions
-    var typeName = node.type;
-    // [prefix].ClassName
-    {
-      var name = typeName.name;
-      var className = name;
-      if (name is PrefixedIdentifier) {
-        name.prefix.accept(this);
-        className = name.identifier;
-      }
-      computer._addRegionForNode(className, element);
-    }
-    // <TypeA, TypeB>
-    var typeArguments = typeName.typeArguments;
-    if (typeArguments != null) {
-      typeArguments.accept(this);
-    }
-    // optional "name"
-    if (node.name != null) {
-      computer._addRegionForNode(node.name, element);
-    }
   }
 
   /// If the source of the given [element] (referenced by the [node]) exists,

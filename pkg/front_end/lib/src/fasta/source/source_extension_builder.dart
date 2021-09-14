@@ -79,6 +79,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
 
+  @override
   Extension get extension => isPatch ? origin._extension : _extension;
 
   /// Builds the [Extension] for this extension build and inserts the members
@@ -278,11 +279,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
-        metadata, library, this, null, fileUri);
+        metadata, library, this, null, fileUri, library.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
-            library, this, null, coreTypes, delayedActionPerformers);
+        typeParameters![i].buildOutlineExpressions(library, this, null,
+            coreTypes, delayedActionPerformers, scope.parent!);
       }
     }
 

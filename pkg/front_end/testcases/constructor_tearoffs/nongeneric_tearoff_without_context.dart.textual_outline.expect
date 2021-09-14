@@ -3,6 +3,7 @@ class A {
   A() {}
   factory A.bar() => new A();
 }
+
 testFoo() => A.foo;
 testNew() => A.new;
 testBar() => A.bar;

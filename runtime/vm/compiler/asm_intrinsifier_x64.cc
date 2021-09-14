@@ -24,26 +24,6 @@ namespace compiler {
 
 #define __ assembler->
 
-intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
-  return 0;
-}
-
-void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
-  COMPILE_ASSERT(!IsAbiPreservedRegister(ARGS_DESC_REG));
-  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
-
-  assembler->Comment("IntrinsicCallPrologue");
-  assembler->movq(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
-}
-
-void AsmIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
-  assembler->Comment("IntrinsicCallEpilogue");
-  assembler->movq(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
-}
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
 void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -1026,21 +1006,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
-void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  __ movq(RAX, Address(RSP, +1 * target::kWordSize));
-  __ movsd(XMM0, FieldAddress(RAX, target::Double::value_offset()));
-  __ OBJ(cvttsd2si)(RAX, XMM0);
-  // Overflow is signalled with minint.
-  // Check for overflow and that it fits into Smi.
-  __ movq(RCX, RAX);
-  __ OBJ(shl)(RCX, Immediate(1));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
@@ -1077,26 +1042,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ ret();
 
   // Fall into the native C++ implementation.
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
-  Label is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, normal_ir_body);
-  // Argument is double and is in RAX.
-  __ movsd(XMM1, FieldAddress(RAX, target::Double::value_offset()));
-  __ Bind(&double_op);
-  __ sqrtsd(XMM0, XMM1);
-  const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump,
-                 RAX,  // Result register.
-                 R13);
-  __ movsd(FieldAddress(RAX, target::Double::value_offset()), XMM0);
-  __ ret();
-  __ Bind(&is_smi);
-  __ SmiUntag(RAX);
-  __ OBJ(cvtsi2sd)(XMM1, RAX);
-  __ jmp(&double_op);
   __ Bind(normal_ir_body);
 }
 
@@ -1182,6 +1127,11 @@ static void JumpIfString(Assembler* assembler, Register cid, Label* target) {
 static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
   RangeCheck(assembler, cid, kOneByteStringCid, kExternalTwoByteStringCid,
              kIfNotInRange, target);
+}
+
+static void JumpIfNotList(Assembler* assembler, Register cid, Label* target) {
+  RangeCheck(assembler, cid, kArrayCid, kGrowableObjectArrayCid, kIfNotInRange,
+             target);
 }
 
 static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
@@ -1275,7 +1225,7 @@ static void EquivalentClassIds(Assembler* assembler,
                                Register scratch,
                                bool testing_instance_cids) {
   Label different_cids, equal_cids_but_generic, not_integer,
-      not_integer_or_string;
+      not_integer_or_string, not_integer_or_string_or_list;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ cmpq(cid1, Immediate(kClosureCid));
@@ -1297,11 +1247,12 @@ static void EquivalentClassIds(Assembler* assembler,
           scratch,
           target::Class::host_type_arguments_field_offset_in_words_offset()));
   __ cmpl(scratch, Immediate(target::Class::kNoTypeArguments));
-  __ j(NOT_EQUAL, &equal_cids_but_generic, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &equal_cids_but_generic);
   __ jmp(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
-  // different representations) or two integer types or two type types.
+  // different representations), two integer types, two list types or two type
+  // types.
   __ Bind(&different_cids);
   __ cmpq(cid1, Immediate(kNumPredefinedCids));
   __ j(ABOVE_EQUAL, not_equal);
@@ -1311,25 +1262,42 @@ static void EquivalentClassIds(Assembler* assembler,
   JumpIfNotInteger(assembler, scratch, &not_integer);
 
   // First type is an integer. Check if the second is an integer too.
-  JumpIfInteger(assembler, cid2, equal);
+  __ movq(scratch, cid2);
+  JumpIfInteger(assembler, scratch, equal);
   // Integer types are only equivalent to other integer types.
   __ jmp(not_equal);
 
   __ Bind(&not_integer);
   // Check if both are String types.
-  JumpIfNotString(assembler, cid1,
+  __ movq(scratch, cid1);
+  JumpIfNotString(assembler, scratch,
                   testing_instance_cids ? &not_integer_or_string : not_equal);
 
   // First type is a String. Check if the second is a String too.
-  JumpIfString(assembler, cid2, equal);
+  __ movq(scratch, cid2);
+  JumpIfString(assembler, scratch, equal);
   // String types are only equivalent to other String types.
   __ jmp(not_equal);
 
   if (testing_instance_cids) {
     __ Bind(&not_integer_or_string);
+    // Check if both are List types.
+    __ movq(scratch, cid1);
+    JumpIfNotList(assembler, scratch, &not_integer_or_string_or_list);
+
+    // First type is a List. Check if the second is a List too.
+    __ movq(scratch, cid2);
+    JumpIfNotList(assembler, scratch, not_equal);
+    ASSERT(compiler::target::Array::type_arguments_offset() ==
+           compiler::target::GrowableObjectArray::type_arguments_offset());
+    __ movq(scratch,
+            Immediate(compiler::target::Array::type_arguments_offset()));
+    __ jmp(&equal_cids_but_generic, Assembler::kNearJump);
+
+    __ Bind(&not_integer_or_string_or_list);
     // Check if the first type is a Type. If it is not then types are not
     // equivalent because they have different class ids and they are not String
-    // or integer or Type.
+    // or integer or List or Type.
     JumpIfNotType(assembler, cid1, not_equal);
 
     // First type is a Type. Check if the second is a Type too.

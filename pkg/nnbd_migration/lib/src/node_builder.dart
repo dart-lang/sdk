@@ -465,9 +465,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _variables!.recordDecoratedElementType(
             declaredElement.variable, decoratedType.returnType);
       } else {
-        _variables!.recordDecoratedElementType(
-            declaredElement.variable, decoratedType.positionalParameters![0],
+        var type = decoratedType.positionalParameters![0];
+        _variables!.recordDecoratedElementType(declaredElement.variable, type,
             soft: true);
+        if (_hasAngularChildAnnotation(node.metadata)) {
+          _graph.makeNullable(
+              type!.node!, AngularAnnotationOrigin(source, node));
+        }
       }
     }
     return null;
@@ -668,6 +672,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _variables!.recordDecoratedElementType(declaredElement, type);
       variable.initializer?.accept(this);
     }
+    var parent = node.parent;
+    if (parent is FieldDeclaration) {
+      if (_hasAngularChildAnnotation(parent.metadata)) {
+        _graph.makeNullable(type!.node!, AngularAnnotationOrigin(source, node));
+      }
+    }
     return null;
   }
 
@@ -794,6 +804,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _handleNullabilityHint(node, decoratedType);
     }
     _variables!.recordDecoratedElementType(declaredElement, decoratedType);
+    for (var annotation in node.metadata) {
+      var element = annotation.element;
+      if (element is ConstructorElement &&
+          element.enclosingElement.name == 'Optional' &&
+          _isAngularUri(element.librarySource.uri)) {
+        _graph.makeNullable(
+            decoratedType!.node!, AngularAnnotationOrigin(source, node));
+      }
+    }
     if (declaredElement.isNamed) {
       _namedParameters![declaredElement.name] = decoratedType;
     } else {
@@ -882,6 +901,35 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     });
     _variables!
         .recordDecoratedDirectSupertypes(declaredElement, decoratedSupertypes);
+  }
+
+  /// Determines if the given [metadata] contains a reference to one of the
+  /// Angular annotations `ViewChild` or `ContentChild`, either of which implies
+  /// nullability of the underlying property.
+  bool _hasAngularChildAnnotation(NodeList<Annotation> metadata) {
+    for (var annotation in metadata) {
+      var element = annotation.element;
+      if (element is ConstructorElement) {
+        var name = element.enclosingElement.name;
+        if ((name == 'ViewChild' || name == 'ContentChild') &&
+            _isAngularUri(element.librarySource.uri)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Determines whether the given [uri] comes from the Angular package.
+  bool _isAngularUri(Uri uri) {
+    if (uri.scheme != 'package') return false;
+    var packageName = uri.pathSegments[0];
+    if (packageName == 'angular') return true;
+    if (packageName == 'third_party.dart_src.angular.angular') {
+      // This name is used for angular development internally at Google.
+      return true;
+    }
+    return false;
   }
 
   T _pushNullabilityNodeTarget<T>(

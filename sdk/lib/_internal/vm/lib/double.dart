@@ -49,11 +49,8 @@ class _Double implements double {
   double _mul(double other) native "Double_mul";
 
   int operator ~/(num other) {
-    return _trunc_div(other.toDouble());
+    return (this / other.toDouble()).truncate();
   }
-
-  @pragma("vm:non-nullable-result-type")
-  int _trunc_div(double other) native "Double_trunc_div";
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
@@ -70,7 +67,8 @@ class _Double implements double {
     return _modulo(other.toDouble());
   }
 
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double _modulo(double other) native "Double_modulo";
 
@@ -142,7 +140,7 @@ class _Double implements double {
   }
 
   int _truncDivFromInteger(int other) {
-    return new _Double.fromInteger(other)._trunc_div(this);
+    return (new _Double.fromInteger(other) / this).truncate();
   }
 
   double _moduloFromInteger(int other) {
@@ -184,16 +182,20 @@ class _Double implements double {
   int ceil() => ceilToDouble().toInt();
   int truncate() => truncateToDouble().toInt();
 
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double roundToDouble() native "Double_round";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double floorToDouble() native "Double_floor";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double ceilToDouble() native "Double_ceil";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double truncateToDouble() native "Double_truncate";
 
@@ -214,7 +216,8 @@ class _Double implements double {
     return this;
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:non-nullable-result-type")
   int toInt() native "Double_toInt";
 

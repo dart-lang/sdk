@@ -9,6 +9,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main_lib1.dart: |
+        // @dart=2.9
         class SuperClass {
           void method(covariant int i) {}
         }
@@ -19,12 +20,14 @@ worlds:
 
         class Class extends SuperClass with Mixin {}
       main_lib2.dart: |
+        // @dart=2.9
         import 'main_lib1.dart';
 
         class SubClass extends Class {}
 
         method() => new SubClass().method(0);
       main.dart: |
+        // @dart=2.9
         import 'main_lib2.dart';
 
         main() {
@@ -39,6 +42,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'main_lib2.dart';
 
         main() {
@@ -55,6 +59,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'main_lib2.dart';
 
         main() {

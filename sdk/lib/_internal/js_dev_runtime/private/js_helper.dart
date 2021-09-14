@@ -479,7 +479,6 @@ class Primitives {
  * Diagnoses an indexing error. Returns the ArgumentError or RangeError that
  * describes the problem.
  */
-@NoInline()
 Error diagnoseIndexError(indexable, int index) {
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
@@ -495,7 +494,6 @@ Error diagnoseIndexError(indexable, int index) {
  * Diagnoses a range error. Returns the ArgumentError or RangeError that
  * describes the problem.
  */
-@NoInline()
 Error diagnoseRangeError(int? start, int? end, int length) {
   if (start == null) {
     return ArgumentError.value(start, 'start');
@@ -517,7 +515,6 @@ int stringLastIndexOfUnchecked(receiver, element, start) =>
     JS<int>('!', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
-@NoInline()
 ArgumentError argumentErrorValue(object) {
   return ArgumentError.value(object);
 }
@@ -539,7 +536,6 @@ throwAbstractClassInstantiationError(className) {
   throw AbstractClassInstantiationError(className);
 }
 
-@NoInline()
 throwConcurrentModificationError(collection) {
   throw ConcurrentModificationError(collection);
 }

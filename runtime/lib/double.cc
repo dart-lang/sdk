@@ -67,23 +67,6 @@ DEFINE_NATIVE_ENTRY(Double_div, 0, 2) {
   return Double::New(left / right);
 }
 
-static IntegerPtr DoubleToInteger(double val, const char* error_msg) {
-  if (isinf(val) || isnan(val)) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, String::Handle(String::New(error_msg)));
-    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-  }
-  int64_t ival = 0;
-  if (val <= static_cast<double>(kMinInt64)) {
-    ival = kMinInt64;
-  } else if (val >= static_cast<double>(kMaxInt64)) {
-    ival = kMaxInt64;
-  } else {  // Representable in int64_t.
-    ival = static_cast<int64_t>(val);
-  }
-  return Integer::New(ival);
-}
-
 DEFINE_NATIVE_ENTRY(Double_hashCode, 0, 1) {
   double val = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   if (FLAG_trace_intrinsified_natives) {
@@ -99,17 +82,6 @@ DEFINE_NATIVE_ENTRY(Double_hashCode, 0, 1) {
 
   uint64_t uval = bit_cast<uint64_t>(val);
   return Smi::New(((uval >> 32) ^ (uval)) & kSmiMax);
-}
-
-DEFINE_NATIVE_ENTRY(Double_trunc_div, 0, 2) {
-  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
-  double right = right_object.value();
-  if (FLAG_trace_intrinsified_natives) {
-    OS::PrintErr("Double_trunc_div %f ~/ %f\n", left, right);
-  }
-  return DoubleToInteger(trunc(left / right),
-                         "Result of truncating division is Infinity or NaN");
 }
 
 DEFINE_NATIVE_ENTRY(Double_modulo, 0, 2) {
@@ -187,7 +159,7 @@ DEFINE_NATIVE_ENTRY(Double_truncate, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Double_toInt, 0, 1) {
   const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return DoubleToInteger(arg.value(), "Infinity or NaN toInt");
+  return DoubleToInteger(zone, arg.value());
 }
 
 DEFINE_NATIVE_ENTRY(Double_parse, 0, 3) {

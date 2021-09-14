@@ -1,0 +1,11 @@
+class A {
+  A.new();
+  factory A.redirectingFactory() = A.new;
+  factory A.redirectingFactoryChild() = B.new;
+  factory A.redirectingTwice() = A.redirectingFactory;
+}
+
+class B extends A {}
+
+main() => test();
+test() {}

@@ -76,19 +76,16 @@ class VirtualMemory {
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 
-  void release() {
-    // Make sure no pages would be leaked.
-    const uword size_ = size();
-    ASSERT(address() == reserved_.pointer() && size_ == reserved_.size());
-    reserved_ = MemoryRegion(nullptr, 0);
-  }
-
  private:
   static intptr_t CalculatePageSize();
 
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
   static bool FreeSubSegment(void* address, intptr_t size);
+
+  static VirtualMemory* Reserve(intptr_t size, intptr_t alignment);
+  static void Commit(void* address, intptr_t size);
+  static void Decommit(void* address, intptr_t size);
 
   // These constructors are only used internally when reserving new virtual
   // spaces. They do not reserve any virtual address space on their own.
@@ -112,6 +109,7 @@ class VirtualMemory {
   MemoryRegion reserved_;
 
   static uword page_size_;
+  static VirtualMemory* compressed_heap_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };

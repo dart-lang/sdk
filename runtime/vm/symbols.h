@@ -61,7 +61,6 @@ class ObjectPointerVisitor;
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
   V(DartDeveloperTimeline, "dart.developer.timeline")                          \
-  V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartFfi, "dart:ffi")                                                       \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsVM, "dart.isVM")                                                     \
@@ -415,7 +414,6 @@ class ObjectPointerVisitor;
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
   V(_objectToString, "_objectToString")                                        \
   V(_onData, "_onData")                                                        \
-  V(_rehash, "_rehash")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \

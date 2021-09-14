@@ -388,6 +388,9 @@ abstract class CommonElements {
   /// Holds the method "requiresPreamble" in _js_helper.
   FunctionEntity get requiresPreambleMarker;
 
+  /// Holds the method "_rawStartupMetrics" in _js_helper.
+  FunctionEntity get rawStartupMetrics;
+
   FunctionEntity get loadLibraryWrapper;
 
   FunctionEntity get loadDeferredLibrary;
@@ -567,10 +570,6 @@ abstract class KCommonElements implements CommonElements {
   FieldEntity get pragmaClassOptionsField;
 
   bool isCreateInvocationMirrorHelper(MemberEntity member);
-
-  ClassEntity get metaNoInlineClass;
-
-  ClassEntity get metaTryInlineClass;
 }
 
 abstract class JCommonElements implements CommonElements {
@@ -1665,6 +1664,11 @@ class CommonElementsImpl
   FunctionEntity get requiresPreambleMarker =>
       _requiresPreambleMarker ??= _findHelperFunction('requiresPreamble');
 
+  FunctionEntity _rawStartupMetrics;
+  @override
+  FunctionEntity get rawStartupMetrics =>
+      _rawStartupMetrics ??= _findHelperFunction('rawStartupMetrics');
+
   @override
   FunctionEntity get loadLibraryWrapper =>
       _findHelperFunction("_loadLibraryWrapper");
@@ -2103,38 +2107,6 @@ class CommonElementsImpl
   ClassEntity get jsBuiltinEnum => _jsBuiltinEnum ??= _findClass(
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsBuiltin');
-
-  bool _metaAnnotationChecked = false;
-  ClassEntity _metaNoInlineClass;
-  ClassEntity _metaTryInlineClass;
-
-  void _ensureMetaAnnotations() {
-    if (!_metaAnnotationChecked) {
-      _metaAnnotationChecked = true;
-      LibraryEntity library = _env.lookupLibrary(Uris.package_meta_dart2js);
-      if (library != null) {
-        _metaNoInlineClass = _env.lookupClass(library, '_NoInline');
-        _metaTryInlineClass = _env.lookupClass(library, '_TryInline');
-        if (_metaNoInlineClass == null || _metaTryInlineClass == null) {
-          // This is not the package you're looking for.
-          _metaNoInlineClass = null;
-          _metaTryInlineClass = null;
-        }
-      }
-    }
-  }
-
-  @override
-  ClassEntity get metaNoInlineClass {
-    _ensureMetaAnnotations();
-    return _metaNoInlineClass;
-  }
-
-  @override
-  ClassEntity get metaTryInlineClass {
-    _ensureMetaAnnotations();
-    return _metaTryInlineClass;
-  }
 
   @override
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;

@@ -11,9 +11,11 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
 import 'package:dartdev/src/commands/migrate.dart';
+import 'package:devtools_server/devtools_server.dart';
 import 'package:meta/meta.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
+
 import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
@@ -27,6 +29,7 @@ import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/events.dart';
 import 'src/experiments.dart';
+import 'src/sdk.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
@@ -34,6 +37,15 @@ import 'src/vm_interop_handler.dart';
 /// analytics logic, it has been moved here.
 Future<void> runDartdev(List<String> args, SendPort port) async {
   VmInteropHandler.initialize(port);
+
+  // TODO(sigurdm): Remove when top-level pub is removed.
+  if (args[0] == '__deprecated_pub') {
+    // This is the entry-point supporting the top-level `pub` script.
+    // ignore: deprecated_member_use
+    VmInteropHandler.exit(await deprecatedpubCommand().run(args.skip(1)));
+    return;
+  }
+
   if (args.contains('run')) {
     // These flags have a format that can't be handled by package:args, so while
     // they are valid flags we'll assume the VM has verified them by this point.
@@ -101,6 +113,13 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
+    addCommand(DevToolsCommand(
+      verbose: verbose,
+      // TODO(devoncarew): Un-hide this command after a stabilization period
+      // likely before the next stable release (before Dart 2.15).
+      hidden: !verbose,
+      customDevToolsPath: sdk.devToolsBinaries,
+    ));
     addCommand(FixCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
@@ -116,6 +135,7 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   String get invocation =>
       'dart ${verbose ? '[vm-options] ' : ''}<command|dart-file> [arguments]';
+
   @override
   String get usageFooter =>
       'See https://dart.dev/tools/dart-tool for detailed documentation.';

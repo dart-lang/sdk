@@ -8,9 +8,11 @@ worlds:
     errors: true
     sources:
       main.dart: |
+        // @dart=2.9
         part 'lib.dart';
         main() {}
       lib.dart: |
+        // @dart=2.9
         methodFromLib() {}
     expectedLibraryCount: 2
 
@@ -20,9 +22,11 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         part 'lib.dart';
         main() {}
       lib.dart: |
+        // @dart=2.9
         methodFromLib() {}
     expectedLibraryCount: 2
 
@@ -32,8 +36,10 @@ worlds:
       - lib.dart
     sources:
       main.dart: |
+        // @dart=2.9
         part 'lib.dart';
         main() {}
       lib.dart: |
+        // @dart=2.9
         methodFromLib() {}
     expectedLibraryCount: 2

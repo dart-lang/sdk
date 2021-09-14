@@ -630,7 +630,7 @@ void f(A a) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -664,7 +664,7 @@ void f(A a) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -699,7 +699,7 @@ void f(p.A a) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -740,7 +740,7 @@ void f(p.A a) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );

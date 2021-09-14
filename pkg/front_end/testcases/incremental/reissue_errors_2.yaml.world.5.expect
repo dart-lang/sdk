@@ -3,7 +3,7 @@ library from "org-dartlang-test:///b.dart" as b {
 //
 // Problems in library:
 //
-// org-dartlang-test:///b.dart:3:7: Error: 'B' is a supertype of itself.
+// org-dartlang-test:///b.dart:4:7: Error: 'B' is a supertype of itself.
 // class B extends A {}
 //       ^
 //
@@ -30,7 +30,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:3:7: Error: 'A' is a supertype of itself.
+// org-dartlang-test:///main.dart:4:7: Error: 'A' is a supertype of itself.
 // class A extends B {}
 //       ^
 //

@@ -38,7 +38,7 @@ Future<void> runStandardSuites([List<String>? args]) async {
   }
 }
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   if (args.isEmpty) {
     await runStandardSuites();
     for (String suite in specialSuites) {

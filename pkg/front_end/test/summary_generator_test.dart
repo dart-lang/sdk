@@ -10,7 +10,7 @@ import 'package:kernel/kernel.dart';
 
 import 'package:test/test.dart';
 
-main() {
+void main() {
   test('summary has no source-info by default', () async {
     var summary = await summarize(['a.dart'], allSources);
     var component = loadComponentFromBytes(summary);
@@ -114,7 +114,7 @@ var allSources = <String, String>{
 };
 
 /// Helper function to check that some expectations from the summary of D.
-checkDSummary(List<int> summary) {
+void checkDSummary(List<int> summary) {
   var component = loadComponentFromBytes(summary);
   var aLib = findLibrary(component, 'a.dart');
   var bLib = findLibrary(component, 'b.dart');

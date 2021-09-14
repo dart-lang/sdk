@@ -101,6 +101,7 @@ abstract class Node {
   ///
   /// The data is generally bare-bones, but can easily be updated for your
   /// specific debugging needs.
+  @override
   String toString();
 
   /// Returns the textual representation of this node for use in debugging.
@@ -138,6 +139,7 @@ abstract class Node {
 /// This is anything other than [Name] and [DartType] nodes.
 abstract class TreeNode extends Node {
   static int _hashCounter = 0;
+  @override
   final int hashCode = _hashCounter = (_hashCounter + 1) & 0x3fffffff;
   static const int noOffset = -1;
 
@@ -149,8 +151,11 @@ abstract class TreeNode extends Node {
   /// not available (this is the default if none is specifically set).
   int fileOffset = noOffset;
 
+  @override
   R accept<R>(TreeVisitor<R> v);
+  @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg);
+  @override
   void visitChildren(Visitor v);
   void transformChildren(Transformer v);
   void transformOrRemoveChildren(RemovingTransformer v);
@@ -608,10 +613,12 @@ class Library extends NamedNode
     printer.write(libraryNameToString(this));
   }
 
+  @override
   Location? _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
+  @override
   String leakingDebugToString() => astToText.debugLibraryToString(this);
 }
 
@@ -1510,6 +1517,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   String name;
 
   /// The URI of the source file this class was loaded from.
+  @override
   Uri fileUri;
 
   /// Type parameters declared on the extension.
@@ -1595,6 +1603,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
     v.transformList(typeParameters, this);
     // ignore: unnecessary_null_comparison
     if (onType != null) {
@@ -1604,6 +1613,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
     // ignore: unnecessary_null_comparison
     if (onType != null) {
@@ -2260,6 +2270,7 @@ class RedirectingFactory extends Member {
   /// The `FunctionNode.body` is `null` or a synthesized [ConstructorInvocation]
   /// of the [targetReference] constructor using the [typeArguments] and
   /// [VariableGet] of the parameters.
+  @override
   FunctionNode function;
 
   RedirectingFactory(this.targetReference,
@@ -3251,7 +3262,7 @@ class AssertInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    statement.toTextInternal(printer);
   }
 }
 
@@ -3706,7 +3717,12 @@ class InvalidExpression extends Expression {
   // TODO(johnniwinther): Avoid using `null` as the empty string.
   String? message;
 
-  InvalidExpression(this.message);
+  /// The expression containing the error.
+  Expression? expression;
+
+  InvalidExpression(this.message, [this.expression]) {
+    expression?.parent = this;
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -3724,13 +3740,25 @@ class InvalidExpression extends Expression {
       v.visitInvalidExpression(this, arg);
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    expression?.accept(v);
+  }
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = v.transform(expression!);
+      expression?.parent = this;
+    }
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression!);
+      expression?.parent = this;
+    }
+  }
 
   @override
   String toString() {
@@ -3741,6 +3769,10 @@ class InvalidExpression extends Expression {
   void toTextInternal(AstPrinter printer) {
     printer.write('<invalid:');
     printer.write(message ?? '');
+    if (expression != null) {
+      printer.write(', ');
+      printer.writeExpression(expression!);
+    }
     printer.write('>');
   }
 }
@@ -5028,6 +5060,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
   static const int FlagBoundsSafe = 1 << 1;
 
   final InstanceAccessKind kind;
+  @override
   Expression receiver;
 
   @override
@@ -5201,6 +5234,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
   static const int FlagBoundsSafe = 1 << 1;
 
   final InstanceAccessKind kind;
+  @override
   Expression receiver;
 
   @override
@@ -5307,6 +5341,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
+    functionType?.accept(v);
   }
 
   @override
@@ -5321,6 +5356,9 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType!) as FunctionType;
+    }
   }
 
   @override
@@ -5334,6 +5372,10 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType!, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -6067,9 +6109,14 @@ class Instantiation extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    FunctionType type = expression.getStaticType(context) as FunctionType;
-    return Substitution.fromPairs(type.typeParameters, typeArguments)
-        .substituteType(type.withoutTypeParameters);
+    DartType type = expression.getStaticType(context);
+    if (type is FunctionType) {
+      return Substitution.fromPairs(type.typeParameters, typeArguments)
+          .substituteType(type.withoutTypeParameters);
+    }
+    assert(type is InvalidType || type is NeverType,
+        "Unexpected operand type $type for $expression");
+    return type;
   }
 
   @override
@@ -6784,6 +6831,7 @@ class InstanceCreation extends Expression {
 class FileUriExpression extends Expression implements FileUriNode {
   /// The URI of the source file in which the subexpression is located.
   /// Can be different from the file containing the [FileUriExpression].
+  @override
   Uri fileUri;
 
   Expression expression;
@@ -6869,6 +6917,7 @@ class IsExpression extends Expression {
         : (flags & ~FlagForNonNullableByDefault);
   }
 
+  @override
   DartType getStaticType(StaticTypeContext context) =>
       getStaticTypeInternal(context);
 
@@ -7286,6 +7335,7 @@ class NullLiteral extends BasicLiteral {
   @override
   Object? get value => null;
 
+  @override
   DartType getStaticType(StaticTypeContext context) =>
       getStaticTypeInternal(context);
 
@@ -7398,6 +7448,7 @@ class TypeLiteral extends Expression {
 }
 
 class ThisExpression extends Expression {
+  @override
   DartType getStaticType(StaticTypeContext context) =>
       getStaticTypeInternal(context);
 
@@ -7791,12 +7842,14 @@ class MapLiteralEntry extends TreeNode {
     return "MapEntry(${toStringInternal()})";
   }
 
+  @override
   String toText(AstTextStrategy strategy) {
     AstPrinter printer = new AstPrinter(strategy);
     toTextInternal(printer);
     return printer.getText();
   }
 
+  @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(key);
     printer.write(': ');
@@ -10329,6 +10382,7 @@ abstract class DartType extends Node {
   @override
   R accept<R>(DartTypeVisitor<R> v);
 
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg);
 
   @override
@@ -10984,6 +11038,7 @@ class FunctionType extends DartType {
 ///
 /// The underlying type can be extracted using [unalias].
 class TypedefType extends DartType {
+  @override
   final Nullability declaredNullability;
   final Reference typedefReference;
   final List<DartType> typeArguments;
@@ -11088,6 +11143,7 @@ class TypedefType extends DartType {
 class FutureOrType extends DartType {
   final DartType typeArgument;
 
+  @override
   final Nullability declaredNullability;
 
   FutureOrType(this.typeArgument, this.declaredNullability);
@@ -11320,12 +11376,14 @@ class NamedType extends Node implements Comparable<NamedType> {
     return "NamedType(${toStringInternal()})";
   }
 
+  @override
   String toText(AstTextStrategy strategy) {
     AstPrinter printer = new AstPrinter(strategy);
     printer.writeNamedType(this);
     return printer.getText();
   }
 
+  @override
   void toTextInternal(AstPrinter printer) {
     if (isRequired) {
       printer.write("required ");
@@ -12064,12 +12122,14 @@ class Supertype extends Node {
 
   Class get classNode => className.asClass;
 
+  @override
   R accept<R>(Visitor<R> v) => v.visitSupertype(this);
 
   @override
   R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitSupertype(this, arg);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     classNode.acceptReference(v);
     visitList(typeArguments, v);
   }
@@ -12078,6 +12138,7 @@ class Supertype extends Node {
     return new InterfaceType(classNode, Nullability.legacy, typeArguments);
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Supertype) {
@@ -12092,6 +12153,7 @@ class Supertype extends Node {
     }
   }
 
+  @override
   int get hashCode {
     int hash = 0x3fffffff & className.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
@@ -12627,7 +12689,8 @@ class InstanceConstant extends Constant {
 
   Class get classNode => classReference.asClass;
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
     visitList(typeArguments, v);
     for (final Reference reference in fieldValues.keys) {
@@ -12638,6 +12701,7 @@ class InstanceConstant extends Constant {
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
 
   @override
@@ -12858,13 +12922,16 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   @override
   String toString() => 'ConstructorTearOffConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => targetReference.hashCode;
 
+  @override
   bool operator ==(Object other) {
     return other is ConstructorTearOffConstant &&
         other.targetReference == targetReference;
   }
 
+  @override
   FunctionType getType(StaticTypeContext context) {
     return function.computeFunctionType(context.nonNullable);
   }
@@ -12917,13 +12984,16 @@ class RedirectingFactoryTearOffConstant extends Constant
   String toString() =>
       'RedirectingFactoryTearOffConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => targetReference.hashCode;
 
+  @override
   bool operator ==(Object other) {
     return other is RedirectingFactoryTearOffConstant &&
         other.targetReference == targetReference;
   }
 
+  @override
   FunctionType getType(StaticTypeContext context) {
     return function.computeFunctionType(context.nonNullable);
   }
@@ -12934,6 +13004,7 @@ class TypedefTearOffConstant extends Constant {
   final TearOffConstant tearOffConstant;
   final List<DartType> types;
 
+  @override
   late final int hashCode = _computeHashCode();
 
   TypedefTearOffConstant(this.parameters, this.tearOffConstant, this.types);
@@ -12970,6 +13041,7 @@ class TypedefTearOffConstant extends Constant {
   @override
   String toString() => 'TypedefTearOffConstant(${toStringInternal()})';
 
+  @override
   bool operator ==(Object other) {
     if (other is! TypedefTearOffConstant) return false;
     if (other.tearOffConstant != tearOffConstant) return false;
@@ -13008,6 +13080,7 @@ class TypedefTearOffConstant extends Constant {
     return hash;
   }
 
+  @override
   DartType getType(StaticTypeContext context) {
     FunctionType type = tearOffConstant.getType(context) as FunctionType;
     FreshTypeParameters freshTypeParameters =
@@ -13065,6 +13138,7 @@ class TypeLiteralConstant extends Constant {
     return other is TypeLiteralConstant && other.type == type;
   }
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.typeRawType(context.nonNullable);
 }
@@ -13096,6 +13170,7 @@ class UnevaluatedConstant extends Constant {
   R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
       v.visitUnevaluatedConstantReference(this, arg);
 
+  @override
   DartType getType(StaticTypeContext context) =>
       expression.getStaticType(context);
 
@@ -13303,6 +13378,7 @@ class Component extends TreeNode {
     // TODO(johnniwinther): Implement this.
   }
 
+  @override
   String leakingDebugToString() => astToText.debugComponentToString(this);
 }
 
@@ -13315,6 +13391,7 @@ class Location {
 
   Location(this.file, this.line, this.column);
 
+  @override
   String toString() => '$file:$line:$column';
 }
 

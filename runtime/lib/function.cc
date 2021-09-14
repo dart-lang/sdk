@@ -40,34 +40,45 @@ static bool ClosureEqualsHelper(Zone* zone,
     return false;
   }
   const auto& other_closure = Closure::Cast(other);
-  // Check that the delayed type argument vectors match.
-  if (receiver.delayed_type_arguments() !=
-      other_closure.delayed_type_arguments()) {
-    // Mismatches should only happen when a generic function is involved.
-    ASSERT(Function::Handle(receiver.function()).IsGeneric() ||
-           Function::Handle(other_closure.function()).IsGeneric());
-    return false;
-  }
-  // Closures that are not implicit instance closures are unique.
+  // Closures that are not implicit closures (tear-offs) are unique.
   const auto& func_a = Function::Handle(zone, receiver.function());
-  if (!func_a.IsImplicitInstanceClosureFunction()) {
+  if (!func_a.IsImplicitClosureFunction()) {
     return false;
   }
   const auto& func_b = Function::Handle(zone, other_closure.function());
-  if (!func_b.IsImplicitInstanceClosureFunction()) {
+  if (!func_b.IsImplicitClosureFunction()) {
     return false;
   }
   // If the closure functions are not the same, check the function's name and
   // owner, as multiple function objects could exist for the same function due
   // to hot reload.
   if (func_a.ptr() != func_b.ptr() &&
-      (func_a.name() != func_b.name() || func_a.Owner() != func_b.Owner())) {
+      (func_a.name() != func_b.name() || func_a.Owner() != func_b.Owner() ||
+       func_a.is_static() != func_b.is_static())) {
     return false;
   }
-  // Check that the both receiver instances are the same.
-  const Context& context_a = Context::Handle(zone, receiver.context());
-  const Context& context_b = Context::Handle(zone, other_closure.context());
-  return context_a.At(0) == context_b.At(0);
+  // Check that the delayed type argument vectors match.
+  if (receiver.delayed_type_arguments() !=
+      other_closure.delayed_type_arguments()) {
+    // Mismatches should only happen when a generic function is involved.
+    ASSERT(func_a.IsGeneric() || func_b.IsGeneric());
+    const auto& type_args_a =
+        TypeArguments::Handle(zone, receiver.delayed_type_arguments());
+    const auto& type_args_b =
+        TypeArguments::Handle(zone, other_closure.delayed_type_arguments());
+    if (type_args_a.IsNull() || type_args_b.IsNull() ||
+        (type_args_a.Length() != type_args_b.Length()) ||
+        !type_args_a.IsEquivalent(type_args_b, TypeEquality::kSyntactical)) {
+      return false;
+    }
+  }
+  if (!func_a.is_static()) {
+    // Check that the both receiver instances are the same.
+    const Context& context_a = Context::Handle(zone, receiver.context());
+    const Context& context_b = Context::Handle(zone, other_closure.context());
+    return context_a.At(0) == context_b.At(0);
+  }
+  return true;
 }
 
 DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {

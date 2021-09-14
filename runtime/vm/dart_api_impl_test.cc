@@ -24,6 +24,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, verify_acquired_data);
+DECLARE_FLAG(bool, complete_timeline);
 
 #ifndef PRODUCT
 
@@ -9305,13 +9306,13 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
 
 TEST_CASE(DartAPI_InvokeVMServiceMethod) {
   char buffer[1024];
-  snprintf(buffer, sizeof(buffer),
-           R"({
-               "jsonrpc": 2.0,
-               "id": "foo",
-               "method": "getVM",
-               "params": { }
-              })");
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 R"({
+                  "jsonrpc": 2.0,
+                  "id": "foo",
+                  "method": "getVM",
+                  "params": { }
+                 })");
   uint8_t* response_json = nullptr;
   intptr_t response_json_length = 0;
   char* error = nullptr;
@@ -9360,6 +9361,152 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
   EXPECT(Dart_IsBoolean(result));
   EXPECT(result == Dart_True());
 }
+
+static Monitor* loop_test_lock = new Monitor();
+static bool loop_test_exit = false;
+static bool loop_reset_count = false;
+
+#if !defined(PRODUCT)
+static void InvokeServiceMessages(uword param) {
+  char buffer[1024];
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 R"({
+                  "jsonrpc": 2.0,
+                  "id": "foo",
+                  "method": "getVM",
+                  "params": { }
+                 })");
+  uint8_t* response_json = nullptr;
+  intptr_t response_json_length = 0;
+  char* error = nullptr;
+  uint32_t count = 0;
+  do {
+    error = nullptr;
+    response_json = nullptr;
+    response_json_length = 0;
+    const bool success = Dart_InvokeVMServiceMethod(
+        reinterpret_cast<uint8_t*>(buffer), strlen(buffer), &response_json,
+        &response_json_length, &error);
+    if (success) {
+      MonitorLocker ml(loop_test_lock);
+      EXPECT(error == nullptr);
+      free(response_json);
+      if (count == 10) {
+        loop_test_exit = true;
+        ml.Notify();
+      }
+      count++;
+    } else {
+      free(error);
+    }
+  } while (count < 100);
+}
+
+TEST_CASE(DartAPI_InvokeVMServiceMethod_Loop) {
+  MonitorLocker ml(loop_test_lock);
+  loop_test_exit = false;
+  loop_reset_count = false;
+  OSThread::Start("InvokeServiceMessages", InvokeServiceMessages, 0);
+  while (!loop_test_exit) {
+    ml.Wait();
+  }
+}
+#endif  // !defined(PRODUCT)
+
+static void HandleResponse(Dart_Port dest_port_id, Dart_CObject* message) {
+  printf("Response received\n");
+}
+
+static void CreateNativePorts(uword param) {
+  uint32_t count = 0;
+  do {
+    const Dart_Port port_id = Dart_NewNativePort("tst", &HandleResponse, false);
+    if (port_id != ILLEGAL_PORT) {
+      Dart_CloseNativePort(port_id);
+      MonitorLocker ml(loop_test_lock);
+      if (count == 10) {
+        loop_test_exit = true;
+        ml.Notify();
+      }
+      count++;
+    }
+  } while (count < 100);
+}
+
+TEST_CASE(DartAPI_NativePort_Loop) {
+  MonitorLocker ml(loop_test_lock);
+  loop_test_exit = false;
+  loop_reset_count = false;
+  OSThread::Start("NativePort", CreateNativePorts, 0);
+  while (!loop_test_exit) {
+    ml.Wait();
+  }
+}
+
+#if !defined(PRODUCT)
+static void CreateTimelineEvents(uword param) {
+  {
+    MonitorLocker ml(loop_test_lock);
+    loop_test_exit = true;
+    ml.Notify();
+  }
+  do {
+    Dart_TimelineEvent("T1", 0, 1, Dart_Timeline_Event_Begin, 0, NULL, NULL);
+    Dart_TimelineEvent("T1", 0, 9, Dart_Timeline_Event_End, 0, NULL, NULL);
+    Dart_TimelineEvent("T2", 0, 1, Dart_Timeline_Event_Instant, 0, NULL, NULL);
+    Dart_TimelineEvent("T3", 0, 2, Dart_Timeline_Event_Duration, 0, NULL, NULL);
+    Dart_TimelineEvent("T4", 0, 3, Dart_Timeline_Event_Async_Begin, 0, NULL,
+                       NULL);
+    Dart_TimelineEvent("T4", 9, 3, Dart_Timeline_Event_Async_End, 0, NULL,
+                       NULL);
+    Dart_TimelineEvent("T5", 1, 4, Dart_Timeline_Event_Async_Instant, 0, NULL,
+                       NULL);
+    Dart_TimelineEvent("T7", 1, 4, Dart_Timeline_Event_Counter, 0, NULL, NULL);
+    Dart_TimelineEvent("T8", 1, 4, Dart_Timeline_Event_Flow_Begin, 0, NULL,
+                       NULL);
+    Dart_TimelineEvent("T8", 1, 4, Dart_Timeline_Event_Flow_Step, 0, NULL,
+                       NULL);
+    Dart_TimelineEvent("T8", 1, 4, Dart_Timeline_Event_Flow_End, 0, NULL, NULL);
+  } while (true);
+}
+
+UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
+  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == nullptr);
+  FLAG_complete_timeline = true;
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create_group = TesterState::create_callback;
+  params.shutdown_isolate = TesterState::shutdown_callback;
+  params.cleanup_group = TesterState::group_cleanup_callback;
+  params.start_kernel_isolate = true;
+  char* result = nullptr;
+
+  result = Dart_Initialize(&params);
+  EXPECT(result == nullptr);
+  {
+    MonitorLocker ml(loop_test_lock);
+    loop_test_exit = false;
+    loop_reset_count = false;
+    OSThread::Start("TimelineEvents", CreateTimelineEvents, 0);
+    while (!loop_test_exit) {
+      printf("VM waiting for notification\n");
+      ml.Wait();
+    }
+    loop_test_exit = false;
+  }
+  result = Dart_Cleanup();
+  EXPECT(result == nullptr);
+  for (intptr_t i = 0; i < 50; i++) {
+    EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == nullptr);
+    result = Dart_Initialize(&params);
+    EXPECT(result == nullptr);
+    result = Dart_Cleanup();
+    EXPECT(result == nullptr);
+  }
+}
+#endif  // !defined(PRODUCT)
 
 static intptr_t EchoInt(double x) {
   return x;

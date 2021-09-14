@@ -607,6 +607,7 @@ void Object::InitVtables() {
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(INIT_VTABLE)
+  INIT_VTABLE(GrowableObjectArray)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -630,7 +631,7 @@ void Object::InitVtables() {
     Array fake_handle;                                                         \
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
-  CLASS_LIST_ARRAYS(INIT_VTABLE)
+  CLASS_LIST_FIXED_LENGTH_ARRAYS(INIT_VTABLE)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -2952,7 +2953,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   result.set_num_type_arguments_unsafe(0);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
-  if ((FakeObject::kClassId < kInstanceCid) ||
+  if (IsInternalOnlyClassId(FakeObject::kClassId) ||
       (FakeObject::kClassId == kTypeArgumentsCid)) {
     // VM internal classes are done. There is no finalization needed or
     // possible in this case.
@@ -4465,7 +4466,7 @@ ObjectPtr Class::EvaluateCompiledExpression(
     const Array& arguments,
     const TypeArguments& type_arguments) const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  if (id() < kInstanceCid || id() == kTypeArgumentsCid) {
+  if (IsInternalOnlyClassId(id()) || (id() == kTypeArgumentsCid)) {
     const Instance& exception = Instance::Handle(String::New(
         "Expressions can be evaluated only with regular Dart instances"));
     const Instance& stacktrace = Instance::Handle();
@@ -5496,6 +5497,12 @@ bool Class::IsSubtypeOf(const Class& cls,
       }
       return true;
     }
+
+    // _Closure <: Function
+    if (this_class.IsClosureClass() && other_class.IsDartFunctionClass()) {
+      return true;
+    }
+
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
     Array& interfaces = Array::Handle(zone, this_class.interfaces());
@@ -9351,9 +9358,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_signature.FinalizeNameArray();
   closure_function.InheritKernelOffsetFrom(*this);
 
-  // Change covariant parameter types to either Object? for an opted-in implicit
-  // closure or to Object* for a legacy implicit closure.
   if (!is_static() && !IsConstructor()) {
+    // Change covariant parameter types to either Object? for an opted-in
+    // implicit closure or to Object* for a legacy implicit closure.
     BitVector is_covariant(zone, NumParameters());
     BitVector is_generic_covariant_impl(zone, NumParameters());
     kernel::ReadParameterCovariance(*this, &is_covariant,
@@ -9370,6 +9377,22 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       if (is_covariant.Contains(original_param_index) ||
           is_generic_covariant_impl.Contains(original_param_index)) {
         closure_signature.SetParameterTypeAt(i, object_type);
+      }
+    }
+  } else if (IsConstructor() && closure_signature.IsGeneric()) {
+    // Instantiate types of parameters as they may reference
+    // class type parameters.
+    const auto& instantiator_type_args = TypeArguments::Handle(
+        zone, AbstractType::Handle(zone, closure_signature.result_type())
+                  .arguments());
+    auto& param_type = AbstractType::Handle(zone);
+    for (intptr_t i = kClosure; i < num_params; ++i) {
+      param_type = closure_signature.ParameterTypeAt(i);
+      if (!param_type.IsInstantiated()) {
+        param_type = param_type.InstantiateFrom(instantiator_type_args,
+                                                Object::null_type_arguments(),
+                                                kAllFree, Heap::kOld);
+        closure_signature.SetParameterTypeAt(i, param_type);
       }
     }
   }
@@ -11381,46 +11404,91 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
   return true;
 }
 
-// Given the type G<T0, ..., Tn> and class C<U0, ..., Un> find path to C at G.
-// This path can be used to compute type arguments of C at G.
-//
-// Note: we are relying on the restriction that the same class can only occur
-// once among the supertype.
-static bool FindInstantiationOf(const Type& type,
+bool Class::FindInstantiationOf(Zone* zone,
                                 const Class& cls,
                                 GrowableArray<const AbstractType*>* path,
-                                bool consider_only_super_classes) {
-  if (type.type_class() == cls.ptr()) {
+                                bool consider_only_super_classes) const {
+  ASSERT(cls.is_type_finalized());
+  if (cls.ptr() == ptr()) {
     return true;  // Found instantiation.
   }
 
-  Class& cls2 = Class::Handle();
-  AbstractType& super_type = AbstractType::Handle();
-  super_type = cls.super_type();
-  if (!super_type.IsNull() && !super_type.IsObjectType()) {
-    cls2 = super_type.type_class();
-    path->Add(&super_type);
-    if (FindInstantiationOf(type, cls2, path, consider_only_super_classes)) {
+  Class& cls2 = Class::Handle(zone);
+  AbstractType& super = AbstractType::Handle(zone, super_type());
+  if (!super.IsNull() && !super.IsObjectType()) {
+    cls2 = super.type_class();
+    if (path != nullptr) {
+      path->Add(&super);
+    }
+    if (cls2.FindInstantiationOf(zone, cls, path,
+                                 consider_only_super_classes)) {
       return true;  // Found instantiation.
     }
-    path->RemoveLast();
-  }
-
-  if (!consider_only_super_classes) {
-    Array& super_interfaces = Array::Handle(cls.interfaces());
-    for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
-      super_type ^= super_interfaces.At(i);
-      cls2 = super_type.type_class();
-      path->Add(&super_type);
-      if (FindInstantiationOf(type, cls2, path,
-                              /*consider_only_supertypes=*/false)) {
-        return true;  // Found instantiation.
-      }
+    if (path != nullptr) {
       path->RemoveLast();
     }
   }
 
+  if (!consider_only_super_classes) {
+    Array& super_interfaces = Array::Handle(zone, interfaces());
+    for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
+      super ^= super_interfaces.At(i);
+      cls2 = super.type_class();
+      if (path != nullptr) {
+        path->Add(&super);
+      }
+      if (cls2.FindInstantiationOf(zone, cls, path)) {
+        return true;  // Found instantiation.
+      }
+      if (path != nullptr) {
+        path->RemoveLast();
+      }
+    }
+  }
+
   return false;  // Not found.
+}
+
+bool Class::FindInstantiationOf(Zone* zone,
+                                const Type& type,
+                                GrowableArray<const AbstractType*>* path,
+                                bool consider_only_super_classes) const {
+  return FindInstantiationOf(zone, Class::Handle(zone, type.type_class()), path,
+                             consider_only_super_classes);
+}
+
+TypePtr Class::GetInstantiationOf(Zone* zone, const Class& cls) const {
+  if (ptr() == cls.ptr()) {
+    return DeclarationType();
+  }
+  if (FindInstantiationOf(zone, cls, /*consider_only_super_classes=*/true)) {
+    // Since [cls] is a superclass of [this], use [cls]'s declaration type.
+    return cls.DeclarationType();
+  }
+  const auto& decl_type = Type::Handle(zone, DeclarationType());
+  GrowableArray<const AbstractType*> path(zone, 0);
+  if (!FindInstantiationOf(zone, cls, &path)) {
+    return Type::null();
+  }
+  ASSERT(!path.is_empty());
+  auto& calculated_type = Type::Handle(zone, decl_type.ptr());
+  auto& calculated_type_args =
+      TypeArguments::Handle(zone, calculated_type.arguments());
+  for (auto* const type : path) {
+    calculated_type ^= type->ptr();
+    if (!calculated_type.IsInstantiated()) {
+      calculated_type ^= calculated_type.InstantiateFrom(
+          calculated_type_args, Object::null_type_arguments(), kAllFree,
+          Heap::kNew);
+    }
+    calculated_type_args = calculated_type.arguments();
+  }
+  ASSERT_EQUAL(calculated_type.type_class_id(), cls.id());
+  return calculated_type.ptr();
+}
+
+TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
+  return GetInstantiationOf(zone, Class::Handle(zone, type.type_class()));
 }
 
 void Field::SetStaticValue(const Object& value) const {
@@ -11460,21 +11528,22 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   ASSERT(value.ptr() != Object::sentinel().ptr());
   ASSERT(value.ptr() != Object::transition_sentinel().ptr());
 
+  Zone* const zone = Thread::Current()->zone();
   const TypeArguments& static_type_args =
-      TypeArguments::Handle(static_type.arguments());
+      TypeArguments::Handle(zone, static_type.arguments());
 
-  TypeArguments& args = TypeArguments::Handle();
+  TypeArguments& args = TypeArguments::Handle(zone);
 
   ASSERT(static_type.IsFinalized());
-  const Class& cls = Class::Handle(value.clazz());
+  const Class& cls = Class::Handle(zone, value.clazz());
   GrowableArray<const AbstractType*> path(10);
 
   bool is_super_class = true;
-  if (!FindInstantiationOf(static_type, cls, &path,
-                           /*consider_only_super_classes=*/true)) {
+  if (!cls.FindInstantiationOf(zone, static_type, &path,
+                               /*consider_only_super_classes=*/true)) {
     is_super_class = false;
-    bool found_super_interface = FindInstantiationOf(
-        static_type, cls, &path, /*consider_only_super_classes=*/false);
+    bool found_super_interface =
+        cls.FindInstantiationOf(zone, static_type, &path);
     ASSERT(found_super_interface);
   }
 
@@ -11506,7 +11575,7 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   // To compute C<X0, ..., Xn> at G we walk the chain backwards and
   // instantiate Si using type parameters of S{i-1} which gives us a type
   // depending on type parameters of S{i-2}.
-  AbstractType& type = AbstractType::Handle(path.Last()->ptr());
+  AbstractType& type = AbstractType::Handle(zone, path.Last()->ptr());
   for (intptr_t i = path.length() - 2; (i >= 0) && !type.IsInstantiated();
        i--) {
     args = path[i]->arguments();
@@ -11544,19 +11613,19 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   const intptr_t num_type_params = cls.NumTypeParameters();
   bool trivial_case =
       (num_type_params ==
-       Class::Handle(static_type.type_class()).NumTypeParameters()) &&
+       Class::Handle(zone, static_type.type_class()).NumTypeParameters()) &&
       (value.GetTypeArguments() == static_type.arguments());
   if (!trivial_case && FLAG_trace_field_guards) {
     THR_Print("Not a simple case: %" Pd " vs %" Pd
               " type parameters, %s vs %s type arguments\n",
               num_type_params,
-              Class::Handle(static_type.type_class()).NumTypeParameters(),
+              Class::Handle(zone, static_type.type_class()).NumTypeParameters(),
               SafeTypeArgumentsToCString(
-                  TypeArguments::Handle(value.GetTypeArguments())),
+                  TypeArguments::Handle(zone, value.GetTypeArguments())),
               SafeTypeArgumentsToCString(static_type_args));
   }
 
-  AbstractType& type_arg = AbstractType::Handle();
+  AbstractType& type_arg = AbstractType::Handle(zone);
   args = type.arguments();
   for (intptr_t i = 0; (i < num_type_params) && trivial_case; i++) {
     type_arg = args.TypeAt(i);
@@ -12719,7 +12788,6 @@ static void AddScriptIfUnique(const GrowableObjectArray& scripts,
 }
 
 ArrayPtr Library::LoadedScripts() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
   // We compute the list of loaded scripts lazily. The result is
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
@@ -13080,35 +13148,7 @@ NamespacePtr Library::ImportAt(intptr_t index) const {
 }
 
 void Library::DropDependenciesAndCaches() const {
-  // We need to preserve the "dart-ext:" imports because they are used by
-  // Loader::ReloadNativeExtensions().
-  intptr_t native_import_count = 0;
-  Array& imports = Array::Handle(untag()->imports());
-  Namespace& ns = Namespace::Handle();
-  Library& lib = Library::Handle();
-  String& url = String::Handle();
-  for (int i = 0; i < imports.Length(); ++i) {
-    ns = Namespace::RawCast(imports.At(i));
-    if (ns.IsNull()) continue;
-    lib = ns.target();
-    url = lib.url();
-    if (url.StartsWith(Symbols::DartExtensionScheme())) {
-      native_import_count++;
-    }
-  }
-  Array& new_imports =
-      Array::Handle(Array::New(native_import_count, Heap::kOld));
-  for (int i = 0, j = 0; i < imports.Length(); ++i) {
-    ns = Namespace::RawCast(imports.At(i));
-    if (ns.IsNull()) continue;
-    lib = ns.target();
-    url = lib.url();
-    if (url.StartsWith(Symbols::DartExtensionScheme())) {
-      new_imports.SetAt(j++, ns);
-    }
-  }
-
-  untag()->set_imports(new_imports.ptr());
+  untag()->set_imports(Object::empty_array().ptr());
   untag()->set_exports(Object::empty_array().ptr());
   StoreNonPointer(&untag()->num_imports_, 0);
   untag()->set_resolved_names(Array::null());
@@ -13599,11 +13639,13 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
         zone, String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
-  kernel::KernelLoader loader(kernel_pgm.get(),
-                              /*uri_to_source_table=*/nullptr);
-  auto& result = Object::Handle(
-      zone, loader.LoadExpressionEvaluationFunction(library_url, klass));
-  kernel_pgm.reset();
+  auto& result = Object::Handle(zone);
+  {
+    kernel::KernelLoader loader(kernel_pgm.get(),
+                                /*uri_to_source_table=*/nullptr);
+    result = loader.LoadExpressionEvaluationFunction(library_url, klass);
+    kernel_pgm.reset();
+  }
 
   if (result.IsError()) return result.ptr();
 
@@ -14445,7 +14487,6 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  GRAPH_MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
 
 #undef CHECK_FINGERPRINTS_INNER
 #undef CHECK_FINGERPRINTS
@@ -15774,12 +15815,15 @@ intptr_t ICData::NumberOfUsedChecks() const {
   return count;
 }
 
-void ICData::WriteSentinel(const Array& data, intptr_t test_entry_length) {
+void ICData::WriteSentinel(const Array& data,
+                           intptr_t test_entry_length,
+                           const Object& back_ref) {
   ASSERT(!data.IsNull());
   RELEASE_ASSERT(smi_illegal_cid().Value() == kIllegalCid);
-  for (intptr_t i = 1; i <= test_entry_length; i++) {
+  for (intptr_t i = 2; i <= test_entry_length; i++) {
     data.SetAt(data.Length() - i, smi_illegal_cid());
   }
+  data.SetAt(data.Length() - 1, back_ref);
 }
 
 #if defined(DEBUG)
@@ -15824,6 +15868,11 @@ void ICData::WriteSentinelAt(intptr_t index,
   const intptr_t end = start + TestEntryLength();
   for (intptr_t i = start; i < end; i++) {
     data.SetAt(i, smi_illegal_cid());
+  }
+  // The last slot in the last entry of the [ICData::entries_] is a back-ref to
+  // the [ICData] itself.
+  if (index == (len - 1)) {
+    data.SetAt(end - 1, *this);
   }
 }
 
@@ -15985,7 +16034,7 @@ ArrayPtr ICData::Grow(intptr_t* index) const {
   // Grow the array and write the new final sentinel into place.
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  WriteSentinel(data, TestEntryLength());
+  WriteSentinel(data, TestEntryLength(), *this);
   return data.ptr();
 }
 
@@ -16113,7 +16162,8 @@ bool ICData::IsSentinelAt(intptr_t index) const {
   data = entries();
   const intptr_t entry_length = TestEntryLength();
   intptr_t data_pos = index * TestEntryLength();
-  for (intptr_t i = 0; i < entry_length; i++) {
+  const intptr_t kBackRefLen = (index == (Length() - 1)) ? 1 : 0;
+  for (intptr_t i = 0; i < entry_length - kBackRefLen; i++) {
     if (data.At(data_pos++) != smi_illegal_cid().ptr()) {
       return false;
     }
@@ -16349,7 +16399,7 @@ ICDataPtr ICData::AsUnaryClassChecksSortedByCount() const {
 
     pos += result.TestEntryLength();
   }
-  WriteSentinel(data, result.TestEntryLength());
+  WriteSentinel(data, result.TestEntryLength(), result);
   result.set_entries(data);
   ASSERT(result.NumberOfChecksIs(aggregate.length()));
   return result.ptr();
@@ -16419,7 +16469,8 @@ ArrayPtr ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested,
   // IC data array must be null terminated (sentinel entry).
   const intptr_t len = TestEntryLengthFor(num_args_tested, tracking_exactness);
   const Array& array = Array::Handle(Array::New(len, Heap::kOld));
-  WriteSentinel(array, len);
+  // Only empty [ICData]s are allowed to have a non-ICData backref.
+  WriteSentinel(array, len, /*back_ref=*/smi_illegal_cid());
   array.MakeImmutable();
   return array.ptr();
 }
@@ -16548,7 +16599,7 @@ ICDataPtr ICData::NewWithCheck(const Function& owner,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
 #endif
-  WriteSentinel(array, entry_len);
+  WriteSentinel(array, entry_len, result);
 
   result.set_entries(array);
 
@@ -16631,6 +16682,26 @@ ICDataPtr ICData::Clone(const ICData& from) {
   return result.ptr();
 }
 #endif
+
+ICDataPtr ICData::ICDataOfEntriesArray(const Array& array) {
+  const auto& back_ref = Object::Handle(array.At(array.Length() - 1));
+  if (back_ref.ptr() == smi_illegal_cid().ptr()) {
+    // The ICData must be empty.
+#if defined(DEBUG)
+    const int kMaxTestEntryLen = TestEntryLengthFor(2, true);
+    ASSERT(array.Length() <= kMaxTestEntryLen);
+    for (intptr_t i = 0; i < array.Length(); ++i) {
+      ASSERT(array.At(i) == Object::sentinel().ptr());
+    }
+#endif
+    return ICData::null();
+  }
+  const auto& ic_data = ICData::Cast(back_ref);
+#if defined(DEBUG)
+  ic_data.IsSentinelAt(ic_data.Length() - 1);
+#endif
+  return ic_data.ptr();
+}
 
 const char* WeakSerializationReference::ToCString() const {
   return Object::Handle(target()).ToCString();
@@ -18333,6 +18404,32 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
 
 void SubtypeTestCache::Reset() const {
   set_cache(Array::Handle(cached_array_));
+}
+
+bool SubtypeTestCache::Equals(const SubtypeTestCache& other) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+  if (ptr() == other.ptr()) {
+    return true;
+  }
+  return Array::Handle(cache()).Equals(Array::Handle(other.cache()));
+}
+
+SubtypeTestCachePtr SubtypeTestCache::Copy(Thread* thread) const {
+  ASSERT(thread->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+  if (IsNull()) {
+    return SubtypeTestCache::null();
+  }
+  Zone* const zone = thread->zone();
+  const auto& result = SubtypeTestCache::Handle(zone, SubtypeTestCache::New());
+  // STC caches are copied on write, so no need to copy the array.
+  const auto& entry_cache = Array::Handle(zone, cache());
+  result.set_cache(entry_cache);
+  return result.ptr();
 }
 
 const char* SubtypeTestCache::ToCString() const {
@@ -20334,35 +20431,31 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return false;
   }
   // Function types cannot be handled by Class::IsSubtypeOf().
-  const bool other_is_dart_function_type = other.IsDartFunctionType();
-  if (other_is_dart_function_type || other.IsFunctionType()) {
-    if (IsFunctionType()) {
+  if (IsFunctionType()) {
+    // Any type that can be the type of a closure is a subtype of Function or
+    // non-nullable Object.
+    if (other.IsObjectType() || other.IsDartFunctionType()) {
+      return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
+             !other.IsNonNullable();
+    }
+    if (other.IsFunctionType()) {
+      // Check for two function types.
       if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
           other.IsNonNullable()) {
         return false;
       }
-      if (other_is_dart_function_type) {
-        return true;
-      }
-      // Check for two function types.
       return FunctionType::Cast(*this).IsSubtypeOf(FunctionType::Cast(other),
                                                    space);
     }
-    if (other.IsFunctionType()) {
-      // [this] is not a function type. Therefore, non-function type [this]
-      // cannot be a subtype of function type [other].
-      // This check is needed to avoid falling through to class-based type
-      // tests, which yield incorrect result if [this] = _Closure class,
-      // and [other] is a function type, because class of a function type is
-      // also _Closure.
-      return false;
-    }
-  }
-  if (IsFunctionType()) {
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
     if (IsSubtypeOfFutureOr(zone, other, space, trail)) {
       return true;
     }
+    // All possible supertypes for FunctionType have been checked.
+    return false;
+  } else if (other.IsFunctionType()) {
+    // FunctionTypes can only be subtyped by other FunctionTypes, so don't
+    // fall through to class-based type tests.
     return false;
   }
   const Class& type_cls = Class::Handle(zone, type_class());

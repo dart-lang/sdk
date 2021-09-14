@@ -12,10 +12,14 @@ library;
 // main(arguments = [x]) {
 //                  ^
 //
-// pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:19: Error: Getter not found: 'x'.
+// pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:19: Error: Undefined name 'x'.
 // main(arguments = [x]) {
 //                   ^
 //
+// pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:18: Error: Non-constant list literal is not a constant expression.
+// main(arguments = [x]) {
+//                  ^
+//
 import self as self;
 
-static method main(dynamic arguments = invalid-expression "Non-constant list literal") → dynamic {}
+static method main(dynamic arguments = invalid-expression "Non-constant list literal is not a constant expression.") → dynamic {}

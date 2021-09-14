@@ -93,6 +93,7 @@ class Configuration {
 }
 
 class MessageTestSuite extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const Validate(),
     const Compile(),
@@ -145,6 +146,7 @@ class MessageTestSuite extends ChainContext {
   /// problem that a message can have. This problem will then be reported as a
   /// failure by the [Validate] step that can be suppressed via the status
   /// file.
+  @override
   Stream<MessageTestDescription> list(Chain suite) async* {
     Uri uri = suite.uri.resolve("messages.yaml");
     File file = new File.fromUri(uri);
@@ -623,6 +625,7 @@ class ExpressionExample extends Example {
       : expression = node.value,
         super(name, code);
 
+  @override
   Map<String, Script> get scripts {
     return {
       mainFilename: new Script.fromSource("""
@@ -733,8 +736,10 @@ ${preamble}part of "${mainFilename}";
 class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
   const Validate();
 
+  @override
   String get name => "validate";
 
+  @override
   Future<Result<Example>> run(
       MessageTestDescription description, MessageTestSuite suite) async {
     if (description.problem != null) {
@@ -748,8 +753,10 @@ class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
 class Compile extends Step<Example, Null, MessageTestSuite> {
   const Compile();
 
+  @override
   String get name => "compile";
 
+  @override
   Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
     if (example == null) return pass(null);
     String dir = "${example.expectedCode}/${example.name}";
@@ -869,5 +876,5 @@ class Script {
   }
 }
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");

@@ -29,6 +29,7 @@ import 'spell_checking_utils.dart' as spell;
 import 'testing_utils.dart' show filterList;
 
 abstract class SpellContext extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const SpellTest(),
   ];
@@ -81,8 +82,10 @@ abstract class SpellContext extends ChainContext {
 class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
   const SpellTest();
 
+  @override
   String get name => "spell test";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, SpellContext context) async {
     File f = new File.fromUri(description.uri);

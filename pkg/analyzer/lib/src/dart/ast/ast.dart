@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -427,8 +428,10 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   Token get beginToken => _expression.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_expression)..add(asOperator)..add(_type);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_expression)
+    ..add(asOperator)
+    ..add(_type);
 
   @override
   Token get endToken => _type.endToken;
@@ -640,8 +643,10 @@ class AssignmentExpressionImpl extends ExpressionImpl
   Token get beginToken => _leftHandSide.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_leftHandSide)..add(operator)..add(_rightHandSide);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_leftHandSide)
+    ..add(operator)
+    ..add(_rightHandSide);
 
   @override
   Token get endToken => _rightHandSide.endToken;
@@ -760,24 +765,21 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   E? getProperty<E>(String name) {
-    if (_propertyMap == null) {
-      return null;
-    }
-    return _propertyMap![name] as E?;
+    return _propertyMap?[name] as E?;
   }
 
   @override
   void setProperty(String name, Object? value) {
     if (value == null) {
-      if (_propertyMap != null) {
-        _propertyMap!.remove(name);
-        if (_propertyMap!.isEmpty) {
+      final propertyMap = _propertyMap;
+      if (propertyMap != null) {
+        propertyMap.remove(name);
+        if (propertyMap.isEmpty) {
           _propertyMap = null;
         }
       }
     } else {
-      _propertyMap ??= HashMap<String, Object>();
-      _propertyMap![name] = value;
+      (_propertyMap ??= HashMap<String, Object>())[name] = value;
     }
   }
 
@@ -840,8 +842,9 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(awaitKeyword)..add(_expression);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(awaitKeyword)
+    ..add(_expression);
 
   @override
   Token get endToken => _expression.endToken;
@@ -899,8 +902,10 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   Token get beginToken => _leftOperand.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_leftOperand)..add(operator)..add(_rightOperand);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_leftOperand)
+    ..add(operator)
+    ..add(_rightOperand);
 
   @override
   Token get endToken => _rightOperand.endToken;
@@ -975,8 +980,10 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(keyword)..add(star)..add(_block);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(keyword)
+    ..add(star)
+    ..add(_block);
 
   @override
   Token get endToken => _block.endToken;
@@ -1117,8 +1124,10 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
   Token get beginToken => breakKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(breakKeyword)..add(_label)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(breakKeyword)
+    ..add(_label)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -1866,8 +1875,9 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   Token get beginToken => newKeyword ?? _identifier.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(newKeyword)..add(_identifier);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(newKeyword)
+    ..add(_identifier);
 
   @override
   Token get endToken => _identifier.endToken;
@@ -1987,7 +1997,9 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   Iterable<SyntacticEntity> get childEntities {
     ChildEntities result = ChildEntities()..add(_scriptTag);
     if (_directivesAreBeforeDeclarations) {
-      result..addAll(_directives)..addAll(_declarations);
+      result
+        ..addAll(_directives)
+        ..addAll(_declarations);
     } else {
       result.addAll(sortedDirectivesAndDeclarations);
     }
@@ -2606,8 +2618,10 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   Token get beginToken => _type.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_type)..add(period)..add(_name);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_type)
+    ..add(period)
+    ..add(_name);
 
   @override
   Token get endToken {
@@ -2720,8 +2734,10 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   Token get beginToken => continueKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(continueKeyword)..add(_label)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(continueKeyword)
+    ..add(_label)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -2783,8 +2799,10 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(keyword)..add(_type)..add(_identifier);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
+    ..add(_type)
+    ..add(_identifier);
 
   @override
   LocalVariableElement? get declaredElement {
@@ -2885,8 +2903,10 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   Token get beginToken => _parameter.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_parameter)..add(separator)..add(_defaultValue);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_parameter)
+    ..add(separator)
+    ..add(_defaultValue);
 
   @override
   Token? get covariantKeyword => null;
@@ -3380,6 +3400,14 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   Token? keyword;
 
+  /// The star optionally following the 'async' or 'sync' keyword, or `null` if
+  /// there is wither no such keyword or no star.
+  ///
+  /// It is an error for an expression function body to feature the star, but
+  /// the parser will accept it.
+  @override
+  Token? star;
+
   /// The token introducing the expression that represents the body of the
   /// function.
   @override
@@ -3395,8 +3423,8 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   /// Initialize a newly created function body consisting of a block of
   /// statements. The [keyword] can be `null` if the function body is not an
   /// async function body.
-  ExpressionFunctionBodyImpl(
-      this.keyword, this.functionDefinition, this._expression, this.semicolon) {
+  ExpressionFunctionBodyImpl(this.keyword, this.star, this.functionDefinition,
+      this._expression, this.semicolon) {
     _becomeParentOf(_expression);
   }
 
@@ -3411,6 +3439,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(keyword)
+    ..add(star)
     ..add(functionDefinition)
     ..add(_expression)
     ..add(semicolon);
@@ -3431,10 +3460,13 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  bool get isAsynchronous => keyword != null;
+  bool get isAsynchronous => keyword?.lexeme == Keyword.ASYNC.lexeme;
 
   @override
-  bool get isSynchronous => keyword == null;
+  bool get isGenerator => star != null;
+
+  @override
+  bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -3556,8 +3588,9 @@ class ExpressionStatementImpl extends StatementImpl
   Token get beginToken => _expression.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_expression)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_expression)
+    ..add(semicolon);
 
   @override
   Token get endToken {
@@ -3608,8 +3641,9 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   Token get beginToken => extendsKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(extendsKeyword)..add(_superclass);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(extendsKeyword)
+    ..add(_superclass);
 
   @override
   Token get endToken => _superclass.endToken;
@@ -3889,8 +3923,10 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(staticKeyword)..add(_fieldList)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(staticKeyword)
+    ..add(_fieldList)
+    ..add(semicolon);
 
   @override
   Element? get declaredElement => null;
@@ -4082,8 +4118,9 @@ abstract class ForEachPartsImpl extends ForLoopPartsImpl
   Token get beginToken => inKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(inKeyword)..add(_iterable);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(inKeyword)
+    ..add(_iterable);
 
   @override
   Token get endToken => _iterable.endToken;
@@ -4383,7 +4420,9 @@ class FormalParameterListImpl extends AstNodeImpl
       }
       result.add(parameter);
     }
-    return result..add(rightDelimiter)..add(rightParenthesis);
+    return result
+      ..add(rightDelimiter)
+      ..add(rightParenthesis);
   }
 
   @override
@@ -4858,8 +4897,10 @@ class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_typeParameters)..add(_parameters)..add(_body);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_typeParameters)
+    ..add(_parameters)
+    ..add(_body);
 
   @override
   Token get endToken {
@@ -4924,8 +4965,9 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Token get beginToken => _function.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_function)..add(_argumentList);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_function)
+    ..add(_argumentList);
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -4979,8 +5021,9 @@ class FunctionReferenceImpl extends ExpressionImpl
   Token get beginToken => function.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(function)..add(typeArguments);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(function)
+    ..add(typeArguments);
 
   @override
   Token get endToken => typeArguments?.endToken ?? function.endToken;
@@ -5157,8 +5200,10 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(_returnType)..add(identifier)..add(parameters);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(_returnType)
+    ..add(identifier)
+    ..add(parameters);
 
   @override
   Token get endToken => question ?? _parameters.endToken;
@@ -6198,8 +6243,10 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   Token get beginToken => leftBracket;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(leftBracket)..add(_expression)..add(rightBracket);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(leftBracket)
+    ..add(_expression)
+    ..add(rightBracket);
 
   @override
   Token get endToken => rightBracket ?? _expression.endToken;
@@ -6452,8 +6499,9 @@ class LabelImpl extends AstNodeImpl implements Label {
   Token get beginToken => _label.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_label)..add(colon);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_label)
+    ..add(colon);
 
   @override
   Token get endToken => colon;
@@ -6500,8 +6548,10 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(libraryKeyword)..add(_name)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(libraryKeyword)
+    ..add(_name)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -6715,8 +6765,10 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   Token get beginToken => _key.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_key)..add(separator)..add(_value);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_key)
+    ..add(separator)
+    ..add(_value);
 
   @override
   Token get endToken => _value.endToken;
@@ -7203,8 +7255,9 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   Token get beginToken => _name.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_name)..add(_expression);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_name)
+    ..add(_expression);
 
   @override
   ParameterElement? get element {
@@ -7327,8 +7380,9 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   Token get beginToken => nativeKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(nativeKeyword)..add(_name);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(nativeKeyword)
+    ..add(_name);
 
   @override
   Token get endToken {
@@ -7381,8 +7435,10 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
   Token get beginToken => nativeKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(nativeKeyword)..add(_stringLiteral)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(nativeKeyword)
+    ..add(_stringLiteral)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -7602,7 +7658,9 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     } else {
       result.addAll(sortedCommentAndAnnotations);
     }
-    result..add(requiredKeyword)..add(covariantKeyword);
+    result
+      ..add(requiredKeyword)
+      ..add(covariantKeyword);
     return result;
   }
 
@@ -7818,8 +7876,10 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
       : super(comment, metadata, partUri);
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(partKeyword)..add(_uri)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(partKeyword)
+    ..add(_uri)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -7949,8 +8009,9 @@ class PostfixExpressionImpl extends ExpressionImpl
   Token get beginToken => _operand.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_operand)..add(operator);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_operand)
+    ..add(operator);
 
   @override
   Token get endToken => operator;
@@ -8022,8 +8083,10 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   Token get beginToken => _prefix.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_prefix)..add(period)..add(_identifier);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_prefix)
+    ..add(period)
+    ..add(_identifier);
 
   @override
   Token get endToken => _identifier.endToken;
@@ -8106,8 +8169,9 @@ class PrefixExpressionImpl extends ExpressionImpl
   Token get beginToken => operator;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(operator)..add(_operand);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(operator)
+    ..add(_operand);
 
   @override
   Token get endToken => _operand.endToken;
@@ -8189,8 +8253,10 @@ class PropertyAccessImpl extends ExpressionImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_target)..add(operator)..add(_propertyName);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_target)
+    ..add(operator)
+    ..add(_propertyName);
 
   @override
   Token get endToken => _propertyName.endToken;
@@ -8404,8 +8470,10 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   Token get beginToken => returnKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(returnKeyword)..add(_expression)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(returnKeyword)
+    ..add(_expression)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;
@@ -8645,8 +8713,10 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(keyword)..add(_type)..add(identifier);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
+    ..add(_type)
+    ..add(identifier);
 
   @override
   Token get endToken => identifier?.endToken ?? type!.endToken;
@@ -8696,6 +8766,15 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   List<DartType>? tearOffTypeArgumentTypes;
+
+  /// If this identifier is meant to be looked up in the enclosing scope, the
+  /// raw result the scope lookup, prior to figuring out whether a write or a
+  /// read context is intended, and prior to falling back on implicit `this` (if
+  /// appropriate).
+  ///
+  /// `null` if this identifier is not meant to be looked up in the enclosing
+  /// scope.
+  ScopeLookupResult? scopeLookupResult;
 
   /// Initialize a newly created identifier.
   SimpleIdentifierImpl(this.token);
@@ -8977,8 +9056,9 @@ class SpreadElementImpl extends AstNodeImpl
   Token get beginToken => spreadOperator;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(spreadOperator)..add(_expression);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(spreadOperator)
+    ..add(_expression);
 
   @override
   Token get endToken => _expression.endToken;
@@ -9640,8 +9720,9 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   Token get beginToken => throwKeyword;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(throwKeyword)..add(_expression);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(throwKeyword)
+    ..add(_expression);
 
   @override
   Token get endToken {
@@ -9698,8 +9779,9 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(_variableList)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(_variableList)
+    ..add(semicolon);
 
   @override
   Element? get declaredElement => null;
@@ -9938,8 +10020,9 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
   }
 
-  ChildEntities get _childEntities =>
-      ChildEntities()..add(constKeyword)..add(_typeArguments);
+  ChildEntities get _childEntities => ChildEntities()
+    ..add(constKeyword)
+    ..add(_typeArguments);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10010,7 +10093,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   Token? question;
 
   /// The type being named, or `null` if the AST structure has not been
-  /// resolved.
+  /// resolved, or if this is part of a [ConstructorReference].
   @override
   DartType? type;
 
@@ -10025,8 +10108,10 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   Token get beginToken => _name.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_name)..add(_typeArguments)..add(question);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_name)
+    ..add(_typeArguments)
+    ..add(question);
 
   @override
   Token get endToken => question ?? _typeArguments?.endToken ?? _name.endToken;
@@ -10109,8 +10194,10 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(_name)..add(extendsKeyword)..add(_bound);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(_name)
+    ..add(extendsKeyword)
+    ..add(_bound);
 
   @override
   TypeParameterElement? get declaredElement =>
@@ -10326,8 +10413,10 @@ class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(_name)..add(equals)..add(_initializer);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(_name)
+    ..add(equals)
+    ..add(_initializer);
 
   @override
   VariableElement? get declaredElement =>
@@ -10519,8 +10608,9 @@ class VariableDeclarationStatementImpl extends StatementImpl
   Token get beginToken => _variableList.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      ChildEntities()..add(_variableList)..add(semicolon);
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(_variableList)
+    ..add(semicolon);
 
   @override
   Token get endToken => semicolon;

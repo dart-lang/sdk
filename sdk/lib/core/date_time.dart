@@ -432,8 +432,8 @@ class DateTime implements Comparable<DateTime> {
   /// assert(later.isAfter(now.toUtc()));
   /// assert(later.toUtc().isAfter(now));
   ///
-  /// assert(!now.toUtc().isBefore(now));
-  /// assert(!now.isBefore(now.toUtc()));
+  /// assert(!now.toUtc().isAfter(now));
+  /// assert(!now.isAfter(now.toUtc()));
   /// ```
   external bool isAfter(DateTime other);
 

@@ -14,7 +14,8 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
-import 'package:kernel/testing/type_parser_environment.dart' show parseComponent;
+import 'package:kernel/testing/type_parser_environment.dart'
+    show parseComponent;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
@@ -100,7 +101,7 @@ F:
   interfaceSetters:
 """;
 
-main() {
+void main() {
   final Ticker ticker = new Ticker(isVerbose: false);
   final Component component = parseComponent("""
 class A;

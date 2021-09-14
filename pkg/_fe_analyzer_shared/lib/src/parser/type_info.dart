@@ -8,6 +8,8 @@ import '../scanner/token.dart' show Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
+import 'identifier_context.dart';
+
 import 'parser_impl.dart' show Parser;
 
 import 'type_info_impl.dart';
@@ -142,7 +144,7 @@ bool isValidTypeReference(Token token) {
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
 TypeInfo computeType(final Token token, bool required,
-    [bool inDeclaration = false]) {
+    [bool inDeclaration = false, bool acceptKeywordForSimpleType = false]) {
   Token next = token.next!;
   if (!isValidTypeReference(next)) {
     if (next.type.isBuiltIn) {
@@ -295,11 +297,15 @@ TypeInfo computeType(final Token token, bool required,
       // identifier `?` Function `(`
       return new ComplexTypeInfo(token, noTypeParamOrArg)
           .computeIdentifierQuestionGFT(required);
-    } else if (required || looksLikeNameSimpleType(next)) {
+    } else if (required || looksLikeName(next)) {
       // identifier `?`
       return simpleNullableType;
     }
-  } else if (required || looksLikeNameSimpleType(next)) {
+  } else if (required ||
+      looksLikeName(next) ||
+      (acceptKeywordForSimpleType &&
+          next.isKeywordOrIdentifier &&
+          isOneOf(next.next!, okNextValueInFormalParameter))) {
     // identifier identifier
     return simpleType;
   }
@@ -364,30 +370,11 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
 /// indicating that the `<` and `>` should be interpreted as operators (so two
 /// arguments are being passed to `f`: `a < b` and `c > -d`).
 bool mayFollowTypeArgs(Token token) {
+  const Set<String> continuationTokens = {'(', '.', '==', '!='};
+  const Set<String> stopTokens = {')', ']', '}', ';', ':', ','};
   const Set<String> tokensThatMayFollowTypeArg = {
-    '(',
-    ')',
-    ']',
-    '}',
-    ':',
-    ';',
-    ',',
-    '.',
-    '?',
-    '==',
-    '!=',
-    '..',
-    '?.',
-    '??',
-    '?..',
-    '&',
-    '|',
-    '^',
-    '+',
-    '*',
-    '%',
-    '/',
-    '~/'
+    ...continuationTokens,
+    ...stopTokens
   };
   if (token.type == TokenType.EOF) {
     // The spec doesn't have anything to say about this case, since an

@@ -180,8 +180,8 @@ class C {
   static int get foo => 0;
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 14,
+          3),
     ]);
   }
 
@@ -212,8 +212,8 @@ class C {
   static void set foo(_) {}
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 14,
+          3),
     ]);
   }
 
@@ -327,7 +327,30 @@ class B extends A {
     ]);
   }
 
-  test_error_duplicateConstructorDefault() async {
+  test_error_duplicateConstructorNamed() async {
+    await assertErrorsInCode(r'''
+class C {
+  C.foo();
+  C.foo();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
+    ]);
+  }
+
+  test_error_duplicateConstructorNamed_oneIsInvalid() async {
+    await assertErrorsInCode(r'''
+class A {}
+class C {
+  A.foo();
+  C.foo();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed() async {
     await assertErrorsInCode(r'''
 class C {
   C();
@@ -338,14 +361,37 @@ class C {
     ]);
   }
 
-  test_error_duplicateConstructorName() async {
+  test_error_duplicateConstructorUnnamed_bothNew() async {
     await assertErrorsInCode(r'''
 class C {
-  C.foo();
-  C.foo();
+  C.new();
+  C.new();
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed_oneIsInvalid() async {
+    await assertErrorsInCode(r'''
+class A {}
+class C {
+  A.new();
+  C();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed_oneNew() async {
+    await assertErrorsInCode(r'''
+class C {
+  C();
+  C.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
     ]);
   }
 

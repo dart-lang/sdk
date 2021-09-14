@@ -7,7 +7,6 @@
 @JS()
 library util;
 
-import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 import 'package:js/js.dart';
 
 @JS()

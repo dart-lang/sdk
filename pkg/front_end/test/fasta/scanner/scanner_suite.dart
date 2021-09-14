@@ -14,11 +14,12 @@ Future<ChainContext> createContext(
 }
 
 class ScannerContext extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const Read(),
     const Scan(),
   ];
 }
 
-main(List<String> arguments) =>
+void main(List<String> arguments) =>
     runMe(arguments, createContext, configurationPath: "../../../testing.json");

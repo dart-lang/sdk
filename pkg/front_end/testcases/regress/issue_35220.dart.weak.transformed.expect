@@ -15,7 +15,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   method bad() → self::A* {
-    return let final Never* #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_35220.dart:6:25: Error: A value of type 'bool' can't be assigned to a variable of type 'A'.
+    return invalid-expression "pkg/front_end/testcases/regress/issue_35220.dart:6:25: Error: A value of type 'bool' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/regress/issue_35220.dart'.
   A bad() { return true != 2; }
                         ^" in !(true =={core::Object::==}{(core::Object*) →* core::bool*} 2) as{TypeError} self::A*;
@@ -32,8 +32,3 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {}
-
-
-Extra constant evaluation status:
-Evaluated: Not @ org-dartlang-testcase:///issue_35220.dart:6:25 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 3, effectively constant: 1

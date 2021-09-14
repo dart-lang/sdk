@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_33452.dart:10:29: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
+// pkg/front_end/testcases/regress/issue_33452.dart:10:29: Error: Couldn't find constructor 'ExistingClass.nonExistingConstructor'.
 //   var x = new ExistingClass.nonExistingConstructor();
 //                             ^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_33452.dart:11:11: Error: Method not found: 'ExistingClass'.
+// pkg/front_end/testcases/regress/issue_33452.dart:11:11: Error: Couldn't find constructor 'ExistingClass'.
 //   x = new ExistingClass();
 //           ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_33452.dart:12:11: Error: Method not found: 'ExistingClass'.
+// pkg/front_end/testcases/regress/issue_33452.dart:12:11: Error: Couldn't find constructor 'ExistingClass'.
 //   x = new ExistingClass<String>();
 //           ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_33452.dart:13:33: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
+// pkg/front_end/testcases/regress/issue_33452.dart:13:33: Error: Couldn't find constructor 'ExistingClass.nonExistingConstructor'.
 //   x = new ExistingClass<String>.nonExistingConstructor();
 //                                 ^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_33452.dart:14:41: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
+// pkg/front_end/testcases/regress/issue_33452.dart:14:41: Error: Couldn't find constructor 'ExistingClass.nonExistingConstructor'.
 //   x = new ExistingClass<String, String>.nonExistingConstructor();
 //                                         ^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_33452.dart:15:11: Error: Method not found: 'NonExistingClass'.
+// pkg/front_end/testcases/regress/issue_33452.dart:15:11: Error: Couldn't find constructor 'NonExistingClass'.
 //   x = new NonExistingClass();
 //           ^^^^^^^^^^^^^^^^
 //
@@ -45,22 +45,22 @@ class ExistingClass extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  dynamic x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:10:29: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
+  invalid-type x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:10:29: Error: Couldn't find constructor 'ExistingClass.nonExistingConstructor'.
   var x = new ExistingClass.nonExistingConstructor();
                             ^^^^^^^^^^^^^^^^^^^^^^";
-  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:11:11: Error: Method not found: 'ExistingClass'.
+  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:11:11: Error: Couldn't find constructor 'ExistingClass'.
   x = new ExistingClass();
           ^^^^^^^^^^^^^";
-  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:12:11: Error: Method not found: 'ExistingClass'.
+  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:12:11: Error: Couldn't find constructor 'ExistingClass'.
   x = new ExistingClass<String>();
           ^^^^^^^^^^^^^";
-  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:13:33: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
+  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:13:33: Error: Couldn't find constructor 'ExistingClass.nonExistingConstructor'.
   x = new ExistingClass<String>.nonExistingConstructor();
                                 ^^^^^^^^^^^^^^^^^^^^^^";
-  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:14:41: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
+  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:14:41: Error: Couldn't find constructor 'ExistingClass.nonExistingConstructor'.
   x = new ExistingClass<String, String>.nonExistingConstructor();
                                         ^^^^^^^^^^^^^^^^^^^^^^";
-  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:15:11: Error: Method not found: 'NonExistingClass'.
+  x = invalid-expression "pkg/front_end/testcases/regress/issue_33452.dart:15:11: Error: Couldn't find constructor 'NonExistingClass'.
   x = new NonExistingClass();
           ^^^^^^^^^^^^^^^^";
 }

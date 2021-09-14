@@ -1,0 +1,5 @@
+final foo = [() => const [], () => bar()];
+final foo2 = [(dynamic x) => const [], (Bar x) => const []];
+final foo3 = [(List<dynamic> x) => const [], (List<Bar> x) => const []];
+final foo4 = [(Function(dynamic) x) => const [], (Function(Bar) x) => const []];
+main() {}

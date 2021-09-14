@@ -17,7 +17,9 @@ import 'type_variable_builder.dart';
 class MixinApplicationBuilder extends TypeBuilder {
   final TypeBuilder? supertype;
   final List<TypeBuilder> mixins;
+  @override
   final Uri fileUri;
+  @override
   final int charOffset;
   Supertype? builtType;
 
@@ -26,16 +28,21 @@ class MixinApplicationBuilder extends TypeBuilder {
   MixinApplicationBuilder(
       this.supertype, this.mixins, this.fileUri, this.charOffset);
 
+  @override
   String? get name => null;
 
+  @override
   NullabilityBuilder get nullabilityBuilder {
     return unsupported("nullabilityBuilder", -1, null);
   }
 
+  @override
   String get debugName => "MixinApplicationBuilder";
 
+  @override
   bool get isVoidType => false;
 
+  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(supertype);
     buffer.write(" with ");
@@ -74,6 +81,7 @@ class MixinApplicationBuilder extends TypeBuilder {
     return unsupported("withNullabilityBuilder", -1, null);
   }
 
+  @override
   MixinApplicationBuilder clone(
       List<TypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,

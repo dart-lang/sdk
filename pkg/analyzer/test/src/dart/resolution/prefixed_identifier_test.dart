@@ -11,16 +11,132 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedIdentifierResolutionTest);
-    defineReflectiveTests(PrefixedIdentifierResolutionWithNullSafetyTest);
-    defineReflectiveTests(
-      PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest,
-    );
+    defineReflectiveTests(PrefixedIdentifierResolutionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with PrefixedIdentifierResolutionTestCases {
+  test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart' deferred as a;
+
+main() {
+  a.loadLibrary;
+}
+''', [
+      error(HintCode.UNUSED_IMPORT, 22, 8),
+    ]);
+
+    var import = findElement.importFind('package:test/a.dart');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('a.loadLibrary'),
+      element: elementMatcher(
+        import.importedLibrary.loadLibraryFunction,
+        isLegacy: true,
+      ),
+      type: 'Future<dynamic>* Function()*',
+    );
+  }
+
+  test_hasReceiver_typeAlias_staticGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get foo => 0;
+}
+
+typedef B = A;
+
+void f() {
+  B.foo;
+}
+''');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('B.foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+
+    assertSimpleIdentifier(
+      findNode.simple('foo;'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_implicitCall_tearOff_nullable() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  int call() => 0;
+}
+
+A? a;
+''');
+    await assertErrorsInCode('''
+import 'a.dart';
+
+int Function() foo() {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1),
+    ]);
+
+    var identifier = findNode.simple('a;');
+    assertElement(
+      identifier,
+      findElement.importFind('package:test/a.dart').topGet('a'),
+    );
+    assertType(identifier, 'A?');
+  }
+
+  test_read_typedef_interfaceType() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A = List<int>;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.A;
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+    var A = importFind.typeAlias('A');
+
+    var prefixed = findNode.prefixed('p.A');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: A,
+      type: 'Type',
+    );
+
+    assertImportPrefix(prefixed.prefix, importFind.prefix);
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: A,
+      type: 'Type',
+    );
+  }
+}
+
+mixin PrefixedIdentifierResolutionTestCases on PubPackageResolutionTest {
   test_dynamic_explicitCore_withPrefix() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core' as mycore;
@@ -220,7 +336,7 @@ void f(A a) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -289,126 +405,6 @@ void f(A a) {
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest {
-  test_hasReceiver_typeAlias_staticGetter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static int get foo => 0;
-}
-
-typedef B = A;
-
-void f() {
-  B.foo;
-}
-''');
-
-    assertPrefixedIdentifier(
-      findNode.prefixed('B.foo'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-
-    assertTypeAliasRef(
-      findNode.simple('B.foo'),
-      findElement.typeAlias('B'),
-    );
-
-    assertSimpleIdentifier(
-      findNode.simple('foo;'),
-      element: findElement.getter('foo'),
-      type: 'int',
-    );
-  }
-
-  test_read_typedef_interfaceType() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-typedef A = List<int>;
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as p;
-
-void f() {
-  p.A;
-}
-''');
-
-    var importFind = findElement.importFind('package:test/a.dart');
-    var A = importFind.typeAlias('A');
-
-    var prefixed = findNode.prefixed('p.A');
-    assertPrefixedIdentifier(
-      prefixed,
-      element: A,
-      type: 'Type',
-    );
-
-    assertImportPrefix(prefixed.prefix, importFind.prefix);
-
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      element: A,
-      type: 'Type',
-    );
-  }
-}
-
-@reflectiveTest
-class PrefixedIdentifierResolutionWithNullSafetyTest
-    extends PrefixedIdentifierResolutionTest with WithNullSafetyMixin {
-  test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {}
-''');
-
-    await assertErrorsInCode(r'''
-// @dart = 2.7
-import 'a.dart' deferred as a;
-
-main() {
-  a.loadLibrary;
-}
-''', [
-      error(HintCode.UNUSED_IMPORT, 22, 8),
-    ]);
-
-    var import = findElement.importFind('package:test/a.dart');
-
-    assertPrefixedIdentifier(
-      findNode.prefixed('a.loadLibrary'),
-      element: elementMatcher(
-        import.importedLibrary.loadLibraryFunction,
-        isLegacy: true,
-      ),
-      type: 'Future<dynamic>* Function()*',
-    );
-  }
-
-  test_implicitCall_tearOff_nullable() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A {
-  int call() => 0;
-}
-
-A? a;
-''');
-    await assertErrorsInCode('''
-import 'a.dart';
-
-int Function() foo() {
-  return a;
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1),
-    ]);
-
-    var identifier = findNode.simple('a;');
-    assertElement(
-      identifier,
-      findElement.importFind('package:test/a.dart').topGet('a'),
-    );
-    assertType(identifier, 'A?');
-  }
-}
+class PrefixedIdentifierResolutionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with PrefixedIdentifierResolutionTestCases, WithoutNullSafetyMixin {}

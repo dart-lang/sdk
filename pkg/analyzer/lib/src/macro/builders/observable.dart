@@ -33,15 +33,16 @@ class ObservableMacro implements FieldDeclarationMacro {
       var publicName = name.substring(1);
 
       var getter = Declaration(
-        '$typeCode get $publicName => $name;',
+        '  $typeCode get $publicName => $name;',
       );
       builder.addToClass(getter);
 
       var setter = Declaration('''
-set $publicName($typeCode val) {
-  print('Setting $publicName to \${val}');
-  $name = val;
-}''');
+  set $publicName($typeCode val) {
+    print('Setting $publicName to \${val}');
+    $name = val;
+  }
+''');
       builder.addToClass(setter);
     }
   }

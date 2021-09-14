@@ -53,37 +53,37 @@ class Class1 extends core::Object {
   static method _#positional#tearOff([core::int field1 = #C1, core::int field2 = #C2]) → self::Class1
     return new self::Class1::positional(field1, field2);
   static factory redirectPositionalSame([core::int field1 = #C3, core::int field2 = #C3]) → self::Class1
-    let Never #redirecting_factory = self::Class1::positional in invalid-expression;
+    return new self::Class1::positional(field1, field2);
   static method _#redirectPositionalSame#tearOff([core::int field1 = #C1, core::int field2 = #C2]) → self::Class1
     return new self::Class1::positional(field1, field2);
   static factory redirectPositionalFewer1([core::int field1 = #C3]) → self::Class1
-    let Never #redirecting_factory = self::Class1::positional in invalid-expression;
+    return new self::Class1::positional(field1);
   static method _#redirectPositionalFewer1#tearOff([core::int field1 = #C1]) → self::Class1
     return new self::Class1::positional(field1);
   static factory redirectPositionalFewer2() → self::Class1
-    let Never #redirecting_factory = self::Class1::positional in invalid-expression;
+    return new self::Class1::positional();
   static method _#redirectPositionalFewer2#tearOff() → self::Class1
     return new self::Class1::positional();
   static method _#named#tearOff({core::int field1 = #C1, core::int field2 = #C2}) → self::Class1
     return new self::Class1::named(field1: field1, field2: field2);
   static factory redirectNamedSame({core::int field1 = #C3, core::int field2 = #C3}) → self::Class1
-    let Never #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field1: field1, field2: field2);
   static method _#redirectNamedSame#tearOff({core::int field1 = #C1, core::int field2 = #C2}) → self::Class1
     return new self::Class1::named(field1: field1, field2: field2);
   static factory redirectNamedReorder({core::int field2 = #C3, core::int field1 = #C3}) → self::Class1
-    let Never #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field2: field2, field1: field1);
   static method _#redirectNamedReorder#tearOff({core::int field2 = #C2, core::int field1 = #C1}) → self::Class1
     return new self::Class1::named(field2: field2, field1: field1);
   static factory redirectNamedFewer1({core::int field1 = #C3}) → self::Class1
-    let Never #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field1: field1);
   static method _#redirectNamedFewer1#tearOff({core::int field1 = #C1}) → self::Class1
     return new self::Class1::named(field1: field1);
   static factory redirectNamedFewer2({core::int field2 = #C3}) → self::Class1
-    let Never #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field2: field2);
   static method _#redirectNamedFewer2#tearOff({core::int field2 = #C2}) → self::Class1
     return new self::Class1::named(field2: field2);
   static factory redirectNamedFewer3() → self::Class1
-    let Never #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named();
   static method _#redirectNamedFewer3#tearOff() → self::Class1
     return new self::Class1::named();
 }
@@ -111,7 +111,7 @@ static method testDefaultValues() → dynamic {
   self::expect(42, c1e.{self::Class1::field1}{core::int});
   self::expect(2, c1e.{self::Class1::field2}{core::int});
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:58:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:58:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f1b(42, 87); // error
        ^" in f1b{<inapplicable>}.(42, 87);
@@ -121,11 +121,11 @@ Try removing the extra positional arguments.
   self::expect(1, c1f.{self::Class1::field1}{core::int});
   self::expect(2, c1f.{self::Class1::field2}{core::int});
   () → Null {
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:66:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:66:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f1c(42); // error
        ^" in f1c{<inapplicable>}.(42);
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:67:8: Error: Too many positional arguments: 0 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:67:8: Error: Too many positional arguments: 0 allowed, but 2 found.
 Try removing the extra positional arguments.
     f1c(42, 87); // error
        ^" in f1c{<inapplicable>}.(42, 87);
@@ -170,7 +170,7 @@ Try removing the extra positional arguments.
   self::expect(42, c4b.{self::Class1::field1}{core::int});
   self::expect(2, c4b.{self::Class1::field2}{core::int});
   () → Null {
-    let final Never #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:112:21: Error: No named parameter with the name 'field2'.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:112:21: Error: No named parameter with the name 'field2'.
     f2c(field1: 42, field2: 87); // error
                     ^^^^^^" in f2c{<inapplicable>}.(field1: 42, field2: 87);
   };
@@ -182,7 +182,7 @@ Try removing the extra positional arguments.
   self::expect(1, c5b.{self::Class1::field1}{core::int});
   self::expect(87, c5b.{self::Class1::field2}{core::int});
   () → Null {
-    let final Never #t5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:123:9: Error: No named parameter with the name 'field1'.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:123:9: Error: No named parameter with the name 'field1'.
     f2d(field1: 42, field2: 87); // error
         ^^^^^^" in f2d{<inapplicable>}.(field1: 42, field2: 87);
   };
@@ -191,13 +191,13 @@ Try removing the extra positional arguments.
   self::expect(1, c6a.{self::Class1::field1}{core::int});
   self::expect(2, c6a.{self::Class1::field2}{core::int});
   () → Null {
-    let final Never #t6 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:131:9: Error: No named parameter with the name 'field1'.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:131:9: Error: No named parameter with the name 'field1'.
     f2e(field1: 42); // error
         ^^^^^^" in f2e{<inapplicable>}.(field1: 42);
-    let final Never #t7 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:132:9: Error: No named parameter with the name 'field2'.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:132:9: Error: No named parameter with the name 'field2'.
     f2e(field2: 87); // error
         ^^^^^^" in f2e{<inapplicable>}.(field2: 87);
-    let final Never #t8 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:133:9: Error: No named parameter with the name 'field1'.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:133:9: Error: No named parameter with the name 'field1'.
     f2e(field1: 42, field2: 87); // error
         ^^^^^^" in f2e{<inapplicable>}.(field1: 42, field2: 87);
   };

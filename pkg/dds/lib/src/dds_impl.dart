@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -54,6 +55,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     this._remoteVmServiceUri,
     this._uri,
     this._authCodesEnabled,
+    this._cachedUserTags,
     this._ipv6,
     this._devToolsConfiguration,
     this.shouldLogRequests,
@@ -66,7 +68,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   Future<void> startService() async {
-    bool started = false;
     DartDevelopmentServiceException? error;
     // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
@@ -76,7 +77,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     unawaited(
       vmServiceClient.listen().then(
         (_) {
-          if (started) {
+          if (_initializationComplete) {
             shutdown();
           } else {
             // If we fail to connect to the service or the connection is
@@ -87,7 +88,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           }
         },
         onError: (e, st) {
-          if (started) {
+          if (_initializationComplete) {
             shutdown();
           } else {
             // If we encounter an error while we're starting up, we'll need to
@@ -110,9 +111,17 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
       // Once we have a connection to the VM service, we're ready to spawn the intermediary.
       await _startDDSServer();
-      started = true;
+      _initializationComplete = true;
     } on StateError {
-      /* Ignore json-rpc state errors */
+      // Handle json-rpc state errors.
+      //
+      // It's possible that ordering of events on the event queue can result in
+      // the cleanup code above being called after this function has returned,
+      // resulting in an invalid DDS instance being released into the wild.
+      //
+      // If initialization hasn't completed and the error hasn't already been
+      // set, set it now.
+      error ??= DartDevelopmentServiceException.failedToStart();
     }
 
     // Check if we encountered any errors during startup, cleanup, and throw.
@@ -140,8 +149,17 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     }
     pipeline = pipeline.addMiddleware(_authCodeMiddleware);
     final handler = pipeline.addHandler(_handlers().handler);
-    // Start the DDS server.
-    _server = await io.serve(handler, host, port);
+    // Start the DDS server. Run in an error Zone to ensure that asynchronous
+    // exceptions encountered during request handling are handled, as exceptions
+    // thrown during request handling shouldn't take down the entire service.
+    _server = await runZonedGuarded(
+      () async => await io.serve(handler, host, port),
+      (error, stack) {
+        if (shouldLogRequests) {
+          print('Asynchronous error: $error\n$stack');
+        }
+      },
+    )!;
 
     final tmpUri = Uri(
       scheme: 'http',
@@ -173,8 +191,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   /// Stop accepting requests after gracefully handling existing requests.
   @override
   Future<void> shutdown() async {
-    if (_done.isCompleted || _shuttingDown) {
-      // Already shutdown.
+    if (_done.isCompleted || _shuttingDown || !_initializationComplete) {
+      // Already shutdown or we were interrupted during initialization.
       return;
     }
     _shuttingDown = true;
@@ -381,8 +399,12 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
   final DevToolsConfiguration? _devToolsConfiguration;
 
+  List<String> get cachedUserTags => UnmodifiableListView(_cachedUserTags);
+  final List<String> _cachedUserTags;
+
   Future<void> get done => _done.future;
   Completer _done = Completer<void>();
+  bool _initializationComplete = false;
   bool _shuttingDown = false;
 
   ClientManager get clientManager => _clientManager;

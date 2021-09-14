@@ -12,7 +12,7 @@ import '../common/names.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
@@ -3307,27 +3307,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildGet(node);
     ir.DartType type = node.type;
-    if (type is ir.InterfaceType ||
-        type is ir.DynamicType ||
-        type is ir.NeverType ||
-        type is ir.TypedefType ||
-        type is ir.FunctionType ||
-        type is ir.FutureOrType) {
+    DartType dartType = _elementMap.getDartType(type);
+    if (!dartType.containsTypeVariables) {
       ConstantValue constant =
           _elementMap.getConstantValue(_memberContextNode, node);
       stack.add(graph.addConstant(constant, closedWorld,
           sourceInformation: sourceInformation));
       return;
     }
-    assert(
-        type is ir.TypeParameterType,
-        failedAt(
-            CURRENT_ELEMENT_SPANNABLE, "Unexpected type literal ${node}."));
     // For other types (e.g. TypeParameterType, function types from expanded
     // typedefs), look-up or construct a reified type representation and convert
     // to a RuntimeType.
 
-    DartType dartType = _elementMap.getDartType(type);
     dartType = localsHandler.substInContext(dartType);
     HInstruction value = _typeBuilder.analyzeTypeArgument(
         dartType, sourceElement,

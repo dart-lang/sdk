@@ -15,10 +15,22 @@ import 'package:path/path.dart' as path;
 /// `pub` commands will be queued and not run concurrently.
 class PubCommand {
   static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
+
+  /// An environment variable that can be set to prevent a [PubCommand] from
+  /// being created/used by the analysis server.
+  ///
+  /// This is generally intended for integration tests to prevent them spawning
+  /// pub commands while testing other functionality.
+  static const String disablePubCommandEnvironmentKey =
+      'DART_SERVER_DISABLE_PUB_COMMAND';
+
   final InstrumentationService _instrumentationService;
   late final ProcessRunner _processRunner;
   late final String _pubPath;
   late final String _pubEnvironmentValue;
+
+  /// Active processes that should be killed when shutting down.
+  final _activeProcesses = <Process>{};
 
   /// Tracks the last queued command to avoid overlapping because pub does not
   /// do its own locking when accessing the cache.
@@ -78,6 +90,14 @@ class PubCommand {
         .toList();
   }
 
+  /// Terminates any in-process commands with [ProcessSignal.sigterm].
+  void shutdown() {
+    _activeProcesses.forEach((process) {
+      _instrumentationService.logInfo('Terminating process ${process.pid}');
+      process.kill();
+    });
+  }
+
   /// Runs a pub command and decodes JSON from `stdout`.
   ///
   /// Returns null if:
@@ -96,19 +116,25 @@ class PubCommand {
     try {
       final command = [_pubPath, ...args];
 
-      _instrumentationService.logInfo('Running pub command $command');
-      final result = await _processRunner.run(_pubPath, args,
+      _instrumentationService.logInfo('Starting pub command $command');
+      final process = await _processRunner.start(_pubPath, args,
           workingDirectory: workingDirectory,
           environment: {_pubEnvironmentKey: _pubEnvironmentValue});
+      _activeProcesses.add(process);
 
-      if (result.exitCode != 0) {
-        _instrumentationService.logError(
-            'pub command returned ${result.exitCode} exit code: ${result.stderr}.');
+      final exitCode = await process.exitCode;
+      _activeProcesses.remove(process);
+      final stdout = await process.stdout.transform(utf8.decoder).join();
+      final stderr = await process.stderr.transform(utf8.decoder).join();
+
+      if (exitCode != 0) {
+        _instrumentationService
+            .logError('pub command returned $exitCode exit code: $stderr.');
         return null;
       }
 
       try {
-        final results = jsonDecode(result.stdout);
+        final results = jsonDecode(stdout);
         _instrumentationService.logInfo('pub command completed successfully');
         return results;
       } catch (e) {

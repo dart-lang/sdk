@@ -58,20 +58,28 @@ abstract class FunctionBuilder implements MemberBuilder {
 
   AsyncMarker get asyncModifier;
 
+  @override
   ProcedureKind? get kind;
 
+  @override
   bool get isAbstract;
 
+  @override
   bool get isConstructor;
 
+  @override
   bool get isRegularMethod;
 
+  @override
   bool get isGetter;
 
+  @override
   bool get isSetter;
 
+  @override
   bool get isOperator;
 
+  @override
   bool get isFactory;
 
   /// This is the formal parameter scope as specified in the Dart Programming
@@ -95,6 +103,7 @@ abstract class FunctionBuilder implements MemberBuilder {
 
   void set body(Statement? newBody);
 
+  @override
   bool get isNative;
 
   /// Returns the [index]th parameter of this function.
@@ -486,8 +495,9 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
           isClassMember || isExtensionMember
               ? parent as DeclarationBuilder
               : null;
-      MetadataBuilder.buildAnnotations(
-          member, metadata, library, classOrExtensionBuilder, this, fileUri);
+      Scope parentScope = classOrExtensionBuilder?.scope ?? library.scope;
+      MetadataBuilder.buildAnnotations(member, metadata, library,
+          classOrExtensionBuilder, this, fileUri, parentScope);
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {
           typeVariables![i].buildOutlineExpressions(
@@ -495,7 +505,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
               classOrExtensionBuilder,
               this,
               coreTypes,
-              delayedActionPerformers);
+              delayedActionPerformers,
+              computeTypeParameterScope(parentScope));
         }
       }
 

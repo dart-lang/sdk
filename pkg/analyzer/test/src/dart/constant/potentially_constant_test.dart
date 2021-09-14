@@ -12,7 +12,6 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
-    defineReflectiveTests(IsPotentiallyConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
     defineReflectiveTests(PotentiallyConstantWithoutNullSafetyTest);
   });
@@ -104,12 +103,54 @@ class A<T> {
 ''');
   }
 
-  test_typeParameter() async {
+  test_typeParameter_ofClass() async {
     await _assertPotentiallyConst(r'''
 class A<T> {
-  m() {
+  T x;
+}
+''');
+  }
+
+  test_typeParameter_ofClass_nested() async {
+    await _assertPotentiallyConst(r'''
+class A<T> {
+  List<T> x;
+}
+''');
+  }
+
+  test_typeParameter_ofExtension() async {
+    await _assertNeverConst(r'''
+extension E<T> on int {
+  void foo() {
     T x;
   }
+}
+''');
+  }
+
+  test_typeParameter_ofFunction() async {
+    await _assertNeverConst(r'''
+void foo<T>() {
+  T x;
+}
+''');
+  }
+
+  test_typeParameter_ofMethod() async {
+    await _assertNeverConst(r'''
+class A {
+  void foo<T>() {
+    T x;
+  }
+}
+''');
+  }
+
+  test_typeParameter_ofMixin() async {
+    await _assertNeverConst(r'''
+mixin M<T> {
+  T x;
 }
 ''');
   }
@@ -123,58 +164,22 @@ void x;
   Future<void> _assertConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type!;
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isTrue);
   }
 
   Future<void> _assertNeverConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type!;
+    expect(isPotentiallyConstantTypeExpression(type), isFalse);
     expect(isConstantTypeExpression(type), isFalse);
   }
 
   Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type!;
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isFalse);
-  }
-}
-
-@reflectiveTest
-class IsPotentiallyConstantTypeExpressionTest
-    extends IsConstantTypeExpressionTest {
-  @override
-  test_typeParameter() async {
-    await _assertConst(r'''
-class A<T> {
-  m() {
-    T x;
-  }
-}
-''');
-  }
-
-  test_typeParameter_nested() async {
-    await _assertConst(r'''
-class A<T> {
-  m() {
-    List<T> x;
-  }
-}
-''');
-  }
-
-  @override
-  Future<void> _assertConst(String code) async {
-    await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type!;
-    expect(isPotentiallyConstantTypeExpression(type), isTrue);
-  }
-
-  @override
-  Future<void> _assertPotentiallyConst(String code) async {
-    await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type!;
-    expect(isPotentiallyConstantTypeExpression(type), isTrue);
   }
 }
 

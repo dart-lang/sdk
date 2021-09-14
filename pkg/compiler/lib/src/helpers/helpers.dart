@@ -36,10 +36,10 @@ class _DebugIndentation extends Indentation {
   final String indentationUnit = " ";
 }
 
-_DebugIndentation _indentation = new _DebugIndentation();
+_DebugIndentation _indentation = _DebugIndentation();
 
 /// Function signature of [debugPrint].
-typedef DebugPrint(s);
+typedef DebugPrint = Function(dynamic s);
 
 /// If [DEBUG_PRINT_ENABLED] is `true` print [s] using the current indentation.
 DebugPrint get debugPrint {
@@ -54,7 +54,7 @@ _debugPrint(s) {
 }
 
 /// Function signature of [debugWrapPrint].
-typedef DebugWrapPrint(s, f());
+typedef DebugWrapPrint = Function(dynamic s, Function() f);
 
 /// Wraps the call to [f] with a print of 'start:$s' and 'end:$s' incrementing
 /// the current indentation used by [debugPrint] during the execution of [f].
@@ -79,7 +79,7 @@ debugBreak() {
 }
 
 /// Function signature of [reportHere].
-typedef ReportHere(
+typedef ReportHere = Function(
     DiagnosticReporter reporter, Spannable node, String debugMessage);
 
 /// Print a message with a source location.
@@ -96,7 +96,7 @@ _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
 }
 
 /// Set of tracked objects used by [track] and [ifTracked].
-var _trackedObjects = new Set<Object>();
+var _trackedObjects = Set<Object>();
 
 /// Global default value for the `printTrace` option of [track] and [ifTracked].
 bool trackWithTrace = false;

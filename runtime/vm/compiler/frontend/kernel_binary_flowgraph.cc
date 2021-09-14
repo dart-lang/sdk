@@ -988,7 +988,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case UntaggedFunction::kSetterFunction:
     case UntaggedFunction::kClosureFunction:
     case UntaggedFunction::kConstructor: {
-      if (B->IsRecognizedMethodForFlowGraph(function)) {
+      if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function)) {
         return B->BuildGraphOfRecognizedMethod(function);
       }
       return BuildGraphOfFunction(function.IsGenerativeConstructor());
@@ -2007,6 +2007,11 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
   TokenPosition pos = ReadPosition();
   if (position != NULL) *position = pos;
   const String& message = H.DartString(ReadStringReference());
+  Tag tag = ReadTag();  // read (first part of) expression.
+  if (tag == kSomething) {
+    SkipExpression();  // read (rest of) expression.
+  }
+
   // Invalid expression message has pointer to the source code, no need to
   // report it twice.
   H.ReportError(script(), TokenPosition::kNoSource, "%s", message.ToCString());
@@ -5247,7 +5252,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     bool has_valid_annotation,
     bool has_pragma,
     intptr_t func_decl_offset) {
-  intptr_t offset = ReaderOffset();
+  const intptr_t offset = ReaderOffset();
 
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
@@ -5346,7 +5351,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           function.set_is_inlinable(!FLAG_lazy_async_stacks);
         }
 
-        function.set_end_token_pos(function_node_helper.end_position_);
+        // If the start token position is synthetic, the end token position
+        // should be as well.
+        function.set_end_token_pos(
+            position.IsReal() ? function_node_helper.end_position_ : position);
+
         LocalScope* scope = scopes()->function_scopes[i].scope;
         const ContextScope& context_scope = ContextScope::Handle(
             Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
@@ -5376,7 +5385,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   Fragment instructions;
   instructions += Constant(function);
-  instructions += LoadLocal(parsed_function()->current_context_var());
+  if (scopes()->IsClosureWithEmptyContext(offset)) {
+    instructions += NullConstant();
+  } else {
+    instructions += LoadLocal(parsed_function()->current_context_var());
+  }
   instructions += flow_graph_builder_->AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 

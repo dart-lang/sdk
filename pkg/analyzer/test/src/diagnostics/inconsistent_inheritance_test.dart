@@ -15,6 +15,22 @@ main() {
 
 @reflectiveTest
 class InconsistentInheritanceTest extends PubPackageResolutionTest {
+  /// https://github.com/dart-lang/sdk/issues/47026
+  test_class_covariantInSuper_withTwoUnrelated() async {
+    await assertErrorsInCode('''
+class D1 {}
+class D2 {}
+class D implements D1, D2 {}
+
+class A { void m(covariant D d) {} }
+abstract class B1 { void m(D1 d1); }
+abstract class B2 { void m(D2 d2); }
+class C extends A implements B1, B2 {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 171, 1),
+    ]);
+  }
+
   test_class_parameterType() async {
     await assertErrorsInCode(r'''
 abstract class A {

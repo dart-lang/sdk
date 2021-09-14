@@ -36,6 +36,21 @@ LibraryPtr LoadTestScript(const char* script,
   return lib.ptr();
 }
 
+#if !defined(PRODUCT)
+LibraryPtr ReloadTestScript(const char* script) {
+  Dart_Handle api_lib;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    api_lib = TestCase::ReloadTestScript(script);
+    EXPECT_VALID(api_lib);
+  }
+  auto& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(api_lib);
+  EXPECT(!lib.IsNull());
+  return lib.ptr();
+}
+#endif
+
 FunctionPtr GetFunction(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const auto& func = Function::Handle(lib.LookupFunctionAllowPrivate(

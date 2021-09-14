@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TokenStreamRewriterTest_NoPrevious);
     defineReflectiveTests(TokenStreamRewriterTest_UsingPrevious);
@@ -207,6 +207,58 @@ abstract class TokenStreamRewriterTest {
     normalTestDone(rewriter, a);
   }
 
+  void test_replaceNextTokensWithSyntheticToken_1() {
+    Token a = _makeToken(0, 'a');
+    StringToken b = _makeToken(5, 'b');
+    b.precedingComments = new CommentToken.fromSubstring(
+        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
+        canonicalize: true);
+    Token c = _makeToken(10, 'c');
+    Token d = _makeToken(11, 'd');
+    Token e = _makeToken(12, 'e');
+    _link([a, b, c, d, e]);
+    setupDone(a);
+
+    TokenStreamRewriter rewriter = getTokenStreamRewriter();
+    ReplacementToken replacement =
+        rewriter.replaceNextTokensWithSyntheticToken(a, 3, TokenType.AMPERSAND);
+    expect(b.offset, same(replacement.offset));
+    expect(b.precedingComments, same(replacement.precedingComments));
+    expect(replacement.replacedToken, same(b));
+    expect(replacement.replacedToken.next, same(c));
+    expect(replacement.replacedToken.next.next, same(d));
+
+    expect(a.next, same(replacement));
+    expect(replacement.next, same(e));
+    expect(e.next.isEof, true);
+
+    normalTestDone(rewriter, a);
+  }
+
+  void test_replaceNextTokensWithSyntheticToken_2() {
+    Token a = _makeToken(0, 'a');
+    StringToken b = _makeToken(5, 'b');
+    b.precedingComments = new CommentToken.fromSubstring(
+        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
+        canonicalize: true);
+    Token c = _makeToken(10, 'c');
+    _link([a, b, c]);
+    setupDone(a);
+
+    TokenStreamRewriter rewriter = getTokenStreamRewriter();
+    ReplacementToken replacement =
+        rewriter.replaceNextTokensWithSyntheticToken(a, 2, TokenType.AMPERSAND);
+    expect(b.offset, same(replacement.offset));
+    expect(b.precedingComments, same(replacement.precedingComments));
+    expect(replacement.replacedToken, same(b));
+    expect(replacement.replacedToken.next, same(c));
+
+    expect(a.next, same(replacement));
+    expect(replacement.next.isEof, true);
+
+    normalTestDone(rewriter, a);
+  }
+
   void test_moveSynthetic() {
     ScannerResult scanResult = scanString('Foo(bar; baz=0;');
     expect(scanResult.hasErrors, isTrue);
@@ -302,6 +354,7 @@ class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {
   @override
   bool get setPrevious => false;
 
+  @override
   TokenStreamRewriter getTokenStreamRewriter() => new TokenStreamRewriterImpl();
 }
 
@@ -316,6 +369,7 @@ class TokenStreamRewriterTest_UsingPrevious extends TokenStreamRewriterTest {
   @override
   bool get setPrevious => true;
 
+  @override
   TokenStreamRewriter getTokenStreamRewriter() => new TokenStreamRewriterImpl();
 }
 
@@ -326,11 +380,13 @@ class TokenStreamRewriterTest_Undoable extends TokenStreamRewriterTest {
   @override
   bool get setPrevious => true;
 
+  @override
   TokenStreamRewriter getTokenStreamRewriter() =>
       new UndoableTokenStreamRewriter();
 
   List<CachedTokenSetup> setup;
 
+  @override
   void setupDone(Token first) {
     setup = [];
     Token token = first;
@@ -340,6 +396,7 @@ class TokenStreamRewriterTest_Undoable extends TokenStreamRewriterTest {
     }
   }
 
+  @override
   void normalTestDone(TokenStreamRewriter rewriter, Token first) {
     UndoableTokenStreamRewriter undoableTokenStreamRewriter = rewriter;
     undoableTokenStreamRewriter.undo();
@@ -372,6 +429,7 @@ class CachedTokenSetup {
         next = token.next,
         precedingComments = token.precedingComments;
 
+  @override
   bool operator ==(Object other) {
     if (other is! CachedTokenSetup) return false;
     CachedTokenSetup o = other;
@@ -381,6 +439,7 @@ class CachedTokenSetup {
         precedingComments == o.precedingComments;
   }
 
+  @override
   String toString() {
     return "CachedTokenSetup["
         "token = $token, "

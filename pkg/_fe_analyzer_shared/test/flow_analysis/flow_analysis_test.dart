@@ -594,7 +594,8 @@ main() {
       var e = expr('Null');
       var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
-          h, AssignedVariables<Node, Var>());
+          h, AssignedVariables<Node, Var>(),
+          respectImplicitlyTypedVarInitializers: true);
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
@@ -1308,6 +1309,75 @@ main() {
       ]);
     });
 
+    group('initialize() promotes implicitly typed vars to type parameter types',
+        () {
+      test('when not final', () {
+        var h = Harness()
+          ..addSubtype('T&int', 'T', true)
+          ..addFactor('T', 'T&int', 'T');
+        var x = Var('x', 'T', isImplicitlyTyped: true);
+        h.run([
+          declareInitialized(x, expr('T&int')),
+          checkPromoted(x, 'T&int'),
+        ]);
+      });
+
+      test('when final', () {
+        var h = Harness()
+          ..addSubtype('T&int', 'T', true)
+          ..addFactor('T', 'T&int', 'T');
+        var x = Var('x', 'T', isImplicitlyTyped: true);
+        h.run([
+          declareInitialized(x, expr('T&int'), isFinal: true),
+          checkPromoted(x, 'T&int'),
+        ]);
+      });
+    });
+
+    group(
+        "initialize() doesn't promote explicitly typed vars to type "
+        'parameter types', () {
+      test('when not final', () {
+        var h = Harness();
+        var x = Var('x', 'T');
+        h.run([
+          declareInitialized(x, expr('T&int')),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('when final', () {
+        var h = Harness();
+        var x = Var('x', 'T');
+        h.run([
+          declareInitialized(x, expr('T&int'), isFinal: true),
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
+    group(
+        "initialize() doesn't promote implicitly typed vars to ordinary types",
+        () {
+      test('when not final', () {
+        var h = Harness();
+        var x = Var('x', 'dynamic', isImplicitlyTyped: true);
+        h.run([
+          declareInitialized(x, expr('Null')),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('when final', () {
+        var h = Harness();
+        var x = Var('x', 'dynamic', isImplicitlyTyped: true);
+        h.run([
+          declareInitialized(x, expr('Null'), isFinal: true),
+          checkNotPromoted(x),
+        ]);
+      });
+    });
+
     test('initialize() stores expressionInfo when not late', () {
       var h = Harness();
       var x = Var('x', 'Object');
@@ -1334,6 +1404,48 @@ main() {
         declareInitialized(x, y.expr.eq(nullLiteral), isLate: true),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNull);
+        }),
+      ]);
+    });
+
+    test(
+        'initialize() does not store expressionInfo for implicitly typed '
+        'vars, pre-bug fix', () {
+      var h = Harness(respectImplicitlyTypedVarInitializers: false);
+      var x = Var('x', 'Object', isImplicitlyTyped: true);
+      var y = Var('y', 'int?');
+      h.run([
+        declareInitialized(x, y.expr.eq(nullLiteral)),
+        getSsaNodes((nodes) {
+          expect(nodes[x]!.expressionInfo, isNull);
+        }),
+      ]);
+    });
+
+    test(
+        'initialize() stores expressionInfo for implicitly typed '
+        'vars, post-bug fix', () {
+      var h = Harness(respectImplicitlyTypedVarInitializers: true);
+      var x = Var('x', 'Object', isImplicitlyTyped: true);
+      var y = Var('y', 'int?');
+      h.run([
+        declareInitialized(x, y.expr.eq(nullLiteral)),
+        getSsaNodes((nodes) {
+          expect(nodes[x]!.expressionInfo, isNotNull);
+        }),
+      ]);
+    });
+
+    test(
+        'initialize() stores expressionInfo for explicitly typed '
+        'vars, pre-bug fix', () {
+      var h = Harness(respectImplicitlyTypedVarInitializers: false);
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      h.run([
+        declareInitialized(x, y.expr.eq(nullLiteral)),
+        getSsaNodes((nodes) {
+          expect(nodes[x]!.expressionInfo, isNotNull);
         }),
       ]);
     });

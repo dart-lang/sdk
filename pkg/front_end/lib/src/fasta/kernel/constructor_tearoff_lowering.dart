@@ -76,6 +76,19 @@ List<Object>? extractTypedefNameFromTearOff(Name name) {
   return null;
 }
 
+/// Returns `true` if [member] is a lowered constructor, factory or typedef tear
+/// off.
+bool isTearOffLowering(Member member) {
+  return member is Procedure &&
+      (isConstructorTearOffLowering(member) ||
+          isTypedefTearOffLowering(member));
+}
+
+/// Returns `true` if [procedure] is a lowered constructor or factory tear off.
+bool isConstructorTearOffLowering(Procedure procedure) {
+  return extractConstructorNameFromTearOff(procedure.name) != null;
+}
+
 /// Returns `true` if [procedure] is a lowered typedef tear off.
 bool isTypedefTearOffLowering(Procedure procedure) {
   return extractTypedefNameFromTearOff(procedure.name) != null;
@@ -253,7 +266,19 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
     FreshTypeParameters freshTypeParameters) {
   int fileOffset = tearOff.fileOffset;
 
+  List<TypeParameter> typeParameters;
+  if (target is Constructor) {
+    typeParameters = target.enclosingClass.typeParameters;
+  } else {
+    typeParameters = target.function!.typeParameters;
+  }
+
   if (!freshTypeParameters.substitution.isEmpty) {
+    if (typeArguments.length != typeParameters.length) {
+      // Error case: Use default types as type arguments.
+      typeArguments = new List<DartType>.generate(typeParameters.length,
+          (int index) => typeParameters[index].defaultType);
+    }
     if (typeArguments.isNotEmpty) {
       // Translate [typeArgument] into the context of the synthesized procedure.
       typeArguments = new List<DartType>.generate(
@@ -262,14 +287,21 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
               .substituteType(typeArguments[index]));
     }
   }
-
+  Map<TypeParameter, DartType> substitutionMap;
+  if (typeParameters.length == typeArguments.length) {
+    substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+        typeParameters, typeArguments);
+  } else {
+    // Error case: Substitute type parameters with `dynamic`.
+    substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+        typeParameters,
+        new List<DartType>.generate(
+            typeParameters.length, (int index) => const DynamicType()));
+  }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, target, arguments);
   return new SynthesizedFunctionNode(
-      new Map<TypeParameter, DartType>.fromIterables(
-          target.enclosingClass!.typeParameters, typeArguments),
-      target.function!,
-      tearOff.function,
+      substitutionMap, target.function!, tearOff.function,
       identicalSignatures: false);
 }
 

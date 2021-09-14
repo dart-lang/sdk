@@ -6,6 +6,8 @@
 //
 // Validates functionality of sendAndExit.
 
+// @dart = 2.9
+
 import 'dart:_internal' show sendAndExit;
 import 'dart:async';
 import 'dart:isolate';

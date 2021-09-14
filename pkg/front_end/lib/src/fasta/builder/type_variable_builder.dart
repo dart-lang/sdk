@@ -13,6 +13,7 @@ import '../fasta_codes.dart'
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
 
+import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 
@@ -67,10 +68,13 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
         super(null, 0, parameter.name ?? '', compilationUnit,
             parameter.fileOffset);
 
+  @override
   bool get isTypeVariable => true;
 
+  @override
   String get debugName => "TypeVariableBuilder";
 
+  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(name);
     if (bound != null) {
@@ -80,8 +84,10 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     return buffer;
   }
 
+  @override
   String toString() => "${printOn(new StringBuffer())}";
 
+  @override
   TypeVariableBuilder get origin => actualOrigin ?? this;
 
   /// The [TypeParameter] built by this builder.
@@ -93,6 +99,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     parameter.variance = value;
   }
 
+  @override
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {bool? nonInstanceContext}) {
@@ -138,6 +145,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     return type;
   }
 
+  @override
   TypeParameterType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments) {
     if (arguments != null) {
@@ -179,6 +187,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     }
   }
 
+  @override
   void applyPatch(covariant TypeVariableBuilder patch) {
     patch.actualOrigin = this;
   }
@@ -200,9 +209,10 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       DeclarationBuilder? classOrExtensionBuilder,
       MemberBuilder? memberBuilder,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      Scope scope) {
     MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,
-        classOrExtensionBuilder, memberBuilder, fileUri!);
+        classOrExtensionBuilder, memberBuilder, fileUri!, scope);
   }
 
   @override

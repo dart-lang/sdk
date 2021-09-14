@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -285,6 +286,30 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // visibleForTemplate or visibleForTesting, so leave it alone for now.
       }
     }
+
+    // Check for a reference to an undefined parameter in a `@UseResult.unless`
+    // annotation.
+    if (element.isUseResult) {
+      var undefinedParam = _findUndefinedUseResultParam(element, node, parent);
+      if (undefinedParam != null) {
+        String? name;
+        if (parent is FunctionDeclaration) {
+          name = parent.name.name;
+        } else if (parent is MethodDeclaration) {
+          name = parent.name.name;
+        }
+        if (name != null) {
+          var paramName = undefinedParam is SimpleStringLiteral
+              ? undefinedParam.value
+              : undefinedParam.staticParameterElement?.name;
+          _errorReporter.reportErrorForNode(
+              HintCode.UNDEFINED_REFERENCED_PARAMETER,
+              undefinedParam,
+              [paramName ?? undefinedParam, name]);
+        }
+      }
+    }
+
     var kinds = _targetKindsFor(element);
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
@@ -748,7 +773,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    if (node.question != null) {
+    var question = node.question;
+    if (question != null) {
       var name = node.name.name;
       var type = node.typeOrThrow;
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
@@ -756,8 +782,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if ((type.element == _nullType.element ||
               (type.isDynamic && name == 'dynamic')) &&
           type.alias == null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_QUESTION_MARK, node, [name]);
+        _errorReporter.reportErrorForToken(
+            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
       }
     }
     super.visitTypeName(node);
@@ -1536,6 +1562,60 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           reportNode,
           [displayName]);
     }
+  }
+
+  Expression? _findUndefinedUseResultParam(
+      ElementAnnotation element, Annotation node, AstNode parent) {
+    var constructorName = node.name;
+    if (constructorName is! PrefixedIdentifier ||
+        constructorName.identifier.name != 'unless') {
+      return null;
+    }
+
+    var unlessParam = element
+        .computeConstantValue()
+        ?.getField('parameterDefined')
+        ?.toStringValue();
+    if (unlessParam == null) {
+      return null;
+    }
+
+    Expression? checkParams(FormalParameterList? parameterList) {
+      if (parameterList == null) {
+        return null;
+      }
+
+      for (var param in parameterList.parameters) {
+        // Param is defined.
+        if (param.identifier?.name == unlessParam) {
+          return null;
+        }
+      }
+
+      // Find and return the parameter value node.
+      var arguments = node.arguments?.arguments;
+      if (arguments == null) {
+        return null;
+      }
+
+      for (var arg in arguments) {
+        if (arg is NamedExpression &&
+            arg.name.label.name == 'parameterDefined') {
+          return arg.expression;
+        }
+      }
+
+      return null;
+    }
+
+    if (parent is FunctionDeclarationImpl) {
+      return checkParams(parent.functionExpression.parameters);
+    }
+    if (parent is MethodDeclarationImpl) {
+      return checkParams(parent.parameters);
+    }
+
+    return null;
   }
 
   /// Return subexpressions that are marked `@doNotStore`, as a map so that

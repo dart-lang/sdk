@@ -22,6 +22,10 @@ library;
 //   const NotConstant();
 //         ^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/magic_const.dart:15:39: Error: Non-constant list literal is not a constant expression.
+// foo({a: Constant(), b: Constant(), c: []}) {}
+//                                       ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -55,7 +59,7 @@ class NotConstant extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static method foo({dynamic a = #C1, dynamic b = #C1, dynamic c = invalid-expression "Non-constant list literal"}) → dynamic {}
+static method foo({dynamic a = #C1, dynamic b = #C1, dynamic c = invalid-expression "Non-constant list literal is not a constant expression."}) → dynamic {}
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/magic_const.dart:18:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
@@ -71,7 +75,7 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///magic_const.dart:21:8 -> BoolConstant(false)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///magic_const.dart:21:8 -> BoolConstant(false)
 Extra constant evaluation: evaluated: 2, effectively constant: 1
 
 

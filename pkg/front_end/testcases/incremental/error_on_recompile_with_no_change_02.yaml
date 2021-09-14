@@ -19,6 +19,7 @@ worlds:
           ]
         }
       main.dart: |
+        // @dart=2.9
         import 'package:flutter/object.dart';
         import 'lib1.dart';
 
@@ -29,10 +30,12 @@ worlds:
           }
         }
       lib1.dart: |
+        // @dart=2.9
         import 'package:flutter/object.dart';
         import 'lib2.dart';
         abstract class Adaptor extends RenderFoo with LibMixin {}
       lib2.dart: |
+        // @dart=2.9
         import 'package:flutter/object.dart';
         mixin LibMixin on RenderObject {}
       flutter/object.dart: |

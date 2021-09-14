@@ -26,7 +26,7 @@ class ReturnTypeVerifier {
     required TypeProviderImpl typeProvider,
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
-  })   : _typeProvider = typeProvider,
+  })  : _typeProvider = typeProvider,
         _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
@@ -62,13 +62,6 @@ class ReturnTypeVerifier {
     }
 
     if (enclosingExecutable.isGenerator) {
-      if (expression != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR,
-          statement,
-          [enclosingExecutable.isAsynchronous ? 'async*' : 'sync*'],
-        );
-      }
       return;
     }
 

@@ -31,10 +31,10 @@ extension GenericExtension<T extends core::Object* = dynamic> on self::GenericCl
 static method GenericExtension|set#setter<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void {}
 static method error() → dynamic {
   self::GenericClass<core::int*>* genericClass = new self::GenericClass::•<core::int*>();
-  self::expect(null, let final self::GenericClass<core::int*>* #t1 = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/extensions/extension_setter_error.dart:13:41: Error: A value of type 'GenericClass<int>' can't be assigned to a variable of type 'GenericClass<double>'.
+  self::expect(null, let final self::GenericClass<core::int*>* #t1 = invalid-expression "pkg/front_end/testcases/extensions/extension_setter_error.dart:13:41: Error: A value of type 'GenericClass<int>' can't be assigned to a variable of type 'GenericClass<double>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/extension_setter_error.dart'.
   expect(null, GenericExtension<double>(genericClass).setter = null);
-                                        ^" in genericClass as{TypeError} self::GenericClass<core::double*>* in let final Null #t3 = null in let final void #t4 = self::GenericExtension|set#setter<core::double*>(#t1, #t3) in #t3);
+                                        ^" in genericClass as{TypeError} self::GenericClass<core::double*>* in let final Null #t2 = null in let final void #t3 = self::GenericExtension|set#setter<core::double*>(#t1, #t2) in #t2);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {

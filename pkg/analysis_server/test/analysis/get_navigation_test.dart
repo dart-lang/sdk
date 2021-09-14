@@ -66,6 +66,42 @@ String main() {
     assertHasRegion('String]');
   }
 
+  Future<void> test_constructorInvocation() async {
+    // Check that a constructor invocation navigates to the constructor and not
+    // the class.
+    // https://github.com/dart-lang/sdk/issues/46725
+    addTestFile('''
+class Foo {
+  // ...
+  // ...
+  Foo() {
+    print('');
+  }
+  // ...
+}
+
+final a = Foo();
+final b = new Foo();
+''');
+    await waitForTasksFinished();
+
+    // Without `new`
+    await _getNavigation(testFile, testCode.indexOf('Foo();'), 0);
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    var target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, testCode.indexOf('Foo() {'));
+
+    // With `new`
+    await _getNavigation(testFile, testCode.indexOf('new Foo();') + 4, 0);
+    expect(regions, hasLength(1));
+    expect(regions.first.targets, hasLength(1));
+    target = targets[regions.first.targets.first];
+    expect(target.kind, ElementKind.CONSTRUCTOR);
+    expect(target.offset, testCode.indexOf('Foo() {'));
+  }
+
   Future<void> test_fieldType() async {
     // This test mirrors test_navigation() from
     // test/integration/analysis/get_navigation_test.dart

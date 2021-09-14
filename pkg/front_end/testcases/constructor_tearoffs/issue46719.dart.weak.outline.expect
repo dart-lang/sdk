@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue46719.dart" as self;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::A<self::A::T%>
+    ;
+  constructor named() → self::A<self::A::T%>
+    ;
+  method m<X extends core::Object? = dynamic>(self::A::m::X% x) → core::List<self::A::m::X%>
+    ;
+  static method n<X extends core::Object? = dynamic>(self::A::n::X% x) → core::List<self::A::n::X%>
+    ;
+}
+extension FunctionApplier on core::Function {
+  method applyAndPrint = self::FunctionApplier|applyAndPrint;
+  tearoff applyAndPrint = self::FunctionApplier|get#applyAndPrint;
+}
+static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
+  ;
+static method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
+  ;
+static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
+  return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
+static method test() → dynamic
+  ;
+static method main() → void
+  ;

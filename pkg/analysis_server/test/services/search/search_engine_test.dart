@@ -441,7 +441,7 @@ class B extends A {}
 
 @reflectiveTest
 class SearchEngineImplWithNonFunctionTypeAliasesTest
-    extends SearchEngineImplTest with WithNonFunctionTypeAliasesMixin {
+    extends SearchEngineImplTest {
   Future<void> test_searchReferences_typeAlias_interfaceType() async {
     await resolveTestCode('''
 typedef A<T> = Map<T, String>;

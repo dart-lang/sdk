@@ -143,7 +143,16 @@ class FfiNativeTransformer extends Transformer {
         fileUri: currentLibrary!.fileUri,
         getterReference: currentLibraryIndex?.lookupGetterReference(fieldName))
       ..fileOffset = node.fileOffset;
-    currentLibrary!.addField(funcPtrField);
+    // Add field to the parent the FfiNative function belongs to.
+    final parent = node.parent;
+    if (parent is Class) {
+      parent.addField(funcPtrField);
+    } else if (parent is Library) {
+      parent.addField(funcPtrField);
+    } else {
+      throw 'Unexpected parent of @FfiNative function. '
+        'Expected Class or Library, but found ${parent}.';
+    }
 
     // _@FfiNative__square_root(x)
     final callFuncPtrInvocation = FunctionInvocation(

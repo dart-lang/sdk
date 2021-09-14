@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -57,11 +56,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  bool get isNullSafetySdkAndLegacyLibrary {
-    if (FeatureSetProvider.isNullSafetySdk) {
-      return !result.libraryElement.isNonNullableByDefault;
-    }
-    return false;
+  bool get isLegacyLibrary {
+    return !result.libraryElement.isNonNullableByDefault;
   }
 
   ClassElement get listElement => typeProvider.listElement;
@@ -163,6 +159,32 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(expected, same(actual));
     }
+  }
+
+  void assertConstructorReference(
+    ConstructorReference node,
+    Object? expectedConstructorElement,
+    ClassElement expectedClassElement,
+    String expectedType, {
+    PrefixElement? expectedPrefix,
+    Element? expectedTypeNameElement,
+  }) {
+    var actualConstructorElement = getNodeElement(node) as ConstructorElement?;
+    var actualConstructorName = node.constructorName.name;
+    if (actualConstructorName != null) {
+      assertConstructorElement(
+        actualConstructorName.staticElement as ConstructorElement?,
+        actualConstructorElement,
+      );
+    }
+
+    assertElement(node, expectedConstructorElement);
+    assertType(node, expectedType);
+
+    var typeName = node.constructorName.type;
+    expectedTypeNameElement ??= expectedClassElement;
+    assertTypeName(typeName, expectedTypeNameElement, null,
+        expectedPrefix: expectedPrefix);
   }
 
   void assertConstructors(ClassElement class_, List<String> expected) {
@@ -341,7 +363,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertFunctionReference(
-      FunctionReference node, Element expectedElement, String expectedType) {
+      FunctionReference node, Element? expectedElement, String expectedType) {
     assertElement(node, expectedElement);
     assertType(node, expectedType);
   }
@@ -400,6 +422,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  /// TODO(srawlins): Refactor to accept an `Object? expectedConstructor` which
+  /// can accept `elementMatcher` for generics, and simplify, similar to
+  /// [assertConstructorReference].
   void assertInstanceCreation(
     InstanceCreationExpression creation,
     ClassElement expectedClassElement,
@@ -410,22 +435,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     PrefixElement? expectedPrefix,
     Element? expectedTypeNameElement,
   }) {
-    String expectedClassName = expectedClassElement.name;
-
-    ConstructorElement? expectedConstructorElement;
-    if (constructorName != null) {
-      expectedConstructorElement =
-          expectedClassElement.getNamedConstructor(constructorName);
-      if (expectedConstructorElement == null) {
-        fail("No constructor '$constructorName' in class"
-            " '$expectedClassName'.");
-      }
-    } else {
-      expectedConstructorElement = expectedClassElement.unnamedConstructor;
-      if (expectedConstructorElement == null) {
-        fail("No unnamed constructor in class '$expectedClassName'.");
-      }
-    }
+    var expectedConstructorElement =
+        _getConstructorElement(expectedClassElement, constructorName);
 
     var actualConstructorElement =
         getNodeElement(creation) as ConstructorElement?;
@@ -802,7 +813,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertTypeName(
-      TypeName node, Element? expectedElement, String expectedType,
+      TypeName node, Element? expectedElement, String? expectedType,
       {Element? expectedPrefix}) {
     assertType(node, expectedType);
 
@@ -870,6 +881,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is BinaryExpression) {
       return node.staticElement;
+    } else if (node is ConstructorReference) {
+      return node.constructorName.staticElement;
     } else if (node is Declaration) {
       return node.declaredElement;
     } else if (node is ExtensionOverride) {
@@ -879,13 +892,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is FunctionExpressionInvocation) {
       return node.staticElement;
     } else if (node is FunctionReference) {
-      var function = node.function;
+      var function = node.function.unParenthesized;
       if (function is Identifier) {
         return function.staticElement;
       } else if (function is PropertyAccess) {
         return function.propertyName.staticElement;
+      } else if (function is ConstructorReference) {
+        return function.constructorName.staticElement;
       } else {
-        fail('Unsupported node: (${node.runtimeType}) $node');
+        fail('Unsupported node: (${function.runtimeType}) $function');
       }
     } else if (node is Identifier) {
       return node.staticElement;
@@ -980,6 +995,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Never _failNotSimpleIdentifier(AstNode node) {
     fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
+  }
+
+  ConstructorElement _getConstructorElement(
+      ClassElement classElement, String? constructorName) {
+    var constructorElement = constructorName == null
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(constructorName);
+    return constructorElement ??
+        fail("No constructor '${constructorName ?? '<unnamed>'}' in class "
+            "'${classElement.name}'.");
   }
 
   static String _extractReturnType(String invokeType) {

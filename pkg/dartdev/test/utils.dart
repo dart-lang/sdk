@@ -141,6 +141,11 @@ dev_dependencies:
   String get absolutePathToDartdevFile =>
       path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
 
+  Directory findDirectory(String name) {
+    var directory = Directory(path.join(dir.path, name));
+    return directory.existsSync() ? directory : null;
+  }
+
   File findFile(String name) {
     var file = File(path.join(dir.path, name));
     return file.existsSync() ? file : null;

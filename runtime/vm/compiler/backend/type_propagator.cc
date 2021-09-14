@@ -256,9 +256,7 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   CompileType result = CompileType::None();
   for (intptr_t i = 0, n = cids.length(); i < n; i++) {
     CidRange* cid_range = cids.At(i);
-    if (cid_range->IsIllegalRange()) {
-      return;
-    }
+    ASSERT(!cid_range->IsIllegalRange());
     for (intptr_t cid = cid_range->cid_start; cid <= cid_range->cid_end;
          cid++) {
       CompileType tp = CompileType::FromCid(cid);
@@ -821,7 +819,7 @@ const AbstractType* CompileType::ToAbstractType() {
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
     // in this case.
-    if ((cid_ < kInstanceCid) || (cid_ == kTypeArgumentsCid)) {
+    if (IsInternalOnlyClassId(cid_) || cid_ == kTypeArgumentsCid) {
       type_ = &Object::dynamic_type();
       return type_;
     }
@@ -1348,8 +1346,9 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of InstanceCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* inferred_type = result_type();
-  if ((inferred_type != NULL) &&
-      (inferred_type->ToNullableCid() != kDynamicCid)) {
+  if ((inferred_type != nullptr) &&
+      ((inferred_type->ToNullableCid() != kDynamicCid) ||
+       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
     TraceStrongModeType(this, inferred_type);
     return *inferred_type;
   }
@@ -1441,8 +1440,11 @@ CompileType StaticCallInstr::ComputeType() const {
   if (is_known_list_constructor()) {
     return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
   }
-  if ((inferred_type != NULL) &&
-      (inferred_type->ToNullableCid() != kDynamicCid)) {
+
+  if ((inferred_type != nullptr) &&
+      ((inferred_type->ToNullableCid() != kDynamicCid) ||
+       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
+    TraceStrongModeType(this, inferred_type);
     return *inferred_type;
   }
 

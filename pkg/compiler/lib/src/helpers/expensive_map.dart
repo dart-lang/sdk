@@ -10,10 +10,10 @@ import "dart:collection";
 class ExpensiveMap<K, V> extends MapBase<K, V> {
   final List _maps;
 
-  ExpensiveMap([int copies = 10]) : _maps = new List.filled(copies, null) {
+  ExpensiveMap([int copies = 10]) : _maps = List.filled(copies, null) {
     assert(copies > 0);
     for (int i = 0; i < _maps.length; i++) {
-      _maps[i] = new Map<K, V>();
+      _maps[i] = Map<K, V>();
     }
   }
 

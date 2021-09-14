@@ -793,7 +793,7 @@ class ProcessedOptions {
 
   String debugString() {
     StringBuffer sb = new StringBuffer();
-    writeList(String name, List elements) {
+    void writeList(String name, List elements) {
       if (elements.isEmpty) {
         sb.writeln('$name: <empty>');
         return;
@@ -858,6 +858,7 @@ class HermeticFileSystem implements FileSystem {
 
   HermeticFileSystem(this.includedFiles, this._realFileSystem);
 
+  @override
   FileSystemEntity entityForUri(Uri uri) {
     if (includedFiles.contains(uri)) return _realFileSystem.entityForUri(uri);
     throw new HermeticAccessException(uri);

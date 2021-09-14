@@ -32,7 +32,7 @@ class ConstructorFieldsVerifier {
   ConstructorFieldsVerifier({
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
-  })   : _typeSystem = typeSystem,
+  })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
   void enterClass(ClassDeclaration node) {

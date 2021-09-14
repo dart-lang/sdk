@@ -21,9 +21,11 @@ import 'package:kernel/target/targets.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
+import 'transformations/clone_mixin_methods_with_super.dart' as transformMixins
+    show transformLibraries;
 import 'transformations/lowering.dart' as lowering show transformLibraries;
 
-const Iterable<String> _allowedDartSchemePaths = const <String>[
+const Iterable<String> _allowedDartSchemePaths = [
   'async',
   'html',
   'html_common',
@@ -105,7 +107,7 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name]!;
@@ -131,7 +133,9 @@ class Dart2jsTarget extends Target {
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      maybeEnableNative(importer);
+      maybeEnableNative(importer) ||
+      (importer.scheme == 'package' &&
+          importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override
   bool enableNative(Uri uri) => maybeEnableNative(uri);
@@ -167,6 +171,8 @@ class Dart2jsTarget extends Target {
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
+    transformMixins.transformLibraries(libraries);
+    logger?.call("Mixin transformations performed");
   }
 
   @override
@@ -234,7 +240,8 @@ class Dart2jsTarget extends Target {
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
 // compile-platform should just specify which libraries to compile instead.
 const _requiredLibraries = const <String, List<String>>{
-  'dart2js': const <String>[
+  'dart2js': [
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
@@ -257,7 +264,8 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:web_gl',
     'dart:web_sql',
   ],
-  'dart2js_server': const <String>[
+  'dart2js_server': [
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',

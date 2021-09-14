@@ -1170,6 +1170,16 @@ void f() {
     assertHasRegion(HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE, 'V2 = 3');
   }
 
+  Future<void> test_TYPE_ALIAS() async {
+    addTestFile('''
+typedef A = double;
+void f(A a) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A');
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A a');
+  }
+
   Future<void> test_TYPE_ALIAS_dynamicType() async {
     addTestFile('''
 typedef A = dynamic;

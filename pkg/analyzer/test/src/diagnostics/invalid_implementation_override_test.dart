@@ -10,13 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidImplementationOverrideTest);
-    defineReflectiveTests(InvalidImplementationOverrideWithNullSafetyTest);
+    defineReflectiveTests(InvalidImplementationOverrideWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class InvalidImplementationOverrideTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with InvalidImplementationOverrideTestCases {}
+
+mixin InvalidImplementationOverrideTestCases on PubPackageResolutionTest {
   test_getter_abstractOverridesConcrete() async {
     await assertErrorsInCode('''
 class A {
@@ -112,5 +114,6 @@ class B	extends A with M {}
 }
 
 @reflectiveTest
-class InvalidImplementationOverrideWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {}
+class InvalidImplementationOverrideWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with InvalidImplementationOverrideTestCases, WithoutNullSafetyMixin {}

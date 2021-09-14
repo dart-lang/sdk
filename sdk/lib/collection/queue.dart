@@ -53,8 +53,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// of [S],
   /// then the returned queue can be used as a `Queue<T>`.
   ///
-  /// Methods like [contains] and [remove]
-  /// which accept one `Object?` as argument,
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
   /// will pass the argument directly to the this queue's method
   /// without any checks.
   static Queue<T> castFrom<S, T>(Queue<S> source) => CastQueue<S, T>(source);
@@ -70,8 +69,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// and they must be instances of [E] as well to be accepted by
   /// this queue as well.
   ///
-  /// Methods like [contains] and [remove]
-  /// which accept one `Object?` as argument,
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
   /// will pass the argument directly to the this queue's method
   /// without any checks.
   /// That means that you can do `queueOfStrings.cast<int>().remove("a")`
@@ -121,116 +119,71 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   void clear();
 }
 
-class _DoubleLink<Link extends _DoubleLink<Link>> {
-  Link? _previousLink;
-  Link? _nextLink;
-
-  void _link(Link? previous, Link? next) {
-    _nextLink = next;
-    _previousLink = previous;
-    if (previous != null) previous._nextLink = this as Link;
-    if (next != null) next._previousLink = this as Link;
-  }
-
-  void _unlink() {
-    if (_previousLink != null) _previousLink!._nextLink = _nextLink;
-    if (_nextLink != null) _nextLink!._previousLink = _previousLink;
-    _nextLink = null;
-    _previousLink = null;
-  }
-}
-
-/// An entry in a doubly linked list. It contains a pointer to the next
-/// entry, the previous entry, and the boxed element.
-class DoubleLinkedQueueEntry<E> extends _DoubleLink<DoubleLinkedQueueEntry<E>> {
-  // TODO(rnystrom): This needs to be nullable because the subclass
-  // _DoubleLinkedQueueSentinel does not have an element. A cleaner solution is
-  // probably to refactor the class hierarchy so that _DoubleLinkedQueueSentinel
-  // does not inherit an element field.
-  E? _element;
-
-  /// The element in the queue.
-  E get element => _element as E;
-  set element(E element) {
-    _element = element;
-  }
-
-  DoubleLinkedQueueEntry(this._element);
-
-  /// Appends the given [e] as entry just after this entry.
-  void append(E e) {
-    DoubleLinkedQueueEntry<E>(e)._link(this, _nextLink);
-  }
-
-  /// Prepends the given [e] as entry just before this entry.
-  void prepend(E e) {
-    DoubleLinkedQueueEntry<E>(e)._link(_previousLink, this);
-  }
-
-  E remove() {
-    _unlink();
-    return element;
-  }
-
-  /// Returns the previous entry or `null` if there is none.
-  DoubleLinkedQueueEntry<E>? previousEntry() => _previousLink;
-
-  /// Returns the next entry or `null` if there is none.
-  DoubleLinkedQueueEntry<E>? nextEntry() => _nextLink;
-}
-
-/// Interface for the link classes used by [DoubleLinkedQueue].
+/// Interface and base class for the link classes used by [DoubleLinkedQueue].
 ///
 /// Both the [_DoubleLinkedQueueElement] and [_DoubleLinkedQueueSentinel]
 /// implement this interface.
-/// The entry contains a link back to the queue, so calling `append`
-/// or `prepend` can correctly update the element count.
-abstract class _DoubleLinkedQueueEntry<E> extends DoubleLinkedQueueEntry<E> {
-  DoubleLinkedQueue<E>? _queue;
-  _DoubleLinkedQueueEntry(E? element, this._queue) : super(element);
+abstract class _DoubleLinkedQueueEntry<E> {
+  _DoubleLinkedQueueEntry<E>? _previousLink;
+  _DoubleLinkedQueueEntry<E>? _nextLink;
 
-  DoubleLinkedQueueEntry<E>? _asNonSentinelEntry();
-
-  void _append(E e) {
-    _DoubleLinkedQueueElement<E>(e, _queue)._link(this, _nextLink);
+  void _link(
+      _DoubleLinkedQueueEntry<E>? previous, _DoubleLinkedQueueEntry<E>? next) {
+    _nextLink = next;
+    _previousLink = previous;
+    previous?._nextLink = this;
+    next?._previousLink = this;
   }
 
-  void _prepend(E e) {
-    _DoubleLinkedQueueElement<E>(e, _queue)._link(_previousLink, this);
+  void _unlink() {
+    _previousLink?._nextLink = _nextLink;
+    _nextLink?._previousLink = _previousLink;
+    _previousLink = _nextLink = null;
+  }
+
+  _DoubleLinkedQueueElement<E>? _asNonSentinelEntry();
+
+  void _append(E element, DoubleLinkedQueue<E>? queue) {
+    _DoubleLinkedQueueElement<E>(element, queue)._link(this, _nextLink);
+  }
+
+  void _prepend(E element, DoubleLinkedQueue<E>? queue) {
+    _DoubleLinkedQueueElement<E>(element, queue)._link(_previousLink, this);
   }
 
   E _remove();
 
-  E get _element => super._element as E;
-
-  DoubleLinkedQueueEntry<E>? nextEntry() {
-    _DoubleLinkedQueueEntry<E> entry = _nextLink as _DoubleLinkedQueueEntry<E>;
-    return entry._asNonSentinelEntry();
-  }
-
-  DoubleLinkedQueueEntry<E>? previousEntry() {
-    _DoubleLinkedQueueEntry<E> entry =
-        _previousLink as _DoubleLinkedQueueEntry<E>;
-    return entry._asNonSentinelEntry();
-  }
+  E get element;
 }
 
-/// The actual entry type used by the [DoubleLinkedQueue].
+/// Linked list entry used by the [DoubleLinkedQueue] to hold an element.
 ///
-/// The entry contains a reference to the queue, allowing
+/// These entry objects are also exposed by [DoubleLinkedQueue.firstEntry],
+/// [DoubleLinkedQueue.lastEntry] and [DoubleLinkedQueue.forEachEntry].
+///
+/// The entry contains both the [element] (which is mutable to anyone with
+/// access to the entry object) and a reference to the queue, allowing
 /// [append]/[prepend] to update the list length.
-class _DoubleLinkedQueueElement<E> extends _DoubleLinkedQueueEntry<E> {
-  _DoubleLinkedQueueElement(E element, DoubleLinkedQueue<E>? queue)
-      : super(element, queue);
+///
+/// When an entry is removed from its queue, the [_queue] is set to `null`
+/// and will never change again. You can still use the unlinked entry
+/// to create a new list, by calling [append] and [prepend], but it won't
+/// be part of any [DoubleLinkedQueue].
+class _DoubleLinkedQueueElement<E> extends _DoubleLinkedQueueEntry<E>
+    implements DoubleLinkedQueueEntry<E> {
+  DoubleLinkedQueue<E>? _queue;
+  E element;
+
+  _DoubleLinkedQueueElement(this.element, this._queue);
 
   void append(E e) {
-    _append(e);
-    if (_queue != null) _queue!._elementCount++;
+    _append(e, _queue);
+    _queue?._elementCount++;
   }
 
   void prepend(E e) {
-    _prepend(e);
-    if (_queue != null) _queue!._elementCount++;
+    _prepend(e, _queue);
+    _queue?._elementCount++;
   }
 
   E _remove() {
@@ -240,30 +193,43 @@ class _DoubleLinkedQueueElement<E> extends _DoubleLinkedQueueEntry<E> {
   }
 
   E remove() {
-    if (_queue != null) _queue!._elementCount--;
+    _queue?._elementCount--;
     return _remove();
   }
 
-  _DoubleLinkedQueueElement<E>? _asNonSentinelEntry() {
-    return this;
-  }
+  _DoubleLinkedQueueElement<E> _asNonSentinelEntry() => this;
+
+  DoubleLinkedQueueEntry<E>? previousEntry() =>
+      _previousLink?._asNonSentinelEntry();
+
+  DoubleLinkedQueueEntry<E>? nextEntry() => _nextLink?._asNonSentinelEntry();
 }
 
-/// A sentinel in a double linked list is used to manipulate the list
-/// at both ends.
-/// A double linked list has exactly one sentinel,
+/// A header object used to hold the two ends of a double linked queue.
+///
+/// A [DoubleLinkedQueue] has exactly one sentinel,
 /// which is the only entry when the list is constructed.
-/// Initially, a sentinel has its next and previous entry point to itself.
-/// A sentinel does not box any user element.
+///
+/// Initially, a sentinel has its next and previous entries point to itself.
+/// Its next and previous links are never `null` after creation, and
+/// the entries linked always form a circular structure with the next link
+/// pointing to the first element of the queue, and the previous link
+/// pointing to the last element of the queue, or both pointing to itself
+/// again if the queue becomes empty.
+///
+/// Implements [_DoubleLinkedQueueEntry._remove] and
+/// [_DoubleLinkedQueueEntry.element] as throwing because
+/// it makes it simple to implement members like [Queue.removeFirst]
+/// or [Queue.first] as throwing on an empty queue.
+///
+/// A sentinel does not contain any user element.
 class _DoubleLinkedQueueSentinel<E> extends _DoubleLinkedQueueEntry<E> {
-  _DoubleLinkedQueueSentinel(DoubleLinkedQueue<E> queue) : super(null, queue) {
+  _DoubleLinkedQueueSentinel() {
     _previousLink = this;
     _nextLink = this;
   }
 
-  DoubleLinkedQueueEntry<E>? _asNonSentinelEntry() {
-    return null;
-  }
+  Null _asNonSentinelEntry() => null;
 
   /// Hit by, e.g., [DoubleLinkedQueue.removeFirst] if the queue is empty.
   E _remove() {
@@ -271,7 +237,7 @@ class _DoubleLinkedQueueSentinel<E> extends _DoubleLinkedQueueEntry<E> {
   }
 
   /// Hit by, e.g., [DoubleLinkedQueue.first] if the queue is empty.
-  E get _element {
+  E get element {
     throw IterableElementError.noElement();
   }
 }
@@ -280,8 +246,8 @@ class _DoubleLinkedQueueSentinel<E> extends _DoubleLinkedQueueEntry<E> {
 ///
 /// Allows constant time add, remove-at-ends and peek operations.
 class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
-  late _DoubleLinkedQueueSentinel<E> _sentinel =
-      _DoubleLinkedQueueSentinel<E>(this);
+  final _DoubleLinkedQueueSentinel<E> _sentinel =
+      _DoubleLinkedQueueSentinel<E>();
 
   int _elementCount = 0;
 
@@ -320,49 +286,48 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   int get length => _elementCount;
 
   void addLast(E value) {
-    _sentinel._prepend(value);
+    _sentinel._prepend(value, this);
     _elementCount++;
   }
 
   void addFirst(E value) {
-    _sentinel._append(value);
+    _sentinel._append(value, this);
     _elementCount++;
   }
 
   void add(E value) {
-    _sentinel._prepend(value);
+    _sentinel._prepend(value, this);
     _elementCount++;
   }
 
   void addAll(Iterable<E> iterable) {
     for (final E value in iterable) {
-      _sentinel._prepend(value);
+      _sentinel._prepend(value, this);
       _elementCount++;
     }
   }
 
   E removeLast() {
-    _DoubleLinkedQueueEntry<E> lastEntry =
-        _sentinel._previousLink as _DoubleLinkedQueueEntry<E>;
-    E result = lastEntry._remove();
+    // Hits sentinel's `_remove` if queue is empty.
+    E result = _sentinel._previousLink!._remove();
     _elementCount--;
     return result;
   }
 
   E removeFirst() {
-    _DoubleLinkedQueueEntry<E> firstEntry =
-        _sentinel._nextLink as _DoubleLinkedQueueEntry<E>;
-    E result = firstEntry._remove();
+    // Hits sentinel's `_remove` if queue is empty.
+    E result = _sentinel._nextLink!._remove();
     _elementCount--;
     return result;
   }
 
   bool remove(Object? o) {
-    _DoubleLinkedQueueEntry<E> entry =
-        _sentinel._nextLink as _DoubleLinkedQueueEntry<E>;
-    while (!identical(entry, _sentinel)) {
-      bool equals = (entry._element == o);
-      if (!identical(this, entry._queue)) {
+    _DoubleLinkedQueueEntry<E> entry = _sentinel._nextLink!;
+    while (true) {
+      var elementEntry = entry._asNonSentinelEntry();
+      if (elementEntry == null) return false;
+      bool equals = (elementEntry.element == o);
+      if (!identical(this, elementEntry._queue)) {
         // Entry must still be in the queue.
         throw ConcurrentModificationError(this);
       }
@@ -371,26 +336,26 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
         _elementCount--;
         return true;
       }
-      entry = entry._nextLink as _DoubleLinkedQueueEntry<E>;
+      entry = entry._nextLink!;
     }
-    return false;
   }
 
   void _filter(bool test(E element), bool removeMatching) {
-    _DoubleLinkedQueueEntry<E> entry =
-        _sentinel._nextLink as _DoubleLinkedQueueEntry<E>;
-    while (!identical(entry, _sentinel)) {
-      bool matches = test(entry._element);
-      if (!identical(this, entry._queue)) {
+    _DoubleLinkedQueueEntry<E> entry = _sentinel._nextLink!;
+    while (true) {
+      var elementEntry = entry._asNonSentinelEntry();
+      if (elementEntry == null) return;
+      bool matches = test(elementEntry.element);
+      if (!identical(this, elementEntry._queue)) {
         // Entry must still be in the queue.
         throw ConcurrentModificationError(this);
       }
-      DoubleLinkedQueueEntry<E> next = entry._nextLink!; // Cannot be null.
+      var next = entry._nextLink!; // Cannot be null while entry is in queue.
       if (identical(removeMatching, matches)) {
-        entry._remove();
+        elementEntry._remove();
         _elementCount--;
       }
-      entry = next as _DoubleLinkedQueueEntry<E>;
+      entry = next;
     }
   }
 
@@ -402,22 +367,17 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     _filter(test, false);
   }
 
-  E get first {
-    DoubleLinkedQueueEntry<E> firstEntry = _sentinel._nextLink!;
-    return firstEntry._element as E;
-  }
+  // Hits sentinel's `get element` if no element in queue.
+  E get first => _sentinel._nextLink!.element;
 
-  E get last {
-    DoubleLinkedQueueEntry<E> lastEntry = _sentinel._previousLink!;
-    return lastEntry._element as E;
-  }
+  // Hits sentinel's `get element` if no element in queue.
+  E get last => _sentinel._previousLink!.element;
 
   E get single {
     // Note that this throws correctly if the queue is empty
     // because reading the element of the sentinel throws.
     if (identical(_sentinel._nextLink, _sentinel._previousLink)) {
-      DoubleLinkedQueueEntry<E> entry = _sentinel._nextLink!;
-      return entry._element as E;
+      return _sentinel._nextLink!.element;
     }
     throw IterableElementError.tooMany();
   }
@@ -432,9 +392,8 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// The entry objects can also be accessed using [lastEntry],
   /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry] and
   /// [DoubleLinkedQueueEntry.previousEntry].
-  DoubleLinkedQueueEntry<E>? firstEntry() {
-    return _sentinel.nextEntry();
-  }
+  DoubleLinkedQueueEntry<E>? firstEntry() =>
+      _sentinel._nextLink!._asNonSentinelEntry();
 
   /// The entry object of the last element in the queue.
   ///
@@ -446,15 +405,22 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// The entry objects can also be accessed using [firstEntry],
   /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry] and
   /// [DoubleLinkedQueueEntry.previousEntry].
-  DoubleLinkedQueueEntry<E>? lastEntry() {
-    return _sentinel.previousEntry();
-  }
+  DoubleLinkedQueueEntry<E>? lastEntry() =>
+      _sentinel._previousLink!._asNonSentinelEntry();
 
-  bool get isEmpty {
-    return (identical(_sentinel._nextLink, _sentinel));
-  }
+  bool get isEmpty => identical(_sentinel._nextLink, _sentinel);
 
   void clear() {
+    var cursor = _sentinel._nextLink!;
+    while (true) {
+      var entry = cursor._asNonSentinelEntry();
+      if (entry == null) break;
+      cursor = cursor._nextLink!;
+      entry
+        .._nextLink = null
+        .._previousLink = null
+        .._queue = null;
+    }
     _sentinel._nextLink = _sentinel;
     _sentinel._previousLink = _sentinel;
     _elementCount = 0;
@@ -477,57 +443,59 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// inserted after the current element before it is removed will not be
   /// visited by the iteration.
   void forEachEntry(void action(DoubleLinkedQueueEntry<E> element)) {
-    _DoubleLinkedQueueEntry<E> entry =
-        _sentinel._nextLink as _DoubleLinkedQueueEntry<E>;
-    while (!identical(entry, _sentinel)) {
-      _DoubleLinkedQueueElement<E> element =
-          entry as _DoubleLinkedQueueElement<E>;
-      _DoubleLinkedQueueEntry<E> next =
-          element._nextLink as _DoubleLinkedQueueEntry<E>;
-      // Remember both entry and entry._nextLink.
-      // If someone calls `element.remove()` we continue from `next`.
-      // Otherwise we use the value of entry._nextLink which may have been
-      // updated.
-      action(element);
-      if (identical(this, entry._queue)) {
-        next = entry._nextLink as _DoubleLinkedQueueEntry<E>;
-      } else if (!identical(this, next._queue)) {
+    var cursor = _sentinel._nextLink!;
+    while (true) {
+      var element = cursor._asNonSentinelEntry();
+      if (element == null) break;
+      if (!identical(element._queue, this)) {
         throw ConcurrentModificationError(this);
       }
-      entry = next;
+      cursor = cursor._nextLink!;
+      // Remember both element and element._nextLink (as cursor).
+      // If someone calls `element.remove()` we continue from `next`.
+      // Otherwise we use the value of element._nextLink which may have been
+      // updated.
+      action(element);
+      if (identical(this, element._queue)) {
+        cursor = element._nextLink!;
+      }
     }
   }
 
   _DoubleLinkedQueueIterator<E> get iterator {
-    return _DoubleLinkedQueueIterator<E>(_sentinel);
+    return _DoubleLinkedQueueIterator<E>(this);
   }
 
   String toString() => IterableBase.iterableToFullString(this, '{', '}');
 }
 
 class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
-  _DoubleLinkedQueueSentinel<E>? _sentinel;
-  DoubleLinkedQueueEntry<E>? _nextEntry;
+  /// Queue being iterated. Used for concurrent modification checks.
+  DoubleLinkedQueue<E>? _queue;
+
+  /// Next entry to visit. Set to null when hitting the sentinel.
+  _DoubleLinkedQueueEntry<E>? _nextEntry;
+
+  /// Current element value, when valid.
   E? _current;
 
-  _DoubleLinkedQueueIterator(_DoubleLinkedQueueSentinel<E> sentinel)
-      : _sentinel = sentinel,
-        _nextEntry = sentinel._nextLink;
+  _DoubleLinkedQueueIterator(DoubleLinkedQueue<E> this._queue)
+      : _nextEntry = _queue._sentinel._nextLink;
 
   bool moveNext() {
-    if (identical(_nextEntry, _sentinel)) {
+    var nextElement = _nextEntry?._asNonSentinelEntry();
+    if (nextElement == null) {
+      // Clear everything to not unnecessarily keep values alive.
       _current = null;
       _nextEntry = null;
-      _sentinel = null;
+      _queue = null;
       return false;
     }
-    _DoubleLinkedQueueEntry<E> elementEntry =
-        _nextEntry as _DoubleLinkedQueueEntry<E>;
-    if (!identical(_sentinel!._queue, elementEntry._queue)) {
-      throw ConcurrentModificationError(_sentinel!._queue);
+    if (!identical(_queue, nextElement._queue)) {
+      throw ConcurrentModificationError(_queue);
     }
-    _current = elementEntry._element;
-    _nextEntry = elementEntry._nextLink;
+    _current = nextElement.element;
+    _nextEntry = nextElement._nextLink;
     return true;
   }
 

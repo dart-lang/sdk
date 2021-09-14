@@ -58,6 +58,32 @@ import 'output_utilities.dart';
 import 'relevance_table_generator.dart';
 import 'visitors.dart';
 
+/// Completion metrics are computed by taking a single package and iterating
+/// over the compilation units in the package. For each unit we visit the AST
+/// structure to find all of the places where completion suggestions should be
+/// offered (essentially, everywhere that there's a keyword or identifier). At
+/// each location we compute the completion suggestions using the same code path
+/// used by the analysis server. We then compare the suggestions against the
+/// token that was actually at that location in the file.
+///
+/// This approach has several drawbacks:
+///
+/// - The AST is always complete and correct, and that's rarely the case for
+///   real completion requests. Usually the tree is incomplete and often has a
+///   completely different structure because of the way recovery works. We
+///   currently have no way of measuring completions under realistic conditions.
+///
+/// - We can't measure completions for several keywords because the presence of
+///   the keyword in the AST causes it to not be suggested.
+///
+/// - The time it takes to compute the suggestions doesn't include the time
+///   required to finish analyzing the file if the analysis hasn't been
+///   completed before suggestions are requested. While the times are accurate
+///   (within the accuracy of the `Stopwatch` class) they are the minimum
+///   possible time. This doesn't give us a measure of how completion will
+///   perform in production, but does give us an optimistic approximation.
+///
+/// The first is arguably the worst of the limitations of our current approach.
 Future<void> main(List<String> args) async {
   var parser = createArgParser();
   var result = parser.parse(args);
@@ -1045,8 +1071,9 @@ class CompletionMetricsComputer {
           .toList();
       locations.sort();
       for (var location in locations) {
-        table.add(toRow(targetMetrics
-            .map((metrics) => metrics.locationMrrComputers[location]!)));
+        table.add(toRow(targetMetrics.map((metrics) =>
+            metrics.locationMrrComputers[location] ??
+            MeanReciprocalRankComputer(location))));
       }
     }
     rightJustifyColumns(table, range(1, table[0].length));
@@ -1318,7 +1345,7 @@ class CompletionMetricsComputer {
       var filePath = result.path;
       // Use the ExpectedCompletionsVisitor to compute the set of expected
       // completions for this CompilationUnit.
-      final visitor = ExpectedCompletionsVisitor(filePath);
+      final visitor = ExpectedCompletionsVisitor(result);
       _resolvedUnitResult.unit.accept(visitor);
 
       for (var expectedCompletion in visitor.expectedCompletions) {

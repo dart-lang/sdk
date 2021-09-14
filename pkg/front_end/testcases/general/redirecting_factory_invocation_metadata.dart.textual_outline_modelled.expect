@@ -1,0 +1,69 @@
+@Const()
+library name;
+
+@Const()
+export 'redirecting_factory_invocation_metadata.dart';
+@Const()
+import 'redirecting_factory_invocation_metadata.dart' as self;
+@Const()
+part 'redirecting_factory_invocation_metadata_lib.dart';
+
+class Class<@Const() T> {
+  @Const()
+  Class();
+  @Const()
+  method1<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  @Const()
+  method2<@Const() T>(@Const() var o1, {@Const() var o2}) {}
+  @Const()
+  var field = <@Const() T>(@Const() var o1, {@Const() var o2}) {
+    @Const()
+    var l1;
+    @Const()
+    l2<@Const() T>(@Const() var o1, {@Const() var o2}) {}
+  };
+}
+
+@Const()
+class Const {
+  const Const.internal();
+  const factory Const() = Const.internal;
+}
+
+@Const()
+extension Extension<@Const() T> on Class<T> {
+  @Const()
+  method1<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  @Const()
+  method2<@Const() T>(@Const() var o1, {@Const() var o2}) {}
+  @Const()
+  static var field = <@Const() T>(@Const() var o1, [@Const() var o2]) {
+    @Const()
+    var l1;
+    @Const()
+    l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  };
+}
+
+main() {}
+@Const()
+method1<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+@Const()
+method2<@Const() T>(@Const() var o1, {@Const() var o2}) {}
+@Const()
+typedef Typedef1<@Const() T> = Function<@Const() T>(@Const() Class,
+    [@Const() Class]);
+@Const()
+typedef Typedef2<@Const() T> = Function<@Const() T>(@Const() Class,
+    {@Const() Class o2});
+@Const()
+typedef void Typedef3<@Const() T>(@Const() var o1, [@Const() var o2]);
+@Const()
+typedef void Typedef4<@Const() T>(@Const() var o1, {@Const() var o2});
+@Const()
+var field = <@Const() T>(@Const() var o1, [@Const() var o2]) {
+  @Const()
+  var l1;
+  @Const()
+  l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+};

@@ -10,7 +10,7 @@ import 'package:async_helper/async_helper.dart';
 
 import 'package:expect/expect.dart';
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   Uri dartVm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
   Uri librariesJson = Uri.base.resolve("sdk/lib/libraries.json");
   Uri compilePlatform =
@@ -38,7 +38,8 @@ main(List<String> arguments) {
   });
 }
 
-withTemporaryDirectory(String prefix, Future<void> f(Uri tmp)) async {
+Future<void> withTemporaryDirectory(
+    String prefix, Future<void> f(Uri tmp)) async {
   Directory tmp = await Directory.systemTemp.createTemp(prefix);
   try {
     await f(tmp.uri);

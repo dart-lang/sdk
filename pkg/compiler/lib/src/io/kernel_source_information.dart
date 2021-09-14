@@ -23,7 +23,7 @@ class KernelSourceInformationStrategy
 
   @override
   SourceInformationBuilder createBuilderForContext(MemberEntity member) {
-    return new KernelSourceInformationBuilder(
+    return KernelSourceInformationBuilder(
         _backendStrategy
             // ignore:deprecated_member_use_from_same_package
             .elementMap,
@@ -142,7 +142,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
     }
     assert(
         location != null, "No location found for $node (${node.runtimeType})");
-    return new KernelSourceLocation(location, offset, name);
+    return KernelSourceLocation(location, offset, name);
   }
 
   /// Creates the source information for a function definition defined by the
@@ -152,7 +152,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation _buildFunction(
       String name, ir.TreeNode node, ir.FunctionNode functionNode) {
     if (functionNode.fileEndOffset != ir.TreeNode.noOffset) {
-      return new PositionSourceInformation(
+      return PositionSourceInformation(
           _getSourceLocation(name, node),
           _getSourceLocation(name, functionNode, functionNode.fileEndOffset),
           this.inliningContext);
@@ -195,7 +195,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation _buildFunctionExit(
       ir.TreeNode node, ir.FunctionNode functionNode) {
     if (functionNode.fileEndOffset != ir.TreeNode.noOffset) {
-      return new PositionSourceInformation(
+      return PositionSourceInformation(
           _getSourceLocation(_name, functionNode, functionNode.fileEndOffset),
           null,
           this.inliningContext);
@@ -218,7 +218,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
     } else {
       location = _getSourceLocation(_name, node);
     }
-    return new PositionSourceInformation(location, null, inliningContext);
+    return PositionSourceInformation(location, null, inliningContext);
   }
 
   /// Creates source information for the body of the current member.
@@ -283,10 +283,8 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   /// Creates source information based on the location of [node].
   SourceInformation _buildTreeNode(ir.TreeNode node,
       {SourceLocation closingPosition, String name}) {
-    return new PositionSourceInformation(
-        _getSourceLocation(name ?? _name, node),
-        closingPosition,
-        inliningContext);
+    return PositionSourceInformation(_getSourceLocation(name ?? _name, node),
+        closingPosition, inliningContext);
   }
 
   @override
@@ -294,7 +292,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       MemberEntity member, SourceInformation context) {
     List<FrameContext> newContext = inliningContext?.toList() ?? [];
     if (context != null) {
-      newContext.add(new FrameContext(context, member.name));
+      newContext.add(FrameContext(context, member.name));
     } else {
       // TODO(sigmund): investigate whether we have any more cases where context
       // is null.
@@ -302,7 +300,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
     }
 
     String name = computeKernelElementNameForSourceMaps(_elementMap, _member);
-    return new KernelSourceInformationBuilder.withContext(
+    return KernelSourceInformationBuilder.withContext(
         _elementMap, member, newContext, name);
   }
 
@@ -429,7 +427,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   @override
   SourceInformation buildCall(
       covariant ir.TreeNode receiver, covariant ir.TreeNode call) {
-    return new PositionSourceInformation(_getSourceLocation(_name, receiver),
+    return PositionSourceInformation(_getSourceLocation(_name, receiver),
         _getSourceLocation(_name, call), inliningContext);
   }
 

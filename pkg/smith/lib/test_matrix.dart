@@ -22,7 +22,7 @@ class TestMatrix {
 
   static TestMatrix fromJson(Map<String, dynamic> json) {
     var configurationsJson =
-        json["configurations"] as Map<String, dynamic> ?? <String, dynamic>{};
+        json["configurations"] as Map<String, dynamic>? ?? <String, dynamic>{};
 
     // Keep track of the configurations and which templates they were expanded
     // from.
@@ -60,8 +60,8 @@ class TestMatrix {
     var testedOn = <Configuration, Builder>{};
     for (var builder in builders) {
       for (var configuration in builder.testedConfigurations) {
-        if (testedOn.containsKey(configuration)) {
-          var other = testedOn[configuration];
+        var other = testedOn[configuration];
+        if (other != null) {
           throw FormatException('Configuration "${configuration.name}" is '
               'tested on both "${builder.name}" and "${other.name}"');
         } else {

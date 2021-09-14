@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -61,6 +62,22 @@ class A {
 ''');
   }
 
+  test_class_hasConstFactoryConstructor() async {
+    await assertNoErrorsInCode('''
+class Base {
+  Base();
+  const factory Base.empty() = _Empty;
+  late final int property;
+}
+
+class _Empty implements Base {
+  const _Empty();
+  int get property => 0;
+  set property(_) {}
+}
+''');
+  }
+
   test_class_noConstConstructor() async {
     await assertNoErrorsInCode('''
 class A {
@@ -68,5 +85,19 @@ class A {
   A();
 }
 ''');
+  }
+
+  test_inExtension() async {
+    // https://github.com/dart-lang/sdk/issues/46952
+    // This test is here because the code that tests for
+    // LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR is where the referenced issue was
+    // caused.
+    await assertErrorsInCode('''
+extension E on int {
+  late final int i;
+}
+''', [
+      error(ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 38, 1),
+    ]);
   }
 }

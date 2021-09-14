@@ -21,6 +21,7 @@ class ParseError {
   ParseError(this.message,
       {required this.filename, required this.byteIndex, required this.path});
 
+  @override
   String toString() => '$filename:$byteIndex: $message at $path';
 }
 
@@ -30,6 +31,7 @@ class InvalidKernelVersionError {
 
   InvalidKernelVersionError(this.filename, this.version);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('Unexpected Kernel Format Version ${version} '
@@ -46,6 +48,7 @@ class InvalidKernelSdkVersionError {
 
   InvalidKernelSdkVersionError(this.version);
 
+  @override
   String toString() {
     return 'Unexpected Kernel SDK Version ${version} '
         '(expected ${expectedSdkHash}).';
@@ -57,6 +60,7 @@ class CompilationModeError {
 
   CompilationModeError(this.message);
 
+  @override
   String toString() => "CompilationModeError[$message]";
 }
 
@@ -179,7 +183,7 @@ class BinaryBuilder {
             (alwaysCreateNewNamedNodes == true),
         this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
-  fail(String message) {
+  Never fail(String message) {
     throw ParseError(message,
         byteIndex: _byteOffset, filename: filename, path: debugPath.join('::'));
   }
@@ -2103,7 +2107,8 @@ class BinaryBuilder {
 
   Expression _readInvalidExpression() {
     int offset = readOffset();
-    return new InvalidExpression(readStringOrNullIfEmpty())
+    return new InvalidExpression(
+        readStringOrNullIfEmpty(), readExpressionOption())
       ..fileOffset = offset;
   }
 

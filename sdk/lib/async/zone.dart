@@ -587,8 +587,8 @@ abstract class ZoneDelegate {
 ///
 /// This is all handled internally by the platform code and most users don't need
 /// to worry about it. However, developers of new asynchronous operations,
-/// provided by the underlying system or through native extensions, must follow
-/// the protocol to be zone compatible.
+/// provided by the underlying system, must follow the protocol to be zone
+/// compatible.
 ///
 /// For convenience, zones provide [bindCallback] (and the corresponding
 /// [bindUnaryCallback] and [bindBinaryCallback]) to make it easier to respect

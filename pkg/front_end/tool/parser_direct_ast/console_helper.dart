@@ -2,23 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import "dart:async" show StreamSubscription, Timer;
 import "dart:io" show Platform, ProcessSignal, exit, stdin, stdout;
 import "dart:isolate" show RawReceivePort;
 import "dart:typed_data" show Uint16List;
 
 class Application {
-  int _latestKnownTerminalColumns;
-  int _latestKnownTerminalRows;
-  RawReceivePort _preventClose;
-  StreamSubscription<List<int>> _stdinListen;
-  StreamSubscription<ProcessSignal> _sigintListen;
-  StreamSubscription<ProcessSignal> _sigwinchListen;
-  Timer _timer;
+  late int _latestKnownTerminalColumns;
+  late int _latestKnownTerminalRows;
+  late RawReceivePort _preventClose;
+  late StreamSubscription<List<int>> _stdinListen;
+  late StreamSubscription<ProcessSignal> _sigintListen;
+  StreamSubscription<ProcessSignal>? _sigwinchListen;
+  Timer? _timer;
   final Widget _widget;
-  _Output _output;
+  late _Output _output;
   bool _started = false;
 
   Application(this._widget) {
@@ -65,7 +63,7 @@ class Application {
   void quit() {
     _gotoMainScreenBuffer();
     _showCursor();
-    _timer.cancel();
+    _timer!.cancel();
     _preventClose.close();
     _stdinListen.cancel();
     _sigintListen.cancel();
@@ -99,26 +97,26 @@ class Application {
     });
   }
 
-  _Output _prevOutput;
+  _Output? _prevOutput;
 
-  _printOutput() {
+  void _printOutput() {
     int currentPosRow = -1;
     int currentPosColumn = -1;
     StringBuffer buffer = new StringBuffer();
     if (_prevOutput == null ||
-        _prevOutput.columns != _output.columns ||
-        _prevOutput.rows != _output.rows) {
+        _prevOutput!.columns != _output.columns ||
+        _prevOutput!.rows != _output.rows) {
       _clearScreenAlt();
       _prevOutput = null;
     }
     for (int row = 0; row < _output.rows; row++) {
       for (int column = 0; column < _output.columns; column++) {
-        String char = _output.getChar(row, column);
+        String? char = _output.getChar(row, column);
         int rawModifier = _output.getRawModifiers(row, column);
 
         if (_prevOutput != null) {
-          String prevChar = _prevOutput.getChar(row, column);
-          int prevRawModifier = _prevOutput.getRawModifiers(row, column);
+          String? prevChar = _prevOutput!.getChar(row, column);
+          int prevRawModifier = _prevOutput!.getRawModifiers(row, column);
           if (prevChar == char && prevRawModifier == rawModifier) continue;
         }
 
@@ -269,7 +267,7 @@ abstract class Widget {
 }
 
 class BoxedWidget extends Widget {
-  final Widget _content;
+  final Widget? _content;
   BoxedWidget(this._content);
 
   @override
@@ -304,7 +302,7 @@ class BoxedWidget extends Widget {
 }
 
 class QuitOnQWidget extends Widget {
-  Widget _contentWidget;
+  Widget? _contentWidget;
 
   QuitOnQWidget(this._contentWidget);
 
@@ -324,8 +322,8 @@ class QuitOnQWidget extends Widget {
 }
 
 class WithSingleLineBottomWidget extends Widget {
-  Widget _contentWidget;
-  Widget _bottomWidget;
+  Widget? _contentWidget;
+  Widget? _bottomWidget;
 
   WithSingleLineBottomWidget(this._contentWidget, this._bottomWidget);
 
@@ -380,7 +378,9 @@ enum BackgroundColor {
 }
 
 class _Output implements WriteOnlyOutput {
+  @override
   final int rows;
+  @override
   final int columns;
   final Uint16List _text;
   final Uint16List _modifiers;
@@ -393,11 +393,12 @@ class _Output implements WriteOnlyOutput {
     return row * columns + column;
   }
 
+  @override
   void setCell(int row, int column,
-      {String char,
-      Modifier modifier,
-      ForegroundColor foregroundColor,
-      BackgroundColor backgroundColor}) {
+      {String? char,
+      Modifier? modifier,
+      ForegroundColor? foregroundColor,
+      BackgroundColor? backgroundColor}) {
     int position = getPosition(row, column);
 
     if (char != null) {
@@ -429,7 +430,7 @@ class _Output implements WriteOnlyOutput {
     _modifiers[position] = outModifier;
   }
 
-  String getChar(int row, int column) {
+  String? getChar(int row, int column) {
     int position = getPosition(row, column);
     int char = _text[position];
     if (char > 0) return new String.fromCharCode(char);
@@ -467,17 +468,19 @@ abstract class WriteOnlyOutput {
   int get rows;
   int get columns;
   void setCell(int row, int column,
-      {String char,
-      Modifier modifier,
-      ForegroundColor foregroundColor,
-      BackgroundColor backgroundColor});
+      {String? char,
+      Modifier? modifier,
+      ForegroundColor? foregroundColor,
+      BackgroundColor? backgroundColor});
 }
 
 class WriteOnlyPartialOutput implements WriteOnlyOutput {
   final WriteOnlyOutput _output;
   final int offsetRow;
   final int offsetColumn;
+  @override
   final int rows;
+  @override
   final int columns;
   WriteOnlyPartialOutput(this._output, this.offsetRow, this.offsetColumn,
       this.rows, this.columns) {
@@ -489,10 +492,10 @@ class WriteOnlyPartialOutput implements WriteOnlyOutput {
 
   @override
   void setCell(int row, int column,
-      {String char,
-      Modifier modifier,
-      ForegroundColor foregroundColor,
-      BackgroundColor backgroundColor}) {
+      {String? char,
+      Modifier? modifier,
+      ForegroundColor? foregroundColor,
+      BackgroundColor? backgroundColor}) {
     if (row >= rows || column >= columns) return;
     _output.setCell(row + offsetRow, column + offsetColumn,
         char: char,

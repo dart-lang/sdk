@@ -7,6 +7,7 @@ library fasta.outline_builder;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
+        ConstructorReferenceContext,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
@@ -101,6 +102,7 @@ enum MethodBody {
 }
 
 class OutlineBuilder extends StackListenerImpl {
+  @override
   final SourceLibraryBuilder libraryBuilder;
 
   final bool enableNative;
@@ -990,30 +992,35 @@ class OutlineBuilder extends StackListenerImpl {
         endToken, _MethodKind.classMethod);
   }
 
+  @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.classConstructor);
   }
 
+  @override
   void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.mixinMethod);
   }
 
+  @override
   void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.extensionMethod);
   }
 
+  @override
   void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.mixinConstructor);
   }
 
+  @override
   void endExtensionConstructor(Token? getOrSet, Token beginToken,
       Token beginParam, Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
@@ -1031,7 +1038,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
     assert(checkState(beginToken, [
       ValueKinds.AsyncModifier,
-      ValueKinds.FormalsOrNull,
+      ValueKinds.FormalListOrNull,
       ValueKinds.Integer, // formals offset
       ValueKinds.TypeVariableListOrNull,
       ValueKinds.Integer, // name offset
@@ -2028,8 +2035,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     debugEvent("ConstructorReference");
     popIfNotNull(periodBeforeName); // charOffset.
     String? suffix = popIfNotNull(periodBeforeName) as String?;
@@ -2212,6 +2219,7 @@ class OutlineBuilder extends StackListenerImpl {
     push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
+  @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage>? context}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,

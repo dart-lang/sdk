@@ -8,5 +8,5 @@ import "dart:io" show Platform;
 
 import "subtypes_benchmark.dart" show run;
 
-main() => run(
+void main() => run(
     Platform.script.resolve("benchmark_data/large_app.json.gz"), "LargeApp");

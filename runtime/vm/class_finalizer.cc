@@ -1381,6 +1381,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 
 void ClassFinalizer::SortClasses() {
   auto T = Thread::Current();
+  StackZone stack_zone(T);
   auto Z = T->zone();
   auto IG = T->isolate_group();
 

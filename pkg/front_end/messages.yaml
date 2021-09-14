@@ -228,6 +228,9 @@ ConstEvalExternalFactory:
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
 
+ConstEvalError:
+  template: "Error evaluating constant expression: #string"
+
 ConstEvalUnhandledCoreException:
   template: "Unhandled core exception: #stringOKEmpty"
 
@@ -1625,8 +1628,8 @@ ConstructorWithTypeParameters:
       }
 
 ConstructorWithTypeArguments:
-  template: "A constructor invocation can't have type arguments on the constructor name."
-  tip: "Try to place the type arguments on the class name."
+  template: "A constructor invocation can't have type arguments after the constructor name."
+  tip: "Try removing the type arguments or placing them after the class name."
   analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
@@ -1684,6 +1687,14 @@ TypeNotFound:
 NonInstanceTypeVariableUse:
   template: "Can only use type variables in instance methods."
   analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+
+NameNotFound:
+  template: "Undefined name '#name'."
+  analyzerCode: UNDEFINED_NAME
+
+MemberNotFound:
+  template: "Member not found: '#name'."
+  analyzerCode: UNDEFINED_GETTER
 
 GetterNotFound:
   template: "Getter not found: '#name'."
@@ -3256,6 +3267,10 @@ TypeVariableInConstantContext:
 
 SuperclassMethodArgumentMismatch:
   template: "Superclass doesn't have a method named '#name' with matching arguments."
+
+SuperclassHasNoMember:
+  template: "Superclass has no member named '#name'."
+  analyzerCode: UNDEFINED_SUPER_GETTER
 
 SuperclassHasNoGetter:
   template: "Superclass has no getter named '#name'."
@@ -5217,10 +5232,9 @@ CompilingWithoutSoundNullSafety:
     // @dart=2.9
     main() {}
 
-DeprecateDartExt:
-  template: "Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK."
+UnsupportedDartExt:
+  template: "Dart native extensions are no longer supported."
   tip: "Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)"
-  severity: INFO
   script: |
     import 'dart-ext:foo.dart';
 
@@ -5254,3 +5268,19 @@ AbstractClassConstructorTearOff:
   script: |
     abstract class Class {}
     main() => Class.new;
+
+StaticTearOffFromInstantiatedClass:
+  template: "Cannot access static member on an instantiated generic class."
+  tip: "Try removing the type arguments or placing them after the member name."
+  experiments: constructor-tearoffs
+  script: |
+    class A<X> { static f() {} }
+    main() => A<int>.f;
+
+
+ConstructorTearOffWithTypeArguments:
+  template: "A constructor tear-off can't have type arguments after the constructor name."
+  tip: "Try removing the type arguments or placing them after the class name."
+  experiments: constructor-tearoffs
+  script:
+    - "class C<X> { C.foo(); } bar() { C.foo<int>; }"

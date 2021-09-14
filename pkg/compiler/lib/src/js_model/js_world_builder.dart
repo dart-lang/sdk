@@ -9,7 +9,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
@@ -256,7 +256,7 @@ class JsClosedWorldBuilder {
           map.toBackendType(runtimeTypeUse.argumentType));
     }).toSet();
 
-    return new BackendUsageImpl(
+    return BackendUsageImpl(
         globalFunctionDependencies: globalFunctionDependencies,
         globalClassDependencies: globalClassDependencies,
         helperFunctionsUsed: helperFunctionsUsed,
@@ -266,6 +266,7 @@ class JsClosedWorldBuilder {
         needToInitializeDispatchProperty:
             backendUsage.needToInitializeDispatchProperty,
         requiresPreamble: backendUsage.requiresPreamble,
+        requiresStartupMetrics: backendUsage.requiresStartupMetrics,
         runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: backendUsage.isMirrorsUsed,

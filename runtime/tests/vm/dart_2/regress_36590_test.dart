@@ -11,6 +11,8 @@
 //
 // VMOptions=--deterministic
 
+// @dart = 2.9
+
 var var6 = [1, 2, 3];
 
 void bar() {}

@@ -84,7 +84,7 @@ static method testGeneric() → dynamic {
   self::expect(true, c1b is{ForNonNullableByDefault} self::Class1<core::int>);
   self::expect(false, c1b is{ForNonNullableByDefault} self::Class1<core::String>);
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_constructor_tear_off.dart:24:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_constructor_tear_off.dart:24:8: Error: Expected 1 type arguments.
     f1a<int, String>(); // error
        ^" in f1a{<inapplicable>}.<core::int, core::String>();
   };
@@ -93,7 +93,7 @@ static method testGeneric() → dynamic {
   self::expect(true, c1c is{ForNonNullableByDefault} self::Class1<core::int>);
   self::expect(false, c1c is{ForNonNullableByDefault} self::Class1<core::String>);
   () → Null {
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_constructor_tear_off.dart:32:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_constructor_tear_off.dart:32:8: Error: Expected 0 type arguments.
     f1b<int>(); // error
        ^" in f1b{<inapplicable>}.<core::int>();
   };
@@ -113,7 +113,7 @@ static method testBounded() → dynamic {
   self::expect(false, c2b is{ForNonNullableByDefault} self::Class2<core::double>);
   () → Null {
     f2a<core::String>(){() → self::Class2<core::String>};
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_constructor_tear_off.dart:60:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_constructor_tear_off.dart:60:8: Error: Expected 1 type arguments.
     f2a<int, String>(); // error
        ^" in f2a{<inapplicable>}.<core::int, core::String>();
   };

@@ -2065,7 +2065,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
-    Map<Uri?, LibraryBuilder> partUriToParent = <Uri, LibraryBuilder>{};
+    Map<Uri?, LibraryBuilder> partUriToParent = <Uri?, LibraryBuilder>{};
 
     // Invalidated URIs translated back to their import URI (package:, dart:,
     // etc.).
@@ -2097,7 +2097,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return false;
     }
 
-    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
+    void addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
       if (uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
         if (seenUris.add(libraryBuilder.importUri)) {
           reusedLibraries.add(libraryBuilder);
@@ -2331,6 +2331,7 @@ class InitializeFromComponentError {
 
   const InitializeFromComponentError(this.message);
 
+  @override
   String toString() => message;
 }
 
@@ -2400,6 +2401,7 @@ class IncrementalKernelTarget extends KernelTarget
       DillTarget dillTarget, UriTranslator uriTranslator)
       : super(fileSystem, includeComments, dillTarget, uriTranslator);
 
+  @override
   ChangedStructureNotifier get changedStructureNotifier => this;
 
   @override

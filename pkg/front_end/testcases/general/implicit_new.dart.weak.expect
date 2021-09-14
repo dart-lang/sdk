@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/implicit_new.dart:18:18: Error: Method not found: 'Bar'.
+// pkg/front_end/testcases/general/implicit_new.dart:18:18: Error: Couldn't find constructor 'Bar'.
 //   var y = prefix.Bar();
 //                  ^^^
 //
-// pkg/front_end/testcases/general/implicit_new.dart:19:10: Error: Method not found: 'Bar'.
+// pkg/front_end/testcases/general/implicit_new.dart:19:10: Error: Couldn't find constructor 'Bar'.
 //   prefix.Bar();
 //          ^^^
 //
@@ -68,10 +68,10 @@ class IndexTester extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method testNSM() → dynamic {
-  dynamic y = invalid-expression "pkg/front_end/testcases/general/implicit_new.dart:18:18: Error: Method not found: 'Bar'.
+  invalid-type y = invalid-expression "pkg/front_end/testcases/general/implicit_new.dart:18:18: Error: Couldn't find constructor 'Bar'.
   var y = prefix.Bar();
                  ^^^";
-  invalid-expression "pkg/front_end/testcases/general/implicit_new.dart:19:10: Error: Method not found: 'Bar'.
+  invalid-expression "pkg/front_end/testcases/general/implicit_new.dart:19:10: Error: Couldn't find constructor 'Bar'.
   prefix.Bar();
          ^^^";
 }

@@ -10,9 +10,9 @@ library test;
 //   String x = JS('int', '42'); // error
 //              ^^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:13:29: Error: Method not found: 'JS'.
-//   var /*@type=dynamic*/ y = JS<String>('String', '"hello"');
-//                             ^^
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:13:34: Error: Method not found: 'JS'.
+//   var /*@type=invalid-type*/ y = JS<String>('String', '"hello"');
+//                                  ^^
 //
 import self as self;
 import "dart:core" as core;
@@ -23,9 +23,9 @@ static method test() → dynamic {
   core::String* x = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:12:14: Error: Method not found: 'JS'.
   String x = JS('int', '42'); // error
              ^^";
-  dynamic y = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:13:29: Error: Method not found: 'JS'.
-  var /*@type=dynamic*/ y = JS<String>('String', '\"hello\"');
-                            ^^";
+  invalid-type y = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:13:34: Error: Method not found: 'JS'.
+  var /*@type=invalid-type*/ y = JS<String>('String', '\"hello\"');
+                                 ^^";
   y = "world";
   y = 42;
 }

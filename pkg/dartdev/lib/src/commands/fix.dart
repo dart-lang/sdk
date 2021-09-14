@@ -90,6 +90,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         'Computing fixes in ${log.ansi.emphasized(projectName)}$modeText');
 
     var server = AnalysisServer(
+      null,
       io.Directory(sdk.sdkPath),
       [dir],
       commandName: 'fix',
@@ -241,7 +242,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   /// Compress sequences of whitespace characters into a single space.
   String _compressWhitespace(String code) =>
-      code.replaceAll(RegExp(r'\s*'), ' ');
+      code.replaceAll(RegExp(r'\s+'), ' ');
 
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
 

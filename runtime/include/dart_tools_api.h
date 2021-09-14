@@ -385,42 +385,6 @@ DART_EXPORT int64_t Dart_TimelineGetTicks();
  */
 DART_EXPORT int64_t Dart_TimelineGetTicksFrequency();
 
-/** Timeline stream for Dart API calls */
-#define DART_TIMELINE_STREAM_API (1 << 0)
-/** Timeline stream for compiler events */
-#define DART_TIMELINE_STREAM_COMPILER (1 << 1)
-/** Timeline stream for Dart provided events */
-#define DART_TIMELINE_STREAM_DART (1 << 2)
-/** Timeline stream for debugger provided events */
-#define DART_TIMELINE_STREAM_DEBUGGER (1 << 3)
-/** Timeline stream for embedder provided events */
-#define DART_TIMELINE_STREAM_EMBEDDER (1 << 4)
-/** Timeline stream for GC events */
-#define DART_TIMELINE_STREAM_GC (1 << 5)
-/** Timeline stream for isolate events */
-#define DART_TIMELINE_STREAM_ISOLATE (1 << 6)
-/** Timeline stream for VM events */
-#define DART_TIMELINE_STREAM_VM (1 << 7)
-
-/** All timeline streams */
-#define DART_TIMELINE_STREAM_ALL                                               \
-  (DART_TIMELINE_STREAM_API | DART_TIMELINE_STREAM_COMPILER |                  \
-   DART_TIMELINE_STREAM_DART | DART_TIMELINE_STREAM_DEBUGGER |                 \
-   DART_TIMELINE_STREAM_EMBEDDER | DART_TIMELINE_STREAM_GC |                   \
-   DART_TIMELINE_STREAM_ISOLATE | DART_TIMELINE_STREAM_VM)
-
-/** Disable all timeline stream recording */
-#define DART_TIMELINE_STREAM_DISABLE 0
-
-/**
- * Start recording timeline events for the entire VM (including all isolates).
- *
- * \param stream_mask A bitmask of streams that should be recorded.
- *
- * NOTE: Calling with 0 disables recording of all streams.
- */
-DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask);
-
 typedef enum {
   Dart_Timeline_Event_Begin,          // Phase = 'B'.
   Dart_Timeline_Event_End,            // Phase = 'E'.

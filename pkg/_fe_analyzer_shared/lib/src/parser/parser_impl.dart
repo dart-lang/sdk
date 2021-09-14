@@ -56,6 +56,8 @@ import 'async_modifier.dart' show AsyncModifier;
 
 import 'block_kind.dart';
 
+import 'constructor_reference_context.dart' show ConstructorReferenceContext;
+
 import 'declaration_kind.dart' show DeclarationKind;
 
 import 'directive_context.dart';
@@ -69,7 +71,10 @@ import 'formal_parameter_kind.dart'
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 
 import 'identifier_context.dart'
-    show IdentifierContext, looksLikeExpressionStart;
+    show
+        IdentifierContext,
+        looksLikeExpressionStart,
+        okNextValueInFormalParameter;
 
 import 'listener.dart' show Listener;
 
@@ -297,7 +302,22 @@ class Parser {
     return cachedRewriter ??= new TokenStreamRewriterImpl();
   }
 
-  Parser(this.listener)
+  /// If `true`, syntax like `foo<bar>.baz()` is parsed like an implicit
+  /// creation expression. Otherwise it is parsed as a explicit instantiation
+  /// followed by an invocation.
+  ///
+  /// With the constructor-tearoffs experiment, such syntax can lead to a valid
+  /// expression that is _not_ an implicit creation expression, and the parser
+  /// should therefore not special case the syntax but instead let listeners
+  /// resolve the expression by the seen selectors.
+  ///
+  /// Use this flag to test that the implementation doesn't need the special
+  /// casing.
+  // TODO(johnniwinther): Remove this when both analyzer and CFE can parse the
+  // implicit create expression without the special casing.
+  final bool useImplicitCreationExpression;
+
+  Parser(this.listener, {this.useImplicitCreationExpression: true})
       : assert(listener != null); // ignore:unnecessary_null_comparison
 
   bool get inGenerator {
@@ -668,8 +688,9 @@ class Parser {
       listener.handleImportPrefix(/* deferredKeyword = */ null, asKeyword);
     } else {
       listener.handleImportPrefix(
-          /* deferredKeyword = */ null,
-          /* asKeyword = */ null);
+        /* deferredKeyword = */ null,
+        /* asKeyword = */ null,
+      );
     }
     return token;
   }
@@ -1447,9 +1468,10 @@ class Parser {
       }
       // Parse the (potential) new type.
       TypeInfo typeInfoAlternative = computeType(
-          token,
-          /* required = */ false,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ false,
+        /* inDeclaration = */ true,
+      );
       token = typeInfoAlternative.skipType(token);
       next = token.next!;
 
@@ -1569,7 +1591,12 @@ class Parser {
 
     // Type is required in a generalized function type, but optional otherwise.
     final Token beforeType = token;
-    TypeInfo typeInfo = computeType(token, inFunctionType);
+    TypeInfo typeInfo = computeType(
+      token,
+      inFunctionType,
+      /* inDeclaration = */ false,
+      /* acceptKeywordForSimpleType = */ true,
+    );
     token = typeInfo.skipType(token);
     next = token.next!;
     if (typeInfo == noType &&
@@ -1590,18 +1617,33 @@ class Parser {
         IdentifierContext.formalParameterDeclaration;
 
     if (!inFunctionType && optional('this', next)) {
+      Token originalToken = token;
       thisKeyword = token = next;
       next = token.next!;
       if (!optional('.', next)) {
-        // Recover from a missing period by inserting one.
-        next = rewriteAndRecover(
-            token,
-            codes.templateExpectedButGot.withArguments('.'),
-            new SyntheticToken(TokenType.PERIOD, next.charOffset));
+        if (isOneOf(next, okNextValueInFormalParameter)) {
+          // Recover by not parsing as 'this' --- an error will be given
+          // later that it's not an allowed identifier.
+          token = originalToken;
+          next = token.next!;
+          thisKeyword = null;
+        } else {
+          // Recover from a missing period by inserting one.
+          next = rewriteAndRecover(
+              token,
+              codes.templateExpectedButGot.withArguments('.'),
+              new SyntheticToken(TokenType.PERIOD, next.charOffset));
+          // These 3 lines are duplicated here and below.
+          periodAfterThis = token = next;
+          next = token.next!;
+          nameContext = IdentifierContext.fieldInitializer;
+        }
+      } else {
+        // These 3 lines are duplicated here and above.
+        periodAfterThis = token = next;
+        next = token.next!;
+        nameContext = IdentifierContext.fieldInitializer;
       }
-      periodAfterThis = token = next;
-      next = token.next!;
-      nameContext = IdentifierContext.fieldInitializer;
     }
 
     if (next.isIdentifier) {
@@ -2115,8 +2157,9 @@ class Parser {
     } else {
       listener.handleNoType(token);
       listener.handleClassExtends(
-          /* extendsKeyword = */ null,
-          /* typeCount = */ 1);
+        /* extendsKeyword = */ null,
+        /* typeCount = */ 1,
+      );
     }
     return token;
   }
@@ -2524,9 +2567,10 @@ class Parser {
       }
       // Parse the (potential) new type.
       TypeInfo typeInfoAlternative = computeType(
-          token,
-          /* required = */ false,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ false,
+        /* inDeclaration = */ true,
+      );
       token = typeInfoAlternative.skipType(token);
       next = token.next!;
 
@@ -2643,9 +2687,10 @@ class Parser {
         indicatesMethodOrField(next.next!.next!)) {
       // Recovery: Use the reserved keyword despite that not being legal.
       typeInfo = computeType(
-          token,
-          /*required = */ true,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ true,
+        /* inDeclaration = */ true,
+      );
       token = typeInfo.skipType(token);
       next = token.next!;
       nameIsRecovered = true;
@@ -3610,9 +3655,10 @@ class Parser {
 
     Token beforeType = token;
     TypeInfo typeInfo = computeType(
-        token,
-        /*required = */ false,
-        /* inDeclaration = */ true);
+      token,
+      /* required = */ false,
+      /* inDeclaration = */ true,
+    );
     token = typeInfo.skipType(token);
     next = token.next!;
 
@@ -3757,9 +3803,10 @@ class Parser {
           indicatesMethodOrField(next2.next!)) {
         // Recovery: Use the reserved keyword despite that not being legal.
         typeInfo = computeType(
-            token,
-            /*required = */ true,
-            /* inDeclaration = */ true);
+          token,
+          /* required = */ true,
+          /* inDeclaration = */ true,
+        );
         token = typeInfo.skipType(token);
         next = token.next!;
         nameIsRecovered = true;
@@ -3844,6 +3891,18 @@ class Parser {
           identical(operator.kind, BANG_EQ_EQ_TOKEN) ||
           isUnaryMinus(operator)) {
         isOperator = true;
+        if (optional(">>", operator) &&
+            optional(">", operator.next!) &&
+            operator.charEnd == operator.next!.charOffset) {
+          // Special case use of triple-shift in cases where it isn't enabled.
+          reportRecoverableErrorWithEnd(
+              operator,
+              operator.next!,
+              codes.templateExperimentNotEnabled
+                  .withArguments("triple-shift", "2.14"));
+          operator = rewriter.replaceNextTokensWithSyntheticToken(
+              name, 2, TokenType.GT_GT_GT);
+        }
       }
     }
 
@@ -3962,8 +4021,11 @@ class Parser {
       reportRecoverableError(bodyStart, codes.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(token, /* ofFunctionExpression = */ false,
-          (staticToken == null || externalToken != null) && inPlainSync);
+      token = parseFunctionBody(
+        token,
+        /* ofFunctionExpression = */ false,
+        (staticToken == null || externalToken != null) && inPlainSync,
+      );
     }
     asyncState = savedAsyncModifier;
 
@@ -4112,9 +4174,10 @@ class Parser {
         reportRecoverableError(next, codes.messageExternalFactoryWithBody);
       }
       token = parseFunctionBody(
-          token,
-          /* ofFunctionExpression = */ false,
-          /* allowAbstract = */ true);
+        token,
+        /* ofFunctionExpression = */ false,
+        /* allowAbstract = */ true,
+      );
     } else {
       if (varFinalOrConst != null && !optional('native', next)) {
         if (optional('const', varFinalOrConst)) {
@@ -4122,9 +4185,10 @@ class Parser {
         }
       }
       token = parseFunctionBody(
-          token,
-          /* ofFunctionExpression = */ false,
-          /* allowAbstract = */ false);
+        token,
+        /* ofFunctionExpression = */ false,
+        /* allowAbstract = */ false,
+      );
     }
     switch (kind) {
       case DeclarationKind.Class:
@@ -4266,7 +4330,9 @@ class Parser {
     return token;
   }
 
-  Token parseConstructorReference(Token token, [TypeParamOrArgInfo? typeArg]) {
+  Token parseConstructorReference(
+      Token token, ConstructorReferenceContext constructorReferenceContext,
+      [TypeParamOrArgInfo? typeArg]) {
     Token start =
         ensureIdentifier(token, IdentifierContext.constructorReference);
     listener.beginConstructorReference(start);
@@ -4283,7 +4349,8 @@ class Parser {
       listener.handleNoConstructorReferenceContinuationAfterTypeArguments(
           token.next!);
     }
-    listener.endConstructorReference(start, period, token.next!);
+    listener.endConstructorReference(
+        start, period, token.next!, constructorReferenceContext);
     return token;
   }
 
@@ -4292,7 +4359,8 @@ class Parser {
     assert(optional('=', token));
     listener.beginRedirectingFactoryBody(token);
     Token equals = token;
-    token = parseConstructorReference(token);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.RedirectingFactory);
     token = ensureSemicolon(token);
     listener.endRedirectingFactoryBody(equals, token);
     return token;
@@ -4418,9 +4486,7 @@ class Parser {
         begin = next = token.next!;
         // Fall through to parse the block.
       } else {
-        token = ensureBlock(
-            token,
-            codes.templateExpectedFunctionBody,
+        token = ensureBlock(token, codes.templateExpectedFunctionBody,
             /* missingBlockName = */ null);
         listener.handleInvalidFunctionBody(token);
         return token.endGroup!;
@@ -4883,6 +4949,19 @@ class Parser {
           // Right associative, so we recurse at the same precedence
           // level.
           Token next = token.next!;
+          if (optional(">=", next.next!)) {
+            // Special case use of triple-shift in cases where it isn't
+            // enabled.
+            reportRecoverableErrorWithEnd(
+                next,
+                next.next!,
+                codes.templateExperimentNotEnabled
+                    .withArguments("triple-shift", "2.14"));
+            assert(next == operator);
+            next = rewriter.replaceNextTokensWithSyntheticToken(
+                token, 2, TokenType.GT_GT_GT_EQ);
+            operator = next;
+          }
           token = optional('throw', next.next!)
               ? parseThrowExpression(next, /* allowCascades = */ false)
               : parsePrecedenceExpression(next, level, allowCascades);
@@ -4962,6 +5041,21 @@ class Parser {
             } else {
               // Set a flag to catch subsequent binary expressions of this type.
               lastBinaryExpressionLevel = level;
+            }
+          }
+          if (optional(">>", next) && next.charEnd == next.next!.charOffset) {
+            if (optional(">", next.next!)) {
+              // Special case use of triple-shift in cases where it isn't
+              // enabled.
+              reportRecoverableErrorWithEnd(
+                  next,
+                  next.next!,
+                  codes.templateExperimentNotEnabled
+                      .withArguments("triple-shift", "2.14"));
+              assert(next == operator);
+              next = rewriter.replaceNextTokensWithSyntheticToken(
+                  token, 2, TokenType.GT_GT_GT);
+              operator = next;
             }
           }
           listener.beginBinaryExpression(next);
@@ -5110,6 +5204,14 @@ class Parser {
         return SELECTOR_PRECEDENCE;
       }
       return POSTFIX_PRECEDENCE;
+    } else if (identical(type, TokenType.GT_GT)) {
+      // ">>" followed by ">=" (without space between tokens) should for
+      // recovery be seen as ">>>=".
+      TokenType nextType = token.next!.type;
+      if (identical(nextType, TokenType.GT_EQ) &&
+          token.charEnd == token.next!.offset) {
+        return TokenType.GT_GT_GT_EQ.precedence;
+      }
     } else if (identical(type, TokenType.QUESTION) &&
         optional('[', token.next!)) {
       // "?[" can be a null-aware bracket or a conditional. If it's a
@@ -5227,7 +5329,7 @@ class Parser {
           token.next!, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
-    } else if (token.next!.isIdentifier) {
+    } else if (useImplicitCreationExpression && token.next!.isIdentifier) {
       Token identifier = token.next!;
       if (optional(".", identifier.next!)) {
         identifier = identifier.next!.next!;
@@ -5528,10 +5630,11 @@ class Parser {
     if (optional('[]', token)) {
       token = rewriteSquareBrackets(beforeToken).next!;
       listener.handleLiteralList(
-          /* count = */ 0,
-          token,
-          constKeyword,
-          token.next!);
+        /* count = */ 0,
+        token,
+        constKeyword,
+        token.next!,
+      );
       return token.next!;
     }
     bool old = mayParseFunctionExpressions;
@@ -5887,7 +5990,8 @@ class Parser {
     }
 
     listener.beginNewExpression(newKeyword);
-    token = parseConstructorReference(newKeyword, potentialTypeArg);
+    token = parseConstructorReference(
+        newKeyword, ConstructorReferenceContext.New, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endNewExpression(newKeyword);
     return token;
@@ -5897,7 +6001,8 @@ class Parser {
       Token token, TypeParamOrArgInfo typeArg) {
     Token begin = token;
     listener.beginImplicitCreationExpression(token);
-    token = parseConstructorReference(token, typeArg);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.Implicit, typeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endImplicitCreationExpression(begin);
     return token;
@@ -6013,7 +6118,8 @@ class Parser {
       }
     }
     listener.beginConstExpression(constKeyword);
-    token = parseConstructorReference(token, potentialTypeArg);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.Const, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endConstExpression(constKeyword);
     return token;
@@ -6584,10 +6690,11 @@ class Parser {
         listener.beginLocalFunctionDeclaration(start.next!);
         token = typeInfo.parseType(beforeType, this);
         return parseNamedFunctionRest(
-            token,
-            start.next!,
-            beforeFormals,
-            /* isFunctionExpression = */ false);
+          token,
+          start.next!,
+          beforeFormals,
+          /* isFunctionExpression = */ false,
+        );
       }
     }
 

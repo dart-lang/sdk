@@ -134,6 +134,7 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
     var blob = new Blob([jsonEncode(_snapshotA)], 'application/json');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
+    // ignore: unsafe_html
     link.href = blobUrl;
     var now = new DateTime.now();
     link.download = 'dart-process-${now.year}-${now.month}-${now.day}.json';

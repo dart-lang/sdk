@@ -1,0 +1,1618 @@
+{
+  "elements": {
+    "library": {
+      "60281205": {
+        "id": "library/60281205",
+        "kind": "library",
+        "name": "<unnamed>",
+        "size": 85,
+        "children": [
+          "function/531925466"
+        ],
+        "canonicalUri": "file:///Users/kevmoo/source/github/dart2js_info/test/hello_world/hello_world.dart"
+      },
+      "174368900": {
+        "id": "library/174368900",
+        "kind": "library",
+        "name": "_foreign_helper",
+        "size": 0,
+        "children": [
+          "class/949988971"
+        ],
+        "canonicalUri": "dart:_foreign_helper"
+      },
+      "238986171": {
+        "id": "library/238986171",
+        "kind": "library",
+        "name": "dart2js._js_primitives",
+        "size": 483,
+        "children": [
+          "function/864228238"
+        ],
+        "canonicalUri": "dart:_js_primitives"
+      },
+      "325218131": {
+        "id": "library/325218131",
+        "kind": "library",
+        "name": "_interceptors",
+        "size": 0,
+        "children": [
+          "class/1019758482"
+        ],
+        "canonicalUri": "dart:_interceptors"
+      },
+      "631335891": {
+        "id": "library/631335891",
+        "kind": "library",
+        "name": "dart.core",
+        "size": 0,
+        "children": [
+          "class/36312556",
+          "class/56472591",
+          "class/93352366",
+          "class/143626168",
+          "class/175705485",
+          "class/948502579",
+          "class/974704527",
+          "class/991730135",
+          "function/399195151"
+        ],
+        "canonicalUri": "dart:core"
+      },
+      "689380639": {
+        "id": "library/689380639",
+        "kind": "library",
+        "name": "dart._internal",
+        "size": 0,
+        "children": [
+          "field/908476008",
+          "function/606513838"
+        ],
+        "canonicalUri": "dart:_internal"
+      },
+      "754126564": {
+        "id": "library/754126564",
+        "kind": "library",
+        "name": "dart.collection",
+        "size": 0,
+        "children": [
+          "field/522978319"
+        ],
+        "canonicalUri": "dart:collection"
+      },
+      "965528565": {
+        "id": "library/965528565",
+        "kind": "library",
+        "name": "dart2js._embedded_names",
+        "size": 0,
+        "children": [
+          "class/73206861",
+          "class/716671121",
+          "field/55541185",
+          "field/1020283310"
+        ],
+        "canonicalUri": "dart:_js_embedded_names"
+      },
+      "966364039": {
+        "id": "library/966364039",
+        "kind": "library",
+        "name": "_js_helper",
+        "size": 0,
+        "children": [
+          "class/138211367",
+          "class/156108056",
+          "class/269073412",
+          "class/317291728",
+          "class/324980341",
+          "class/354160010",
+          "class/644348892",
+          "class/866150578",
+          "class/1019636942",
+          "field/417944821",
+          "field/526089142"
+        ],
+        "canonicalUri": "dart:_js_helper"
+      }
+    },
+    "class": {
+      "36312556": {
+        "id": "class/36312556",
+        "kind": "class",
+        "name": "ConcurrentModificationError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/376257386"
+        ]
+      },
+      "56472591": {
+        "id": "class/56472591",
+        "kind": "class",
+        "name": "AssertionError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/840751619"
+        ]
+      },
+      "73206861": {
+        "id": "class/73206861",
+        "kind": "class",
+        "name": "JsGetName",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/965528565",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/159930244",
+          "field/190934046",
+          "field/202409972",
+          "field/391942199",
+          "field/422530140",
+          "field/447707988",
+          "field/586155906",
+          "field/626399440",
+          "field/645423404",
+          "field/667376711",
+          "field/701716969",
+          "field/743971885",
+          "field/844410756",
+          "field/864119084",
+          "field/875039735",
+          "field/914172423",
+          "field/960584371",
+          "field/1012317118",
+          "field/1019580176"
+        ]
+      },
+      "93352366": {
+        "id": "class/93352366",
+        "kind": "class",
+        "name": "CyclicInitializationError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/944915314"
+        ]
+      },
+      "138211367": {
+        "id": "class/138211367",
+        "kind": "class",
+        "name": "BoundClosure",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/125830184",
+          "field/180845508",
+          "field/302220255",
+          "field/435101137",
+          "field/709451133",
+          "field/1061931090"
+        ]
+      },
+      "143626168": {
+        "id": "class/143626168",
+        "kind": "class",
+        "name": "ArgumentError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/4524053",
+          "field/509005655",
+          "field/727752212",
+          "field/759319863"
+        ]
+      },
+      "156108056": {
+        "id": "class/156108056",
+        "kind": "class",
+        "name": "ReflectionInfo",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/116849538",
+          "field/130159427",
+          "field/206386055",
+          "field/259683855",
+          "field/338588500",
+          "field/420557924",
+          "field/446360348",
+          "field/603434183",
+          "field/656800516",
+          "field/840091021",
+          "field/911662921"
+        ]
+      },
+      "175705485": {
+        "id": "class/175705485",
+        "kind": "class",
+        "name": "IndexError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/505549528",
+          "field/954188953"
+        ]
+      },
+      "269073412": {
+        "id": "class/269073412",
+        "kind": "class",
+        "name": "TypeImpl",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/70141207",
+          "field/412345286"
+        ]
+      },
+      "317291728": {
+        "id": "class/317291728",
+        "kind": "class",
+        "name": "Closure",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": true
+        },
+        "children": [
+          "field/386221903"
+        ]
+      },
+      "324980341": {
+        "id": "class/324980341",
+        "kind": "class",
+        "name": "TypeErrorImplementation",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/319720392"
+        ]
+      },
+      "354160010": {
+        "id": "class/354160010",
+        "kind": "class",
+        "name": "Primitives",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/118657756"
+        ]
+      },
+      "644348892": {
+        "id": "class/644348892",
+        "kind": "class",
+        "name": "CastErrorImplementation",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/185234473"
+        ]
+      },
+      "716671121": {
+        "id": "class/716671121",
+        "kind": "class",
+        "name": "JsBuiltin",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/965528565",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/17152193",
+          "field/153611669",
+          "field/221593932",
+          "field/413692838",
+          "field/483247773",
+          "field/793498792",
+          "field/805748014",
+          "field/936474054",
+          "field/1063003009"
+        ]
+      },
+      "866150578": {
+        "id": "class/866150578",
+        "kind": "class",
+        "name": "RuntimeError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/653339731"
+        ]
+      },
+      "948502579": {
+        "id": "class/948502579",
+        "kind": "class",
+        "name": "StateError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/190358771"
+        ]
+      },
+      "949988971": {
+        "id": "class/949988971",
+        "kind": "class",
+        "name": "JS_CONST",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/174368900",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/249142929"
+        ]
+      },
+      "974704527": {
+        "id": "class/974704527",
+        "kind": "class",
+        "name": "RangeError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/111931226",
+          "field/649547880"
+        ]
+      },
+      "991730135": {
+        "id": "class/991730135",
+        "kind": "class",
+        "name": "UnsupportedError",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/140571055"
+        ]
+      },
+      "1019636942": {
+        "id": "class/1019636942",
+        "kind": "class",
+        "name": "TypeVariable",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/856247106",
+          "field/874766737",
+          "field/1068071433"
+        ]
+      },
+      "1019758482": {
+        "id": "class/1019758482",
+        "kind": "class",
+        "name": "ArrayIterator",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/325218131",
+        "modifiers": {
+          "abstract": false
+        },
+        "children": [
+          "field/112618843",
+          "field/237146195",
+          "field/504170901",
+          "field/577142640"
+        ]
+      }
+    },
+    "function": {
+      "399195151": {
+        "id": "function/399195151",
+        "kind": "function",
+        "name": "print",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/631335891",
+        "children": [],
+        "modifiers": {
+          "static": false,
+          "const": false,
+          "factory": false,
+          "external": false
+        },
+        "returnType": null,
+        "inferredReturnType": "[null]",
+        "parameters": [
+          {
+            "name": "object",
+            "type": "Value mask: [\"Hello, World!\"] type: [exact=JSString]",
+            "declaredType": "Object"
+          }
+        ],
+        "sideEffects": "Depends on [] field store static store, Changes [] field static.",
+        "inlinedCount": 1,
+        "code": null,
+        "type": "(Object) -> void",
+        "measurements": null
+      },
+      "531925466": {
+        "id": "function/531925466",
+        "kind": "function",
+        "name": "main",
+        "size": 62,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/60281205",
+        "children": [],
+        "modifiers": {
+          "static": false,
+          "const": false,
+          "factory": false,
+          "external": false
+        },
+        "returnType": null,
+        "inferredReturnType": "[null]",
+        "parameters": [],
+        "sideEffects": "Depends on [] field store static store, Changes [] field static.",
+        "inlinedCount": 0,
+        "code": "main: function() {\n  H.printString(\"Hello, World!\");\n}\n",
+        "type": "() -> dynamic",
+        "measurements": null
+      },
+      "606513838": {
+        "id": "function/606513838",
+        "kind": "function",
+        "name": "printToConsole",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/689380639",
+        "children": [],
+        "modifiers": {
+          "static": false,
+          "const": false,
+          "factory": false,
+          "external": true
+        },
+        "returnType": null,
+        "inferredReturnType": "[null]",
+        "parameters": [
+          {
+            "name": "line",
+            "type": "[exact=JSString]",
+            "declaredType": "String"
+          }
+        ],
+        "sideEffects": "Depends on [] field store static store, Changes [] field static.",
+        "inlinedCount": 1,
+        "code": null,
+        "type": "(String) -> void",
+        "measurements": null
+      },
+      "864228238": {
+        "id": "function/864228238",
+        "kind": "function",
+        "name": "printString",
+        "size": 460,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/238986171",
+        "children": [],
+        "modifiers": {
+          "static": false,
+          "const": false,
+          "factory": false,
+          "external": false
+        },
+        "returnType": null,
+        "inferredReturnType": "[null]",
+        "parameters": [
+          {
+            "name": "string",
+            "type": "[exact=JSString]",
+            "declaredType": "String"
+          }
+        ],
+        "sideEffects": "Depends on [] field store static store, Changes [] field static.",
+        "inlinedCount": 0,
+        "code": "printString: function(string) {\n  if (typeof dartPrint == \"function\") {\n    dartPrint(string);\n    return;\n  }\n  if (typeof console == \"object\" && typeof console.log != \"undefined\") {\n    console.log(string);\n    return;\n  }\n  if (typeof window == \"object\")\n    return;\n  if (typeof print == \"function\") {\n    print(string);\n    return;\n  }\n  throw \"Unable to print message: \" + String(string);\n}\n",
+        "type": "(String) -> void",
+        "measurements": null
+      }
+    },
+    "typedef": {},
+    "field": {
+      "4524053": {
+        "id": "field/4524053",
+        "kind": "field",
+        "name": "_hasValue",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/143626168",
+        "children": [],
+        "inferredType": "Value mask: [true] type: [exact=JSBool]",
+        "code": null,
+        "type": "bool"
+      },
+      "17152193": {
+        "id": "field/17152193",
+        "kind": "field",
+        "name": "getType",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JsBuiltin]",
+        "code": null,
+        "type": "JsBuiltin",
+        "const": true
+      },
+      "55541185": {
+        "id": "field/55541185",
+        "kind": "field",
+        "name": "MANGLED_GLOBAL_NAMES",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/965528565",
+        "children": [],
+        "inferredType": "Value mask: [\"mangledGlobalNames\"] type: [exact=JSString]",
+        "code": null,
+        "type": "dynamic",
+        "const": true
+      },
+      "70141207": {
+        "id": "field/70141207",
+        "kind": "field",
+        "name": "_typeName",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/269073412",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      },
+      "111931226": {
+        "id": "field/111931226",
+        "kind": "field",
+        "name": "start",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/974704527",
+        "children": [],
+        "inferredType": "[null]",
+        "code": null,
+        "type": "num"
+      },
+      "112618843": {
+        "id": "field/112618843",
+        "kind": "field",
+        "name": "_length",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/1019758482",
+        "children": [],
+        "inferredType": "[subclass=JSUInt32]",
+        "code": null,
+        "type": "int"
+      },
+      "116849538": {
+        "id": "field/116849538",
+        "kind": "field",
+        "name": "areOptionalParametersNamed",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[exact=JSBool]",
+        "code": null,
+        "type": "bool"
+      },
+      "118657756": {
+        "id": "field/118657756",
+        "kind": "field",
+        "name": "DOLLAR_CHAR_VALUE",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/354160010",
+        "children": [],
+        "inferredType": "[exact=JSUInt31]",
+        "code": null,
+        "type": "int",
+        "const": true
+      },
+      "125830184": {
+        "id": "field/125830184",
+        "kind": "field",
+        "name": "_self",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/138211367",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "130159427": {
+        "id": "field/130159427",
+        "kind": "field",
+        "name": "OPTIONAL_PARAMETERS_INFO",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[exact=JSUInt31]",
+        "code": null,
+        "type": "int",
+        "const": true
+      },
+      "140571055": {
+        "id": "field/140571055",
+        "kind": "field",
+        "name": "message",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/991730135",
+        "children": [],
+        "inferredType": "[exact=JSString]",
+        "code": null,
+        "type": "String"
+      },
+      "153611669": {
+        "id": "field/153611669",
+        "kind": "field",
+        "name": "index",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JSUInt31]",
+        "code": null,
+        "type": "int"
+      },
+      "159930244": {
+        "id": "field/159930244",
+        "kind": "field",
+        "name": "CALL_CATCH_ALL",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "180845508": {
+        "id": "field/180845508",
+        "kind": "field",
+        "name": "_target",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/138211367",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "185234473": {
+        "id": "field/185234473",
+        "kind": "field",
+        "name": "message",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/644348892",
+        "children": [],
+        "inferredType": "[exact=JSString]",
+        "code": null,
+        "type": "String"
+      },
+      "190358771": {
+        "id": "field/190358771",
+        "kind": "field",
+        "name": "message",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/948502579",
+        "children": [],
+        "inferredType": "Value mask: [\"No element\"] type: [exact=JSString]",
+        "code": null,
+        "type": "String"
+      },
+      "190934046": {
+        "id": "field/190934046",
+        "kind": "field",
+        "name": "_name",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JSString]",
+        "code": null,
+        "type": "String"
+      },
+      "202409972": {
+        "id": "field/202409972",
+        "kind": "field",
+        "name": "REQUIRED_PARAMETER_PROPERTY",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "206386055": {
+        "id": "field/206386055",
+        "kind": "field",
+        "name": "jsFunction",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "221593932": {
+        "id": "field/221593932",
+        "kind": "field",
+        "name": "isFunctionType",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JsBuiltin]",
+        "code": null,
+        "type": "JsBuiltin",
+        "const": true
+      },
+      "237146195": {
+        "id": "field/237146195",
+        "kind": "field",
+        "name": "_iterable",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/1019758482",
+        "children": [],
+        "inferredType": "[subclass=JSArray]",
+        "code": null,
+        "type": "JSArray<E>"
+      },
+      "249142929": {
+        "id": "field/249142929",
+        "kind": "field",
+        "name": "code",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/949988971",
+        "children": [],
+        "inferredType": "Value mask: [\"function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n}\"] type: [exact=JSString]",
+        "code": null,
+        "type": "String"
+      },
+      "259683855": {
+        "id": "field/259683855",
+        "kind": "field",
+        "name": "functionType",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "302220255": {
+        "id": "field/302220255",
+        "kind": "field",
+        "name": "_receiver",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/138211367",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "319720392": {
+        "id": "field/319720392",
+        "kind": "field",
+        "name": "message",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/324980341",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      },
+      "338588500": {
+        "id": "field/338588500",
+        "kind": "field",
+        "name": "requiredParameterCount",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[subclass=JSInt]",
+        "code": null,
+        "type": "int"
+      },
+      "376257386": {
+        "id": "field/376257386",
+        "kind": "field",
+        "name": "modifiedObject",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/36312556",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "Object"
+      },
+      "386221903": {
+        "id": "field/386221903",
+        "kind": "field",
+        "name": "functionCounter",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/317291728",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "int"
+      },
+      "391942199": {
+        "id": "field/391942199",
+        "kind": "field",
+        "name": "OPERATOR_AS_PREFIX",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "412345286": {
+        "id": "field/412345286",
+        "kind": "field",
+        "name": "_unmangledName",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/269073412",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      },
+      "413692838": {
+        "id": "field/413692838",
+        "kind": "field",
+        "name": "rawRuntimeType",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JsBuiltin]",
+        "code": null,
+        "type": "JsBuiltin",
+        "const": true
+      },
+      "417944821": {
+        "id": "field/417944821",
+        "kind": "field",
+        "name": "_inTypeAssertion",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "children": [],
+        "inferredType": "[exact=JSBool]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "420557924": {
+        "id": "field/420557924",
+        "kind": "field",
+        "name": "isAccessor",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[exact=JSBool]",
+        "code": null,
+        "type": "bool"
+      },
+      "422530140": {
+        "id": "field/422530140",
+        "kind": "field",
+        "name": "TYPEDEF_TAG",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "435101137": {
+        "id": "field/435101137",
+        "kind": "field",
+        "name": "selfFieldNameCache",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/138211367",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      },
+      "446360348": {
+        "id": "field/446360348",
+        "kind": "field",
+        "name": "REQUIRED_PARAMETERS_INFO",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[exact=JSUInt31]",
+        "code": null,
+        "type": "int",
+        "const": true
+      },
+      "447707988": {
+        "id": "field/447707988",
+        "kind": "field",
+        "name": "RTI_NAME",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "483247773": {
+        "id": "field/483247773",
+        "kind": "field",
+        "name": "rawRtiToJsConstructorName",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JsBuiltin]",
+        "code": null,
+        "type": "JsBuiltin",
+        "const": true
+      },
+      "504170901": {
+        "id": "field/504170901",
+        "kind": "field",
+        "name": "_current",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/1019758482",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "E"
+      },
+      "505549528": {
+        "id": "field/505549528",
+        "kind": "field",
+        "name": "indexable",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/175705485",
+        "children": [],
+        "inferredType": "Union of [[exact=IndexError], [exact=JSString], [exact=StringBuffer], [subclass=JSArray]]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "509005655": {
+        "id": "field/509005655",
+        "kind": "field",
+        "name": "name",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/143626168",
+        "children": [],
+        "inferredType": "Value mask: [\"index\"] type: [null|exact=JSString]",
+        "code": null,
+        "type": "String"
+      },
+      "522978319": {
+        "id": "field/522978319",
+        "kind": "field",
+        "name": "_toStringVisiting",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/754126564",
+        "children": [],
+        "inferredType": "Container mask: [subclass=JSArray] length: null type: [exact=JSExtendableArray]",
+        "code": null,
+        "type": "List"
+      },
+      "526089142": {
+        "id": "field/526089142",
+        "kind": "field",
+        "name": "_constructorNameFallback",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/966364039",
+        "children": [],
+        "inferredType": "[exact=JS_CONST]",
+        "code": null,
+        "type": "dynamic",
+        "const": true
+      },
+      "577142640": {
+        "id": "field/577142640",
+        "kind": "field",
+        "name": "_index",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/1019758482",
+        "children": [],
+        "inferredType": "[subclass=JSPositiveInt]",
+        "code": null,
+        "type": "int"
+      },
+      "586155906": {
+        "id": "field/586155906",
+        "kind": "field",
+        "name": "FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "603434183": {
+        "id": "field/603434183",
+        "kind": "field",
+        "name": "cachedSortedIndices",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[null]",
+        "code": null,
+        "type": "List"
+      },
+      "626399440": {
+        "id": "field/626399440",
+        "kind": "field",
+        "name": "FUNCTION_CLASS_TYPE_NAME",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "645423404": {
+        "id": "field/645423404",
+        "kind": "field",
+        "name": "CALL_NAME_PROPERTY",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "649547880": {
+        "id": "field/649547880",
+        "kind": "field",
+        "name": "end",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/974704527",
+        "children": [],
+        "inferredType": "[null]",
+        "code": null,
+        "type": "num"
+      },
+      "653339731": {
+        "id": "field/653339731",
+        "kind": "field",
+        "name": "message",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/866150578",
+        "children": [],
+        "inferredType": "Value mask: [\"Intercepted function with no arguments.\"] type: [exact=JSString]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "656800516": {
+        "id": "field/656800516",
+        "kind": "field",
+        "name": "data",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[exact=JSFixedArray]",
+        "code": null,
+        "type": "List"
+      },
+      "667376711": {
+        "id": "field/667376711",
+        "kind": "field",
+        "name": "FUNCTION_TYPE_RETURN_TYPE_TAG",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "701716969": {
+        "id": "field/701716969",
+        "kind": "field",
+        "name": "FUNCTION_TYPE_VOID_RETURN_TAG",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "709451133": {
+        "id": "field/709451133",
+        "kind": "field",
+        "name": "receiverFieldNameCache",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/138211367",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      },
+      "727752212": {
+        "id": "field/727752212",
+        "kind": "field",
+        "name": "invalidValue",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/143626168",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "743971885": {
+        "id": "field/743971885",
+        "kind": "field",
+        "name": "FUNCTION_TYPE_NAMED_PARAMETERS_TAG",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "759319863": {
+        "id": "field/759319863",
+        "kind": "field",
+        "name": "message",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/143626168",
+        "children": [],
+        "inferredType": "[null|exact=JSString]",
+        "code": null,
+        "type": "dynamic"
+      },
+      "793498792": {
+        "id": "field/793498792",
+        "kind": "field",
+        "name": "isGivenTypeRti",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JsBuiltin]",
+        "code": null,
+        "type": "JsBuiltin",
+        "const": true
+      },
+      "805748014": {
+        "id": "field/805748014",
+        "kind": "field",
+        "name": "isSubtype",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JsBuiltin]",
+        "code": null,
+        "type": "JsBuiltin",
+        "const": true
+      },
+      "840091021": {
+        "id": "field/840091021",
+        "kind": "field",
+        "name": "optionalParameterCount",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[subclass=JSInt]",
+        "code": null,
+        "type": "int"
+      },
+      "840751619": {
+        "id": "field/840751619",
+        "kind": "field",
+        "name": "message",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/56472591",
+        "children": [],
+        "inferredType": "[null]",
+        "code": null,
+        "type": "Object"
+      },
+      "844410756": {
+        "id": "field/844410756",
+        "kind": "field",
+        "name": "DEFAULT_VALUES_PROPERTY",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "856247106": {
+        "id": "field/856247106",
+        "kind": "field",
+        "name": "bound",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/1019636942",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "int"
+      },
+      "864119084": {
+        "id": "field/864119084",
+        "kind": "field",
+        "name": "OBJECT_CLASS_TYPE_NAME",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "874766737": {
+        "id": "field/874766737",
+        "kind": "field",
+        "name": "owner",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/1019636942",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "Type"
+      },
+      "875039735": {
+        "id": "field/875039735",
+        "kind": "field",
+        "name": "NULL_CLASS_TYPE_NAME",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "908476008": {
+        "id": "field/908476008",
+        "kind": "field",
+        "name": "printToZone",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/689380639",
+        "children": [],
+        "inferredType": "[null]",
+        "code": null,
+        "type": "Function"
+      },
+      "911662921": {
+        "id": "field/911662921",
+        "kind": "field",
+        "name": "FUNCTION_TYPE_INDEX",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/156108056",
+        "children": [],
+        "inferredType": "[exact=JSUInt31]",
+        "code": null,
+        "type": "int",
+        "const": true
+      },
+      "914172423": {
+        "id": "field/914172423",
+        "kind": "field",
+        "name": "FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "936474054": {
+        "id": "field/936474054",
+        "kind": "field",
+        "name": "_name",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JSString]",
+        "code": null,
+        "type": "String"
+      },
+      "944915314": {
+        "id": "field/944915314",
+        "kind": "field",
+        "name": "variableName",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/93352366",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      },
+      "954188953": {
+        "id": "field/954188953",
+        "kind": "field",
+        "name": "length",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/175705485",
+        "children": [],
+        "inferredType": "[subclass=JSInt]",
+        "code": null,
+        "type": "int"
+      },
+      "960584371": {
+        "id": "field/960584371",
+        "kind": "field",
+        "name": "FUNCTION_TYPE_TAG",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "1012317118": {
+        "id": "field/1012317118",
+        "kind": "field",
+        "name": "SIGNATURE_NAME",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JsGetName]",
+        "code": null,
+        "type": "JsGetName",
+        "const": true
+      },
+      "1019580176": {
+        "id": "field/1019580176",
+        "kind": "field",
+        "name": "index",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/73206861",
+        "children": [],
+        "inferredType": "[exact=JSUInt31]",
+        "code": null,
+        "type": "int"
+      },
+      "1020283310": {
+        "id": "field/1020283310",
+        "kind": "field",
+        "name": "STATIC_FUNCTION_NAME_PROPERTY_NAME",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "library/965528565",
+        "children": [],
+        "inferredType": "Value mask: [\"$static_name\"] type: [exact=JSString]",
+        "code": null,
+        "type": "dynamic",
+        "const": true
+      },
+      "1061931090": {
+        "id": "field/1061931090",
+        "kind": "field",
+        "name": "_name",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/138211367",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      },
+      "1063003009": {
+        "id": "field/1063003009",
+        "kind": "field",
+        "name": "isCheckPropertyToJsConstructorName",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/716671121",
+        "children": [],
+        "inferredType": "[exact=JsBuiltin]",
+        "code": null,
+        "type": "JsBuiltin",
+        "const": true
+      },
+      "1068071433": {
+        "id": "field/1068071433",
+        "kind": "field",
+        "name": "name",
+        "size": 0,
+        "outputUnit": "outputUnit/987444055",
+        "parent": "class/1019636942",
+        "children": [],
+        "inferredType": "[null|subclass=Object]",
+        "code": null,
+        "type": "String"
+      }
+    },
+    "constant": {},
+    "closure": {}
+  },
+  "holding": {
+    "function/399195151": [
+      {
+        "id": "function/606513838",
+        "mask": "inlined"
+      }
+    ],
+    "function/531925466": [
+      {
+        "id": "function/399195151",
+        "mask": "null"
+      },
+      {
+        "id": "function/399195151",
+        "mask": "inlined"
+      },
+      {
+        "id": "function/606513838",
+        "mask": "null"
+      },
+      {
+        "id": "function/864228238",
+        "mask": "null"
+      },
+      {
+        "id": "function/864228238",
+        "mask": "null"
+      }
+    ]
+  },
+  "dependencies": {},
+  "outputUnits": [
+    {
+      "id": "outputUnit/987444055",
+      "kind": "outputUnit",
+      "name": null,
+      "size": 10324,
+      "imports": [
+        null
+      ]
+    }
+  ],
+  "dump_version": 5,
+  "deferredFiles": {},
+  "dump_minor_version": "0",
+  "program": {
+    "entrypoint": "function/531925466",
+    "size": 10324,
+    "dart2jsVersion": "1.23.0-dev.11.7",
+    "compilationMoment": "2017-04-17 09:46:41.661617",
+    "compilationDuration": 357402,
+    "toJsonDuration": 4000,
+    "dumpInfoDuration": 0,
+    "noSuchMethodEnabled": false,
+    "minified": false
+  }
+}

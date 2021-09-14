@@ -83,7 +83,7 @@ String wrapText(String text, {int width}) {
 // A valid Dart identifier that can be used for a package, i.e. no
 // capital letters.
 // https://dart.dev/guides/language/language-tour#important-concepts
-final RegExp _identifierRegExp = RegExp('[a-z_][a-z0-9_]*');
+final RegExp _identifierRegExp = RegExp(r'^[a-z_][a-z\d_]*$');
 
 // non-contextual dart keywords.
 // https://dart.dev/guides/language/language-tour#keywords
@@ -160,17 +160,16 @@ const Set<String> _keywords = <String>{
 };
 
 /// Whether [name] is a valid Pub package.
-bool isValidPackageName(String name) {
-  final Match match = _identifierRegExp.matchAsPrefix(name);
-  return match != null && match.end == name.length && !_keywords.contains(name);
-}
+bool isValidPackageName(String name) =>
+    _identifierRegExp.hasMatch(name) && !_keywords.contains(name);
 
 /// Convert a directory name into a reasonably legal pub package name.
 String normalizeProjectName(String name) {
   name = name.replaceAll('-', '_').replaceAll(' ', '_');
   // Strip any extension (like .dart).
-  if (name.contains('.')) {
-    name = name.substring(0, name.indexOf('.'));
+  var dotIndex = name.indexOf('.');
+  if (dotIndex >= 0) {
+    name = name.substring(0, dotIndex);
   }
   return name;
 }

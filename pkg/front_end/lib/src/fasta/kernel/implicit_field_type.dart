@@ -48,7 +48,7 @@ abstract class ImplicitFieldType extends DartType {
   }
 
   @override
-  visitChildren(Visitor<dynamic> v) {
+  Never visitChildren(Visitor<dynamic> v) {
     unsupported("visitChildren", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
 
@@ -91,6 +91,7 @@ abstract class ImplicitFieldType extends DartType {
 }
 
 class _ImplicitFieldTypeRoot extends ImplicitFieldType {
+  @override
   final SourceFieldBuilder fieldBuilder;
   List<ImplicitFieldType>? _overriddenFields;
   Token? initializerToken;
@@ -98,10 +99,12 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
 
   _ImplicitFieldTypeRoot(this.fieldBuilder, this.initializerToken) : super._();
 
+  @override
   DartType inferType() {
     return fieldBuilder.inferType();
   }
 
+  @override
   DartType computeType() {
     if (isStarted) {
       fieldBuilder.library.addProblem(
@@ -161,10 +164,12 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
     return inferredType;
   }
 
+  @override
   void addOverride(ImplicitFieldType other) {
     (_overriddenFields ??= []).add(other);
   }
 
+  @override
   DartType checkInferred(DartType type) {
     if (_overriddenFields != null) {
       for (ImplicitFieldType overridden in _overriddenFields!) {

@@ -18,7 +18,7 @@ static const field core::int shiftNegative1 = 2.{core::int::<<}(1.{core::int::un
 static const field core::int shiftNegative2 = 2.{core::int::>>>}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::int};
 static const field core::int shiftNegative3 = 2.{core::int::>>}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::int};
 static const field core::int modZero = 2.{core::num::%}(0){(core::num) → core::int};
-static const field core::int divZero = let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+static const field core::int divZero = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
 const int divZero = 2 / 0;
                       ^" in 2.{core::num::/}(0){(core::num) → core::double} as{TypeError,ForNonNullableByDefault} core::int;
 static const field core::int intdivZero = 2.{core::num::~/}(0){(core::num) → core::int};
@@ -26,7 +26,7 @@ static const field core::int unaryMinus = 2.{core::int::unary-}(){() → core::i
 static const field core::int unaryTilde = 2.{core::int::~}(){() → core::int};
 static const field core::int unaryPlus = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:13:23: Error: This couldn't be parsed.
 const int unaryPlus = +2;
-                      ^"{dynamic}.+(2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+                      ^"{<invalid>}.+(2);
 static const field core::int binaryPlus = 40.{core::num::+}(2){(core::num) → core::int};
 static const field core::int binaryMinus = 44.{core::num::-}(2){(core::num) → core::int};
 static const field core::int binaryTimes = 21.{core::num::*}(2){(core::num) → core::int};
@@ -58,7 +58,6 @@ Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:5:33 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:6:34 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:7:33 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:9:23 -> DoubleConstant(Infinity)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:11:24 -> IntConstant(-2)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:12:24 -> IntConstant(-3)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:15:27 -> IntConstant(42)
@@ -82,4 +81,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:35:36
 Evaluated: AsExpression @ org-dartlang-testcase:///number_folds.dart:38:43 -> NullConstant(null)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:39:27 -> DoubleConstant(NaN)
 Evaluated: StaticGet @ org-dartlang-testcase:///number_folds.dart:40:42 -> DoubleConstant(NaN)
-Extra constant evaluation: evaluated: 39, effectively constant: 27
+Extra constant evaluation: evaluated: 35, effectively constant: 26

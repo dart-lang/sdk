@@ -33,6 +33,7 @@ class Crash {
 
   Crash(this.uri, this.charOffset, this.error, this.trace);
 
+  @override
   String toString() {
     return """
 Crash when compiling $uri,
@@ -49,7 +50,7 @@ void resetCrashReporting() {
 
 Future<T> reportCrash<T>(error, StackTrace trace,
     [Uri? uri, int? charOffset]) async {
-  note(String note) async {
+  Future<void> note(String note) async {
     stderr.write(note);
     await stderr.flush();
   }

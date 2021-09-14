@@ -2,15 +2,15 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Getter not found: 'et'.
+// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Undefined name 'et'.
 //   et.foo = 42; // Error.
 //   ^^
 //
-// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Getter not found: 'et'.
+// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Undefined name 'et'.
 //   et.bar = 42; // Error.
 //   ^^
 //
-// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Getter not found: 'et'.
+// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Undefined name 'et'.
 //   et.baz = 42; // Ok.
 //   ^^
 //
@@ -54,24 +54,24 @@ static method test(self::A a, self::E e) → dynamic {
  - 'A' is from 'pkg/front_end/testcases/extension_types/simple_setter_resolution.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
   a.baz = 42; // Error.
-    ^^^";
+    ^^^" in a{<unresolved>}.baz = 42;
   invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:22:5: Error: The setter 'foo' isn't defined for the extension 'E'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
   e.foo = 42; // Error.
-    ^^^";
+    ^^^" in e{<unresolved>}.foo = 42;
   self::E|set#bar(e, 42);
   invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:24:5: Error: The setter 'baz' isn't defined for the extension 'E'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
   e.baz = 42; // Error.
-    ^^^";
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Getter not found: 'et'.
+    ^^^" in e{<unresolved>}.baz = 42;
+  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Undefined name 'et'.
   et.foo = 42; // Error.
-  ^^"{dynamic}.foo = 42;
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Getter not found: 'et'.
+  ^^"{<invalid>}.foo = 42;
+  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Undefined name 'et'.
   et.bar = 42; // Error.
-  ^^"{dynamic}.bar = 42;
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Getter not found: 'et'.
+  ^^"{<invalid>}.bar = 42;
+  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Undefined name 'et'.
   et.baz = 42; // Ok.
-  ^^"{dynamic}.baz = 42;
+  ^^"{<invalid>}.baz = 42;
 }
 static method main() → dynamic {}

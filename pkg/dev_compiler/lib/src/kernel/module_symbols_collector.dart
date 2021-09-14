@@ -4,6 +4,8 @@
 
 // @dart = 2.9
 
+import 'package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart'
+    show isTearOffLowering;
 import 'package:kernel/kernel.dart';
 
 import 'module_symbols.dart';
@@ -143,7 +145,10 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   void visitProcedure(Procedure node) {
     // Legacy libraries contain procedures with no bodies for all Object methods
     // in every class. We can ignore these unless they actually contain a body.
-    if (node.function.body == null) return;
+    //
+    // Also avoid adding information for the static methods introduced by the
+    // CFE lowering for constructor tearoffs.
+    if (node.function.body == null || isTearOffLowering(node)) return;
     var functionSymbol = FunctionSymbol(
         name: node.name.text,
         // TODO(nshahan) typeId - probably should canonicalize but keep original

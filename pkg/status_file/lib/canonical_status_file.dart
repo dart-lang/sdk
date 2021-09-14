@@ -95,7 +95,7 @@ class StatusFile {
 
     /// Checks if [currentLine] is a comment and returns the first regular
     /// expression match, or null otherwise.
-    Match commentEntryMatch(int currentLine) {
+    Match? commentEntryMatch(int currentLine) {
       if (currentLine < 1 || currentLine > lines.length) {
         return null;
       }
@@ -104,7 +104,7 @@ class StatusFile {
 
     /// Finds a section header on [currentLine] if the line is in range of
     /// [lines].
-    Match sectionHeaderMatch(int currentLine) {
+    Match? sectionHeaderMatch(int currentLine) {
       if (currentLine < 1 || currentLine > lines.length) {
         return null;
       }
@@ -178,14 +178,14 @@ class StatusFile {
     // The current section whose rules are being parsed. Initialized to an
     // implicit section that matches everything.
     StatusSection section =
-        new StatusSection(null, -1, implicitSectionHeaderComments);
+        new StatusSection(Expression.always, -1, implicitSectionHeaderComments);
     section.entries.addAll(entries);
     sections.add(section);
 
     for (; _lineCount <= lines.length; _lineCount++) {
       var line = lines[_lineCount - 1];
 
-      fail(String message, [List<String> errors]) {
+      fail(String message, [List<String>? errors]) {
         throw new SyntaxError(_shortPath, _lineCount, line, message, errors);
       }
 
@@ -199,7 +199,7 @@ class StatusFile {
       var match = _sectionPattern.firstMatch(line);
       if (match != null) {
         try {
-          var condition = Expression.parse(match[1].trim());
+          var condition = Expression.parse(match[1]!.trim());
           section =
               new StatusSection(condition, _lineCount, sectionHeaderComments);
           sections.add(section);
@@ -214,10 +214,10 @@ class StatusFile {
       // If it is in a new entry we should add to the current section.
       match = _entryPattern.firstMatch(line);
       if (match != null) {
-        var path = match[1].trim();
+        var path = match[1]!.trim();
         var expectations = <Expectation>[];
         // split expectations
-        match[2].split(",").forEach((name) {
+        match[2]!.split(",").forEach((name) {
           try {
             expectations.add(Expectation.find(name.trim()));
           } on ArgumentError {
@@ -229,7 +229,7 @@ class StatusFile {
               .add(new StatusEntry(path, _lineCount, expectations, null));
         } else {
           section.entries.add(new StatusEntry(
-              path, _lineCount, expectations, new Comment(match[3])));
+              path, _lineCount, expectations, new Comment(match[3]!)));
         }
         continue;
       }
@@ -264,8 +264,6 @@ class StatusFile {
   /// Throws a [SyntaxError] on the first found error.
   void validate(Environment environment) {
     for (var section in sections) {
-      if (section.condition == null) continue;
-
       var errors = <String>[];
       section.condition.validate(environment, errors);
 
@@ -299,8 +297,8 @@ class StatusFile {
 class StatusSection {
   /// The expression that determines when this section is applied.
   ///
-  /// May be `null` for paths that appear before any section header in the file.
-  /// In that case, the section always applies.
+  /// Will be [Expression.always] for paths that appear before any section
+  /// header in the file. In that case, the section always applies.
   final Expression condition;
 
   /// The one-based line number where the section appears in the file.
@@ -311,8 +309,7 @@ class StatusSection {
   final List<Entry> sectionHeaderComments;
 
   /// Returns true if this section should apply in the given [environment].
-  bool isEnabled(Environment environment) =>
-      condition == null || condition.evaluate(environment);
+  bool isEnabled(Environment environment) => condition.evaluate(environment);
 
   bool isEmpty() => !entries.any((entry) => entry is StatusEntry);
 
@@ -322,8 +319,8 @@ class StatusSection {
   String toString() {
     var buffer = new StringBuffer();
     sectionHeaderComments.forEach(buffer.writeln);
-    if (condition != null) {
-      buffer.writeln("[ ${condition} ]");
+    if (condition != Expression.always) {
+      buffer.writeln("[ $condition ]");
     }
     entries.forEach(buffer.writeln);
     return buffer.toString();
@@ -336,10 +333,10 @@ class Comment {
   Comment(this._comment);
 
   /// Returns the issue number embedded in [comment] or `null` if there is none.
-  int issueNumber(String comment) {
+  int? issueNumber(String comment) {
     var match = _issuePattern.firstMatch(comment);
     if (match == null) return null;
-    return int.parse(match[1]);
+    return int.parse(match[1]!);
   }
 
   @override
@@ -377,7 +374,7 @@ class CommentEntry extends Entry {
 class StatusEntry extends Entry {
   final String path;
   final List<Expectation> expectations;
-  final Comment comment;
+  final Comment? comment;
 
   StatusEntry(this.path, lineNumber, this.expectations, this.comment)
       : super(lineNumber);

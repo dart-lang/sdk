@@ -54,6 +54,9 @@ class SplitVariableDeclaration extends CorrectionProducer {
       if (variableList.type == null) {
         final type = variable.declaredElement!.type;
         if (!type.isDynamic && keyword != null) {
+          if (!builder.canWriteType(type)) {
+            return;
+          }
           builder.addReplacement(range.token(keyword), (builder) {
             builder.writeType(type);
           });

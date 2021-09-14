@@ -1016,7 +1016,7 @@
             "create_sdk",
             "dartdevc_test",
             "kernel_platform_files",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1095,7 +1095,7 @@
             "create_sdk",
             "dartdevc_test",
             "kernel_platform_files",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1186,7 +1186,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime",
             "--os=android"
           ]
@@ -1222,7 +1222,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "--os=android"
           ]
         },
@@ -1267,7 +1267,7 @@
           "arguments": [
             "--use-qemu",
             "dart_precompiled_runtime",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1306,7 +1306,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime",
             "gen_snapshot"
           ]
@@ -1364,7 +1364,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1435,7 +1435,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1478,7 +1478,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1497,7 +1497,8 @@
         "vm-kernel-precomp-linux-debug-x64",
         "vm-kernel-precomp-linux-debug-x64c",
         "vm-kernel-precomp-linux-debug-simarm64",
-        "vm-kernel-precomp-linux-debug-simarm64c"
+        "vm-kernel-precomp-linux-debug-simarm64c",
+        "vm-kernel-precomp-win-debug-x64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp debug builders. It uses 15 shards for testing to avoid 1 hour shard timeouts."
@@ -1507,7 +1508,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1534,7 +1535,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1564,7 +1565,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1591,7 +1592,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1795,7 +1796,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1839,8 +1840,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1925,7 +1925,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1960,7 +1960,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2008,7 +2008,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2036,7 +2036,7 @@
           "arguments": [
             "dart_precompiled_runtime",
             "gen_snapshot",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2066,7 +2066,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2364,7 +2364,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2392,7 +2392,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2420,7 +2420,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2972,7 +2972,7 @@
             "--arch=ia32,x64",
             "--mode=release",
             "create_sdk",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -3338,6 +3338,15 @@
           "arguments": [
             "analyze",
             "pkg/native_stack_traces"
+          ]
+        },
+        {
+          "name": "analyze pkg/nnbd_migration",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/nnbd_migration"
           ]
         },
         {
@@ -3842,7 +3851,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=x64",
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -3853,7 +3862,7 @@
             "--mode=release",
             "--arch=x64",
             "--sanitizer=tsan",
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -4019,14 +4028,15 @@
     }
   ],
   "sanitizer_options": {
-    "ASAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-    "LSAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-    "MSAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-    "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1:report_thread_leaks=0",
-    "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:halt_on_error=1:print_stacktrace=1"
+    "ASAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:check_initialization_order=true:detect_leaks=1:detect_stack_use_after_return=0",
+    "LSAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:check_initialization_order=true:detect_leaks=1:detect_stack_use_after_return=0",
+    "MSAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:check_initialization_order=true:detect_leaks=1:detect_stack_use_after_return=0",
+    "TSAN_OPTIONS": "abort_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:report_thread_leaks=0",
+    "UBSAN_OPTIONS": "halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:print_stacktrace=1"
   },
   "sanitizer_symbolizer": {
     "linux": "buildtools/linux-x64/clang/bin/llvm-symbolizer",
-    "macos": "buildtools/mac-x64/clang/bin/llvm-symbolizer"
+    "macos": "buildtools/mac-x64/clang/bin/llvm-symbolizer",
+    "windows": "buildtools/win-x64/clang/bin/llvm-symbolizer.exe"
   }
 }

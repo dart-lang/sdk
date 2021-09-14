@@ -9,6 +9,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         extension NumberParsing on String {
           int parseInt() {
             return int.parse(this);

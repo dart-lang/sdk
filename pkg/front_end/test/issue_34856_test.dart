@@ -106,6 +106,6 @@ Future<void> test() async {
   }
 }
 
-main() {
+void main() {
   asyncTest(test);
 }

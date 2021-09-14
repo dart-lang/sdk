@@ -1318,6 +1318,26 @@ Message _withArgumentsConstEvalDeferredLibrary(String nameOKEmpty) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateConstEvalError =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Error evaluating constant expression: #string""",
+        withArguments: _withArgumentsConstEvalError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeConstEvalError =
+    const Code<Message Function(String string)>(
+  "ConstEvalError",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalError(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeConstEvalError,
+      message: """Error evaluating constant expression: ${string}""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalExtension = messageConstEvalExtension;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1756,6 +1776,18 @@ const MessageCode messageConstructorNotSync = const MessageCode(
         r"""Constructor bodies can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorTearOffWithTypeArguments =
+    messageConstructorTearOffWithTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorTearOffWithTypeArguments = const MessageCode(
+    "ConstructorTearOffWithTypeArguments",
+    message:
+        r"""A constructor tear-off can't have type arguments after the constructor name.""",
+    tip:
+        r"""Try removing the type arguments or placing them after the class name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithReturnType =
     messageConstructorWithReturnType;
 
@@ -1775,8 +1807,9 @@ const MessageCode messageConstructorWithTypeArguments = const MessageCode(
     "ConstructorWithTypeArguments",
     analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR"],
     message:
-        r"""A constructor invocation can't have type arguments on the constructor name.""",
-    tip: r"""Try to place the type arguments on the class name.""");
+        r"""A constructor invocation can't have type arguments after the constructor name.""",
+    tip:
+        r"""Try removing the type arguments or placing them after the class name.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithTypeParameters =
@@ -2188,18 +2221,6 @@ Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
   return new Message(codeDeferredPrefixDuplicatedCause,
       message: """'${name}' is used here.""", arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeDeprecateDartExt = messageDeprecateDartExt;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeprecateDartExt = const MessageCode(
-    "DeprecateDartExt",
-    severity: Severity.info,
-    message:
-        r"""Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK.""",
-    tip:
-        r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6694,6 +6715,25 @@ const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
     message: r"""A map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateMemberNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Member not found: '#name'.""",
+        withArguments: _withArgumentsMemberNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMemberNotFound =
+    const Code<Message Function(String name)>("MemberNotFound",
+        analyzerCodes: <String>["UNDEFINED_GETTER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMemberNotFound,
+      message: """Member not found: '${name}'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMemberWithSameNameAsClass =
     messageMemberWithSameNameAsClass;
 
@@ -7095,6 +7135,25 @@ const MessageCode messageMultipleWith = const MessageCode("MultipleWith",
     index: 24,
     message: r"""Each class definition can have at most one with clause.""",
     tip: r"""Try combining all of the with clauses into a single clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNameNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Undefined name '#name'.""",
+        withArguments: _withArgumentsNameNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNameNotFound =
+    const Code<Message Function(String name)>("NameNotFound",
+        analyzerCodes: <String>["UNDEFINED_NAME"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNameNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNameNotFound,
+      message: """Undefined name '${name}'.""", arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
@@ -8960,6 +9019,18 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticTearOffFromInstantiatedClass =
+    messageStaticTearOffFromInstantiatedClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticTearOffFromInstantiatedClass = const MessageCode(
+    "StaticTearOffFromInstantiatedClass",
+    message:
+        r"""Cannot access static member on an instantiated generic class.""",
+    tip:
+        r"""Try removing the type arguments or placing them after the member name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStrongModeNNBDButOptOut = messageStrongModeNNBDButOptOut;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9122,6 +9193,26 @@ Message _withArgumentsSuperclassHasNoGetter(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeSuperclassHasNoGetter,
       message: """Superclass has no getter named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateSuperclassHasNoMember =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Superclass has no member named '#name'.""",
+        withArguments: _withArgumentsSuperclassHasNoMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperclassHasNoMember =
+    const Code<Message Function(String name)>("SuperclassHasNoMember",
+        analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassHasNoMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperclassHasNoMember,
+      message: """Superclass has no member named '${name}'.""",
       arguments: {'name': name});
 }
 
@@ -9832,6 +9923,16 @@ Message _withArgumentsUnspecified(String string) {
   return new Message(codeUnspecified,
       message: """${string}""", arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsupportedDartExt = messageUnsupportedDartExt;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsupportedDartExt = const MessageCode(
+    "UnsupportedDartExt",
+    message: r"""Dart native extensions are no longer supported.""",
+    tip:
+        r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnsupportedOperator =

@@ -106,20 +106,19 @@ class ProgramVisitor : public AllStatic {
 #endif
 
  private:
-  static void BindStaticCalls(Zone* zone, IsolateGroup* isolate_group);
-  static void ShareMegamorphicBuckets(Zone* zone, IsolateGroup* isolate_group);
-  static void NormalizeAndDedupCompressedStackMaps(Zone* zone,
-                                                   IsolateGroup* isolate_group);
-  static void DedupPcDescriptors(Zone* zone, IsolateGroup* isolate_group);
-  static void DedupDeoptEntries(Zone* zone, IsolateGroup* isolate_group);
+  static void BindStaticCalls(Thread* thread);
+  static void ShareMegamorphicBuckets(Thread* thread);
+  static void NormalizeAndDedupCompressedStackMaps(Thread* thread);
+  static void DedupPcDescriptors(Thread* thread);
+  static void DedupDeoptEntries(Thread* thread);
 #if defined(DART_PRECOMPILER)
-  static void DedupCatchEntryMovesMaps(Zone* zone, IsolateGroup* isolate_group);
-  static void DedupUnlinkedCalls(Zone* zone, IsolateGroup* isolate_group);
-  static void PruneSubclasses(Zone* zone, IsolateGroup* isolate_group);
+  static void DedupCatchEntryMovesMaps(Thread* thread);
+  static void DedupUnlinkedCalls(Thread* thread);
+  static void PruneSubclasses(Thread* thread);
 #endif
-  static void DedupCodeSourceMaps(Zone* zone, IsolateGroup* isolate_group);
-  static void DedupLists(Zone* zone, IsolateGroup* isolate_group);
-  static void DedupInstructions(Zone* zone, IsolateGroup* isolate_group);
+  static void DedupCodeSourceMaps(Thread* thread);
+  static void DedupLists(Thread* thread);
+  static void DedupInstructions(Thread* thread);
 };
 
 }  // namespace dart

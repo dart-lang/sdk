@@ -25,6 +25,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         NATIVE_SUPERCLASS_TAG_NAME,
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
+        STARTUP_METRICS,
         TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
@@ -37,7 +38,7 @@ import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
-import '../../deferred_load/deferred_load.dart' show OutputUnit;
+import '../../deferred_load/output_unit.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
@@ -135,6 +136,8 @@ class ModelEmitter {
   /// For deferred loading we communicate the initializers via this global var.
   static const String deferredInitializersGlobal =
       r"$__dart_deferred_initializers__";
+
+  static const String startupMetricsGlobal = r'$__dart_startupMetrics';
 
   static const String partExtension = "part";
   static const String deferredExtension = "part.js";
@@ -372,6 +375,32 @@ class ModelEmitter {
         {'deferredInitializers': deferredInitializersGlobal});
   }
 
+  js.Statement buildStartupMetrics() {
+    // We want the code that initializes the startup metrics to execute as early
+    // as possible, so it is placed ahead of the main program IIFE instead of,
+    // e.g. as a parameter of the IIFE. It is OK to use a top-level variable,
+    // since the IIFE immediately reads the variable.
+    return js.js.statement('''
+var ${startupMetricsGlobal} =
+(function(){
+  // The timestamp metrics use `performance.now()`. We feature-detect and
+  // fall back on `Date.now()` for JavaScript run in a non-browser evironment.
+  var _performance =
+      (typeof performance == "object" &&
+       performance != null &&
+       typeof performance.now == "function")
+          ? performance
+          : Date;
+  var metrics = {
+    a: [],
+    now: function() { return _performance.now() },
+    add: function(name) { this.a.push(name, this.now()); }
+  };
+  metrics.add('firstMs');
+  return metrics;
+})();''');
+  }
+
   // Writes the given [fragment]'s [code] into a file.
   //
   // Updates the shared [outputBuffers] field with the output.
@@ -395,6 +424,8 @@ class ModelEmitter {
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
       if (isSplit) buildDeferredInitializerGlobal(),
+      if (_closedWorld.backendUsage.requiresStartupMetrics)
+        buildStartupMetrics(),
       code
     ]);
 

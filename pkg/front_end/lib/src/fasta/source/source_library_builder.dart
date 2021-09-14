@@ -133,6 +133,7 @@ import 'source_type_alias_builder.dart';
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
+  @override
   final SourceLoader loader;
 
   final TypeParameterScopeBuilder libraryDeclaration;
@@ -151,6 +152,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final Scope importScope;
 
+  @override
   final Uri fileUri;
 
   final Uri? _packageUri;
@@ -159,6 +161,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final List<Object> accessors = <Object>[];
 
+  @override
   String? name;
 
   String? partOfName;
@@ -211,6 +214,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // This allows code generated in one library to use the private namespace of
   // another, for example during expression compilation (debugging).
   Library get nameOrigin => _nameOrigin?.library ?? library;
+  @override
   LibraryBuilder get nameOriginBuilder => _nameOrigin ?? this;
   final LibraryBuilder? _nameOrigin;
 
@@ -343,8 +347,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// a version that is too low for opting in to the experiment.
   bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
-              ExperimentalFlag.nonNullable, _packageUri ?? importUri) &&
-          !isOptOutTest(library.importUri);
+          ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
   Version get enableNonNullableVersionInLibrary =>
       _enableNonNullableVersionInLibrary ??= loader.target
@@ -480,30 +483,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _computeIsNonNullableByDefault() =>
       enableNonNullableInLibrary &&
       languageVersion.version >= enableNonNullableVersionInLibrary;
-
-  static bool isOptOutTest(Uri uri) {
-    String path = uri.path;
-    for (String testDir in ['/tests/', '/generated_tests/']) {
-      int start = path.indexOf(testDir);
-      if (start == -1) continue;
-      String rest = path.substring(start + testDir.length);
-      return optOutTestPaths.any(rest.startsWith);
-    }
-    return false;
-  }
-
-  static const List<String> optOutTestPaths = [
-    'co19_2/',
-    'corelib_2/',
-    'web_2/',
-    'ffi_2',
-    'language_2/',
-    'lib_2/',
-    'samples_2/',
-    'service_2/',
-    'standalone_2/',
-    'vm/dart_2/', // in runtime/tests
-  ];
 
   LanguageVersion get languageVersion {
     assert(
@@ -736,7 +715,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     String? nativePath;
     const String nativeExtensionScheme = "dart-ext:";
     if (uri.startsWith(nativeExtensionScheme)) {
-      addProblem(messageDeprecateDartExt, charOffset, noLength, fileUri);
+      addProblem(messageUnsupportedDartExt, charOffset, noLength, fileUri);
       String strippedUri = uri.substring(nativeExtensionScheme.length);
       if (strippedUri.startsWith("package")) {
         resolvedUri = resolve(this.importUri, strippedUri,
@@ -1445,13 +1424,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   SourceLibraryBuilder get origin => actualOrigin ?? this;
 
+  @override
   Uri get importUri => library.importUri;
 
+  @override
   void addSyntheticDeclarationOfDynamic() {
     addBuilder("dynamic",
         new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
   }
 
+  @override
   void addSyntheticDeclarationOfNever() {
     addBuilder(
         "Never",
@@ -1460,6 +1442,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         -1);
   }
 
+  @override
   void addSyntheticDeclarationOfNull() {
     // TODO(dmitryas): Uncomment the following when the Null class is removed
     // from the SDK.
@@ -2673,7 +2656,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   void buildOutlineExpressions() {
     MetadataBuilder.buildAnnotations(
-        library, metadata, this, null, null, fileUri);
+        library, metadata, this, null, null, fileUri, scope);
   }
 
   /// Builds the core AST structures for [declaration] needed for the outline.
@@ -2886,6 +2869,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         suppressMessage: false);
   }
 
+  @override
   int finishDeferredLoadTearoffs() {
     int total = 0;
     for (Import import in imports) {
@@ -2900,6 +2884,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return total;
   }
 
+  @override
   int finishForwarders() {
     int count = 0;
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
@@ -2954,6 +2939,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     nativeMethods.add(method);
   }
 
+  @override
   int finishNativeMethods() {
     for (FunctionBuilder method in nativeMethods) {
       method.becomeNative(loader);
@@ -2991,6 +2977,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return copy;
   }
 
+  @override
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = boundlessTypeVariables.length;
     // Ensure that type parameters are built after their dependencies by sorting
@@ -3097,6 +3084,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _pendingNullabilities.clear();
   }
 
+  @override
   int computeVariances() {
     int count = 0;
     for (Builder? declaration in libraryDeclaration.members!.values) {
@@ -3201,6 +3189,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return false;
   }
 
+  @override
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
@@ -3490,6 +3479,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  @override
   int finishPatchMethods() {
     if (!isPatch) return 0;
     int count = 0;
@@ -4563,8 +4553,10 @@ class LanguageVersion {
 
   bool get valid => true;
 
+  @override
   int get hashCode => version.hashCode * 13 + isExplicit.hashCode * 19;
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is LanguageVersion &&
@@ -4572,6 +4564,7 @@ class LanguageVersion {
         isExplicit == other.isExplicit;
   }
 
+  @override
   String toString() {
     return 'LanguageVersion(version=$version,isExplicit=$isExplicit,'
         'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
@@ -4579,11 +4572,17 @@ class LanguageVersion {
 }
 
 class InvalidLanguageVersion implements LanguageVersion {
+  @override
   final Uri fileUri;
+  @override
   final int charOffset;
+  @override
   final int charCount;
+  @override
   final Version version;
+  @override
   final bool isExplicit;
+  @override
   bool isFinal = false;
 
   InvalidLanguageVersion(this.fileUri, this.charOffset, this.charCount,
@@ -4592,13 +4591,16 @@ class InvalidLanguageVersion implements LanguageVersion {
   @override
   bool get valid => false;
 
+  @override
   int get hashCode => isExplicit.hashCode * 19;
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is InvalidLanguageVersion && isExplicit == other.isExplicit;
   }
 
+  @override
   String toString() {
     return 'InvalidLanguageVersion(isExplicit=$isExplicit,'
         'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
@@ -4608,6 +4610,7 @@ class InvalidLanguageVersion implements LanguageVersion {
 class ImplicitLanguageVersion implements LanguageVersion {
   @override
   final Version version;
+  @override
   bool isFinal = false;
 
   ImplicitLanguageVersion(this.version);
@@ -4627,6 +4630,7 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   bool get isExplicit => false;
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ImplicitLanguageVersion && version == other.version;

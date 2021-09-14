@@ -14,7 +14,7 @@ import 'templates/server_shelf.dart';
 import 'templates/web_simple.dart';
 
 final _substituteRegExp = RegExp(r'__([a-zA-Z]+)__');
-final _nonValidSubstituteRegExp = RegExp('[^a-zA-Z]');
+final _nonValidSubstituteRegExp = RegExp(r'[^a-zA-Z]');
 
 final List<Generator> generators = [
   ConsoleSimpleGenerator(),
@@ -38,12 +38,19 @@ abstract class Generator implements Comparable<Generator> {
   final List<TemplateFile> files = [];
   TemplateFile _entrypoint;
 
+  /// Lazily initialized cache for lower-case if [id].
+  ///
+  /// Used by [compareTo].
+  String /*?*/ _lowerCaseId;
+
   Generator(
     this.id,
     this.label,
     this.description, {
     this.categories = const [],
   });
+
+  String get lowerCaseId => _lowerCaseId ??= id.toLowerCase();
 
   /// The entrypoint of the application; the main file for the project, which an
   /// IDE might open after creating the project.
@@ -92,11 +99,8 @@ abstract class Generator implements Comparable<Generator> {
     }
   }
 
-  int numFiles() => files.length;
-
   @override
-  int compareTo(Generator other) =>
-      id.toLowerCase().compareTo(other.id.toLowerCase());
+  int compareTo(Generator other) => lowerCaseId.compareTo(other.lowerCaseId);
 
   /// Return some user facing instructions about how to finish installation of
   /// the template.
@@ -199,16 +203,10 @@ class FileContents {
 @visibleForTesting
 String substituteVars(String str, Map<String, String> vars) {
   if (vars.keys.any((element) => element.contains(_nonValidSubstituteRegExp))) {
-    throw ArgumentError('vars.keys can only contain letters.');
+    throw ArgumentError.value(
+        vars, 'vars', 'vars.keys can only contain letters.');
   }
 
-  return str.replaceAllMapped(_substituteRegExp, (match) {
-    final item = vars[match[1]];
-
-    if (item == null) {
-      return match[0];
-    } else {
-      return item;
-    }
-  });
+  return str.replaceAllMapped(
+      _substituteRegExp, (match) => vars[match[1]] ?? match[0]);
 }

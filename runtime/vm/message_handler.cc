@@ -100,7 +100,7 @@ void MessageHandler::MessageNotify(Message::Priority priority) {
   // By default, there is no custom message notification.
 }
 
-void MessageHandler::Run(ThreadPool* pool,
+bool MessageHandler::Run(ThreadPool* pool,
                          StartCallback start_callback,
                          EndCallback end_callback,
                          CallbackData data) {
@@ -118,8 +118,15 @@ void MessageHandler::Run(ThreadPool* pool,
   end_callback_ = end_callback;
   callback_data_ = data;
   task_running_ = true;
-  const bool launched_successfully = pool_->Run<MessageHandlerTask>(this);
-  ASSERT(launched_successfully);
+  bool result = pool_->Run<MessageHandlerTask>(this);
+  if (!result) {
+    pool_ = nullptr;
+    start_callback_ = nullptr;
+    end_callback_ = nullptr;
+    callback_data_ = 0;
+    task_running_ = false;
+  }
+  return result;
 }
 
 void MessageHandler::PostMessage(std::unique_ptr<Message> message,

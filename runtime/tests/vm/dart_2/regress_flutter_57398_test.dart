@@ -4,6 +4,8 @@
 //
 // Check that we correctly handle FutureOr<T> when computing if a location
 // of the given static type can contain Smi or not.
+
+// @dart = 2.9
 import 'dart:async';
 
 import 'package:expect/expect.dart';

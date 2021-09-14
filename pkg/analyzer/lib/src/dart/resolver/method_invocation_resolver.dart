@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -74,9 +73,6 @@ class MethodInvocationResolver {
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
         _extensionResolver = _resolver.extensionResolver,
         _inferenceHelper = inferenceHelper;
-
-  /// The scope used to resolve identifiers.
-  Scope get nameScope => _resolver.nameScope;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -198,7 +194,7 @@ class MethodInvocationResolver {
 
     expression.staticType = type;
     if (_resolver.typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis?.flow?.handleExit();
+      _resolver.flowAnalysis.flow?.handleExit();
     }
   }
 
@@ -495,9 +491,11 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
-        _resolver.nullableDereferenceVerifier.report(methodName, receiverType,
-            errorCode: CompileTimeErrorCode
-                .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE);
+        _resolver.nullableDereferenceVerifier.report(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          methodName,
+          receiverType,
+        );
       }
       return;
     }
@@ -531,7 +529,7 @@ class MethodInvocationResolver {
       SimpleIdentifierImpl nameNode,
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
-    var element = nameScope.lookup(name).getter;
+    var element = nameNode.scopeLookupResult!.getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -828,7 +826,7 @@ class MethodInvocationResolver {
           node.methodName,
         );
       }
-      _resolver.flowAnalysis?.flow?.propertyGet(
+      _resolver.flowAnalysis.flow?.propertyGet(
           functionExpression,
           target,
           node.methodName.name,
@@ -845,7 +843,7 @@ class MethodInvocationResolver {
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
     InferenceContext.setTypeFromNode(invocation, node);
-    _resolver.flowAnalysis?.transferTestData(node, invocation);
+    _resolver.flowAnalysis.transferTestData(node, invocation);
   }
 
   void _setDynamicResolution(MethodInvocationImpl node,

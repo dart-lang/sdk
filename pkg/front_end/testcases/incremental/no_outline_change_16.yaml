@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart";
         class Foo1 extends Bar {
           noSuchMethod(Invocation msg) {
@@ -23,6 +24,7 @@ worlds:
           }
         }
       lib1.dart: |
+        // @dart=2.9
         abstract class Bar {
           void method();
           bool get getter;
@@ -38,6 +40,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart";
         class Foo1 extends Bar {
           noSuchMethod(Invocation msg) {

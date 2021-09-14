@@ -1,0 +1,25 @@
+extension E<T extends num> on List<T> {
+bool a(int b, int c) {}
+int get b => 0;
+set c(int d) {}
+}
+void f(List<int> l) {
+l.a
+}
+void g(List<int> l) {
+l.a
+print(l.b);
+}
+
+extension[KeywordToken] E[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] on[KeywordToken] List[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]
+bool[StringToken] a[StringToken]([BeginToken]int[StringToken] b[StringToken],[SimpleToken] int[StringToken] c[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+int[StringToken] get[KeywordToken] b[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+set[KeywordToken] c[StringToken]([BeginToken]int[StringToken] d[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+void[KeywordToken] f[StringToken]([BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] l[StringToken])[SimpleToken] {[BeginToken]
+l[StringToken].[SimpleToken]a[StringToken]
+}[SimpleToken]
+void[KeywordToken] g[StringToken]([BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] l[StringToken])[SimpleToken] {[BeginToken]
+l[StringToken].[SimpleToken]a[StringToken]
+print[StringToken]([BeginToken]l[StringToken].[SimpleToken]b[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

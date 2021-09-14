@@ -356,6 +356,181 @@ g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_contentChild_field() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ContentChild('foo')
+  Element bar;
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ContentChild('foo')
+  Element? bar;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_optional_constructor_param() async {
+    addAngularPackage();
+    var content = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String foo);
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String? foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_optional_constructor_param_field_formal() async {
+    addAngularPackage();
+    var content = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  String foo;
+  MyComponent(@Optional() this.foo);
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  String? foo;
+  MyComponent(@Optional() this.foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_optional_constructor_param_internal() async {
+    addAngularPackage(internalUris: true);
+    var content = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String foo);
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String? foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChild_field() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element bar;
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element? bar;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChild_field_internal() async {
+    addAngularPackage(internalUris: true);
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element bar;
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element? bar;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChild_setter() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  set bar(Element element) {}
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  set bar(Element? element) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
     var content = '''
 void f(int i) {

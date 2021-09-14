@@ -39,11 +39,11 @@ static method test(self::C* c) → void {
  - 'C' is from 'pkg/front_end/testcases/general/undefined_getter_in_compound_assignment.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'x'.
   c.x += 1;
-    ^"{dynamic}.+(1);
+    ^" in #t1{<unresolved>}.x{dynamic}.+(1);
   let final self::C* #t2 = c in invalid-expression "pkg/front_end/testcases/general/undefined_getter_in_compound_assignment.dart:12:5: Error: The getter 'x' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/undefined_getter_in_compound_assignment.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'x'.
   c.x ??= 1;
-    ^" == null ?{dynamic} #t2.{self::C::x} = 1 : null;
+    ^" in #t2{<unresolved>}.x == null ?{dynamic} #t2.{self::C::x} = 1 : null;
 }
 static method main() → dynamic {}

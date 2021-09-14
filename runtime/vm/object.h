@@ -291,6 +291,11 @@ class Object {
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
 
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   static ObjectPtr RawCast(ObjectPtr obj) { return obj; }
 
   virtual ~Object() {}
@@ -1264,6 +1269,71 @@ class Class : public Object {
     return untag()->interfaces();
   }
   void set_interfaces(const Array& value) const;
+
+  // Returns whether a path from [this] to [cls] can be found, where the first
+  // element is a direct supertype of [this], each following element is a direct
+  // supertype of the previous element and the final element has [cls] as its
+  // type class. If [this] and [cls] are the same class, then the path is empty.
+  //
+  // If [path] is not nullptr, then the elements of the path are added to it.
+  // This path can then be used to compute type arguments of [cls] given type
+  // arguments for an instance of [this].
+  //
+  // Note: There may be multiple paths to [cls], but the result of applying each
+  // path must be equal to the other results.
+  bool FindInstantiationOf(Zone* zone,
+                           const Class& cls,
+                           GrowableArray<const AbstractType*>* path,
+                           bool consider_only_super_classes = false) const;
+  bool FindInstantiationOf(Zone* zone,
+                           const Class& cls,
+                           bool consider_only_super_classes = false) const {
+    return FindInstantiationOf(zone, cls, /*path=*/nullptr,
+                               consider_only_super_classes);
+  }
+
+  // Returns whether a path from [this] to [type] can be found, where the first
+  // element is a direct supertype of [this], each following element is a direct
+  // supertype of the previous element and the final element has the same type
+  // class as [type]. If [this] is the type class of [type], then the path is
+  // empty.
+  //
+  // If [path] is not nullptr, then the elements of the path are added to it.
+  // This path can then be used to compute type arguments of [type]'s type
+  // class given type arguments for an instance of [this].
+  //
+  // Note: There may be multiple paths to [type]'s type class, but the result of
+  // applying each path must be equal to the other results.
+  bool FindInstantiationOf(Zone* zone,
+                           const Type& type,
+                           GrowableArray<const AbstractType*>* path,
+                           bool consider_only_super_classes = false) const;
+  bool FindInstantiationOf(Zone* zone,
+                           const Type& type,
+                           bool consider_only_super_classes = false) const {
+    return FindInstantiationOf(zone, type, /*path=*/nullptr,
+                               consider_only_super_classes);
+  }
+
+  // If [this] is a subtype of a type with type class [cls], then this
+  // returns [cls]<X_0, ..., X_n>, where n is the number of type arguments for
+  // [cls] and where each type argument X_k is either instantiated or has free
+  // class type parameters corresponding to the type parameters of [this].
+  // Thus, given an instance of [this], the result can be instantiated
+  // with the instance type arguments to get the type of the instance.
+  //
+  // If [this] is not a subtype of a type with type class [cls], returns null.
+  TypePtr GetInstantiationOf(Zone* zone, const Class& cls) const;
+
+  // If [this] is a subtype of [type], then this returns [cls]<X_0, ..., X_n>,
+  // where [cls] is the type class of [type], n is the number of type arguments
+  // for [cls], and where each type argument X_k is either instantiated or has
+  // free class type parameters corresponding to the type parameters of [this].
+  // Thus, given an instance of [this], the result can be instantiated with the
+  // instance type arguments to get the type of the instance.
+  //
+  // If [this] is not a subtype of a type with type class [cls], returns null.
+  TypePtr GetInstantiationOf(Zone* zone, const Type& type) const;
 
 #if !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
   // Returns the list of classes directly implementing this class.
@@ -2309,6 +2379,12 @@ class ICData : public CallSiteData {
   // Generates a new ICData with descriptor and data array copied (deep clone).
   static ICDataPtr Clone(const ICData& from);
 
+  // Gets the [ICData] from the [ICData::entries_] array (which stores a back
+  // ref).
+  //
+  // May return `null` if the [ICData] is empty.
+  static ICDataPtr ICDataOfEntriesArray(const Array& array);
+
   static intptr_t TestEntryLengthFor(intptr_t num_args,
                                      bool tracking_exactness);
 
@@ -2468,7 +2544,9 @@ class ICData : public CallSiteData {
                                  RebindRule rebind_rule,
                                  const AbstractType& receiver_type);
 
-  static void WriteSentinel(const Array& data, intptr_t test_entry_length);
+  static void WriteSentinel(const Array& data,
+                            intptr_t test_entry_length,
+                            const Object& back_ref);
 
   // A cache of VM heap allocated preinitialized empty ic data entry arrays.
   static ArrayPtr cached_icdata_arrays_[kCachedICDataArrayCount];
@@ -5808,8 +5886,6 @@ class CodeSourceMap : public Object {
 
 class CompressedStackMaps : public Object {
  public:
-  static const intptr_t kHashBits = 30;
-
   uintptr_t payload_size() const { return PayloadSizeOf(ptr()); }
   static uintptr_t PayloadSizeOf(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::SizeField::decode(
@@ -7056,6 +7132,12 @@ class SubtypeTestCache : public Object {
                                  const char* line_prefix = nullptr) const;
   void Reset() const;
 
+  // Tests that [other] contains the same entries in the same order.
+  bool Equals(const SubtypeTestCache& other) const;
+
+  // Creates a separate copy of the current STC contents.
+  SubtypeTestCachePtr Copy(Thread* thread) const;
+
   static SubtypeTestCachePtr New();
 
   static intptr_t InstanceSize() {
@@ -7623,11 +7705,6 @@ class TypeParameters : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
@@ -7898,11 +7975,6 @@ class TypeArguments : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool IsFinalized() const;
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
@@ -9136,11 +9208,6 @@ class Symbol : public AllStatic {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
 
@@ -9990,11 +10057,6 @@ class Bool : public Instance {
 
 class Array : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Returns `true` if we use card marking for arrays of length [array_length].
   static bool UseCardMarkingForAllocation(const intptr_t array_length) {
     return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
@@ -10035,6 +10097,10 @@ class Array : public Instance {
     const intptr_t length = LengthOf(a);
     return memcmp(a->untag()->data(), b->untag()->data(),
                   kBytesPerElement * length) == 0;
+  }
+  bool Equals(const Array& other) const {
+    NoSafepointScope scope;
+    return Equals(ptr(), other.ptr());
   }
 
   static CompressedObjectPtr* DataOf(ArrayPtr array) {
@@ -10146,6 +10212,9 @@ class Array : public Instance {
                                   bool unique = false);
 
   ArrayPtr Slice(intptr_t start, intptr_t count, bool with_type_argument) const;
+  ArrayPtr Copy() const {
+    return Slice(0, Length(), /*with_type_argument=*/true);
+  }
 
  protected:
   static ArrayPtr New(intptr_t class_id,
@@ -10544,11 +10613,6 @@ class TypedDataBase : public PointerBase {
 
 class TypedData : public TypedDataBase {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
 

@@ -77,7 +77,7 @@ f(double a, double b, double c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: typeToStringWithNullability ? 'double' : 'num');
   }
@@ -92,7 +92,7 @@ f(double a, double b, int c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -107,7 +107,7 @@ f(double a, int b, double c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -122,7 +122,7 @@ f(double a, int b, int c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -181,7 +181,7 @@ f(int a, double b, double c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -196,7 +196,7 @@ f(int a, double b, dynamic c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -211,7 +211,7 @@ f(int a, double b, int c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -226,7 +226,7 @@ f(int a, dynamic b, double c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -241,7 +241,7 @@ f(int a, dynamic b, int c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -256,7 +256,7 @@ f(int a, int b, double c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -271,7 +271,7 @@ f(int a, int b, dynamic c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -286,7 +286,7 @@ f(int a, int b, int c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: typeToStringWithNullability ? 'int' : 'num');
   }
@@ -305,7 +305,7 @@ f(int a, int b, int c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: typeToStringWithNullability ? 'int' : 'num');
   }
@@ -337,7 +337,7 @@ f(int a, int b, Never c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -356,7 +356,7 @@ f(int a, Never b, int c) {
     assertMethodInvocation(
         findNode.methodInvocation('clamp'),
         elementMatcher(numElement.getMethod('clamp'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num, num)',
         expectedType: 'num');
   }
@@ -2137,7 +2137,7 @@ void f(a) {
       findNode.methodInvocation('toString()'),
       element: elementMatcher(
         objectElement.getMethod('toString'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       typeArgumentTypes: [],
       invokeType: 'String Function()',
@@ -2238,7 +2238,7 @@ f(int a, double b) {
     assertMethodInvocation(
         findNode.methodInvocation('remainder'),
         elementMatcher(numElement.getMethod('remainder'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num)',
         expectedType: typeToStringWithNullability ? 'double' : 'num');
   }
@@ -2253,7 +2253,7 @@ f(int a, int b) {
     assertMethodInvocation(
         findNode.methodInvocation('remainder'),
         elementMatcher(numElement.getMethod('remainder'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num)',
         expectedType: typeToStringWithNullability ? 'int' : 'num');
   }
@@ -2268,7 +2268,7 @@ f(int Function() a, int b) {
     assertMethodInvocation(
         findNode.methodInvocation('remainder'),
         elementMatcher(numElement.getMethod('remainder'),
-            isLegacy: isNullSafetySdkAndLegacyLibrary),
+            isLegacy: isLegacyLibrary),
         'num Function(num)',
         expectedType: typeToStringWithNullability ? 'int' : 'num');
   }
@@ -2539,6 +2539,34 @@ void testShort(C? c) {
       typeArgumentTypes: [],
       invokeType: 'C Function()',
       type: 'C?',
+    );
+  }
+
+  test_hasReceiver_interfaceQ_nullShorting_getter() async {
+    await assertNoErrorsInCode(r'''
+abstract class C {
+  void Function(C) get foo;
+}
+
+void f(C? c) {
+  c?.foo(c); // 1
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('foo(c);');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'void Function(C)');
+    assertType(invocation, 'void');
+
+    var foo = invocation.function as PropertyAccess;
+    assertType(foo, 'void Function(C)');
+    assertElement(foo.propertyName, findElement.getter('foo'));
+    assertType(foo.propertyName, 'void Function(C)');
+
+    assertSimpleIdentifier(
+      findNode.simple('c); // 1'),
+      element: findElement.parameter('c'),
+      type: 'C',
     );
   }
 

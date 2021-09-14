@@ -10,13 +10,12 @@ class A<T> {
   m1() => new T();
   //          ^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'T'.
+  // [cfe] Couldn't find constructor 'T'.
   static m2() => new T();
   //                 ^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'T'.
-  //                 ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [cfe] Couldn't find constructor 'T'.
 
   // OK when used within instance method, but not in static method.
   m3() => new A<T>();

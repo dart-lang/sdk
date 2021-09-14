@@ -34,6 +34,7 @@ class Tag {
   static const int ConditionalExpression = 51;
   static const int ConstructorFieldInitializer = 50;
   static const int ConstructorName = 7;
+  static const int ConstructorReference = 101;
   static const int DeclaredIdentifier = 90;
   static const int DefaultFormalParameter = 8;
   static const int DottedName = 47;
@@ -49,6 +50,7 @@ class Tag {
   static const int FunctionDeclaration_setter = 58;
   static const int FunctionExpressionStub = 19;
   static const int FunctionExpressionInvocation = 93;
+  static const int FunctionReference = 103;
   static const int FunctionTypedFormalParameter = 20;
   static const int GenericFunctionType = 21;
   static const int HideCombinator = 48;
@@ -90,6 +92,7 @@ class Tag {
   static const int ThisExpression = 70;
   static const int ThrowExpression = 81;
   static const int TypeArgumentList = 38;
+  static const int TypeLiteral = 102;
   static const int TypeName = 39;
   static const int TypeParameter = 40;
   static const int TypeParameterList = 41;

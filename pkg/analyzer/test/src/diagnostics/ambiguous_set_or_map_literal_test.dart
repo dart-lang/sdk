@@ -10,15 +10,59 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousSetOrMapLiteralBothTest);
-    defineReflectiveTests(AmbiguousSetOrMapLiteralBothWithNullSafetyTest);
+    defineReflectiveTests(AmbiguousSetOrMapLiteralBothWithoutNullSafetyTest);
     defineReflectiveTests(AmbiguousSetOrMapLiteralEitherTest);
-    defineReflectiveTests(AmbiguousSetOrMapLiteralEitherWithNullSafetyTest);
+    defineReflectiveTests(AmbiguousSetOrMapLiteralEitherWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class AmbiguousSetOrMapLiteralBothTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with AmbiguousSetOrMapLiteralBothTestCases {
+  test_map_keyNonNullable_valueNullable() async {
+    await assertNoErrorsInCode('''
+f(Map<int, int?> map) {
+  return {...map};
+}
+''');
+  }
+
+  test_map_keyNullable_valueNonNullable() async {
+    await assertNoErrorsInCode('''
+f(Map<int?, int> map) {
+  return {...map};
+}
+''');
+  }
+
+  test_map_keyNullable_valueNullable() async {
+    await assertNoErrorsInCode('''
+f(Map<int?, int?> map) {
+  return {...map};
+}
+''');
+  }
+
+  test_set_elementNullable() async {
+    await assertNoErrorsInCode('''
+f(Set<int?> set) {
+  return {...set};
+}
+''');
+  }
+
+  test_setAndMap_nullable() async {
+    await assertErrorsInCode('''
+f(Map<int?, int> map, Set<int?> set) {
+  return {...set, ...map};
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 48, 16),
+    ]);
+  }
+}
+
+mixin AmbiguousSetOrMapLiteralBothTestCases on PubPackageResolutionTest {
   test_map() async {
     await assertNoErrorsInCode('''
 f(Map<int, int> map) {
@@ -63,54 +107,15 @@ f(Map<int, int> map, Set<int> set) {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralBothWithNullSafetyTest
-    extends AmbiguousSetOrMapLiteralBothTest with WithNullSafetyMixin {
-  test_map_keyNonNullable_valueNullable() async {
-    await assertNoErrorsInCode('''
-f(Map<int, int?> map) {
-  return {...map};
-}
-''');
-  }
-
-  test_map_keyNullable_valueNonNullable() async {
-    await assertNoErrorsInCode('''
-f(Map<int?, int> map) {
-  return {...map};
-}
-''');
-  }
-
-  test_map_keyNullable_valueNullable() async {
-    await assertNoErrorsInCode('''
-f(Map<int?, int?> map) {
-  return {...map};
-}
-''');
-  }
-
-  test_set_elementNullable() async {
-    await assertNoErrorsInCode('''
-f(Set<int?> set) {
-  return {...set};
-}
-''');
-  }
-
-  test_setAndMap_nullable() async {
-    await assertErrorsInCode('''
-f(Map<int?, int> map, Set<int?> set) {
-  return {...set, ...map};
-}
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 48, 16),
-    ]);
-  }
-}
+class AmbiguousSetOrMapLiteralBothWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with AmbiguousSetOrMapLiteralBothTestCases, WithoutNullSafetyMixin {}
 
 @reflectiveTest
 class AmbiguousSetOrMapLiteralEitherTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with AmbiguousSetOrMapLiteralEitherTestCases {}
+
+mixin AmbiguousSetOrMapLiteralEitherTestCases on PubPackageResolutionTest {
   test_invalidPrefixOperator() async {
     // Guard against an exception being thrown.
     await assertErrorsInCode('''
@@ -132,5 +137,6 @@ var c = {...set, ...map};
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralEitherWithNullSafetyTest
-    extends AmbiguousSetOrMapLiteralEitherTest with WithNullSafetyMixin {}
+class AmbiguousSetOrMapLiteralEitherWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with AmbiguousSetOrMapLiteralEitherTestCases, WithoutNullSafetyMixin {}

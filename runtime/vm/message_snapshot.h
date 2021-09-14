@@ -14,6 +14,7 @@
 namespace dart {
 
 std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
+                                      bool same_group,
                                       const Object& obj,
                                       Dart_Port dest_port,
                                       Message::Priority priority);
@@ -22,6 +23,8 @@ std::unique_ptr<Message> WriteApiMessage(Zone* zone,
                                          Dart_CObject* obj,
                                          Dart_Port dest_port,
                                          Message::Priority priority);
+
+ObjectPtr ReadObjectGraphCopyMessage(Thread* thread, PersistentHandle* handle);
 
 ObjectPtr ReadMessage(Thread* thread, Message* message);
 

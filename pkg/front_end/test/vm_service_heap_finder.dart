@@ -15,7 +15,7 @@ class Foo {
   Foo(this.x, this.y);
 }
 
-main(List<String> args) async {
+void main(List<String> args) async {
   String connectTo;
   String classToFind;
   String whatToDo;

@@ -347,7 +347,9 @@ class FileState {
       ..addAll(importedFiles)
       ..addAll(exportedFiles)
       ..addAll(partedFiles);
-    directReferencedLibraries..addAll(importedFiles)..addAll(exportedFiles);
+    directReferencedLibraries
+      ..addAll(importedFiles)
+      ..addAll(exportedFiles);
   }
 
   @override

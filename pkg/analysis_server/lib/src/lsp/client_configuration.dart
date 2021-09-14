@@ -124,8 +124,22 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get previewCommitCharacters =>
       _settings['previewCommitCharacters'] as bool? ?? false;
 
-  /// Whether diagnostics should be generated for TODO comments.
-  bool get showTodos => _settings['showTodos'] as bool? ?? false;
+  /// Whether diagnostics should be generated for all TODO comments.
+  bool get showAllTodos =>
+      _settings['showTodos'] is bool ? _settings['showTodos'] as bool : false;
+
+  /// A specific set of TODO comments that should generate diagnostics.
+  ///
+  /// Codes are all forced UPPERCASE regardless of what the client supplies.
+  ///
+  /// [showAllTodos] should be checked first, as this will return an empty
+  /// set if `showTodos` is a boolean.
+  Set<String> get showTodoTypes => _settings['showTodos'] is List
+      ? (_settings['showTodos'] as List)
+          .cast<String>()
+          .map((kind) => kind.toUpperCase())
+          .toSet()
+      : const {};
 }
 
 /// Wraps the client (editor) configuration for a specific resource.
@@ -156,4 +170,12 @@ class LspResourceClientConfiguration {
   /// If null, the formatters default will be used.
   int? get lineLength =>
       _settings['lineLength'] as int? ?? _fallback?.lineLength;
+
+  /// Whether to rename files when renaming classes inside them where the file
+  /// and class name match.
+  ///
+  /// Values are "always", "prompt", "never". Any other values should be treated
+  /// like "never".
+  String get renameFilesWithClasses =>
+      _settings['renameFilesWithClasses'] as String? ?? 'never';
 }

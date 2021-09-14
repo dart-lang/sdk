@@ -47,7 +47,7 @@ const List<String> unsafeTools = const <String>[
   "testing",
 ];
 
-main() {
+void main() {
   if (!Platform.isMacOS && !Platform.isLinux) {
     // The tool is a shell script and only works on Mac and Linux.
     return;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--worker-thread-priority=-2
 // A priority of -2 means THREAD_PRIORITY_LOWEST on windows
 

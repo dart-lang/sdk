@@ -368,8 +368,11 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Object, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables) {
-    return new _FlowAnalysisImpl(typeOperations, assignedVariables);
+      AssignedVariables<Node, Variable> assignedVariables,
+      {required bool respectImplicitlyTypedVarInitializers}) {
+    return new _FlowAnalysisImpl(typeOperations, assignedVariables,
+        respectImplicitlyTypedVarInitializers:
+            respectImplicitlyTypedVarInitializers);
   }
 
   factory FlowAnalysis.legacy(TypeOperations<Variable, Type> typeOperations,
@@ -634,7 +637,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting the initializer of a variable declaration.
   void initialize(
       Variable variable, Type initializerType, Expression initializerExpression,
-      {required bool isFinal, required bool isLate});
+      {required bool isFinal,
+      required bool isLate,
+      required bool isImplicitlyTyped});
 
   /// Return whether the [variable] is definitely assigned in the current state.
   bool isAssigned(Variable variable);
@@ -723,11 +728,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// object to represent a parenthesized expression and its contents.
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression);
-
-  /// Attempt to promote [variable] to [type].  The client may use this to
-  /// ensure that a variable declaration of the form `var x = expr;` promotes
-  /// `x` to type `X&T` in the circumstance where the type of `expr` is `X&T`.
-  void promote(Variable variable, Type type);
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
@@ -986,10 +986,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   bool _exceptionOccurred = false;
 
   factory FlowAnalysisDebug(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables) {
+      AssignedVariables<Node, Variable> assignedVariables,
+      {required bool respectImplicitlyTypedVarInitializers}) {
     print('FlowAnalysisDebug()');
-    return new FlowAnalysisDebug._(
-        new _FlowAnalysisImpl(typeOperations, assignedVariables));
+    return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
+        typeOperations, assignedVariables,
+        respectImplicitlyTypedVarInitializers:
+            respectImplicitlyTypedVarInitializers));
   }
 
   factory FlowAnalysisDebug.legacy(
@@ -1225,13 +1228,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   void initialize(
       Variable variable, Type initializerType, Expression initializerExpression,
-      {required bool isFinal, required bool isLate}) {
+      {required bool isFinal,
+      required bool isLate,
+      required bool isImplicitlyTyped}) {
     _wrap(
         'initialize($variable, $initializerType, $initializerExpression, '
-        'isFinal: $isFinal, isLate: $isLate)',
+        'isFinal: $isFinal, isLate: $isLate, '
+        'isImplicitlyTyped: $isImplicitlyTyped)',
         () => _wrapped.initialize(
             variable, initializerType, initializerExpression,
-            isFinal: isFinal, isLate: isLate));
+            isFinal: isFinal,
+            isLate: isLate,
+            isImplicitlyTyped: isImplicitlyTyped));
   }
 
   @override
@@ -1338,11 +1346,6 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
         'parenthesizedExpression($outerExpression, $innerExpression)',
         () =>
             _wrapped.parenthesizedExpression(outerExpression, innerExpression));
-  }
-
-  @override
-  void promote(Variable variable, Type type) {
-    _wrap('promote($variable, $type', () => _wrapped.promote(variable, type));
   }
 
   @override
@@ -2059,12 +2062,14 @@ class FlowModel<Variable extends Object, Type extends Object> {
       Variable variable,
       Type writtenType,
       SsaNode<Variable, Type> newSsaNode,
-      TypeOperations<Variable, Type> typeOperations) {
+      TypeOperations<Variable, Type> typeOperations,
+      {bool promoteToTypeOfInterest = true}) {
     VariableModel<Variable, Type>? infoForVar = variableInfo[variable];
     if (infoForVar == null) return this;
 
     VariableModel<Variable, Type> newInfoForVar = infoForVar.write(
-        nonPromotionReason, variable, writtenType, typeOperations, newSsaNode);
+        nonPromotionReason, variable, writtenType, typeOperations, newSsaNode,
+        promoteToTypeOfInterest: promoteToTypeOfInterest);
     if (identical(newInfoForVar, infoForVar)) return this;
 
     return _updateVariableInfo(new VariableReference(variable), newInfoForVar);
@@ -2663,6 +2668,9 @@ abstract class TypeOperations<Variable extends Object, Type extends Object> {
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool isSubtypeOf(Type leftType, Type rightType);
 
+  /// Returns `true` if [type] is a reference to a type parameter.
+  bool isTypeParameterType(Type type);
+
   /// Returns the non-null promoted version of [type].
   ///
   /// Note that some types don't have a non-nullable version (e.g.
@@ -2819,7 +2827,8 @@ class VariableModel<Variable extends Object, Type extends Object> {
       Variable variable,
       Type writtenType,
       TypeOperations<Variable, Type> typeOperations,
-      SsaNode<Variable, Type> newSsaNode) {
+      SsaNode<Variable, Type> newSsaNode,
+      {required bool promoteToTypeOfInterest}) {
     if (writeCaptured) {
       return new VariableModel<Variable, Type>(
           promotedTypes: promotedTypes,
@@ -2834,8 +2843,10 @@ class VariableModel<Variable extends Object, Type extends Object> {
     List<Type>? newPromotedTypes = demotionResult.promotedTypes;
 
     Type declaredType = typeOperations.variableType(variable);
-    newPromotedTypes = _tryPromoteToTypeOfInterest(
-        typeOperations, declaredType, newPromotedTypes, writtenType);
+    if (promoteToTypeOfInterest) {
+      newPromotedTypes = _tryPromoteToTypeOfInterest(
+          typeOperations, declaredType, newPromotedTypes, writtenType);
+    }
     // TODO(paulberry): remove demotions from demotionResult.nonPromotionHistory
     // that are no longer in effect due to re-promotion.
     if (identical(promotedTypes, newPromotedTypes) && assigned) {
@@ -3449,7 +3460,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
-  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables);
+  /// Indicates whether initializers of implicitly typed variables should be
+  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
+  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// always, and we need to be able to replicate the old behavior when
+  /// analyzing old language versions).
+  final bool respectImplicitlyTypedVarInitializers;
+
+  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables,
+      {required this.respectImplicitlyTypedVarInitializers});
 
   @override
   bool get isReachable => _current.reachable.overallReachable;
@@ -3798,21 +3817,38 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void initialize(
       Variable variable, Type initializerType, Expression initializerExpression,
-      {required bool isFinal, required bool isLate}) {
-    ExpressionInfo<Variable, Type>? expressionInfo =
-        _getExpressionInfo(initializerExpression);
-    SsaNode<Variable, Type> newSsaNode = new SsaNode<Variable, Type>(isLate
-        ? null
-        : expressionInfo is _TrivialExpressionInfo
-            ? null
-            : expressionInfo);
-    if (isFinal) {
-      // We don't promote final variables on initialization, so pretend the
-      // written type is the variable's declared type.
-      initializerType = typeOperations.variableType(variable);
+      {required bool isFinal,
+      required bool isLate,
+      required bool isImplicitlyTyped}) {
+    ExpressionInfo<Variable, Type>? expressionInfo;
+    if (isLate) {
+      // Don't get expression info for late variables, since we don't know when
+      // they'll be initialized.
+    } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
+      // If the language version is too old, SSA analysis has to ignore
+      // initializer expressions for implicitly typed variables, in order to
+      // preserve the buggy behavior of
+      // https://github.com/dart-lang/language/issues/1785.
+    } else {
+      expressionInfo = _getExpressionInfo(initializerExpression);
     }
+    SsaNode<Variable, Type> newSsaNode = new SsaNode<Variable, Type>(
+        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
     _current = _current.write(
-        null, variable, initializerType, newSsaNode, typeOperations);
+        null, variable, initializerType, newSsaNode, typeOperations,
+        promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal);
+    if (isImplicitlyTyped &&
+        typeOperations.isTypeParameterType(initializerType)) {
+      _current = _current
+          .tryPromoteForTypeCheck(
+              typeOperations,
+              new ReferenceWithType<Variable, Type>(
+                  new VariableReference<Variable, Type>(variable),
+                  promotedType(variable) ??
+                      typeOperations.variableType(variable)),
+              initializerType)
+          .ifTrue;
+    }
   }
 
   @override
@@ -3955,19 +3991,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression) {
     forwardExpression(outerExpression, innerExpression);
-  }
-
-  @override
-  void promote(Variable variable, Type type) {
-    _current = _current
-        .tryPromoteForTypeCheck(
-            typeOperations,
-            new ReferenceWithType<Variable, Type>(
-                new VariableReference<Variable, Type>(variable),
-                promotedType(variable) ??
-                    typeOperations.variableType(variable)),
-            type)
-        .ifTrue;
   }
 
   @override
@@ -4544,7 +4567,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   @override
   void initialize(
       Variable variable, Type initializerType, Expression initializerExpression,
-      {required bool isFinal, required bool isLate}) {}
+      {required bool isFinal,
+      required bool isLate,
+      required bool isImplicitlyTyped}) {}
 
   @override
   bool isAssigned(Variable variable) {
@@ -4701,11 +4726,6 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression) {
     forwardExpression(outerExpression, innerExpression);
-  }
-
-  @override
-  void promote(Variable variable, Type type) {
-    throw new UnimplementedError('TODO(paulberry)');
   }
 
   @override

@@ -4,6 +4,8 @@
 //
 // Test that 'StaticCall's against "super" go through the unchecked entrypoint.
 
+// @dart = 2.9
+
 import "common.dart";
 import "package:expect/expect.dart";
 

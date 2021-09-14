@@ -948,7 +948,7 @@ void f() {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            'Cannot extract closure as method, it references 1 external variable(s).');
+            'Cannot extract closure as method, it references 1 external variable.');
   }
 
   Future<void> test_closure_bad_referencesParameter() async {
@@ -963,7 +963,7 @@ void f(int k) {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            'Cannot extract closure as method, it references 1 external variable(s).');
+            'Cannot extract closure as method, it references 1 external variable.');
   }
 
   Future<void> test_fromTopLevelVariableInitializerClosure() async {

@@ -33,6 +33,7 @@ import 'kernel_ast_api.dart'
         FunctionNode,
         Initializer,
         InterfaceType,
+        Library,
         Member,
         Name,
         Procedure,
@@ -42,6 +43,15 @@ import 'kernel_ast_api.dart'
         TypeParameterType,
         Typedef,
         VariableDeclaration;
+
+/// Alias for Expression | Generator
+typedef Expression_Generator = dynamic;
+
+/// Alias for Expression | Generator | Builder
+typedef Expression_Generator_Builder = dynamic;
+
+/// Alias for Expression | Generator | Initializer
+typedef Expression_Generator_Initializer = dynamic;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   SourceLibraryBuilder get libraryBuilder;
@@ -65,11 +75,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool get enableConstructorTearOffsInLibrary;
 
-  /* Generator | Expression | Builder */ scopeLookup(
+  Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder? prefix});
 
-  /* Expression | Generator | Initializer */ finishSend(Object receiver,
+  Expression_Generator_Initializer finishSend(Object receiver,
       List<UnresolvedType>? typeArguments, Arguments arguments, int offset,
       {bool isTypeArgumentsInForest = false});
 
@@ -96,12 +106,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       int fileOffset, Procedure target, Arguments arguments,
       {required bool isTearOff});
 
-  Expression throwNoSuchMethodError(
-      Expression receiver, String name, Arguments arguments, int offset,
+  Expression buildUnresolvedError(
+      Expression receiver, String name, Arguments arguments, int charOffset,
       {Member candidate,
       bool isSuper,
-      bool isGetter,
-      bool isSetter,
+      required UnresolvedKind kind,
       bool isStatic,
       LocatedMessage message});
 
@@ -131,7 +140,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder? typeAliasBuilder});
+      TypeDeclarationBuilder? typeAliasBuilder,
+      required UnresolvedKind unresolvedKind});
 
   UnresolvedType validateTypeUse(UnresolvedType unresolved,
       {required bool nonInstanceAccessIsError,
@@ -183,10 +193,40 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   void registerVariableAssignment(VariableDeclaration variable);
 
   TypeEnvironment get typeEnvironment;
+
+  /// If explicit instantiations are supported in this library, create an
+  /// instantiation of the result of [receiverFunction] using
+  /// [typeArguments] followed by an invocation of [name] with [arguments].
+  /// Otherwise create the errors for the corresponding invalid implicit
+  /// creation expression.
+  ///
+  /// This is used to handle the syntax for implicit creation expression as
+  /// an explicit instantiation with and invocation. For instance
+  ///
+  ///     a.b<c>.d()
+  ///
+  /// The parser treat the as the constructor invocation of constructor `d` on
+  /// class `b` with prefix `a` with type arguments `<c>`, but with explicit
+  /// instantiation it could instead be the explicit instantiation of expression
+  /// `a.b` with type arguments `<c>` followed by and invocation of `d()`.
+  ///
+  /// If [inImplicitCreationContext] is `false`, then the expression is
+  /// preceded by `new` or `const`, and an error should be reported instead of
+  /// creating the instantiation and invocation.
+  Expression createInstantiationAndInvocation(
+      Expression Function() receiverFunction,
+      List<UnresolvedType>? typeArguments,
+      String className,
+      String constructorName,
+      Arguments arguments,
+      {required int instantiationOffset,
+      required int invocationOffset,
+      required bool inImplicitCreationContext});
 }
 
 /// Checks that a generic [typedef] for a generic class.
-bool isProperRenameForClass(TypeEnvironment typeEnvironment, Typedef typedef) {
+bool isProperRenameForClass(
+    TypeEnvironment typeEnvironment, Typedef typedef, Library typedefLibrary) {
   DartType? rhsType = typedef.type;
   if (rhsType is! InterfaceType) {
     return false;
@@ -201,7 +241,7 @@ bool isProperRenameForClass(TypeEnvironment typeEnvironment, Typedef typedef) {
   for (int i = 0; i < fromParameters.length; ++i) {
     if (typeArguments[i] !=
         new TypeParameterType.withDefaultNullabilityForLibrary(
-            fromParameters[i], typedef.enclosingLibrary)) {
+            fromParameters[i], typedefLibrary)) {
       return false;
     }
   }
@@ -222,4 +262,13 @@ bool isProperRenameForClass(TypeEnvironment typeEnvironment, Typedef typedef) {
   }
 
   return true;
+}
+
+enum UnresolvedKind {
+  Unknown,
+  Member,
+  Method,
+  Getter,
+  Setter,
+  Constructor,
 }

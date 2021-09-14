@@ -31,15 +31,15 @@ class AstResolver {
     nameScope: _nameScope,
     errorListener: _errorListener,
   );
-  late final _variableResolverVisitor = VariableResolverVisitor(
+  late final _scopeResolverVisitor = ScopeResolverVisitor(
     _unitElement.library,
     _unitElement.source,
     _unitElement.library.typeProvider,
     _errorListener,
     nameScope: _nameScope,
   );
-  late final _flowAnalysis = FlowAnalysisHelper(_unitElement.library.typeSystem,
-      false, _unitElement.library.isNonNullableByDefault);
+  late final _flowAnalysis =
+      FlowAnalysisHelper(_unitElement.library.typeSystem, false, _featureSet);
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,
@@ -47,7 +47,6 @@ class AstResolver {
     _unitElement.library.typeProvider,
     _errorListener,
     featureSet: _featureSet,
-    nameScope: _nameScope,
     flowAnalysisHelper: _flowAnalysis,
   );
 
@@ -56,9 +55,8 @@ class AstResolver {
       : _featureSet = node.thisOrAncestorOfType<CompilationUnit>()!.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
-    _resolverVisitor.shouldCloneAnnotations = false;
     node.accept(_resolutionVisitor);
-    node.accept(_variableResolverVisitor);
+    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node, null);
     node.accept(_resolverVisitor);
@@ -66,19 +64,16 @@ class AstResolver {
   }
 
   void resolveConstructorNode(ConstructorDeclarationImpl node) {
-    var isConst = node.constKeyword != null;
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
     void visit(AstVisitor<Object?> visitor) {
-      if (isConst) {
-        node.initializers.accept(visitor);
-      }
+      node.initializers.accept(visitor);
       node.redirectedConstructor?.accept(visitor);
     }
 
     visit(_resolutionVisitor);
-    visit(_variableResolverVisitor);
+    visit(_scopeResolverVisitor);
 
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
@@ -97,7 +92,7 @@ class AstResolver {
       if (contextType != null) {
         InferenceContext.setType(node, contextType);
       }
-      node.accept(_variableResolverVisitor);
+      node.accept(_scopeResolverVisitor);
     }
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);

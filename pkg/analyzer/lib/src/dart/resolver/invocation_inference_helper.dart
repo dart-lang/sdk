@@ -50,7 +50,7 @@ class ConstructorElementToInfer {
       typeFormals: typeParameters,
       parameters: element.parameters,
       returnType: element.returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 }
@@ -282,7 +282,7 @@ class InvocationInferenceHelper {
 
     expression.staticType = type;
     if (_typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis?.flow?.handleExit();
+      _resolver.flowAnalysis.flow?.handleExit();
     }
   }
 

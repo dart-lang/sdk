@@ -1,0 +1,19 @@
+// @dart = 2.14
+import 'issue46719.dart' as self;
+
+class A<T> {
+  A();
+  A.named();
+  List<X> m<X>(X x) => [x];
+  static List<X> n<X>(X x) => [x];
+}
+
+List<X> m<X>(X x) => [x];
+
+extension FunctionApplier on Function {
+  void applyAndPrint(List<Object?> positionalArguments) =>
+      print(Function.apply(this, positionalArguments, const {}));
+}
+
+test() {}
+void main() {}

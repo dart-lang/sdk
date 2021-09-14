@@ -56,6 +56,7 @@ namespace dart {
   V(AllocateObjectParameterized)                                               \
   V(AllocateObjectSlow)                                                        \
   V(AllocateUnhandledException)                                                \
+  V(BoxDouble)                                                                 \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
@@ -119,6 +120,7 @@ namespace dart {
   V(RangeErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
+  V(DoubleToInteger)                                                           \
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \

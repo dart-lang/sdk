@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
 
-run() {
+void run() {
   checkNormToSame('Null');
   checkNormToSame('Never');
   check('Never?', 'Null');
@@ -142,7 +142,7 @@ run() {
       'FutureOr<FutureOr<FutureOr<int>>?>?');
 }
 
-check(String input, String output, [String typeParameters = '']) {
+void check(String input, String output, [String typeParameters = '']) {
   Env env = new Env('', isNonNullableByDefault: true)
     ..extendWithTypeParameters(typeParameters);
   DartType inputType = env.parseType(input);
@@ -157,8 +157,8 @@ check(String input, String output, [String typeParameters = '']) {
       "Actual: ${actualOutputType}");
 }
 
-checkNormToSame(String type, [String typeParameters = '']) {
+void checkNormToSame(String type, [String typeParameters = '']) {
   return check(type, type, typeParameters);
 }
 
-main() => run();
+void main() => run();

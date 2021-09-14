@@ -300,20 +300,6 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 }
 
-mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
-  @override
-  String? get testPackageLanguageVersion => null;
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    createAnalysisOptionsFile(
-      experiments: [EnableString.nonfunction_type_aliases],
-    );
-  }
-}
-
 mixin WithNullSafetyMixin on AbstractContextTest {
   @override
   String get testPackageLanguageVersion => '2.12';

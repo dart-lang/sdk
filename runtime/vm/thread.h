@@ -273,6 +273,7 @@ class Thread : public ThreadState {
     kSweeperTask = 0x8,
     kCompactorTask = 0x10,
     kScavengerTask = 0x20,
+    kSampleBlockTask = 0x40,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -688,6 +689,15 @@ class Thread : public ThreadState {
   static intptr_t unboxed_int64_runtime_arg_offset() {
     return OFFSET_OF(Thread, unboxed_int64_runtime_arg_);
   }
+  double unboxed_double_runtime_arg() const {
+    return unboxed_double_runtime_arg_;
+  }
+  void set_unboxed_double_runtime_arg(double value) {
+    unboxed_double_runtime_arg_ = value;
+  }
+  static intptr_t unboxed_double_runtime_arg_offset() {
+    return OFFSET_OF(Thread, unboxed_double_runtime_arg_);
+  }
 
   GrowableObjectArrayPtr pending_functions();
   void clear_pending_functions();
@@ -1049,11 +1059,12 @@ class Thread : public ThreadState {
   MarkingStackBlock* marking_stack_block_;
   MarkingStackBlock* deferred_marking_stack_block_;
   uword volatile vm_tag_;
-  // Memory location dedicated for passing unboxed int64 values from
-  // generated code to runtime.
+  // Memory locations dedicated for passing unboxed int64 and double
+  // values from generated code to runtime.
   // TODO(dartbug.com/33549): Clean this up when unboxed values
   // could be passed as arguments.
   ALIGN8 int64_t unboxed_int64_runtime_arg_;
+  ALIGN8 double unboxed_double_runtime_arg_;
 
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \

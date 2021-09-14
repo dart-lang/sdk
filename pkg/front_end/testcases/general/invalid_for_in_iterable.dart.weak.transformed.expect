@@ -33,31 +33,31 @@ static method returnObject() → core::Object*
   return 0;
 static method test() → dynamic {
   {
-    core::Iterator<dynamic>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:27: Error: Too many positional arguments: 0 allowed, but 1 found.
+    core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:27: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   for (var v in takesNoArg(0)) {}
-                          ^".{core::Iterable::iterator}{core::Iterator<dynamic>*};
+                          ^".{core::Iterable::iterator}{core::Iterator<Never>*};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      dynamic v = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
       {}
     }
   }
   {
-    core::Iterator<invalid-type>* :sync-for-iterator = (let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:15:17: Error: This expression has type 'void' and can't be used.
+    core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:15:17: Error: This expression has type 'void' and can't be used.
   for (var v in returnVoid()) {}
-                ^" in self::returnVoid()).{core::Iterable::iterator}{core::Iterator<invalid-type>*};
+                ^" in self::returnVoid().{core::Iterable::iterator}{core::Iterator<Never>*};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      dynamic v = :sync-for-iterator.{core::Iterator::current}{invalid-type};
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
       {}
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = (let final Never* #t2 = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    core::Iterator<Never>* :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (var v in returnInt()) {}
-                ^" in self::returnInt() as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+                ^" in self::returnInt() as{TypeError} core::Iterable<dynamic>*.{core::Iterable::iterator}{core::Iterator<Never>*};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      dynamic v = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
       {}
     }
   }

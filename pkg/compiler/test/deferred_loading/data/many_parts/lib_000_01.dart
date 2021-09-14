@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 import 'libB.dart';
 
 @pragma('dart2js:noInline')
-/*member: g_000_01:member_unit=2{b1}*/
+/*member: g_000_01:member_unit=1{b1}*/
 g_000_01() {
   Set<String> uniques = {};
 

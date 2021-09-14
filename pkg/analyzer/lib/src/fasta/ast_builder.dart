@@ -23,7 +23,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageInvalidInitializer,
         messageInvalidSuperInInitializer,
         messageInvalidThisInInitializer,
-        messageMetadataTypeArguments,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
@@ -37,6 +36,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         BlockKind,
+        ConstructorReferenceContext,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
@@ -148,7 +148,7 @@ class AstBuilder extends StackListener {
 
   final FeatureSet _featureSet;
 
-  AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
+  AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
       this._featureSet,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
@@ -1100,8 +1100,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     assert(optionalOrNull('.', periodBeforeName));
     debugEvent("ConstructorReference");
 
@@ -1867,8 +1867,15 @@ class AstBuilder extends StackListener {
     var typeArguments = pop() as TypeArgumentList?;
     if (typeArguments != null &&
         !_featureSet.isEnabled(Feature.generic_metadata)) {
-      handleRecoverableError(messageMetadataTypeArguments,
-          typeArguments.beginToken, typeArguments.beginToken);
+      var feature = Feature.generic_metadata;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(feature.releaseVersion!),
+        ),
+        typeArguments.beginToken,
+        typeArguments.beginToken,
+      );
     }
     var name = pop() as Identifier;
     push(ast.annotation(
@@ -2659,11 +2666,16 @@ class AstBuilder extends StackListener {
     debugEvent("ExpressionFunctionBody");
 
     var expression = pop() as Expression;
-    pop(); // star (*)
+    var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
     if (parseFunctionBodies) {
-      push(ast.expressionFunctionBody(
-          asyncKeyword, arrowToken, expression, semicolon));
+      push(ast.expressionFunctionBody2(
+        keyword: asyncKeyword,
+        star: star,
+        functionDefinition: arrowToken,
+        expression: expression,
+        semicolon: semicolon,
+      ));
     } else {
       push(ast.emptyFunctionBody(semicolon!));
     }

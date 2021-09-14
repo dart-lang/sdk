@@ -173,6 +173,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    _writeByte(Tag.ConstructorReference);
+    _writeNode(node.constructorName);
+    _storeExpression(node);
+  }
+
+  @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _writeByte(Tag.DeclaredIdentifier);
     _writeByte(
@@ -238,17 +245,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _writeByte(Tag.FieldFormalParameter);
 
-    _pushScopeTypeParameters(node.typeParameters);
-    _writeOptionalNode(node.typeParameters);
-    _writeOptionalNode(node.type);
-    _writeOptionalNode(node.parameters);
-    _storeNormalFormalParameter(
-      node,
-      node.keyword,
-      hasQuestion: node.question != null,
-    );
-
-    _sink.localElements.popScope();
+    _withTypeParameters(node.typeParameters, () {
+      _writeOptionalNode(node.typeParameters);
+      _writeOptionalNode(node.type);
+      _writeOptionalNode(node.parameters);
+      _storeNormalFormalParameter(
+        node,
+        node.keyword,
+        hasQuestion: node.question != null,
+      );
+    });
   }
 
   @override
@@ -306,16 +312,24 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    _writeByte(Tag.FunctionReference);
+    _writeNode(node.function);
+    _writeOptionalNode(node.typeArguments);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _storeExpression(node);
+  }
+
+  @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _writeByte(Tag.FunctionTypedFormalParameter);
 
-    _pushScopeTypeParameters(node.typeParameters);
-    _writeOptionalNode(node.typeParameters);
-    _writeOptionalNode(node.returnType);
-    _writeNode(node.parameters);
-    _storeNormalFormalParameter(node, null);
-
-    _sink.localElements.popScope();
+    _withTypeParameters(node.typeParameters, () {
+      _writeOptionalNode(node.typeParameters);
+      _writeOptionalNode(node.returnType);
+      _writeNode(node.parameters);
+      _storeNormalFormalParameter(node, null);
+    });
   }
 
   @override
@@ -328,14 +342,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
-    _pushScopeTypeParameters(node.typeParameters);
-
-    _writeOptionalNode(node.typeParameters);
-    _writeOptionalNode(node.returnType);
-    _writeNode(node.parameters);
-
-    _sink.writeType(node.type);
-    _sink.localElements.popScope();
+    _withTypeParameters(node.typeParameters, () {
+      _writeOptionalNode(node.typeParameters);
+      _writeOptionalNode(node.returnType);
+      _writeNode(node.parameters);
+      _sink.writeType(node.type);
+    });
   }
 
   @override
@@ -707,6 +719,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitTypeLiteral(TypeLiteral node) {
+    _writeByte(Tag.TypeLiteral);
+    _writeNode(node.typeName);
+    _storeExpression(node);
+  }
+
+  @override
   void visitTypeName(TypeName node) {
     _writeByte(Tag.TypeName);
 
@@ -751,18 +770,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.type);
     _writeNodeList(node.variables);
     _storeAnnotatedNode(node);
-  }
-
-  void _pushScopeTypeParameters(TypeParameterList? node) {
-    _sink.localElements.pushScope();
-
-    if (node == null) {
-      return;
-    }
-
-    for (var typeParameter in node.typeParameters) {
-      _sink.localElements.declare(typeParameter.declaredElement!);
-    }
   }
 
   void _storeAnnotatedNode(AnnotatedNode node) {
@@ -825,6 +832,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _writeDeclarationName(node.identifier!);
     }
     _storeFormalParameter(node);
+  }
+
+  void _withTypeParameters(TypeParameterList? node, void Function() f) {
+    if (node == null) {
+      f();
+    } else {
+      var elements = node.typeParameters
+          .map((typeParameter) => typeParameter.declaredElement!)
+          .toList();
+      _sink.localElements.withElements(elements, () {
+        f();
+      });
+    }
   }
 
   void _writeActualType(ResolutionSink resolutionSink, DartType type) {

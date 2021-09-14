@@ -115,7 +115,7 @@ class VerifyingVisitor extends RecursiveVisitor {
   VerifyingVisitor(this.test);
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     expectedSpan = test.spans[node.name.text];
     if (expectedSpan != null) {
       super.visitProcedure(node);
@@ -125,7 +125,7 @@ class VerifyingVisitor extends RecursiveVisitor {
   }
 
   @override
-  visitAssertStatement(AssertStatement node) {
+  void visitAssertStatement(AssertStatement node) {
     Expect.equals(expectedSpan.startOffset, node.conditionStartOffset);
     Expect.equals(expectedSpan.endOffset, node.conditionEndOffset);
   }

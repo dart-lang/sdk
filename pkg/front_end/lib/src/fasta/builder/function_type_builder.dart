@@ -28,8 +28,11 @@ class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder? returnType;
   final List<TypeVariableBuilder>? typeVariables;
   final List<FormalParameterBuilder>? formals;
+  @override
   final NullabilityBuilder nullabilityBuilder;
+  @override
   final Uri? fileUri;
+  @override
   final int charOffset;
 
   FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
@@ -41,6 +44,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   @override
   String get debugName => "Function";
 
+  @override
   bool get isVoidType => false;
 
   @override
@@ -77,6 +81,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
+  @override
   FunctionType build(LibraryBuilder library,
       {TypedefType? origin, bool? nonInstanceContext}) {
     DartType builtReturnType =
@@ -120,6 +125,7 @@ class FunctionTypeBuilder extends TypeBuilder {
         typedefType: origin);
   }
 
+  @override
   Supertype? buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     library.addProblem(
@@ -127,11 +133,13 @@ class FunctionTypeBuilder extends TypeBuilder {
     return null;
   }
 
+  @override
   Supertype? buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     return buildSupertype(library, charOffset, fileUri);
   }
 
+  @override
   FunctionTypeBuilder clone(
       List<TypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
@@ -160,6 +168,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     return newType;
   }
 
+  @override
   FunctionTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new FunctionTypeBuilder(returnType, typeVariables, formals,

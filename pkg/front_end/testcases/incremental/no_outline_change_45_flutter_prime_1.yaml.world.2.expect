@@ -7,7 +7,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : super dart.core::Object::•()
       ;
     static factory bar() → main::Foo*
-      let dynamic #redirecting_factory = main::Baz::• in invalid-expression;
+      return new main::Baz::•();
     method bar() → void {}
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf

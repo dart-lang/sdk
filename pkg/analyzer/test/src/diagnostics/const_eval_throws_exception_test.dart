@@ -11,65 +11,47 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
-    defineReflectiveTests(ConstEvalThrowsExceptionWithNullSafetyTest);
+    defineReflectiveTests(ConstEvalThrowsExceptionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ConstEvalThrowsExceptionTestCases {
-  test_binaryMinus_null() async {
+    with ConstEvalThrowsExceptionTestCases {
+  test_asExpression_typeParameter() async {
     await assertErrorsInCode('''
-const dynamic D = null;
-const C = D - 5;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
-    ]);
-
-    await assertErrorsInCode('''
-const dynamic D = null;
-const C = 5 - D;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
-    ]);
-  }
-
-  test_binaryPlus_null() async {
-    await assertErrorsInCode('''
-const dynamic D = null;
-const C = D + 5;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
-    ]);
-
-    await assertErrorsInCode('''
-const dynamic D = null;
-const C = 5 + D;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
-    ]);
-  }
-
-  test_eqEq_nonPrimitiveRightOperand() async {
-    await assertNoErrorsInCode('''
-const c = const T.eq(1, const Object());
-class T {
-  final Object value;
-  const T.eq(Object o1, Object o2) : value = o1 == o2;
+class C<T> {
+  final t;
+  const C(dynamic x) : t = x as T;
 }
-''');
-  }
-
-  test_fromEnvironment_ifElement() async {
-    await assertNoErrorsInCode('''
-const b = bool.fromEnvironment('foo');
 
 main() {
-  const l1 = [1, 2, 3];
-  const l2 = [if (b) ...l1];
-  print(l2);
+  const C<int>(0);
+  const C<int>('foo');
+  const C<int>(null);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 92, 19),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 115, 18),
+    ]);
+  }
+
+  test_asExpression_typeParameter_nested() async {
+    await assertErrorsInCode('''
+class C<T> {
+  final t;
+  const C(dynamic x) : t = x as List<T>;
+}
+
+main() {
+  const C<int>(<int>[]);
+  const C<int>(<num>[]);
+  const C<int>(null);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 104, 21),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 129, 18),
+    ]);
   }
 }
 
@@ -393,41 +375,60 @@ const C = !D;
 }
 
 @reflectiveTest
-class ConstEvalThrowsExceptionWithNullSafetyTest
-    extends ConstEvalThrowsExceptionTest with WithNullSafetyMixin {
-  test_asExpression_typeParameter() async {
+class ConstEvalThrowsExceptionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, ConstEvalThrowsExceptionTestCases {
+  test_binaryMinus_null() async {
     await assertErrorsInCode('''
-class C<T> {
-  final t;
-  const C(dynamic x) : t = x as T;
-}
-
-main() {
-  const C<int>(0);
-  const C<int>('foo');
-  const C<int>(null);
-}
+const dynamic D = null;
+const C = D - 5;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 92, 19),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 115, 18),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
+    ]);
+
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = 5 - D;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
     ]);
   }
 
-  test_asExpression_typeParameter_nested() async {
+  test_binaryPlus_null() async {
     await assertErrorsInCode('''
-class C<T> {
-  final t;
-  const C(dynamic x) : t = x as List<T>;
+const dynamic D = null;
+const C = D + 5;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
+    ]);
+
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = 5 + D;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
+    ]);
+  }
+
+  test_eqEq_nonPrimitiveRightOperand() async {
+    await assertNoErrorsInCode('''
+const c = const T.eq(1, const Object());
+class T {
+  final Object value;
+  const T.eq(Object o1, Object o2) : value = o1 == o2;
 }
+''');
+  }
+
+  test_fromEnvironment_ifElement() async {
+    await assertNoErrorsInCode('''
+const b = bool.fromEnvironment('foo');
 
 main() {
-  const C<int>(<int>[]);
-  const C<int>(<num>[]);
-  const C<int>(null);
+  const l1 = [1, 2, 3];
+  const l2 = [if (b) ...l1];
+  print(l2);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 104, 21),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 129, 18),
-    ]);
+''');
   }
 }

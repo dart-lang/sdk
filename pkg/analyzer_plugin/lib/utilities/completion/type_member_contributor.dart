@@ -52,8 +52,7 @@ class TypeMemberContributor implements CompletionContributor {
   /// Update the completion [target] and [dotTarget] based on the given [unit].
   Expression? _computeDotTarget(
       DartCompletionRequest request, AstNode? entryPoint) {
-    var target = CompletionTarget.forOffset(
-        request.result.unit, request.offset,
+    var target = CompletionTarget.forOffset(request.result.unit, request.offset,
         entryPoint: entryPoint);
     var node = target.containingNode;
     if (node is MethodInvocation) {

@@ -10,13 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedHiddenNameTest);
-    defineReflectiveTests(UndefinedHiddenNameWithNullSafetyTest);
+    defineReflectiveTests(UndefinedHiddenNameWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class UndefinedHiddenNameTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with UndefinedHiddenNameTestCases {}
+
+mixin UndefinedHiddenNameTestCases on PubPackageResolutionTest {
   test_export() async {
     newFile('$testPackageLibPath/lib1.dart');
     await assertErrorsInCode(r'''
@@ -38,5 +40,5 @@ import 'lib1.dart' hide a;
 }
 
 @reflectiveTest
-class UndefinedHiddenNameWithNullSafetyTest extends UndefinedHiddenNameTest
-    with WithNullSafetyMixin {}
+class UndefinedHiddenNameWithoutNullSafetyTest extends PubPackageResolutionTest
+    with UndefinedHiddenNameTestCases, WithoutNullSafetyMixin {}

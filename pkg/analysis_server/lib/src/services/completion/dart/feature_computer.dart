@@ -218,6 +218,8 @@ class FeatureComputer {
       return protocol.ElementKind.PREFIX;
     } else if (kind == ElementKind.TOP_LEVEL_VARIABLE) {
       return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == ElementKind.TYPE_ALIAS) {
+      return protocol.ElementKind.TYPE_ALIAS;
     } else if (kind == ElementKind.TYPE_PARAMETER) {
       return protocol.ElementKind.TYPE_PARAMETER;
     }

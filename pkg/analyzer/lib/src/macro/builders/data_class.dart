@@ -39,6 +39,20 @@ class AutoConstructorMacro implements ClassDeclarationMacro {
   }
 }
 
+class DataClassMacro implements ClassDeclarationMacro {
+  const DataClassMacro();
+
+  @override
+  void visitClassDeclaration(
+    ast.ClassDeclaration declaration,
+    ClassDeclarationBuilder builder,
+  ) {
+    const AutoConstructorMacro().visitClassDeclaration(declaration, builder);
+    const HashCodeMacro().visitClassDeclaration(declaration, builder);
+    const ToStringMacro().visitClassDeclaration(declaration, builder);
+  }
+}
+
 class HashCodeMacro implements ClassDeclarationMacro {
   const HashCodeMacro();
 
@@ -52,8 +66,9 @@ class HashCodeMacro implements ClassDeclarationMacro {
         .join(' ^ ');
     builder.addToClass(
       Declaration('''
-@override
-int get hashCode => $expression;'''),
+  @override
+  int get hashCode => $expression;
+'''),
     );
   }
 }
@@ -73,8 +88,9 @@ class ToStringMacro implements ClassDeclarationMacro {
     }).join(', ');
     builder.addToClass(
       Declaration('''
-@override
-String toString() => '${classElement.name}($fieldsCode)';'''),
+  @override
+  String toString() => '${classElement.name}($fieldsCode)';
+'''),
     );
   }
 }

@@ -4,10 +4,6 @@
 .project
 .settings/
 build/
-pubspec.lock
 
 # Directory created by dartdoc
 doc/api/
-
-# Directory created by pub
-.dart_tool/

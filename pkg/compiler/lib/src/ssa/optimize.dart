@@ -1566,7 +1566,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return assignField();
       }
       // TODO(sra): Implement inlining of setters with checks for new rti. The
-      // check and field assignment for the setter should inlined if this is
+      // check and field assignment for the setter should be inlined if this is
       // the only call to the setter, or the current function already computes
       // the type of the field.
       node.needsCheck = true;

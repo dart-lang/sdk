@@ -32,7 +32,7 @@ translated output.
 
 ```dart
 @pragma('vm:prefer-inline')
-bar() => throw null;
+bar() => throw Null;
 
 @pragma('vm:never-inline')
 foo() => bar();
@@ -44,24 +44,18 @@ Now we run the following commands:
 
 ```bash
 # Make sure that we have the native_stack_traces package.
-$ pub get native_stack_traces
-$ pub global activate native_stack_traces
+$ dart pub global activate native_stack_traces
 
 # We compile the example program, removing the source location information
 # from the snapshot and saving the debugging information into throws.debug.
-$ dart2native -k aot -S throws.debug -o throws.aotsnapshot throws.dart
+$ dart compile exe -S throws.debug throws.dart
 
 # Run the program, saving the error output to throws.err.
-$ dartaotruntime throws.aotsnapshot 2>throws.err
+$ ./throws.exe 2>throws.err
 
 # Using the saved debugging information, we can translate the stack trace
 # contained in throws.err to its symbolic form.
-$ pub global run native_stack_traces:decode translate -d throws.debug -i throws.err
-
-# We can also just pipe the output of running the program directly into
-# the utility.
-$ dartaotruntime throws.aotsnapshot |& \
-    pub global run native_stack_traces:decode translate -d throws.debug
+$ dart pub global run native_stack_traces:decode translate -d throws.debug -i throws.err
 ```
 
 ## Features and bugs

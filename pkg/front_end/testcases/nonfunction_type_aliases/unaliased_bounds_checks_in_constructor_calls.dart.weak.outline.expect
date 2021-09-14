@@ -11,3 +11,5 @@ static method foo() → dynamic
   ;
 static method main() → dynamic
   ;
+static method _#A#new#tearOff<X extends core::num, unrelated Y extends core::Object? = dynamic>() → self::C<self::_#A#new#tearOff::X>
+  return new self::C::•<self::_#A#new#tearOff::X>();

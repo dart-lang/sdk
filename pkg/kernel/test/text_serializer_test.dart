@@ -63,7 +63,7 @@ class TestRunner {
     test('(bool true)');
     test('(bool false)');
     test('(null)');
-    test(r'''(invalid "You can't touch this")''');
+    test(r'''(invalid "You can't touch this" (null))''');
     test('(not (bool true))');
     test('(&& (bool true) (bool false))');
     test('(|| (&& (bool true) (not (bool true))) (bool true))');

@@ -17,8 +17,6 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../fasta/compiler_context.dart' show CompilerContext;
 
-import '../fasta/source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import '../fasta/uri_translator.dart' show UriTranslator;
 
 import 'compiler_options.dart' show CompilerOptions;
@@ -146,7 +144,6 @@ Future<bool> uriUsesLegacyLanguageVersion(
     Uri uri, CompilerOptions options) async {
   // This method is here in order to use the opt out hack here for test
   // sources.
-  if (SourceLibraryBuilder.isOptOutTest(uri)) return true;
   VersionAndPackageUri versionAndLibraryUri =
       await languageVersionForUri(uri, options);
   return !options.isExperimentEnabledInLibraryByVersion(

@@ -2,7 +2,7 @@ main = mai::main;
 //
 // Problems in component:
 //
-// org-dartlang-test:///b.dart:14:7: Error: 'C' can't implement both 'I<int>' and 'I<String>'
+// org-dartlang-test:///b.dart:15:7: Error: 'C' can't implement both 'I<int>' and 'I<String>'
 //  - 'I' is from 'org-dartlang-test:///b.dart'.
 // class C extends A implements B {}
 //       ^

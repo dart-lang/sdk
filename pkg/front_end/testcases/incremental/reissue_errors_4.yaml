@@ -12,16 +12,20 @@ worlds:
     sources:
       .packages: mypackage:mypackage
       main.dart: |
+        // @dart=2.9
         import "package:mypackage/a.dart";
       mypackage/a.dart: |
+        // @dart=2.9
         import "package:mypackage/b.dart";
 
         class Foo<T> {}
         class Bar<T> extends Foo<T> {}
       mypackage/b.dart: |
+        // @dart=2.9
         import "package:mypackage/a.dart";
         part "package:mypackage/c.dart";
       mypackage/c.dart: |
+        // @dart=2.9
         part of "package:mypackage/b.dart";
 
         class Baz extends Bar<int> implements Foo<String> {}
@@ -36,16 +40,20 @@ worlds:
     sources:
       .packages: mypackage:mypackage
       main.dart: |
+        // @dart=2.9
         import "package:mypackage/a.dart";
       mypackage/a.dart: |
+        // @dart=2.9
         import "package:mypackage/b.dart";
 
         class Foo<T> {}
         class Bar<T> extends Foo<T> {}
       mypackage/b.dart: |
+        // @dart=2.9
         import "package:mypackage/a.dart";
         part "package:mypackage/c.dart";
       mypackage/c.dart: |
+        // @dart=2.9
         part of "package:mypackage/b.dart";
 
         class Baz extends Bar<int> implements Foo<String> {}
@@ -64,9 +72,11 @@ worlds:
       - mypackage/c.dart
     sources:
       mypackage/b.dart: |
+        // @dart=2.9
         import "package:mypackage/a.dart";
         part "package:mypackage/c.dart";
       mypackage/c.dart: |
+        // @dart=2.9
         part of "package:mypackage/b.dart";
 
         class Baz extends Bar<int> {}

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=
+// @dart = 2.9
+
+// VMOptions=--no-enable-isolate-groups
 // VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
 // VMOptions=--enable-isolate-groups --enable-fast-object-copy
 // VMOptions=--enable-isolate-groups --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
@@ -24,7 +26,9 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-class ClassWithNativeFields extends NativeFieldWrapperClass1 {}
+class ClassWithNativeFields extends NativeFieldWrapperClass1 {
+  void m() {}
+}
 
 final Uint8List largeExternalTypedData =
     File(Platform.resolvedExecutable).readAsBytesSync()..[0] = 42;
@@ -219,6 +223,10 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     await testFastOnly();
     await testSlowOnly();
+
+    await testWeakProperty();
+
+    await testForbiddenClosures();
   }
 
   Future testTransferrable() async {
@@ -577,6 +585,101 @@ class SendReceiveTest extends SendReceiveTestBase {
     for (final smallContainer in smallContainers) {
       expectGraphsMatch([notAllocatableInTLAB, smallContainer],
           await sendReceive([notAllocatableInTLAB, smallContainer]));
+    }
+  }
+
+  Future testWeakProperty() async {
+    final key = Object();
+    final expando1 = Expando();
+    final expando2 = Expando();
+    final expando3 = Expando();
+    final expando4 = Expando();
+    expando1[key] = expando2;
+    expando2[expando2] = expando3;
+    expando3[expando3] = expando4;
+    expando4[expando4] = {'foo': 'bar'};
+
+    {
+      final result = await sendReceive([
+        key,
+        expando1,
+      ]);
+      final keyCopy = result[0];
+      final expando1Copy = result[1] as Expando;
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        expando1,
+        key,
+      ]);
+      final expando1Copy = result[0] as Expando;
+      final keyCopy = result[1];
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        expando1,
+        notAllocatableInTLAB,
+        key,
+      ]);
+      final expando1Copy = result[0] as Expando;
+      final keyCopy = result[2];
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        key,
+        notAllocatableInTLAB,
+        expando1,
+      ]);
+      final keyCopy = result[0];
+      final expando1Copy = result[2] as Expando;
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+  }
+
+  Future testForbiddenClosures() async {
+    print('testForbiddenClosures');
+    final nonCopyableClosures = <dynamic>[
+      (() {
+        final a = ClassWithNativeFields();
+        return a.m;
+      })(),
+      (() {
+        final a = ClassWithNativeFields();
+        dynamic inner() => a;
+        return inner;
+      })(),
+      (() {
+        foo(var arg) {
+          return () => arg;
+        }
+
+        return foo(ClassWithNativeFields());
+      })(),
+    ];
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => sendPort.send(closure));
+    }
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => sendPort.send([closure]));
+    }
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(
+          () => sendPort.send([notAllocatableInTLAB, closure]));
     }
   }
 }

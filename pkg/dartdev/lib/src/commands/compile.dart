@@ -160,7 +160,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     // Determine output file name.
     String outputFile = argResults[commonOptions['outputFile'].flag];
     if (outputFile == null) {
-      final inputWithoutDart = sourcePath.replaceFirst(RegExp(r'\.dart$'), '');
+      final inputWithoutDart = sourcePath.endsWith('.dart')
+          ? sourcePath.substring(0, sourcePath.length - 5)
+          : sourcePath;
       outputFile = '$inputWithoutDart.$fileExt';
     }
 
@@ -239,7 +241,13 @@ For example: dart compile $commandName --packages=/tmp/pkgs main.dart''')
           defaultsTo: null)
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
-<path> can be relative or absolute.''');
+<path> can be relative or absolute.''')
+      ..addMultiOption(
+        'extra-gen-snapshot-options',
+        help: 'Pass additional options to gen_snapshot.',
+        hide: true,
+        valueHelp: 'opt1,opt2,...',
+      );
 
     addExperimentalFlags(argParser, verbose);
   }
@@ -277,6 +285,7 @@ Remove debugging information from the output and save it separately to the speci
         debugFile: argResults['save-debugging-info'],
         verbose: verbose,
         verbosity: argResults['verbosity'],
+        extraOptions: argResults['extra-gen-snapshot-options'],
       );
       return 0;
     } catch (e) {

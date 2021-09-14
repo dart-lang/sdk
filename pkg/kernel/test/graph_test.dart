@@ -13,8 +13,10 @@ class TestGraph implements Graph<String> {
 
   TestGraph(this.graph);
 
+  @override
   Iterable<String> get vertices => graph.keys;
 
+  @override
   Iterable<String> neighborsOf(String vertex) => graph[vertex]!;
 }
 
@@ -33,7 +35,7 @@ void checkGraph(Map<String, List<String>> graph, String startingNodeName,
   Expect.stringEquals(expectedReversed.join(", "), result.join(", "));
 }
 
-main() {
+void main() {
   test("[[B, A], [C], [D]]", {
     "A": ["B"],
     "B": ["A"],
