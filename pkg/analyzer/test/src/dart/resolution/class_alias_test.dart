@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -15,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ClassAliasDriverResolutionTest extends PubPackageResolutionTest
-    with ElementsTypesMixin {
+class ClassAliasDriverResolutionTest extends PubPackageResolutionTest {
   test_defaultConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -42,8 +40,8 @@ class X = A with B implements C;
     assertTypeName(findNode.typeName('C;'), findElement.class_('C'), 'C');
 
     assertType(x.supertype, 'A');
-    assertElementTypeStrings(x.mixins, ['B']);
-    assertElementTypeStrings(x.interfaces, ['C']);
+    assertElementTypes(x.mixins, ['B']);
+    assertElementTypes(x.interfaces, ['C']);
   }
 
   test_element_typeFunction_extends() async {
@@ -61,16 +59,8 @@ class A {}
 class B {}
 class X = Object with A implements A, Function, B;
 ''');
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
     var x = findElement.class_('X');
-    assertElementTypes(
-      x.interfaces,
-      [
-        interfaceTypeNone(a),
-        interfaceTypeNone(b),
-      ],
-    );
+    assertElementTypes(x.interfaces, ['A', 'B']);
   }
 
   test_element_typeFunction_with() async {
@@ -79,16 +69,8 @@ class A {}
 class B {}
 class X = Object with A, Function, B;
 ''');
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
     var x = findElement.class_('X');
-    assertElementTypes(
-      x.mixins,
-      [
-        interfaceTypeNone(a),
-        interfaceTypeNone(b),
-      ],
-    );
+    assertElementTypes(x.mixins, ['A', 'B']);
   }
 
   test_implicitConstructors_const() async {

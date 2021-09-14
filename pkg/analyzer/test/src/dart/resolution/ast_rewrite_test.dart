@@ -463,7 +463,7 @@ void f() {
     assertTypeNull(override);
     assertTypeNull(override.extensionName);
 
-    assertElementTypeStrings(
+    assertElementTypes(
       override.typeArgumentTypes,
       expectedTypeArguments,
     );

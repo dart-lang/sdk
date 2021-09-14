@@ -145,7 +145,7 @@ void test() {
     assertElement(id, element);
     assertType(id, type);
     if (typeArguments != null) {
-      assertElementTypeStrings(id.tearOffTypeArgumentTypes, typeArguments);
+      assertElementTypes(id.tearOffTypeArgumentTypes, typeArguments);
     } else {
       expect(id.tearOffTypeArgumentTypes, isNull);
     }
