@@ -15108,7 +15108,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           isUnresolvedIdentifier: isUnresolvedIdentifier,
           message: message,
           name: name,
-          uniqueName: uniqueName ?? 'CompileTimeErrorCode.$name',
+          uniqueName: 'CompileTimeErrorCode.${uniqueName ?? name}',
         );
 
   @override
@@ -15539,7 +15539,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           isUnresolvedIdentifier: isUnresolvedIdentifier,
           message: message,
           name: name,
-          uniqueName: uniqueName ?? 'StaticWarningCode.$name',
+          uniqueName: 'StaticWarningCode.${uniqueName ?? name}',
         );
 
   @override
