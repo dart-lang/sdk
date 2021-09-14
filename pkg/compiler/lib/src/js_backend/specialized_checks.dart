@@ -72,8 +72,8 @@ class SpecializedChecks {
       }
 
       DartTypes dartTypes = closedWorld.dartTypes;
-      // Top types (here it could be Object in non-NNBD mode) should be constant
-      // folded outside the specializer. This test protects logic below.
+      // Top types should be constant folded outside the specializer. This test
+      // protects logic below.
       if (dartTypes.isTopType(dartType)) return null;
       ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
       if (!dartTypes.isSubtype(

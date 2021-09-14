@@ -1707,7 +1707,7 @@ abstract class DartTypes {
 
   DartType nullableType(DartType baseType) {
     bool _isNullable(DartType t) =>
-        // Note that we can assume NNBD is enabled here.
+        // Note that we can assume null safety is enabled here.
         t.isNull ||
         t is NullableType ||
         t is LegacyType && _isNullable(t.baseType) ||

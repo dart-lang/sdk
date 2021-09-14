@@ -1926,8 +1926,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitAsCheck(HAsCheck node) {
     // TODO(fishythefish): Correctly constant fold `null as T` (also in
-    // [visitAsCheckSimple]) when running with strong NNBD. We might get this
-    // for free if nullability is precisely propagated to the typemasks.
+    // [visitAsCheckSimple]) when running with sound null safety. We might get
+    // this for free if nullability is precisely propagated to the typemasks.
 
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {

@@ -708,7 +708,7 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
-      // TODO(sra): Use this for some NNBD variant.
+      // TODO(sra): Use this for some null safety variant.
       useContentSecurityPolicy = true;
       features.forceCanary();
     }

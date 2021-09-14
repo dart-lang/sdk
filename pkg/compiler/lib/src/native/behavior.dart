@@ -838,7 +838,7 @@ abstract class BehaviorBuilder {
     _behavior.typesReturned.add(type.withoutNullability);
 
     // Breakdown nullable type into TypeWithoutNullability|Null.
-    // Pre-nnbd Declared types are nullable, so we also add null in that case.
+    // Unsound declared types are nullable, so we also add null in that case.
     // TODO(41960): Remove check for legacy subtyping. This was added as a
     // temporary workaround to unblock the null-safe unfork. At this time some
     // native APIs are typed unsoundly because they don't consider browser
