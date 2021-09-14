@@ -4283,10 +4283,17 @@ static void AddVMMappings(JSONArray* rss_children) {
       // Skipping a few paths to avoid double counting:
       // (deleted) - memfd dual mapping in Dart heap
       // [heap] - sbrk area, should already included with malloc
-      // <empty> - anonymous mappings, mostly in Dart heap
+      // <empty> - anonymous mappings, mostly in Dart heap (Linux)
+      // [anon:dart-*] - as labelled (Android)
       if ((strcmp(property, "Rss:") == 0) && (size != 0) &&
           (strcmp(path, "(deleted)") != 0) && (strcmp(path, "[heap]") != 0) &&
-          (strcmp(path, "") != 0)) {
+          (strcmp(path, "") != 0) &&
+          (strcmp(path, "[anon:dart-newspace]") != 0) &&
+          (strcmp(path, "[anon:dart-oldspace]") != 0) &&
+          (strcmp(path, "[anon:dart-codespace]") != 0) &&
+          (strcmp(path, "[anon:dart-profiler]") != 0) &&
+          (strcmp(path, "[anon:dart-timeline]") != 0) &&
+          (strcmp(path, "[anon:dart-zone]") != 0)) {
         bool updated = false;
         for (intptr_t i = 0; i < mappings.length(); i++) {
           if (strcmp(mappings[i].path, path) == 0) {
