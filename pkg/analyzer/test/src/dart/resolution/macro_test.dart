@@ -11,7 +11,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -21,8 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class MacroResolutionTest extends PubPackageResolutionTest
-    with ElementsTypesMixin {
+class MacroResolutionTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
