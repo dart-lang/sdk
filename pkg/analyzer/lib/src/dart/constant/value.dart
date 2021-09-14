@@ -1312,7 +1312,15 @@ class FunctionState extends InstanceState {
       if (rightElement == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      if (_element != rightElement) {
+
+      var element = _element;
+      var otherElement = rightOperand._element;
+      var elementsAreEqual = identical(element, otherElement) ||
+          (element != null &&
+              otherElement != null &&
+              otherElement.kind == element.kind &&
+              otherElement.location == element.location);
+      if (!elementsAreEqual) {
         return BoolState.FALSE_STATE;
       }
       var typeArguments = _typeArguments;
