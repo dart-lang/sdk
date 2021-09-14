@@ -69,10 +69,10 @@ class FeatureOptions {
   FeatureOption newHolders = FeatureOption('new-holders');
 
   /// [FeatureOption]s which default to enabled.
-  late final List<FeatureOption> shipping = [legacyJavaScript];
+  late final List<FeatureOption> shipping = [legacyJavaScript, newHolders];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [newHolders];
+  late final List<FeatureOption> canary = [];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {

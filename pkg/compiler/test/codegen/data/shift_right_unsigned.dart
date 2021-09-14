@@ -24,24 +24,18 @@ void main() {
 Object? sink;
 
 @pragma('dart2js:noInline')
-/*spec.member: cannotRecognize:function(thing) {
-  return H._asInt(J.$shru$n(thing, 1));
+/*spec|canary.member: cannotRecognize:function(thing) {
+  return A._asInt(J.$shru$n(thing, 1));
 }*/
 /*prod.member: cannotRecognize:function(thing) {
   return J.$shru$n(thing, 1);
-}*/
-/*canary.member: cannotRecognize:function(thing) {
-  return A._asInt(J.$shru$n(thing, 1));
 }*/
 int cannotRecognize(dynamic thing) {
   return thing >>> 1;
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: cannotConstantFold:function() {
-  return C.JSInt_methods.$shru(1, -1);
-}*/
-/*canary.member: cannotConstantFold:function() {
+/*member: cannotConstantFold:function() {
   return B.JSInt_methods.$shru(1, -1);
 }*/
 int cannotConstantFold() {
@@ -68,10 +62,7 @@ int constantFoldNegative() {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: unspecialized:function(a) {
-  return C.JSInt_methods.$shru(1, a);
-}*/
-/*canary.member: unspecialized:function(a) {
+/*member: unspecialized:function(a) {
   return B.JSInt_methods.$shru(1, a);
 }*/
 int unspecialized(int a) {
@@ -79,10 +70,7 @@ int unspecialized(int a) {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: otherPositive2:function(param) {
-  return C.JSInt_methods._shruOtherPositive$1(1, param ? 1 : 2);
-}*/
-/*canary.member: otherPositive2:function(param) {
+/*member: otherPositive2:function(param) {
   return B.JSInt_methods._shruOtherPositive$1(1, param ? 1 : 2);
 }*/
 int otherPositive2(bool param) {
@@ -110,10 +98,7 @@ int shiftByMasked(bool param1, int shift) {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: otherPositive6:function(a, b) {
-  return C.JSInt_methods._shruOtherPositive$1(a, b);
-}*/
-/*canary.member: otherPositive6:function(a, b) {
+/*member: otherPositive6:function(a, b) {
   return B.JSInt_methods._shruOtherPositive$1(a, b);
 }*/
 int otherPositive6(int a, int b) {
