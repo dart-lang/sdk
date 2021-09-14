@@ -43,7 +43,9 @@ class SecurityConfiguration {
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
   Future<WebSocket> createClient(int port,
-          {String? user, Map<String, Object>? headers, String? customUserAgent}) =>
+          {String? user,
+          Map<String, Object>? headers,
+          String? customUserAgent}) =>
       WebSocket.connect(
           '${secure ? "wss" : "ws"}://${user is Null ? "" : "$user@"}$HOST_NAME:$port/',
           headers: headers,
