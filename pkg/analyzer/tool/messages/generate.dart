@@ -1,4 +1,3 @@
-// @dart = 2.9
 /// This file contains code to generate scanner and parser message
 /// based on the information in pkg/front_end/messages.yaml.
 ///
@@ -168,7 +167,7 @@ part of 'syntactic_errors.dart';
     }
     sortedErrorCodes.sort();
     for (var errorCode in sortedErrorCodes) {
-      final entry = entryMap[errorCode];
+      final entry = entryMap[errorCode]!;
       final className = nameForEntry(entry)[0];
       out.writeln();
       out.writeln('const $className _$errorCode =');
@@ -188,7 +187,7 @@ part of 'syntactic_errors.dart';
   }
 
   void generateFastaAnalyzerErrorCodeList() {
-    final sorted = List<Map>.filled(translatedEntries.length, null);
+    final sorted = List<Map?>.filled(translatedEntries.length, null);
     for (var entry in translatedEntries) {
       var index = entry['index'];
       if (index is int && index >= 1 && index <= sorted.length) {
@@ -201,7 +200,7 @@ part of 'syntactic_errors.dart';
     }
     out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode?>[null,');
     for (var entry in sorted) {
-      List<String> name = nameForEntry(entry);
+      List<String> name = nameForEntry(entry!);
       out.writeln('_${name[1]},');
     }
     out.writeln('];');
@@ -266,7 +265,7 @@ part of 'syntactic_errors.dart';
       print('');
       print('The following ParserErrorCodes could be auto generated:');
       for (String analyzerName in analyzerToFasta.keys.toList()..sort()) {
-        List<String> fastaNames = analyzerToFasta[analyzerName];
+        List<String> fastaNames = analyzerToFasta[analyzerName]!;
         if (fastaNames.length == 1) {
           print('  $analyzerName = ${fastaNames.first}');
         } else {
@@ -283,7 +282,7 @@ part of 'syntactic_errors.dart';
     Token token = scanString(parserSource).tokens;
     while (!token.isEof) {
       if (token.isIdentifier) {
-        String fastaErrorCode;
+        String? fastaErrorCode;
         String lexeme = token.lexeme;
         if (lexeme.length > 7) {
           if (lexeme.startsWith('message')) {
@@ -299,7 +298,7 @@ part of 'syntactic_errors.dart';
           untranslatedFastaErrorCodes.add(fastaErrorCode);
         }
       }
-      token = token.next;
+      token = token.next!;
     }
     if (untranslatedFastaErrorCodes.isNotEmpty) {
       print('');
