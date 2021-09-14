@@ -22,8 +22,8 @@ main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest:
-          runTestFor(const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
+      runTest: runTestFor(
+          const _ReachabilityDataComputer(), [analyzerDefaultConfig]));
 }
 
 class FlowTestBase {

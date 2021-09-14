@@ -265,21 +265,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(str, expected);
   }
 
-  void assertElementTypes(List<DartType> types, List<DartType> expected,
+  void assertElementTypes(List<DartType>? types, List<String> expected,
       {bool ordered = false}) {
-    if (ordered) {
-      expect(types, expected);
-    } else {
-      expect(types, unorderedEquals(expected));
-    }
-  }
-
-  void assertElementTypeStrings(List<DartType>? types, List<String> expected) {
     if (types == null) {
       fail('Expected types, actually null.');
     }
 
-    expect(types.map(typeString).toList(), expected);
+    var typeStrList = types.map(typeString).toList();
+    if (ordered) {
+      expect(typeStrList, expected);
+    } else {
+      expect(typeStrList, unorderedEquals(expected));
+    }
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
@@ -346,7 +343,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     assertElement(node, element);
     assertType(node.extendedType, extendedType);
-    assertElementTypeStrings(node.typeArgumentTypes, typeArgumentTypes);
+    assertElementTypes(node.typeArgumentTypes, typeArgumentTypes);
   }
 
   void assertFunctionExpressionInvocation(
@@ -766,7 +763,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     required List<String> typeArguments,
   }) {
     assertElement2(type.alias?.element, declaration: element);
-    assertElementTypeStrings(type.alias?.typeArguments, typeArguments);
+    assertElementTypes(type.alias?.typeArguments, typeArguments);
   }
 
   /// Assert that the given [identifier] is a reference to a type alias, in the

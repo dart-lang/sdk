@@ -24,6 +24,102 @@ main() {
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
+  test_identical_constructorReference_explicitTypeArgs_differentClasses() async {
+    await resolveTestCode('''
+class C<T> {}
+class D<T> {}
+const a = identical(C<int>.new, D<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_explicitTypeArgs_differentConstructors() async {
+    await resolveTestCode('''
+class C<T> {
+  C();
+  C.named();
+}
+const a = identical(C<int>.new, C<int>.named);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_explicitTypeArgs_differentTypeArgs() async {
+    await resolveTestCode('''
+class C<T> {}
+const a = identical(C<int>.new, C<String>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_explicitTypeArgs_sameElement() async {
+    await resolveTestCode('''
+class C<T> {}
+const a = identical(C<int>.new, C<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_notInstantiated_differentClasses() async {
+    await resolveTestCode('''
+class C<T> {}
+class D<T> {}
+const a = identical(C.new, D.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_notInstantiated_differentConstructors() async {
+    await resolveTestCode('''
+class C<T> {
+  C();
+  C.named();
+}
+const a = identical(C.new, C.named);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_notInstantiated_sameElement() async {
+    await resolveTestCode('''
+class C<T> {}
+const a = identical(C.new, C.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_onlyOneHasTypeArgs() async {
+    await resolveTestCode('''
+class C<T> {}
+const a = identical(C<int>.new, C.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
   test_visitAsExpression_potentialConstType() async {
     await assertNoErrorsInCode('''
 const num three = 3;

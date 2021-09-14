@@ -1093,9 +1093,41 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitConstructorReference(ConstructorReference node) {
-    // TODO(srawlins): record type arguments in DartObject as well, as in
-    // [visitFunctionReference] below.
-    return _getConstantValue(node, node.constructorName.staticElement);
+    var constructorTearoffResult = DartObjectImpl(
+      typeSystem,
+      node.typeOrThrow,
+      FunctionState(node.constructorName.staticElement),
+    );
+    var typeArgumentList = node.constructorName.type.typeArguments;
+    if (typeArgumentList == null) {
+      return constructorTearoffResult;
+    } else {
+      var typeArguments = <DartType>[];
+      var typeArgumentObjects = <DartObjectImpl>[];
+      for (var typeArgument in typeArgumentList.arguments) {
+        var object = typeArgument.accept(this);
+        if (object == null) {
+          return null;
+        }
+        var typeArgumentType = object.toTypeValue();
+        if (typeArgumentType == null) {
+          return null;
+        }
+        // TODO(srawlins): Test type alias types (`typedef i = int`) used as
+        // type arguments. Possibly change implementation based on
+        // canonicalization rules.
+        typeArguments.add(typeArgumentType);
+        typeArgumentObjects.add(object);
+      }
+      // The result is already instantiated during resolution;
+      // [_dartObjectComputer.typeInstantiate] is unnecessary.
+      return DartObjectImpl(
+        typeSystem,
+        node.typeOrThrow,
+        FunctionState(node.constructorName.staticElement,
+            typeArguments: typeArgumentObjects),
+      );
+    }
   }
 
   @override
@@ -1135,7 +1167,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         typeArgumentObjects.add(object);
       }
       return _dartObjectComputer.typeInstantiate(
-          node, functionResult, typeArguments, typeArgumentObjects);
+          functionResult, typeArguments, typeArgumentObjects);
     }
   }
 
@@ -2147,7 +2179,6 @@ class DartObjectComputer {
   }
 
   DartObjectImpl? typeInstantiate(
-    FunctionReference node,
     DartObjectImpl function,
     List<DartType> typeArguments,
     List<DartObjectImpl> typeArgumentObjects,

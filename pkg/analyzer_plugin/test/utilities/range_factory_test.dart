@@ -34,7 +34,7 @@ class RangeFactoryTest extends AbstractSingleUnitTest {
 void f() {
   g(0, 1, c: 2);
 }
-void g(int a, int b, {int c}) {}
+void g(int a, int b, {int? c}) {}
 ''');
     _assertArgumentRange(0, 2, SourceRange(15, 10), SourceRange(15, 10));
   }
@@ -44,7 +44,7 @@ void g(int a, int b, {int c}) {}
 void f() {
   g(0, 1, c: 2, );
 }
-void g(int a, int b, {int c}) {}
+void g(int a, int b, {int? c}) {}
 ''');
     _assertArgumentRange(0, 2, SourceRange(15, 12), SourceRange(15, 10));
   }
@@ -54,7 +54,7 @@ void g(int a, int b, {int c}) {}
 void f() {
   g(a: 0, b: 1, c: 2);
 }
-void g({int a, int b, int c}) {}
+void g({int? a, int? b, int? c}) {}
 ''');
     _assertArgumentRange(0, 2, SourceRange(15, 16), SourceRange(15, 16));
   }
@@ -64,7 +64,7 @@ void g({int a, int b, int c}) {}
 void f() {
   g(a: 0, b: 1, c: 2, );
 }
-void g({int a, int b, int c}) {}
+void g({int? a, int? b, int? c}) {}
 ''');
     _assertArgumentRange(0, 2, SourceRange(15, 18), SourceRange(15, 16));
   }
@@ -154,7 +154,7 @@ void g(int a, int b, int c, int d) {}
 void f() {
   g(a: 0);
 }
-void g({int a}) {}
+void g({int? a}) {}
 ''');
     _assertArgumentRange(0, 0, SourceRange(15, 4), SourceRange(15, 4));
   }
@@ -220,7 +220,7 @@ const class B {}
 void f() {
   g(a: 1, b: 2);
 }
-void g({int a, int b}) {}
+void g({int? a, int? b}) {}
 ''');
     var list = _argumentList;
     expect(range.nodeInList(list, list[0]), SourceRange(15, 6));
@@ -242,7 +242,7 @@ void g(int a, int b) {}
 void f() {
   g(a: 1, b: 2);
 }
-void g({int a, int b}) {}
+void g({int? a, int? b}) {}
 ''');
     var list = _argumentList;
     expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
@@ -264,7 +264,7 @@ void g(int a, int b) {}
 void f() {
   g(a: 1, b: 2, c: 3);
 }
-void g({int a, int b, int c}) {}
+void g({int? a, int? b, int? c}) {}
 ''');
     var list = _argumentList;
     expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
@@ -286,7 +286,7 @@ void g(int a, int b, int c) {}
 void f() {
   g(a: 1);
 }
-void g({int a}) {}
+void g({int? a}) {}
 ''');
     var list = _argumentList;
     expect(range.nodeInList(list, list[0]), SourceRange(15, 4));
@@ -297,7 +297,7 @@ void g({int a}) {}
 void f() {
   g(a: 1,);
 }
-void g({int a}) {}
+void g({int? a}) {}
 ''');
     var list = _argumentList;
     expect(range.nodeInList(list, list[0]), SourceRange(15, 5));

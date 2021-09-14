@@ -15,6 +15,10 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#if defined(DART_HOST_OS_ANDROID)
+#include <sys/prctl.h>
+#endif
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/heap/pages.h"
@@ -432,6 +436,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (address == nullptr) {
     return nullptr;
   }
+
+#if defined(DART_HOST_OS_ANDROID)
+  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, name);
+#endif
 
   MemoryRegion region(reinterpret_cast<void*>(address), size);
   return new VirtualMemory(region, region);

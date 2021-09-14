@@ -15,246 +15,8 @@ import '../../../generated/type_system_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SubtypeTest);
-    defineReflectiveTests(NonNullableSubtypingCompoundTest);
     defineReflectiveTests(SubtypingCompoundTest);
   });
-}
-
-@reflectiveTest
-class NonNullableSubtypingCompoundTest extends _SubtypingCompoundTestBase {
-  test_dynamic() {
-    var equivalents = <DartType>[
-      voidNone,
-      objectQuestion,
-      objectStar,
-    ];
-
-    var subtypes = <DartType>[
-      neverNone,
-      nullNone,
-      objectNone,
-    ];
-
-    _checkGroups(
-      dynamicNone,
-      equivalents: equivalents,
-      subtypes: subtypes,
-    );
-  }
-
-  test_futureOr_topTypes() {
-    var futureOrObject = futureOrNone(objectNone);
-    var futureOrObjectStar = futureOrNone(objectStar);
-    var futureOrObjectQuestion = futureOrNone(objectQuestion);
-
-    var futureOrStarObject = futureOrStar(objectNone);
-    var futureOrStarObjectStar = futureOrStar(objectStar);
-    var futureOrStarObjectQuestion = futureOrStar(objectQuestion);
-
-    var futureOrQuestionObject = futureOrQuestion(objectNone);
-    var futureOrQuestionObjectStar = futureOrQuestion(objectStar);
-    var futureOrQuestionObjectQuestion = futureOrQuestion(objectQuestion);
-
-    //FutureOr<Object> <: FutureOr*<Object?>
-    _checkGroups(
-      futureOrObject,
-      equivalents: [
-        objectStar,
-        futureOrObjectStar,
-        futureOrStarObject,
-        futureOrStarObjectStar,
-        objectNone,
-      ],
-      subtypes: [],
-      supertypes: [
-        objectQuestion,
-        futureOrQuestionObject,
-        futureOrObjectQuestion,
-        futureOrQuestionObject,
-        futureOrQuestionObjectStar,
-        futureOrStarObjectQuestion,
-        futureOrQuestionObjectQuestion,
-      ],
-    );
-  }
-
-  test_intNone() {
-    var equivalents = <DartType>[
-      intNone,
-      intStar,
-    ];
-
-    var subtypes = <DartType>[
-      neverNone,
-    ];
-
-    var supertypes = <DartType>[
-      intQuestion,
-      objectNone,
-      objectQuestion,
-    ];
-
-    var unrelated = <DartType>[
-      doubleNone,
-      nullNone,
-      nullStar,
-      nullQuestion,
-      neverQuestion,
-    ];
-
-    _checkGroups(
-      intNone,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
-      subtypes: subtypes,
-    );
-  }
-
-  test_intQuestion() {
-    var equivalents = <DartType>[
-      intQuestion,
-      intStar,
-    ];
-
-    var subtypes = <DartType>[
-      intNone,
-      nullNone,
-      nullQuestion,
-      nullStar,
-      neverNone,
-      neverQuestion,
-      neverStar,
-    ];
-
-    var supertypes = <DartType>[
-      numQuestion,
-      numStar,
-      objectQuestion,
-      objectStar,
-    ];
-
-    var unrelated = <DartType>[
-      doubleNone,
-      numNone,
-      objectNone,
-    ];
-
-    _checkGroups(
-      intQuestion,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
-      subtypes: subtypes,
-    );
-  }
-
-  test_intStar() {
-    var equivalents = <DartType>[
-      intNone,
-      intQuestion,
-      intStar,
-    ];
-
-    var subtypes = <DartType>[
-      nullNone,
-      nullStar,
-      nullQuestion,
-      neverNone,
-      neverStar,
-      neverQuestion,
-    ];
-
-    var supertypes = <DartType>[
-      numNone,
-      numQuestion,
-      numStar,
-      objectNone,
-      objectQuestion,
-    ];
-
-    var unrelated = <DartType>[
-      doubleStar,
-    ];
-
-    _checkGroups(
-      intStar,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
-      subtypes: subtypes,
-    );
-  }
-
-  test_null() {
-    var equivalents = <DartType>[
-      nullNone,
-      nullQuestion,
-      nullStar,
-      neverQuestion,
-    ];
-
-    var supertypes = <DartType>[
-      intQuestion,
-      intStar,
-      objectQuestion,
-      objectStar,
-      dynamicNone,
-      voidNone,
-    ];
-
-    var subtypes = <DartType>[
-      neverNone,
-    ];
-
-    var unrelated = <DartType>[
-      doubleNone,
-      intNone,
-      numNone,
-      objectNone,
-    ];
-
-    for (final formOfNull in equivalents) {
-      _checkGroups(
-        formOfNull,
-        equivalents: equivalents,
-        supertypes: supertypes,
-        unrelated: unrelated,
-        subtypes: subtypes,
-      );
-    }
-  }
-
-  test_object() {
-    var equivalents = <DartType>[
-      objectStar,
-    ];
-
-    var supertypes = <DartType>[
-      objectQuestion,
-      dynamicType,
-      voidNone,
-    ];
-
-    var subtypes = <DartType>[
-      neverNone,
-    ];
-
-    var unrelated = <DartType>[
-      doubleQuestion,
-      numQuestion,
-      intQuestion,
-      nullNone,
-    ];
-
-    _checkGroups(
-      objectNone,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
-      subtypes: subtypes,
-    );
-  }
 }
 
 @reflectiveTest
@@ -5814,7 +5576,7 @@ class SubtypeTest extends _SubtypingTestBase {
 }
 
 @reflectiveTest
-class SubtypingCompoundTest extends _SubtypingCompoundTestBase {
+class SubtypingCompoundTest extends _SubtypingTestBase {
   test_bottom_isBottom() {
     var equivalents = <DartType>[neverStar];
 
@@ -5847,6 +5609,26 @@ class SubtypingCompoundTest extends _SubtypingCompoundTestBase {
     );
   }
 
+  test_dynamic() {
+    var equivalents = <DartType>[
+      voidNone,
+      objectQuestion,
+      objectStar,
+    ];
+
+    var subtypes = <DartType>[
+      neverNone,
+      nullNone,
+      objectNone,
+    ];
+
+    _checkGroups(
+      dynamicNone,
+      equivalents: equivalents,
+      subtypes: subtypes,
+    );
+  }
+
   test_dynamic_isTop() {
     var equivalents = <DartType>[
       dynamicNone,
@@ -5870,6 +5652,42 @@ class SubtypingCompoundTest extends _SubtypingCompoundTestBase {
     );
   }
 
+  test_futureOr_topTypes() {
+    var futureOrObject = futureOrNone(objectNone);
+    var futureOrObjectStar = futureOrNone(objectStar);
+    var futureOrObjectQuestion = futureOrNone(objectQuestion);
+
+    var futureOrStarObject = futureOrStar(objectNone);
+    var futureOrStarObjectStar = futureOrStar(objectStar);
+    var futureOrStarObjectQuestion = futureOrStar(objectQuestion);
+
+    var futureOrQuestionObject = futureOrQuestion(objectNone);
+    var futureOrQuestionObjectStar = futureOrQuestion(objectStar);
+    var futureOrQuestionObjectQuestion = futureOrQuestion(objectQuestion);
+
+    //FutureOr<Object> <: FutureOr*<Object?>
+    _checkGroups(
+      futureOrObject,
+      equivalents: [
+        objectStar,
+        futureOrObjectStar,
+        futureOrStarObject,
+        futureOrStarObjectStar,
+        objectNone,
+      ],
+      subtypes: [],
+      supertypes: [
+        objectQuestion,
+        futureOrQuestionObject,
+        futureOrObjectQuestion,
+        futureOrQuestionObject,
+        futureOrQuestionObjectStar,
+        futureOrStarObjectQuestion,
+        futureOrQuestionObjectQuestion,
+      ],
+    );
+  }
+
   test_int() {
     var equivalents = <DartType>[intStar];
     var supertypes = <DartType>[numStar];
@@ -5882,6 +5700,153 @@ class SubtypingCompoundTest extends _SubtypingCompoundTestBase {
     );
   }
 
+  test_intNone() {
+    var equivalents = <DartType>[
+      intNone,
+      intStar,
+    ];
+
+    var subtypes = <DartType>[
+      neverNone,
+    ];
+
+    var supertypes = <DartType>[
+      intQuestion,
+      objectNone,
+      objectQuestion,
+    ];
+
+    var unrelated = <DartType>[
+      doubleNone,
+      nullNone,
+      nullStar,
+      nullQuestion,
+      neverQuestion,
+    ];
+
+    _checkGroups(
+      intNone,
+      equivalents: equivalents,
+      supertypes: supertypes,
+      unrelated: unrelated,
+      subtypes: subtypes,
+    );
+  }
+
+  test_intQuestion() {
+    var equivalents = <DartType>[
+      intQuestion,
+      intStar,
+    ];
+
+    var subtypes = <DartType>[
+      intNone,
+      nullNone,
+      nullQuestion,
+      nullStar,
+      neverNone,
+      neverQuestion,
+      neverStar,
+    ];
+
+    var supertypes = <DartType>[
+      numQuestion,
+      numStar,
+      objectQuestion,
+      objectStar,
+    ];
+
+    var unrelated = <DartType>[
+      doubleNone,
+      numNone,
+      objectNone,
+    ];
+
+    _checkGroups(
+      intQuestion,
+      equivalents: equivalents,
+      supertypes: supertypes,
+      unrelated: unrelated,
+      subtypes: subtypes,
+    );
+  }
+
+  test_intStar() {
+    var equivalents = <DartType>[
+      intNone,
+      intQuestion,
+      intStar,
+    ];
+
+    var subtypes = <DartType>[
+      nullNone,
+      nullStar,
+      nullQuestion,
+      neverNone,
+      neverStar,
+      neverQuestion,
+    ];
+
+    var supertypes = <DartType>[
+      numNone,
+      numQuestion,
+      numStar,
+      objectNone,
+      objectQuestion,
+    ];
+
+    var unrelated = <DartType>[
+      doubleStar,
+    ];
+
+    _checkGroups(
+      intStar,
+      equivalents: equivalents,
+      supertypes: supertypes,
+      unrelated: unrelated,
+      subtypes: subtypes,
+    );
+  }
+
+  test_null() {
+    var equivalents = <DartType>[
+      nullNone,
+      nullQuestion,
+      nullStar,
+      neverQuestion,
+    ];
+
+    var supertypes = <DartType>[
+      intQuestion,
+      intStar,
+      objectQuestion,
+      objectStar,
+      dynamicNone,
+      voidNone,
+    ];
+
+    var subtypes = <DartType>[
+      neverNone,
+    ];
+
+    var unrelated = <DartType>[
+      doubleNone,
+      intNone,
+      numNone,
+      objectNone,
+    ];
+
+    for (final formOfNull in equivalents) {
+      _checkGroups(
+        formOfNull,
+        equivalents: equivalents,
+        supertypes: supertypes,
+        unrelated: unrelated,
+        subtypes: subtypes,
+      );
+    }
+  }
+
   test_num() {
     var equivalents = <DartType>[numStar];
     var supertypes = <DartType>[objectStar];
@@ -5889,6 +5854,37 @@ class SubtypingCompoundTest extends _SubtypingCompoundTestBase {
     var subtypes = <DartType>[intStar, doubleStar];
     _checkGroups(
       numStar,
+      equivalents: equivalents,
+      supertypes: supertypes,
+      unrelated: unrelated,
+      subtypes: subtypes,
+    );
+  }
+
+  test_object() {
+    var equivalents = <DartType>[
+      objectStar,
+    ];
+
+    var supertypes = <DartType>[
+      objectQuestion,
+      dynamicType,
+      voidNone,
+    ];
+
+    var subtypes = <DartType>[
+      neverNone,
+    ];
+
+    var unrelated = <DartType>[
+      doubleQuestion,
+      numQuestion,
+      intQuestion,
+      nullNone,
+    ];
+
+    _checkGroups(
+      objectNone,
       equivalents: equivalents,
       supertypes: supertypes,
       unrelated: unrelated,
@@ -5918,9 +5914,7 @@ class SubtypingCompoundTest extends _SubtypingCompoundTestBase {
       subtypes: subtypes,
     );
   }
-}
 
-class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   void _checkEquivalent(DartType type1, DartType type2) {
     _checkIsSubtypeOf(type1, type2);
     _checkIsSubtypeOf(type2, type1);

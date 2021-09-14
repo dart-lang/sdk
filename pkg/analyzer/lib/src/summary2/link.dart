@@ -275,8 +275,6 @@ class LinkInputUnit {
 }
 
 class LinkResult {
-  @Deprecated('This field is not used anymore')
-  final Uint8List astBytes = Uint8List(0);
   final Uint8List resolutionBytes;
 
   LinkResult({
