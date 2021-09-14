@@ -3450,17 +3450,6 @@ Dart_LoadLibraryFromKernel(const uint8_t* kernel_buffer,
                            intptr_t kernel_buffer_size);
 
 /**
- * Returns a flattened list of pairs. The first element in each pair is the
- * importing library and and the second element is the imported library for each
- * import in the isolate of a library whose URI's scheme is [scheme].
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to a list of flattened pairs of importer-importee.
- */
-DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme);
-
-/**
  * Indicates that all outstanding load requests have been satisfied.
  * This finalizes all the new classes loaded and optionally completes
  * deferred library futures.
