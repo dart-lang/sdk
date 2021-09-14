@@ -13,10 +13,8 @@ import "dart:io";
 import "dart:typed_data";
 
 import "package:async_helper/async_helper.dart";
-import "package:convert/convert.dart";
 import "package:crypto/crypto.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
 const WEB_SOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -45,7 +43,7 @@ class SecurityConfiguration {
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
   Future<WebSocket> createClient(int port,
-          {String user, Map<String, Object> headers, String customUserAgent}) =>
+          {String? user, Map<String, Object>? headers, String? customUserAgent}) =>
       WebSocket.connect(
           '${secure ? "wss" : "ws"}://${user is Null ? "" : "$user@"}$HOST_NAME:$port/',
           headers: headers,
@@ -492,7 +490,7 @@ class SecurityConfiguration {
         'My-Header': 'my-value',
         'My-Header-Multiple': ['my-value-1', 'my-value-2']
       };
-      createClient(server.port).then((websocket) {
+      createClient(server.port, headers: headers).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
           websocket.close();
@@ -525,7 +523,7 @@ class SecurityConfiguration {
         });
       });
 
-      createClient(server.port).then((websocket) {
+      createClient(server.port, user: userInfo).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
           websocket.close();
