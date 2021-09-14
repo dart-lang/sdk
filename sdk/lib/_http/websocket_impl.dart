@@ -1022,8 +1022,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         path: uri.path,
         query: uri.query,
         fragment: uri.fragment);
-        // Use Custom HTTP Client first is it exists, else
-        // default to static client
     return (customClient ?? _httpClient).openUrl("GET", uri).then((request) {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
