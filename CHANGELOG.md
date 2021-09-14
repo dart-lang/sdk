@@ -132,7 +132,18 @@ Updated the Linter to `1.11.0`, which includes changes that
 - fixes false positives in `use_rethrow_when_possible`.
 - improves performance for `annotate_overrides`, `prefer_contains`, and
   `prefer_void_to_null`.
+
 ### Pub
+
+- Adds support for token-based authorization to third party package-repositories
+  with the new command `dart pub token`.
+- Credentials are no longer stored in the pub-cache, but in a platform dependent
+  config directory:
+  * On Linux `$XDG_CONFIG_HOME/dart/pub-credentials.json` if `$XDG_CONFIG_HOME`
+    is defined, otherwise `$HOME/.config/dart/pub-credentials.json`
+  * On Mac OS: `$HOME/Library/Application Support/dart/pub-credentials.json`
+  * On Windows: `%APPDATA%/dart/pub-credentials.json`
+
 - Detect potential leaks in `dart pub publish`.
   When publishing, pub will examine your files for potential secret keys, and
   warn you.
@@ -140,7 +151,10 @@ Updated the Linter to `1.11.0`, which includes changes that
   To ignore a file that has a false positive, add it to a
   [`false_secrets`](https://dart.dev/go/false-secrets) section of your
   `pubspec.yaml`.
-- Fixes unicode terminal detection windows
+- Fixes unicode terminal detection windows.
+- New flag `--example` to the commands 
+  `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
+  folder dependencies to be updated after operating in the current directory. 
 
 ## 2.14.1 - 2021-09-09
 
