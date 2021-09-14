@@ -805,14 +805,20 @@ class AstBinaryReader {
     var typeArguments = _readOptionalNode() as TypeArgumentList?;
     var arguments = readNode() as ArgumentList;
 
+    Token? operator;
+    if (AstBinaryFlags.hasQuestion(flags)) {
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.questionPeriod()
+          : Tokens.questionPeriodPeriod();
+    } else if (AstBinaryFlags.hasPeriod(flags)) {
+      operator = Tokens.period();
+    } else if (AstBinaryFlags.hasPeriod2(flags)) {
+      operator = Tokens.periodPeriod();
+    }
+
     var node = astFactory.methodInvocation(
       target,
-      Tokens.choose(
-        AstBinaryFlags.hasPeriod(flags),
-        Tokens.period(),
-        AstBinaryFlags.hasPeriod2(flags),
-        Tokens.periodPeriod(),
-      ),
+      operator,
       methodName,
       typeArguments,
       arguments,
