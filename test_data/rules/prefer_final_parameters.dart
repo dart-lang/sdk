@@ -145,3 +145,11 @@ class C {
     return C.good(contentValue + other.contentValue);
   }
 }
+
+class InitializingFormals {
+  final String initialize;
+
+  C.okInitializingFormal(this.test); // OK
+
+  C.okInitializingFormalNamed({required this.test}); // OK
+}

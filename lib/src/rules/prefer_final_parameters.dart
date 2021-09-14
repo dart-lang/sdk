@@ -100,6 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
         var declaredElement = param.declaredElement;
         if (declaredElement != null &&
+            !declaredElement.isInitializingFormal &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportLint(param);
         }
