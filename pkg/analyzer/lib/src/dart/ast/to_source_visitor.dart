@@ -264,11 +264,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     _visitNode(node.parameter);
-    if (node.separator != null) {
-      if (node.separator!.lexeme != ':') {
+    var separator = node.separator;
+    if (separator != null) {
+      if (separator.lexeme != ':') {
         sink.write(' ');
       }
-      sink.write(node.separator!.lexeme);
+      sink.write(separator.lexeme);
       _visitNode(node.defaultValue, prefix: ' ');
     }
   }
@@ -728,14 +729,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.isCascaded) {
-      sink.write(node.operator!.lexeme);
-    } else {
-      if (node.target != null) {
-        node.target!.accept(this);
-        sink.write(node.operator!.lexeme);
-      }
-    }
+    _visitNode(node.target);
+    _visitToken(node.operator);
     _visitNode(node.methodName);
     _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
