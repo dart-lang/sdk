@@ -233,15 +233,6 @@ void writeJsonEscapedCharsOn(String string, buffer) {
   buffer.write(string);
 }
 
-int computeHashCode(part1, [part2, part3, part4, part5]) {
-  return (part1.hashCode ^
-          part2.hashCode ^
-          part3.hashCode ^
-          part4.hashCode ^
-          part5.hashCode) &
-      0x3fffffff;
-}
-
 class Pair<A, B> {
   final A a;
   final B b;

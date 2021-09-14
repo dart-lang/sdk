@@ -2310,6 +2310,9 @@ static bool IsInlineableOperator(const Function& function) {
 }
 
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
   Thread* thread = dart::Thread::Current();
   COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
@@ -2319,6 +2322,9 @@ bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
 }
 
 bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
   Thread* thread = dart::Thread::Current();
   COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();

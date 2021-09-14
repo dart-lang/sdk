@@ -1147,6 +1147,9 @@ abstract class HInstruction implements Spannable {
   AbstractBool isNull(AbstractValueDomain domain) =>
       domain.isNull(instructionType);
 
+  AbstractBool isLateSentinel(AbstractValueDomain domain) =>
+      domain.isLateSentinel(instructionType);
+
   AbstractBool isConflicting(AbstractValueDomain domain) =>
       domain.isEmpty(instructionType);
 
@@ -1158,9 +1161,6 @@ abstract class HInstruction implements Spannable {
 
   AbstractBool isPrimitiveBoolean(AbstractValueDomain domain) =>
       domain.isPrimitiveBoolean(instructionType);
-
-  AbstractBool isPrimitiveArray(AbstractValueDomain domain) =>
-      domain.isPrimitiveArray(instructionType);
 
   AbstractBool isIndexablePrimitive(AbstractValueDomain domain) =>
       domain.isIndexablePrimitive(instructionType);

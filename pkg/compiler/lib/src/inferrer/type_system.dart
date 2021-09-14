@@ -278,6 +278,10 @@ class TypeSystem {
         getConcreteTypeFor(_abstractValueDomain.asyncStarStreamType);
   }
 
+  TypeInformation _lateSentinelType;
+  TypeInformation get lateSentinelType => _lateSentinelType ??=
+      getConcreteTypeFor(_abstractValueDomain.lateSentinelType);
+
   TypeInformation nonNullEmptyType;
 
   TypeInformation stringLiteralType(String value) {
@@ -337,8 +341,13 @@ class TypeSystem {
   ///
   /// If [excludeNull] is true, the intersection excludes `null` even if the
   /// Dart type implies `null`.
+  ///
+  /// [narrowType] will not exclude the late sentinel value by default, only if
+  /// [excludeLateSentinel] is `true`.
   TypeInformation narrowType(TypeInformation type, DartType annotation,
-      {bool isCast: true, bool excludeNull: false}) {
+      {bool isCast: true,
+      bool excludeNull: false,
+      bool excludeLateSentinel: false}) {
     // Avoid refining an input with an exact type. It we are almost always
     // adding a narrowing to a subtype of the same class or a superclass.
     if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
@@ -350,6 +359,9 @@ class TypeSystem {
     AbstractValue abstractValue = narrowing.abstractValue;
     if (excludeNull) {
       abstractValue = _abstractValueDomain.excludeNull(abstractValue);
+    }
+    if (!excludeLateSentinel) {
+      abstractValue = _abstractValueDomain.includeLateSentinel(abstractValue);
     }
 
     if (_abstractValueDomain.containsAll(abstractValue).isPotentiallyTrue) {
@@ -643,25 +655,29 @@ class TypeSystem {
   }
 
   AbstractValue joinTypeMasks(Iterable<AbstractValue> masks) {
-    var dynamicType = _abstractValueDomain.dynamicType;
+    var topType = _abstractValueDomain.internalTopType;
     // Optimization: we are iterating over masks twice, but because `masks` is a
     // mapped iterable, we save the intermediate results to avoid computing them
     // again.
     var list = [];
-    bool isDynamicIngoringNull = false;
+    bool isTopIgnoringFlags = false;
     bool mayBeNull = false;
+    bool mayBeLateSentinel = false;
     for (AbstractValue mask in masks) {
       // Don't do any work on computing unions if we know that after all that
       // work the result will be `dynamic`.
-      // TODO(sigmund): change to `mask == dynamicType` so we can continue to
-      // track the non-nullable bit.
+      // TODO(sigmund): change to `mask == internalTopType` so we can continue
+      // to track the non-nullable and late sentinel bits.
       if (_abstractValueDomain.containsAll(mask).isPotentiallyTrue) {
-        isDynamicIngoringNull = true;
+        isTopIgnoringFlags = true;
       }
       if (_abstractValueDomain.isNull(mask).isPotentiallyTrue) {
         mayBeNull = true;
       }
-      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
+      if (_abstractValueDomain.isLateSentinel(mask).isPotentiallyTrue) {
+        mayBeLateSentinel = true;
+      }
+      if (isTopIgnoringFlags && mayBeNull && mayBeLateSentinel) return topType;
       list.add(mask);
     }
 
@@ -671,12 +687,15 @@ class TypeSystem {
           newType == null ? mask : _abstractValueDomain.union(newType, mask);
       // Likewise - stop early if we already reach dynamic.
       if (_abstractValueDomain.containsAll(newType).isPotentiallyTrue) {
-        isDynamicIngoringNull = true;
+        isTopIgnoringFlags = true;
       }
       if (_abstractValueDomain.isNull(newType).isPotentiallyTrue) {
         mayBeNull = true;
       }
-      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
+      if (_abstractValueDomain.isLateSentinel(newType).isPotentiallyTrue) {
+        mayBeLateSentinel = true;
+      }
+      if (isTopIgnoringFlags && mayBeNull && mayBeLateSentinel) return topType;
     }
 
     return newType ?? _abstractValueDomain.emptyType;

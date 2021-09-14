@@ -24,7 +24,6 @@ class LateLowering {
   final CoreTypes _coreTypes;
 
   final bool _omitLateNames;
-  final bool _lowerInstanceVariables;
 
   final _Reader _readLocal;
   final _Reader _readField;
@@ -51,8 +50,6 @@ class LateLowering {
 
   LateLowering(this._coreTypes, CompilerOptions? _options)
       : _omitLateNames = _options?.omitLateNames ?? false,
-        _lowerInstanceVariables =
-            _options?.experimentLateInstanceVariables ?? false,
         _readLocal = _Reader(_coreTypes.cellReadLocal),
         _readField = _Reader(_coreTypes.cellReadField),
         _readInitialized = _Reader(_coreTypes.initializedCellRead),
@@ -72,7 +69,7 @@ class LateLowering {
       field.isLate && field.isStatic && field.initializer == null;
 
   bool _shouldLowerInstanceField(Field field) =>
-      field.isLate && !field.isStatic && _lowerInstanceVariables;
+      field.isLate && !field.isStatic;
 
   String _mangleFieldName(Field field) {
     assert(_shouldLowerInstanceField(field));

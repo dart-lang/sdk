@@ -466,6 +466,18 @@ abstract class MemberTypeInformation extends ElementTypeInformation
               inferrer.closedWorld.nativeData.getNativeMethodBehavior(function))
           .type;
     }
+
+    if (inferrer.commonElements.isIsJsSentinel(function)) {
+      giveUp(inferrer);
+      return inferrer.abstractValueDomain.boolType;
+    }
+
+    if (inferrer.commonElements.isCreateSentinel(function) ||
+        inferrer.commonElements.isCreateJsSentinel(function)) {
+      giveUp(inferrer);
+      return inferrer.abstractValueDomain.lateSentinelType;
+    }
+
     return null;
   }
 
@@ -2276,9 +2288,11 @@ AbstractValue _narrowType(
     if (isNullable) {
       otherType = abstractValueDomain.includeNull(otherType);
     }
-    return type == null
-        ? otherType
-        : abstractValueDomain.intersection(type, otherType);
+    if (type == null) return otherType;
+    AbstractValue newType = abstractValueDomain.intersection(type, otherType);
+    return abstractValueDomain.isLateSentinel(type).isPotentiallyTrue
+        ? abstractValueDomain.includeLateSentinel(newType)
+        : newType;
   }
 
   // TODO(joshualitt): FutureOrType, TypeVariableType, and FunctionTypeVariable

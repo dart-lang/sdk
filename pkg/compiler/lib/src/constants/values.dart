@@ -912,7 +912,7 @@ class LateSentinelConstantValue extends ConstantValue {
   }
 
   @override
-  DartType getType(CommonElements types) => types.dynamicType;
+  DartType getType(CommonElements types) => types.dartTypes.neverType();
 
   @override
   ConstantValueKind get kind => ConstantValueKind.LATE_SENTINEL;

@@ -4,21 +4,25 @@
 
 part of masks;
 
-/// A type mask that wraps an other one, and delegate all its
+/// A type mask that wraps another one, and delegates all its
 /// implementation methods to it.
-abstract class ForwardingTypeMask implements TypeMask {
+abstract class ForwardingTypeMask extends TypeMask {
   TypeMask get forwardTo;
 
-  ForwardingTypeMask();
+  const ForwardingTypeMask();
 
   @override
-  bool get isEmptyOrNull => forwardTo.isEmptyOrNull;
+  bool get isEmptyOrFlagged => forwardTo.isEmptyOrFlagged;
   @override
   bool get isEmpty => forwardTo.isEmpty;
   @override
   bool get isNullable => forwardTo.isNullable;
   @override
   bool get isNull => forwardTo.isNull;
+  @override
+  bool get hasLateSentinel => forwardTo.hasLateSentinel;
+  @override
+  AbstractBool get isLateSentinel => forwardTo.isLateSentinel;
   @override
   bool get isExact => forwardTo.isExact;
 
@@ -93,16 +97,28 @@ abstract class ForwardingTypeMask implements TypeMask {
   }
 
   @override
-  TypeMask union(other, CommonMasks domain) {
+  TypeMask union(TypeMask other, CommonMasks domain) {
     if (this == other) {
       return this;
-    } else if (equalsDisregardNull(other)) {
-      return other.isNullable ? other : this;
-    } else if (other.isEmptyOrNull) {
-      return other.isNullable ? this.nullable() : this;
     }
-    return forwardTo.union(other, domain);
+    bool isNullable = this.isNullable || other.isNullable;
+    bool hasLateSentinel = this.hasLateSentinel || other.hasLateSentinel;
+    if (isEmptyOrFlagged) {
+      return other.withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+    }
+    if (other.isEmptyOrFlagged) {
+      return withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+    }
+    return _unionSpecialCases(other, domain,
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel) ??
+        forwardTo.union(other, domain);
   }
+
+  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
+          {bool isNullable, bool hasLateSentinel}) =>
+      null;
 
   @override
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
@@ -111,7 +127,11 @@ abstract class ForwardingTypeMask implements TypeMask {
 
   @override
   TypeMask intersection(TypeMask other, CommonMasks domain) {
-    return forwardTo.intersection(other, domain);
+    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
+    if (forwardIntersection.isEmptyOrFlagged) return forwardIntersection;
+    return withFlags(
+        isNullable: forwardIntersection.isNullable,
+        hasLateSentinel: forwardIntersection.hasLateSentinel);
   }
 
   @override
@@ -130,28 +150,33 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.locateSingleMember(selector, domain);
   }
 
-  bool equalsDisregardNull(other) {
-    if (other is! ForwardingTypeMask) return false;
-    if (forwardTo.isNullable) {
-      return forwardTo == other.forwardTo.nullable();
-    } else {
-      return forwardTo == other.forwardTo.nonNullable();
-    }
-  }
-
   @override
   bool operator ==(other) {
-    return equalsDisregardNull(other) && isNullable == other.isNullable;
+    if (identical(this, other)) return true;
+    if (other is! ForwardingTypeMask) return false;
+    return forwardTo == other.forwardTo;
   }
 
   @override
-  int get hashCode => throw "Subclass should implement hashCode getter";
+  int get hashCode => forwardTo.hashCode;
 }
 
 abstract class AllocationTypeMask extends ForwardingTypeMask {
+  const AllocationTypeMask();
+
   // The [ir.Node] where this type mask was created.
   ir.Node get allocationNode;
 
   // The [Entity] where this type mask was created.
   MemberEntity get allocationElement;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! AllocationTypeMask) return false;
+    return super == other && allocationNode == other.allocationNode;
+  }
+
+  @override
+  int get hashCode => Hashing.objectHash(allocationNode, super.hashCode);
 }
