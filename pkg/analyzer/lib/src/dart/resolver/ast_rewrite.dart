@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -26,7 +27,9 @@ import 'package:analyzer/src/error/codes.dart';
 class AstRewriter {
   final ErrorReporter _errorReporter;
 
-  AstRewriter(this._errorReporter);
+  final TypeProvider _typeProvider;
+
+  AstRewriter(this._errorReporter, this._typeProvider);
 
   /// Possibly rewrites [node] as a [MethodInvocation] with a
   /// [FunctionReference] target.
@@ -45,9 +48,15 @@ class AstRewriter {
     var typeName = node.constructorName.type.name;
     if (typeName is SimpleIdentifier) {
       var element = nameScope.lookup(typeName.name).getter;
-      if (element is FunctionElement || element is MethodElement) {
+      if (element is FunctionElement ||
+          element is MethodElement ||
+          element is PropertyAccessorElement) {
         return _toMethodInvocationOfFunctionReference(
             node: node, function: typeName);
+      } else if (element is TypeAliasElement &&
+          element.aliasedElement is GenericFunctionTypeElement) {
+        return _toMethodInvocationOfAliasedTypeLiteral(
+            node: node, function: typeName, element: element);
       }
     } else if (typeName is PrefixedIdentifier) {
       var prefixElement = nameScope.lookup(typeName.prefix.name).getter;
@@ -57,6 +66,10 @@ class AstRewriter {
         if (element is FunctionElement) {
           return _toMethodInvocationOfFunctionReference(
               node: node, function: typeName);
+        } else if (element is TypeAliasElement &&
+            element.aliasedElement is GenericFunctionTypeElement) {
+          return _toMethodInvocationOfAliasedTypeLiteral(
+              node: node, function: typeName, element: element);
         }
 
         // If `element` is a [ClassElement], or a [TypeAliasElement] aliasing
@@ -488,6 +501,28 @@ class AstRewriter {
         typeArguments: typeArguments);
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
+  }
+
+  MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
+    required InstanceCreationExpression node,
+    required Identifier function,
+    required TypeAliasElement element,
+  }) {
+    var typeName = astFactory.typeName(node.constructorName.type.name,
+        node.constructorName.type.typeArguments);
+    typeName.type = element.aliasedType;
+    typeName.name.staticType = element.aliasedType;
+    var typeLiteral = astFactory.typeLiteral(typeName: typeName);
+    typeLiteral.staticType = _typeProvider.typeType;
+    var methodInvocation = astFactory.methodInvocation(
+      typeLiteral,
+      node.constructorName.period,
+      node.constructorName.name!,
+      null,
+      node.argumentList,
+    );
+    NodeReplacer.replace(node, methodInvocation);
+    return methodInvocation;
   }
 
   MethodInvocation _toMethodInvocationOfFunctionReference({

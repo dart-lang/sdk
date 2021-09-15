@@ -564,7 +564,13 @@ class FunctionReferenceResolver {
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
       if (node.parent is PropertyAccess) {
-        _resolveConstructorReference(node);
+        if (element is TypeAliasElement &&
+            element.aliasedType is FunctionType) {
+          function.staticElement = element;
+          _resolveTypeAlias(node: node, element: element, typeAlias: function);
+        } else {
+          _resolveConstructorReference(node);
+        }
         return;
       } else if (element is ClassElement) {
         function.staticElement = element;
@@ -649,6 +655,10 @@ class FunctionReferenceResolver {
     required DartType instantiatedType,
     required Identifier name,
   }) {
+    // TODO(srawlins): set the static element of [typeName].
+    // This involves a fair amount of resolution, as [name] may be a prefixed
+    // identifier, etc. [TypeName]s should be resolved in [ResolutionVisitor],
+    // and this could be done for nodes like this via [AstRewriter].
     var typeName = astFactory.typeName(name, node.typeArguments);
     typeName.type = instantiatedType;
     typeName.name.staticType = instantiatedType;

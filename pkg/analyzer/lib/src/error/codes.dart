@@ -13838,6 +13838,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the function type alias
+   */
+  static const CompileTimeErrorCode UNDEFINED_GETTER_ON_FUNCTION_TYPE =
+      CompileTimeErrorCode('UNDEFINED_GETTER',
+          "The getter '{0}' isn't defined for the '{1}' function type.",
+          correction: "Try wrapping the function type alias in parentheses in "
+              "order to access '{0}' as an extension getter on 'Type'.",
+          hasPublishedDocs: true,
+          uniqueName: 'UNDEFINED_GETTER_ON_FUNCTION_TYPE');
+
+  /**
+   * Parameters:
    * 0: the name of the identifier
    */
   // #### Description
@@ -13944,6 +13957,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Try correcting the name to the name of an existing method, or "
           "defining a method named '{0}'.",
       hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the method
+   * 1: the name of the function type alias
+   */
+  static const CompileTimeErrorCode UNDEFINED_METHOD_ON_FUNCTION_TYPE =
+      CompileTimeErrorCode('UNDEFINED_METHOD',
+          "The method '{0}' isn't defined for the '{1}' function type.",
+          correction: "Try wrapping the function type alias in parentheses in "
+              "order to access '{0}' as an extension method on 'Type'.",
+          hasPublishedDocs: true,
+          uniqueName: 'UNDEFINED_METHOD_ON_FUNCTION_TYPE');
 
   /**
    * Parameters:
@@ -14147,6 +14173,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "correcting the name to the name of an existing setter, or "
           "defining a setter or field named '{0}'.",
       hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the setter
+   * 1: the name of the function type alias
+   */
+  static const CompileTimeErrorCode UNDEFINED_SETTER_ON_FUNCTION_TYPE =
+      CompileTimeErrorCode('UNDEFINED_SETTER',
+          "The setter '{0}' isn't defined for the '{1}' function type.",
+          correction: "Try wrapping the function type alias in parentheses in "
+              "order to access '{0}' as an extension getter on 'Type'.",
+          hasPublishedDocs: true,
+          uniqueName: 'UNDEFINED_SETTER_ON_FUNCTION_TYPE');
 
   /**
    * Parameters:
