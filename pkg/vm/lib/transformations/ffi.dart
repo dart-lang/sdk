@@ -234,6 +234,8 @@ class FfiTransformer extends Transformer {
   final Class compoundClass;
   final Class structClass;
   final Class unionClass;
+  final Class ffiNativeClass;
+  final Class nativeFieldWrapperClass;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
   final Field ffiStructLayoutPackingField;
@@ -286,6 +288,12 @@ class FfiTransformer extends Transformer {
   final Procedure allocationTearoff;
   final Procedure asFunctionTearoff;
   final Procedure lookupFunctionTearoff;
+  final Procedure getNativeFieldFunction;
+  final Procedure reachabilityFenceFunction;
+
+  late final DartType nativeFieldWrapperClassType;
+  late final DartType voidType;
+  late final DartType pointerType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
@@ -297,7 +305,7 @@ class FfiTransformer extends Transformer {
 
   FfiTransformer(this.index, this.coreTypes, this.hierarchy,
       this.diagnosticReporter, this.referenceFromIndex)
-      : env = new TypeEnvironment(coreTypes, hierarchy),
+      : env = TypeEnvironment(coreTypes, hierarchy),
         objectClass = coreTypes.objectClass,
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
@@ -346,6 +354,9 @@ class FfiTransformer extends Transformer {
         compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         unionClass = index.getClass('dart:ffi', 'Union'),
+        ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
+        nativeFieldWrapperClass =
+            index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
         ffiStructLayoutTypesField =
             index.getField('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
@@ -455,7 +466,18 @@ class FfiTransformer extends Transformer {
         lookupFunctionTearoff = index.getProcedure(
             'dart:ffi',
             'DynamicLibraryExtension',
-            LibraryIndex.tearoffPrefix + 'lookupFunction');
+            LibraryIndex.tearoffPrefix + 'lookupFunction'),
+        getNativeFieldFunction =
+            index.getTopLevelProcedure('dart:nativewrappers', 'getNativeField'),
+        reachabilityFenceFunction =
+            index.getTopLevelProcedure('dart:_internal', 'reachabilityFence') {
+    nativeFieldWrapperClassType =
+        nativeFieldWrapperClass.getThisType(coreTypes, Nullability.nonNullable);
+    voidType = nativeTypesClasses[NativeType.kVoid.index]
+        .getThisType(coreTypes, Nullability.nonNullable);
+    pointerType =
+        InterfaceType(pointerClass, Nullability.nonNullable, [voidType]);
+  }
 
   @override
   TreeNode visitLibrary(Library node) {

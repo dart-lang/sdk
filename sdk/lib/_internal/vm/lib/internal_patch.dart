@@ -165,7 +165,7 @@ Int32List _growRegExpStack(Int32List stack) {
 @pragma("vm:external-name", "Internal_unsafeCast")
 external T unsafeCast<T>(Object? v);
 
-// This function can be used to keep an object alive til that point.
+// This function can be used to keep an object alive till that point.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
 @pragma("vm:external-name", "Internal_reachabilityFence")
