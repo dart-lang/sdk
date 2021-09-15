@@ -2495,6 +2495,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         const NullabilityBuilder.omitted(),
         <TypeBuilder>[],
         charOffset);
+    if (currentTypeParameterScopeBuilder.parent?.kind ==
+        TypeParameterScopeKind.extensionDeclaration) {
+      // Make the synthesized return type invalid for extensions.
+      String name = currentTypeParameterScopeBuilder.parent!.name;
+      returnType.bind(new InvalidTypeDeclarationBuilder(
+          name,
+          messageExtensionDeclaresConstructor.withLocation(
+              fileUri, charOffset, name.length)));
+    }
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
         TypeParameterScopeKind.factoryMethod, "#factory_method");

@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
         messageTypeVariableInStaticContext,
         messageTypedefCause,
         noLength,
+        templateExperimentNotEnabled,
         templateExtendingRestricted,
         templateNotAType,
         templateSupertypeIsIllegal,
@@ -149,16 +150,27 @@ class NamedTypeBuilder extends TypeBuilder {
     Template<Message Function(String name)> template =
         member == null ? templateTypeNotFound : templateNotAType;
     String flatName = flattenName(name, charOffset, fileUri);
+    int length =
+        name is Identifier ? name.endCharOffset - charOffset : flatName.length;
+    Message message;
     List<LocatedMessage>? context;
-    if (member != null) {
+    if (member == null) {
+      template = templateTypeNotFound;
+      message = template.withArguments(flatName);
+    } else if (declaration != null &&
+        declaration!.isExtension &&
+        library is SourceLibraryBuilder &&
+        !library.enableExtensionTypesInLibrary) {
+      message = templateExperimentNotEnabled.withArguments('extension-types',
+          library.enableExtensionTypesVersionInLibrary.toText());
+    } else {
+      template = templateNotAType;
       context = <LocatedMessage>[
         messageNotATypeContext.withLocation(member.fileUri!, member.charOffset,
             name is Identifier ? name.name.length : "$name".length)
       ];
+      message = template.withArguments(flatName);
     }
-    int length =
-        name is Identifier ? name.endCharOffset - charOffset : flatName.length;
-    Message message = template.withArguments(flatName);
     library.addProblem(message, charOffset, length, fileUri, context: context);
     declaration = buildInvalidTypeDeclarationBuilder(
         message.withLocation(fileUri, charOffset, length),
