@@ -1007,8 +1007,10 @@ class FileSystemState {
     _uriToFile.clear();
     knownFilePaths.clear();
     knownFiles.clear();
+    _hasUriForPath.clear();
     _pathToFiles.clear();
     _pathToCanonicalFile.clear();
+    _librariesWithoutPartsRead.clear();
     _partToLibraries.clear();
     _subtypedNameToFiles.clear();
   }

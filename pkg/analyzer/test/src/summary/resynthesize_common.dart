@@ -11008,6 +11008,91 @@ library
 ''');
   }
 
+  test_const_topLevel_methodInvocation_questionPeriod() async {
+    var library = await checkLibrary(r'''
+const int? a = 0;
+const b = a?.toString();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @11
+        type: int?
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @15
+            staticType: int
+      static const b @24
+        type: String?
+        constantInitializer
+          MethodInvocation
+            argumentList: ArgumentList
+              leftParenthesis: ( @39
+              rightParenthesis: ) @40
+            methodName: SimpleIdentifier
+              staticElement: dart:core::@class::int::@method::toString
+              staticType: String Function()
+              token: toString @31
+            operator: ?. @29
+            staticInvokeType: String Function()
+            staticType: String?
+            target: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int?
+              token: a @28
+    accessors
+      synthetic static get a @-1
+        returnType: int?
+      synthetic static get b @-1
+        returnType: String?
+''');
+  }
+
+  test_const_topLevel_methodInvocation_questionPeriodPeriod() async {
+    var library = await checkLibrary(r'''
+const int? a = 0;
+const b = a?..toString();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @11
+        type: int?
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @15
+            staticType: int
+      static const b @24
+        type: int?
+        constantInitializer
+          CascadeExpression
+            cascadeSections
+              MethodInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @40
+                  rightParenthesis: ) @41
+                methodName: SimpleIdentifier
+                  staticElement: dart:core::@class::int::@method::toString
+                  staticType: String Function()
+                  token: toString @32
+                operator: ?.. @29
+                staticInvokeType: String Function()
+                staticType: String
+            staticType: int?
+            target: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int?
+              token: a @28
+    accessors
+      synthetic static get a @-1
+        returnType: int?
+      synthetic static get b @-1
+        returnType: int?
+''');
+  }
+
   test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
     var library = await checkLibrary(r'''
 const String? a = '';

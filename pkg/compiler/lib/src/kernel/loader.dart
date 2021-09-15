@@ -61,7 +61,8 @@ class KernelLoaderTask extends CompilerTask {
       String targetName =
           _options.compileForServer ? "dart2js_server" : "dart2js";
 
-      // We defer selecting the platform until we've resolved the NNBD mode.
+      // We defer selecting the platform until we've resolved the null safety
+      // mode.
       String getPlatformFilename() {
         String platform = targetName;
         if (!_options.useLegacySubtyping) {

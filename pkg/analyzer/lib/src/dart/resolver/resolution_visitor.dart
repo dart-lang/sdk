@@ -116,7 +116,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       unitElement,
       isNonNullableByDefault,
       errorReporter,
-      AstRewriter(errorReporter),
+      AstRewriter(errorReporter, typeProvider),
       typeNameResolver,
       nameScope,
       elementWalker,

@@ -14,9 +14,9 @@ import 'common_test_utils.dart';
 final String testRootDir = Platform.script.resolve('.').toFilePath();
 
 runTestCase(
-    Uri source, List<String> experimentalFlags, bool enableNullSafety) async {
+    Uri source, List<String> experimentalFlags, bool soundNullSafety) async {
   final target =
-      TestingDart2jsTarget(TargetFlags(enableNullSafety: enableNullSafety));
+      TestingDart2jsTarget(TargetFlags(enableNullSafety: soundNullSafety));
   Component component = await compileTestCaseToKernelProgram(source,
       target: target, experimentalFlags: experimentalFlags);
 
@@ -33,13 +33,11 @@ main() {
         in testCasesDir.listSync(recursive: true, followLinks: false)) {
       final path = entry.path;
       if (path.endsWith('.dart')) {
-        final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
-        final bool enableNNBD = enableNullSafety || path.endsWith('_nnbd.dart');
-        final List<String> experimentalFlags = [
-          if (enableNNBD) 'non-nullable',
-        ];
-        test(path,
-            () => runTestCase(entry.uri, experimentalFlags, enableNullSafety));
+        final bool unsoundNullSafety = path.endsWith('_unsound.dart');
+        test(
+            path,
+            () => runTestCase(
+                entry.uri, const ['non-nullable'], !unsoundNullSafety));
       }
     }
   }, timeout: Timeout.none);

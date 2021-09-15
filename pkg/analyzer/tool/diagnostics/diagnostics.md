@@ -13547,6 +13547,8 @@ an import or re-arrange your code to make the function visible.
 
 ### undefined_getter
 
+_The getter '{0}' isn't defined for the '{1}' function type._
+
 _The getter '{0}' isn't defined for the type '{1}'._
 
 #### Description
@@ -13667,6 +13669,8 @@ void f(p) async { await p; }
 {% endprettify %}
 
 ### undefined_method
+
+_The method '{0}' isn't defined for the '{1}' function type._
 
 _The method '{0}' isn't defined for the type '{1}'._
 
@@ -13829,6 +13833,8 @@ If the name is wrong, then change it to one of the names that's declared in
 the imported libraries.
 
 ### undefined_setter
+
+_The setter '{0}' isn't defined for the '{1}' function type._
 
 _The setter '{0}' isn't defined for the type '{1}'._
 

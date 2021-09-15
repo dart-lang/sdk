@@ -485,12 +485,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     _writeByte(Tag.MethodInvocation);
 
+    var operatorType = node.operator?.type;
     _writeByte(
       AstBinaryFlags.encode(
-        hasPeriod: node.operator?.type == TokenType.PERIOD,
-        hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
+        hasPeriod: operatorType == TokenType.PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD,
+        hasPeriod2: operatorType == TokenType.PERIOD_PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
+        hasQuestion: operatorType == TokenType.QUESTION_PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
       ),
     );
+
     _writeOptionalNode(node.target);
     _writeNode(node.methodName);
     _storeInvocationExpression(node);

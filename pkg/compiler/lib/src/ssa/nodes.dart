@@ -3517,10 +3517,10 @@ class HLateValue extends HLateInstruction {
 /// Check for receiver or argument type when lowering operation to a primitive,
 /// e.g. lowering `+` to [HAdd].
 ///
-/// After NNBD, `a + b` will require `a` and `b` are non-nullable and these
-/// checks will become explicit in the source (e.g. `a! + b!`). At that time,
-/// this check should be removed.  If needed, the `!` check can be optimized
-/// give the same signals to the JavaScript VM.
+/// With sound null safety, `a + b` will require `a` and `b` to be non-nullable
+/// and these checks will become explicit in the source (e.g. `a! + b!`). At
+/// that time, this check should be removed. If needed, the `!` check can be
+/// optimized to give the same signals to the JavaScript VM.
 class HPrimitiveCheck extends HCheck {
   // Values for [kind].
   static const int ARGUMENT_TYPE_CHECK = 1;
@@ -3590,8 +3590,8 @@ class HPrimitiveCheck extends HCheck {
 }
 
 /// A check that the input to a condition (if, ?:, while, etc) is non-null. The
-/// front-end generates 'as bool' checks, but until the transition to NNBD is
-/// complete, this allows `null` to be passed to the condition.
+/// front-end generates 'as bool' checks, but until the transition to null
+/// safety is complete, this allows `null` to be passed to the condition.
 ///
 // TODO(sra): Once NNDB is far enough along that the front-end can generate `as
 // bool!` checks and the backend checks them correctly, this instruction will

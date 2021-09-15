@@ -14,14 +14,11 @@ foo1() {
 }
 
 @pragma('dart2js:noInline')
-/*spec.member: foo2:function() {
-  return C.JSString_methods.codeUnitAt$1("Hello", H._asInt(1.5));
+/*spec|canary.member: foo2:function() {
+  return B.JSString_methods.codeUnitAt$1("Hello", A._asInt(1.5));
 }*/
 /*prod.member: foo2:function() {
-  return C.JSString_methods.codeUnitAt$1("Hello", 1.5);
-}*/
-/*canary.member: foo2:function() {
-  return B.JSString_methods.codeUnitAt$1("Hello", A._asInt(1.5));
+  return B.JSString_methods.codeUnitAt$1("Hello", 1.5);
 }*/
 foo2() {
   var a = 'Hello';
@@ -31,10 +28,7 @@ foo2() {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: foo3:function() {
-  return C.JSString_methods._codeUnitAt$1("Hello", 55);
-}*/
-/*canary.member: foo3:function() {
+/*member: foo3:function() {
   return B.JSString_methods._codeUnitAt$1("Hello", 55);
 }*/
 foo3() {

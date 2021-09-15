@@ -75,7 +75,7 @@ class C {
 
   Future<void> test_isInConstContext() async {
     await testUpdate(content: '''
-const a = 0;
+const num a = 0;
 const c = a is int;
 ''', to: '^2.2.2');
   }

@@ -143,6 +143,36 @@ f(C c) {
 @reflectiveTest
 class UndefinedSetterWithNullSafetyTest extends PubPackageResolutionTest
     with UndefinedSetterTestCases {
+  test_functionAlias_typeInstantiated() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo = 7;
+}
+
+extension E on Type {
+  set foo(int value) {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+  }
+
+  test_functionAlias_typeInstantiated_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo = 7;
+}
+
+extension E on Type {
+  set foo(int value) {}
+}
+''');
+  }
+
   test_new_cascade() async {
     await assertErrorsInCode('''
 class C {}

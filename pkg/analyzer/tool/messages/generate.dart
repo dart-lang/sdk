@@ -1,3 +1,7 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /// This file contains code to generate scanner and parser message
 /// based on the information in pkg/front_end/messages.yaml.
 ///

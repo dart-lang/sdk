@@ -69,10 +69,10 @@ class FeatureOptions {
   FeatureOption newHolders = FeatureOption('new-holders');
 
   /// [FeatureOption]s which default to enabled.
-  late final List<FeatureOption> shipping = [legacyJavaScript];
+  late final List<FeatureOption> shipping = [legacyJavaScript, newHolders];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [newHolders];
+  late final List<FeatureOption> canary = [];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
@@ -708,7 +708,7 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
-      // TODO(sra): Use this for some NNBD variant.
+      // TODO(sra): Use this for some null safety variant.
       useContentSecurityPolicy = true;
       features.forceCanary();
     }
