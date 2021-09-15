@@ -6,13 +6,11 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ShadowFieldTest);
-    defineReflectiveTests(ShadowFieldWithNullSafetyTest);
   });
 }
 
@@ -105,11 +103,7 @@ class C {
 }
 ''');
   }
-}
 
-@reflectiveTest
-class ShadowFieldWithNullSafetyTest extends ShadowFieldTest
-    with WithNullSafetyMixin {
   Future<void> test_notNull() async {
     await resolveTestCode('''
 class C {

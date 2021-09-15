@@ -300,11 +300,6 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 }
 
-mixin WithNullSafetyMixin on AbstractContextTest {
-  @override
-  String get testPackageLanguageVersion => '2.12';
-}
-
 /// Wraps the given [_ElementVisitorFunction] into an instance of
 /// [engine.GeneralizingElementVisitor].
 class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor<void> {

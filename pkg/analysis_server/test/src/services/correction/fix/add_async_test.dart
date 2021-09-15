@@ -8,13 +8,11 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAsyncTest);
-    defineReflectiveTests(AddAsyncWithNullSafetyTest);
     defineReflectiveTests(AvoidReturningNullForFutureTest);
   });
 }
@@ -115,6 +113,90 @@ Future<int> f(bool b) {
     });
   }
 
+  Future<void> test_missingReturn_method_hasReturn() async {
+    await resolveTestCode('''
+class C {
+  Future<int> m(bool b) {
+    if (b) {
+      return 0;
+    }
+  }
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+    });
+  }
+
+  Future<void> test_missingReturn_method_notVoid() async {
+    await resolveTestCode('''
+class C {
+  Future<int> m() {
+    print('');
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_method_notVoid_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<int> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_method_void() async {
+    await resolveTestCode('''
+class C {
+  Future<void> m() {
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<void> m() async {
+    print('');
+  }
+}
+''');
+  }
+
+  Future<void> test_missingReturn_method_void_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() async {
+  print('');
+  }
+}
+''');
+  }
+
   Future<void> test_missingReturn_notVoid() async {
     await resolveTestCode('''
 Future<int> f() {
@@ -122,6 +204,42 @@ Future<int> f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_topLevel_hasReturn() async {
+    await resolveTestCode('''
+Future<int> f(bool b) {
+  if (b) {
+    return 0;
+  }
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+    });
+  }
+
+  Future<void> test_missingReturn_topLevel_notVoid() async {
+    await resolveTestCode('''
+Future<int> f() {
+  print('');
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_topLevel_void() async {
+    await resolveTestCode('''
+Future<void> f() {
+  print('');
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  print('');
+}
+''');
   }
 
   Future<void> test_missingReturn_void() async {
@@ -210,133 +328,6 @@ foo() {}
 f() async {
   await foo();
   return 42;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AddAsyncWithNullSafetyTest extends FixProcessorTest
-    with WithNullSafetyMixin {
-  @override
-  FixKind get kind => DartFixKind.ADD_ASYNC;
-
-  Future<void> test_missingReturn_method_hasReturn() async {
-    await resolveTestCode('''
-class C {
-  Future<int> m(bool b) {
-    if (b) {
-      return 0;
-    }
-  }
-}
-''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
-    });
-  }
-
-  Future<void> test_missingReturn_method_notVoid() async {
-    await resolveTestCode('''
-class C {
-  Future<int> m() {
-    print('');
-  }
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_missingReturn_method_notVoid_inherited() async {
-    await resolveTestCode('''
-abstract class A {
-  Future<int> foo();
-}
-
-class B implements A {
-  foo() {
-  print('');
-  }
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_missingReturn_method_void() async {
-    await resolveTestCode('''
-class C {
-  Future<void> m() {
-    print('');
-  }
-}
-''');
-    await assertHasFix('''
-class C {
-  Future<void> m() async {
-    print('');
-  }
-}
-''');
-  }
-
-  Future<void> test_missingReturn_method_void_inherited() async {
-    await resolveTestCode('''
-abstract class A {
-  Future<void> foo();
-}
-
-class B implements A {
-  foo() {
-  print('');
-  }
-}
-''');
-    await assertHasFix('''
-abstract class A {
-  Future<void> foo();
-}
-
-class B implements A {
-  foo() async {
-  print('');
-  }
-}
-''');
-  }
-
-  Future<void> test_missingReturn_topLevel_hasReturn() async {
-    await resolveTestCode('''
-Future<int> f(bool b) {
-  if (b) {
-    return 0;
-  }
-}
-''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
-    });
-  }
-
-  Future<void> test_missingReturn_topLevel_notVoid() async {
-    await resolveTestCode('''
-Future<int> f() {
-  print('');
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_missingReturn_topLevel_void() async {
-    await resolveTestCode('''
-Future<void> f() {
-  print('');
-}
-''');
-    await assertHasFix('''
-Future<void> f() async {
-  print('');
 }
 ''');
   }
