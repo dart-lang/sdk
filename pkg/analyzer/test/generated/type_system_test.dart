@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -35,14 +34,8 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
   late TypeSystemImpl typeSystem;
 
-  FeatureSet get testFeatureSet {
-    return FeatureSet.latestLanguageVersion();
-  }
-
   void setUp() {
-    analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
+    analysisContext = TestAnalysisContext();
     typeProvider = analysisContext.typeProviderNonNullableByDefault;
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
 
@@ -66,14 +59,8 @@ abstract class AbstractTypeSystemWithoutNullSafetyTest with ElementsTypesMixin {
 
   late TypeSystemImpl typeSystem;
 
-  FeatureSet get testFeatureSet {
-    return FeatureSet.latestLanguageVersion();
-  }
-
   void setUp() {
-    analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
+    analysisContext = TestAnalysisContext();
     typeProvider = analysisContext.typeProviderLegacy;
     typeSystem = analysisContext.typeSystemLegacy;
 

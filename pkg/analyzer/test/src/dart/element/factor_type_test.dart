@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/factory_type_test_helper.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -42,9 +41,7 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
   }
 
   void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: FeatureSet.latestLanguageVersion(),
-    );
+    var analysisContext = TestAnalysisContext();
     typeProvider = analysisContext.typeProviderNonNullableByDefault;
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
   }
