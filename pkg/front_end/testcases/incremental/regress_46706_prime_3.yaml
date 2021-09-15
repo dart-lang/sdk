@@ -1,0 +1,37 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    errors: true
+    sources:
+      main.dart: |
+        import 'lib.dart' as lib;
+        void main() {
+          lib.partMethod();
+        }
+      part.dart: |
+        // Notice that main.dart didn't claim this as a part!
+        part of "main.dart";
+        void partMethod() {}
+      lib.dart: |
+        export 'part.dart';
+        export 'part.dart';
+        export 'part.dart';
+        void libMethod() {}
+    expectedLibraryCount: 3
+  - entry: main.dart
+    invalidate:
+      - lib.dart
+    sources:
+      main.dart: |
+        import 'lib.dart' as lib;
+        void main() {
+          lib.partMethod();
+        }
+      lib.dart: |
+        void libMethod() {}
+        void partMethod() {}
+    expectedLibraryCount: 2
