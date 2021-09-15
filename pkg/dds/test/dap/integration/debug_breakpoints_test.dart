@@ -287,7 +287,7 @@ void main(List<String> args) async {
           debugExternalPackageLibraries: false,
           // Include the packages folder as an additional project path so that
           // it will be treated as local code.
-          additionalProjectPaths: [dap.testPackageDir.path],
+          additionalProjectPaths: [dap.testPackagesDir.path],
         ),
       );
 

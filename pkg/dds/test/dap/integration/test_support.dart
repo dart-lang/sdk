@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/protocol_generated.dart';
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -134,12 +133,42 @@ class DapTestSession {
   final Directory _testDir =
       Directory.systemTemp.createTempSync('dart-sdk-dap-test');
   late final Directory testAppDir;
-  late final Directory testPackageDir;
-  var _packageConfig = PackageConfig.empty;
+  late final Directory testPackagesDir;
 
   DapTestSession._(this.server, this.client) {
     testAppDir = _testDir.createTempSync('app');
-    testPackageDir = _testDir.createTempSync('packages');
+    createPubspec(testAppDir, 'my_test_project');
+    testPackagesDir = _testDir.createTempSync('packages');
+  }
+
+  /// Adds package with [name] (optionally at [packageFolderUri]) to the
+  /// project in [dir].
+  ///
+  /// If [packageFolderUri] is not supplied, will use [Isolate.resolvePackageUri]
+  /// assuming the package is available to the tests.
+  Future<void> addPackageDependency(
+    Directory dir,
+    String name, [
+    Uri? packageFolderUri,
+  ]) async {
+    final proc = await Process.run(
+      Platform.resolvedExecutable,
+      [
+        'pub',
+        'add',
+        name,
+        if (packageFolderUri != null) ...[
+          '--path',
+          packageFolderUri.toFilePath(),
+        ],
+      ],
+      workingDirectory: dir.path,
+    );
+    expect(
+      proc.exitCode,
+      isZero,
+      reason: '${proc.stdout}\n${proc.stderr}'.trim(),
+    );
   }
 
   /// Create a simple package named `foo` that has an empty `foo` function.
@@ -154,32 +183,38 @@ foo() {
     );
   }
 
+  void createPubspec(Directory dir, String projectName) {
+    final pubspecFile = File(path.join(dir.path, 'pubspec.yaml'));
+    pubspecFile
+      ..createSync()
+      ..writeAsStringSync('''
+name: $projectName
+version: 1.0.0
+
+environment:
+  sdk: '>=2.13.0 <3.0.0'
+''');
+  }
+
   /// Creates a simple package script and adds the package to
   /// .dart_tool/package_config.json
   Future<Uri> createSimplePackage(
     String name,
     String content,
   ) async {
-    final dartToolDirectory =
-        Directory(path.join(testAppDir.path, '.dart_tool'))..createSync();
-    final packageConfigJsonFile =
-        File(path.join(dartToolDirectory.path, 'package_config.json'));
-    final packageConfigJsonUri = Uri.file(packageConfigJsonFile.path);
-
-    // Write the packages Dart implementation file.
-    final testPackageDirectory = Directory(path.join(testPackageDir.path, name))
+    final packageDir = Directory(path.join(testPackagesDir.path, name))
       ..createSync(recursive: true);
-    final testFile = File(path.join(testPackageDirectory.path, '$name.dart'));
+    final packageLibDir = Directory(path.join(packageDir.path, 'lib'))
+      ..createSync(recursive: true);
+
+    // Create a pubspec and a implementation file in the lib folder.
+    createPubspec(packageDir, name);
+    final testFile = File(path.join(packageLibDir.path, '$name.dart'));
     testFile.writeAsStringSync(content);
 
-    // Add this new package to the PackageConfig.
-    final newPackage = Package(name, Uri.file('${testPackageDirectory.path}/'));
-    _packageConfig = PackageConfig([..._packageConfig.packages, newPackage]);
-
-    // Write the PackageConfig to disk.
-    final sink = packageConfigJsonFile.openWrite();
-    PackageConfig.writeString(_packageConfig, sink, packageConfigJsonUri);
-    await sink.close();
+    // Add this new package as a dependency for the app.
+    final fileUri = Uri.file('${packageDir.path}/');
+    await addPackageDependency(testAppDir, name, fileUri);
 
     return Uri.parse('package:$name/$name.dart');
   }
