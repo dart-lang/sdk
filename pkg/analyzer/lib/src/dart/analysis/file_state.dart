@@ -259,13 +259,6 @@ class FileState {
   /// Return the [LibraryCycle] this file belongs to, even if it consists of
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
-    if (isPart) {
-      final library = this.library;
-      if (library != null && !identical(library, this)) {
-        return library.libraryCycle;
-      }
-    }
-
     if (_libraryCycle == null) {
       computeLibraryCycle(_fsState._saltForElements, this);
     }
