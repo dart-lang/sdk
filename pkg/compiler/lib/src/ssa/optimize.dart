@@ -3327,6 +3327,14 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   bool newGvnCandidates = false;
   HGraph _graph;
 
+  // Blocks that can be reached via control flow not expressed by the basic
+  // block CFG. These are catch and finally blocks that are reached from some
+  // mid-block instruction that throws in the CFG region corresponding to the
+  // Dart language try-block. The value stored in the map is the HTry that owns
+  // the catch or finally block. This map is filled in on-the-fly since the HTry
+  // dominates the catch and finally so is visited first.
+  Map<HBasicBlock, HTry> _blocksWithImprecisePredecessors;
+
   SsaLoadElimination(this._closedWorld)
       : _fieldAnalysis = _closedWorld.fieldAnalysis;
 
@@ -3416,12 +3424,32 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
+    // If the current block is a catch or finally block, it is reachable from
+    // any instruction in the try region that can generate an exception.
+    if (_blocksWithImprecisePredecessors != null) {
+      final tryInstruction = _blocksWithImprecisePredecessors[block];
+      if (tryInstruction != null) {
+        memorySet.killLocationsForExceptionEdge();
+      }
+    }
+
     memories[block.id] = memorySet;
     HInstruction instruction = block.first;
     while (instruction != null) {
       HInstruction next = instruction.next;
       instruction.accept(this);
       instruction = next;
+    }
+  }
+
+  @override
+  visitTry(HTry instruction) {
+    _blocksWithImprecisePredecessors ??= {};
+    if (instruction.catchBlock != null) {
+      _blocksWithImprecisePredecessors[instruction.catchBlock] = instruction;
+    }
+    if (instruction.finallyBlock != null) {
+      _blocksWithImprecisePredecessors[instruction.finallyBlock] = instruction;
     }
   }
 
@@ -3710,6 +3738,30 @@ class MemorySet {
   bool escapes(HInstruction receiver) {
     assert(receiver == null || receiver == receiver.nonCheck());
     return !nonEscapingReceivers.contains(receiver);
+  }
+
+  /// Kills locations that are imprecise due to many possible edges from
+  /// instructions in the try region that can throw.
+  void killLocationsForExceptionEdge() {
+    // Ideally we would treat each strong (must) update in the try region as a
+    // weak (may) update at the catch block, but we don't track this. The
+    // conservative approximation is to kill everything.
+    //
+    // Aliases can be retained because they are not updated - they are generated
+    // by an allocation and are killed by escaping. There is an edge from any
+    // exit from the try region to the catch block which accounts for the kills
+    // via escapes. Similarly, array lengths don't have updates (set:length is
+    // modeled as an escape which kills the length on some path), so lengths
+    // don't need to be killed here.
+    //
+    // TODO(sra): A more precise accounting of the effects in the try region
+    // might improve precision.
+    fieldValues.forEach((key, map) {
+      if (key != MemoryFeature.length) {
+        map?.clear();
+      }
+    });
+    keyedValues.clear();
   }
 
   void registerAllocation(HInstruction instruction) {

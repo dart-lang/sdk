@@ -1933,7 +1933,7 @@ class HInvokeStatic extends HInvoke {
   /// The type arguments passed in this static invocation.
   final List<DartType> typeArguments;
 
-  final bool targetCanThrow;
+  bool targetCanThrow;
 
   @override
   bool canThrow(AbstractValueDomain domain) => targetCanThrow;
