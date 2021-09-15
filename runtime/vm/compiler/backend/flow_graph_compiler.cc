@@ -442,10 +442,9 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
 }
 #endif
 
-void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
-                                              intptr_t try_index) {
+void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
 #if defined(DART_PRECOMPILER)
-  try_index = try_index != kInvalidTryIndex ? try_index : CurrentTryIndex();
+  const intptr_t try_index = CurrentTryIndex();
   if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
     CatchBlockEntryInstr* catch_block =
@@ -487,7 +486,7 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
 
     catch_entry_moves_maps_builder_->EndMapping();
   }
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
 }
 
 void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
@@ -1449,8 +1448,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   }
 
   if (is_optimizing()) {
-    EmitMegamorphicInstanceCall(ic_data_in, deopt_id, source, locs,
-                                kInvalidTryIndex);
+    EmitMegamorphicInstanceCall(ic_data_in, deopt_id, source, locs);
     return;
   }
 
@@ -2394,9 +2392,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     __ Bind(&next_test);
   }
   if (add_megamorphic_call) {
-    int try_index = kInvalidTryIndex;
     EmitMegamorphicInstanceCall(function_name, arguments_descriptor, deopt_id,
-                                source_index, locs, try_index);
+                                source_index, locs);
   }
 }
 
@@ -3232,6 +3229,7 @@ void FlowGraphCompiler::FrameStateClear() {
 #define __ compiler->assembler()->
 
 void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
+  RELEASE_ASSERT(try_index_ == compiler->CurrentTryIndex());
   if (compiler::Assembler::EmittingComments()) {
     __ Comment("slow path %s operation", name());
   }
@@ -3254,18 +3252,17 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CallRuntime(runtime_entry_, num_args);
   }
   const intptr_t deopt_id = instruction()->deopt_id();
-  compiler->AddDescriptor(UntaggedPcDescriptors::kOther,
-                          compiler->assembler()->CodeSize(), deopt_id,
-                          instruction()->source(), try_index_);
+  compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id,
+                                 instruction()->source());
   AddMetadataForRuntimeCall(compiler);
   compiler->RecordSafepoint(locs, num_args);
-  if (!FLAG_precompiled_mode || (try_index_ != kInvalidTryIndex) ||
+  if (!FLAG_precompiled_mode ||
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), num_args);
     // TODO(47044): Should be able to say `FLAG_precompiled_mode` instead.
     if (CompilerState::Current().is_aot()) {
-      compiler->RecordCatchEntryMoves(env, try_index_);
+      compiler->RecordCatchEntryMoves(env);
     } else if (compiler->is_optimizing()) {
       ASSERT(env != nullptr);
       compiler->AddSlowPathDeoptInfo(deopt_id, env);

@@ -3222,10 +3222,9 @@ class CheckStackOverflowSlowPath
       }
       compiler->RecordSafepoint(locs, kNumSlowPathArgs);
       compiler->RecordCatchEntryMoves(env);
-      compiler->AddDescriptor(
-          UntaggedPcDescriptors::kOther, compiler->assembler()->CodeSize(),
-          instruction()->deopt_id(), instruction()->source(),
-          compiler->CurrentTryIndex());
+      compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther,
+                                     instruction()->deopt_id(),
+                                     instruction()->source());
     } else {
       __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
