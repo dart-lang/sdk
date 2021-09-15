@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -44,7 +43,7 @@ class C {
 }
 
 @reflectiveTest
-class RemoveQuestionMarkTest extends FixProcessorTest with WithNullSafetyMixin {
+class RemoveQuestionMarkTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
 
@@ -125,7 +124,7 @@ class B with A {}
 
 @reflectiveTest
 class UnnecessaryNullableForFinalVariableDeclarationsTest
-    extends FixProcessorLintTest with WithNullSafetyMixin {
+    extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
 

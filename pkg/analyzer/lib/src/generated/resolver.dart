@@ -291,6 +291,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   late final SimpleIdentifierResolver _simpleIdentifierResolver =
       SimpleIdentifierResolver(this, flowAnalysis);
 
+  late final PropertyElementResolver _propertyElementResolver =
+      PropertyElementResolver(this);
+
+  late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -696,8 +701,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       node.target?.accept(this);
       startNullAwareIndexExpression(node);
 
-      var resolver = PropertyElementResolver(this);
-      var result = resolver.resolveIndexExpression(
+      var result = _propertyElementResolver.resolveIndexExpression(
         node: node,
         hasRead: hasRead,
         hasWrite: true,
@@ -717,8 +721,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     } else if (node is PrefixedIdentifier) {
       node.prefix.accept(this);
 
-      var resolver = PropertyElementResolver(this);
-      return resolver.resolvePrefixedIdentifier(
+      return _propertyElementResolver.resolvePrefixedIdentifier(
         node: node,
         hasRead: hasRead,
         hasWrite: true,
@@ -727,16 +730,14 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       node.target?.accept(this);
       startNullAwarePropertyAccess(node);
 
-      var resolver = PropertyElementResolver(this);
-      return resolver.resolvePropertyAccess(
+      return _propertyElementResolver.resolvePropertyAccess(
         node: node,
         hasRead: hasRead,
         hasWrite: true,
       );
-    } else if (node is SimpleIdentifier) {
-      var resolver = PropertyElementResolver(this);
-      var result = resolver.resolveSimpleIdentifier(
-        node: node as SimpleIdentifierImpl,
+    } else if (node is SimpleIdentifierImpl) {
+      var result = _propertyElementResolver.resolveSimpleIdentifier(
+        node: node,
         hasRead: hasRead,
         hasWrite: true,
       );
@@ -892,7 +893,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
-    AnnotationResolver(this).resolve(node, whyNotPromotedList);
+    _annotationResolver.resolve(node, whyNotPromotedList);
     var arguments = node.arguments;
     if (arguments != null) {
       checkForArgumentTypesNotAssignableInList(arguments, whyNotPromotedList);
@@ -1569,8 +1570,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     node.target?.accept(this);
     startNullAwareIndexExpression(node);
 
-    var resolver = PropertyElementResolver(this);
-    var result = resolver.resolveIndexExpression(
+    var result = _propertyElementResolver.resolveIndexExpression(
       node: node,
       hasRead: true,
       hasWrite: false,
@@ -1773,8 +1773,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     node.target?.accept(this);
     startNullAwarePropertyAccess(node);
 
-    var resolver = PropertyElementResolver(this);
-    var result = resolver.resolvePropertyAccess(
+    var result = _propertyElementResolver.resolvePropertyAccess(
       node: node,
       hasRead: true,
       hasWrite: false,

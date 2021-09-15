@@ -76,6 +76,25 @@ const simpleCaughtErrorProgram = r'''
   }
 ''';
 
+/// A simple package:test script that has a single group named 'group' with
+/// tests named 'passing' and 'failing' respectively.
+///
+/// The 'passing' test contains a [breakpointMarker].
+const simpleTestProgram = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    group('group', () {
+      test('passing', () {
+        expect(1, equals(1)); $breakpointMarker
+      });
+      test('failing', () {
+        expect(1, equals(2));
+      });
+    });
+  }
+''';
+
 /// A simple Dart script that throws in user code.
 const simpleThrowingProgram = r'''
   void main(List<String> args) async {

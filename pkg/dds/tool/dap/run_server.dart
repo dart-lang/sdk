@@ -26,6 +26,7 @@ class DapCommand extends Command {
   static const argIpv6 = 'ipv6';
   static const argDds = 'dds';
   static const argAuthCodes = 'auth-codes';
+  static const argTest = 'test';
 
   final Stream<List<int>> _inputStream;
   final StreamSink<List<int>> _outputSink;
@@ -52,6 +53,12 @@ class DapCommand extends Command {
         argAuthCodes,
         defaultsTo: true,
         help: 'Whether to enable authentication codes for VM Services',
+      )
+      ..addFlag(
+        argTest,
+        defaultsTo: false,
+        help: 'Whether to use the "dart test" debug adapter to run tests'
+            ' and emit custom events for test progress',
       );
   }
 
@@ -65,6 +72,7 @@ class DapCommand extends Command {
       ipv6: ipv6,
       enableDds: args[argDds],
       enableAuthCodes: args[argAuthCodes],
+      test: args[argTest],
     );
 
     await server.channel.closed;
