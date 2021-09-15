@@ -171,15 +171,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _indexRequestedFiles =
       <String, List<Completer<AnalysisDriverUnitIndex>>>{};
 
-  /// The mapping from the files for which the unit element key was requested
-  /// using `getUnitElementSignature` to the [Completer]s to report the result.
-  final _unitElementSignatureFiles = <String, List<Completer<String>>>{};
-
-  /// The mapping from the files for which the unit element key was requested
-  /// using `getUnitElementSignature`, and which were found to be parts without
-  /// known libraries, to the [Completer]s to report the result.
-  final _unitElementSignatureParts = <String, List<Completer<String>>>{};
-
   /// The mapping from the files for which the unit element was requested using
   /// [getUnitElement2] to the [Completer]s to report the result.
   final _unitElementRequestedFiles =
@@ -434,9 +425,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_indexRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
-    if (_unitElementSignatureFiles.isNotEmpty) {
-      return AnalysisDriverPriority.interactive;
-    }
     if (_unitElementRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
@@ -465,7 +453,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_errorsRequestedParts.isNotEmpty ||
         _requestedParts.isNotEmpty ||
         _partsToAnalyze.isNotEmpty ||
-        _unitElementSignatureParts.isNotEmpty ||
         _unitElementRequestedParts.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
@@ -837,17 +824,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
   }
 
-  ApiSignature getResolvedUnitKeyByPath(String path) {
-    _throwIfNotAbsolutePath(path);
-    var file = fsState.getFileForPath(path);
-
-    var signature = ApiSignature();
-    signature.addUint32List(_saltForResolution);
-    signature.addString(file.transitiveSignature);
-    signature.addString(file.contentHash);
-    return signature;
-  }
-
   /// Return a [Future] that completes with a [SomeResolvedUnitResult] for the
   /// Dart file with the given [path].  If the file cannot be analyzed,
   /// the [Future] completes with an [InvalidResult].
@@ -1057,23 +1033,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return;
     }
 
-    // Process a unit element key request.
-    if (_unitElementSignatureFiles.isNotEmpty) {
-      String path = _unitElementSignatureFiles.keys.first;
-      String? signature = _computeUnitElementSignature(path);
-      var completers = _unitElementSignatureFiles.remove(path)!;
-      if (signature != null) {
-        completers.forEach((completer) {
-          completer.complete(signature);
-        });
-      } else {
-        _unitElementSignatureParts
-            .putIfAbsent(path, () => [])
-            .addAll(completers);
-      }
-      return;
-    }
-
     // Process a unit element request.
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
@@ -1208,17 +1167,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _reportException(path, exception, stackTrace);
         _clearLibraryContextAfterException();
       }
-      return;
-    }
-
-    // Process a unit element signature request for a part.
-    if (_unitElementSignatureParts.isNotEmpty) {
-      String path = _unitElementSignatureParts.keys.first;
-      String signature =
-          _computeUnitElementSignature(path, asIsIfPartWithoutLibrary: true)!;
-      _unitElementSignatureParts.remove(path)!.forEach((completer) {
-        completer.complete(signature);
-      });
       return;
     }
 
@@ -1506,23 +1454,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         element,
       );
     });
-  }
-
-  String? _computeUnitElementSignature(String path,
-      {bool asIsIfPartWithoutLibrary = false}) {
-    FileState file = _fsState.getFileForPath(path);
-
-    // Prepare the library - the file itself, or the known library.
-    FileState? library = file.isPart ? file.library : file;
-    if (library == null) {
-      if (asIsIfPartWithoutLibrary) {
-        library = file;
-      } else {
-        return null;
-      }
-    }
-
-    return library.transitiveSignature;
   }
 
   /// Creates new [FileSystemState] and [FileTracker] objects.
