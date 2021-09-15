@@ -215,4 +215,4 @@ There is a tutorial explaining how to implement [assists][assists].
 [completion]: completion.md
 [fixes]: fixes.md
 [navigation]: navigation.md
-[pluginapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analyzer_plugin/doc/api.html
+[pluginapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analyzer_plugin/doc/api.html

@@ -80,7 +80,7 @@ type checking, and some run-time errors cannot occur.
 However, covariant parameter types can be quite natural and convenient,
 they just impose an obligation on developers to use ad-hoc reasoning in
 order to avoid the potential type errors at run time. The
-[covariant overrides](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/covariant-overrides.md)
+[covariant overrides](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/covariant-overrides.md)
 feature was added exactly for this purpose: When developers want to use
 unsound covariance, they can get it by requesting it explicitly. In the
 (vast majority of) cases where the sound and more strict contravariant rule
@@ -252,7 +252,7 @@ torn-off methods will indeed change with the introduction of this feature.*
 
 When we say that a parameter is **covariant by modifier**, we are referring
 to the definition of being a covariant parameter which is given in
-[covariant overrides](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/covariant-overrides.md).
+[covariant overrides](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/covariant-overrides.md).
 
 *When a parameter _p_ is covariant by modifier, there will necessarily be a
 declaration of a formal parameter _p1_ (which may be the same as _p_, or it

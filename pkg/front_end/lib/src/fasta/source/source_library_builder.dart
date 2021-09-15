@@ -1067,6 +1067,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         export.exporter.addProblem(
             messagePartExport, export.charOffset, "export".length, null,
             context: context);
+        if (library != null) {
+          // Recovery: Export the main library instead.
+          export.exported = library;
+          SourceLibraryBuilder exporter =
+              export.exporter as SourceLibraryBuilder;
+          for (Export export2 in exporter.exports) {
+            if (export2.exported == this) {
+              export2.exported = library;
+            }
+          }
+        }
       }
     }
   }
@@ -1228,6 +1239,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.scope.becomePartOf(scope);
       // TODO(ahe): Include metadata from part?
 
+      // Recovery: Take on all exporters (i.e. if a library has erroneously
+      // exported the part it has (in validatePart) been recovered to import the
+      // main library (this) instead --- to make it complete (and set up scopes
+      // correctly) the exporters in this has to be updated too).
+      exporters.addAll(part.exporters);
+
       nativeMethods.addAll(part.nativeMethods);
       boundlessTypeVariables.addAll(part.boundlessTypeVariables);
       // Check that the targets are different. This is not normally a problem
@@ -1244,6 +1261,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         } else {
           _implicitlyTypedFields!.addAll(partImplicitlyTypedFields);
         }
+      }
+      if (library != part.library) {
+        // Mark the part library as synthetic as it's not an actual library
+        // (anymore).
+        part.library.isSynthetic = true;
       }
       return true;
     } else {
@@ -1273,15 +1295,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addImportsToScope() {
     bool explicitCoreImport = this == loader.coreLibrary;
     for (Import import in imports) {
-      if (import.imported == loader.coreLibrary) {
-        explicitCoreImport = true;
-      }
       if (import.imported?.isPart ?? false) {
         addProblem(
             templatePartOfInLibrary.withArguments(import.imported!.fileUri),
             import.charOffset,
             noLength,
             fileUri);
+        if (import.imported?.partOfLibrary != null) {
+          // Recovery: Rewrite to import the "part owner" library.
+          // Note that the part will not have a partOfLibrary if it claims to be
+          // a part, but isn't mentioned as a part by the (would-be) "parent".
+          import.imported = import.imported?.partOfLibrary;
+        }
+      }
+      if (import.imported == loader.coreLibrary) {
+        explicitCoreImport = true;
       }
       import.finalizeImports(this);
     }

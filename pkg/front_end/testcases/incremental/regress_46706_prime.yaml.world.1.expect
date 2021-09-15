@@ -1,0 +1,39 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+//
+// Problems in library:
+//
+// org-dartlang-test:///lib.dart:1:1: Error: Can't export this file because it contains a 'part of' declaration.
+// export 'part.dart';
+// ^^^^^^
+// org-dartlang-test:///part.dart: Context: This is the file that can't be exported.
+//
+// org-dartlang-test:///lib.dart:2:1: Error: Can't export this file because it contains a 'part of' declaration.
+// export 'part.dart';
+// ^^^^^^
+// org-dartlang-test:///part.dart: Context: This is the file that can't be exported.
+//
+// org-dartlang-test:///lib.dart:3:1: Error: Can't export this file because it contains a 'part of' declaration.
+// export 'part.dart';
+// ^^^^^^
+// org-dartlang-test:///part.dart: Context: This is the file that can't be exported.
+//
+additionalExports = (main::main,
+  main::partMethod)
+
+  export "org-dartlang-test:///main.dart";
+  export "org-dartlang-test:///main.dart";
+  export "org-dartlang-test:///main.dart";
+
+  static method libMethod() → void {}
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart" as lib;
+
+  part part.dart;
+  static method main() → void {
+    main::partMethod();
+  }
+  static method /* from org-dartlang-test:///part.dart */ partMethod() → void {}
+}

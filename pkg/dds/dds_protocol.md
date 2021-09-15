@@ -282,17 +282,17 @@ version | comments
 1.2 | Added `getStreamHistory` RPC.
 1.3 | Added `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
 
-[resume]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#resume
-[success]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#success
-[version]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#version
-[cpu-samples]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#cpusamples
+[resume]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#resume
+[success]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#success
+[version]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#version
+[cpu-samples]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#cpusamples
 
-[service-protocol]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md
-[service-protocol-rpcs-requests-and-responses]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#rpcs-requests-and-responses
-[service-protocol-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#events
-[service-protocol-streams]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#streamlisten
-[service-protocol-binary-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#binary-events
-[service-protocol-types]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#types
-[service-protocol-ids-and-names]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#ids-and-names
-[service-protocol-public-rpcs]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#public-rpcs
-[service-protocol-public-types]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#public-types
+[service-protocol]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md
+[service-protocol-rpcs-requests-and-responses]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#rpcs-requests-and-responses
+[service-protocol-events]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#events
+[service-protocol-streams]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#streamlisten
+[service-protocol-binary-events]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#binary-events
+[service-protocol-types]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#types
+[service-protocol-ids-and-names]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#ids-and-names
+[service-protocol-public-rpcs]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#public-rpcs
+[service-protocol-public-types]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#public-types

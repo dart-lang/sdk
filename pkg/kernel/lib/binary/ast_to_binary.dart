@@ -1126,7 +1126,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
-    writeLibraryReference(node.targetLibrary, allowNull: true);
+    writeLibraryReference(node.targetLibrary, allowNull: false);
     writeStringReference(node.name ?? '');
     writeNodeList(node.combinators);
   }
