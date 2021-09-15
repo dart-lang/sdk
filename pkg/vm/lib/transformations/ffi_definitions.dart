@@ -69,9 +69,14 @@ void transformLibraries(
     DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex,
     ChangedStructureNotifier? changedStructureNotifier) {
-  final LibraryIndex index = LibraryIndex(component,
-      const ["dart:core", "dart:ffi", "dart:_internal", "dart:typed_data"]);
-  if (!index.containsLibrary("dart:ffi")) {
+  final LibraryIndex index = LibraryIndex(component, const [
+    'dart:core',
+    'dart:ffi',
+    'dart:_internal',
+    'dart:typed_data',
+    'dart:nativewrappers'
+  ]);
+  if (!index.containsLibrary('dart:ffi')) {
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
     // for the VM target.
     // If dart:ffi is not loaded, do not do the transformation.

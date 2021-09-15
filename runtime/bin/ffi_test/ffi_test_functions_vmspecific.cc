@@ -1094,12 +1094,68 @@ intptr_t ReturnIntPtr(intptr_t x) {
   return x;
 }
 
+intptr_t PassAsHandle(Dart_Handle handle) {
+  intptr_t result = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(handle, 0, &result)));
+  return result;
+}
+
+intptr_t PassAsPointer(void* ptr) {
+  return reinterpret_cast<intptr_t>(ptr);
+}
+
+intptr_t PassAsPointerAndValue(void* ptr, intptr_t value) {
+  return reinterpret_cast<intptr_t>(value);
+}
+
+intptr_t PassAsValueAndPointer(intptr_t value, void* ptr) {
+  return reinterpret_cast<intptr_t>(value);
+}
+
+// We're using this to keep track of whether the finalizer has been called.
+static intptr_t shared_resource = 0;
+
+void DummyResourceFinalizer(void* isolate_peer, void* peer) {
+  shared_resource = 0;
+}
+
+void SetSharedResource(Dart_Handle handle, intptr_t value) {
+  Dart_NewFinalizableHandle(handle, nullptr, sizeof(Dart_FinalizableHandle),
+                            DummyResourceFinalizer);
+  shared_resource = value;
+}
+
+intptr_t GetSharedResource() {
+  return shared_resource;
+}
+
 static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
-  if (strcmp(name, "ReturnIntPtr") == 0 && args_n == 1) {
-    return reinterpret_cast<void*>(ReturnIntPtr);
+  if (strcmp(name, "Dart_SetNativeInstanceField") == 0 && args_n == 3) {
+    return reinterpret_cast<void*>(Dart_SetNativeInstanceField);
   }
   if (strcmp(name, "IsThreadInGenerated") == 0 && args_n == 0) {
     return reinterpret_cast<void*>(IsThreadInGenerated);
+  }
+  if (strcmp(name, "ReturnIntPtr") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(ReturnIntPtr);
+  }
+  if (strcmp(name, "PassAsHandle") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(PassAsHandle);
+  }
+  if (strcmp(name, "PassAsPointer") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(PassAsPointer);
+  }
+  if (strcmp(name, "PassAsPointerAndValue") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(PassAsPointerAndValue);
+  }
+  if (strcmp(name, "PassAsValueAndPointer") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(PassAsValueAndPointer);
+  }
+  if (strcmp(name, "SetSharedResource") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(SetSharedResource);
+  }
+  if (strcmp(name, "GetSharedResource") == 0 && args_n == 0) {
+    return reinterpret_cast<void*>(GetSharedResource);
   }
   // This should be unreachable in tests.
   ENSURE(false);
