@@ -1,0 +1,84 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue_46886.dart:8:16: Error: This requires the 'triple-shift' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   Foo operator >>>(_) => this;
+//                ^^^
+//
+// pkg/front_end/testcases/general/issue_46886.dart:20:7: Error: This requires the 'triple-shift' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   foo >>> 42;
+//       ^^^
+//
+// pkg/front_end/testcases/general/issue_46886.dart:21:13: Error: This requires the 'triple-shift' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   print(foo >>> 42);
+//             ^^^
+//
+// pkg/front_end/testcases/general/issue_46886.dart:22:13: Error: This requires the 'triple-shift' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   print(foo >>>= 42);
+//             ^^^^
+//
+// pkg/front_end/testcases/general/issue_46886.dart:23:12: Error: This requires the 'triple-shift' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   if ((foo >>>= 42) == foo) {
+//            ^^^^
+//
+// pkg/front_end/testcases/general/issue_46886.dart:28:13: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   print(#>>>);
+//             ^
+//
+// pkg/front_end/testcases/general/issue_46886.dart:30:14: Error: This requires the 'triple-shift' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   var x = 10 >>> 2;
+//              ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  operator >>>(dynamic _) → self::Foo
+    return this;
+}
+abstract class Bar extends core::Object implements core::List<core::List<core::List<core::String>>> {
+  synthetic constructor •() → self::Bar
+    : super core::Object::•()
+    ;
+}
+extension _extension#0 on core::Symbol {
+  operator > = self::_extension#0|>;
+  method call = self::_extension#0|call;
+  tearoff call = self::_extension#0|get#call;
+}
+static method _extension#0|>(lowered final core::Symbol #this, dynamic _) → core::String
+  return "Greater Than used";
+static method _extension#0|call(lowered final core::Symbol #this, dynamic _) → core::String
+  return "Called";
+static method _extension#0|get#call(lowered final core::Symbol #this) → (dynamic) → core::String
+  return (dynamic _) → core::String => self::_extension#0|call(#this, _);
+static method main() → dynamic {
+  self::Foo foo = new self::Foo::•();
+  foo.{self::Foo::>>>}(42){(dynamic) → self::Foo};
+  core::print(foo.{self::Foo::>>>}(42){(dynamic) → self::Foo});
+  core::print(foo = foo.{self::Foo::>>>}(42){(dynamic) → self::Foo});
+  if((foo = foo.{self::Foo::>>>}(42){(dynamic) → self::Foo}) =={core::Object::==}{(core::Object) → core::bool} foo) {
+    core::print("same");
+  }
+  core::print(self::_extension#0|>(#C1, 2));
+  core::print(self::_extension#0|>(#C1, invalid-expression "pkg/front_end/testcases/general/issue_46886.dart:28:13: Error: This couldn't be parsed.
+  print(#>>>);
+            ^"));
+  core::int x = 10.{core::int::>>>}(2){(core::int) → core::int};
+  core::print("x: ${x}");
+}
+
+constants  {
+  #C1 = #>>
+}

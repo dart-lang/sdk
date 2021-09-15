@@ -95,6 +95,12 @@ ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
     enableExtensionMethods: true,
     enableNonNullable: false);
 
+ScannerConfiguration scannerConfigurationNonTripleShift =
+    new ScannerConfiguration(
+        enableTripleShift: false,
+        enableExtensionMethods: true,
+        enableNonNullable: true);
+
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
 
@@ -407,6 +413,8 @@ Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
   String firstDir = shortName.split("/")[0];
   if (firstDir == "non-nnbd") {
     config = scannerConfigurationNonNNBD;
+  } else if (firstDir == "no-triple-shift") {
+    config = scannerConfigurationNonTripleShift;
   } else {
     config = scannerConfiguration;
   }

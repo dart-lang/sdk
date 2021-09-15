@@ -105,7 +105,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "06bfd19593ed84dd288f67e02c6a753e6516288a",
 
-  "dartdoc_rev" : "c9621b92c738ec21a348cc2de032858276e9c774",
+  "dartdoc_rev" : "a4ca86f9bf732d7adc4506f7373e0ed63251b646",
   "devtools_rev" : "64cffbed6366329ad05e44d48fa2298367643bb6",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
@@ -140,7 +140,7 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "70b1a4f9229a36bac6340ec7eae2b2068baac96c",
+  "pub_rev": "214860e794076188869d586b047a4aaada1cb9a8",
   "pub_semver_rev": "f50d80ef10c4b2fa5f4c8878036a4d9342c0cc82",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",

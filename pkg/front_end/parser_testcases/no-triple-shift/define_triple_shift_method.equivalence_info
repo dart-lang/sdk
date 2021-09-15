@@ -1,0 +1,7 @@
+files:
+  - define_triple_shift_method.dart
+  - define_triple_shift_method_prime.dart
+filters:
+  - ignoreListenerArguments
+ignored:
+  - handleRecoverableError

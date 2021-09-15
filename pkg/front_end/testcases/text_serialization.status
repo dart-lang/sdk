@@ -88,6 +88,7 @@ general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
 general/issue44733: TypeCheckError
 general/issue45204: TypeCheckError
+general/issue_46886: RuntimeError
 general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError
