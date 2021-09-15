@@ -13,10 +13,8 @@ import "dart:io";
 import "dart:typed_data";
 
 import "package:async_helper/async_helper.dart";
-import "package:convert/convert.dart";
 import "package:crypto/crypto.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
 const WEB_SOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -44,9 +42,17 @@ class SecurityConfiguration {
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
-  Future<WebSocket> createClient(int port) =>
-      // TODO(whesse): Add client context argument to WebSocket.connect
-      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
+  Future<WebSocket> createClient(int port,
+          {String? user,
+          Map<String, Object>? headers,
+          String? customUserAgent}) =>
+      WebSocket.connect(
+          '${secure ? "wss" : "ws"}://${user is Null ? "" : "$user@"}$HOST_NAME:$port/',
+          headers: headers,
+          customClient: secure
+              ? (HttpClient(context: clientContext)
+                ..userAgent = customUserAgent)
+              : null);
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
     Expect.equals(
@@ -304,7 +310,7 @@ class SecurityConfiguration {
         asyncEnd();
       });
 
-      HttpClient client = new HttpClient();
+      final client = HttpClient(context: secure ? clientContext : null);
       client
           .postUrl(Uri.parse(
               "${secure ? 'https:' : 'http:'}//$HOST_NAME:${server.port}/"))
@@ -401,12 +407,12 @@ class SecurityConfiguration {
       var baseWsUrl = '$wsProtocol://$HOST_NAME:${server.port}/';
       var httpProtocol = '${secure ? "https" : "http"}';
       var baseHttpUrl = '$httpProtocol://$HOST_NAME:${server.port}/';
-      HttpClient client = new HttpClient();
+      final client = HttpClient(context: secure ? clientContext : null);
 
       for (int i = 0; i < connections; i++) {
         var completer = new Completer();
         futures.add(completer.future);
-        WebSocket.connect('${baseWsUrl}').then((websocket) {
+        createClient(server.port).then((websocket) {
           websocket.listen((_) {
             websocket.close();
           }, onDone: completer.complete);
@@ -456,9 +462,7 @@ class SecurityConfiguration {
         });
       });
 
-      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
-
-      WebSocket.connect(url).then((websocket) {
+      createClient(server.port).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
           websocket.close();
@@ -484,12 +488,11 @@ class SecurityConfiguration {
         });
       });
 
-      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
       var headers = {
         'My-Header': 'my-value',
         'My-Header-Multiple': ['my-value-1', 'my-value-2']
       };
-      WebSocket.connect(url, headers: headers).then((websocket) {
+      createClient(server.port, headers: headers).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
           websocket.close();
@@ -522,9 +525,7 @@ class SecurityConfiguration {
         });
       });
 
-      var url =
-          '${secure ? "wss" : "ws"}://$userInfo@$HOST_NAME:${server.port}/';
-      WebSocket.connect(url).then((websocket) {
+      createClient(server.port, user: userInfo).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
           websocket.close();
@@ -549,6 +550,24 @@ class SecurityConfiguration {
 
       WebSocket.userAgent = 'Custom User Agent';
       createClient(server.port).then((webSocket) {
+        webSocket.close();
+      });
+    });
+  }
+
+  void testStaticClientUserAgentStaysTheSame() {
+    asyncStart();
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        Expect.equals('Custom User Agent', WebSocket.userAgent);
+        server.close();
+        webSocket.close();
+        asyncEnd();
+      });
+      // Next line should take no effect on custom user agent value provided
+      WebSocket.userAgent = 'Custom User Agent';
+      createClient(server.port, customUserAgent: 'New User Agent')
+          .then((webSocket) {
         webSocket.close();
       });
     });
@@ -582,11 +601,11 @@ class SecurityConfiguration {
     testAdditionalHeaders();
     testBasicAuthentication();
     testShouldSetUserAgent();
+    testStaticClientUserAgentStaysTheSame();
   }
 }
 
 main() {
   new SecurityConfiguration(secure: false).runTests();
-  // TODO(whesse): Make WebSocket.connect() take an optional context: parameter.
-  // new SecurityConfiguration(secure: true).runTests();
+  new SecurityConfiguration(secure: true).runTests();
 }

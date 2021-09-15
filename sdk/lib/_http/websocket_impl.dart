@@ -999,8 +999,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   static Future<WebSocket> connect(
       String url, Iterable<String>? protocols, Map<String, dynamic>? headers,
-      {CompressionOptions compression =
-          CompressionOptions.compressionDefault}) {
+      {CompressionOptions compression = CompressionOptions.compressionDefault,
+      HttpClient? customClient}) {
     Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
@@ -1024,7 +1024,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         path: uri.path,
         query: uri.query,
         fragment: uri.fragment);
-    return _httpClient.openUrl("GET", uri).then((request) {
+    return (customClient ?? _httpClient).openUrl("GET", uri).then((request) {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
