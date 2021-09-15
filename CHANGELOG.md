@@ -156,6 +156,22 @@ Updated the Linter to `1.11.0`, which includes changes that
   `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
   folder dependencies to be updated after operating in the current directory. 
 
+## 2.14.2 - 2021-09-16
+
+This is a patch release that fixes:
+
+- two dartdoc crashes (issues [dart-lang/dartdoc#2740][] and
+  [dart-lang/dartdoc#2755][]).
+- error messages when using the `>>>` operator on older language versions
+  (issue [#46886][]).
+- invalid `pubspec.lock` paths on Windows (issue [dart-lang/pub#3012][]).
+
+[dart-lang/dartdoc#2740]: https://github.com/dart-lang/dartdoc/issues/2740
+[dart-lang/dartdoc#2755]: https://github.com/dart-lang/dartdoc/issues/2755
+[#46886]: https://github.com/dart-lang/sdk/issues/46886
+[#45767]: https://github.com/dart-lang/sdk/issues/45767
+[dart-lang/pub#3012]: https://github.com/dart-lang/pub/issues/3012
+
 ## 2.14.1 - 2021-09-09
 
 - Fixed an issue specific to the macOS ARM64 (Apple Silicon) SDK, where the Dart
