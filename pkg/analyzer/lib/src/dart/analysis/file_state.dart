@@ -201,19 +201,13 @@ class FileState {
 
   /// The list of files this file exports.
   List<FileState?> get exportedFiles {
-    if (_exportedFiles == null) {
-      _exportedFiles = <FileState?>[];
-      for (var directive in _unlinked2!.exports) {
-        var uri = _selectRelativeUri(directive);
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _exportedFiles!.add(file);
-          },
-          (_) {},
-        );
-      }
-    }
-    return _exportedFiles!;
+    return _exportedFiles ??= _unlinked2!.exports.map((directive) {
+      var uri = _selectRelativeUri(directive);
+      return _fileForRelativeUri(uri).map(
+        (file) => file,
+        (_) => null,
+      );
+    }).toList();
   }
 
   @override
@@ -221,19 +215,13 @@ class FileState {
 
   /// The list of files this file imports.
   List<FileState?> get importedFiles {
-    if (_importedFiles == null) {
-      _importedFiles = <FileState?>[];
-      for (var directive in _unlinked2!.imports) {
-        var uri = _selectRelativeUri(directive);
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _importedFiles!.add(file);
-          },
-          (_) {},
-        );
-      }
-    }
-    return _importedFiles!;
+    return _importedFiles ??= _unlinked2!.imports.map((directive) {
+      var uri = _selectRelativeUri(directive);
+      return _fileForRelativeUri(uri).map(
+        (file) => file,
+        (_) => null,
+      );
+    }).toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
@@ -299,23 +287,19 @@ class FileState {
 
   /// The list of files this library file references as parts.
   List<FileState?> get partedFiles {
-    if (_partedFiles == null) {
-      _partedFiles = <FileState?>[];
-      for (var uri in _unlinked2!.parts) {
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _partedFiles!.add(file);
-            if (file != null) {
-              _fsState._partToLibraries
-                  .putIfAbsent(file, () => <FileState>[])
-                  .add(this);
-            }
-          },
-          (_) {},
-        );
-      }
-    }
-    return _partedFiles!;
+    return _partedFiles ??= _unlinked2!.parts.map((uri) {
+      return _fileForRelativeUri(uri).map(
+        (file) {
+          if (file != null) {
+            _fsState._partToLibraries
+                .putIfAbsent(file, () => <FileState>[])
+                .add(this);
+          }
+          return file;
+        },
+        (_) => null,
+      );
+    }).toList();
   }
 
   /// The external names referenced by the file.
