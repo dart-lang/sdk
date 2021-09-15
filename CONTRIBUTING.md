@@ -26,7 +26,7 @@ We occasionally take pull requests, e.g., for comment changes, but the main flow
 
 ## Getting the code
 
-To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `master` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source)
+To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `main` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source)
 
 ## Starting a patch with git
 
@@ -56,7 +56,7 @@ git rebase-update
 Note: you can run this command from any branch.
 
 This command will fetch
-origin/main, rebase all your open branches, and delete
+`origin/main`, rebase all your open branches, and delete
 cleanly merged branches.
 
 Your local workflow may vary.

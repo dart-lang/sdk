@@ -7,6 +7,6 @@ F-bounded type parameters without introducing infinite types, this
 feature relies on another feature, _super-bounded types_, which is
 therefore also in focus for tests in this directory. For more details,
 please check the feature specifications on
-[super-bounded types](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/super-bounded-types.md)
+[super-bounded types](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/super-bounded-types.md)
 and on
-[instantiate to bound](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md).
+[instantiate to bound](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/instantiate-to-bound.md).

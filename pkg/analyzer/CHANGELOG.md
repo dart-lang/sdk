@@ -963,7 +963,7 @@ void myMagicTest(String name, FutureOr Function() body) {
   test(name, body);
 }
 ```
-  When subscribed to [notifications for outlines of a test file](https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html#notification_analysis.outline),
+  When subscribed to [notifications for outlines of a test file](https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html#notification_analysis.outline),
   they will include elements for UNIT_TEST_GROUP and UNIT_TEST_TEST.
 * Improve guess for type name identifier. (#32765)
 * Fix LineInfo.getOffsetOfLineAfter().

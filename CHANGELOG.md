@@ -2168,7 +2168,7 @@ failing. This changes makes DDC behave more like dart2js with the default flags.
   throws in dart2js if the API is used directly without manually setting up a
   `defaultPackagesBase` hook.
 
-[1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
+[1]: https://github.com/dart-lang/sdk/blob/main/CHANGELOG.md#200---2018-08-07
 
 #### `dart:developer`
 
@@ -3783,7 +3783,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 
 - Dart `int` is now restricted to 64 bits. On overflow, arithmetic operations
   wrap around, and integer literals larger than 64 bits are not allowed. See
-  https://github.com/dart-lang/sdk/blob/master/docs/language/informal/int64.md
+  https://github.com/dart-lang/sdk/blob/main/docs/language/informal/int64.md
   for details.
 
 - The Dart VM no longer attempts to perform `packages/` directory resolution

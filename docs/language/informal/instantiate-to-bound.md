@@ -275,7 +275,7 @@ the current bounds is strictly decreasing with each step, and we terminate
 when that number reaches zero.*
 
 *Note that this process may produce a
-[super-bounded type](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/super-bounded-types.md).*
+[super-bounded type](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/super-bounded-types.md).*
 
 *It may seem somewhat arbitrary to treat unused and invariant parameters
 the same as covariant parameters. In particular, we could easily have made
@@ -386,7 +386,7 @@ applicable.
     there.
 
 *   Sep 15th 2017: Transferred to the SDK repository as
-    [instantiate-to-bound.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md).
+    [instantiate-to-bound.md](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/instantiate-to-bound.md).
 
 *   Sep 15th 2017: Adjusted to include the enhanced expressive power
     described in
