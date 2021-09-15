@@ -567,7 +567,7 @@ VARIABLE_COMPRESSED_VISITOR(TypeArguments,
                             Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
-VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)
+VARIABLE_COMPRESSED_VISITOR(Context, raw_obj->untag()->num_variables_)
 VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,

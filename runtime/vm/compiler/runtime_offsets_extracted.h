@@ -58,6 +58,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0;
 static constexpr dart::compiler::target::word
@@ -605,6 +606,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -1160,6 +1163,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 6;
 static constexpr dart::compiler::target::word
@@ -1704,6 +1708,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -2232,8 +2238,8 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_elements_start_offset = 176;
 static constexpr dart::compiler::target::word Code_element_size = 4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
-    24;
-static constexpr dart::compiler::target::word Context_element_size = 8;
+    16;
+static constexpr dart::compiler::target::word Context_element_size = 4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word ContextScope_element_size = 32;
@@ -2260,6 +2266,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -2342,7 +2349,7 @@ static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
 static constexpr dart::compiler::target::word Code_owner_offset = 56;
 static constexpr dart::compiler::target::word Context_num_variables_offset = 8;
-static constexpr dart::compiler::target::word Context_parent_offset = 16;
+static constexpr dart::compiler::target::word Context_parent_offset = 12;
 static constexpr dart::compiler::target::word Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     ExternalOneByteString_external_data_offset = 16;
@@ -2696,7 +2703,7 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     16;
-static constexpr dart::compiler::target::word Context_header_size = 24;
+static constexpr dart::compiler::target::word Context_header_size = 16;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 16;
 static constexpr dart::compiler::target::word
@@ -2786,8 +2793,8 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_elements_start_offset = 176;
 static constexpr dart::compiler::target::word Code_element_size = 4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
-    24;
-static constexpr dart::compiler::target::word Context_element_size = 8;
+    16;
+static constexpr dart::compiler::target::word Context_element_size = 4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word ContextScope_element_size = 32;
@@ -2814,6 +2821,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -2896,7 +2904,7 @@ static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
 static constexpr dart::compiler::target::word Code_owner_offset = 56;
 static constexpr dart::compiler::target::word Context_num_variables_offset = 8;
-static constexpr dart::compiler::target::word Context_parent_offset = 16;
+static constexpr dart::compiler::target::word Context_parent_offset = 12;
 static constexpr dart::compiler::target::word Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     ExternalOneByteString_external_data_offset = 16;
@@ -3251,7 +3259,7 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     16;
-static constexpr dart::compiler::target::word Context_header_size = 24;
+static constexpr dart::compiler::target::word Context_header_size = 16;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 16;
 static constexpr dart::compiler::target::word
@@ -3368,6 +3376,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0;
 static constexpr dart::compiler::target::word
@@ -3909,6 +3918,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -4458,6 +4469,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 6;
 static constexpr dart::compiler::target::word
@@ -4996,6 +5008,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -5518,8 +5532,8 @@ static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word Code_elements_start_offset = 144;
 static constexpr dart::compiler::target::word Code_element_size = 4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
-    24;
-static constexpr dart::compiler::target::word Context_element_size = 8;
+    16;
+static constexpr dart::compiler::target::word Context_element_size = 4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word ContextScope_element_size = 32;
@@ -5546,6 +5560,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -5626,7 +5641,7 @@ static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
 static constexpr dart::compiler::target::word Code_owner_offset = 56;
 static constexpr dart::compiler::target::word Context_num_variables_offset = 8;
-static constexpr dart::compiler::target::word Context_parent_offset = 16;
+static constexpr dart::compiler::target::word Context_parent_offset = 12;
 static constexpr dart::compiler::target::word Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     ExternalOneByteString_external_data_offset = 16;
@@ -5979,7 +5994,7 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     16;
-static constexpr dart::compiler::target::word Context_header_size = 24;
+static constexpr dart::compiler::target::word Context_header_size = 16;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 16;
 static constexpr dart::compiler::target::word
@@ -6066,8 +6081,8 @@ static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word Code_elements_start_offset = 144;
 static constexpr dart::compiler::target::word Code_element_size = 4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
-    24;
-static constexpr dart::compiler::target::word Context_element_size = 8;
+    16;
+static constexpr dart::compiler::target::word Context_element_size = 4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word ContextScope_element_size = 32;
@@ -6094,6 +6109,7 @@ static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word Context_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -6174,7 +6190,7 @@ static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
 static constexpr dart::compiler::target::word Code_owner_offset = 56;
 static constexpr dart::compiler::target::word Context_num_variables_offset = 8;
-static constexpr dart::compiler::target::word Context_parent_offset = 16;
+static constexpr dart::compiler::target::word Context_parent_offset = 12;
 static constexpr dart::compiler::target::word Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     ExternalOneByteString_external_data_offset = 16;
@@ -6528,7 +6544,7 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     16;
-static constexpr dart::compiler::target::word Context_header_size = 24;
+static constexpr dart::compiler::target::word Context_header_size = 16;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 16;
 static constexpr dart::compiler::target::word
@@ -6655,6 +6671,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     65533;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0;
 static constexpr dart::compiler::target::word
@@ -7267,6 +7285,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -7886,6 +7906,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -8470,8 +8492,8 @@ static constexpr dart::compiler::target::word AOT_Code_elements_start_offset =
     152;
 static constexpr dart::compiler::target::word AOT_Code_element_size = 4;
 static constexpr dart::compiler::target::word
-    AOT_Context_elements_start_offset = 24;
-static constexpr dart::compiler::target::word AOT_Context_element_size = 8;
+    AOT_Context_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
@@ -8503,6 +8525,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -8589,7 +8613,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Code_owner_offset = 56;
 static constexpr dart::compiler::target::word AOT_Context_num_variables_offset =
     8;
-static constexpr dart::compiler::target::word AOT_Context_parent_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_parent_offset = 12;
 static constexpr dart::compiler::target::word AOT_Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_ExternalOneByteString_external_data_offset = 16;
@@ -8982,7 +9006,7 @@ static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_HeaderSize = 16;
-static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Context_header_size = 16;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
     16;
@@ -9085,8 +9109,8 @@ static constexpr dart::compiler::target::word AOT_Code_elements_start_offset =
     152;
 static constexpr dart::compiler::target::word AOT_Code_element_size = 4;
 static constexpr dart::compiler::target::word
-    AOT_Context_elements_start_offset = 24;
-static constexpr dart::compiler::target::word AOT_Context_element_size = 8;
+    AOT_Context_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
@@ -9118,6 +9142,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -9204,7 +9230,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Code_owner_offset = 56;
 static constexpr dart::compiler::target::word AOT_Context_num_variables_offset =
     8;
-static constexpr dart::compiler::target::word AOT_Context_parent_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_parent_offset = 12;
 static constexpr dart::compiler::target::word AOT_Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_ExternalOneByteString_external_data_offset = 16;
@@ -9598,7 +9624,7 @@ static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_HeaderSize = 16;
-static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Context_header_size = 16;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
     16;
@@ -9733,6 +9759,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     65533;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0;
 static constexpr dart::compiler::target::word
@@ -10338,6 +10366,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -10950,6 +10980,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    576460752303423487;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -11527,8 +11559,8 @@ static constexpr dart::compiler::target::word AOT_Code_elements_start_offset =
     120;
 static constexpr dart::compiler::target::word AOT_Code_element_size = 4;
 static constexpr dart::compiler::target::word
-    AOT_Context_elements_start_offset = 24;
-static constexpr dart::compiler::target::word AOT_Context_element_size = 8;
+    AOT_Context_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
@@ -11560,6 +11592,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -11644,7 +11678,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Code_owner_offset = 56;
 static constexpr dart::compiler::target::word AOT_Context_num_variables_offset =
     8;
-static constexpr dart::compiler::target::word AOT_Context_parent_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_parent_offset = 12;
 static constexpr dart::compiler::target::word AOT_Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_ExternalOneByteString_external_data_offset = 16;
@@ -12035,7 +12069,7 @@ static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_HeaderSize = 16;
-static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Context_header_size = 16;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
     16;
@@ -12135,8 +12169,8 @@ static constexpr dart::compiler::target::word AOT_Code_elements_start_offset =
     120;
 static constexpr dart::compiler::target::word AOT_Code_element_size = 4;
 static constexpr dart::compiler::target::word
-    AOT_Context_elements_start_offset = 24;
-static constexpr dart::compiler::target::word AOT_Context_element_size = 8;
+    AOT_Context_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
@@ -12168,6 +12202,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     65532;
+static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
+    268435455;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
 static constexpr dart::compiler::target::word
@@ -12252,7 +12288,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Code_owner_offset = 56;
 static constexpr dart::compiler::target::word AOT_Context_num_variables_offset =
     8;
-static constexpr dart::compiler::target::word AOT_Context_parent_offset = 16;
+static constexpr dart::compiler::target::word AOT_Context_parent_offset = 12;
 static constexpr dart::compiler::target::word AOT_Double_value_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_ExternalOneByteString_external_data_offset = 16;
@@ -12644,7 +12680,7 @@ static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_HeaderSize = 16;
-static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Context_header_size = 16;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
     16;

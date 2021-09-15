@@ -2170,10 +2170,10 @@ class UntaggedContext : public UntaggedObject {
 
   int32_t num_variables_;
 
-  POINTER_FIELD(ContextPtr, parent)
+  COMPRESSED_POINTER_FIELD(ContextPtr, parent)
   VISIT_FROM(parent)
   // Variable length data follows here.
-  VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
   friend void UpdateLengthField(intptr_t,

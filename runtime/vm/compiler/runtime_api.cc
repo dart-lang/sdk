@@ -1003,6 +1003,7 @@ namespace compiler {
 namespace target {
 
 const word Array::kMaxElements = Array_kMaxElements;
+const word Context::kMaxElements = Context_kMaxElements;
 
 }  // namespace target
 }  // namespace compiler

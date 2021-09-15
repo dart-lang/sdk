@@ -1324,6 +1324,8 @@ class Context : public AllStatic {
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kMaxElements;
 };
 
 class Closure : public AllStatic {
