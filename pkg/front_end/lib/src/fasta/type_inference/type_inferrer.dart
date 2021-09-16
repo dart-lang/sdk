@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/canonical_name.dart' as kernel;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart';
@@ -875,10 +876,66 @@ class TypeInferrerImpl implements TypeInferrer {
     return inferredTypes;
   }
 
+  ObjectAccessTarget _findShownExtensionTypeMember(
+      ExtensionType receiverType, Name name, int fileOffset,
+      {required ObjectAccessTarget defaultTarget,
+      required bool isSetter,
+      required bool isPotentiallyNullable}) {
+    Extension extension = receiverType.extension;
+    ExtensionTypeShowHideClause? showHideClause = extension.showHideClause;
+    if (showHideClause == null) return defaultTarget;
+
+    kernel.Reference? findMember(Name name, List<kernel.Reference> references,
+        List<Supertype> interfaces,
+        {required bool isSetter}) {
+      for (kernel.Reference reference in references) {
+        if (reference.asMember.name == name) {
+          return reference;
+        }
+      }
+      for (Supertype interface in interfaces) {
+        Member? member = classHierarchy
+            .getInterfaceMember(interface.classNode, name, setter: isSetter);
+        if (member != null) {
+          return member.reference;
+        }
+      }
+      return null;
+    }
+
+    List<kernel.Reference> shownReferences = isSetter
+        ? showHideClause.shownSetters
+        : <kernel.Reference>[
+            ...showHideClause.shownGetters,
+            ...showHideClause.shownMethods,
+            ...showHideClause.shownOperators
+          ];
+    List<kernel.Reference> hiddenReferences = isSetter
+        ? showHideClause.hiddenSetters
+        : <kernel.Reference>[
+            ...showHideClause.hiddenGetters,
+            ...showHideClause.hiddenMethods,
+            ...showHideClause.hiddenOperators
+          ];
+
+    kernel.Reference? reference = findMember(
+        name, shownReferences, showHideClause.shownSupertypes,
+        isSetter: isSetter);
+    if (reference != null &&
+        findMember(name, hiddenReferences, showHideClause.hiddenSupertypes,
+                isSetter: isSetter) ==
+            null) {
+      return new ObjectAccessTarget.interfaceMember(reference.asMember,
+          isPotentiallyNullable: isPotentiallyNullable);
+    }
+
+    return defaultTarget;
+  }
+
   /// Returns extension member declared immediately for [receiverType].
   ///
   /// If none is found, [defaultTarget] is returned.
-  ObjectAccessTarget _findDirectExtensionMember(
+  ObjectAccessTarget _findDirectExtensionTypeMember(
       ExtensionType receiverType, Name name, int fileOffset,
       {required ObjectAccessTarget defaultTarget}) {
     Member? targetMember;
@@ -1175,8 +1232,14 @@ class TypeInferrerImpl implements TypeInferrer {
           : const ObjectAccessTarget.callFunction();
     } else if (library.enableExtensionTypesInLibrary &&
         receiverBound is ExtensionType) {
-      target = _findDirectExtensionMember(receiverBound, name, fileOffset,
+      target = _findDirectExtensionTypeMember(receiverBound, name, fileOffset,
           defaultTarget: const ObjectAccessTarget.missing());
+      if (target.kind == ObjectAccessTargetKind.missing) {
+        target = _findShownExtensionTypeMember(receiverBound, name, fileOffset,
+            isSetter: setter,
+            isPotentiallyNullable: isReceiverTypePotentiallyNullable,
+            defaultTarget: const ObjectAccessTarget.missing());
+      }
     } else {
       target = const ObjectAccessTarget.missing();
     }
