@@ -374,7 +374,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
       OptimizationTestLog log) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
-      HBitNot converted = new HBitNot(
+      HBitNot converted = HBitNot(
           input, computeTypeFromInputTypes(instruction, results, closedWorld));
       log?.registerBitNot(instruction, converted);
       return converted;
@@ -420,7 +420,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       OptimizationTestLog log) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
-      HNegate converted = new HNegate(
+      HNegate converted = HNegate(
           input, computeTypeFromInputTypes(instruction, results, closedWorld));
       log?.registerUnaryNegate(instruction, converted);
       return converted;
@@ -459,7 +459,7 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
       OptimizationTestLog log) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
-      HAbs converted = new HAbs(
+      HAbs converted = HAbs(
           input, computeTypeFromInputTypes(instruction, results, closedWorld));
       log?.registerAbs(instruction, converted);
       return converted;
@@ -585,7 +585,7 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HAdd(instruction.inputs[1], instruction.inputs[2],
+    return HAdd(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -617,7 +617,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HDivide(instruction.inputs[1], instruction.inputs[2],
+    return HDivide(instruction.inputs[1], instruction.inputs[2],
         closedWorld.abstractValueDomain.numType);
   }
 
@@ -658,7 +658,7 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (inputsArePositiveIntegers(instruction, closedWorld) &&
         !canBeNegativeZero(receiver)) {
-      return new HRemainder(instruction.inputs[1], instruction.inputs[2],
+      return HRemainder(instruction.inputs[1], instruction.inputs[2],
           computeTypeFromInputTypes(instruction, results, closedWorld));
     }
     // TODO(sra):
@@ -700,7 +700,7 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HRemainder(instruction.inputs[1], instruction.inputs[2],
+    return HRemainder(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -731,7 +731,7 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HMultiply(instruction.inputs[1], instruction.inputs[2],
+    return HMultiply(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -753,7 +753,7 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HSubtract(instruction.inputs[1], instruction.inputs[2],
+    return HSubtract(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -858,7 +858,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HTruncatingDivide(instruction.inputs[1], instruction.inputs[2],
+    return HTruncatingDivide(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -893,8 +893,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
       HConstant rightConstant = instruction;
       IntConstantValue intConstant = rightConstant.constant;
       int value = intConstant.intValue.toInt();
-      assert(intConstant.intValue ==
-          new BigInt.from(intConstant.intValue.toInt()));
+      assert(intConstant.intValue == BigInt.from(intConstant.intValue.toInt()));
       return value >= low && value <= high;
     }
     // TODO(sra): Integrate with the bit-width analysis in codegen.dart.
@@ -959,7 +958,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HShiftLeft(instruction.inputs[1], instruction.inputs[2],
+    return HShiftLeft(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -1030,7 +1029,7 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HShiftRight(instruction.inputs[1], instruction.inputs[2],
+    return HShiftRight(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -1134,7 +1133,7 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HBitOr(instruction.inputs[1], instruction.inputs[2],
+    return HBitOr(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -1171,7 +1170,7 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HBitAnd(instruction.inputs[1], instruction.inputs[2],
+    return HBitAnd(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -1205,7 +1204,7 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
   @override
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
-    return new HBitXor(instruction.inputs[1], instruction.inputs[2],
+    return HBitXor(instruction.inputs[1], instruction.inputs[2],
         computeTypeFromInputTypes(instruction, results, closedWorld));
   }
 
@@ -1310,7 +1309,7 @@ class EqualsSpecializer extends RelationalSpecializer {
   @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
-    return new HIdentity(instruction.inputs[1], instruction.inputs[2],
+    return HIdentity(instruction.inputs[1], instruction.inputs[2],
         closedWorld.abstractValueDomain.boolType);
   }
 
@@ -1332,7 +1331,7 @@ class LessSpecializer extends RelationalSpecializer {
   @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
-    return new HLess(instruction.inputs[1], instruction.inputs[2],
+    return HLess(instruction.inputs[1], instruction.inputs[2],
         closedWorld.abstractValueDomain.boolType);
   }
 
@@ -1354,7 +1353,7 @@ class GreaterSpecializer extends RelationalSpecializer {
   @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
-    return new HGreater(instruction.inputs[1], instruction.inputs[2],
+    return HGreater(instruction.inputs[1], instruction.inputs[2],
         closedWorld.abstractValueDomain.boolType);
   }
 
@@ -1376,7 +1375,7 @@ class GreaterEqualSpecializer extends RelationalSpecializer {
   @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
-    return new HGreaterEqual(instruction.inputs[1], instruction.inputs[2],
+    return HGreaterEqual(instruction.inputs[1], instruction.inputs[2],
         closedWorld.abstractValueDomain.boolType);
   }
 
@@ -1398,7 +1397,7 @@ class LessEqualSpecializer extends RelationalSpecializer {
   @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
-    return new HLessEqual(instruction.inputs[1], instruction.inputs[2],
+    return HLessEqual(instruction.inputs[1], instruction.inputs[2],
         closedWorld.abstractValueDomain.boolType);
   }
 

@@ -82,83 +82,83 @@ class SsaOptimizerTask extends CompilerTask {
     if (retainDataForTesting) {
       loggersForTesting ??= {};
       loggersForTesting[member] =
-          log = new OptimizationTestLog(closedWorld.dartTypes);
+          log = OptimizationTestLog(closedWorld.dartTypes);
     }
 
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            closedWorld, typeRecipeDomain, registry, log),
-        new SsaTypeConversionInserter(closedWorld),
-        new SsaRedundantPhiEliminator(),
-        new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(globalInferenceResults,
-            closedWorld.commonElements, closedWorld, log),
+        SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
+            typeRecipeDomain, registry, log),
+        SsaTypeConversionInserter(closedWorld),
+        SsaRedundantPhiEliminator(),
+        SsaDeadPhiEliminator(),
+        SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
+            closedWorld, log),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            closedWorld, typeRecipeDomain, registry, log),
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            closedWorld, typeRecipeDomain, registry, log),
-        new SsaTypePropagator(globalInferenceResults,
-            closedWorld.commonElements, closedWorld, log),
+        SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
+            typeRecipeDomain, registry, log),
+        SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
+            typeRecipeDomain, registry, log),
+        SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
+            closedWorld, log),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
-        new SsaDeadCodeEliminator(closedWorld, this),
-        new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
+        SsaDeadCodeEliminator(closedWorld, this),
+        SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        new SsaTypePropagator(globalInferenceResults,
-            closedWorld.commonElements, closedWorld, log),
-        codeMotion = new SsaCodeMotion(closedWorld.abstractValueDomain),
-        loadElimination = new SsaLoadElimination(closedWorld),
-        new SsaRedundantPhiEliminator(),
-        new SsaDeadPhiEliminator(),
+        SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
+            closedWorld, log),
+        codeMotion = SsaCodeMotion(closedWorld.abstractValueDomain),
+        loadElimination = SsaLoadElimination(closedWorld),
+        SsaRedundantPhiEliminator(),
+        SsaDeadPhiEliminator(),
         // After GVN and load elimination the same value may be used in code
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
-        new SsaTypeConversionInserter(closedWorld),
-        new SsaTypePropagator(globalInferenceResults,
-            closedWorld.commonElements, closedWorld, log),
-        new SsaValueRangeAnalyzer(closedWorld, this),
+        SsaTypeConversionInserter(closedWorld),
+        SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
+            closedWorld, log),
+        SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            closedWorld, typeRecipeDomain, registry, log),
+        SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
+            typeRecipeDomain, registry, log),
       ];
       phases.forEach(runPhase);
 
       // Simplifying interceptors is just an optimization, it is required for
       // implementation correctness because the code generator assumes it is
       // always performed to compute the intercepted classes sets.
-      runPhase(new SsaSimplifyInterceptors(closedWorld, member.enclosingClass));
+      runPhase(SsaSimplifyInterceptors(closedWorld, member.enclosingClass));
 
-      SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
+      SsaDeadCodeEliminator dce = SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
       if (codeMotion.movedCode ||
           dce.eliminatedSideEffects ||
           dce.newGvnCandidates ||
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(globalInferenceResults,
-              closedWorld.commonElements, closedWorld, log),
-          new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
-          new SsaCodeMotion(closedWorld.abstractValueDomain),
-          new SsaValueRangeAnalyzer(closedWorld, this),
-          new SsaInstructionSimplifier(globalInferenceResults, _options,
+          SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
+              closedWorld, log),
+          SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
+          SsaCodeMotion(closedWorld.abstractValueDomain),
+          SsaValueRangeAnalyzer(closedWorld, this),
+          SsaInstructionSimplifier(globalInferenceResults, _options,
               closedWorld, typeRecipeDomain, registry, log),
-          new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
-          new SsaDeadCodeEliminator(closedWorld, this),
+          SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
+          SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(globalInferenceResults,
-              closedWorld.commonElements, closedWorld, log),
+          SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
+              closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(globalInferenceResults, _options,
+          SsaInstructionSimplifier(globalInferenceResults, _options,
               closedWorld, typeRecipeDomain, registry, log),
         ];
       }
@@ -375,7 +375,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _mostlyEmpty(whenNotNullBlock)) {
       HInstruction trueConstant = _graph.addConstantBool(true, _closedWorld);
       HInstruction replacement =
-          new HIdentity(tested, trueConstant, _abstractValueDomain.boolType)
+          HIdentity(tested, trueConstant, _abstractValueDomain.boolType)
             ..sourceElement = phi.sourceElement
             ..sourceInformation = phi.sourceInformation;
       block.rewrite(phi, replacement);
@@ -397,12 +397,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _mostlyEmpty(whenNotNullBlock)) {
       HInstruction falseConstant = _graph.addConstantBool(false, _closedWorld);
       HInstruction compare =
-          new HIdentity(tested, falseConstant, _abstractValueDomain.boolType);
+          HIdentity(tested, falseConstant, _abstractValueDomain.boolType);
       block.addAtEntry(compare);
-      HInstruction replacement =
-          new HNot(compare, _abstractValueDomain.boolType)
-            ..sourceElement = phi.sourceElement
-            ..sourceInformation = phi.sourceInformation;
+      HInstruction replacement = HNot(compare, _abstractValueDomain.boolType)
+        ..sourceElement = phi.sourceElement
+        ..sourceInformation = phi.sourceInformation;
       block.rewrite(phi, replacement);
       block.addAfter(compare, replacement);
       block.removePhi(phi);
@@ -607,7 +606,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         resultType = _abstractValueDomain.uint32Type;
       }
       HGetLength result =
-          new HGetLength(actualReceiver, resultType, isAssignable: !isFixed);
+          HGetLength(actualReceiver, resultType, isAssignable: !isFixed);
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -673,7 +672,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           HInstruction argument = node.inputs[2];
           if (argument.isString(_abstractValueDomain).isDefinitelyTrue &&
               input.isNull(_abstractValueDomain).isDefinitelyFalse) {
-            return new HStringConcat(input, argument, node.instructionType);
+            return HStringConcat(input, argument, node.instructionType);
           }
         } else if (applies(commonElements.jsStringToString) &&
             input.isNull(_abstractValueDomain).isDefinitelyFalse) {
@@ -690,7 +689,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // bounds check will become explicit, so we won't need this
         // optimization.
         // TODO(sra): Fix comment - SsaCheckInserter is deleted.
-        HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+        HInvokeDynamicMethod result = HInvokeDynamicMethod(
             node.selector,
             node.receiverType,
             node.inputs.sublist(1), // Drop interceptor.
@@ -727,7 +726,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     AbstractValue resultMask = _abstractValueDomain.growableListType;
 
-    HInvokeDynamicMethod splitInstruction = new HInvokeDynamicMethod(
+    HInvokeDynamicMethod splitInstruction = HInvokeDynamicMethod(
         node.selector,
         node.receiverType,
         node.inputs.sublist(1), // Drop interceptor.
@@ -751,7 +750,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _abstractValueDomain.dynamicType);
     node.block.addBefore(node, typeInfo);
 
-    HInvokeStatic tagInstruction = new HInvokeStatic(
+    HInvokeStatic tagInstruction = HInvokeStatic(
         commonElements.setArrayType,
         <HInstruction>[splitInstruction, typeInfo],
         resultMask,
@@ -839,12 +838,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
           node.block.addBefore(node, load);
           insertionPoint = load;
         }
-        Selector callSelector = new Selector.callClosureFrom(node.selector);
+        Selector callSelector = Selector.callClosureFrom(node.selector);
         List<HInstruction> inputs = <HInstruction>[load]
           ..addAll(node.inputs.skip(node.isInterceptedCall ? 2 : 1));
         DartType fieldType =
             _closedWorld.elementEnvironment.getFieldType(field);
-        HInstruction closureCall = new HInvokeClosure(
+        HInstruction closureCall = HInvokeClosure(
             callSelector,
             _abstractValueDomain
                 .createFromStaticType(fieldType, nullable: true)
@@ -1129,7 +1128,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (constant.constant.isTrue) {
         return input;
       } else {
-        return new HNot(input, _abstractValueDomain.boolType);
+        return HNot(input, _abstractValueDomain.boolType);
       }
     }
 
@@ -1398,8 +1397,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         isFixedLength(receiver.instructionType, _closedWorld)) {
       // The input type has changed to fixed-length so change to an unassignable
       // HGetLength to allow more GVN optimizations.
-      return new HGetLength(receiver, node.instructionType,
-          isAssignable: false);
+      return HGetLength(receiver, node.instructionType, isAssignable: false);
     }
     return node;
   }
@@ -1599,7 +1597,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         if (parameterStructure.callStructure == node.selector.callStructure) {
           // TODO(sra): Handle adding optional arguments default values.
           assert(!node.isInterceptedCall);
-          return new HInvokeStatic(target, node.inputs.skip(1).toList(),
+          return HInvokeStatic(target, node.inputs.skip(1).toList(),
               node.instructionType, node.typeArguments)
             ..sourceInformation = node.sourceInformation;
         }
@@ -1615,7 +1613,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (element == commonElements.identicalFunction) {
       if (node.inputs.length == 2) {
-        return new HIdentity(
+        return HIdentity(
             node.inputs[0], node.inputs[1], _abstractValueDomain.boolType)
           ..sourceInformation = node.sourceInformation;
       }
@@ -1759,7 +1757,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             .createString(leftString.stringValue + rightString.stringValue),
         _closedWorld);
     if (prefix == null) return folded;
-    return new HStringConcat(prefix, folded, _abstractValueDomain.stringType);
+    return HStringConcat(prefix, folded, _abstractValueDomain.stringType);
   }
 
   @override
@@ -1825,7 +1823,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           .isInterceptor(input.instructionType)
           .isDefinitelyFalse) {
         var inputs = <HInstruction>[input, input]; // [interceptor, receiver].
-        HInstruction result = new HInvokeDynamicMethod(
+        HInstruction result = HInvokeDynamicMethod(
             selector,
             input.instructionType, // receiver type.
             inputs,
@@ -2311,7 +2309,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   HGraph _graph;
   SsaLiveBlockAnalyzer analyzer;
   Map<HInstruction, bool> trivialDeadStoreReceivers =
-      new Maplet<HInstruction, bool>();
+      Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
   bool newGvnCandidates = false;
 
@@ -2425,7 +2423,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   @override
   void visitGraph(HGraph graph) {
     _graph = graph;
-    analyzer = new SsaLiveBlockAnalyzer(graph, closedWorld, optimizer);
+    analyzer = SsaLiveBlockAnalyzer(graph, closedWorld, optimizer);
     analyzer.analyze();
     visitPostDominatorTree(graph);
     cleanPhis();
@@ -2627,7 +2625,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
 class SsaLiveBlockAnalyzer extends HBaseVisitor {
   final HGraph graph;
-  final Set<HBasicBlock> live = new Set<HBasicBlock>();
+  final Set<HBasicBlock> live = Set<HBasicBlock>();
   final List<HBasicBlock> worklist = <HBasicBlock>[];
   final SsaOptimizerTask optimizer;
   final JClosedWorld closedWorld;
@@ -2686,7 +2684,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
         IntValue upperValue = switchRange.upper;
         BigInt lower = lowerValue.value;
         BigInt upper = upperValue.value;
-        Set<BigInt> liveLabels = new Set<BigInt>();
+        Set<BigInt> liveLabels = Set<BigInt>();
         for (int pos = 1; pos < node.inputs.length; pos++) {
           HConstant input = node.inputs[pos];
           if (!input.isConstantInteger()) continue;
@@ -2697,7 +2695,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
             liveLabels.add(label);
           }
         }
-        if (new BigInt.from(liveLabels.length) != upper - lower + BigInt.one) {
+        if (BigInt.from(liveLabels.length) != upper - lower + BigInt.one) {
           markBlockLive(node.defaultTarget);
         }
         return;
@@ -2715,7 +2713,7 @@ class SsaDeadPhiEliminator implements OptimizationPhase {
   void visitGraph(HGraph graph) {
     final List<HPhi> worklist = <HPhi>[];
     // A set to keep track of the live phis that we found.
-    final Set<HPhi> livePhis = new Set<HPhi>();
+    final Set<HPhi> livePhis = Set<HPhi>();
 
     // Add to the worklist all live phis: phis referenced by non-phi
     // instructions.
@@ -2835,14 +2833,14 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   List<int> blockChangesFlags;
   List<int> loopChangesFlags;
 
-  SsaGlobalValueNumberer(this._abstractValueDomain) : visited = new Set<int>();
+  SsaGlobalValueNumberer(this._abstractValueDomain) : visited = Set<int>();
 
   @override
   void visitGraph(HGraph graph) {
     computeChangesFlags(graph);
     moveLoopInvariantCode(graph);
     List<GvnWorkItem> workQueue = <GvnWorkItem>[
-      new GvnWorkItem(graph.entry, new ValueSet())
+      GvnWorkItem(graph.entry, ValueSet())
     ];
     do {
       GvnWorkItem item = workQueue.removeLast();
@@ -2976,7 +2974,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         } while (!workQueue.isEmpty);
         successorValues.kill(changesFlags);
       }
-      workQueue.add(new GvnWorkItem(dominated, successorValues));
+      workQueue.add(GvnWorkItem(dominated, successorValues));
     }
   }
 
@@ -2985,8 +2983,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = new List<int>.filled(length, null);
-    loopChangesFlags = new List<int>.filled(length, null);
+    blockChangesFlags = List<int>.filled(length, null);
+    loopChangesFlags = List<int>.filled(length, null);
     for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
 
     // Run through all the basic blocks in the graph and fill in the
@@ -3067,9 +3065,9 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitGraph(HGraph graph) {
-    values = new List<ValueSet>.filled(graph.blocks.length, null);
+    values = List<ValueSet>.filled(graph.blocks.length, null);
     for (int i = 0; i < graph.blocks.length; i++) {
-      values[graph.blocks[i].id] = new ValueSet();
+      values[graph.blocks[i].id] = ValueSet();
     }
     visitPostDominatorTree(graph);
   }
@@ -3198,7 +3196,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
       }
     }
 
-    HTypeKnown newInput = new HTypeKnown.pinned(convertedType, input);
+    HTypeKnown newInput = HTypeKnown.pinned(convertedType, input);
     dominator.addBefore(dominator.first, newInput);
     dominatedUses.replaceWith(newInput);
   }
@@ -3344,7 +3342,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   @override
   void visitGraph(HGraph graph) {
     _graph = graph;
-    memories = new List<MemorySet>.filled(graph.blocks.length, null);
+    memories = List<MemorySet>.filled(graph.blocks.length, null);
     List<HBasicBlock> blocks = graph.blocks;
     for (int i = 0; i < blocks.length; i++) {
       HBasicBlock block = blocks[i];
@@ -3366,7 +3364,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     final indegree = predecessors.length;
     if (indegree == 0) {
       // Entry block.
-      memorySet = new MemorySet(_closedWorld);
+      memorySet = MemorySet(_closedWorld);
     } else if (indegree == 1 && predecessors[0].successors.length == 1) {
       // No need to clone, there is no other successor for
       // `block.predecessors[0]`, and this block has only one predecessor. Since
@@ -3693,7 +3691,7 @@ class MemorySet {
       <HInstruction, Map<HInstruction, HInstruction>>{};
 
   /// Set of objects that we know don't escape the current function.
-  final Setlet<HInstruction> nonEscapingReceivers = new Setlet<HInstruction>();
+  final Setlet<HInstruction> nonEscapingReceivers = Setlet<HInstruction>();
 
   MemorySet(this.closedWorld);
 
@@ -3948,7 +3946,7 @@ class MemorySet {
       phi.instructionType = phiType;
       return phi;
     } else {
-      HPhi phi = new HPhi.noInputs(null, phiType);
+      HPhi phi = HPhi.noInputs(null, phiType);
       block.addPhi(phi);
       // Previous predecessors had the same input. A phi must have
       // the same number of inputs as its block has predecessors.
@@ -3963,7 +3961,7 @@ class MemorySet {
   /// Returns the intersection between [this] and the [other] memory set.
   MemorySet intersectionFor(
       MemorySet other, HBasicBlock block, int predecessorIndex) {
-    MemorySet result = new MemorySet(closedWorld);
+    MemorySet result = MemorySet(closedWorld);
     if (other == null) {
       // This is the first visit to a loop header ([other] is `null` because we
       // have not visited the back edge). Copy the nonEscapingReceivers that are
@@ -4043,16 +4041,16 @@ class MemorySet {
 
   /// Returns a copy of [this] memory set.
   MemorySet clone() {
-    MemorySet result = new MemorySet(closedWorld);
+    MemorySet result = MemorySet(closedWorld);
 
     fieldValues.forEach((element, values) {
       result.fieldValues[element] =
-          new Map<HInstruction, HInstruction>.from(values);
+          Map<HInstruction, HInstruction>.from(values);
     });
 
     keyedValues.forEach((receiver, values) {
       result.keyedValues[receiver] =
-          new Map<HInstruction, HInstruction>.from(values);
+          Map<HInstruction, HInstruction>.from(values);
     });
 
     result.nonEscapingReceivers.addAll(nonEscapingReceivers);

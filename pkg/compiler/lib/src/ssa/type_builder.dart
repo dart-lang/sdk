@@ -49,7 +49,7 @@ abstract class TypeBuilder {
 
   /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
   /// no approximating type mask (i.e. the type mask would be `dynamic`).
-  AbstractValue trustTypeMask(DartType type, {bool hasLateSentinel: false}) {
+  AbstractValue trustTypeMask(DartType type, {bool hasLateSentinel = false}) {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
     if (_closedWorld.dartTypes.isTopType(type)) return null;
@@ -74,7 +74,7 @@ abstract class TypeBuilder {
         .isPotentiallyTrue;
     AbstractValue mask = trustTypeMask(type, hasLateSentinel: hasLateSentinel);
     if (mask == null) return original;
-    return new HTypeKnown.pinned(mask, original);
+    return HTypeKnown.pinned(mask, original);
   }
 
   /// Produces code that checks the runtime type is actually the type specified
@@ -87,7 +87,7 @@ abstract class TypeBuilder {
     // If it is needed then it seems likely that similar invocations of
     // `buildAsCheck` in `SsaBuilder.visitAs` should also be followed by a
     // similar operation on `registry`; otherwise, this one might not be needed.
-    builder.registry?.registerTypeUse(new TypeUse.isCheck(type));
+    builder.registry?.registerTypeUse(TypeUse.isCheck(type));
     if (other is HAsCheck &&
         other.isRedundant(builder.closedWorld, builder.options)) {
       return original;
@@ -104,7 +104,7 @@ abstract class TypeBuilder {
       return original;
     }
     DartType boolType = _closedWorld.commonElements.boolType;
-    builder.registry?.registerTypeUse(new TypeUse.isCheck(boolType));
+    builder.registry?.registerTypeUse(TypeUse.isCheck(boolType));
     return checkInstruction;
   }
 

@@ -30,10 +30,10 @@ import 'optimize.dart';
 // TODO(sra): The InvokeDynamicSpecializer should be consulted for better
 // targeted conditioning checks.
 class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
-  final Map<int, HInstruction> workmap = new Map<int, HInstruction>();
+  final Map<int, HInstruction> workmap = Map<int, HInstruction>();
   final List<int> worklist = <int>[];
   final Map<HInstruction, Function> pendingOptimizations =
-      new Map<HInstruction, Function>();
+      Map<HInstruction, Function>();
 
   final GlobalTypeInferenceResults results;
   final CommonElements commonElements;
@@ -248,7 +248,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     Selector selector = (kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK)
         ? instruction.selector
         : null;
-    HPrimitiveCheck converted = new HPrimitiveCheck(
+    HPrimitiveCheck converted = HPrimitiveCheck(
         typeExpression, kind, type, input, instruction.sourceInformation,
         receiverTypeCheckSelector: selector);
     instruction.block.addBefore(instruction, converted);
@@ -418,7 +418,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           // dominated by the call to use that node instead of [receiver].
           AbstractValue newType = abstractValueDomain.excludeNull(receiverType);
           HTypeKnown converted =
-              new HTypeKnown.witnessed(newType, receiver, instruction);
+              HTypeKnown.witnessed(newType, receiver, instruction);
           instruction.block.addBefore(instruction.next, converted);
           uses.replaceWith(converted);
           addDependentInstructionsToWorkList(converted);
