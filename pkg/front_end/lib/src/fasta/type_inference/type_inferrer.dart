@@ -937,7 +937,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// If none is found, [defaultTarget] is returned.
   ObjectAccessTarget _findDirectExtensionTypeMember(
       ExtensionType receiverType, Name name, int fileOffset,
-      {required ObjectAccessTarget defaultTarget}) {
+      {required ObjectAccessTarget defaultTarget, required bool isSetter}) {
     Member? targetMember;
     Member? targetTearoff;
     ProcedureKind? targetKind;
@@ -946,27 +946,37 @@ class TypeInferrerImpl implements TypeInferrer {
       if (descriptor.name == name) {
         switch (descriptor.kind) {
           case ExtensionMemberKind.Method:
-            targetMember = descriptor.member.asMember;
-            targetTearoff ??= targetMember;
-            targetKind = ProcedureKind.Method;
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff ??= targetMember;
+              targetKind = ProcedureKind.Method;
+            }
             break;
           case ExtensionMemberKind.TearOff:
-            targetTearoff = descriptor.member.asMember;
+            if (!isSetter) {
+              targetTearoff = descriptor.member.asMember;
+            }
             break;
           case ExtensionMemberKind.Getter:
-            targetMember = descriptor.member.asMember;
-            targetTearoff = null;
-            targetKind = ProcedureKind.Getter;
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Getter;
+            }
             break;
           case ExtensionMemberKind.Setter:
-            targetMember = descriptor.member.asMember;
-            targetTearoff = null;
-            targetKind = ProcedureKind.Setter;
+            if (isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Setter;
+            }
             break;
           case ExtensionMemberKind.Operator:
-            targetMember = descriptor.member.asMember;
-            targetTearoff = null;
-            targetKind = ProcedureKind.Operator;
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Operator;
+            }
             break;
           default:
             unhandled("${descriptor.kind}", "_findDirectExtensionMember",
@@ -1233,7 +1243,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else if (library.enableExtensionTypesInLibrary &&
         receiverBound is ExtensionType) {
       target = _findDirectExtensionTypeMember(receiverBound, name, fileOffset,
-          defaultTarget: const ObjectAccessTarget.missing());
+          isSetter: setter, defaultTarget: const ObjectAccessTarget.missing());
       if (target.kind == ObjectAccessTargetKind.missing) {
         target = _findShownExtensionTypeMember(receiverBound, name, fileOffset,
             isSetter: setter,
