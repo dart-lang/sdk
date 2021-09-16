@@ -3745,7 +3745,7 @@ std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
 
   volatile bool has_exception = false;
   {
-    LongJumpScope jump;
+    LongJumpScope jump(thread);
     if (setjmp(*jump.Set()) == 0) {
       serializer.Serialize(obj);
     } else {
@@ -3820,8 +3820,13 @@ ObjectPtr ReadMessage(Thread* thread, Message* message) {
     return ReadObjectGraphCopyMessage(thread, message->persistent_handle());
   } else {
     RELEASE_ASSERT(message->IsSnapshot());
-    MessageDeserializer deserializer(thread, message);
-    return deserializer.Deserialize();
+    LongJumpScope jump(thread);
+    if (setjmp(*jump.Set()) == 0) {
+      MessageDeserializer deserializer(thread, message);
+      return deserializer.Deserialize();
+    } else {
+      return thread->StealStickyError();
+    }
   }
 }
 
