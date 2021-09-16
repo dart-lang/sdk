@@ -1928,6 +1928,9 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
       ASSERT(instructions.current->previous() != nullptr);
       instructions.current = instructions.current->previous();
     } else {
+      if (NeedsDebugStepCheck(stack(), position)) {
+        instructions = DebugStepCheck(position) + instructions;
+      }
       instructions += CheckBoolean(position);
       instructions += Constant(Bool::True());
       Value* right_value = Pop();

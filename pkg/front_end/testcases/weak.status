@@ -13,6 +13,7 @@ dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
+extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
 extension_types/show_and_run_ceil: ExpectationFileMismatchSerialized # Expected.

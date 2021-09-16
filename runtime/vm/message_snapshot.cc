@@ -3162,6 +3162,7 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
       cid = kDoubleCid;
       break;
     case Dart_CObject_kString: {
+      RELEASE_ASSERT(object->value.as_string != NULL);
       const uint8_t* utf8_str =
           reinterpret_cast<const uint8_t*>(object->value.as_string);
       intptr_t utf8_len = strlen(object->value.as_string);
@@ -3744,7 +3745,7 @@ std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
 
   volatile bool has_exception = false;
   {
-    LongJumpScope jump;
+    LongJumpScope jump(thread);
     if (setjmp(*jump.Set()) == 0) {
       serializer.Serialize(obj);
     } else {
@@ -3819,8 +3820,13 @@ ObjectPtr ReadMessage(Thread* thread, Message* message) {
     return ReadObjectGraphCopyMessage(thread, message->persistent_handle());
   } else {
     RELEASE_ASSERT(message->IsSnapshot());
-    MessageDeserializer deserializer(thread, message);
-    return deserializer.Deserialize();
+    LongJumpScope jump(thread);
+    if (setjmp(*jump.Set()) == 0) {
+      MessageDeserializer deserializer(thread, message);
+      return deserializer.Deserialize();
+    } else {
+      return thread->StealStickyError();
+    }
   }
 }
 

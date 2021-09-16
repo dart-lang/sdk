@@ -15340,7 +15340,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a null-aware operator (`?.`,
-  // `?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+  // `?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
   // non-nullable.
   //
   // #### Example

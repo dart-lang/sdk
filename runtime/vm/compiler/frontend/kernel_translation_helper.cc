@@ -834,7 +834,8 @@ String& TranslationHelper::ManglePrivateName(const Library& library,
                                              String* name_to_modify,
                                              bool symbolize,
                                              bool obfuscate) {
-  if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
+  if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_' &&
+      !library.IsNull()) {
     *name_to_modify = library.PrivateName(*name_to_modify);
     if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle(library.private_key());
