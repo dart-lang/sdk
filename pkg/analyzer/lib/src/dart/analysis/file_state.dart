@@ -141,7 +141,6 @@ class FileState {
 
   LibraryCycle? _libraryCycle;
   String? _transitiveSignature;
-  String? _transitiveSignatureLinked;
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
@@ -350,11 +349,6 @@ class FileState {
     return _transitiveSignature!;
   }
 
-  /// The value `transitiveSignature.linked` is used often, so we cache it.
-  String get transitiveSignatureLinked {
-    return _transitiveSignatureLinked ??= '$transitiveSignature.linked';
-  }
-
   /// The [UnlinkedUnit2] of the file.
   UnlinkedUnit2 get unlinked2 => _unlinked2!;
 
@@ -390,7 +384,6 @@ class FileState {
     if (cycle == null) {
       _libraryCycle = null;
       _transitiveSignature = null;
-      _transitiveSignatureLinked = null;
     } else {
       _libraryCycle = cycle;
       _transitiveSignature = signature;

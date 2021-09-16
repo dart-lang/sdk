@@ -1409,7 +1409,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       if (targetChecks.checkAllParameters ||
           (targetChecks.checkCovariantParameters &&
-              (variable.isCovariantByClass || variable.isCovariantByDeclaration))) {
+              (variable.isCovariantByClass ||
+                  variable.isCovariantByDeclaration))) {
         newParameter = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             targetElement, newParameter, type);
       } else {
@@ -3747,7 +3748,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           // Filter elided parameters.
           .where((p) => parameterStructure.namedParameters.contains(p.name))
           .toList()
-            ..sort(namedOrdering);
+        ..sort(namedOrdering);
       for (ir.VariableDeclaration parameter in namedParameters) {
         HInstruction value = namedValues[parameter.name];
         if (value == null) {
@@ -6526,6 +6527,10 @@ class TryCatchFinallyBuilder {
         const <DartType>[],
         sourceInformation: trySourceInformation);
     HInvokeStatic unwrappedException = kernelBuilder.pop();
+    unwrappedException.sideEffects
+      ..clearAllDependencies()
+      ..clearAllSideEffects();
+    unwrappedException.targetCanThrow = false;
     tryInstruction.exception = exception;
     int catchesIndex = 0;
 

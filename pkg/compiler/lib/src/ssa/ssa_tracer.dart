@@ -584,7 +584,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitExitTry(HExitTry node) {
-    return "ExitTry";
+    final targets = currentBlock.successors.map((block) => 'B${block.id}');
+    return "ExitTry: (${targets.join(', ')})";
   }
 
   @override

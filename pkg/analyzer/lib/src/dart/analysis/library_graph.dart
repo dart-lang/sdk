@@ -36,20 +36,6 @@ class LibraryCycle {
   /// files that [libraries] reference (but we don't compute these files).
   String? transitiveSignature;
 
-  /// The map from a library in [libraries] to its transitive signature.
-  ///
-  /// It is almost the same as [transitiveSignature], but is also based on
-  /// the URI of this specific library.  Currently we store each linked library
-  /// with its own key, so we need unique keys.  However practically we never
-  /// can use just *one* library of a cycle, we always use the whole cycle.
-  ///
-  /// TODO(scheglov) Switch to loading the whole cycle maybe?
-  final Map<FileState, String> transitiveSignatures = {};
-
-  LibraryCycle();
-
-  LibraryCycle.external() : transitiveSignature = '<external>';
-
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
   /// Practically invalidation means that we clear the library cycle in all the
