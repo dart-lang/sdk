@@ -4,7 +4,6 @@
 import "dart:convert";
 import "dart:io";
 import "package:kernel/kernel.dart";
-import "package:kernel/ast.dart";
 
 main(List<String> args) async {
   // Ensure right args are passed.
