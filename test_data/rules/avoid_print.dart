@@ -11,6 +11,9 @@ void main() {
   [1,2,3].forEach(print); // LINT
   Future.value('hello').then(print); // LINT
   if (kDebugMode) print(''); // OK
+  if (kDebugMode) {
+    print(''); // OK
+  }
 }
 
 
