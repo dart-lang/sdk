@@ -798,71 +798,58 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [HintCode.UNNECESSARY_TYPE_CHECK_TRUE], and
   /// [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
-    Expression expression = node.expression;
-    TypeAnnotation typeName = node.type;
-    var rhsType = typeName.type as TypeImpl;
-    var rhsNameStr = typeName is TypeName ? typeName.name.name : null;
-    // if x is dynamic
-    if (rhsType.isDynamic && rhsNameStr == Keyword.DYNAMIC.lexeme) {
-      if (node.notOperator == null) {
-        // the is case
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
-      } else {
-        // the is not case
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
-      }
-      return true;
+    var leftNode = node.expression;
+    var rightNode = node.type;
+    var rightType = rightNode.type as TypeImpl;
+
+    void report() {
+      _errorReporter.reportErrorForNode(
+        node.notOperator == null
+            ? HintCode.UNNECESSARY_TYPE_CHECK_TRUE
+            : HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+        node,
+      );
     }
+
+    // `is dynamic` or `is! dynamic`
+    if (rightType.isDynamic) {
+      var rightTypeStr = rightNode is TypeName ? rightNode.name.name : null;
+      if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
+        report();
+        return true;
+      }
+      return false;
+    }
+
     // `is Null` or `is! Null`
-    if (rhsType.isDartCoreNull) {
-      if (expression is NullLiteral) {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-            node,
-          );
-        }
+    if (rightType.isDartCoreNull) {
+      if (leftNode is NullLiteral) {
+        report();
       } else {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.TYPE_CHECK_IS_NULL,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.TYPE_CHECK_IS_NOT_NULL,
-            node,
-          );
-        }
+        _errorReporter.reportErrorForNode(
+          node.notOperator == null
+              ? HintCode.TYPE_CHECK_IS_NULL
+              : HintCode.TYPE_CHECK_IS_NOT_NULL,
+          node,
+        );
       }
       return true;
     }
-    // `is Object` or `is! Object`
-    if (rhsType.isDartCoreObject) {
-      var nullability = rhsType.nullabilitySuffix;
-      if (nullability == NullabilitySuffix.star ||
-          nullability == NullabilitySuffix.question) {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-            node,
-          );
-        }
+
+    if (_isNonNullableByDefault) {
+      var leftType = leftNode.typeOrThrow;
+      if (_typeSystem.isSubtypeOf(leftType, rightType)) {
+        report();
+        return true;
+      }
+    } else {
+      // In legacy all types are subtypes of `Object`.
+      if (rightType.isDartCoreObject) {
+        report();
         return true;
       }
     }
+
     return false;
   }
 
