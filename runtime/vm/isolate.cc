@@ -2116,7 +2116,7 @@ void Isolate::MakeRunnableLocked() {
 #ifndef PRODUCT
   if (!Isolate::IsSystemIsolate(this) && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
-    Service::HandleEvent(&runnableEvent);
+    Service::HandleEvent(&runnableEvent, /* enter_safepoint */ false);
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
 #endif  // !PRODUCT
@@ -2396,21 +2396,25 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
     head = next;
   }
   head = reversed_head;
+
+  if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
+    SampleBlockListProcessor buffer(head);
+    StackZone zone(thread);
+    HandleScope handle_scope(thread);
+    Profile profile;
+    profile.Build(thread, nullptr, head);
+    ServiceEvent event(this, ServiceEvent::kCpuSamples);
+    event.set_cpu_profile(&profile);
+    Service::HandleEvent(&event);
+  }
+
   while (head != nullptr) {
-    if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
-      StackZone zone(thread);
-      HandleScope handle_scope(thread);
-      Profile profile;
-      profile.Build(thread, nullptr, head);
-      ServiceEvent event(this, ServiceEvent::kCpuSamples);
-      event.set_cpu_profile(&profile);
-      Service::HandleEvent(&event);
-    }
     SampleBlock* next = head->next_free_;
     head->next_free_ = nullptr;
     head->evictable_ = true;
     Profiler::sample_block_buffer()->FreeBlock(head);
     head = next;
+    thread->CheckForSafepoint();
   }
 }
 #endif  // !defined(PRODUCT)

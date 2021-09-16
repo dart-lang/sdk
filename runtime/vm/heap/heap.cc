@@ -1020,7 +1020,7 @@ void Heap::RecordAfterGC(GCType type) {
           if (!Isolate::IsSystemIsolate(isolate)) {
             ServiceEvent event(isolate, ServiceEvent::kGC);
             event.set_gc_stats(&stats_);
-            Service::HandleEvent(&event);
+            Service::HandleEvent(&event, /*enter_safepoint*/ false);
           }
         },
         /*at_safepoint=*/true);

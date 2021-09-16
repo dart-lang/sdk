@@ -1106,7 +1106,7 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
   }
 }
 
-void Service::HandleEvent(ServiceEvent* event) {
+void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
   if (event->stream_info() != NULL && !event->stream_info()->enabled()) {
     if (FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
       // If we are about to pause a running program which has no
@@ -1133,7 +1133,8 @@ void Service::HandleEvent(ServiceEvent* event) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
+  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js,
+            enter_safepoint);
 
   // Post event to the native Service Stream handlers if set.
   if (event->stream_info() != nullptr &&
@@ -1147,13 +1148,28 @@ void Service::HandleEvent(ServiceEvent* event) {
 void Service::PostEvent(Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
-                        JSONStream* event) {
-  ASSERT(stream_id != NULL);
-  ASSERT(kind != NULL);
-  ASSERT(event != NULL);
+                        JSONStream* event,
+                        bool enter_safepoint) {
+  if (enter_safepoint) {
+    // Enter a safepoint so we don't block the mutator while processing
+    // large events.
+    TransitionToNative transition(Thread::Current());
+    PostEventImpl(isolate, stream_id, kind, event);
+    return;
+  }
+  PostEventImpl(isolate, stream_id, kind, event);
+}
+
+void Service::PostEventImpl(Isolate* isolate,
+                            const char* stream_id,
+                            const char* kind,
+                            JSONStream* event) {
+  ASSERT(stream_id != nullptr);
+  ASSERT(kind != nullptr);
+  ASSERT(event != nullptr);
 
   if (FLAG_trace_service) {
-    if (isolate != NULL) {
+    if (isolate != nullptr) {
       OS::PrintErr(
           "vm-service: Pushing ServiceEvent(isolate='%s', "
           "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
