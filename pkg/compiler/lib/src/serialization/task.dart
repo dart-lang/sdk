@@ -28,6 +28,15 @@ import '../util/sink_adapter.dart';
 import '../world.dart';
 import 'serialization.dart';
 
+/// A data class holding a [JsClosedWorld] and the associated
+/// [DataSourceIndices].
+class ClosedWorldAndIndices {
+  final JsClosedWorld closedWorld;
+  final DataSourceIndices indices;
+
+  ClosedWorldAndIndices(this.closedWorld, this.indices);
+}
+
 void serializeGlobalTypeInferenceResultsToSink(
     GlobalTypeInferenceResults results, DataSink sink) {
   JsClosedWorld closedWorld = results.closedWorld;
@@ -255,7 +264,7 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  Future<JsClosedWorld> deserializeClosedWorld(
+  Future<ClosedWorldAndIndices> deserializeClosedWorld(
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component) async {
@@ -266,12 +275,14 @@ class SerializationTask extends CompilerTask {
           inputKind: api.InputKind.binary);
       DataSource source =
           BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
-      return deserializeClosedWorldFromSource(_options, _reporter, environment,
-          abstractValueStrategy, component, source);
+      var closedWorld = deserializeClosedWorldFromSource(_options, _reporter,
+          environment, abstractValueStrategy, component, source);
+      return ClosedWorldAndIndices(closedWorld, source.exportIndices());
     });
   }
 
-  void serializeGlobalTypeInference(GlobalTypeInferenceResults results) {
+  void serializeGlobalTypeInference(
+      GlobalTypeInferenceResults results, DataSourceIndices indices) {
     JsClosedWorld closedWorld = results.closedWorld;
     ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
     serializeComponent(component);
@@ -280,7 +291,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to ${_options.writeDataUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeDataUri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput),
+          importedIndices: indices);
       serializeGlobalTypeInferenceResultsToSink(results, sink);
     });
   }
@@ -289,20 +301,21 @@ class SerializationTask extends CompilerTask {
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
-      JsClosedWorld closedWorld) async {
+      ClosedWorldAndIndices closedWorldAndIndices) async {
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
-      DataSource source =
-          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
+      DataSource source = BinarySourceImpl(dataInput.data,
+          stringInterner: _stringInterner,
+          importedIndices: closedWorldAndIndices.indices);
       return deserializeGlobalTypeInferenceResultsFromSource(
           _options,
           _reporter,
           environment,
           abstractValueStrategy,
           component,
-          closedWorld,
+          closedWorldAndIndices.closedWorld,
           source);
     });
   }
@@ -338,6 +351,8 @@ class SerializationTask extends CompilerTask {
     });
   }
 
+  // TODO(joshualitt): Investigate whether closed world indices can be shared
+  // with codegen.
   void serializeCodegen(
       BackendStrategy backendStrategy, CodegenResults codegenResults) {
     GlobalTypeInferenceResults globalTypeInferenceResults =

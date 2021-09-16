@@ -12,6 +12,7 @@ abstract class AbstractDataSource extends DataSourceMixin
       List<ir.DartType>.filled(0, null, growable: false);
 
   final bool useDataKinds;
+  DataSourceIndices importedIndices;
   EntityReader _entityReader = const EntityReader();
   ComponentLookup _componentLookup;
   EntityLookup _entityLookup;
@@ -29,12 +30,39 @@ abstract class AbstractDataSource extends DataSourceMixin
   ir.Member _currentMemberContext;
   _MemberData _currentMemberData;
 
-  AbstractDataSource({this.useDataKinds: false}) {
-    _stringIndex = new IndexedSource<String>(this);
-    _uriIndex = new IndexedSource<Uri>(this);
-    _memberNodeIndex = new IndexedSource<_MemberData>(this);
-    _importIndex = new IndexedSource<ImportEntity>(this);
-    _constantIndex = new IndexedSource<ConstantValue>(this);
+  IndexedSource<T> _createSource<T>() {
+    if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
+      return IndexedSource<T>(this);
+    } else {
+      List<T> cacheCopy = importedIndices.caches[T].cacheAsList.toList();
+      return IndexedSource<T>(this, cache: cacheCopy);
+    }
+  }
+
+  AbstractDataSource({this.useDataKinds: false, this.importedIndices}) {
+    _stringIndex = _createSource<String>();
+    _uriIndex = _createSource<Uri>();
+    _memberNodeIndex = _createSource<_MemberData>();
+    _importIndex = _createSource<ImportEntity>();
+    _constantIndex = _createSource<ConstantValue>();
+  }
+
+  @override
+  DataSourceIndices exportIndices() {
+    var indices = DataSourceIndices();
+    indices.caches[String] = DataSourceTypeIndices(_stringIndex.cache);
+    indices.caches[Uri] = DataSourceTypeIndices(_uriIndex.cache);
+    indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex.cache);
+    // _memberNodeIndex needs two entries depending on if the indices will be
+    // consumed by a [DataSource] or [DataSink].
+    indices.caches[_MemberData] = DataSourceTypeIndices(_memberNodeIndex.cache);
+    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, _MemberData>(
+        _memberNodeIndex.cache, (_MemberData data) => data?.node);
+    indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex.cache);
+    _generalCaches.forEach((type, indexedSource) {
+      indices.caches[type] = DataSourceTypeIndices(indexedSource.cache);
+    });
+    return indices;
   }
 
   @override
@@ -119,7 +147,7 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   E readCached<E>(E f()) {
-    IndexedSource source = _generalCaches[E] ??= new IndexedSource<E>(this);
+    IndexedSource source = _generalCaches[E] ??= _createSource<E>();
     return source.read(f);
   }
 
