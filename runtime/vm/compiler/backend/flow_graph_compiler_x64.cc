@@ -581,7 +581,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   if (FLAG_precompiled_mode) {
     if (FLAG_use_bare_instructions) {
       // The AOT runtime will replace the slot in the object pool with the
-      // entrypoint address - see clustered_snapshot.cc.
+      // entrypoint address - see app_snapshot.cc.
       __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
     } else {
       __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
@@ -639,7 +639,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see clustered_snapshot.cc.
+    // entrypoint address - see app_snapshot.cc.
     __ LoadUniqueObject(RCX, initial_stub);
   } else {
     const intptr_t entry_point_offset =

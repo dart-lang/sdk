@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-#include "vm/clustered_snapshot.h"
+#include "vm/app_snapshot.h"
 
 #include "platform/assert.h"
 #include "vm/bootstrap.h"

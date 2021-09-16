@@ -578,7 +578,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT((data_index + 1) == stub_index);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see clustered_snapshot.cc.
+    // entrypoint address - see app_snapshot.cc.
     CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
   } else {
     __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, data_index);
@@ -638,7 +638,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see clustered_snapshot.cc.
+    // entrypoint address - see app_snapshot.cc.
     CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
   } else {
     __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, data_index);

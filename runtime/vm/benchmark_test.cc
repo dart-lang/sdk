@@ -15,7 +15,7 @@
 #include "platform/globals.h"
 #include "platform/utils.h"
 
-#include "vm/clustered_snapshot.h"
+#include "vm/app_snapshot.h"
 #include "vm/dart_api_impl.h"
 #include "vm/datastream.h"
 #include "vm/message_snapshot.h"
