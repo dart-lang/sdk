@@ -529,19 +529,7 @@ class ExpressionLifter extends Transformer {
     final R = continuationRewriter;
     var shouldName = seenAwait;
     var type = expr.getStaticType(_staticTypeContext);
-    Expression result = new VariableGet(asyncResult);
-    if (type is! DynamicType) {
-      int fileOffset = expr.operand.fileOffset;
-      if (fileOffset == TreeNode.noOffset) {
-        fileOffset = expr.fileOffset;
-      }
-      assert(fileOffset != TreeNode.noOffset);
-      result = new StaticInvocation(
-          continuationRewriter.helper.unsafeCast,
-          new Arguments(<Expression>[result], types: <DartType>[type])
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    }
+    Expression result = unsafeCastVariableGet(asyncResult, type);
 
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
