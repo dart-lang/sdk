@@ -951,7 +951,7 @@ enum class Nullability : uint8_t {
   kNullable = 0,
   kNonNullable = 1,
   kLegacy = 2,
-  // Adjust kNullabilityBitSize in clustered_snapshot.cc if adding new values.
+  // Adjust kNullabilityBitSize in app_snapshot.cc if adding new values.
 };
 
 // Equality kind between types.
@@ -6821,7 +6821,7 @@ class Context : public Object {
 
   void Dump(int indent = 0) const;
 
-  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static const intptr_t kAwaitJumpVarIndex = 0;
@@ -6838,11 +6838,11 @@ class Context : public Object {
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(UntaggedContext, data) +
-           (kWordSize * context_index);
+           (kBytesPerElement * context_index);
   }
 
   static bool IsValidLength(intptr_t len) {
-    return 0 <= len && len <= compiler::target::Array::kMaxElements;
+    return 0 <= len && len <= compiler::target::Context::kMaxElements;
   }
 
   static intptr_t InstanceSize() {

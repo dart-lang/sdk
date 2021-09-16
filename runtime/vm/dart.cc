@@ -7,7 +7,7 @@
 
 #include "vm/dart.h"
 
-#include "vm/clustered_snapshot.h"
+#include "vm/app_snapshot.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/runtime_offsets_extracted.h"
 #include "vm/compiler/runtime_offsets_list.h"

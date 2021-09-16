@@ -1,3 +1,7 @@
+## 2.3.0
+* Enable `constructor-tearoffs` feature by default in `2.15`.
+* Improvements in constructors tear-off implementation.
+
 ## 2.2.0
 * Improvements in constructors tear-off implementation.
 

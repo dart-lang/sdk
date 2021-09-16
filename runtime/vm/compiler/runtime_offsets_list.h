@@ -68,6 +68,7 @@
   ARRAY_SIZEOF(TwoByteString, InstanceSize, element_offset)                    \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
+  CONSTANT(Context, kMaxElements)                                              \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \

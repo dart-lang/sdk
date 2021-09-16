@@ -112,8 +112,6 @@ abstract class int extends num {
 
   /// Bitwise unsigned right shift by [shiftAmount] bits.
   ///
-  /// NOT IMPLEMENTED YET.
-  ///
   /// The least significant [shiftAmount] bits are dropped,
   /// the remaining bits (if any) are shifted down,
   /// and zero-bits are shifted in as the new most significant bits.

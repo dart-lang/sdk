@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-#include "vm/clustered_snapshot.h"
+#include "vm/app_snapshot.h"
 
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
@@ -2920,10 +2920,10 @@ class ContextSerializationCluster : public SerializationCluster {
     ContextPtr context = Context::RawCast(object);
     objects_.Add(context);
 
-    s->Push(context->untag()->parent_);
+    s->Push(context->untag()->parent());
     const intptr_t length = context->untag()->num_variables_;
     for (intptr_t i = 0; i < length; i++) {
-      s->Push(context->untag()->data()[i]);
+      s->Push(context->untag()->element(i));
     }
   }
 
@@ -2947,9 +2947,9 @@ class ContextSerializationCluster : public SerializationCluster {
       AutoTraceObject(context);
       const intptr_t length = context->untag()->num_variables_;
       s->WriteUnsigned(length);
-      WriteField(context, parent_);
+      WriteField(context, parent());
       for (intptr_t j = 0; j < length; j++) {
-        s->WriteElementRef(context->untag()->data()[j], j);
+        s->WriteElementRef(context->untag()->element(j), j);
       }
     }
   }

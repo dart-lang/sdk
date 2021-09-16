@@ -488,10 +488,11 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
                           R0,  // instance
                           R1,  // end address
                           R2, R3);
-      __ ldr(R1, Address(THR, target::Thread::object_null_offset()));
-      __ str(R1, FieldAddress(R0, target::Context::parent_offset()));
+      __ StoreCompressedIntoObjectNoBarrier(
+          R0, FieldAddress(R0, target::Context::parent_offset()), NULL_REG);
       __ LoadImmediate(R1, 1);
-      __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()));
+      __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()),
+             kFourBytes);
       __ b(&done);
     }
 
@@ -511,10 +512,11 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   // Store receiver in context
   __ ldr(AllocateClosureABI::kScratchReg,
          Address(FP, target::kWordSize * kReceiverOffset));
-  __ StoreIntoObject(AllocateClosureABI::kContextReg,
-                     FieldAddress(AllocateClosureABI::kContextReg,
-                                  target::Context::variable_offset(0)),
-                     AllocateClosureABI::kScratchReg);
+  __ StoreCompressedIntoObject(
+      AllocateClosureABI::kContextReg,
+      FieldAddress(AllocateClosureABI::kContextReg,
+                   target::Context::variable_offset(0)),
+      AllocateClosureABI::kScratchReg);
 
   // Pop function before pushing context.
   __ Pop(AllocateClosureABI::kFunctionReg);
@@ -1487,7 +1489,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
       target::Context::header_size() +
       target::ObjectAlignment::kObjectAlignment - 1;
   __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
-  __ add(R2, R2, Operand(R1, LSL, 3));
+  __ add(R2, R2, Operand(R1, LSL, kCompressedWordSizeLog2));
   ASSERT(kSmiTagShift == 1);
   __ andi(R2, R2, Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
 
@@ -1539,7 +1541,8 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // Setup up number of context variables field.
   // R0: new object.
   // R1: number of context variables as integer value (not object).
-  __ StoreFieldToOffset(R1, R0, target::Context::num_variables_offset());
+  __ StoreFieldToOffset(R1, R0, target::Context::num_variables_offset(),
+                        kFourBytes);
 }
 
 // Called for inline allocation of contexts.
@@ -1558,13 +1561,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // Setup the parent field.
     // R0: new object.
     // R1: number of context variables.
-    __ LoadObject(R2, NullObject());
-    __ StoreFieldToOffset(R2, R0, target::Context::parent_offset());
+    __ StoreCompressedIntoObjectOffset(R0, target::Context::parent_offset(),
+                                       NULL_REG);
 
     // Initialize the context variables.
     // R0: new object.
     // R1: number of context variables.
-    // R2: raw null.
     {
       Label loop, done;
       __ AddImmediate(R3, R0,
@@ -1572,7 +1574,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
       __ Bind(&loop);
       __ subs(R1, R1, Operand(1));
       __ b(&done, MI);
-      __ str(R2, Address(R3, R1, UXTX, Address::Scaled));
+      __ str(NULL_REG, Address(R3, R1, UXTX, Address::Scaled), kObjectBytes);
       __ b(&loop, NE);  // Loop if R1 not zero.
       __ Bind(&done);
     }
@@ -1626,10 +1628,10 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
     // Load parent in the existing context.
-    __ ldr(R3, FieldAddress(R5, target::Context::parent_offset()));
+    __ LoadCompressed(R3, FieldAddress(R5, target::Context::parent_offset()));
     // Setup the parent field.
     // R0: new context.
-    __ StoreIntoObjectNoBarrier(
+    __ StoreCompressedIntoObjectNoBarrier(
         R0, FieldAddress(R0, target::Context::parent_offset()), R3);
 
     // Clone the context variables.
@@ -1648,8 +1650,8 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
       __ subs(R1, R1, Operand(1));
       __ b(&done, MI);
 
-      __ ldr(R5, Address(R4, R1, UXTX, Address::Scaled));
-      __ str(R5, Address(R3, R1, UXTX, Address::Scaled));
+      __ ldr(R5, Address(R4, R1, UXTX, Address::Scaled), kObjectBytes);
+      __ str(R5, Address(R3, R1, UXTX, Address::Scaled), kObjectBytes);
       __ b(&loop, NE);  // Loop if R1 not zero.
 
       __ Bind(&done);
