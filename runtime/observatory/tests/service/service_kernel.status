@@ -61,6 +61,7 @@ breakpoint_on_if_null_1_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_on_if_null_2_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_on_if_null_3_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_on_if_null_4_test: SkipByDesign # Debugger is disabled in AOT mode.
+breakpoint_on_simple_conditions_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_partfile_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_two_args_checked_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoints_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
