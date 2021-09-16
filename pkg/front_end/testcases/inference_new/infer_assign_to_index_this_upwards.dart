@@ -20,11 +20,11 @@ abstract class Test1 {
 
     var /*@ type=int* */ v4 = this
             /*@target=Test1.[]*/ /*@target=Test1.[]=*/ ['x']
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = this
             /*@target=Test1.[]*/ /*@target=Test1.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=int* */ v7 = this
             /*@target=Test1.[]*/ /*@target=Test1.[]=*/ ['x']
@@ -56,15 +56,15 @@ abstract class Test2 {
 
     var /*@ type=int* */ v4 = this
             /*@target=Test2.[]*/ /*@target=Test2.[]=*/ ['x']
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = this
             /*@target=Test2.[]*/ /*@target=Test2.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=num* */ v6 = this
             /*@target=Test2.[]*/ /*@target=Test2.[]=*/ ['x']
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=int* */ v7 = this
             /*@target=Test2.[]*/ /*@target=Test2.[]=*/ ['x']
@@ -98,11 +98,11 @@ abstract class Test3 {
 
     var /*@ type=num* */ v5 = this
             /*@target=Test3.[]*/ /*@target=Test3.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=num* */ v6 = this
             /*@target=Test3.[]*/ /*@target=Test3.[]=*/ ['x']
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=int* */ v7 = this
             /*@target=Test3.[]*/ /*@target=Test3.[]=*/ ['x']
@@ -136,11 +136,11 @@ abstract class Test4 {
 
     var /*@ type=num* */ v4 = this
             /*@target=Test4.[]*/ /*@target=Test4.[]=*/ ['x']
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = this
             /*@target=Test4.[]*/ /*@target=Test4.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=num* */ v7 = this
             /*@target=Test4.[]*/ /*@target=Test4.[]=*/ ['x']
@@ -172,15 +172,15 @@ abstract class Test5 {
 
     var /*@ type=num* */ v4 = this
             /*@target=Test5.[]*/ /*@target=Test5.[]=*/ ['x']
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = this
             /*@target=Test5.[]*/ /*@target=Test5.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=num* */ v6 = this
             /*@target=Test5.[]*/ /*@target=Test5.[]=*/ ['x']
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=num* */ v7 = this
             /*@target=Test5.[]*/ /*@target=Test5.[]=*/ ['x']
@@ -214,11 +214,11 @@ abstract class Test6 {
 
     var /*@ type=num* */ v5 = this
             /*@target=Test6.[]*/ /*@target=Test6.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=num* */ v6 = this
             /*@target=Test6.[]*/ /*@target=Test6.[]=*/ ['x']
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=num* */ v7 = this
             /*@target=Test6.[]*/ /*@target=Test6.[]=*/ ['x']
@@ -253,11 +253,11 @@ abstract class Test7 {
 
     var /*@ type=num* */ v4 = this
             /*@target=Test7.[]*/ /*@target=Test7.[]=*/ ['x']
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = this
             /*@target=Test7.[]*/ /*@target=Test7.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=double* */ v7 = this
             /*@target=Test7.[]*/ /*@target=Test7.[]=*/ ['x']
@@ -291,15 +291,15 @@ abstract class Test8 {
 
     var /*@ type=num* */ v4 = this
             /*@target=Test8.[]*/ /*@target=Test8.[]=*/ ['x']
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = this
             /*@target=Test8.[]*/ /*@target=Test8.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=double* */ v6 = this
             /*@target=Test8.[]*/ /*@target=Test8.[]=*/ ['x']
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=double* */ v7 = this
             /*@target=Test8.[]*/ /*@target=Test8.[]=*/ ['x']
@@ -334,11 +334,11 @@ abstract class Test9 {
 
     var /*@ type=num* */ v5 = this
             /*@target=Test9.[]*/ /*@target=Test9.[]=*/ ['x']
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=double* */ v6 = this
             /*@target=Test9.[]*/ /*@target=Test9.[]=*/ ['x']
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=double* */ v7 = this
             /*@target=Test9.[]*/ /*@target=Test9.[]=*/ ['x']

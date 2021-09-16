@@ -10,9 +10,8 @@ class C {
 }
 
 g(C c) {
-  var /*@ type=int* */ x = /*@ type=C* */ /*@target=C.==*/ c
-      ?. /*@target=C.f*/ f();
-  /*@ type=C* */ /*@target=C.==*/ c?. /*@target=C.f*/ f();
+  var /*@ type=int* */ x = /*@ type=C* */ c?. /*@target=C.f*/ f();
+  /*@ type=C* */ c?. /*@target=C.f*/ f();
 }
 
 main() {}

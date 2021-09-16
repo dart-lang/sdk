@@ -1872,15 +1872,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   NullAwareGuard createNullAwareGuard(VariableDeclaration variable) {
-    Member? equalsMember =
-        findInterfaceMember(variable.type, equalsName, variable.fileOffset)
-            .member;
-    // Ensure operator == member even for `Never`.
-    equalsMember ??= findInterfaceMember(const DynamicType(), equalsName, -1,
-            instrumented: false)
-        .member!;
-    return new NullAwareGuard(
-        variable, variable.fileOffset, equalsMember, this);
+    return new NullAwareGuard(variable, variable.fileOffset, this);
   }
 
   ExpressionInferenceResult wrapExpressionInferenceResultInProblem(
@@ -4490,10 +4482,8 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   /// Creates a `e == null` test for the expression [left] using the
-  /// [fileOffset] as file offset for the created nodes and [equalsMember] as
-  /// the interface target of the created method invocation.
-  Expression createEqualsNull(
-      int fileOffset, Expression left, Member equalsMember) {
+  /// [fileOffset] as file offset for the created nodes.
+  Expression createEqualsNull(int fileOffset, Expression left) {
     return new EqualsNull(left)..fileOffset = fileOffset;
   }
 }
@@ -4827,19 +4817,14 @@ class NullAwareGuard {
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
-  /// The [Member] used for the == call.
-  final Member _nullAwareEquals;
-
   final TypeInferrerImpl _inferrer;
 
-  NullAwareGuard(this._nullAwareVariable, this._nullAwareFileOffset,
-      this._nullAwareEquals, this._inferrer)
+  NullAwareGuard(
+      this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer)
       // ignore: unnecessary_null_comparison
       : assert(_nullAwareVariable != null),
         // ignore: unnecessary_null_comparison
         assert(_nullAwareFileOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(_nullAwareEquals != null),
         // ignore: unnecessary_null_comparison
         assert(_inferrer != null) {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
@@ -4869,8 +4854,8 @@ class NullAwareGuard {
     _inferrer.flowAnalysis.nullAwareAccess_end();
     // End non-nullable promotion of the initializer of [_nullAwareVariable].
     _inferrer.flowAnalysis.nullAwareAccess_end();
-    Expression equalsNull = _inferrer.createEqualsNull(_nullAwareFileOffset,
-        createVariableGet(_nullAwareVariable), _nullAwareEquals);
+    Expression equalsNull = _inferrer.createEqualsNull(
+        _nullAwareFileOffset, createVariableGet(_nullAwareVariable));
     ConditionalExpression condition = new ConditionalExpression(
         equalsNull,
         new NullLiteral()..fileOffset = _nullAwareFileOffset,
@@ -4883,8 +4868,7 @@ class NullAwareGuard {
 
   @override
   String toString() =>
-      'NullAwareGuard($_nullAwareVariable,$_nullAwareFileOffset,'
-      '$_nullAwareEquals)';
+      'NullAwareGuard($_nullAwareVariable,$_nullAwareFileOffset)';
 }
 
 /// The result of an expression inference that is guarded with a null aware

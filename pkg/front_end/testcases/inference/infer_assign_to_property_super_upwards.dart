@@ -20,7 +20,7 @@ class Test1 extends Base {
     var /*@ type=int* */ v1 = super.intProp = getInt();
 
     var /*@ type=int* */ v4 = super. /*@target=Base.intProp*/ intProp
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=int* */ v7 = super. /*@target=Base.intProp*/ intProp
         /*@target=num.+*/ += getInt();
@@ -43,13 +43,13 @@ class Test2 extends Base {
     var /*@ type=double* */ v3 = super.numProp = getDouble();
 
     var /*@ type=num* */ v4 = super. /*@target=Base.numProp*/ numProp
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = super. /*@target=Base.numProp*/ numProp
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=num* */ v6 = super. /*@target=Base.numProp*/ numProp
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=num* */ v7 = super. /*@target=Base.numProp*/ numProp
         /*@target=num.+*/ += getInt();
@@ -77,7 +77,7 @@ class Test3 extends Base {
     var /*@ type=double* */ v3 = super.doubleProp = getDouble();
 
     var /*@ type=double* */ v6 = super. /*@target=Base.doubleProp*/ doubleProp
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=double* */ v7 = super. /*@target=Base.doubleProp*/ doubleProp
         /*@target=double.+*/ += getInt();

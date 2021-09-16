@@ -12,7 +12,7 @@ void main() {
   var /*@ type=Iterable<List<String*>*>* */ i1 =
       l. /*@target=Iterable.map*/ /*@ typeArgs=List<String*>* */ map(
           /*@ returnType=List<String*>* */ (/*@ type=List<String*>* */ ll) =>
-              ll /*@target=List.==*/ ?? /*@ typeArgs=String* */ []);
+              ll ?? /*@ typeArgs=String* */ []);
   var /*@ type=Iterable<int*>* */ i2 =
       i1. /*@target=Iterable.map*/ /*@ typeArgs=int* */ map(
           /*@ returnType=int* */ (List<String> l) =>
