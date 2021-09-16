@@ -3290,6 +3290,25 @@ class TypeInferrerImpl implements TypeInferrer {
             'checkGetterReturn', new InstrumentationValueForType(functionType));
       }
     }
+
+    if (isExpressionInvocation) {
+      if (isTopLevel) {
+        // Create an expression invocation for reporting the error during
+        // full inference.
+        return new ExpressionInferenceResult(
+            const InvalidType(),
+            new ExpressionInvocation(receiver, arguments)
+              ..fileOffset = fileOffset);
+      } else {
+        Expression error = helper!.buildProblem(
+            templateImplicitCallOfNonMethod.withArguments(
+                receiverType, isNonNullableByDefault),
+            fileOffset,
+            noLength);
+        return new ExpressionInferenceResult(const InvalidType(), error);
+      }
+    }
+
     ExpressionInferenceResult invocationResult = inferMethodInvocation(
         arguments.fileOffset,
         const Link<NullAwareGuard>(),
@@ -3302,15 +3321,6 @@ class TypeInferrerImpl implements TypeInferrer {
         isExpressionInvocation: false,
         isImplicitCall: true,
         implicitInvocationPropertyName: getter.name);
-
-    if (!isTopLevel && isExpressionInvocation) {
-      Expression error = helper!.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(
-              receiverType, isNonNullableByDefault),
-          fileOffset,
-          noLength);
-      return new ExpressionInferenceResult(const DynamicType(), error);
-    }
 
     if (!isTopLevel && target.isNullable) {
       // Handles cases like:
@@ -3475,6 +3485,24 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
 
+    if (isExpressionInvocation) {
+      if (isTopLevel) {
+        // Create an expression invocation for reporting the error during
+        // full inference.
+        return new ExpressionInferenceResult(
+            const InvalidType(),
+            new ExpressionInvocation(receiver, arguments)
+              ..fileOffset = fileOffset);
+      } else {
+        Expression error = helper!.buildProblem(
+            templateImplicitCallOfNonMethod.withArguments(
+                receiverType, isNonNullableByDefault),
+            fileOffset,
+            noLength);
+        return new ExpressionInferenceResult(const InvalidType(), error);
+      }
+    }
+
     ExpressionInferenceResult invocationResult = inferMethodInvocation(
         arguments.fileOffset,
         const Link<NullAwareGuard>(),
@@ -3487,15 +3515,6 @@ class TypeInferrerImpl implements TypeInferrer {
         isImplicitCall: true,
         hoistedExpressions: hoistedExpressions,
         implicitInvocationPropertyName: field.name);
-
-    if (!isTopLevel && isExpressionInvocation) {
-      Expression error = helper!.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(
-              receiverType, isNonNullableByDefault),
-          fileOffset,
-          noLength);
-      return new ExpressionInferenceResult(const DynamicType(), error);
-    }
 
     if (!isTopLevel && target.isNullable) {
       // Handles cases like:

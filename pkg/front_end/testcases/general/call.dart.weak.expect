@@ -139,7 +139,7 @@ static field dynamic string2 = self::callable.{self::Callable::call}(1){(dynamic
 static field dynamic string3 = self::callable.{self::Callable::call}{(dynamic) →* dynamic}(1){(dynamic) →* dynamic};
 static field dynamic string4 = self::callable.{self::Callable::call}{(dynamic) →* dynamic}.call(1){(dynamic) →* dynamic};
 static field self::CallableGetter* callableGetter = new self::CallableGetter::•();
-static field dynamic string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+static field invalid-type string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
 var string5 = callableGetter(1);
@@ -171,7 +171,7 @@ var nothing7 = callable.call.call();
 static field dynamic nothing8 = invalid-expression "pkg/front_end/testcases/general/call.dart:76:39: Error: Too few positional arguments: 1 required, 0 given.
 var nothing8 = callable.call.call.call();
                                       ^" in self::callable.{self::Callable::call}{(dynamic) →* dynamic}.call{<inapplicable>}.();
-static field dynamic nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+static field invalid-type nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
 var nothing9 = callableGetter();
@@ -191,7 +191,7 @@ static method main() → dynamic {
   dynamic string3 = callable.{self::Callable::call}{(dynamic) →* dynamic}(1){(dynamic) →* dynamic};
   dynamic string4 = callable.{self::Callable::call}{(dynamic) →* dynamic}.call(1){(dynamic) →* dynamic};
   self::CallableGetter* callableGetter = new self::CallableGetter::•();
-  dynamic string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+  invalid-type string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   var string5 = callableGetter(1);
@@ -223,7 +223,7 @@ Try changing 'call' to a method or explicitly invoke 'call'.
   invalid-type nothing8 = invalid-expression "pkg/front_end/testcases/general/call.dart:42:41: Error: Too few positional arguments: 1 required, 0 given.
   var nothing8 = callable.call.call.call();
                                         ^" in callable.{self::Callable::call}{(dynamic) →* dynamic}.call{<inapplicable>}.();
-  dynamic nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+  invalid-type nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   var nothing9 = callableGetter();
