@@ -157,7 +157,7 @@ class LinkedElementFactory {
     var library = libraryReaders[uriStr];
     if (library == null) return const [];
 
-    return library.exports;
+    return library.exports ?? [];
   }
 
   bool hasLibrary(String uriStr) {
