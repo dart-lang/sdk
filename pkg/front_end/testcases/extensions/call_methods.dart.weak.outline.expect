@@ -48,9 +48,9 @@ static field core::String* topLevel2;
 static field core::String* topLevel3;
 static field core::String* topLevel4;
 static field self::A* a;
-static field core::String* topLevel5;
+static field invalid-type topLevel5;
 static field self::B* b;
-static field core::String* topLevel6;
+static field invalid-type topLevel6;
 static method _extension#0|get#call(lowered final core::int* #this) → core::String*
   ;
 static method _extension#1|get#call(lowered final core::num* #this) → core::String*

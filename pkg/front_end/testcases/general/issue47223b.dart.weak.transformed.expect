@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue47223b.dart:6:24: Warning: Operand of null-aware operation '??=' has type 'Never' which excludes null.
+//   (throw "some value").foo ??= "foo";
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  let final Never #t1 = throw "some value" in #t1{Never}.foo == null ?{core::String} #t1{Never}.foo = "foo" : null;
+}
+static method main() → dynamic {}

@@ -22,20 +22,10 @@ library;
 // var topLevel4 = 1.0("10");
 //                    ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Too many positional arguments: 0 allowed, but 1 found.
-// Try removing the extra positional arguments.
-// var topLevel5 = a(2);
-//                  ^
-//
 // pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 // var topLevel5 = a(2);
-//                  ^
-//
-// pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Too many positional arguments: 0 allowed, but 2 found.
-// Try removing the extra positional arguments.
-// var topLevel6 = a(2, "3");
 //                  ^
 //
 // pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
@@ -64,20 +54,10 @@ library;
 //   1.0("10");
 //      ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:44:4: Error: Too many positional arguments: 0 allowed, but 1 found.
-// Try removing the extra positional arguments.
-//   a(2);
-//    ^
-//
 // pkg/front_end/testcases/extensions/call_methods.dart:44:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //   a(2);
-//    ^
-//
-// pkg/front_end/testcases/extensions/call_methods.dart:45:4: Error: Too many positional arguments: 0 allowed, but 2 found.
-// Try removing the extra positional arguments.
-//   a(2, "3");
 //    ^
 //
 // pkg/front_end/testcases/extensions/call_methods.dart:45:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
@@ -155,17 +135,17 @@ Try removing the extra positional arguments.
 var topLevel4 = 1.0(\"10\");
                    ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)){<inapplicable>}.("10");
 static field self::A* a = new self::A::•();
-static field core::String* topLevel5 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+static field invalid-type topLevel5 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
 var topLevel5 = a(2);
-                 ^" as{TypeError,ForDynamic} core::String*;
+                 ^";
 static field self::B* b = new self::B::•();
-static field core::String* topLevel6 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+static field invalid-type topLevel6 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
 var topLevel6 = a(2, \"3\");
-                 ^" as{TypeError,ForDynamic} core::String*;
+                 ^";
 static method _extension#0|get#call(lowered final core::int* #this) → core::String*
   return "My name is int";
 static method _extension#1|get#call(lowered final core::num* #this) → core::String*

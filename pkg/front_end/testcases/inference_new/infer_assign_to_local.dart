@@ -22,7 +22,7 @@ void test() {
   B local;
   local = /*@ typeArgs=B* */ f();
 
-  local /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+  local  ??= /*@ typeArgs=B* */ f();
 
   local /*@target=B.+*/ += /*@ typeArgs=C* */ f();
 
@@ -37,7 +37,7 @@ void test() {
   var /*@ type=B* */ v1 = local = /*@ typeArgs=B* */ f();
 
   var /*@ type=B* */ v2 =
-      local /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+      local  ??= /*@ typeArgs=B* */ f();
 
   var /*@ type=A* */ v3 = local
       /*@target=B.+*/ += /*@ typeArgs=C* */ f();
