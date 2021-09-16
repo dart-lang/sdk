@@ -6,11 +6,6 @@ library /*isNonNullableByDefault*/;
 //   e2.floor(); // Ok.
 //   ^^
 //
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:8:6: Error: The method 'ceil' isn't defined for the extension 'E1'.
-// Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
-//   e1.ceil(); // Ok.
-//      ^^^^
-//
 // pkg/front_end/testcases/extension_types/simple_show_hide.dart:10:6: Error: The getter 'isEven' isn't defined for the extension 'E1'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
 //   e1.isEven; // Error.
@@ -20,11 +15,6 @@ library /*isNonNullableByDefault*/;
 // Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
 //   e2.ceil(); // Error.
 //      ^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:17:6: Error: The method 'floor' isn't defined for the extension 'E2'.
-// Try correcting the name to the name of an existing method, or defining a method name 'floor'.
-//   e2.floor(); // Ok.
-//      ^^^^^
 //
 // pkg/front_end/testcases/extension_types/simple_show_hide.dart:18:6: Error: The getter 'isEven' isn't defined for the extension 'E2'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
@@ -40,16 +30,6 @@ library /*isNonNullableByDefault*/;
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
 //   e3.isEven; // Error.
 //      ^^^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:35:5: Error: The getter 'isEven' isn't defined for the extension 'MyInt'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
-//   m.isEven; // OK, a shown instance member.
-//     ^^^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:36:5: Error: The method 'ceil' isn't defined for the extension 'MyInt'.
-// Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
-//   m.ceil(); // OK, a shown instance member.
-//     ^^^^
 //
 // pkg/front_end/testcases/extension_types/simple_show_hide.dart:38:5: Error: The method 'floor' isn't defined for the extension 'MyInt'.
 // Try correcting the name to the name of an existing method, or defining a method name 'floor'.
@@ -69,10 +49,7 @@ extension type MyInt on core::int show-types core::num show-getters core::int::i
   get twice = self::MyInt|get#twice;
 }
 static method test1(self::E1 e1) → dynamic {
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:8:6: Error: The method 'ceil' isn't defined for the extension 'E1'.
-Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
-  e1.ceil(); // Ok.
-     ^^^^" in e1{<unresolved>}.ceil();
+  e1.{core::num::ceil}(){() → core::int};
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:9:3: Error: Undefined name 'e2'.
   e2.floor(); // Ok.
   ^^"{dynamic}.floor();
@@ -86,10 +63,7 @@ static method test2(self::E2 e2) → dynamic {
 Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
   e2.ceil(); // Error.
      ^^^^" in e2{<unresolved>}.ceil();
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:17:6: Error: The method 'floor' isn't defined for the extension 'E2'.
-Try correcting the name to the name of an existing method, or defining a method name 'floor'.
-  e2.floor(); // Ok.
-     ^^^^^" in e2{<unresolved>}.floor();
+  e2.{core::num::floor}(){() → core::int};
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:18:6: Error: The getter 'isEven' isn't defined for the extension 'E2'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
   e2.isEven; // Error.
@@ -110,14 +84,8 @@ static method MyInt|get#twice(lowered final core::int #this) → core::int
 static method test() → dynamic {
   self::MyInt m = 42;
   self::MyInt|get#twice(m);
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:35:5: Error: The getter 'isEven' isn't defined for the extension 'MyInt'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
-  m.isEven; // OK, a shown instance member.
-    ^^^^^^" in m{<unresolved>}.isEven;
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:36:5: Error: The method 'ceil' isn't defined for the extension 'MyInt'.
-Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
-  m.ceil(); // OK, a shown instance member.
-    ^^^^" in m{<unresolved>}.ceil();
+  m.{core::int::isEven}{core::bool};
+  m.{core::num::ceil}(){() → core::int};
   m.{core::Object::toString}(){() → core::String};
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:38:5: Error: The method 'floor' isn't defined for the extension 'MyInt'.
 Try correcting the name to the name of an existing method, or defining a method name 'floor'.

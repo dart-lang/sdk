@@ -1514,7 +1514,7 @@ void TimelineEventBlock::Finish() {
   if (Service::timeline_stream.enabled()) {
     ServiceEvent service_event(ServiceEvent::kTimelineEvents);
     service_event.set_timeline_event_block(this);
-    Service::HandleEvent(&service_event);
+    Service::HandleEvent(&service_event, /* enter_safepoint */ false);
   }
 #endif
 }

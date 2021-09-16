@@ -327,7 +327,7 @@ bool Debugger::NeedsDebugEvents() {
 
 static void InvokeEventHandler(ServiceEvent* event) {
   ASSERT(!event->IsPause());  // For pause events, call Pause instead.
-  Service::HandleEvent(event);
+  Service::HandleEvent(event, /*enter_safepoint*/ false);
 }
 
 ErrorPtr Debugger::PauseInterrupted() {
