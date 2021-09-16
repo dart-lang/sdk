@@ -136,7 +136,13 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
     return addr;
   }
 
-  old_space_.TryReleaseReservation();
+  if (old_space_.GrowthControlState()) {
+    WaitForSweeperTasks(Thread::Current());
+    old_space_.TryReleaseReservation();
+  } else {
+    // We may or may not be a safepoint, so we don't know how to wait for the
+    // sweeper.
+  }
 
   // Give up allocating this object.
   OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
