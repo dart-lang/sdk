@@ -6761,7 +6761,7 @@ _The receiver can't be null, so the null-aware operator '{0}' is unnecessary._
 #### Description
 
 The analyzer produces this diagnostic when a null-aware operator (`?.`,
-`?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+`?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
 non-nullable.
 
 #### Example
