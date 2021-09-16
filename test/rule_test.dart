@@ -214,13 +214,6 @@ void defineSoloRuleTest(String ruleToTest) {
 
 void testRule(String ruleName, File file,
     {bool debug = true, String? analysisOptions}) {
-  // todo(pq): remove when analyzer latestSdkLanguageVersion is updated to 2.14.0
-  const defaultOptions = '''
-analyzer:
-  enable-experiment:
-    - constructor-tearoffs
-''';
-
   test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
@@ -244,8 +237,7 @@ analyzer:
       fail('rule `$ruleName` is not registered; unable to test.');
     }
 
-    var driver = buildDriver(rule, file,
-        analysisOptions: analysisOptions ?? defaultOptions);
+    var driver = buildDriver(rule, file, analysisOptions: analysisOptions);
 
     var lints = await driver.lintFiles([file]);
 
