@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:linter/src/util/flutter_utils.dart';
 
 import '../analyzer.dart';
 
@@ -43,6 +44,38 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule);
 
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    bool isDartCore(MethodInvocation node) =>
+        node.methodName.staticElement?.library?.name == 'dart.core';
+
+    if (node.methodName.name == 'print' &&
+        isDartCore(node) &&
+        !_isDebugOnly(node)) {
+      rule.reportLint(node.methodName);
+    }
+
+    node.argumentList.arguments.forEach(_validateArgument);
+  }
+
+  bool _isDebugOnly(Expression expression) {
+    AstNode? node = expression;
+    while (node != null) {
+      var parent = node.parent;
+      if (parent is IfStatement && node == parent.thenStatement) {
+        var condition = parent.condition;
+        if (condition is SimpleIdentifier &&
+            isKDebugMode(condition.staticElement)) {
+          return true;
+        }
+      } else if (parent is FunctionBody) {
+        return false;
+      }
+      node = parent;
+    }
+    return false;
+  }
+
   void _validateArgument(Expression expression) {
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
@@ -52,17 +85,5 @@ class _Visitor extends SimpleAstVisitor {
         rule.reportLint(expression);
       }
     }
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    bool isDartCore(MethodInvocation node) =>
-        node.methodName.staticElement?.library?.name == 'dart.core';
-
-    if (node.methodName.name == 'print' && isDartCore(node)) {
-      rule.reportLint(node.methodName);
-    }
-
-    node.argumentList.arguments.forEach(_validateArgument);
   }
 }

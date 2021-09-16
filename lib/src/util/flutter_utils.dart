@@ -31,6 +31,8 @@ bool isExactWidget(ClassElement element) => _flutter.isExactWidget(element);
 bool isExactWidgetTypeContainer(DartType? type) =>
     _flutter.isExactWidgetTypeContainer(type);
 
+bool isKDebugMode(Element? element) => _flutter.isKDebugMode(element);
+
 bool isStatefulWidget(ClassElement? element) =>
     _flutter.isStatefulWidget(element);
 
@@ -60,11 +62,13 @@ class _Flutter {
 
   final Uri _uriContainer;
   final Uri _uriFramework;
+  final Uri _uriFoundation;
 
   _Flutter(this.packageName, String uriPrefix)
       : widgetsUri = '$uriPrefix/widgets.dart',
         _uriContainer = Uri.parse('$uriPrefix/src/widgets/container.dart'),
-        _uriFramework = Uri.parse('$uriPrefix/src/widgets/framework.dart');
+        _uriFramework = Uri.parse('$uriPrefix/src/widgets/framework.dart'),
+        _uriFoundation = Uri.parse('$uriPrefix/src/foundation/constants.dart');
 
   bool hasWidgetAsAscendant(ClassElement? element,
       [Set<ClassElement>? alreadySeen]) {
@@ -94,6 +98,11 @@ class _Flutter {
   bool isExactWidgetTypeContainer(DartType? type) =>
       type is InterfaceType &&
       _isExactWidget(type.element, _nameContainer, _uriContainer);
+
+  bool isKDebugMode(Element? element) =>
+      element != null &&
+      element.name == 'kDebugMode' &&
+      element.source?.uri == _uriFoundation;
 
   bool isStatefulWidget(ClassElement? element) {
     if (element == null) {

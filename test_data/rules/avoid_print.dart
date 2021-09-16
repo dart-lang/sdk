@@ -4,10 +4,13 @@
 
 // test w/ `dart test -N avoid_print`
 
+import 'package:flutter/foundation.dart';
+
 void main() {
   print('ha'); // LINT
   [1,2,3].forEach(print); // LINT
   Future.value('hello').then(print); // LINT
+  if (kDebugMode) print(''); // OK
 }
 
 
