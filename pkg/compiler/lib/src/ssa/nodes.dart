@@ -131,7 +131,7 @@ abstract class HGraphVisitor {
     //     }
     //     visitBasicBlockAndSuccessors(graph.entry);
 
-    _Frame frame = new _Frame(null);
+    _Frame frame = _Frame(null);
     frame.block = graph.entry;
     frame.index = 0;
 
@@ -142,7 +142,7 @@ abstract class HGraphVisitor {
       int index = frame.index;
       if (index < block.dominatedBlocks.length) {
         frame.index = index + 1;
-        frame = frame.next ??= new _Frame(frame);
+        frame = frame.next ??= _Frame(frame);
         frame.block = block.dominatedBlocks[index];
         frame.index = 0;
         visitBasicBlock(frame.block);
@@ -164,7 +164,7 @@ abstract class HGraphVisitor {
     //     }
     //     visitBasicBlockAndSuccessors(graph.entry);
 
-    _Frame frame = new _Frame(null);
+    _Frame frame = _Frame(null);
     frame.block = graph.entry;
     frame.index = frame.block.dominatedBlocks.length;
 
@@ -173,7 +173,7 @@ abstract class HGraphVisitor {
       int index = frame.index;
       if (index > 0) {
         frame.index = index - 1;
-        frame = frame.next ??= new _Frame(frame);
+        frame = frame.next ??= _Frame(frame);
         frame.block = block.dominatedBlocks[index - 1];
         frame.index = frame.block.dominatedBlocks.length;
         continue;
@@ -240,19 +240,19 @@ class HGraph {
   /// Nodes containing list allocations for which there is a known fixed length.
   // TODO(sigmund,sra): consider not storing this explicitly here (e.g. maybe
   // store it on HInstruction, or maybe this can be computed on demand).
-  final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
+  final Set<HInstruction> allocatedFixedLists = Set<HInstruction>();
 
   SourceInformation sourceInformation;
 
   // We canonicalize all constants used within a graph so we do not
   // have to worry about them for global value numbering.
-  Map<ConstantValue, HConstant> constants = new Map<ConstantValue, HConstant>();
+  Map<ConstantValue, HConstant> constants = Map<ConstantValue, HConstant>();
 
   HGraph() {
     entry = addNewBlock();
     // The exit block will be added later, so it has an id that is
     // after all others in the system.
-    exit = new HBasicBlock();
+    exit = HBasicBlock();
   }
 
   void addBlock(HBasicBlock block) {
@@ -263,7 +263,7 @@ class HGraph {
   }
 
   HBasicBlock addNewBlock() {
-    HBasicBlock result = new HBasicBlock();
+    HBasicBlock result = HBasicBlock();
     addBlock(result);
     return result;
   }
@@ -271,7 +271,7 @@ class HGraph {
   HBasicBlock addNewLoopHeaderBlock(
       JumpTarget target, List<LabelDefinition> labels) {
     HBasicBlock result = addNewBlock();
-    result.loopInformation = new HLoopInformation(result, target, labels);
+    result.loopInformation = HLoopInformation(result, target, labels);
     return result;
   }
 
@@ -286,7 +286,7 @@ class HGraph {
       }
       AbstractValue type = closedWorld.abstractValueDomain
           .computeAbstractValueForConstant(constant);
-      result = new HConstant.internal(constant, type)
+      result = HConstant.internal(constant, type)
         ..sourceInformation = sourceInformation;
       entry.addAtExit(result);
       constants[constant] = result;
@@ -309,8 +309,7 @@ class HGraph {
 
   HConstant addConstantIntAsUnsigned(int i, JClosedWorld closedWorld) {
     return addConstant(
-        constant_system.createInt(new BigInt.from(i).toUnsigned(64)),
-        closedWorld);
+        constant_system.createInt(BigInt.from(i).toUnsigned(64)), closedWorld);
   }
 
   HConstant addConstantDouble(double d, JClosedWorld closedWorld) {
@@ -322,8 +321,7 @@ class HGraph {
   }
 
   HConstant addConstantStringFromName(js.Name name, JClosedWorld closedWorld) {
-    return addConstant(
-        new JsNameConstantValue(js.quoteName(name)), closedWorld);
+    return addConstant(JsNameConstantValue(js.quoteName(name)), closedWorld);
   }
 
   HConstant addConstantBool(bool value, JClosedWorld closedWorld) {
@@ -348,7 +346,7 @@ class HGraph {
   void finalize(AbstractValueDomain domain) {
     addBlock(exit);
     exit.open();
-    exit.close(new HExit(domain));
+    exit.close(HExit(domain));
     assignDominators();
   }
 
@@ -375,7 +373,7 @@ class HGraph {
     // blocks. A dominator has a dfs-in..dfs-out range that includes the range
     // of the dominated block. See [HGraphVisitor.visitDominatorTree] for
     // recursion-free schema.
-    _Frame frame = new _Frame(null);
+    _Frame frame = _Frame(null);
     frame.block = entry;
     frame.index = 0;
 
@@ -387,7 +385,7 @@ class HGraph {
       int index = frame.index;
       if (index < block.dominatedBlocks.length) {
         frame.index = index + 1;
-        frame = frame.next ??= new _Frame(frame);
+        frame = frame.next ??= _Frame(frame);
         frame.block = block.dominatedBlocks[index];
         frame.index = 0;
         frame.block.dominatorDfsIn = ++dfsNumber;
@@ -399,7 +397,7 @@ class HGraph {
   }
 
   bool isValid() {
-    HValidator validator = new HValidator();
+    HValidator validator = HValidator();
     validator.visitGraph(this);
     return validator.isValid;
   }
@@ -765,7 +763,7 @@ class HBasicBlock extends HInstructionList {
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
-      : phis = new HInstructionList(),
+      : phis = HInstructionList(),
         predecessors = <HBasicBlock>[],
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[];
@@ -782,7 +780,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   void setBlockFlow(HBlockInformation blockInfo, HBasicBlock continuation) {
-    blockFlow = new HBlockFlow(blockInfo, continuation);
+    blockFlow = HBlockFlow(blockInfo, continuation);
   }
 
   bool isLabeledBlock() =>
@@ -1017,7 +1015,7 @@ class HBasicBlock extends HInstructionList {
 
   bool isValid() {
     assert(isClosed());
-    HValidator validator = new HValidator();
+    HValidator validator = HValidator();
     validator.visitBasicBlock(this);
     return validator.isValid;
   }
@@ -1045,7 +1043,7 @@ abstract class HInstruction implements Spannable {
   HInstruction previous = null;
   HInstruction next = null;
 
-  SideEffects sideEffects = new SideEffects.empty();
+  SideEffects sideEffects = SideEffects.empty();
   bool _useGvn = false;
 
   // Type codes.
@@ -1360,7 +1358,7 @@ abstract class HInstruction implements Spannable {
   bool isInterceptor(JClosedWorld closedWorld) => false;
 
   bool isValid() {
-    HValidator validator = new HValidator();
+    HValidator validator = HValidator();
     validator.currentBlock = block;
     validator.visitInstruction(this);
     return validator.isValid;
@@ -1424,8 +1422,8 @@ class DominatedUses {
   /// of a loop with many break statements).  If [excludePhiOutEdges] is `true`
   /// then these edge uses are not included.
   static DominatedUses of(HInstruction source, HInstruction dominator,
-      {bool excludeDominator: false, bool excludePhiOutEdges: false}) {
-    return new DominatedUses._(source)
+      {bool excludeDominator = false, bool excludePhiOutEdges = false}) {
+    return DominatedUses._(source)
       .._compute(source, dominator, excludeDominator, excludePhiOutEdges);
   }
 
@@ -1466,8 +1464,8 @@ class DominatedUses {
       bool excludeDominator, bool excludePhiOutEdges) {
     // Keep track of all instructions that we have to deal with later and count
     // the number of them that are in the current block.
-    Set<HInstruction> users = new Setlet<HInstruction>();
-    Set<HInstruction> seen = new Setlet<HInstruction>();
+    Set<HInstruction> users = Setlet<HInstruction>();
+    Set<HInstruction> seen = Setlet<HInstruction>();
     int usersInCurrentBlock = 0;
 
     HBasicBlock dominatorBlock = dominator.block;
@@ -1655,7 +1653,7 @@ class HCreate extends HInstruction {
 
   HCreate(this.element, List<HInstruction> inputs, AbstractValue type,
       SourceInformation sourceInformation,
-      {this.instantiatedTypes, this.hasRtiInput: false, this.callMethod})
+      {this.instantiatedTypes, this.hasRtiInput = false, this.callMethod})
       : super(inputs, type) {
     this.sourceInformation = sourceInformation;
   }
@@ -1834,7 +1832,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
       AbstractValue resultType,
       this.typeArguments,
       SourceInformation sourceInformation,
-      {bool isIntercepted: false})
+      {bool isIntercepted = false})
       : super(selector, receiverType, null, inputs, isIntercepted, resultType) {
     this.sourceInformation = sourceInformation;
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
@@ -1946,7 +1944,7 @@ class HInvokeStatic extends HInvoke {
 
   /// The first input must be the target.
   HInvokeStatic(this.element, inputs, AbstractValue type, this.typeArguments,
-      {this.targetCanThrow: true, bool isIntercepted: false})
+      {this.targetCanThrow = true, bool isIntercepted = false})
       : super(inputs, type) {
     isInterceptedCall = isIntercepted;
   }
@@ -2411,7 +2409,7 @@ class HForeignCode extends HForeign {
   NativeThrowBehavior throwBehavior;
 
   HForeignCode(this.codeTemplate, AbstractValue type, List<HInstruction> inputs,
-      {this.isStatement: false,
+      {this.isStatement = false,
       SideEffects effects,
       NativeBehavior nativeBehavior,
       NativeThrowBehavior throwBehavior})
@@ -2813,7 +2811,7 @@ class HBreak extends HJump {
 
   HBreak(AbstractValueDomain domain, JumpTarget target,
       SourceInformation sourceInformation,
-      {bool this.breakSwitchContinueLoop: false})
+      {bool this.breakSwitchContinueLoop = false})
       : super(domain, target, sourceInformation);
 
   HBreak.toLabel(AbstractValueDomain domain, LabelDefinition label,
@@ -3207,7 +3205,7 @@ class HAwait extends HInstruction {
   @override
   bool canThrow(AbstractValueDomain domain) => true;
   @override
-  SideEffects sideEffects = new SideEffects();
+  SideEffects sideEffects = SideEffects();
 }
 
 class HYield extends HInstruction {
@@ -3224,14 +3222,14 @@ class HYield extends HInstruction {
   @override
   bool canThrow(AbstractValueDomain domain) => false;
   @override
-  SideEffects sideEffects = new SideEffects();
+  SideEffects sideEffects = SideEffects();
 }
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
   HThrow(AbstractValueDomain domain, HInstruction value,
       SourceInformation sourceInformation,
-      {this.isRethrow: false})
+      {this.isRethrow = false})
       : super(domain, <HInstruction>[value]) {
     this.sourceInformation = sourceInformation;
   }
@@ -3927,12 +3925,12 @@ class HLabeledBlockInformation implements HStatementInformation {
   final bool isContinue;
 
   HLabeledBlockInformation(this.body, List<LabelDefinition> labels,
-      {this.isContinue: false})
+      {this.isContinue = false})
       : this.labels = labels,
         this.target = labels[0].target;
 
   HLabeledBlockInformation.implicit(this.body, this.target,
-      {this.isContinue: false})
+      {this.isContinue = false})
       : this.labels = const <LabelDefinition>[];
 
   @override

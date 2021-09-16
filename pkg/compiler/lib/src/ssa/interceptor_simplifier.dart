@@ -117,7 +117,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return _graph.thisInstruction;
     }
 
-    ConstantValue constant = new InterceptorConstantValue(constantInterceptor);
+    ConstantValue constant = InterceptorConstantValue(constantInterceptor);
     return _graph.addConstant(constant, _closedWorld);
   }
 
@@ -340,7 +340,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
               interceptedClasses);
           if (interceptorClass != null) {
             HInstruction constantInstruction = _graph.addConstant(
-                new InterceptorConstantValue(interceptorClass), _closedWorld);
+                InterceptorConstantValue(interceptorClass), _closedWorld);
             node.conditionalConstantInterceptor = constantInstruction;
             constantInstruction.usedBy.add(node);
             return false;
