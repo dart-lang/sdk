@@ -3162,6 +3162,7 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
       cid = kDoubleCid;
       break;
     case Dart_CObject_kString: {
+      RELEASE_ASSERT(object->value.as_string != NULL);
       const uint8_t* utf8_str =
           reinterpret_cast<const uint8_t*>(object->value.as_string);
       intptr_t utf8_len = strlen(object->value.as_string);

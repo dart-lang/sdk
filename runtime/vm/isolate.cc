@@ -2315,8 +2315,12 @@ bool Isolate::NotifyErrorListeners(const char* message,
   msg.value.as_string = const_cast<char*>(message);
   arr_values[0] = &msg;
   Dart_CObject stack;
-  stack.type = Dart_CObject_kString;
-  stack.value.as_string = const_cast<char*>(stacktrace);
+  if (stacktrace == NULL) {
+    stack.type = Dart_CObject_kNull;
+  } else {
+    stack.type = Dart_CObject_kString;
+    stack.value.as_string = const_cast<char*>(stacktrace);
+  }
   arr_values[1] = &stack;
 
   SendPort& listener = SendPort::Handle(current_zone());
