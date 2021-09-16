@@ -170,14 +170,16 @@ class TypePropertyResolver {
         if (_hasGetterOrSetter) {
           return _toResult();
         }
-        if (receiverTypeResolved.isDartCoreFunction && _name == 'call') {
+        if (receiverTypeResolved.isDartCoreFunction &&
+            _name == FunctionElement.CALL_METHOD_NAME) {
           _needsGetterError = false;
           _needsSetterError = false;
           return _toResult();
         }
       }
 
-      if (receiverTypeResolved is FunctionType && _name == 'call') {
+      if (receiverTypeResolved is FunctionType &&
+          _name == FunctionElement.CALL_METHOD_NAME) {
         return _toResult();
       }
 

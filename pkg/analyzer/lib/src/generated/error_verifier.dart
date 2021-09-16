@@ -2396,7 +2396,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         name == 'hashCode' ||
         name == 'toString' ||
         name == 'runtimeType' ||
-        name == 'noSuchMethod') {
+        name == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
         node.name,
