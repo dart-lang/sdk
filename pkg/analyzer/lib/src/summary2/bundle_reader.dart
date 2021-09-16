@@ -423,7 +423,7 @@ class LibraryReader {
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
 
-  late List<Reference> exports;
+  List<Reference>? exports;
 
   LibraryReader._({
     required LinkedElementFactory elementFactory,
