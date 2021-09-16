@@ -36,13 +36,6 @@ void LongJumpScope::Jump(int value) {
   Thread* thread = Thread::Current();
   DEBUG_ASSERT(thread->TopErrorHandlerIsSetJump());
 
-#if defined(DEBUG)
-#define CHECK_REUSABLE_HANDLE(name)                                            \
-  ASSERT(!thread->reusable_##name##_handle_scope_active());
-  REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
-#undef CHECK_REUSABLE_HANDLE
-#endif  // defined(DEBUG)
-
   // Destruct all the active StackResource objects.
   StackResource::UnwindAbove(thread, top_);
   longjmp(environment_, value);
