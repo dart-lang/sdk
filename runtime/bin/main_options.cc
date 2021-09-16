@@ -454,6 +454,11 @@ bool Options::ParseArguments(int argc,
       } else if (IsOption(argv[i], "no-serve-devtools")) {
         serve_devtools = false;
         skipVmOption = true;
+      } else if (IsOption(argv[i], "dds")) {
+        // This flag is set by default in dartdev, so we ignore it. --no-dds is
+        // a VM flag as disabling DDS changes how we configure the VM service,
+        // so we don't need to handle that case here.
+        skipVmOption = true;
       }
       if (!skipVmOption) {
         temp_vm_options.AddArgument(argv[i]);
@@ -623,7 +628,8 @@ bool Options::ParseArguments(int argc,
       if (!run_command && strcmp(argv[i - 1], "run") == 0) {
         run_command = true;
       }
-      if (!Options::disable_dart_dev() && enable_vm_service_ && run_command) {
+      if (!Options::disable_dart_dev() && !Options::disable_dds() &&
+          enable_vm_service_ && run_command) {
         const char* dds_format_str = "--launch-dds=%s\\:%d";
         size_t size =
             snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
