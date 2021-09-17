@@ -1227,9 +1227,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         prefix.name, FunctionElement.LOAD_LIBRARY_NAME);
     if (loadLibraryElement != null) {
       _errorReporter.reportErrorForNode(
-          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
-          node,
-          [importedLibrary.name]);
+          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, node);
       return true;
     }
     return false;

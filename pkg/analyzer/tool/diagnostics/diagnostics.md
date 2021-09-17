@@ -6713,7 +6713,7 @@ class C {
 
 ### invalid_modifier_on_setter
 
-_The modifier '{0}' can't be applied to the body of a setter._
+_Setters can't use 'async', 'async*', or 'sync*'._
 
 #### Description
 

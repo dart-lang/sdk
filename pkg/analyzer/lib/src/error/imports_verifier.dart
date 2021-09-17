@@ -339,8 +339,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_HIDDEN_NAME, identifier, [identifier.name]);
+        reporter.reportErrorForNode(HintCode.DUPLICATE_HIDDEN_NAME, identifier);
       }
     });
     _duplicateShownNamesMap.forEach(
@@ -348,8 +347,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_SHOWN_NAME, identifier, [identifier.name]);
+        reporter.reportErrorForNode(HintCode.DUPLICATE_SHOWN_NAME, identifier);
       }
     });
   }

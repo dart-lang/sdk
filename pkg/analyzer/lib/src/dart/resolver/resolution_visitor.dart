@@ -1280,7 +1280,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     // to be a DynamicTypeImpl
     Identifier name = typeName.name;
     if (!_libraryElement.shouldIgnoreUndefinedIdentifier(name)) {
-      _errorReporter.reportErrorForNode(errorCode, name, [name.name]);
+      _errorReporter.reportErrorForNode(errorCode, name);
     }
   }
 
