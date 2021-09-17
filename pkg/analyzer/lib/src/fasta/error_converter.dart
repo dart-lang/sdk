@@ -317,13 +317,6 @@ class FastaErrorReporter {
             offset,
             length);
         return;
-      case "WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR":
-        errorReporter?.reportErrorMessage(
-            CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-            offset,
-            length,
-            message);
-        return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,

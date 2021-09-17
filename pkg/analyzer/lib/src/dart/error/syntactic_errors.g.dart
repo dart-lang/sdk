@@ -125,6 +125,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   _LITERAL_WITH_CLASS_AND_NEW,
   _LITERAL_WITH_CLASS,
   _LITERAL_WITH_NEW,
+  _CONSTRUCTOR_WITH_TYPE_ARGUMENTS,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -195,6 +196,12 @@ const ParserErrorCode _CONFLICTING_MODIFIERS = ParserErrorCode(
 const ParserErrorCode _CONSTRUCTOR_WITH_RETURN_TYPE = ParserErrorCode(
     'CONSTRUCTOR_WITH_RETURN_TYPE', r"Constructors can't have a return type.",
     correction: "Try removing the return type.");
+
+const ParserErrorCode _CONSTRUCTOR_WITH_TYPE_ARGUMENTS = ParserErrorCode(
+    'CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
+    r"A constructor invocation can't have type arguments after the constructor name.",
+    correction:
+        "Try removing the type arguments or placing them after the class name.");
 
 const ParserErrorCode _CONST_AND_FINAL = ParserErrorCode('CONST_AND_FINAL',
     r"Members can't be declared to be both 'const' and 'final'.",

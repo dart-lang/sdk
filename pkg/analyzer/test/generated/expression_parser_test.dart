@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show InstanceCreationExpressionImpl;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
@@ -1159,8 +1158,7 @@ class ExpressionParserTest extends FastaParserTestCase {
 
   void test_parseInstanceCreationExpression_type_named_typeArguments_34403() {
     var expression = parseExpression('new a.b.c<C>()', errors: [
-      expectedError(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 8, 1)
+      expectedError(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 8, 1)
     ]) as InstanceCreationExpressionImpl;
     expect(expression, isNotNull);
     expect(expression.keyword!.keyword, Keyword.NEW);

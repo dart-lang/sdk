@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -995,8 +994,7 @@ main() {
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters_34403() {
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
-    assertErrorsWithCodes(
-        [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
+    assertErrorsWithCodes([ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS]);
     expect(statement.expression, isNotNull);
   }
 

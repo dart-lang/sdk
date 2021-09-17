@@ -1630,7 +1630,8 @@ ConstructorWithTypeParameters:
 ConstructorWithTypeArguments:
   template: "A constructor invocation can't have type arguments after the constructor name."
   tip: "Try removing the type arguments or placing them after the class name."
-  analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
+  index: 118
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
     - "class C<X> { C.foo(); } bar() { C.foo<int>(); }"
