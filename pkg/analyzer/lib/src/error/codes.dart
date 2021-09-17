@@ -6978,7 +6978,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
       CompileTimeErrorCode('INVALID_MODIFIER_ON_SETTER',
-          "The modifier '{0}' can't be applied to the body of a setter.",
+          "Setters can't use 'async', 'async*', or 'sync*'.",
           correction: "Try removing the modifier.", hasPublishedDocs: true);
 
   /**
