@@ -334,6 +334,102 @@ extension E on A {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
+  test_function_call() async {
+    await assertNoErrorsInCode('''
+void foo<T>(T a) {}
+
+void bar() {
+  foo.call<int>;
+}
+''');
+
+    assertFunctionReference(findNode.functionReference('foo.call<int>;'), null,
+        'void Function(int)');
+  }
+
+  test_function_call_tooFewTypeArgs() async {
+    await assertErrorsInCode('''
+void foo<T, U>(T a, U b) {}
+
+void bar() {
+  foo.call<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 52, 5),
+    ]);
+
+    assertFunctionReference(findNode.functionReference('foo.call<int>;'), null,
+        'void Function(dynamic, dynamic)');
+  }
+
+  test_function_call_tooManyTypeArgs() async {
+    await assertErrorsInCode('''
+void foo(String a) {}
+
+void bar() {
+  foo.call<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 46, 5),
+    ]);
+
+    assertFunctionReference(findNode.functionReference('foo.call<int>;'), null,
+        'void Function(String)');
+  }
+
+  test_function_call_typeArgNotMatchingBound() async {
+    await assertNoErrorsInCode('''
+void foo<T extends num>(T a) {}
+
+void bar() {
+  foo.call<String>;
+}
+''');
+
+    assertFunctionReference(findNode.functionReference('foo.call<String>;'),
+        null, 'void Function(String)');
+  }
+
+  test_function_extensionOnFunction() async {
+    // TODO(srawlins): Test extension on function type, like
+    // `extension on void Function<T>(T)`.
+    await assertNoErrorsInCode('''
+void foo<T>(T a) {}
+
+void bar() {
+  foo.m<int>;
+}
+
+extension on Function {
+  void m<T>(T t) {}
+}
+''');
+
+    assertFunctionReference(findNode.functionReference('foo.m<int>;'),
+        findElement.method('m'), 'void Function(int)');
+  }
+
+  test_function_extensionOnFunction_static() async {
+    await assertErrorsInCode('''
+void foo<T>(T a) {}
+
+void bar() {
+  foo.m<int>;
+}
+
+extension on Function {
+  static void m<T>(T t) {}
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 40, 1),
+    ]);
+
+    assertFunctionReference(findNode.functionReference('foo.m<int>;'),
+        findElement.method('m'), 'void Function(int)');
+  }
+
   test_instanceGetter_explicitReceiver() async {
     await assertErrorsInCode('''
 class A {
@@ -1038,6 +1134,21 @@ bar() {
 
     assertFunctionReference(
         findNode.functionReference('foo<int>;'), null, 'dynamic');
+  }
+
+  test_topLevelFunction_targetOfCall() async {
+    await assertNoErrorsInCode('''
+void foo<T>(T a) {}
+
+void bar() {
+  foo<int>.call;
+}
+''');
+
+    assertFunctionReference(findNode.functionReference('foo<int>.call;'),
+        findElement.topFunction('foo'), 'void Function(int)');
+    assertSimpleIdentifier(findNode.simple('call;'),
+        element: null, type: 'void Function(int)');
   }
 
   test_topLevelFunction_targetOfFunctionCall() async {

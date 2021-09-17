@@ -350,7 +350,8 @@ class PropertyElementResolver {
 
     var targetType = target.typeOrThrow;
 
-    if (targetType is FunctionType && propertyName.name == 'call') {
+    if (targetType is FunctionType &&
+        propertyName.name == FunctionElement.CALL_METHOD_NAME) {
       return PropertyElementResolverResult(
         functionTypeCallType: targetType,
       );

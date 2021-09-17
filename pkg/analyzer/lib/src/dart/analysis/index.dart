@@ -140,7 +140,8 @@ class IndexElementInfo {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
         element = element.enclosingElement!;
-      } else if (element is FunctionElement && element.name == 'loadLibrary') {
+      } else if (element is FunctionElement &&
+          element.name == FunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
         element = element.library;
       } else if (elementKind == ElementKind.FIELD) {

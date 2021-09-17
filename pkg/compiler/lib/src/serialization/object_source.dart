@@ -12,8 +12,9 @@ class ObjectSource extends AbstractDataSource {
   int _index = 0;
   final List<dynamic> _data;
 
-  ObjectSource(this._data, {bool useDataKinds})
-      : super(useDataKinds: useDataKinds);
+  ObjectSource(this._data,
+      {bool useDataKinds, DataSourceIndices importedIndices})
+      : super(useDataKinds: useDataKinds, importedIndices: importedIndices);
 
   T _read<T>() {
     dynamic value = _data[_index++];

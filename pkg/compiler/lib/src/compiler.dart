@@ -49,6 +49,7 @@ import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
 import 'serialization/task.dart';
+import 'serialization/serialization.dart';
 import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
 import 'universe/selector.dart' show Selector;
@@ -90,6 +91,7 @@ abstract class Compiler {
   List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
   JClosedWorld backendClosedWorldForTesting;
+  DataSourceIndices closedWorldIndicesForTesting;
 
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
@@ -257,15 +259,18 @@ abstract class Compiler {
     if (onlyPerformGlobalTypeInference) {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
-      JsClosedWorld closedWorld =
+      var closedWorldAndIndices =
           await serializationTask.deserializeClosedWorld(
               environment, abstractValueStrategy, component);
+      if (retainDataForTesting) {
+        closedWorldIndicesForTesting = closedWorldAndIndices.indices;
+      }
       GlobalTypeInferenceResults globalTypeInferenceResults =
-          performGlobalTypeInference(closedWorld);
+          performGlobalTypeInference(closedWorldAndIndices.closedWorld);
       if (options.writeDataUri != null) {
         if (options.noClosedWorldInData) {
-          serializationTask
-              .serializeGlobalTypeInference(globalTypeInferenceResults);
+          serializationTask.serializeGlobalTypeInference(
+              globalTypeInferenceResults, closedWorldAndIndices.indices);
         } else {
           serializationTask
               .serializeGlobalTypeInferenceLegacy(globalTypeInferenceResults);
@@ -277,12 +282,15 @@ abstract class Compiler {
       GlobalTypeInferenceResults globalTypeInferenceResults;
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
-      JsClosedWorld closedWorld =
+      var closedWorldAndIndices =
           await serializationTask.deserializeClosedWorld(
               environment, abstractValueStrategy, component);
       globalTypeInferenceResults =
           await serializationTask.deserializeGlobalTypeInferenceResults(
-              environment, abstractValueStrategy, component, closedWorld);
+              environment,
+              abstractValueStrategy,
+              component,
+              closedWorldAndIndices);
       await generateJavaScriptCode(globalTypeInferenceResults);
     } else if (options.readDataUri != null) {
       // TODO(joshualitt) delete and clean up after google3 roll
@@ -480,15 +488,25 @@ abstract class Compiler {
     List<int> irData = strategy.unpackAndSerializeComponent(results);
     List<int> closedWorldData =
         strategy.serializeClosedWorld(results.closedWorld);
+    var component = strategy.deserializeComponent(irData);
+    var closedWorldAndIndices = strategy.deserializeClosedWorld(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorldData);
     List<int> globalTypeInferenceResultsData =
-        strategy.serializeGlobalTypeInferenceResults(results);
+        strategy.serializeGlobalTypeInferenceResults(
+            closedWorldAndIndices.indices, results);
     return strategy.deserializeGlobalTypeInferenceResults(
         options,
         reporter,
         environment,
         abstractValueStrategy,
-        strategy.deserializeComponent(irData),
-        closedWorldData,
+        component,
+        closedWorldAndIndices.closedWorld,
+        closedWorldAndIndices.indices,
         globalTypeInferenceResultsData);
   }
 
@@ -515,8 +533,7 @@ abstract class Compiler {
       if (options.writeDataUri != null) {
         // TODO(joshualitt) delete after google3 roll.
         if (options.noClosedWorldInData) {
-          serializationTask
-              .serializeGlobalTypeInference(globalInferenceResults);
+          throw '"no-closed-world-in-data" requires serializing closed world.';
         } else {
           serializationTask
               .serializeGlobalTypeInferenceLegacy(globalInferenceResults);

@@ -316,7 +316,9 @@ class TypeSystemImpl implements TypeSystem {
   /// return the function type for the call method, otherwise return null.
   FunctionType? getCallMethodType(DartType t) {
     if (t is InterfaceType) {
-      return t.lookUpMethod2('call', t.element.library)?.type;
+      return t
+          .lookUpMethod2(FunctionElement.CALL_METHOD_NAME, t.element.library)
+          ?.type;
     }
     return null;
   }

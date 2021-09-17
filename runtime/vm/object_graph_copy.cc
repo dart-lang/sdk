@@ -1795,9 +1795,13 @@ class ObjectGraphCopier {
       const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
       // External typed data is already initialized.
       if (!IsExternalTypedDataClassId(cid) && !IsTypedDataViewClassId(cid)) {
+#if defined(DART_COMPRESSED_POINTERS)
+        const bool compressed = true;
+#else
+        const bool compressed = false;
+#endif
         Object::InitializeObject(reinterpret_cast<uword>(to.untag()), cid,
-                                 from.untag()->HeapSize(),
-                                 /*compressed=*/cid != kContextCid);
+                                 from.untag()->HeapSize(), compressed);
         UpdateLengthField(cid, from, to);
       }
     }

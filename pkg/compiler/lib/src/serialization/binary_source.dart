@@ -13,9 +13,11 @@ class BinarySourceImpl extends AbstractDataSource {
   final StringInterner _stringInterner;
 
   BinarySourceImpl(this._bytes,
-      {bool useDataKinds: false, StringInterner stringInterner})
+      {bool useDataKinds: false,
+      StringInterner stringInterner,
+      DataSourceIndices importedIndices})
       : _stringInterner = stringInterner,
-        super(useDataKinds: useDataKinds);
+        super(useDataKinds: useDataKinds, importedIndices: importedIndices);
 
   @override
   void _begin(String tag) {}

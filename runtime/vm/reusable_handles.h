@@ -32,15 +32,12 @@ namespace dart {
 
 #if defined(DEBUG)
 #define REUSABLE_SCOPE(name)                                                   \
-  class Reusable##name##HandleScope : public ValueObject {                     \
+  class Reusable##name##HandleScope : public StackResource {                   \
    public:                                                                     \
-    explicit Reusable##name##HandleScope(Thread* thread) : thread_(thread) {   \
+    explicit Reusable##name##HandleScope(Thread* thread = Thread::Current())   \
+        : StackResource(thread), thread_(thread) {                             \
       ASSERT(!thread->reusable_##name##_handle_scope_active());                \
       thread->set_reusable_##name##_handle_scope_active(true);                 \
-    }                                                                          \
-    Reusable##name##HandleScope() : thread_(Thread::Current()) {               \
-      ASSERT(!thread_->reusable_##name##_handle_scope_active());               \
-      thread_->set_reusable_##name##_handle_scope_active(true);                \
     }                                                                          \
     ~Reusable##name##HandleScope() {                                           \
       ASSERT(thread_->reusable_##name##_handle_scope_active());                \
@@ -60,10 +57,8 @@ namespace dart {
 #define REUSABLE_SCOPE(name)                                                   \
   class Reusable##name##HandleScope : public ValueObject {                     \
    public:                                                                     \
-    explicit Reusable##name##HandleScope(Thread* thread)                       \
+    explicit Reusable##name##HandleScope(Thread* thread = Thread::Current())   \
         : handle_(thread->name##_handle_) {}                                   \
-    Reusable##name##HandleScope()                                              \
-        : handle_(Thread::Current()->name##_handle_) {}                        \
     ~Reusable##name##HandleScope() { handle_->ptr_ = name::null(); }           \
     name& Handle() const {                                                     \
       ASSERT(handle_ != NULL);                                                 \

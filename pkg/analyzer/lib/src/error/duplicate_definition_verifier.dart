@@ -14,7 +14,7 @@ class DuplicateDefinitionVerifier {
   static final Set<String> _enumInstanceMembers = {
     'hashCode',
     'index',
-    'noSuchMethod',
+    FunctionElement.NO_SUCH_METHOD_METHOD_NAME,
     'runtimeType',
     'toString',
   };

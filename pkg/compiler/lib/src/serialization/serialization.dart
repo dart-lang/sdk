@@ -460,8 +460,50 @@ abstract class DataSink {
   void inMemberContext(ir.Member member, void f());
 }
 
+/// Data class representing cache information for a given [T] which can be
+/// passed from a [DataSource] to other [DataSource]s and [DataSink]s.
+class DataSourceTypeIndices<E, T> {
+  /// Reshapes a [List<T>] to a [Map<E, int>] using [_getValue].
+  Map<E, int> _reshape() {
+    var cache = <E, int>{};
+    for (int i = 0; i < cacheAsList.length; i++) {
+      cache[_getValue(cacheAsList[i])] = i;
+    }
+    return cache;
+  }
+
+  Map<E, int> get cache {
+    return _cache ??= _reshape();
+  }
+
+  final List<T> cacheAsList;
+  E Function(T value) _getValue;
+  Map<E, int> _cache;
+
+  /// Though [DataSourceTypeIndices] supports two types of caches. If the
+  /// exported indices are imported into a [DataSource] then the [cacheAsList]
+  /// will be used as is. If, however, the exported indices are imported into a
+  /// [DataSink] then we need to reshape the [List<T>] into a [Map<E, int>]
+  /// where [E] is either [T] or some value which can be derived from [T] by
+  /// [_getValue].
+  DataSourceTypeIndices(this.cacheAsList, [this._getValue]) {
+    assert(_getValue != null || T == E);
+    _getValue ??= (T t) => t as E;
+  }
+}
+
+/// Data class representing the sum of all cache information for a given
+/// [DataSource].
+class DataSourceIndices {
+  final Map<Type, DataSourceTypeIndices> caches = {};
+}
+
 /// Interface for deserialization.
 abstract class DataSource {
+  /// Exports [DataSourceIndices] for use in other [DataSource]s and
+  /// [DataSink]s.
+  DataSourceIndices exportIndices();
+
   /// Registers that the section [tag] starts.
   ///
   /// This is used for debugging to verify that sections are correctly aligned

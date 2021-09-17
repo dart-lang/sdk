@@ -13,6 +13,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   /// This is used for debugging data inconsistencies between serialization
   /// and deserialization.
   final bool useDataKinds;
+  DataSourceIndices importedIndices;
 
   /// Visitor used for serializing [ir.DartType]s.
   DartTypeNodeWriter _dartTypeNodeWriter;
@@ -40,13 +41,23 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   ir.Member _currentMemberContext;
   _MemberData _currentMemberData;
 
-  AbstractDataSink({this.useDataKinds: false, this.tagFrequencyMap}) {
-    _dartTypeNodeWriter = new DartTypeNodeWriter(this);
-    _stringIndex = new IndexedSink<String>(this);
-    _uriIndex = new IndexedSink<Uri>(this);
-    _memberNodeIndex = new IndexedSink<ir.Member>(this);
-    _importIndex = new IndexedSink<ImportEntity>(this);
-    _constantIndex = new IndexedSink<ConstantValue>(this);
+  IndexedSink<T> _createSink<T>() {
+    if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
+      return IndexedSink<T>(this);
+    } else {
+      Map<T, int> cacheCopy = Map.from(importedIndices.caches[T].cache);
+      return IndexedSink<T>(this, cache: cacheCopy);
+    }
+  }
+
+  AbstractDataSink(
+      {this.useDataKinds: false, this.tagFrequencyMap, this.importedIndices}) {
+    _dartTypeNodeWriter = DartTypeNodeWriter(this);
+    _stringIndex = _createSink<String>();
+    _uriIndex = _createSink<Uri>();
+    _memberNodeIndex = _createSink<ir.Member>();
+    _importIndex = _createSink<ImportEntity>();
+    _constantIndex = _createSink<ConstantValue>();
   }
 
   @override
@@ -93,7 +104,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void writeCached<E>(E value, void f(E value)) {
-    IndexedSink sink = _generalCaches[E] ??= new IndexedSink<E>(this);
+    IndexedSink sink = _generalCaches[E] ??= _createSink<E>();
     sink.write(value, (v) => f(v));
   }
 

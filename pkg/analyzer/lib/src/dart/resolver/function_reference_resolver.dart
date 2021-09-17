@@ -77,6 +77,31 @@ class FunctionReferenceResolver {
     }
   }
 
+  /// Checks for a type instantiation of a `dynamic`-typed expression.
+  ///
+  /// Returns `true` if an error was reported, and resolution can stop.
+  bool _checkDynamicTypeInstantiation(FunctionReferenceImpl node,
+      PrefixedIdentifierImpl function, Element prefixElement) {
+    DartType? prefixType;
+    if (prefixElement is VariableElement) {
+      prefixType = prefixElement.type;
+    } else if (prefixElement is PropertyAccessorElement) {
+      prefixType = prefixElement.returnType;
+    }
+
+    function.prefix.staticType = prefixType;
+    if (prefixType != null && prefixType.isDynamic) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+        function,
+        [],
+      );
+      node.staticType = DynamicTypeImpl.instance;
+      return true;
+    }
+    return false;
+  }
+
   List<DartType> _checkTypeArguments(
     TypeArgumentList typeArgumentList,
     String? name,
@@ -271,6 +296,36 @@ class FunctionReferenceResolver {
     _resolve(node: node, rawType: member.type, name: propertyName.name);
   }
 
+  /// Resolve a possible function tearoff of a [FunctionElement] receiver.
+  ///
+  /// There are three possible valid cases: tearing off the `call` method of a
+  /// function element, tearing off an extension element declared on [Function],
+  /// and tearing off an extension element declared on a function type.
+  ExecutableElement? _resolveFunctionElementFunction(
+    Expression receiver,
+    SimpleIdentifier methodName,
+    FunctionElement receiverElement,
+  ) {
+    if (methodName.name == FunctionElement.CALL_METHOD_NAME) {
+      return receiverElement;
+    }
+
+    var methodElement = _resolver.typePropertyResolver
+        .resolve(
+          receiver: receiver,
+          receiverType: receiverElement.type,
+          name: methodName.name,
+          propertyErrorEntity: methodName,
+          nameErrorEntity: methodName,
+        )
+        .getter;
+    if (methodElement != null && methodElement.isStatic) {
+      _reportInvalidAccessToStaticMember(methodName, methodElement,
+          implicitReceiver: false);
+    }
+    return methodElement;
+  }
+
   void _resolvePrefixedIdentifierFunction(
       FunctionReferenceImpl node, PrefixedIdentifierImpl function) {
     var prefixElement = function.prefix.scopeLookupResult!.getter;
@@ -287,14 +342,15 @@ class FunctionReferenceResolver {
     }
 
     function.prefix.staticElement = prefixElement;
+    var functionName = function.identifier.name;
+
     if (prefixElement is PrefixElement) {
-      var functionName = function.identifier.name;
       var functionElement = prefixElement.scope.lookup(functionName).getter;
       if (functionElement == null) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
           function.identifier,
-          [function.identifier.name, function.prefix.name],
+          [functionName, function.prefix.name],
         );
         function.staticType = DynamicTypeImpl.instance;
         node.staticType = DynamicTypeImpl.instance;
@@ -306,21 +362,17 @@ class FunctionReferenceResolver {
       }
     }
 
-    DartType? prefixType;
-    if (prefixElement is VariableElement) {
-      prefixType = prefixElement.type;
-    } else if (prefixElement is PropertyAccessorElement) {
-      prefixType = prefixElement.returnType;
+    if (_checkDynamicTypeInstantiation(node, function, prefixElement)) {
+      return;
     }
 
-    function.prefix.staticType = prefixType;
-    if (prefixType != null && prefixType.isDynamic) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
-        function,
-        [],
+    if (prefixElement is FunctionElement &&
+        functionName == FunctionElement.CALL_METHOD_NAME) {
+      _resolve(
+        node: node,
+        rawType: prefixElement.type,
+        name: functionName,
       );
-      node.staticType = DynamicTypeImpl.instance;
       return;
     }
 
@@ -337,7 +389,7 @@ class FunctionReferenceResolver {
       _resolve(
         node: node,
         rawType: methodElement.type,
-        name: function.identifier.name,
+        name: functionName,
       );
       return;
     }
@@ -686,6 +738,8 @@ class FunctionReferenceResolver {
     }
     if (receiverElement is ClassElement) {
       return _resolveStaticElement(receiverElement, name);
+    } else if (receiverElement is FunctionElement) {
+      return _resolveFunctionElementFunction(receiver, name, receiverElement);
     } else if (receiverElement is TypeAliasElement) {
       var aliasedType = receiverElement.aliasedType;
       if (aliasedType is InterfaceType) {

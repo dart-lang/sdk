@@ -43,7 +43,8 @@ class GetterMethodConflict extends Conflict {
 
 /// Manages knowledge about interface types and their members.
 class InheritanceManager3 {
-  static final _noSuchMethodName = Name(null, 'noSuchMethod');
+  static final _noSuchMethodName =
+      Name(null, FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
 
   /// Cached instance interfaces for [ClassElement].
   final Map<ClassElement, Interface> _interfaces = {};
