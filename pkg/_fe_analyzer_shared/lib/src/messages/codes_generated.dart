@@ -1805,7 +1805,7 @@ const Code<Null> codeConstructorWithTypeArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithTypeArguments = const MessageCode(
     "ConstructorWithTypeArguments",
-    analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR"],
+    index: 118,
     message:
         r"""A constructor invocation can't have type arguments after the constructor name.""",
     tip:

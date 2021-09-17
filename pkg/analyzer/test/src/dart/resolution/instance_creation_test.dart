@@ -201,8 +201,7 @@ main() {
   new p.Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 44,
-          3),
+      error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the

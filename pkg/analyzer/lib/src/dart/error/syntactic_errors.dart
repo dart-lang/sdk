@@ -114,6 +114,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE =
       _CONSTRUCTOR_WITH_RETURN_TYPE;
 
+  static const ParserErrorCode CONSTRUCTOR_WITH_TYPE_ARGUMENTS =
+      _CONSTRUCTOR_WITH_TYPE_ARGUMENTS;
+
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP =
       _CONTINUE_OUTSIDE_OF_LOOP;
 

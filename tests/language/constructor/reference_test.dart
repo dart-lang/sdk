@@ -39,7 +39,7 @@ main() {
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //          ^^^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
 
@@ -73,7 +73,7 @@ main() {
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //            ^^^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
 
