@@ -47,9 +47,9 @@ const List<Map<String, String>> EXPECTATIONS = [
   },
 ];
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new Context(environment["updateExpectations"] == "true");
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
+  return new Future.value(
+      new Context(environment["updateExpectations"] == "true"));
 }
 
 void main([List<String> arguments = const []]) =>

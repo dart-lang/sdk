@@ -48,7 +48,7 @@ class Scan extends Step<ReadFile, ScannedFile, ChainContext> {
   String get name => "scan";
 
   @override
-  Future<Result<ScannedFile>> run(ReadFile file, ChainContext context) async {
-    return pass(new ScannedFile(file, scan(file.bytes)));
+  Future<Result<ScannedFile>> run(ReadFile file, ChainContext context) {
+    return new Future.value(pass(new ScannedFile(file, scan(file.bytes))));
   }
 }

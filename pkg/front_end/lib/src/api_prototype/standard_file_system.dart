@@ -52,15 +52,15 @@ class _IoFileSystemEntity implements FileSystemEntity {
       other is _IoFileSystemEntity && other.uri == uri;
 
   @override
-  Future<bool> exists() async {
+  Future<bool> exists() {
     if (new io.File.fromUri(uri).existsSync()) {
-      return true;
+      return new Future.value(true);
     }
     if (io.FileSystemEntity.isDirectorySync(uri.toFilePath())) {
-      return true;
+      return new Future.value(true);
     }
     // TODO(CFE-team): What about [Link]s?
-    return false;
+    return new Future.value(false);
   }
 
   @override
@@ -76,12 +76,13 @@ class _IoFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytes() async {
+  Future<List<int>> readAsBytes() {
     try {
       CompilerContext.recordDependency(uri);
-      return new io.File.fromUri(uri).readAsBytesSync();
+      return new Future.value(new io.File.fromUri(uri).readAsBytesSync());
     } on io.FileSystemException catch (exception) {
-      throw _toFileSystemException(exception);
+      return new Future.error(
+          _toFileSystemException(exception), StackTrace.current);
     }
   }
 
@@ -135,13 +136,13 @@ class DataFileSystemEntity implements FileSystemEntity {
       other is DataFileSystemEntity && other.uri == uri;
 
   @override
-  Future<bool> exists() async {
-    return true;
+  Future<bool> exists() {
+    return new Future.value(true);
   }
 
   @override
-  Future<List<int>> readAsBytes() async {
-    return uri.data!.contentAsBytes();
+  Future<List<int>> readAsBytes() {
+    return new Future.value(uri.data!.contentAsBytes());
   }
 
   @override
@@ -151,7 +152,7 @@ class DataFileSystemEntity implements FileSystemEntity {
   Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
-  Future<String> readAsString() async {
-    return uri.data!.contentAsString();
+  Future<String> readAsString() {
+    return new Future.value(uri.data!.contentAsString());
   }
 }

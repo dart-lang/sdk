@@ -156,7 +156,7 @@ class BatchCompiler {
     }
   }
 
-  Future<bool> batchCompileArguments(List<String> arguments) async {
+  Future<bool> batchCompileArguments(List<String> arguments) {
     return runProtectedFromAbort<bool>(
         () => withGlobalOptions<bool>("compile", arguments, true,
             (CompilerContext c, _) => batchCompileImpl(c)),
@@ -448,7 +448,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   }
 }
 
-Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
+Future<List<Uri>> computeHostDependencies(Uri hostPlatform) {
   // Returns a list of source files that make up the Fasta compiler (the files
   // the Dart VM reads to run Fasta). Until Fasta is self-hosting (in strong
   // mode), this is only an approximation, albeit accurate.  Once Fasta is

@@ -266,7 +266,7 @@ Future<CompilerResult> _compile(List<String> args,
   var additionalDills = summaryModules.keys.toList();
 
   if (!useIncrementalCompiler) {
-    compilerState = await fe.initializeCompiler(
+    compilerState = fe.initializeCompiler(
         oldCompilerState,
         compileSdk,
         sourcePathToUri(getSdkPath()),

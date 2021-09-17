@@ -85,12 +85,13 @@ class DillLoader extends Loader {
   }
 
   @override
-  Future<Null> buildOutline(DillLibraryBuilder builder) async {
+  Future<Null> buildOutline(DillLibraryBuilder builder) {
     // ignore: unnecessary_null_comparison
     if (builder.library == null) {
       unhandled("null", "builder.library", 0, builder.fileUri);
     }
     builder.markAsReadyToBuild();
+    return new Future.value(null);
   }
 
   @override

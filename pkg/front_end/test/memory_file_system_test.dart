@@ -54,7 +54,7 @@ class FileTest extends _BaseTestNative {
 
   void test_createDirectory_exists_asFile() async {
     file.writeAsStringSync('');
-    expect(() => file.createDirectory(), _throwsFileSystemException);
+    await expectLater(file.createDirectory, _throwsFileSystemException);
   }
 
   void test_equals_differentPaths() {
@@ -94,8 +94,8 @@ class FileTest extends _BaseTestNative {
     expect(await file.readAsBytes(), bytes);
   }
 
-  void test_readAsBytes_doesNotExist() {
-    expect(file.readAsBytes(), _throwsFileSystemException);
+  void test_readAsBytes_doesNotExist() async {
+    await expectLater(file.readAsBytes, _throwsFileSystemException);
   }
 
   void test_readAsBytes_exists() async {
@@ -104,13 +104,13 @@ class FileTest extends _BaseTestNative {
     expect(await file.readAsBytes(), utf8.encode(s));
   }
 
-  void test_readAsString_badUtf8() {
+  void test_readAsString_badUtf8() async {
     file.writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
-    expect(file.readAsString(), _throwsFileSystemException);
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
-  void test_readAsString_doesNotExist() {
-    expect(file.readAsString(), _throwsFileSystemException);
+  void test_readAsString_doesNotExist() async {
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
   void test_readAsString_exists() async {
@@ -126,7 +126,8 @@ class FileTest extends _BaseTestNative {
 
   void test_writeAsBytesSync_directory() async {
     file.createDirectory();
-    expect(() => file.writeAsBytesSync([0]), _throwsFileSystemException);
+    await expectLater(
+        () => file.writeAsBytesSync([0]), _throwsFileSystemException);
   }
 
   void test_writeAsBytesSync_modifyAfterRead() async {
@@ -162,7 +163,8 @@ class FileTest extends _BaseTestNative {
 
   void test_writeAsStringSync_directory() async {
     file.createDirectory();
-    expect(() => file.writeAsStringSync(''), _throwsFileSystemException);
+    await expectLater(
+        () => file.writeAsStringSync(''), _throwsFileSystemException);
   }
 
   void test_writeAsStringSync_overwrite() async {
@@ -221,7 +223,7 @@ abstract class MemoryFileSystemTestMixin implements _BaseTest {
         Uri.parse('$tempUri/file.txt'));
   }
 
-  void test_entityForUri_fileUri_relative() {
+  void test_entityForUri_fileUri_relative() async {
     // A weird quirk of the Uri class is that it doesn't seem possible to create
     // a `file:` uri with a relative path, no matter how many slashes you use or
     // if you populate the fields directly.  But just to be certain, try to do
@@ -234,7 +236,7 @@ abstract class MemoryFileSystemTestMixin implements _BaseTest {
       Uri.parse('file:///file.txt')
     ]) {
       if (!uri.path.startsWith('/')) {
-        expect(() => fileSystem.entityForUri(uri),
+        await expectLater(() => fileSystem.entityForUri(uri),
             throwsA(const TypeMatcher<Error>()));
       }
     }

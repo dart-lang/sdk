@@ -176,21 +176,21 @@ class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
 
   @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) async {
+      ComponentResult result, ChainContext context) {
     Component component = result.component;
     ErrorFormatter errorFormatter = new ErrorFormatter();
     NaiveTypeChecker checker =
         new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
-      return pass(result);
+      return new Future.value(pass(result));
     } else {
       errorFormatter.failures.forEach(print);
       print('------- Found ${errorFormatter.numberOfFailures} errors -------');
-      return new Result<ComponentResult>(
+      return new Future.value(new Result<ComponentResult>(
           null,
           context.expectationSet["TypeCheckError"],
-          '${errorFormatter.numberOfFailures} type errors');
+          '${errorFormatter.numberOfFailures} type errors'));
     }
   }
 }
@@ -460,13 +460,13 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
   String get name => "read .dill";
 
   @override
-  Future<Result<Uri>> run(Uri uri, _) async {
+  Future<Result<Uri>> run(Uri uri, _) {
     try {
       loadComponentFromBinary(uri.toFilePath());
     } catch (e, s) {
-      return fail(uri, e, s);
+      return new Future.value(fail(uri, e, s));
     }
-    return pass(uri);
+    return new Future.value(pass(uri));
   }
 }
 

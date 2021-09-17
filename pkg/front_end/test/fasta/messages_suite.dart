@@ -741,11 +741,11 @@ class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
 
   @override
   Future<Result<Example>> run(
-      MessageTestDescription description, MessageTestSuite suite) async {
+      MessageTestDescription description, MessageTestSuite suite) {
     if (description.problem != null) {
-      return fail(null, description.problem);
+      return new Future.value(fail(null, description.problem));
     } else {
-      return pass(description.example);
+      return new Future.value(pass(description.example));
     }
   }
 }
@@ -836,10 +836,10 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 }
 
 Future<MessageTestSuite> createContext(
-    Chain suite, Map<String, String> environment) async {
+    Chain suite, Map<String, String> environment) {
   final bool fastOnly = environment["fastOnly"] == "true";
   final bool interactive = environment["interactive"] == "true";
-  return new MessageTestSuite(fastOnly, interactive);
+  return new Future.value(new MessageTestSuite(fastOnly, interactive));
 }
 
 String relativize(Uri uri) {

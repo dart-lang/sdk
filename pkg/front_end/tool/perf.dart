@@ -42,7 +42,7 @@ Future<void> main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(path.fromUri(entryUri));
+  setup(path.fromUri(entryUri));
 
   Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {
@@ -197,7 +197,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-Future setup(String path) async {
+void setup(String path) {
   var provider = PhysicalResourceProvider.INSTANCE;
 
   var packages = findPackagesFrom(

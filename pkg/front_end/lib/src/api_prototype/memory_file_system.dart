@@ -80,21 +80,23 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<bool> exists() async {
-    return _fileSystem._files[uri] != null ||
-        _fileSystem._directories.contains(uri);
+  Future<bool> exists() {
+    return new Future.value(_fileSystem._files[uri] != null ||
+        _fileSystem._directories.contains(uri));
   }
 
   @override
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytes() async {
+  Future<List<int>> readAsBytes() {
     Uint8List? contents = _fileSystem._files[uri];
     if (contents == null) {
-      throw new FileSystemException(uri, 'File $uri does not exist.');
+      return new Future.error(
+          new FileSystemException(uri, 'File $uri does not exist.'),
+          StackTrace.current);
     }
-    return contents;
+    return new Future.value(contents);
   }
 
   @override
