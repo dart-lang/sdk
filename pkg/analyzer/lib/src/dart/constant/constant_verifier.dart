@@ -469,8 +469,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _reportErrorIfFromDeferredLibrary(
             realArgument,
             CompileTimeErrorCode
-                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
-            [realArgument]);
+                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
       }
     }
   }
