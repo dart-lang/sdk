@@ -299,7 +299,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
   @override
   Iterable<CompilerTask> get tasks {
-    return <CompilerTask>[_builder, optimizer, generator];
+    return [_builder, optimizer, generator];
   }
 }
 

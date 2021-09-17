@@ -223,17 +223,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CodegenRegistry _registry;
   final _CodegenMetrics _metrics;
 
-  final Set<HInstruction> generateAtUseSite;
-  final Set<HInstruction> controlFlowOperators;
-  final Set<JumpTarget> breakAction;
-  final Set<LabelDefinition> continueAction;
-  final Set<JumpTarget> implicitContinueAction;
-  final List<js.Parameter> parameters;
+  final Set<HInstruction> generateAtUseSite = {};
+  final Set<HInstruction> controlFlowOperators = {};
+  final Set<JumpTarget> breakAction = {};
+  final Set<LabelDefinition> continueAction = {};
+  final Set<JumpTarget> implicitContinueAction = {};
+  final List<js.Parameter> parameters = [];
 
-  js.Block currentContainer;
+  js.Block currentContainer = js.Block.empty();
   js.Block get body => currentContainer;
-  List<js.Expression> expressionStack;
-  List<js.Block> oldContainerStack;
+  List<js.Expression> expressionStack = [];
+  List<js.Block> oldContainerStack = [];
 
   /// Contains the names of the instructions, as well as the parallel
   /// copies to perform on block transitioning.
@@ -248,10 +248,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /// Instead we declare them at the start of the function.  When minifying
   /// we do this most of the time, because it reduces the size unless there
   /// is only one variable.
-  final Set<String> collectedVariableDeclarations;
+  final Set<String> collectedVariableDeclarations = {};
 
   /// Set of variables and parameters that have already been declared.
-  final Set<String> declaredLocals;
+  final Set<String> declaredLocals = {};
 
   HGraph currentGraph;
 
@@ -275,19 +275,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._namer,
       this._tracer,
       this._closedWorld,
-      this._registry,
-      {SourceInformation sourceInformation})
-      : declaredLocals = Set<String>(),
-        collectedVariableDeclarations = Set<String>(),
-        currentContainer = js.Block.empty(),
-        parameters = <js.Parameter>[],
-        expressionStack = <js.Expression>[],
-        oldContainerStack = <js.Block>[],
-        generateAtUseSite = Set<HInstruction>(),
-        controlFlowOperators = Set<HInstruction>(),
-        breakAction = Set<JumpTarget>(),
-        continueAction = Set<LabelDefinition>(),
-        implicitContinueAction = Set<JumpTarget>();
+      this._registry);
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
 
@@ -617,7 +605,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     bool oldIsGeneratingExpression = isGeneratingExpression;
     isGeneratingExpression = true;
     List<js.Expression> oldExpressionStack = expressionStack;
-    List<js.Expression> sequenceElements = <js.Expression>[];
+    List<js.Expression> sequenceElements = [];
     expressionStack = sequenceElements;
     HSubExpressionBlockInformation expressionSubGraph = expression;
     visitSubGraph(expressionSubGraph.subExpression);
@@ -711,9 +699,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           js.VariableInitialization(decl, value);
 
       pushExpressionAsStatement(
-          js.VariableDeclarationList(
-              <js.VariableInitialization>[initialization]),
-          sourceInformation);
+          js.VariableDeclarationList([initialization]), sourceInformation);
     } else {
       // Otherwise we are just going to use it.  If we have not already declared
       // it then we make sure we will declare it later.
@@ -858,7 +844,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     js.Expression key = pop();
     bool handledDefault = false;
-    List<js.SwitchClause> cases = <js.SwitchClause>[];
+    List<js.SwitchClause> cases = [];
     HSwitch switchInstruction = info.expression.end.last;
     List<HInstruction> inputs = switchInstruction.inputs;
     List<HBasicBlock> successors = switchInstruction.block.successors;
@@ -1035,7 +1021,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                   js.Assignment assignment = expression;
                   if (assignment.leftHandSide is js.VariableUse &&
                       !assignment.isCompound) {
-                    if (assignments == null) assignments = <js.Assignment>[];
+                    assignments ??= [];
                     assignments.add(expression);
                     return true;
                   }
@@ -1048,8 +1034,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               }
 
               if (allSimpleAssignments(jsInitialization)) {
-                List<js.VariableInitialization> inits =
-                    <js.VariableInitialization>[];
+                List<js.VariableInitialization> inits = [];
                 for (js.Assignment assignment in assignments) {
                   String id = (assignment.leftHandSide as js.VariableUse).name;
                   js.Node declaration = js.VariableDeclaration(id);
@@ -1362,8 +1347,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       String tempName,
       void doAssignment(
           String target, String source, SourceInformation sourceInformation)) {
-    Map<String, SourceInformation> sourceInformationMap =
-        <String, SourceInformation>{};
+    Map<String, SourceInformation> sourceInformationMap = {};
 
     // Map the instructions to strings.
     Iterable<Copy<String>> copies =
@@ -1377,20 +1361,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // Map to keep track of the current location (ie the variable that
     // holds the initial value) of a variable.
-    Map<String, String> currentLocation = Map<String, String>();
+    Map<String, String> currentLocation = {};
 
     // Map to keep track of the initial value of a variable.
-    Map<String, String> initialValue = Map<String, String>();
+    Map<String, String> initialValue = {};
 
     // List of variables to assign a value.
-    List<String> worklist = <String>[];
+    List<String> worklist = [];
 
     // List of variables that we can assign a value to (ie are not
     // being used anymore).
-    List<String> ready = <String>[];
+    List<String> ready = [];
 
     // Prune [copies] by removing self-copies.
-    List<Copy<String>> prunedCopies = <Copy<String>>[];
+    List<Copy<String>> prunedCopies = [];
     for (Copy<String> copy in copies) {
       if (copy.source != copy.destination) {
         prunedCopies.add(copy);
@@ -1879,7 +1863,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Name name = _namer.nameForGetInterceptor(node.interceptedClasses);
       js.Expression isolate = _namer.readGlobalObjectForInterceptors();
       use(node.receiver);
-      List<js.Expression> arguments = <js.Expression>[pop()];
+      List<js.Expression> arguments = [pop()];
       push(js
           .propertyCall(isolate, name, arguments)
           .withSourceInformation(node.sourceInformation));
@@ -2423,7 +2407,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitForeignCode(HForeignCode node) {
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement()) {
-      List<js.Expression> interpolatedExpressions = <js.Expression>[];
+      List<js.Expression> interpolatedExpressions = [];
       for (int i = 0; i < inputs.length; i++) {
         use(inputs[i]);
         interpolatedExpressions.add(pop());
@@ -2432,7 +2416,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           .instantiate(interpolatedExpressions)
           .withSourceInformation(node.sourceInformation));
     } else {
-      List<js.Expression> interpolatedExpressions = <js.Expression>[];
+      List<js.Expression> interpolatedExpressions = [];
       for (int i = 0; i < inputs.length; i++) {
         use(inputs[i]);
         interpolatedExpressions.add(pop());
@@ -2469,7 +2453,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitCreateBox(HCreateBox node) {
-    push(js.ObjectInitializer(<js.Property>[]));
+    push(js.ObjectInitializer([]));
   }
 
   js.Expression newLiteralBool(
@@ -2513,7 +2497,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   static String mapRelationalOperator(String op, bool inverse) {
-    Map<String, String> inverseOperator = const <String, String>{
+    Map<String, String> inverseOperator = const {
       "==": "!=",
       "!=": "==",
       "===": "!==",
@@ -2840,8 +2824,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     FieldEntity element = node.element;
     _registry.registerStaticUse(StaticUse.staticInit(element));
     js.Expression lazyGetter = _emitter.isolateLazyInitializerAccess(element);
-    js.Call call = js.Call(lazyGetter, <js.Expression>[],
-        sourceInformation: node.sourceInformation);
+    js.Call call =
+        js.Call(lazyGetter, [], sourceInformation: node.sourceInformation);
     push(call);
   }
 
@@ -2889,7 +2873,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           StaticUse.staticInvoke(convertToString, CallStructure.ONE_ARG));
       js.Expression jsHelper = _emitter.staticFunctionAccess(convertToString);
       use(input);
-      push(js.Call(jsHelper, <js.Expression>[pop()],
+      push(js.Call(jsHelper, [pop()],
           sourceInformation: node.sourceInformation));
     }
   }

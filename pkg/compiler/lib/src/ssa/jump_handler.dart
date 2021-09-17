@@ -72,7 +72,7 @@ class NullJumpHandler implements JumpHandler {
   bool hasAnyBreak() => false;
 
   @override
-  List<LabelDefinition> get labels => const <LabelDefinition>[];
+  List<LabelDefinition> get labels => const [];
   @override
   JumpTarget get target => null;
 }
@@ -85,11 +85,9 @@ class TargetJumpHandler implements JumpHandler {
   final KernelSsaGraphBuilder builder;
   @override
   final JumpTarget target;
-  final List<_JumpHandlerEntry> jumps;
+  final List<_JumpHandlerEntry> jumps = [];
 
-  TargetJumpHandler(KernelSsaGraphBuilder builder, this.target)
-      : this.builder = builder,
-        jumps = <_JumpHandlerEntry>[] {
+  TargetJumpHandler(this.builder, this.target) {
     assert(builder.jumpTargets[target] == null);
     builder.jumpTargets[target] = this;
   }
@@ -184,7 +182,7 @@ class TargetJumpHandler implements JumpHandler {
 abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// Map from switch case targets to indices used to encode the flow of the
   /// switch case loop.
-  final Map<JumpTarget, int> targetIndexMap = Map<JumpTarget, int>();
+  final Map<JumpTarget, int> targetIndexMap = {};
 
   SwitchCaseJumpHandler(KernelSsaGraphBuilder builder, JumpTarget target)
       : super(builder, target);
