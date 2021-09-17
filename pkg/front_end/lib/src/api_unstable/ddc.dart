@@ -102,7 +102,7 @@ class DdcResult {
   }
 }
 
-Future<InitializedCompilerState> initializeCompiler(
+InitializedCompilerState initializeCompiler(
     InitializedCompilerState? oldState,
     bool compileSdk,
     Uri sdkRoot,
@@ -114,7 +114,7 @@ Future<InitializedCompilerState> initializeCompiler(
     {FileSystem? fileSystem,
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
-    required NnbdMode nnbdMode}) async {
+    required NnbdMode nnbdMode}) {
   // ignore: unnecessary_null_comparison
   assert(nnbdMode != null, "No NnbdMode provided.");
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -173,7 +173,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     required Map<String, String> environmentDefines,
     bool trackNeededDillLibraries: false,
-    required NnbdMode nnbdMode}) async {
+    required NnbdMode nnbdMode}) {
   return modular.initializeIncrementalCompiler(
       oldState,
       tags,

@@ -60,7 +60,7 @@ class DirectoryTest extends _BaseTest {
 
   void test_readAsBytes() async {
     await new io.Directory(path).create();
-    expect(dir.readAsBytes(), _throwsFileSystemException);
+    await expectLater(dir.readAsBytes, _throwsFileSystemException);
   }
 
   void test_uri() {
@@ -108,8 +108,8 @@ class FileTest extends _BaseTest {
     expect(await file.readAsBytes(), bytes);
   }
 
-  void test_readAsBytes_doesNotExist() {
-    expect(file.readAsBytes(), _throwsFileSystemException);
+  void test_readAsBytes_doesNotExist() async {
+    await expectLater(file.readAsBytes, _throwsFileSystemException);
   }
 
   void test_readAsBytes_exists() async {
@@ -118,13 +118,13 @@ class FileTest extends _BaseTest {
     expect(await file.readAsBytes(), utf8.encode(s));
   }
 
-  void test_readAsString_badUtf8() {
+  void test_readAsString_badUtf8() async {
     new io.File(path).writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
-    expect(file.readAsString(), _throwsFileSystemException);
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
-  void test_readAsString_doesNotExist() {
-    expect(file.readAsString(), _throwsFileSystemException);
+  void test_readAsString_doesNotExist() async {
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
   void test_readAsString_exists() async {
@@ -206,8 +206,8 @@ class StandardFileSystemTest extends _BaseTest {
     }
   }
 
-  void test_entityForUri_nonFileUri() {
-    expect(
+  void test_entityForUri_nonFileUri() async {
+    await expectLater(
         () => StandardFileSystem.instance
             .entityForUri(Uri.parse('package:foo/bar.dart')),
         _throwsFileSystemException);

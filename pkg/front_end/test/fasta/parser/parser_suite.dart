@@ -12,8 +12,8 @@ import 'package:testing/testing.dart'
 import '../../utils/scanner_chain.dart' show Read, Scan, ScannedFile;
 
 Future<ChainContext> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new ScannerContext();
+    Chain suite, Map<String, String> environment) {
+  return new Future.value(new ScannerContext());
 }
 
 class ScannerContext extends ChainContext {
@@ -32,17 +32,17 @@ class Parse extends Step<ScannedFile, Null, ChainContext> {
   String get name => "parse";
 
   @override
-  Future<Result<Null>> run(ScannedFile file, ChainContext context) async {
+  Future<Result<Null>> run(ScannedFile file, ChainContext context) {
     try {
       List<ParserError> errors = parse(file.result.tokens,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       if (errors.isNotEmpty) {
-        return fail(null, errors.join("\n"));
+        return new Future.value(fail(null, errors.join("\n")));
       }
     } on ParserError catch (e, s) {
-      return fail(null, e, s);
+      return new Future.value(fail(null, e, s));
     }
-    return pass(null);
+    return new Future.value(pass(null));
   }
 }
 

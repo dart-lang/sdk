@@ -124,13 +124,13 @@ const Expectation InitializedFromDillMismatch =
     const Expectation.fail("InitializedFromDillMismatch");
 const Expectation NNBDModeMismatch = const Expectation.fail("NNBDModeMismatch");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
-  return new Context(environment["updateExpectations"] == "true",
-      environment["addDebugBreaks"] == "true");
+  return new Future.value(new Context(
+      environment["updateExpectations"] == "true",
+      environment["addDebugBreaks"] == "true"));
 }
 
 class Context extends ChainContext {

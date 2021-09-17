@@ -77,7 +77,9 @@ abstract class DataComputer<T> {
   void setup() {}
 
   // Called to allow for (awaited) inspection of the compilation result.
-  Future<void> inspectComponent(Component component) async {}
+  Future<void> inspectComponent(Component component) {
+    return new Future.value(null);
+  }
 
   /// Function that computes a data mapping for [member].
   ///
