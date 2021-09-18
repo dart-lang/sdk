@@ -32,16 +32,15 @@ class LocalsHandler {
   /// iteration order a function only of insertions and not a function of
   /// e.g. Element hash codes.  I'd prefer to use a SortedMap but some elements
   /// don't have source locations for [Elements.compareByPosition].
-  Map<Local, HInstruction> directLocals = Map<Local, HInstruction>();
-  Map<Local, FieldEntity> redirectionMapping = Map<Local, FieldEntity>();
+  Map<Local, HInstruction> directLocals = {};
+  Map<Local, FieldEntity> redirectionMapping = {};
   final KernelSsaGraphBuilder builder;
 
   MemberEntity _scopeInfoMember;
   ScopeInfo _scopeInfo;
   KernelToLocalsMap _localsMap;
 
-  Map<TypeVariableEntity, TypeVariableLocal> typeVariableLocals =
-      Map<TypeVariableEntity, TypeVariableLocal>();
+  Map<TypeVariableEntity, TypeVariableLocal> typeVariableLocals = {};
   final Entity executableContext;
   final MemberEntity memberContext;
 
@@ -594,7 +593,7 @@ class LocalsHandler {
     // block. Since variable declarations are scoped the declared
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
-    Map<Local, HInstruction> joinedLocals = Map<Local, HInstruction>();
+    Map<Local, HInstruction> joinedLocals = {};
     otherLocals.directLocals.forEach((Local local, HInstruction instruction) {
       // We know 'this' cannot be modified.
       if (local == _scopeInfo.thisLocal) {
@@ -627,7 +626,7 @@ class LocalsHandler {
       List<LocalsHandler> localsHandlers, HBasicBlock joinBlock) {
     assert(localsHandlers.length > 0);
     if (localsHandlers.length == 1) return localsHandlers.single;
-    Map<Local, HInstruction> joinedLocals = Map<Local, HInstruction>();
+    Map<Local, HInstruction> joinedLocals = {};
     HInstruction thisValue = null;
     directLocals.forEach((Local local, HInstruction instruction) {
       if (local != _scopeInfo.thisLocal) {
@@ -655,7 +654,7 @@ class LocalsHandler {
     }
 
     // Remove locals that are not in all handlers.
-    directLocals = Map<Local, HInstruction>();
+    directLocals = {};
     joinedLocals.forEach((Local local, HInstruction instruction) {
       if (local != _scopeInfo.thisLocal &&
           instruction.inputs.length != localsHandlers.length) {
@@ -688,8 +687,7 @@ class LocalsHandler {
     return result;
   }
 
-  Map<FieldEntity, AbstractValue> cachedTypesOfCapturedVariables =
-      Map<FieldEntity, AbstractValue>();
+  Map<FieldEntity, AbstractValue> cachedTypesOfCapturedVariables = {};
 
   AbstractValue getTypeOfCapturedVariable(FieldEntity element) {
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
@@ -701,7 +699,7 @@ class LocalsHandler {
   /// Variables stored in the current activation. These variables are
   /// being updated in try/catch blocks, and should be
   /// accessed indirectly through [HLocalGet] and [HLocalSet].
-  Map<Local, HLocalValue> activationVariables = <Local, HLocalValue>{};
+  Map<Local, HLocalValue> activationVariables = {};
 
   SyntheticLocal createLocal(String name) {
     return SyntheticLocal(name, executableContext, memberContext);

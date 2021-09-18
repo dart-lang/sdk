@@ -178,9 +178,7 @@ class SsaBranchBuilder {
     HConstant notIsAnd =
         builder.graph.addConstantBool(!isAnd, builder.closedWorld);
     HPhi result = HPhi.manyInputs(
-        null,
-        <HInstruction>[boolifiedRight, notIsAnd],
-        _abstractValueDomain.dynamicType)
+        null, [boolifiedRight, notIsAnd], _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.current.addPhi(result);
     builder.stack.add(result);
@@ -206,8 +204,8 @@ class SsaBranchBuilder {
 
     if (isExpression) {
       assert(thenValue != null && elseValue != null);
-      HPhi phi = HPhi.manyInputs(null, <HInstruction>[thenValue, elseValue],
-          _abstractValueDomain.dynamicType);
+      HPhi phi = HPhi.manyInputs(
+          null, [thenValue, elseValue], _abstractValueDomain.dynamicType);
       joinBranch.block.addPhi(phi);
       builder.stack.add(phi);
     }

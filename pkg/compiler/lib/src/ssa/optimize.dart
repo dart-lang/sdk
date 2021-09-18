@@ -50,7 +50,7 @@ abstract class OptimizationPhase {
 class SsaOptimizerTask extends CompilerTask {
   final CompilerOptions _options;
 
-  Map<HInstruction, Range> ranges = <HInstruction, Range>{};
+  Map<HInstruction, Range> ranges = {};
 
   Map<MemberEntity, OptimizationTestLog> loggersForTesting;
 
@@ -86,7 +86,7 @@ class SsaOptimizerTask extends CompilerTask {
     }
 
     measure(() {
-      List<OptimizationPhase> phases = <OptimizationPhase>[
+      List<OptimizationPhase> phases = [
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
         SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
@@ -141,7 +141,7 @@ class SsaOptimizerTask extends CompilerTask {
           dce.eliminatedSideEffects ||
           dce.newGvnCandidates ||
           loadElimination.newGvnCandidates) {
-        phases = <OptimizationPhase>[
+        phases = [
           SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
               closedWorld, log),
           SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
@@ -153,7 +153,7 @@ class SsaOptimizerTask extends CompilerTask {
           SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
-        phases = <OptimizationPhase>[
+        phases = [
           SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
               closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
@@ -408,7 +408,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return;
     }
 
-    // TODO(sra): Consider other simple diamonds, e.g. with the addition of a special instruction,
+    // TODO(sra): Consider other simple diamonds, e.g. with the addition of a
+    // special instruction,
     //
     //     s == null ? "" : s  --->  s || "".
     return;
@@ -750,11 +751,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _abstractValueDomain.dynamicType);
     node.block.addBefore(node, typeInfo);
 
-    HInvokeStatic tagInstruction = HInvokeStatic(
-        commonElements.setArrayType,
-        <HInstruction>[splitInstruction, typeInfo],
-        resultMask,
-        const <DartType>[]);
+    HInvokeStatic tagInstruction = HInvokeStatic(commonElements.setArrayType,
+        [splitInstruction, typeInfo], resultMask, const <DartType>[]);
     // 'Linear typing' trick: [tagInstruction] is the only use of the
     // [splitInstruction], so it becomes the sole alias.
     // TODO(sra): Build this knowledge into alias analysis.
@@ -839,8 +837,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
           insertionPoint = load;
         }
         Selector callSelector = Selector.callClosureFrom(node.selector);
-        List<HInstruction> inputs = <HInstruction>[load]
-          ..addAll(node.inputs.skip(node.isInterceptedCall ? 2 : 1));
+        List<HInstruction> inputs = [
+          load,
+          ...node.inputs.skip(node.isInterceptedCall ? 2 : 1)
+        ];
         DartType fieldType =
             _closedWorld.elementEnvironment.getFieldType(field);
         HInstruction closureCall = HInvokeClosure(
@@ -1822,7 +1822,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (_abstractValueDomain
           .isInterceptor(input.instructionType)
           .isDefinitelyFalse) {
-        var inputs = <HInstruction>[input, input]; // [interceptor, receiver].
+        List<HInstruction> inputs = [input, input]; // [interceptor, receiver].
         HInstruction result = HInvokeDynamicMethod(
             selector,
             input.instructionType, // receiver type.
@@ -2308,8 +2308,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final SsaOptimizerTask optimizer;
   HGraph _graph;
   SsaLiveBlockAnalyzer analyzer;
-  Map<HInstruction, bool> trivialDeadStoreReceivers =
-      Maplet<HInstruction, bool>();
+  Map<HInstruction, bool> trivialDeadStoreReceivers = Maplet();
   bool eliminatedSideEffects = false;
   bool newGvnCandidates = false;
 
@@ -2625,8 +2624,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
 class SsaLiveBlockAnalyzer extends HBaseVisitor {
   final HGraph graph;
-  final Set<HBasicBlock> live = Set<HBasicBlock>();
-  final List<HBasicBlock> worklist = <HBasicBlock>[];
+  final Set<HBasicBlock> live = {};
+  final List<HBasicBlock> worklist = [];
   final SsaOptimizerTask optimizer;
   final JClosedWorld closedWorld;
 
@@ -2684,7 +2683,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
         IntValue upperValue = switchRange.upper;
         BigInt lower = lowerValue.value;
         BigInt upper = upperValue.value;
-        Set<BigInt> liveLabels = Set<BigInt>();
+        Set<BigInt> liveLabels = {};
         for (int pos = 1; pos < node.inputs.length; pos++) {
           HConstant input = node.inputs[pos];
           if (!input.isConstantInteger()) continue;
@@ -2711,9 +2710,9 @@ class SsaDeadPhiEliminator implements OptimizationPhase {
 
   @override
   void visitGraph(HGraph graph) {
-    final List<HPhi> worklist = <HPhi>[];
+    final List<HPhi> worklist = [];
     // A set to keep track of the live phis that we found.
-    final Set<HPhi> livePhis = Set<HPhi>();
+    final Set<HPhi> livePhis = {};
 
     // Add to the worklist all live phis: phis referenced by non-phi
     // instructions.
@@ -2770,7 +2769,7 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
 
   @override
   void visitGraph(HGraph graph) {
-    final List<HPhi> worklist = <HPhi>[];
+    final List<HPhi> worklist = [];
 
     // Add all phis in the worklist.
     for (final block in graph.blocks) {
@@ -2828,20 +2827,18 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   final AbstractValueDomain _abstractValueDomain;
   @override
   final String name = "SsaGlobalValueNumberer";
-  final Set<int> visited;
+  final Set<int> visited = {};
 
   List<int> blockChangesFlags;
   List<int> loopChangesFlags;
 
-  SsaGlobalValueNumberer(this._abstractValueDomain) : visited = Set<int>();
+  SsaGlobalValueNumberer(this._abstractValueDomain);
 
   @override
   void visitGraph(HGraph graph) {
     computeChangesFlags(graph);
     moveLoopInvariantCode(graph);
-    List<GvnWorkItem> workQueue = <GvnWorkItem>[
-      GvnWorkItem(graph.entry, ValueSet())
-    ];
+    List<GvnWorkItem> workQueue = [GvnWorkItem(graph.entry, ValueSet())];
     do {
       GvnWorkItem item = workQueue.removeLast();
       visitBasicBlock(item.block, item.valueSet, workQueue);
@@ -3203,8 +3200,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
   @override
   void visitIsTest(HIsTest instruction) {
-    List<HBasicBlock> trueTargets = <HBasicBlock>[];
-    List<HBasicBlock> falseTargets = <HBasicBlock>[];
+    List<HBasicBlock> trueTargets = [];
+    List<HBasicBlock> falseTargets = [];
 
     collectTargets(instruction, trueTargets, falseTargets);
 
@@ -3262,8 +3259,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
       return;
     }
 
-    List<HBasicBlock> trueTargets = <HBasicBlock>[];
-    List<HBasicBlock> falseTargets = <HBasicBlock>[];
+    List<HBasicBlock> trueTargets = [];
+    List<HBasicBlock> falseTargets = [];
 
     collectTargets(instruction, trueTargets, falseTargets);
 
@@ -3683,15 +3680,13 @@ class MemorySet {
   // TODO(25544): Split length effects from other effects and model lengths
   // separately.
   final Map<Object /*MemberEntity|MemoryFeature*/,
-          Map<HInstruction, HInstruction>>
-      fieldValues = <Object, Map<HInstruction, HInstruction>>{};
+      Map<HInstruction, HInstruction>> fieldValues = {};
 
   /// Maps a receiver to a map of keys to value.
-  final Map<HInstruction, Map<HInstruction, HInstruction>> keyedValues =
-      <HInstruction, Map<HInstruction, HInstruction>>{};
+  final Map<HInstruction, Map<HInstruction, HInstruction>> keyedValues = {};
 
   /// Set of objects that we know don't escape the current function.
-  final Setlet<HInstruction> nonEscapingReceivers = Setlet<HInstruction>();
+  final Setlet<HInstruction> nonEscapingReceivers = Setlet();
 
   MemorySet(this.closedWorld);
 
@@ -3782,7 +3777,7 @@ class MemorySet {
     // non-escaping set.
     nonEscapingReceivers.remove(value.nonCheck());
     Map<HInstruction, HInstruction> map =
-        fieldValues.putIfAbsent(field, () => <HInstruction, HInstruction>{});
+        fieldValues.putIfAbsent(field, () => {});
     bool isRedundant = map[receiver] == value;
     map.forEach((key, value) {
       if (mayAlias(receiver, key)) map[key] = null;
@@ -3801,7 +3796,7 @@ class MemorySet {
       return; // TODO(14955): Remove this restriction?
     }
     Map<HInstruction, HInstruction> map =
-        fieldValues.putIfAbsent(field, () => <HInstruction, HInstruction>{});
+        fieldValues.putIfAbsent(field, () => {});
     map[receiver] = value;
   }
 
@@ -3828,7 +3823,7 @@ class MemorySet {
 
     if (instruction.sideEffects.changesInstanceProperty() ||
         instruction.sideEffects.changesStaticProperty()) {
-      List<HInstruction> receiversToRemove = <HInstruction>[];
+      List<HInstruction> receiversToRemove = [];
 
       List<Object> fieldsToRemove;
       fieldValues.forEach((Object element, map) {
@@ -3840,7 +3835,7 @@ class MemorySet {
         });
         if (receiversToRemove.length == map.length) {
           // Remove them all by removing the entire map.
-          (fieldsToRemove ??= <Object>[]).add(element);
+          (fieldsToRemove ??= []).add(element);
         } else {
           receiversToRemove.forEach(map.remove);
         }
@@ -3871,7 +3866,7 @@ class MemorySet {
   void registerKeyedValue(
       HInstruction receiver, HInstruction index, HInstruction value) {
     Map<HInstruction, HInstruction> map =
-        keyedValues.putIfAbsent(receiver, () => <HInstruction, HInstruction>{});
+        keyedValues.putIfAbsent(receiver, () => {});
     map[index] = value;
   }
 
@@ -3897,7 +3892,7 @@ class MemorySet {
     if (couldBeTypedArray(receiver)) return;
 
     Map<HInstruction, HInstruction> map =
-        keyedValues.putIfAbsent(receiver, () => <HInstruction, HInstruction>{});
+        keyedValues.putIfAbsent(receiver, () => {});
     map[index] = value;
   }
 

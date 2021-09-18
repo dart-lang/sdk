@@ -30,10 +30,9 @@ import 'optimize.dart';
 // TODO(sra): The InvokeDynamicSpecializer should be consulted for better
 // targeted conditioning checks.
 class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
-  final Map<int, HInstruction> workmap = Map<int, HInstruction>();
-  final List<int> worklist = <int>[];
-  final Map<HInstruction, Function> pendingOptimizations =
-      Map<HInstruction, Function>();
+  final Map<int, HInstruction> workmap = {};
+  final List<int> worklist = [];
+  final Map<HInstruction, Function> pendingOptimizations = {};
 
   final GlobalTypeInferenceResults results;
   final CommonElements commonElements;

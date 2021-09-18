@@ -27,78 +27,68 @@ import 'package:test/test.dart';
 /// Verbose mode for debugging
 bool get verbose => false;
 
-void main() async {
-  for (var moduleFormat in ['amd', 'ddc']) {
-    group('$moduleFormat module format -', () {
-      for (var soundNullSafety in [true, false]) {
-        group('${soundNullSafety ? "sound" : "unsound"} null safety -', () {
-          group('expression compiler worker on startup', () {
-            Directory tempDir;
-            ReceivePort receivePort;
+void runTests(String moduleFormat, bool soundNullSafety) {
+  group('expression compiler worker on startup', () {
+    Directory tempDir;
+    ReceivePort receivePort;
 
-            setUp(() async {
-              tempDir = Directory.systemTemp.createTempSync('foo bar');
-              receivePort = ReceivePort();
-            });
+    setUp(() async {
+      tempDir = Directory.systemTemp.createTempSync('foo bar');
+      receivePort = ReceivePort();
+    });
 
-            tearDown(() async {
-              tempDir.deleteSync(recursive: true);
-              receivePort.close();
-            });
+    tearDown(() async {
+      tempDir.deleteSync(recursive: true);
+      receivePort.close();
+    });
 
-            test('reports failure to consumer', () async {
-              expect(
-                  receivePort,
-                  emitsInOrder([
-                    equals(isA<SendPort>()),
-                    equals({
-                      'succeeded': false,
-                      'stackTrace': isNotNull,
-                      'exception': contains('Could not load SDK component'),
-                    }),
-                  ]));
+    test('reports failure to consumer', () async {
+      expect(
+          receivePort,
+          emitsInOrder([
+            equals(isA<SendPort>()),
+            equals({
+              'succeeded': false,
+              'stackTrace': isNotNull,
+              'exception': contains('Could not load SDK component'),
+            }),
+          ]));
 
-              try {
-                var badPath = 'file:///path/does/not/exist';
-                await ExpressionCompilerWorker.createAndStart(
-                  [
-                    '--libraries-file',
-                    badPath,
-                    '--dart-sdk-summary',
-                    badPath,
-                    '--module-format',
-                    moduleFormat,
-                    soundNullSafety
-                        ? '--sound-null-safety'
-                        : '--no-sound-null-safety',
-                    if (verbose) '--verbose',
-                  ],
-                  sendPort: receivePort.sendPort,
-                );
-              } catch (e) {
-                throwsA(contains('Could not load SDK component'));
-              }
-            });
-          });
-
-          group('reading assets using standard file system - ', () {
-            runExpressionCompilationTests(
-                StandardFileSystemTestDriver(soundNullSafety, moduleFormat));
-          });
-
-          group('reading assets using multiroot file system - ', () {
-            runExpressionCompilationTests(
-                MultiRootFileSystemTestDriver(soundNullSafety, moduleFormat));
-          });
-
-          group('reading assets using asset file system -', () {
-            runExpressionCompilationTests(
-                AssetFileSystemTestDriver(soundNullSafety, moduleFormat));
-          });
-        });
+      try {
+        var badPath = 'file:///path/does/not/exist';
+        await ExpressionCompilerWorker.createAndStart(
+          [
+            '--libraries-file',
+            badPath,
+            '--dart-sdk-summary',
+            badPath,
+            '--module-format',
+            moduleFormat,
+            soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
+            if (verbose) '--verbose',
+          ],
+          sendPort: receivePort.sendPort,
+        );
+      } catch (e) {
+        throwsA(contains('Could not load SDK component'));
       }
     });
-  }
+  });
+
+  group('reading assets using standard file system - ', () {
+    runExpressionCompilationTests(
+        StandardFileSystemTestDriver(soundNullSafety, moduleFormat));
+  });
+
+  group('reading assets using multiroot file system - ', () {
+    runExpressionCompilationTests(
+        MultiRootFileSystemTestDriver(soundNullSafety, moduleFormat));
+  });
+
+  group('reading assets using asset file system -', () {
+    runExpressionCompilationTests(
+        AssetFileSystemTestDriver(soundNullSafety, moduleFormat));
+  });
 }
 
 void runExpressionCompilationTests(TestDriver driver) {

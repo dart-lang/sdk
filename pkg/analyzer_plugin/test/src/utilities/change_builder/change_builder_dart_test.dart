@@ -48,6 +48,10 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
     expect(edit.replacement, equalsIgnoringWhitespace('required a'));
   }
 
+  Future<void> test_writeType_function_nullable() async {
+    await _assertWriteType('int Function(double a, String b)?');
+  }
+
   Future<void> test_writeType_Never_none() async {
     await _assertWriteType('Never');
   }

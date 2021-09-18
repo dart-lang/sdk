@@ -637,11 +637,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   /// List of [HRangeConversion] instructions created by the phase. We
   /// save them here in order to remove them once the phase is done.
-  final List<HRangeConversion> conversions = <HRangeConversion>[];
+  final List<HRangeConversion> conversions = [];
 
   /// Value ranges for integer instructions. This map gets populated by
   /// the dominator tree visit.
-  final Map<HInstruction, Range> ranges = Map<HInstruction, Range>();
+  final Map<HInstruction, Range> ranges = {};
 
   final JClosedWorld closedWorld;
   final ValueRangeInfo info;

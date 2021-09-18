@@ -168,6 +168,29 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_functionTypedParameter_nullable() async {
+    await resolveTestCode('''
+abstract class A {
+  void forEach(int f(double p1, String p2)?);
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void forEach(int f(double p1, String p2)?);
+}
+
+class B extends A {
+  @override
+  void forEach(int Function(double p1, String p2)? f) {
+    // TODO: implement forEach
+  }
+}
+''');
+  }
+
   Future<void> test_generics_typeArguments() async {
     await resolveTestCode('''
 class Iterator<T> {

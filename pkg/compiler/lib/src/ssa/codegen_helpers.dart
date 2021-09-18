@@ -809,8 +809,8 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
 
     // The expectedInputs list holds non-trivial instructions that may
     // be generated at their use site, if they occur in the correct order.
-    if (expectedInputs == null) expectedInputs = <HInstruction>[];
-    if (pureInputs == null) pureInputs = Set<HInstruction>();
+    expectedInputs ??= [];
+    pureInputs ??= {};
 
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.

@@ -154,12 +154,12 @@ class DartLinter implements AnalysisErrorListener {
 }
 
 class FileGlobFilter extends LintFilter {
-  Iterable<Glob> includes;
-  Iterable<Glob> excludes;
+  List<Glob> includes;
+  List<Glob> excludes;
 
   FileGlobFilter(Iterable<String> includeGlobs, Iterable<String> excludeGlobs)
-      : includes = includeGlobs.map((glob) => Glob(glob)),
-        excludes = excludeGlobs.map((glob) => Glob(glob));
+      : includes = includeGlobs.map((glob) => Glob(glob)).toList(),
+        excludes = excludeGlobs.map((glob) => Glob(glob)).toList();
 
   @override
   bool filter(AnalysisError lint) {

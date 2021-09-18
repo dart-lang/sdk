@@ -1234,6 +1234,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       writeTypeParameters(type.typeFormals,
           methodBeingCopied: methodBeingCopied);
       writeParameters(type.parameters, methodBeingCopied: methodBeingCopied);
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        write('?');
+      }
       return true;
     }
 
