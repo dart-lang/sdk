@@ -693,6 +693,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Move type arguments to after class name',
   );
+  static const MAKE_CONDITIONAL_ON_DEBUG_MODE = FixKind(
+    'dart.fix.flutter.makeConditionalOnDebugMode',
+    DartFixKindPriority.DEFAULT,
+    "Make conditional on 'kDebugMode'",
+  );
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
     'dart.fix.makeVariableNotFinal',
     DartFixKindPriority.DEFAULT,

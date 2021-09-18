@@ -84,6 +84,7 @@ import 'package:analysis_server/src/services/correction/dart/inline_invocation.d
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/insert_semicolon.dart';
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
+import 'package:analysis_server/src/services/correction/dart/make_conditional_on_debug_mode.dart';
 import 'package:analysis_server/src/services/correction/dart/make_field_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
@@ -350,6 +351,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
       RemoveComparison.newInstanceBulkFixable,
+    ],
+    LintNames.avoid_print: [
+      MakeConditionalOnDebugMode.newInstance,
     ],
     LintNames.avoid_private_typedef_functions: [
       InlineTypedef.newInstance,
