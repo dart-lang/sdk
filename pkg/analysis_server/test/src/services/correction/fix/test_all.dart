@@ -103,6 +103,8 @@ import 'inline_invocation_test.dart' as inline_invocation;
 import 'inline_typedef_test.dart' as inline_typedef;
 import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
+import 'make_conditional_on_debug_mode_test.dart'
+    as make_conditional_on_debug_mode;
 import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
@@ -288,6 +290,7 @@ void main() {
     inline_typedef.main();
     insert_semicolon.main();
     make_class_abstract.main();
+    make_conditional_on_debug_mode.main();
     make_field_not_final.main();
     make_final.main();
     make_return_type_nullable.main();

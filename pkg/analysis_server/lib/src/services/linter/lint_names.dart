@@ -18,6 +18,7 @@ class LintNames {
   static const String avoid_init_to_null = 'avoid_init_to_null';
   static const String avoid_null_checks_in_equality_operators =
       'avoid_null_checks_in_equality_operators';
+  static const String avoid_print = 'avoid_print';
   static const String avoid_private_typedef_functions =
       'avoid_private_typedef_functions';
   static const String avoid_redundant_argument_values =
