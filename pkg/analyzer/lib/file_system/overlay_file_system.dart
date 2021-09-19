@@ -40,6 +40,7 @@ class OverlayResourceProvider implements ResourceProvider {
   Folder getFolder(String path) =>
       _OverlayFolder(this, baseProvider.getFolder(path));
 
+  @Deprecated('Not used by clients')
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
     return sources.map((source) {

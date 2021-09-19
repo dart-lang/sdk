@@ -241,7 +241,10 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
     File file = getFile(exists: false);
     expect(file.exists, isFalse);
 
-    expect(() => file.delete(), throwsA(const TypeMatcher<ArgumentError>()));
+    expect(
+      () => file.delete(),
+      throwsFileSystemException,
+    );
   }
 
   @override
@@ -304,14 +307,20 @@ class MemoryResourceProviderTest extends BaseTest
   test_deleteFile_folder() {
     Folder folder = getFolder(exists: true);
 
-    expect(() => provider.deleteFile(defaultFolderPath), throwsArgumentError);
+    expect(
+      () => provider.deleteFile(defaultFolderPath),
+      throwsFileSystemException,
+    );
     expect(folder.exists, isTrue);
   }
 
   test_deleteFile_notExisting() {
     File file = getFile(exists: false);
 
-    expect(() => provider.deleteFile(defaultFilePath), throwsArgumentError);
+    expect(
+      () => provider.deleteFile(defaultFilePath),
+      throwsFileSystemException,
+    );
     expect(file.exists, isFalse);
   }
 
@@ -325,16 +334,20 @@ class MemoryResourceProviderTest extends BaseTest
   test_modifyFile_existing_folder() {
     getFolder(exists: true);
 
-    expect(() => provider.modifyFile(defaultFolderPath, 'contents'),
-        throwsArgumentError);
+    expect(
+      () => provider.modifyFile(defaultFolderPath, 'contents'),
+      throwsFileSystemException,
+    );
     expect(provider.getResource(defaultFolderPath), isFolder);
   }
 
   test_modifyFile_notExisting() {
     getFile(exists: false);
 
-    expect(() => provider.modifyFile(defaultFilePath, 'contents'),
-        throwsArgumentError);
+    expect(
+      () => provider.modifyFile(defaultFilePath, 'contents'),
+      throwsFileSystemException,
+    );
     Resource file = provider.getResource(defaultFilePath);
     expect(file, isFile);
     expect(file.exists, isFalse);
@@ -357,7 +370,10 @@ class MemoryResourceProviderTest extends BaseTest
   test_newFolder_existing_file() {
     getFile(exists: true);
 
-    expect(() => provider.newFolder(defaultFilePath), throwsArgumentError);
+    expect(
+      () => provider.newFolder(defaultFilePath),
+      throwsFileSystemException,
+    );
   }
 
   test_newFolder_existing_folder() {

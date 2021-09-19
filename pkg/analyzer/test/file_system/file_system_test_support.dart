@@ -12,6 +12,8 @@ final isFile = TypeMatcher<File>();
 final isFileSystemException = TypeMatcher<FileSystemException>();
 final isFolder = TypeMatcher<Folder>();
 
+final throwsFileSystemException = throwsA(isFileSystemException);
+
 abstract class FileSystemTestSupport {
   /// The content used for the file at the [defaultFilePath] if it is created
   /// and no other content is provided.
@@ -108,9 +110,11 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_delete_existing() {
     File file = getFile(exists: true);
     expect(file.exists, isTrue);
+    expect(file.parent2.getChildren(), contains(file));
 
     file.delete();
     expect(file.exists, isFalse);
+    expect(file.parent2.getChildren(), isNot(contains(file)));
   }
 
   test_delete_notExisting();
@@ -919,6 +923,7 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
     expect(folder.exists, isFalse);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_existing() async {
     Source source = getFile(exists: true).createSource();
 
@@ -926,6 +931,7 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
     expect(times, [source.modificationStamp]);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_notExisting() async {
     Source source = getFile(exists: false).createSource();
 
