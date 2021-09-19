@@ -152,11 +152,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitInstanceCreation(
       InstanceCreationExpression expression, FunctionExpression node) {
+    if (expression.isConst) return;
+
     var arguments = expression.argumentList.arguments;
     var parameters = node.parameters?.parameters ?? <FormalParameter>[];
-    if (parameters.length != arguments.length) {
-      return;
-    }
+    if (parameters.length != arguments.length) return;
 
     bool _matches(Expression argument, FormalParameter parameter) {
       if (argument is SimpleIdentifier) {

@@ -9,6 +9,12 @@
 // ignore_for_file: prefer_expression_function_bodies
 // ignore_for_file: unused_local_variable
 
+class CC {
+  const CC();
+}
+
+var ccs = [ () => const CC()]; // OK
+
 typedef Maker = Object Function();
 
 class C {
