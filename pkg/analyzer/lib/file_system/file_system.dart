@@ -198,6 +198,7 @@ abstract class ResourceProvider {
   ///
   /// If the file of a source is not managed by this provider, return `null`.
   /// If the file a source does not exist, return `-1`.
+  @Deprecated('Not used by clients')
   Future<List<int?>> getModificationTimes(List<Source> sources);
 
   /// Return the [Resource] that corresponds to the given [path].

@@ -1,3 +1,8 @@
+## 2.4.0-dev
+* Deprecated `ResourceProvider.getModificationTimes()`.
+* Deprecated `MemoryResourceProvider.newDummyLink()`.
+* Deprecated `MemoryResourceProvider.updateFile()`.
+
 ## 2.3.0
 * Enable `constructor-tearoffs` feature by default in `2.15`.
 * Improvements in constructors tear-off implementation.

@@ -272,25 +272,21 @@ class FileTest extends OverlayTestSupport {
   test_renameSync_notExisting_withoutOverlay() {
     String oldPath = '/foo/bar/file.txt';
     String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
-    File oldFile = _file(exists: true, path: oldPath);
-    File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, baseProvider.convertPath(oldPath));
-    expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
-    expect(newFile.exists, isTrue);
-    expect(newFile.readAsStringSync(), 'a');
+    File oldFile = _file(exists: false, path: oldPath);
+    expect(
+      () => oldFile.renameSync(newPath),
+      throwsFileSystemException,
+    );
   }
 
   test_renameSync_notExisting_withOverlay() {
     String oldPath = '/foo/bar/file.txt';
     String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
     File oldFile = _file(exists: false, path: oldPath, withOverlay: true);
-    File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, baseProvider.convertPath(oldPath));
-    expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
-    expect(newFile.exists, isTrue);
-    expect(newFile.readAsStringSync(), 'bbb');
+    expect(
+      () => oldFile.renameSync(newPath),
+      throwsFileSystemException,
+    );
   }
 
   @failingTest
@@ -480,7 +476,7 @@ class FolderTest extends OverlayTestSupport {
   test_delete_notExisting() {
     Folder folder = _folder(exists: false);
     expect(folder.exists, isFalse);
-    expect(() => folder.delete(), throwsA(TypeMatcher<ArgumentError>()));
+    expect(() => folder.delete(), throwsFileSystemException);
   }
 
   void test_exists_links_existing() {
@@ -810,12 +806,14 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
     expect(folder.exists, isTrue);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_withoutOverlay() async {
     Source source = _file(exists: true).createSource();
     List<int> times = await provider.getModificationTimes([source]);
     expect(times, [source.modificationStamp]);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_withOverlay() async {
     Source source = _file(exists: true, withOverlay: true).createSource();
     List<int> times = await provider.getModificationTimes([source]);
