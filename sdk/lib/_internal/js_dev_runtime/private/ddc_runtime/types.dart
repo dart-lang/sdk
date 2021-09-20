@@ -839,6 +839,26 @@ class TypeVariable extends DartType {
   toString() => name;
 }
 
+/// A helper data class for the subtype check algorithm to represent a generic
+/// function type variable with its bound.
+///
+/// Instances of this class are created during subtype check operations to pass
+/// information deeper into the algorithm. They are not canonicalized and should
+/// be discarded after use.
+class TypeVariableForSubtype extends DartType {
+  /// The position of this type variable in the type variable list of a generic
+  /// function.
+  final int index;
+
+  /// The bound for this type variable.
+  ///
+  /// Only nullable to avoid the cost of a late field within the subtype check.
+  /// Should not be null after initial creation algorithm is complete.
+  DartType? bound;
+
+  TypeVariableForSubtype(this.index);
+}
+
 class Variance {
   static const int unrelated = 0;
   static const int covariant = 1;
@@ -1260,6 +1280,14 @@ bool _isFunctionSubtype(ft1, ft2, @notNull bool strictMode) =>
   return $_isSubtype(ret1, ret2, strictMode);
 })()''');
 
+/// Number of generic function type variables encountered so far during a
+/// subtype check.
+///
+/// This continues to increase through nested generic function types but should
+/// always be reset before performing a new subtype check.
+@notNull
+var _typeVariableCount = 0;
+
 /// Returns true if [t1] <: [t2].
 @notNull
 bool isSubtypeOf(@notNull t1, @notNull t2) {
@@ -1268,9 +1296,12 @@ bool isSubtypeOf(@notNull t1, @notNull t2) {
   var map = JS<Object>('!', '#[#]', t1, _subtypeCache);
   bool result = JS('', '#.get(#)', map, t2);
   if (JS('!', '# !== void 0', result)) return result;
-
+  // Reset count before performing subtype check.
+  _typeVariableCount = 0;
   var validSubtype = _isSubtype(t1, t2, true);
   if (!validSubtype && !compileTimeFlag('soundNullSafety')) {
+    // Reset count before performing subtype check.
+    _typeVariableCount = 0;
     validSubtype = _isSubtype(t1, t2, false);
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
@@ -1370,8 +1401,6 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
   // "Right Object".
   if (_equalType(t2, Object)) {
-    // TODO(nshahan) Need to handle type variables.
-    // https://github.com/dart-lang/sdk/issues/38816
     if (_isFutureOr(t1)) {
       var t1TypeArg = JS('', '#[0]', getGenericArgs(t1));
       return _isSubtype(t1TypeArg, typeRep<Object>(), strictMode);
@@ -1390,8 +1419,6 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
   // "Left Null".
   if (_equalType(t1, Null)) {
-    // TODO(nshahan) Need to handle type variables.
-    // https://github.com/dart-lang/sdk/issues/38816
     if (_isFutureOr(t2)) {
       var t2TypeArg = JS('', '#[0]', getGenericArgs(t2));
       return _isSubtype(typeRep<Null>(), t2TypeArg, strictMode);
@@ -1434,8 +1461,6 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 
   // "Left Nullable".
   if (_jsInstanceOf(t1, NullableType)) {
-    // TODO(nshahan) Need to handle type variables.
-    // https://github.com/dart-lang/sdk/issues/38816
     return _isSubtype(JS<NullableType>('!', '#', t1).type, t2, strictMode) &&
         _isSubtype(typeRep<Null>(), t2, strictMode);
   }
@@ -1445,16 +1470,12 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
     // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
     var t2TypeArg = JS('!', '#[0]', getGenericArgs(t2));
     var t2Future = JS('!', '#(#)', getGenericClassStatic<Future>(), t2TypeArg);
-    // TODO(nshahan) Need to handle type variables on the left.
-    // https://github.com/dart-lang/sdk/issues/38816
     return _isSubtype(t1, t2Future, strictMode) ||
         _isSubtype(t1, t2TypeArg, strictMode);
   }
 
   // "Right Nullable".
   if (_jsInstanceOf(t2, NullableType)) {
-    // TODO(nshahan) Need to handle type variables.
-    // https://github.com/dart-lang/sdk/issues/38816
     return _isSubtype(t1, JS<NullableType>('!', '#', t2).type, strictMode) ||
         _isSubtype(t1, typeRep<Null>(), strictMode);
   }
@@ -1522,39 +1543,61 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
       return false;
     }
 
-    // Using either function's type formals will work as long as they're both
-    // instantiated with the same ones. The instantiate operation is guaranteed
-    // to avoid capture because it does not depend on its TypeVariable objects,
-    // rather it uses JS function parameters to ensure correct binding.
-    var fresh = JS<GenericFunctionType>('!', '#', t2).typeFormals;
+    // Fresh type variables will be used to instantiate generic functions.
+    List<Object> fresh1;
+    List<Object> fresh2;
 
     // Without type bounds all will instantiate to dynamic. Only need to check
     // further if at least one of the functions has type bounds.
     if (JS<bool>('!', '#.hasTypeBounds || #.hasTypeBounds', t1, t2)) {
-      // Check the bounds of the type parameters of g1 and g2. Given a type
-      // parameter `T1 extends U1` from g1, and a type parameter `T2 extends U2`
-      // from g2, we must ensure that U1 and U2 are mutual subtypes.
-      //
-      // (Note there is no variance in the type bounds of type parameters of
-      // generic functions).
+      // Create two sets of fresh type variables that can store their bounds so
+      // they can be considered in recursive calls.
+      fresh1 = JS('!', 'new Array(#)', formalCount);
+      fresh2 = JS('!', 'new Array(#)', formalCount);
+      for (var i = 0; i < formalCount; i++, _typeVariableCount++) {
+        JS('!', '#[#] = #', fresh1, i,
+            TypeVariableForSubtype(_typeVariableCount));
+        JS('!', '#[#] = #', fresh2, i,
+            TypeVariableForSubtype(_typeVariableCount));
+      }
       var t1Bounds =
-          JS<GenericFunctionType>('!', '#', t1).instantiateTypeBounds(fresh);
+          JS<GenericFunctionType>('!', '#', t1).instantiateTypeBounds(fresh1);
       var t2Bounds =
-          JS<GenericFunctionType>('!', '#', t2).instantiateTypeBounds(fresh);
+          JS<GenericFunctionType>('!', '#', t2).instantiateTypeBounds(fresh2);
+
       for (var i = 0; i < formalCount; i++) {
-        var t1Bound = JS('!', '#[#]', t1Bounds, i);
-        var t2Bound = JS('!', '#[#]', t2Bounds, i);
+        var t1Bound = JS<Object>('!', '#[#]', t1Bounds, i);
+        var t2Bound = JS<Object>('!', '#[#]', t2Bounds, i);
+
+        // Check the bounds of the type parameters of g1 and g2. Given a type
+        // parameter `T1 extends B1` from g1, and a type parameter `T2 extends
+        // B2` from g2, we must ensure that B1 and B2 are mutual subtypes.
+        //
+        // (Note there is no variance in the type bounds of type parameters of
+        // generic functions).
         if (JS<bool>('!', '# != #', t1Bound, t2Bound)) {
           if (!(_isSubtype(t1Bound, t2Bound, strictMode) &&
               _isSubtype(t2Bound, t1Bound, strictMode))) {
             return false;
           }
         }
+        // Assign bounds to be used in the `_isInterfaceSubtype` check later as
+        // this subtype check continues.
+        JS('', '#[#].bound = #', fresh1, i, t1Bound);
+        JS('', '#[#].bound = #', fresh2, i, t2Bound);
       }
+    } else {
+      // Using either function's type formals will work as long as they're both
+      // instantiated with the same ones. The instantiate operation is
+      // guaranteed to avoid capture because it does not depend on its
+      // TypeVariable objects, rather it uses JS function parameters to ensure
+      // correct binding.
+      fresh1 = JS<GenericFunctionType>('!', '#', t1).typeFormals;
+      fresh2 = fresh1;
     }
 
-    t1 = JS<GenericFunctionType>('!', '#', t1).instantiate(fresh);
-    t2 = JS<GenericFunctionType>('!', '#', t2).instantiate(fresh);
+    t1 = JS<GenericFunctionType>('!', '#', t1).instantiate(fresh1);
+    t2 = JS<GenericFunctionType>('!', '#', t2).instantiate(fresh2);
   } else if (_jsInstanceOf(t2, GenericFunctionType)) {
     return false;
   }
@@ -1585,6 +1628,20 @@ bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
   // If t1 is a JS Object, we may not hit core.Object.
   if (t1 == null) {
     return _equalType(t2, Object) || _equalType(t2, dynamic);
+  }
+
+  if (_jsInstanceOf(t1, TypeVariableForSubtype)) {
+    if (_jsInstanceOf(t2, TypeVariableForSubtype)) {
+      // Bounds were already checked to be subtypes of each other in the
+      // generic function section of `_isSubtype()` so just check these type
+      // variables share the same index in their respective signatures.
+      return JS<TypeVariableForSubtype>('!', '#', t1).index ==
+          JS<TypeVariableForSubtype>('!', '#', t2).index;
+    }
+
+    // If t1 <: bound <: t2 then t1 <: t2.
+    return _isSubtype(
+        JS<TypeVariableForSubtype>('!', '#', t1).bound, t2, strictMode);
   }
 
   // Check if t1 and t2 have the same raw type.  If so, check covariance on
