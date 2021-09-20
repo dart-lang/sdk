@@ -18,27 +18,27 @@ class FrequencyBasedNamer extends Namer
 
   FrequencyBasedNamer(JClosedWorld closedWorld, FixedNames fixedNames)
       : super(closedWorld, fixedNames) {
-    fieldRegistry = new _FieldNamingRegistry(this);
+    fieldRegistry = _FieldNamingRegistry(this);
   }
 
   TokenScope newScopeFor(NamingScope scope) {
     if (scope == instanceScope) {
-      Set<String> illegalNames = new Set<String>.from(jsReserved);
+      Set<String> illegalNames = Set<String>.from(jsReserved);
       for (String illegal in MinifyNamer._reservedNativeProperties) {
         illegalNames.add(illegal);
         if (MinifyNamer._hasBannedPrefix(illegal)) {
           illegalNames.add(illegal.substring(1));
         }
       }
-      return new TokenScope(illegalNames: illegalNames);
+      return TokenScope(illegalNames: illegalNames);
     } else {
-      return new TokenScope(illegalNames: jsReserved);
+      return TokenScope(illegalNames: jsReserved);
     }
   }
 
   @override
   jsAst.Name getFreshName(NamingScope scope, String proposedName,
-      {bool sanitizeForNatives: false, bool sanitizeForAnnotations: false}) {
+      {bool sanitizeForNatives = false, bool sanitizeForAnnotations = false}) {
     // Grab the scope for this token
     TokenScope tokenScope =
         _tokenScopes.putIfAbsent(scope, () => newScopeFor(scope));
@@ -48,7 +48,7 @@ class FrequencyBasedNamer extends Namer
         sanitizeForNatives: sanitizeForNatives,
         sanitizeForAnnotations: sanitizeForAnnotations);
 
-    TokenName name = new TokenName(tokenScope, proposed);
+    TokenName name = TokenName(tokenScope, proposed);
     tokens.add(name);
     return name;
   }
@@ -82,7 +82,7 @@ class TokenScope {
   List<int> _nextName;
   final Set<String> illegalNames;
 
-  TokenScope({this.illegalNames = const {}, this.initialChar: $a}) {
+  TokenScope({this.illegalNames = const {}, this.initialChar = $a}) {
     _nextName = [initialChar];
   }
 
@@ -125,7 +125,7 @@ class TokenScope {
   String getNextName() {
     String proposal;
     do {
-      proposal = new String.fromCharCodes(_nextName);
+      proposal = String.fromCharCodes(_nextName);
       _incrementName();
     } while (MinifyNamer._hasBannedPrefix(proposal) ||
         illegalNames.contains(proposal));

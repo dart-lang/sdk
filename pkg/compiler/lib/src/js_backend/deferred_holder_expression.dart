@@ -883,7 +883,7 @@ class LegacyDeferredHolderExpressionFinalizerImpl
   }
 
   final List<String> userGlobalObjects =
-      new List.from(Namer.reservedGlobalObjectNames)
+      List.from(Namer.reservedGlobalObjectNames)
         ..remove('C')
         ..remove('H')
         ..remove('J')
