@@ -131,23 +131,22 @@ class JsClosedWorld implements JClosedWorld {
       DataSource source) {
     source.begin(tag);
 
-    JsKernelToElementMap elementMap =
-        new JsKernelToElementMap.readFromDataSource(
-            options, reporter, environment, component, source);
-    ClassHierarchy classHierarchy = new ClassHierarchy.readFromDataSource(
-        source, elementMap.commonElements);
-    NativeData nativeData = new NativeData.readFromDataSource(
-        source, elementMap.elementEnvironment);
+    JsKernelToElementMap elementMap = JsKernelToElementMap.readFromDataSource(
+        options, reporter, environment, component, source);
+    ClassHierarchy classHierarchy =
+        ClassHierarchy.readFromDataSource(source, elementMap.commonElements);
+    NativeData nativeData =
+        NativeData.readFromDataSource(source, elementMap.elementEnvironment);
     elementMap.nativeData = nativeData;
-    InterceptorData interceptorData = new InterceptorData.readFromDataSource(
+    InterceptorData interceptorData = InterceptorData.readFromDataSource(
         source, nativeData, elementMap.commonElements);
-    BackendUsage backendUsage = new BackendUsage.readFromDataSource(source);
-    RuntimeTypesNeed rtiNeed = new RuntimeTypesNeed.readFromDataSource(
+    BackendUsage backendUsage = BackendUsage.readFromDataSource(source);
+    RuntimeTypesNeed rtiNeed = RuntimeTypesNeed.readFromDataSource(
         source, elementMap.elementEnvironment);
     JFieldAnalysis allocatorAnalysis =
-        new JFieldAnalysis.readFromDataSource(source, options);
+        JFieldAnalysis.readFromDataSource(source, options);
     NoSuchMethodData noSuchMethodData =
-        new NoSuchMethodData.readFromDataSource(source);
+        NoSuchMethodData.readFromDataSource(source);
 
     Set<ClassEntity> implementedClasses = source.readClasses().toSet();
     Set<ClassEntity> liveNativeClasses = source.readClasses().toSet();
@@ -162,22 +161,21 @@ class JsClosedWorld implements JClosedWorld {
         source.readClassMap(() => source.readClasses().toSet());
 
     AnnotationsData annotationsData =
-        new AnnotationsData.readFromDataSource(options, source);
+        AnnotationsData.readFromDataSource(options, source);
 
     ClosureData closureData =
-        new ClosureData.readFromDataSource(elementMap, source);
+        ClosureData.readFromDataSource(elementMap, source);
 
-    OutputUnitData outputUnitData =
-        new OutputUnitData.readFromDataSource(source);
+    OutputUnitData outputUnitData = OutputUnitData.readFromDataSource(source);
     elementMap.lateOutputUnitDataBuilder =
-        new LateOutputUnitDataBuilder(outputUnitData);
+        LateOutputUnitDataBuilder(outputUnitData);
 
     Map<MemberEntity, MemberAccess> memberAccess = source.readMemberMap(
-        (MemberEntity member) => new MemberAccess.readFromDataSource(source));
+        (MemberEntity member) => MemberAccess.readFromDataSource(source));
 
     source.end(tag);
 
-    return new JsClosedWorld(
+    return JsClosedWorld(
         elementMap,
         nativeData,
         interceptorData,
@@ -389,7 +387,7 @@ class JsClosedWorld implements JClosedWorld {
   @override
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
-      _liveMixinUses = new Map<ClassEntity, List<ClassEntity>>();
+      _liveMixinUses = Map<ClassEntity, List<ClassEntity>>();
       for (ClassEntity mixin in mixinUses.keys) {
         List<ClassEntity> uses = <ClassEntity>[];
 
@@ -438,7 +436,7 @@ class JsClosedWorld implements JClosedWorld {
     if (_allFunctions == null) {
       // [FunctionSet] is created lazily because it is not used when we switch
       // from a frontend to a backend model before inference.
-      _allFunctions = new FunctionSet(liveInstanceMembers);
+      _allFunctions = FunctionSet(liveInstanceMembers);
     }
   }
 
@@ -535,7 +533,7 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   Sorter get sorter {
-    return _sorter ??= new KernelSorter(elementMap);
+    return _sorter ??= KernelSorter(elementMap);
   }
 
   @override

@@ -44,14 +44,14 @@ class GlobalLocalsMap {
     int mapCount = source.readInt();
     for (int i = 0; i < mapCount; i++) {
       KernelToLocalsMap localsMap =
-          new KernelToLocalsMapImpl.readFromDataSource(source);
+          KernelToLocalsMapImpl.readFromDataSource(source);
       List<MemberEntity> members = source.readMembers();
       for (MemberEntity member in members) {
         _localsMaps[member] = localsMap;
       }
     }
     source.end(tag);
-    return new GlobalLocalsMap.internal(localMapKeyLookup, _localsMaps);
+    return GlobalLocalsMap.internal(localMapKeyLookup, _localsMaps);
   }
 
   /// Serializes this [GlobalLocalsMap] to [sink].
@@ -89,7 +89,7 @@ class GlobalLocalsMap {
     // constructor steps.
     MemberEntity entity = key;
     if (entity is ConstructorBodyEntity) key = entity.constructor;
-    return _localsMaps.putIfAbsent(key, () => new KernelToLocalsMapImpl(key));
+    return _localsMaps.putIfAbsent(key, () => KernelToLocalsMapImpl(key));
   }
 }
 
@@ -303,7 +303,7 @@ class JumpVisitor extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   JJumpTarget _getJumpTarget(ir.TreeNode node) {
     return jumpTargetMap.putIfAbsent(node, () {
-      return new JJumpTarget(member, jumpIndex++,
+      return JJumpTarget(member, jumpIndex++,
           isSwitch: node is ir.SwitchStatement,
           isSwitchCase: node is ir.SwitchCase);
     });
@@ -469,10 +469,10 @@ class JJumpTarget extends JumpTarget {
   bool isContinueTarget;
 
   JJumpTarget(this.memberContext, this.nestingLevel,
-      {this.isSwitch: false,
-      this.isSwitchCase: false,
-      this.isBreakTarget: false,
-      this.isContinueTarget: false});
+      {this.isSwitch = false,
+      this.isSwitchCase = false,
+      this.isBreakTarget = false,
+      this.isContinueTarget = false});
 
   /// Deserializes a [JJumpTarget] object from [source].
   factory JJumpTarget.readFromDataSource(DataSource source) {
@@ -483,7 +483,7 @@ class JJumpTarget extends JumpTarget {
     bool isSwitchCase = source.readBool();
     bool isBreakTarget = source.readBool();
     bool isContinueTarget = source.readBool();
-    JJumpTarget target = new JJumpTarget(memberContext, nestingLevel,
+    JJumpTarget target = JJumpTarget(memberContext, nestingLevel,
         isSwitch: isSwitch,
         isSwitchCase: isSwitchCase,
         isBreakTarget: isBreakTarget,
@@ -524,9 +524,9 @@ class JJumpTarget extends JumpTarget {
 
   @override
   LabelDefinition addLabel(String labelName,
-      {bool isBreakTarget: false, bool isContinueTarget: false}) {
+      {bool isBreakTarget = false, bool isContinueTarget = false}) {
     _labels ??= <LabelDefinition>[];
-    LabelDefinition labelDefinition = new JLabelDefinition(this, labelName,
+    LabelDefinition labelDefinition = JLabelDefinition(this, labelName,
         isBreakTarget: isBreakTarget, isContinueTarget: isContinueTarget);
     _labels.add(labelDefinition);
     return labelDefinition;
@@ -539,7 +539,7 @@ class JJumpTarget extends JumpTarget {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('JJumpTarget(');
     sb.write('memberContext=');
     sb.write(memberContext);
@@ -569,13 +569,13 @@ class JLabelDefinition extends LabelDefinition {
   bool isContinueTarget;
 
   JLabelDefinition(this.target, this.labelName,
-      {this.isBreakTarget: false, this.isContinueTarget: false});
+      {this.isBreakTarget = false, this.isContinueTarget = false});
 
   @override
   String get name => labelName;
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('JLabelDefinition(');
     sb.write(',labelName=');
     sb.write(labelName);
@@ -596,7 +596,7 @@ class JLocal extends IndexedLocal {
   /// True if this local represents a local parameter.
   final bool isRegularParameter;
 
-  JLocal(this.name, this.memberContext, {this.isRegularParameter: false}) {
+  JLocal(this.name, this.memberContext, {this.isRegularParameter = false}) {
     assert(memberContext is! JGeneratorBody);
   }
 
@@ -604,7 +604,7 @@ class JLocal extends IndexedLocal {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('$_kind(');
     if (memberContext.enclosingClass != null) {
       sb.write(memberContext.enclosingClass.name);
