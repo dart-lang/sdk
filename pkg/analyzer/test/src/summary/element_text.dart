@@ -796,13 +796,12 @@ class _ElementWriter {
       }
 
       var aliasedElement = e.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        final aliasedElement_ = aliasedElement as GenericFunctionTypeElement;
+      if (aliasedElement is GenericFunctionTypeElementImpl) {
         _writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
         _withIndent(() {
-          _writeTypeParameterElements(aliasedElement_.typeParameters);
-          _writeParameterElements(aliasedElement_.parameters);
-          _writeType(aliasedElement_.returnType, name: 'returnType');
+          _writeTypeParameterElements(aliasedElement.typeParameters);
+          _writeParameterElements(aliasedElement.parameters);
+          _writeType(aliasedElement.returnType, name: 'returnType');
         });
       }
     });
