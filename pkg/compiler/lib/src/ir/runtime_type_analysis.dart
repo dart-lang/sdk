@@ -64,7 +64,7 @@ class RuntimeTypeUseData {
       case RuntimeTypeUseKind.equals:
         return receiverType != null && argumentType != null;
     }
-    throw new UnsupportedError("Unexpected RuntimeTypeUseKind $kind.");
+    throw UnsupportedError("Unexpected RuntimeTypeUseKind $kind.");
   }
 
   @override
@@ -408,8 +408,8 @@ RuntimeTypeUseData computeRuntimeTypeUse(
     receiverGet = node;
   }
 
-  RuntimeTypeUseData data = new RuntimeTypeUseData(
-      kind, receiverGet, receiver, argumentGet, argument);
+  RuntimeTypeUseData data =
+      RuntimeTypeUseData(kind, receiverGet, receiver, argumentGet, argument);
   cache[receiverGet] = data;
   if (argumentGet != null) {
     cache[argumentGet] = data;
