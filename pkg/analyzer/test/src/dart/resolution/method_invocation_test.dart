@@ -1561,6 +1561,39 @@ void f(C c) {
     assertType(foo.propertyName, 'double Function(int)');
   }
 
+  /// It is important to use this expression as an initializer of a top-level
+  /// variable, because of the way top-level inference works, at the time of
+  /// writing this. We resolve initializers twice - first for dependencies,
+  /// then for resolution. This has its issues (for example we miss some
+  /// dependencies), but the important thing is that we rewrite `foo(0)` from
+  /// being a [MethodInvocation] to [FunctionExpressionInvocation]. So, during
+  /// the second pass we see [SimpleIdentifier] `foo` as a `function`. And
+  /// we should be aware that it is not a stand-alone identifier, but a
+  /// cascade section.
+  test_hasReceiver_instance_getter_cascade() async {
+    await resolveTestCode(r'''
+class C {
+  double Function(int) get foo => 0;
+}
+
+var v = C()..foo(0) = 0;
+''');
+
+    var invocation = findNode.functionExpressionInvocation('foo(0)');
+    assertFunctionExpressionInvocation(
+      invocation,
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'double Function(int)',
+      type: 'double',
+    );
+    assertSimpleIdentifier(
+      invocation.function,
+      element: findElement.getter('foo'),
+      type: 'double Function(int)',
+    );
+  }
+
   test_hasReceiver_instance_getter_switchStatementExpression() async {
     await assertNoErrorsInCode(r'''
 class C {
