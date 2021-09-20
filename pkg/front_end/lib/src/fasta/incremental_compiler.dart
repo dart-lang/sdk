@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
 
 import 'package:front_end/src/api_prototype/lowering_predicates.dart'
     show isExtensionThisName;
