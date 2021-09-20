@@ -6,12 +6,12 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 void main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));

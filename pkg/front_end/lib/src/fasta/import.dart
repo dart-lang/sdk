@@ -10,9 +10,9 @@ import 'builder/builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/prefix_builder.dart';
 
-import 'kernel/kernel_builder.dart' show toKernelCombinators;
+import 'kernel/utils.dart' show toKernelCombinators;
 
-import 'combinator.dart' show Combinator;
+import 'combinator.dart' show CombinatorBuilder;
 
 import 'configuration.dart' show Configuration;
 
@@ -31,7 +31,7 @@ class Import {
 
   final String? prefix;
 
-  final List<Combinator>? combinators;
+  final List<CombinatorBuilder>? combinators;
 
   final List<Configuration>? configurations;
 
@@ -73,7 +73,7 @@ class Import {
     }
     imported!.exportScope.forEach((String name, Builder member) {
       if (combinators != null) {
-        for (Combinator combinator in combinators!) {
+        for (CombinatorBuilder combinator in combinators!) {
           if (combinator.isShow && !combinator.names.contains(name)) return;
           if (combinator.isHide && combinator.names.contains(name)) return;
         }
@@ -94,7 +94,7 @@ PrefixBuilder? createPrefixBuilder(
     String? prefix,
     SourceLibraryBuilder importer,
     LibraryBuilder? imported,
-    List<Combinator>? combinators,
+    List<CombinatorBuilder>? combinators,
     bool deferred,
     int charOffset,
     int prefixCharOffset,

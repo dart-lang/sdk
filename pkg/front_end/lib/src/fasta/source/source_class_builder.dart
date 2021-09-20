@@ -37,11 +37,10 @@ import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 
 import '../kernel/combined_member_signature.dart';
-import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show redirectingName;
-import '../kernel/type_algorithms.dart'
-    show Variance, computeTypeVariableBuilderVariance;
+import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
+import '../kernel/utils.dart' show compareProcedures;
 
 import '../names.dart' show equalsName, noSuchMethodName;
 

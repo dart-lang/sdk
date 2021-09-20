@@ -41,7 +41,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 
-import '../combinator.dart' show Combinator;
+import '../combinator.dart' show CombinatorBuilder;
 
 import '../configuration.dart' show Configuration;
 
@@ -182,7 +182,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (names is ParserRecovery) {
       push(names);
     } else {
-      push(new Combinator.hide(names as Iterable<String>,
+      push(new CombinatorBuilder.hide(names as Iterable<String>,
           hideKeyword.charOffset, libraryBuilder.fileUri));
     }
   }
@@ -194,7 +194,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (names is ParserRecovery) {
       push(names);
     } else {
-      push(new Combinator.show(names as Iterable<String>,
+      push(new CombinatorBuilder.show(names as Iterable<String>,
           showKeyword.charOffset, libraryBuilder.fileUri));
     }
   }
@@ -202,7 +202,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endCombinators(int count) {
     debugEvent("Combinators");
-    push(const FixedNullableList<Combinator>()
+    push(const FixedNullableList<CombinatorBuilder>()
             .popNonNullable(stack, count, dummyCombinator) ??
         NullValue.Combinators);
   }
@@ -210,7 +210,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
-    List<Combinator>? combinators = pop() as List<Combinator>?;
+    List<CombinatorBuilder>? combinators = pop() as List<CombinatorBuilder>?;
     List<Configuration>? configurations = pop() as List<Configuration>?;
     int uriOffset = popCharOffset();
     String uri = pop() as String;
@@ -235,7 +235,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("EndImport");
-    List<Combinator>? combinators = pop() as List<Combinator>?;
+    List<CombinatorBuilder>? combinators = pop() as List<CombinatorBuilder>?;
     bool isDeferred = pop() as bool;
     int prefixOffset = popCharOffset();
     Object? prefix = pop(NullValue.Prefix);

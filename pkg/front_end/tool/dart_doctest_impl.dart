@@ -834,16 +834,16 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           in libraryBuilder.library.dependencies) {
         if (!dependency.isImport) continue;
 
-        List<Combinator>? combinators;
+        List<CombinatorBuilder>? combinators;
 
         for (kernel.Combinator combinator in dependency.combinators) {
-          combinators ??= <Combinator>[];
+          combinators ??= <CombinatorBuilder>[];
 
           combinators.add(combinator.isShow
-              ? new Combinator.show(combinator.names, combinator.fileOffset,
-                  libraryBuilder.fileUri)
-              : new Combinator.hide(combinator.names, combinator.fileOffset,
-                  libraryBuilder.fileUri));
+              ? new CombinatorBuilder.show(combinator.names,
+                  combinator.fileOffset, libraryBuilder.fileUri)
+              : new CombinatorBuilder.hide(combinator.names,
+                  combinator.fileOffset, libraryBuilder.fileUri));
         }
 
         dartDocTestLibrary.addImport(

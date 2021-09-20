@@ -46,8 +46,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show LoadLibraryBuilder;
+import 'package:front_end/src/fasta/kernel/load_library_builder.dart';
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;

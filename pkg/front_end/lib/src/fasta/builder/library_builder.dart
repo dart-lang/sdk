@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart' show Library, Nullability;
 
-import '../combinator.dart' show Combinator;
+import '../combinator.dart' show CombinatorBuilder;
 
 import '../problems.dart' show internalProblem, unsupported;
 
@@ -76,8 +76,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   Builder? addBuilder(String? name, Builder declaration, int charOffset);
 
-  void addExporter(
-      LibraryBuilder exporter, List<Combinator>? combinators, int charOffset);
+  void addExporter(LibraryBuilder exporter,
+      List<CombinatorBuilder>? combinators, int charOffset);
 
   /// Add a problem with a severity determined by the severity of the message.
   ///
@@ -242,8 +242,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  void addExporter(
-      LibraryBuilder exporter, List<Combinator>? combinators, int charOffset) {
+  void addExporter(LibraryBuilder exporter,
+      List<CombinatorBuilder>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 

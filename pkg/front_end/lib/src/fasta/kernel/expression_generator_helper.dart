@@ -5,6 +5,7 @@
 library fasta.expression_generator_helper;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -24,25 +25,6 @@ import '../type_inference/inference_helper.dart' show InferenceHelper;
 import 'constness.dart' show Constness;
 import 'forest.dart' show Forest;
 import 'internal_ast.dart';
-import 'kernel_ast_api.dart'
-    show
-        Arguments,
-        Constructor,
-        DartType,
-        Expression,
-        FunctionNode,
-        Initializer,
-        InterfaceType,
-        Library,
-        Member,
-        Name,
-        Procedure,
-        StaticGet,
-        TreeNode,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        VariableDeclaration;
 
 /// Alias for Expression | Generator
 typedef Expression_Generator = dynamic;

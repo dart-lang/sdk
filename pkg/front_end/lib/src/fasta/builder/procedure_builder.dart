@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
-import '../kernel/kernel_api.dart';
 import '../kernel/member_covariance.dart';
 
 import '../loader.dart' show Loader;

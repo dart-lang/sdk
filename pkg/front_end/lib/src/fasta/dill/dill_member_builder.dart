@@ -14,7 +14,7 @@ import '../builder/library_builder.dart';
 import '../kernel/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder, ClassMember;
 import '../kernel/member_covariance.dart';
-import '../kernel/kernel_builder.dart'
+import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'

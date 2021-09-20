@@ -67,7 +67,7 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
     show ClassHierarchyNode;
 
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
+import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'

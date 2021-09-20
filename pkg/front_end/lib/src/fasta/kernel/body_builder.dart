@@ -29,7 +29,8 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
         unescapeFirstStringPart,
         unescapeLastStringPart,
         unescapeString;
-
+import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
+    show FixedNullableList, GrowableList, NullValue, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
@@ -39,6 +40,12 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
+import 'package:kernel/transformations/flags.dart';
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
@@ -101,59 +108,35 @@ import '../problems.dart'
 import '../scope.dart';
 
 import '../source/diet_parser.dart';
-
-import '../source/scope_listener.dart'
-    show
-        FixedNullableList,
-        GrowableList,
-        JumpTargetKind,
-        NullValue,
-        ParserRecovery,
-        ScopeListener;
-
+import '../source/scope_listener.dart' show JumpTargetKind, ScopeListener;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import '../source/stack_listener_impl.dart' show offsetForToken;
-
 import '../source/value_kinds.dart';
 
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
-
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'collections.dart';
-
 import 'constness.dart' show Constness;
-
 import 'constructor_tearoff_lowering.dart';
-
 import 'expression_generator.dart';
-
 import 'expression_generator_helper.dart';
-
 import 'forest.dart' show Forest;
-
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
-
+import 'internal_ast.dart';
+import 'kernel_variable_builder.dart';
+import 'load_library_builder.dart';
 import 'redirecting_factory_body.dart'
     show
         RedirectingFactoryBody,
         RedirectionTarget,
         getRedirectingFactoryBody,
         getRedirectionTarget;
-
 import 'type_algorithms.dart' show calculateBounds;
-
-import 'kernel_api.dart';
-
-import 'kernel_ast_api.dart';
-
-import 'internal_ast.dart';
-
-import 'kernel_builder.dart';
+import 'utils.dart';
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const int noLocation = TreeNode.noOffset;
