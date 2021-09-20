@@ -22,9 +22,11 @@ import 'namer.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
 
-typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
+typedef _ConstantReferenceGenerator = jsAst.Expression Function(
+    ConstantValue constant);
 
-typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
+typedef _ConstantListGenerator = jsAst.Expression Function(
+    jsAst.Expression array);
 
 /// Visitor that creates [jsAst.Expression]s for constants that are inlined
 /// and therefore can be created during modular code generation.
@@ -54,15 +56,15 @@ class ModularConstantEmitter
 
   @override
   jsAst.Expression visitNull(NullConstantValue constant, [_]) {
-    return new jsAst.LiteralNull();
+    return jsAst.LiteralNull();
   }
 
   @override
   jsAst.Expression visitNonConstant(NonConstantValue constant, [_]) {
-    return new jsAst.LiteralNull();
+    return jsAst.LiteralNull();
   }
 
-  static final _exponentialRE = new RegExp('^'
+  static final _exponentialRE = RegExp('^'
       '\([-+]?\)' // 1: sign
       '\([0-9]+\)' // 2: leading digit(s)
       '\(\.\([0-9]*\)\)?' // 4: fraction digits
@@ -101,14 +103,14 @@ class ModularConstantEmitter
     String representation = value.toString();
     String alternative = null;
     int cutoff = _options.enableMinification ? 10000 : 1e10.toInt();
-    if (value.abs() >= new BigInt.from(cutoff)) {
+    if (value.abs() >= BigInt.from(cutoff)) {
       alternative = _shortenExponentialRepresentation(
           value.toDouble().toStringAsExponential());
     }
     if (alternative != null && alternative.length < representation.length) {
       representation = alternative;
     }
-    return new jsAst.LiteralNumber(representation);
+    return jsAst.LiteralNumber(representation);
   }
 
   @override
@@ -122,7 +124,7 @@ class ModularConstantEmitter
       return js("-1/0");
     } else {
       String shortened = _shortenExponentialRepresentation("$value");
-      return new jsAst.LiteralNumber(shortened);
+      return jsAst.LiteralNumber(shortened);
     }
   }
 
@@ -156,7 +158,7 @@ class ModularConstantEmitter
   @override
   jsAst.Expression visitDummyInterceptor(DummyInterceptorConstantValue constant,
       [_]) {
-    return new jsAst.LiteralNumber('0');
+    return jsAst.LiteralNumber('0');
   }
 
   @override
@@ -215,7 +217,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   // Matches blank lines, comment lines and trailing comments that can't be part
   // of a string.
   static final RegExp COMMENT_RE =
-      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
+      RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
 
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
@@ -247,7 +249,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     List<jsAst.Expression> elements = constant.entries
         .map(_constantReferenceGenerator)
         .toList(growable: false);
-    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
+    jsAst.ArrayInitializer array = jsAst.ArrayInitializer(elements);
     jsAst.Expression value = _makeConstantList(array);
     return maybeAddListTypeArgumentsNewRti(constant, constant.type, value);
   }
@@ -272,7 +274,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     }
 
     jsAst.Expression constructor = _emitter.constructorAccess(classElement);
-    return new jsAst.New(constructor, arguments);
+    return jsAst.New(constructor, arguments);
   }
 
   @override
@@ -291,9 +293,9 @@ class ConstantEmitter extends ModularConstantEmitter {
         jsAst.Literal keyExpression = js.string(key.stringValue);
         jsAst.Expression valueExpression =
             _constantReferenceGenerator(constant.values[i]);
-        properties.add(new jsAst.Property(keyExpression, valueExpression));
+        properties.add(jsAst.Property(keyExpression, valueExpression));
       }
-      return new jsAst.ObjectInitializer(properties);
+      return jsAst.ObjectInitializer(properties);
     }
 
     jsAst.Expression jsGeneralMap() {
@@ -306,7 +308,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         data.add(keyExpression);
         data.add(valueExpression);
       }
-      return new jsAst.ArrayInitializer(data);
+      return jsAst.ArrayInitializer(data);
     }
 
     ClassEntity classElement = constant.type.element;
@@ -322,7 +324,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       if (_fieldAnalysis.getFieldData(field).isElided) return;
       if (field.name == constant_system.JavaScriptMapConstant.LENGTH_NAME) {
         arguments
-            .add(new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
+            .add(jsAst.LiteralNumber('${constant.keyList.entries.length}'));
       } else if (field.name ==
           constant_system.JavaScriptMapConstant.JS_OBJECT_NAME) {
         arguments.add(jsMap());
@@ -352,7 +354,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     }
 
     jsAst.Expression constructor = _emitter.constructorAccess(classElement);
-    jsAst.Expression value = new jsAst.New(constructor, arguments);
+    jsAst.Expression value = jsAst.New(constructor, arguments);
     return value;
   }
 
@@ -390,7 +392,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     if (element == _commonElements.jsConstClass) {
       StringConstantValue str = constant.fields.values.single;
       String value = str.stringValue;
-      return new jsAst.LiteralExpression(stripComments(value));
+      return jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.Expression constructor =
         _emitter.constructorAccess(constant.type.element);
@@ -405,7 +407,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
       fields.add(_reifiedTypeNewRti(constant.type));
     }
-    return new jsAst.New(constructor, fields);
+    return jsAst.New(constructor, fields);
   }
 
   @override
@@ -419,7 +421,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     fields.add(_reifiedTypeNewRti(
         _commonElements.dartTypes.interfaceType(cls, constant.typeArguments)));
     jsAst.Expression constructor = _emitter.constructorAccess(cls);
-    return new jsAst.New(constructor, fields);
+    return jsAst.New(constructor, fields);
   }
 
   String stripComments(String rawJavaScript) {
@@ -430,7 +432,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     assert(type.element == _commonElements.jsArrayClass);
     if (_rtiNeed.classNeedsTypeArguments(type.element)) {
-      return new jsAst.Call(getHelperProperty(_commonElements.setArrayType),
+      return jsAst.Call(getHelperProperty(_commonElements.setArrayType),
           [value, _reifiedTypeNewRti(type)]);
     }
     return value;

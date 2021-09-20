@@ -110,12 +110,12 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   Setlet<ClassEntity> _globalClassDependencies;
 
   /// List of methods that the backend may use.
-  final Set<FunctionEntity> _helperFunctionsUsed = new Set<FunctionEntity>();
+  final Set<FunctionEntity> _helperFunctionsUsed = Set<FunctionEntity>();
 
   /// List of classes that the backend may use.
-  final Set<ClassEntity> _helperClassesUsed = new Set<ClassEntity>();
+  final Set<ClassEntity> _helperClassesUsed = Set<ClassEntity>();
 
-  final Set<RuntimeTypeUse> _runtimeTypeUses = new Set<RuntimeTypeUse>();
+  final Set<RuntimeTypeUse> _runtimeTypeUses = Set<RuntimeTypeUse>();
 
   bool _needToInitializeIsolateAffinityTag = false;
   bool _needToInitializeDispatchProperty = false;
@@ -190,14 +190,14 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   }
 
   void _processBackendStaticUse(FunctionEntity element,
-      {bool isGlobal: false}) {
+      {bool isGlobal = false}) {
     registerBackendFunctionUse(element);
     if (isGlobal) {
       registerGlobalFunctionDependency(element);
     }
   }
 
-  void _processBackendInstantiation(ClassEntity cls, {bool isGlobal: false}) {
+  void _processBackendInstantiation(ClassEntity cls, {bool isGlobal = false}) {
     registerBackendClassUse(cls);
     if (isGlobal) {
       registerGlobalClassDependency(cls);
@@ -257,7 +257,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   void registerGlobalFunctionDependency(FunctionEntity element) {
     assert(element != null);
     if (_globalFunctionDependencies == null) {
-      _globalFunctionDependencies = new Setlet<FunctionEntity>();
+      _globalFunctionDependencies = Setlet<FunctionEntity>();
     }
     _globalFunctionDependencies.add(element);
   }
@@ -266,7 +266,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   void registerGlobalClassDependency(ClassEntity element) {
     assert(element != null);
     if (_globalClassDependencies == null) {
-      _globalClassDependencies = new Setlet<ClassEntity>();
+      _globalClassDependencies = Setlet<ClassEntity>();
     }
     _globalClassDependencies.add(element);
   }
@@ -372,7 +372,7 @@ class BackendUsageImpl implements BackendUsage {
       RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
       DartType receiverType = source.readDartType();
       DartType argumentType = source.readDartType(allowNull: true);
-      return new RuntimeTypeUse(kind, receiverType, argumentType);
+      return RuntimeTypeUse(kind, receiverType, argumentType);
     }).toSet();
     bool needToInitializeIsolateAffinityTag = source.readBool();
     bool needToInitializeDispatchProperty = source.readBool();

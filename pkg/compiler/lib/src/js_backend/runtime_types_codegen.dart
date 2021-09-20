@@ -34,7 +34,7 @@ class TypeCheck {
   final int hashCode = _nextHash = (_nextHash + 100003).toUnsigned(30);
   static int _nextHash = 0;
 
-  TypeCheck(this.cls, this.substitution, {this.needsIs: true});
+  TypeCheck(this.cls, this.substitution, {this.needsIs = true});
 
   @override
   String toString() =>
