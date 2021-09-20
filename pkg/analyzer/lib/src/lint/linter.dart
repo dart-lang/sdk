@@ -35,7 +35,6 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';

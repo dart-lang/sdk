@@ -6,7 +6,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 
 /// Used to validate the ignore comments in a single file.
