@@ -187,8 +187,8 @@ class StaticField {
   StaticField(this.element, this.name, this.getterName, this.code,
       {this.isFinal,
       this.isLazy,
-      this.isInitializedByConstant: false,
-      this.usesNonNullableInitialization: false});
+      this.isInitializedByConstant = false,
+      this.usesNonNullableInitialization = false});
 
   @override
   String toString() {

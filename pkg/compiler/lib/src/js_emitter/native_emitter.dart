@@ -35,7 +35,7 @@ class NativeEmitter {
       <ClassEntity, List<ClassEntity>>{};
 
   // Caches the methods that have a native body.
-  Set<FunctionEntity> nativeMethods = new Set<FunctionEntity>();
+  Set<FunctionEntity> nativeMethods = Set<FunctionEntity>();
 
   // Type metadata redirections, where the key is the class type data being
   // redirected to and the value is the list of class type data being
@@ -92,7 +92,7 @@ class NativeEmitter {
     // post-order traversal but it is easier to compute the pre-order and use it
     // in reverse.
     List<Class> preOrder = <Class>[];
-    Set<Class> seen = new Set<Class>();
+    Set<Class> seen = Set<Class>();
 
     Class objectClass = null;
     Class jsInterceptorClass = null;
@@ -119,8 +119,8 @@ class NativeEmitter {
     // needed class.
     // We may still need to include type metadata for some unneeded classes.
 
-    Set<Class> neededClasses = new Set<Class>();
-    Set<Class> nonLeafClasses = new Set<Class>();
+    Set<Class> neededClasses = Set<Class>();
+    Set<Class> nonLeafClasses = Set<Class>();
 
     Map<Class, List<Class>> extensionPoints = computeExtensionPoints(preOrder);
 
@@ -177,8 +177,8 @@ class NativeEmitter {
 
     // Collect all the tags that map to each native class.
 
-    Map<Class, Set<String>> leafTags = new Map<Class, Set<String>>();
-    Map<Class, Set<String>> nonleafTags = new Map<Class, Set<String>>();
+    Map<Class, Set<String>> leafTags = Map<Class, Set<String>>();
+    Map<Class, Set<String>> nonleafTags = Map<Class, Set<String>>();
 
     for (Class cls in classes) {
       if (!cls.isNative) continue;
@@ -187,9 +187,7 @@ class NativeEmitter {
       List<String> nativeTags = _nativeData.getNativeTagsOfClass(cls.element);
 
       if (nonLeafClasses.contains(cls) || extensionPoints.containsKey(cls)) {
-        nonleafTags
-            .putIfAbsent(cls, () => new Set<String>())
-            .addAll(nativeTags);
+        nonleafTags.putIfAbsent(cls, () => Set<String>()).addAll(nativeTags);
       } else {
         Class sufficingInterceptor = cls;
         while (!neededClasses.contains(sufficingInterceptor)) {
@@ -199,7 +197,7 @@ class NativeEmitter {
           sufficingInterceptor = jsInterceptorClass;
         }
         leafTags
-            .putIfAbsent(sufficingInterceptor, () => new Set<String>())
+            .putIfAbsent(sufficingInterceptor, () => Set<String>())
             .addAll(nativeTags);
       }
     }
@@ -252,7 +250,7 @@ class NativeEmitter {
       return nativeSuperclassOf(cls.superclass);
     }
 
-    Map<Class, List<Class>> map = new Map<Class, List<Class>>();
+    Map<Class, List<Class>> map = Map<Class, List<Class>>();
 
     for (Class cls in classes) {
       if (cls.isNative) continue;

@@ -206,7 +206,7 @@ class InterceptorStubGenerator {
       statements.add(js.statement('return receiver'));
     }
 
-    return js('''function(receiver) { #; }''', new jsAst.Block(statements));
+    return js('''function(receiver) { #; }''', jsAst.Block(statements));
   }
 
   jsAst.Call _generateIsJsIndexableCall(
@@ -218,13 +218,12 @@ class InterceptorStubGenerator {
     // We pass the dispatch property record to the isJsIndexable
     // helper rather than reading it inside the helper to increase the
     // chance of making the dispatch record access monomorphic.
-    jsAst.PropertyAccess record =
-        new jsAst.PropertyAccess(use2, dispatchProperty);
+    jsAst.PropertyAccess record = jsAst.PropertyAccess(use2, dispatchProperty);
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
     FunctionEntity helper = _commonElements.isJsIndexable;
     jsAst.Expression helperExpression = _emitter.staticFunctionAccess(helper);
-    return new jsAst.Call(helperExpression, arguments);
+    return jsAst.Call(helperExpression, arguments);
   }
 
   // Returns a statement that takes care of performance critical
@@ -449,15 +448,15 @@ class InterceptorStubGenerator {
         // We expect most of the time the map will be a singleton.
         var properties = <jsAst.Property>[];
         for (ConstructorEntity member in analysis.constructors(classElement)) {
-          properties.add(new jsAst.Property(
+          properties.add(jsAst.Property(
               js.string(member.name), _emitter.staticFunctionAccess(member)));
         }
 
-        var map = new jsAst.ObjectInitializer(properties);
+        var map = jsAst.ObjectInitializer(properties);
         elements.add(map);
       }
     }
 
-    return new jsAst.ArrayInitializer(elements);
+    return jsAst.ArrayInitializer(elements);
   }
 }

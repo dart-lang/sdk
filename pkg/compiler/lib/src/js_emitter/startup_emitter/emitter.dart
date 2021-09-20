@@ -34,14 +34,14 @@ abstract class ModularEmitterBase implements ModularEmitter {
   js.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
     js.Name name = _namer.globalPropertyNameForClass(element);
     js.PropertyAccess pa =
-        new js.PropertyAccess(_namer.readGlobalObjectForClass(element), name);
+        js.PropertyAccess(_namer.readGlobalObjectForClass(element), name);
     return pa;
   }
 
   js.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
     js.Name name = _namer.globalPropertyNameForMember(element);
     js.PropertyAccess pa =
-        new js.PropertyAccess(_namer.readGlobalObjectForMember(element), name);
+        js.PropertyAccess(_namer.readGlobalObjectForMember(element), name);
     return pa;
   }
 
@@ -52,7 +52,7 @@ abstract class ModularEmitterBase implements ModularEmitter {
 
   @override
   js.Expression isolateLazyInitializerAccess(FieldEntity element) {
-    return new js.PropertyAccess(_namer.readGlobalObjectForMember(element),
+    return js.PropertyAccess(_namer.readGlobalObjectForMember(element),
         _namer.lazyInitializerName(element));
   }
 
@@ -84,8 +84,8 @@ abstract class ModularEmitterBase implements ModularEmitter {
 
   @override
   js.Expression staticClosureAccess(FunctionEntity element) {
-    return new js.Call(
-        new js.PropertyAccess(_namer.readGlobalObjectForMember(element),
+    return js.Call(
+        js.PropertyAccess(_namer.readGlobalObjectForMember(element),
             _namer.staticClosureName(element)),
         const []);
   }
@@ -103,7 +103,7 @@ class ModularEmitterImpl extends ModularEmitterBase {
 
   ModularEmitterImpl(
       ModularNamer namer, this._registry, CompilerOptions options)
-      : _constantEmitter = new ModularConstantEmitter(options, namer),
+      : _constantEmitter = ModularConstantEmitter(options, namer),
         super(namer);
 
   @override
@@ -116,16 +116,15 @@ class ModularEmitterImpl extends ModularEmitterBase {
     if (expression != null) {
       return expression;
     }
-    expression =
-        new ModularExpression(ModularExpressionKind.constant, constant);
+    expression = ModularExpression(ModularExpressionKind.constant, constant);
     _registry.registerModularExpression(expression);
     return expression;
   }
 
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    js.Expression expression = new ModularExpression(
-        ModularExpressionKind.embeddedGlobalAccess, global);
+    js.Expression expression =
+        ModularExpression(ModularExpressionKind.embeddedGlobalAccess, global);
     _registry.registerModularExpression(expression);
     return expression;
   }
@@ -167,7 +166,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       this._task,
       bool shouldGenerateSourceMap)
       : super(namer) {
-    _emitter = new ModelEmitter(
+    _emitter = ModelEmitter(
         options,
         _reporter,
         outputProvider,

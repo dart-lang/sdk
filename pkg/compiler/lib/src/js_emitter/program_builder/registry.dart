@@ -41,7 +41,7 @@ class LibrariesMap {
   LibraryContents _getMapping(LibraryEntity library) {
     if (_lastLibrary != library) {
       _lastLibrary = library;
-      _lastMapping = _mapping.putIfAbsent(library, () => new LibraryContents());
+      _lastMapping = _mapping.putIfAbsent(library, () => LibraryContents());
     }
     return _lastMapping;
   }
@@ -111,12 +111,12 @@ class Registry {
   void registerOutputUnit(OutputUnit outputUnit) {
     if (outputUnit == _mainOutputUnit) {
       assert(mainLibrariesMap == null);
-      mainLibrariesMap = new LibrariesMap.main(_mainOutputUnit);
+      mainLibrariesMap = LibrariesMap.main(_mainOutputUnit);
     } else {
       assert(!_deferredLibrariesMap.containsKey(outputUnit));
       String name = outputUnit.name;
       _deferredLibrariesMap[outputUnit] =
-          new LibrariesMap.deferred(outputUnit, name);
+          LibrariesMap.deferred(outputUnit, name);
     }
   }
 

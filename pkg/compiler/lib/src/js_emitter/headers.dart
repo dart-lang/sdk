@@ -6,7 +6,7 @@ library dart2js.js_emitter.headers;
 
 import '../options.dart';
 
-String generatedBy(CompilerOptions options, {String flavor: ""}) {
+String generatedBy(CompilerOptions options, {String flavor = ""}) {
   String suffix = '';
   if (options.hasBuildId) {
     suffix = ' version: ${options.buildId}';
