@@ -1564,55 +1564,59 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
 }
 
 @notNull
-bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) => JS('', '''(() => {
+bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
   // Instances of PackageJSType are all subtypes of each other.
-  if (${_jsInstanceOf(t1, PackageJSType)}
-      && ${_jsInstanceOf(t2, PackageJSType)}) {
+  if (_jsInstanceOf(t1, PackageJSType) && _jsInstanceOf(t2, PackageJSType)) {
     return true;
   }
 
-  if ($t1 === $t2) {
+  if (JS<bool>('!', '# === #', t1, t2)) {
     return true;
   }
-  if (${_equalType(t1, Object)}) {
+  if (_equalType(t1, Object)) {
     return false;
   }
 
   // Classes cannot subtype `Function` or vice versa.
-  if (${_equalType(t1, Function)} || ${_equalType(t2, Function)}) {
+  if (_equalType(t1, Function) || _equalType(t2, Function)) {
     return false;
   }
 
   // If t1 is a JS Object, we may not hit core.Object.
-  if ($t1 == null) {
-    return ${_equalType(t2, Object)} || ${_equalType(t2, dynamic)};
+  if (t1 == null) {
+    return _equalType(t2, Object) || _equalType(t2, dynamic);
   }
 
   // Check if t1 and t2 have the same raw type.  If so, check covariance on
   // type parameters.
-  let raw1 = $getGenericClass($t1);
-  let raw2 = $getGenericClass($t2);
-  if (raw1 != null && raw1 == raw2) {
-    let typeArguments1 = $getGenericArgs($t1);
-    let typeArguments2 = $getGenericArgs($t2);
-    if (typeArguments1.length != typeArguments2.length) {
-      $assertFailed();
+  var raw1 = getGenericClass(t1);
+  var raw2 = getGenericClass(t2);
+  if (raw1 != null && JS<bool>('!', '# == #', raw1, raw2)) {
+    var typeArguments1 = getGenericArgs(t1);
+    var typeArguments2 = getGenericArgs(t2);
+    if (JS<bool>('!', '#.length != #.length', typeArguments1, typeArguments2)) {
+      assertFailed('Internal type check failure.');
     }
-    let variances = $getGenericArgVariances($t1);
-    for (let i = 0; i < typeArguments1.length; ++i) {
+    var variances = getGenericArgVariances(t1);
+    for (var i = 0; i < JS<int>('!', '#.length', typeArguments1); ++i) {
       // When using implicit variance, variances will be undefined and
       // considered covariant.
-      if (variances === void 0 || variances[i] == ${Variance.covariant}) {
-        if (!$_isSubtype(typeArguments1[i], typeArguments2[i], $strictMode)) {
+      var varianceType = JS('!', '# && #[#]', variances, variances, i);
+      var typeArg1 = JS('!', '#[#]', typeArguments1, i);
+      var typeArg2 = JS('!', '#[#]', typeArguments2, i);
+      if (JS<bool>('!', '# === void 0 || # == #', varianceType, varianceType,
+          Variance.covariant)) {
+        if (!_isSubtype(typeArg1, typeArg2, strictMode)) {
           return false;
         }
-      } else if (variances[i] == ${Variance.contravariant}) {
-        if (!$_isSubtype(typeArguments2[i], typeArguments1[i], $strictMode)) {
+      } else if (JS<bool>(
+          '!', '# == #', varianceType, Variance.contravariant)) {
+        if (!_isSubtype(typeArg2, typeArg1, strictMode)) {
           return false;
         }
-      } else if (variances[i] == ${Variance.invariant}) {
-        if (!$_isSubtype(typeArguments1[i], typeArguments2[i], $strictMode) ||
-            !$_isSubtype(typeArguments2[i], typeArguments1[i], $strictMode)) {
+      } else if (JS<bool>('!', '# == #', varianceType, Variance.invariant)) {
+        if (!_isSubtype(typeArg1, typeArg2, strictMode) ||
+            !_isSubtype(typeArg2, typeArg1, strictMode)) {
           return false;
         }
       }
@@ -1620,27 +1624,27 @@ bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) => JS('', '''(() => {
     return true;
   }
 
-  if ($_isInterfaceSubtype(t1.__proto__, $t2, $strictMode)) {
+  if (_isInterfaceSubtype(JS('', '#.__proto__', t1), t2, strictMode)) {
     return true;
   }
 
   // Check mixin.
-  let m1 = $getMixin($t1);
-  if (m1 != null && $_isInterfaceSubtype(m1, $t2, $strictMode)) {
+  var m1 = getMixin(t1);
+  if (m1 != null && _isInterfaceSubtype(m1, t2, strictMode)) {
     return true;
   }
 
   // Check interfaces.
-  let getInterfaces = $getImplements($t1);
-  if (getInterfaces) {
-    for (let i1 of getInterfaces()) {
-      if ($_isInterfaceSubtype(i1, $t2, $strictMode)) {
+  var getInterfaces = getImplements(t1);
+  if (getInterfaces != null) {
+    for (var i1 in getInterfaces()) {
+      if (_isInterfaceSubtype(i1, t2, strictMode)) {
         return true;
       }
     }
   }
   return false;
-})()''');
+}
 
 Object? extractTypeArguments<T>(T instance, Function f) {
   if (instance == null) {
