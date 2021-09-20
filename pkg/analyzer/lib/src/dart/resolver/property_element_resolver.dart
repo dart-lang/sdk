@@ -492,7 +492,7 @@ class PropertyElementResolver {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PRIVATE_SETTER,
             propertyName,
-            [propertyName.name, typeReference.name],
+            [propertyName.name],
           );
         }
         _checkForStaticAccessToInstanceMember(propertyName, writeElement);
