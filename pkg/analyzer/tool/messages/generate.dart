@@ -14,6 +14,7 @@
 ///
 /// It is expected that 'pkg/front_end/tool/fasta generate-messages'
 /// has already been successfully run.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -59,6 +60,12 @@ final List<GeneratedContent> allTargets = <GeneratedContent>[
 /// The path to the `analyzer` package.
 final String analyzerPkgPath =
     normalize(join(pkg_root.packageRoot, 'analyzer'));
+
+/// Pattern used by the front end to identify placeholders in error message
+/// strings.  TODO(paulberry): share this regexp (and the code for interpreting
+/// it) between the CFE and analyzer.
+final RegExp _placeholderPattern =
+    RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
 /// Return an entry containing 2 strings,
 /// the name of the class containing the error and the name of the error,
@@ -188,10 +195,13 @@ part of 'syntactic_errors.dart';
       out.writeln('const $className _$errorCode =');
       out.writeln('$className(');
       out.writeln("'$errorCode',");
-      out.writeln('r"${entry['template']}"');
+      final placeholderToIndexMap = _computePlaceholderToIndexMap(entry);
+      out.writeln(
+          'r"${_convertTemplate(placeholderToIndexMap, entry['template'])}"');
       final tip = entry['tip'];
       if (tip is String) {
-        out.writeln(',correction: "$tip"');
+        out.writeln(
+            ',correction: "${_convertTemplate(placeholderToIndexMap, tip)}"');
       }
       final hasPublishedDocs = entry['hasPublishedDocs'];
       if (hasPublishedDocs is bool && hasPublishedDocs) {
@@ -333,5 +343,34 @@ part of 'syntactic_errors.dart';
             '\n      $template');
       }
     }
+  }
+
+  /// Given a messages.yaml entry, come up with a mapping from placeholder
+  /// patterns in its message and tip strings to their corresponding indices.
+  Map<String, int> _computePlaceholderToIndexMap(Map<Object?, Object?> entry) {
+    var mapping = <String, int>{};
+    for (var key in const ['template', 'tip']) {
+      var value = entry[key];
+      if (value is! String) continue;
+      for (Match match in _placeholderPattern.allMatches(value)) {
+        // CFE supports a bunch of formatting options that we don't; make sure
+        // none of those are used.
+        if (match.group(0) != '#${match.group(1)}') {
+          throw 'Template string ${json.encode(entry)} contains unsupported '
+              'placeholder pattern ${json.encode(match.group(0))}';
+        }
+
+        mapping[match.group(0)!] ??= mapping.length;
+      }
+    }
+    return mapping;
+  }
+
+  /// Convert a CFE template string (which uses placeholders like `#string`) to
+  /// an analyzer template string (which uses placeholders like `{0}`).
+  String _convertTemplate(
+      Map<String, int> placeholderToIndexMap, String entry) {
+    return entry.replaceAllMapped(_placeholderPattern,
+        (match) => '{${placeholderToIndexMap[match.group(0)!]}}');
   }
 }

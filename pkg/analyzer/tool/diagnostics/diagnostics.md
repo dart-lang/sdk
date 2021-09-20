@@ -7100,7 +7100,7 @@ Replace the invalid URI with a valid URI.
 
 ### invalid_use_of_covariant_in_extension
 
-_Can't have modifier '#lexeme' in an extension._
+_Can't have modifier '{0}' in an extension._
 
 #### Description
 

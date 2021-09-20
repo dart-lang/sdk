@@ -161,8 +161,8 @@ const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED =
 
 const ParserErrorCode _BINARY_OPERATOR_WRITTEN_OUT = ParserErrorCode(
     'BINARY_OPERATOR_WRITTEN_OUT',
-    r"Binary operator '#string' is written as '#string2' instead of the written out word.",
-    correction: "Try replacing '#string' with '#string2'.");
+    r"Binary operator '{0}' is written as '{1}' instead of the written out word.",
+    correction: "Try replacing '{0}' with '{1}'.");
 
 const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = ParserErrorCode(
     'BREAK_OUTSIDE_OF_LOOP',
@@ -190,7 +190,7 @@ const ParserErrorCode _COLON_IN_PLACE_OF_IN = ParserErrorCode(
 
 const ParserErrorCode _CONFLICTING_MODIFIERS = ParserErrorCode(
     'CONFLICTING_MODIFIERS',
-    r"Members can't be declared to be both '#string' and '#string2'.",
+    r"Members can't be declared to be both '{0}' and '{1}'.",
     correction: "Try removing one of the keywords.");
 
 const ParserErrorCode _CONSTRUCTOR_WITH_RETURN_TYPE = ParserErrorCode(
@@ -252,7 +252,7 @@ const ParserErrorCode _DIRECTIVE_AFTER_DECLARATION = ParserErrorCode(
     correction: "Try moving the directive before any declarations.");
 
 const ParserErrorCode _DUPLICATED_MODIFIER = ParserErrorCode(
-    'DUPLICATED_MODIFIER', r"The modifier '#lexeme' was already specified.",
+    'DUPLICATED_MODIFIER', r"The modifier '{0}' was already specified.",
     correction: "Try removing all but one occurrence of the modifier.");
 
 const ParserErrorCode _DUPLICATE_DEFERRED = ParserErrorCode(
@@ -262,7 +262,7 @@ const ParserErrorCode _DUPLICATE_DEFERRED = ParserErrorCode(
 
 const ParserErrorCode _DUPLICATE_LABEL_IN_SWITCH_STATEMENT = ParserErrorCode(
     'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
-    r"The label '#name' was already used in this switch statement.",
+    r"The label '{0}' was already used in this switch statement.",
     correction: "Try choosing a different name for this label.");
 
 const ParserErrorCode _DUPLICATE_PREFIX = ParserErrorCode('DUPLICATE_PREFIX',
@@ -279,7 +279,7 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = ParserErrorCode(
     correction: "Try putting parentheses around one of the comparisons.");
 
 const ParserErrorCode _EXPECTED_BODY = ParserErrorCode(
-    'EXPECTED_BODY', r"A #string must have a body, even if it is empty.",
+    'EXPECTED_BODY', r"A {0} must have a body, even if it is empty.",
     correction: "Try adding an empty body.");
 
 const ParserErrorCode _EXPECTED_ELSE_OR_COMMA =
@@ -287,17 +287,17 @@ const ParserErrorCode _EXPECTED_ELSE_OR_COMMA =
 
 const ParserErrorCode _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD = ParserErrorCode(
     'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
-    r"'#lexeme' can't be used as an identifier because it's a keyword.",
+    r"'{0}' can't be used as an identifier because it's a keyword.",
     correction: "Try renaming this to be an identifier that isn't a keyword.");
 
 const ParserErrorCode _EXPECTED_INSTEAD =
-    ParserErrorCode('EXPECTED_INSTEAD', r"Expected '#string' instead of this.");
+    ParserErrorCode('EXPECTED_INSTEAD', r"Expected '{0}' instead of this.");
 
 const ParserErrorCode _EXPERIMENT_NOT_ENABLED = ParserErrorCode(
     'EXPERIMENT_NOT_ENABLED',
-    r"This requires the '#string' language feature to be enabled.",
+    r"This requires the '{0}' language feature to be enabled.",
     correction:
-        "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'.");
+        "Try updating your pubspec.yaml to set the minimum SDK constraint to {1} or higher, and running 'pub get'.");
 
 const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = ParserErrorCode(
     'EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
@@ -367,8 +367,8 @@ const ParserErrorCode _EXTERNAL_TYPEDEF = ParserErrorCode(
     correction: "Try removing the keyword 'external'.");
 
 const ParserErrorCode _EXTRANEOUS_MODIFIER = ParserErrorCode(
-    'EXTRANEOUS_MODIFIER', r"Can't have modifier '#lexeme' here.",
-    correction: "Try removing '#lexeme'.");
+    'EXTRANEOUS_MODIFIER', r"Can't have modifier '{0}' here.",
+    correction: "Try removing '{0}'.");
 
 const ParserErrorCode _FACTORY_TOP_LEVEL_DECLARATION = ParserErrorCode(
     'FACTORY_TOP_LEVEL_DECLARATION',
@@ -452,8 +452,8 @@ const ParserErrorCode _INVALID_INITIALIZER = ParserErrorCode(
     'INVALID_INITIALIZER', r"Not a valid initializer.",
     correction: "To initialize a field, use the syntax 'name = value'.");
 
-const ParserErrorCode _INVALID_OPERATOR = ParserErrorCode('INVALID_OPERATOR',
-    r"The string '#lexeme' isn't a user-definable operator.");
+const ParserErrorCode _INVALID_OPERATOR = ParserErrorCode(
+    'INVALID_OPERATOR', r"The string '{0}' isn't a user-definable operator.");
 
 const ParserErrorCode _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER =
     ParserErrorCode('INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
@@ -474,8 +474,8 @@ const ParserErrorCode _INVALID_UNICODE_ESCAPE = ParserErrorCode(
 
 const ParserErrorCode _INVALID_USE_OF_COVARIANT_IN_EXTENSION = ParserErrorCode(
     'INVALID_USE_OF_COVARIANT_IN_EXTENSION',
-    r"Can't have modifier '#lexeme' in an extension.",
-    correction: "Try removing '#lexeme'.",
+    r"Can't have modifier '{0}' in an extension.",
+    correction: "Try removing '{0}'.",
     hasPublishedDocs: true);
 
 const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(
@@ -485,13 +485,13 @@ const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(
         "Try moving the library directive before any other directives.");
 
 const ParserErrorCode _LITERAL_WITH_CLASS = ParserErrorCode(
-    'LITERAL_WITH_CLASS', r"A #string literal can't be prefixed by '#lexeme'.",
-    correction: "Try removing '#lexeme'");
+    'LITERAL_WITH_CLASS', r"A {0} literal can't be prefixed by '{1}'.",
+    correction: "Try removing '{1}'");
 
 const ParserErrorCode _LITERAL_WITH_CLASS_AND_NEW = ParserErrorCode(
     'LITERAL_WITH_CLASS_AND_NEW',
-    r"A #string literal can't be prefixed by 'new #lexeme'.",
-    correction: "Try removing 'new' and '#lexeme'");
+    r"A {0} literal can't be prefixed by 'new {1}'.",
+    correction: "Try removing 'new' and '{1}'");
 
 const ParserErrorCode _LITERAL_WITH_NEW = ParserErrorCode(
     'LITERAL_WITH_NEW', r"A literal can't be prefixed by 'new'.",
@@ -550,7 +550,7 @@ const ParserErrorCode _MIXIN_DECLARES_CONSTRUCTOR = ParserErrorCode(
 
 const ParserErrorCode _MODIFIER_OUT_OF_ORDER = ParserErrorCode(
     'MODIFIER_OUT_OF_ORDER',
-    r"The modifier '#string' should be before the modifier '#string2'.",
+    r"The modifier '{0}' should be before the modifier '{1}'.",
     correction: "Try re-ordering the modifiers.");
 
 const ParserErrorCode _MULTIPLE_EXTENDS_CLAUSES = ParserErrorCode(
@@ -650,7 +650,7 @@ const ParserErrorCode _TYPEDEF_IN_CLASS = ParserErrorCode(
 
 const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
-    r"Can't use type arguments with type variable '#name'.",
+    r"Can't use type arguments with type variable '{0}'.",
     correction: "Try removing the type arguments.");
 
 const ParserErrorCode _TYPE_BEFORE_FACTORY = ParserErrorCode(

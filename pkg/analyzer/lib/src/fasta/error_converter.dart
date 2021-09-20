@@ -340,12 +340,8 @@ class FastaErrorReporter {
     if (index > 0 && index < fastaAnalyzerErrorCodes.length) {
       var errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter!.reportError(AnalysisError.withNamedArguments(
-            errorReporter!.source,
-            offset,
-            length,
-            errorCode,
-            message.arguments));
+        errorReporter!.reportError(AnalysisError(errorReporter!.source, offset,
+            length, errorCode, message.arguments.values.toList()));
         return;
       }
     }
@@ -362,8 +358,8 @@ class FastaErrorReporter {
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter!.reportError(AnalysisError.withNamedArguments(
-          errorReporter!.source, offset, length, errorCode, message.arguments));
+      errorReporter!.reportError(AnalysisError(errorReporter!.source, offset,
+          length, errorCode, message.arguments.values.toList()));
     }
   }
 }
