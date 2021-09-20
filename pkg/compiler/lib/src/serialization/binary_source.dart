@@ -13,7 +13,7 @@ class BinarySourceImpl extends AbstractDataSource {
   final StringInterner _stringInterner;
 
   BinarySourceImpl(this._bytes,
-      {bool useDataKinds: false,
+      {bool useDataKinds = false,
       StringInterner stringInterner,
       DataSourceIndices importedIndices})
       : _stringInterner = stringInterner,
@@ -29,7 +29,7 @@ class BinarySourceImpl extends AbstractDataSource {
   @override
   String _readStringInternal() {
     int length = _readIntInternal();
-    List<int> bytes = new Uint8List(length);
+    List<int> bytes = Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
     String string = utf8.decode(bytes);

@@ -141,7 +141,7 @@ class DartTypeNodeWriter
   @override
   void defaultDartType(
       ir.DartType node, List<ir.TypeParameter> functionTypeVariables) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "Unexpected ir.DartType $node (${node.runtimeType}).");
   }
 
@@ -208,9 +208,8 @@ class DartTypeNodeWriter
       ir.FunctionType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.functionType);
     _sink.begin(functionTypeNodeTag);
-    functionTypeVariables =
-        new List<ir.TypeParameter>.from(functionTypeVariables)
-          ..addAll(node.typeParameters);
+    functionTypeVariables = List<ir.TypeParameter>.from(functionTypeVariables)
+      ..addAll(node.typeParameters);
     _sink.writeInt(node.typeParameters.length);
     for (ir.TypeParameter parameter in node.typeParameters) {
       _sink.writeString(parameter.name);

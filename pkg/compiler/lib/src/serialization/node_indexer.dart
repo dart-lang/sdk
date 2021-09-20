@@ -387,7 +387,7 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
 
   @override
   void defaultConstant(ir.Constant node) {
-    throw new UnimplementedError(
+    throw UnimplementedError(
         "Unexpected constant: $node (${node.runtimeType})");
   }
 }

@@ -24,7 +24,7 @@ class ObjectSource extends AbstractDataSource {
 
   @override
   void _begin(String tag) {
-    Tag expectedTag = new Tag('begin:$tag');
+    Tag expectedTag = Tag('begin:$tag');
     Tag actualTag = _read();
     assert(
         expectedTag == actualTag,
@@ -34,7 +34,7 @@ class ObjectSource extends AbstractDataSource {
 
   @override
   void _end(String tag) {
-    Tag expectedTag = new Tag('end:$tag');
+    Tag expectedTag = Tag('end:$tag');
     Tag actualTag = _read();
     assert(
         expectedTag == actualTag,
@@ -56,7 +56,7 @@ class ObjectSource extends AbstractDataSource {
 
   @override
   String get _errorContext {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (int i = _index - 50; i < _index + 10; i++) {
       if (i >= 0 && i < _data.length) {
         if (i == _index - 1) {

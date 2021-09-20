@@ -86,13 +86,13 @@ GlobalTypeInferenceResults
         AbstractValueStrategy abstractValueStrategy,
         ir.Component component,
         DataSource source) {
-  JsClosedWorld newClosedWorld = new JsClosedWorld.readFromDataSource(
+  JsClosedWorld newClosedWorld = JsClosedWorld.readFromDataSource(
       options, reporter, environment, abstractValueStrategy, component, source);
   GlobalLocalsMap newGlobalLocalsMap = GlobalLocalsMap.readFromDataSource(
       newClosedWorld.closureDataLookup.getEnclosingMember, source);
   InferredData newInferredData =
-      new InferredData.readFromDataSource(source, newClosedWorld);
-  return new GlobalTypeInferenceResults.readFromDataSource(
+      InferredData.readFromDataSource(source, newClosedWorld);
+  return GlobalTypeInferenceResults.readFromDataSource(
       source,
       newClosedWorld.elementMap,
       newClosedWorld,
@@ -112,7 +112,7 @@ JsClosedWorld deserializeClosedWorldFromSource(
     AbstractValueStrategy abstractValueStrategy,
     ir.Component component,
     DataSource source) {
-  return new JsClosedWorld.readFromDataSource(
+  return JsClosedWorld.readFromDataSource(
       options, reporter, environment, abstractValueStrategy, component, source);
 }
 
@@ -147,8 +147,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing dill to ${_options.outputUri}');
       api.BinaryOutputSink dillOutput =
           _outputProvider.createBinarySink(_options.outputUri);
-      BinaryOutputSinkAdapter irSink = new BinaryOutputSinkAdapter(dillOutput);
-      ir.BinaryPrinter printer = new ir.BinaryPrinter(irSink);
+      BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
+      ir.BinaryPrinter printer = ir.BinaryPrinter(irSink);
       printer.writeComponentFile(component);
       irSink.close();
     });
@@ -159,7 +159,7 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Reading dill from ${_options.entryPoint}');
       api.Input<List<int>> dillInput = await _provider
           .readFromUri(_options.entryPoint, inputKind: api.InputKind.binary);
-      ir.Component component = new ir.Component();
+      ir.Component component = ir.Component();
       // Not using growable lists saves memory.
       ir.BinaryBuilder(dillInput.data,
               useGrowableLists: false, stringInterner: _stringInterner)
@@ -259,7 +259,7 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeClosedWorldUri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
       serializeClosedWorldToSink(closedWorld, sink);
     });
   }
@@ -330,7 +330,7 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to ${_options.writeDataUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeDataUri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
       serializeGlobalTypeInferenceResultsToSinkLegacy(results, sink);
     });
   }
@@ -373,10 +373,10 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize codegen', () {
       Uri uri = Uri.parse('${_options.writeCodegenUri}$shard');
       api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
       _reporter.log('Writing data to ${uri}');
       sink.registerEntityWriter(entityWriter);
-      sink.registerCodegenWriter(new CodegenWriterImpl(closedWorld));
+      sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       sink.writeMemberMap(
           results,
           (MemberEntity member, CodegenResult result) =>
@@ -405,7 +405,7 @@ class SerializationTask extends CompilerTask {
         dataInput.release();
       });
     }
-    return new DeserializedCodegenResults(
+    return DeserializedCodegenResults(
         globalTypeInferenceResults, codegenInputs, results);
   }
 
@@ -423,7 +423,7 @@ class SerializationTask extends CompilerTask {
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpressions = [];
       CodegenReader reader =
-          new CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
+          CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
       source.registerCodegenReader(reader);
       CodegenResult result = CodegenResult.readFromDataSource(
           source, modularNames, modularExpressions);
