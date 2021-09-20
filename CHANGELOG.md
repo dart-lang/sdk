@@ -1,3 +1,10 @@
+# 1.12.0
+
+- fixed `unnecessary_lambdas` false positive for const constructor invocations
+- updated `avoid_print` to allow `kDebugMode`-wrapped print calls
+- fixed handling of initializing formals in `prefer_final_parameters`
+- fixed `unnecessary_parenthesis` false positive with function expressions
+
 # 1.11.0
 
 - added support for constructor tear-offs to `avoid_redundant_argument_values`, 
