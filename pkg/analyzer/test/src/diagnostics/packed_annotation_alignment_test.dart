@@ -24,7 +24,7 @@ class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 ''', [
-      error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 20, 10),
+      error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 28, 1),
     ]);
   }
 

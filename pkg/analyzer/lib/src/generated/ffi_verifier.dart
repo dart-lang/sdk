@@ -873,8 +873,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final annotation = ffiPackedAnnotations.first;
     final value = annotation.elementAnnotation?.packedMemberAlignment;
     if (![1, 2, 4, 8, 16].contains(value)) {
+      AstNode errorNode = annotation;
+      var arguments = annotation.arguments?.arguments;
+      if (arguments != null && arguments.isNotEmpty) {
+        errorNode = arguments[0];
+      }
       _errorReporter.reportErrorForNode(
-          FfiCode.PACKED_ANNOTATION_ALIGNMENT, annotation);
+          FfiCode.PACKED_ANNOTATION_ALIGNMENT, errorNode);
     }
   }
 
