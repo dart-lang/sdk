@@ -25,15 +25,16 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart' as constants
     show EvaluationMode, transformLibraries, ErrorReporter;
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
-
 import 'package:kernel/target/targets.dart'
     show ConstantsBackend, DiagnosticReporter, Target, TargetFlags;
+import 'package:kernel/type_environment.dart';
 
 import "package:vm/target/flutter.dart" show FlutterTarget;
 

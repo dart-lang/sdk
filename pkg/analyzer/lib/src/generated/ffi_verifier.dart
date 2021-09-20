@@ -873,8 +873,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final annotation = ffiPackedAnnotations.first;
     final value = annotation.elementAnnotation?.packedMemberAlignment;
     if (![1, 2, 4, 8, 16].contains(value)) {
+      AstNode errorNode = annotation;
+      var arguments = annotation.arguments?.arguments;
+      if (arguments != null && arguments.isNotEmpty) {
+        errorNode = arguments[0];
+      }
       _errorReporter.reportErrorForNode(
-          FfiCode.PACKED_ANNOTATION_ALIGNMENT, annotation);
+          FfiCode.PACKED_ANNOTATION_ALIGNMENT, errorNode);
     }
   }
 
@@ -975,11 +980,28 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           FfiCode.SIZE_ANNOTATION_DIMENSIONS, annotation);
     }
-    // Check dimensions is positive
-    for (int dimension in dimensions) {
-      if (dimension <= 0) {
+
+    // Check dimensions are positive
+    List<AstNode>? getArgumentNodes() {
+      var arguments = annotation.arguments?.arguments;
+      if (arguments != null && arguments.length == 1) {
+        var firstArgument = arguments[0];
+        if (firstArgument is ListLiteral) {
+          return firstArgument.elements;
+        }
+      }
+      return arguments;
+    }
+
+    for (int i = 0; i < dimensions.length; i++) {
+      if (dimensions[i] <= 0) {
+        AstNode errorNode = annotation;
+        var argumentNodes = getArgumentNodes();
+        if (argumentNodes != null && argumentNodes.isNotEmpty) {
+          errorNode = argumentNodes[i];
+        }
         _errorReporter.reportErrorForNode(
-            FfiCode.NON_POSITIVE_ARRAY_DIMENSION, annotation);
+            FfiCode.NON_POSITIVE_ARRAY_DIMENSION, errorNode);
       }
     }
   }

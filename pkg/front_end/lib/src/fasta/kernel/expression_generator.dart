@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../builder/builder.dart';
@@ -67,11 +68,11 @@ import 'expression_generator_helper.dart';
 
 import 'forest.dart';
 
-import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
-
-import 'kernel_builder.dart' show LoadLibraryBuilder;
-
 import 'internal_ast.dart';
+
+import 'load_library_builder.dart';
+
+import 'utils.dart';
 
 /// A generator represents a subexpression for which we can't yet build an
 /// expression because we don't yet know the context in which it's used.

@@ -7,8 +7,9 @@ library front_end.kernel_generator_impl;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart'
-    show CanonicalName, Component, NonNullableByDefaultCompiledMode;
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 
 import 'base/nnbd_mode.dart';
 
@@ -21,8 +22,6 @@ import 'fasta/crash.dart' show withCrashReporting;
 import 'fasta/dill/dill_target.dart' show DillTarget;
 
 import 'fasta/fasta_codes.dart' show LocatedMessage;
-
-import 'fasta/kernel/kernel_api.dart';
 
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 

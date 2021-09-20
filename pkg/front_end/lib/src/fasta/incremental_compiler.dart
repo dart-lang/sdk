@@ -95,7 +95,7 @@ import 'builder/type_declaration_builder.dart' show TypeDeclarationBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
 
-import 'combinator.dart' show Combinator;
+import 'combinator.dart' show CombinatorBuilder;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -123,7 +123,7 @@ import 'util/textual_outline.dart' show textualOutline;
 
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
-import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
+import 'kernel/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
 
 import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
 
@@ -2007,16 +2007,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             in libraryBuilder.library.dependencies) {
           if (!dependency.isImport) continue;
 
-          List<Combinator>? combinators;
+          List<CombinatorBuilder>? combinators;
 
           for (kernel.Combinator combinator in dependency.combinators) {
-            combinators ??= <Combinator>[];
+            combinators ??= <CombinatorBuilder>[];
 
             combinators.add(combinator.isShow
-                ? new Combinator.show(combinator.names, combinator.fileOffset,
-                    libraryBuilder.fileUri)
-                : new Combinator.hide(combinator.names, combinator.fileOffset,
-                    libraryBuilder.fileUri));
+                ? new CombinatorBuilder.show(combinator.names,
+                    combinator.fileOffset, libraryBuilder.fileUri)
+                : new CombinatorBuilder.hide(combinator.names,
+                    combinator.fileOffset, libraryBuilder.fileUri));
           }
 
           debugLibrary.addImport(

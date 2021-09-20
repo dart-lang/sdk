@@ -15,9 +15,6 @@ import '../scope.dart' show Scope;
 import 'stack_listener_impl.dart';
 import 'value_kinds.dart';
 
-export 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
-    show FixedNullableList, GrowableList, NullValue, ParserRecovery;
-
 enum JumpTargetKind {
   Break,
   Continue,

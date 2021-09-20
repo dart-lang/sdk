@@ -67,7 +67,7 @@ import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 import '../builder/void_type_declaration_builder.dart';
 
-import '../combinator.dart' show Combinator;
+import '../combinator.dart' show CombinatorBuilder;
 
 import '../configuration.dart' show Configuration;
 
@@ -82,16 +82,9 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
 
 import '../kernel/class_hierarchy_builder.dart';
-
+import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
-
-import '../kernel/kernel_builder.dart'
-    show
-        ImplicitFieldType,
-        LoadLibraryBuilder,
-        compareProcedures,
-        toKernelCombinators;
-
+import '../kernel/load_library_builder.dart';
 import '../kernel/type_algorithms.dart'
     show
         NonSimplicityIssue,
@@ -102,6 +95,7 @@ import '../kernel/type_algorithms.dart'
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
         pendingVariance;
+import '../kernel/utils.dart' show compareProcedures, toKernelCombinators;
 
 import '../modifier.dart'
     show
@@ -652,7 +646,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder>? metadata,
       String uri,
       List<Configuration>? configurations,
-      List<Combinator>? combinators,
+      List<CombinatorBuilder>? combinators,
       int charOffset,
       int uriOffset) {
     if (configurations != null) {
@@ -697,7 +691,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String uri,
       List<Configuration>? configurations,
       String? prefix,
-      List<Combinator>? combinators,
+      List<CombinatorBuilder>? combinators,
       bool deferred,
       int charOffset,
       int prefixCharOffset,

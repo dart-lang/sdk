@@ -94,8 +94,7 @@ import '../export.dart' show Export;
 import '../fasta_codes.dart';
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ClassMember, DelayedCheck;
+import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;

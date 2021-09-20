@@ -5,11 +5,13 @@
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/target/vm.dart';
 
