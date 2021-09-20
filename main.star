@@ -1212,7 +1212,7 @@ dart_vm_extra_builder(
     properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
 dart_vm_extra_builder(
-    "vm-kernel-precomp-android-release-arm64",
+    "vm-kernel-precomp-android-release-arm64c",
     category = "vm|kernel-precomp|android|a64",
     properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
@@ -1350,9 +1350,9 @@ dart_vm_nightly_builder("vm-kernel-gcc-linux", category = "vm|misc|g", goma = Fa
 dart_vm_extra_builder("vm-ffi-android-debug-arm", category = "vm|ffi|d32")
 dart_vm_extra_builder("vm-ffi-android-release-arm", category = "vm|ffi|r32")
 dart_vm_extra_builder("vm-ffi-android-product-arm", category = "vm|ffi|p32")
-dart_vm_extra_builder("vm-ffi-android-debug-arm64", category = "vm|ffi|d64")
-dart_vm_extra_builder("vm-ffi-android-release-arm64", category = "vm|ffi|r64")
-dart_vm_extra_builder("vm-ffi-android-product-arm64", category = "vm|ffi|p64")
+dart_vm_extra_builder("vm-ffi-android-debug-arm64c", category = "vm|ffi|d64")
+dart_vm_extra_builder("vm-ffi-android-release-arm64c", category = "vm|ffi|r64")
+dart_vm_extra_builder("vm-ffi-android-product-arm64c", category = "vm|ffi|p64")
 dart_vm_extra_builder(
     "vm-precomp-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qe",
