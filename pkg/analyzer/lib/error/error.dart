@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';

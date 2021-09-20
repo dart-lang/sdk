@@ -13,7 +13,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 

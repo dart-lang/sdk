@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 
 /// A [ConflictingSummaryException] indicates that two different summaries
