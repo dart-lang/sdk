@@ -13,7 +13,6 @@ import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
 import '../ir/util.dart';
-import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
