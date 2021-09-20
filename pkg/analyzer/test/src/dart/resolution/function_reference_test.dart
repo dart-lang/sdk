@@ -129,6 +129,10 @@ bar() {
   a.b.foo<int>;
 }
 ''', [
+      // TODO(srawlins): Get the information to [FunctionReferenceResolve] that
+      //  [PropertyElementResolver] encountered an error, to avoid double reporting.
+      error(CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          10, 12),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
     ]);
 
@@ -431,7 +435,7 @@ extension on Function {
   }
 
   test_instanceGetter_explicitReceiver() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {
   late void Function<T>(T) foo;
 }
@@ -439,10 +443,7 @@ class A {
 bar(A a) {
   a.foo<int>;
 }
-''', [
-      error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 58, 5),
-    ]);
+''');
 
     assertFunctionReference(findNode.functionReference('foo<int>;'),
         findElement.getter('foo'), 'void Function(int)');
@@ -480,6 +481,42 @@ class A {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
+  test_instanceMethod_call() async {
+    await assertNoErrorsInCode('''
+class C {
+  void foo<T>(T a) {}
+
+  void bar() {
+    foo.call<int>;
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo.call<int>;');
+    // TODO(srawlins): PropertyElementResolver does not return an element for
+    // `.call`. If we want `findElement.method('foo')` here, we must change the
+    // policy over there.
+    assertFunctionReference(reference, null, 'void Function(int)');
+  }
+
+  test_instanceMethod_explicitReceiver_call() async {
+    await assertNoErrorsInCode('''
+class C {
+  void foo<T>(T a) {}
+}
+
+void bar(C c) {
+  c.foo.call<int>;
+}
+''');
+
+    var reference = findNode.functionReference('foo.call<int>;');
+    // TODO(srawlins): PropertyElementResolver does not return an element for
+    // `.call`. If we want `findElement.method('foo')` here, we must change the
+    // policy over there.
+    assertFunctionReference(reference, null, 'void Function(int)');
+  }
+
   test_instanceMethod_explicitReceiver_field() async {
     await assertNoErrorsInCode('''
 class A {
@@ -513,6 +550,22 @@ void f(A? a, A b) {
 
     assertFunctionReference(findNode.functionReference('(a ?? b).foo<int>;'),
         findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_instanceMethod_explicitReceiver_receiverIsNotIdentifier_call() async {
+    await assertNoErrorsInCode('''
+extension on List<Object?> {
+  void foo<T>(T a) {}
+}
+
+var a = [].foo.call<int>;
+''');
+
+    var reference = findNode.functionReference('foo.call<int>;');
+    // TODO(srawlins): PropertyElementResolver does not return an element for
+    // `.call`. If we want `findElement.method('foo')` here, we must change the
+    // policy over there.
+    assertFunctionReference(reference, null, 'void Function(int)');
   }
 
   test_instanceMethod_explicitReceiver_super() async {
@@ -783,6 +836,43 @@ void bar(void Function<T>(T a) foo) {
     var reference = findNode.functionReference('foo<int>;');
     assertFunctionReference(
         reference, findElement.parameter('foo'), 'void Function(int)');
+  }
+
+  test_localVariable_call() async {
+    await assertNoErrorsInCode('''
+void foo<T>(T a) {}
+
+void bar() {
+  var fn = foo;
+  fn.call<int>;
+}
+''');
+
+    var reference = findNode.functionReference('fn.call<int>;');
+    // TODO(srawlins): PropertyElementResolver does not return an element for
+    // `.call`. If we want `findElement.method('foo')` here, we must change the
+    // policy over there.
+    assertFunctionReference(reference, null, 'void Function(int)');
+  }
+
+  test_localVariable_call_tooManyTypeArgs() async {
+    await assertErrorsInCode('''
+void foo<T>(T a) {}
+
+void bar() {
+  void Function(int) fn = foo;
+  fn.call<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 74, 5),
+    ]);
+
+    var reference = findNode.functionReference('fn.call<int>;');
+    // TODO(srawlins): PropertyElementResolver does not return an element for
+    // `.call`. If we want `findElement.method('fn')` here, we must change the
+    // policy over there.
+    assertFunctionReference(reference, null, 'void Function(int)');
   }
 
   test_localVariable_typeVariable_boundToFunction() async {
@@ -1176,6 +1266,8 @@ bar() {
   prefix.a.foo<int>;
 }
 ''', [
+      error(CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          38, 17),
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1),
     ]);
 
