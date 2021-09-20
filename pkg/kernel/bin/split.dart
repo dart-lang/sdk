@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/command_line_util.dart';
 
 void usage() {

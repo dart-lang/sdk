@@ -7,7 +7,6 @@ library kernel.transformations.value_class;
 import 'package:kernel/type_environment.dart';
 
 import '../ast.dart';
-import '../kernel.dart';
 import '../core_types.dart' show CoreTypes;
 import '../class_hierarchy.dart' show ClassHierarchy;
 import './scanner.dart';
