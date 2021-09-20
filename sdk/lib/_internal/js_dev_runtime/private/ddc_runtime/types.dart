@@ -889,6 +889,7 @@ class GenericFunctionTypeIdentifier extends AbstractFunctionType {
 
 class GenericFunctionType extends AbstractFunctionType {
   final _instantiateTypeParts;
+  @notNull
   final int formalCount;
   final _instantiateTypeBounds;
   final List<TypeVariable> _typeFormals;
@@ -1166,7 +1167,9 @@ String typeName(type) => JS('', '''(() => {
 })()''');
 
 /// Returns true if [ft1] <: [ft2].
-_isFunctionSubtype(ft1, ft2, @notNull bool strictMode) => JS('', '''(() => {
+@notNull
+bool _isFunctionSubtype(ft1, ft2, @notNull bool strictMode) =>
+    JS<bool>('!', '''(() => {
   let ret1 = $ft1.returnType;
   let ret2 = $ft2.returnType;
 
@@ -1339,45 +1342,46 @@ bool _isFutureOr(type) {
 }
 
 @notNull
-bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
-  if (!$strictMode) {
+bool _isSubtype(t1, t2, @notNull bool strictMode) {
+  if (!strictMode) {
     // Strip nullable types when performing check in weak mode.
     // TODO(nshahan) Investigate stripping off legacy types as well.
-    if (${_jsInstanceOf(t1, NullableType)}) {
-      t1 = t1.type;
+    if (_jsInstanceOf(t1, NullableType)) {
+      t1 = JS<NullableType>('!', '#', t1).type;
     }
-    if (${_jsInstanceOf(t2, NullableType)}) {
-      t2 = t2.type;
+    if (_jsInstanceOf(t2, NullableType)) {
+      t2 = JS<NullableType>('!', '#', t2).type;
     }
   }
-  if ($t1 === $t2) {
+
+  if (JS<bool>('!', '# === #', t1, t2)) {
     return true;
   }
 
   // Trivially true, "Right Top" or "Left Bottom".
-  if (${_isTop(t2)} || ${_isBottom(t1, strictMode)}) {
+  if (_isTop(t2) || _isBottom(t1, strictMode)) {
     return true;
   }
 
   // "Left Top".
-  if (${_equalType(t1, dynamic)} || $t1 === $void_) {
-    return $_isSubtype($nullable($Object), $t2, $strictMode);
+  if (_equalType(t1, dynamic) || JS<bool>('!', '# === #', t1, void_)) {
+    return _isSubtype(typeRep<Object?>(), t2, strictMode);
   }
 
   // "Right Object".
-  if (${_equalType(t2, Object)}) {
+  if (_equalType(t2, Object)) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    if (${_isFutureOr(t1)}) {
-      let t1TypeArg = ${getGenericArgs(t1)}[0];
-      return $_isSubtype(t1TypeArg, $Object, $strictMode);
+    if (_isFutureOr(t1)) {
+      var t1TypeArg = JS('', '#[0]', getGenericArgs(t1));
+      return _isSubtype(t1TypeArg, typeRep<Object>(), strictMode);
     }
 
-    if (${_jsInstanceOf(t1, LegacyType)}) {
-      return $_isSubtype(t1.type, t2, $strictMode);
+    if (_jsInstanceOf(t1, LegacyType)) {
+      return _isSubtype(JS<LegacyType>('!', '#', t1).type, t2, strictMode);
     }
 
-    if (${_equalType(t1, Null)} || ${_jsInstanceOf(t1, NullableType)}) {
+    if (_equalType(t1, Null) || _jsInstanceOf(t1, NullableType)) {
       // Checks for t1 is dynamic or void already performed in "Left Top" test.
       return false;
     }
@@ -1385,81 +1389,86 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
   }
 
   // "Left Null".
-  if (${_equalType(t1, Null)}) {
+  if (_equalType(t1, Null)) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    if (${_isFutureOr(t2)}) {
-      let t2TypeArg = ${getGenericArgs(t2)}[0];
-      return $_isSubtype($Null, t2TypeArg, $strictMode);
+    if (_isFutureOr(t2)) {
+      var t2TypeArg = JS('', '#[0]', getGenericArgs(t2));
+      return _isSubtype(typeRep<Null>(), t2TypeArg, strictMode);
     }
 
-    return ${_equalType(t2, Null)} || ${_jsInstanceOf(t2, LegacyType)} ||
-        ${_jsInstanceOf(t2, NullableType)};
+    return _equalType(t2, Null) ||
+        _jsInstanceOf(t2, LegacyType) ||
+        _jsInstanceOf(t2, NullableType);
   }
 
   // "Left Legacy".
-  if (${_jsInstanceOf(t1, LegacyType)}) {
-    return $_isSubtype(t1.type, t2, $strictMode);
+  if (_jsInstanceOf(t1, LegacyType)) {
+    return _isSubtype(JS<LegacyType>('!', '#', t1).type, t2, strictMode);
   }
 
   // "Right Legacy".
-  if (${_jsInstanceOf(t2, LegacyType)}) {
-    return $_isSubtype(t1, $nullable(t2.type), $strictMode);
+  if (_jsInstanceOf(t2, LegacyType)) {
+    return _isSubtype(
+        t1, nullable(JS<LegacyType>('!', '#', t2).type), strictMode);
   }
 
   // Handle FutureOr<T> union type.
-  if (${_isFutureOr(t1)}) {
-    let t1TypeArg = ${getGenericArgs(t1)}[0];
-    if (${_isFutureOr(t2)}) {
-      let t2TypeArg = ${getGenericArgs(t2)}[0];
+  if (_isFutureOr(t1)) {
+    var t1TypeArg = JS('!', '#[0]', getGenericArgs(t1));
+    if (_isFutureOr(t2)) {
+      var t2TypeArg = JS('!', '#[0]', getGenericArgs(t2));
       // FutureOr<A> <: FutureOr<B> if A <: B
-      if ($_isSubtype(t1TypeArg, t2TypeArg, $strictMode)) {
+      if (_isSubtype(t1TypeArg, t2TypeArg, strictMode)) {
         return true;
       }
     }
 
     // given t1 is Future<A> | A, then:
     // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-    let t1Future = ${getGenericClassStatic<Future>()}(t1TypeArg);
+    var t1Future = JS('!', '#(#)', getGenericClassStatic<Future>(), t1TypeArg);
     // Known to handle the case FutureOr<Null> <: Future<Null>.
-    return $_isSubtype(t1Future, $t2, $strictMode) &&
-        $_isSubtype(t1TypeArg, $t2, $strictMode);
+    return _isSubtype(t1Future, t2, strictMode) &&
+        _isSubtype(t1TypeArg, t2, strictMode);
   }
 
   // "Left Nullable".
-  if (${_jsInstanceOf(t1, NullableType)}) {
+  if (_jsInstanceOf(t1, NullableType)) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype(t1.type, t2, $strictMode) && $_isSubtype($Null, t2, $strictMode);
+    return _isSubtype(JS<NullableType>('!', '#', t1).type, t2, strictMode) &&
+        _isSubtype(typeRep<Null>(), t2, strictMode);
   }
 
-  if ($_isFutureOr($t2)) {
+  if (_isFutureOr(t2)) {
     // given t2 is Future<A> | A, then:
     // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
-    let t2TypeArg = ${getGenericArgs(t2)}[0];
-    let t2Future = ${getGenericClassStatic<Future>()}(t2TypeArg);
+    var t2TypeArg = JS('!', '#[0]', getGenericArgs(t2));
+    var t2Future = JS('!', '#(#)', getGenericClassStatic<Future>(), t2TypeArg);
     // TODO(nshahan) Need to handle type variables on the left.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype($t1, t2Future, $strictMode) || $_isSubtype($t1, t2TypeArg, $strictMode);
+    return _isSubtype(t1, t2Future, strictMode) ||
+        _isSubtype(t1, t2TypeArg, strictMode);
   }
 
   // "Right Nullable".
-  if (${_jsInstanceOf(t2, NullableType)}) {
+  if (_jsInstanceOf(t2, NullableType)) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype(t1, t2.type, $strictMode) || $_isSubtype(t1, $Null, $strictMode);
+    return _isSubtype(t1, JS<NullableType>('!', '#', t2).type, strictMode) ||
+        _isSubtype(t1, typeRep<Null>(), strictMode);
   }
 
   // "Traditional" name-based subtype check.  Avoid passing
   // function types to the class subtype checks, since we don't
   // currently distinguish between generic typedefs and classes.
-  if (!${_jsInstanceOf(t2, AbstractFunctionType)}) {
+  if (!_jsInstanceOf(t2, AbstractFunctionType)) {
     // t2 is an interface type.
 
-    if (${_jsInstanceOf(t1, AbstractFunctionType)}) {
+    if (_jsInstanceOf(t1, AbstractFunctionType)) {
       // Function types are only subtypes of interface types `Function` (and top
       // types, handled already above).
-      return ${_equalType(t2, Function)};
+      return _equalType(t2, Function);
     }
 
     // Even though lazy and anonymous JS types are natural subtypes of
@@ -1472,34 +1481,33 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
     // JavaScriptObject <: package:js types
     // package:js types <: JavaScriptObject
 
-    if (${_isInterfaceSubtype(t1, JavaScriptObject, strictMode)}
-        &&
-            // TODO: Since package:js types are instances of PackageJSType and
-            // we don't have a mechanism to determine if *some* package:js type
-            // implements t2. This will possibly require keeping a map of these
-            // relationships for this subtyping check. For now, this will only
-            // work if t2 is also a PackageJSType.
-            ${_isInterfaceSubtype(_pkgJSTypeForSubtyping, t2, strictMode)}) {
+    if (_isInterfaceSubtype(t1, typeRep<JavaScriptObject>(), strictMode) &&
+        // TODO: Since package:js types are instances of PackageJSType and
+        // we don't have a mechanism to determine if *some* package:js type
+        // implements t2. This will possibly require keeping a map of these
+        // relationships for this subtyping check. For now, this will only
+        // work if t2 is also a PackageJSType.
+        _isInterfaceSubtype(_pkgJSTypeForSubtyping, t2, strictMode)) {
       return true;
     }
 
-    if (${_isInterfaceSubtype(JavaScriptObject, t2, strictMode)}
-        && ${_isInterfaceSubtype(t1, _pkgJSTypeForSubtyping, strictMode)}) {
+    if (_isInterfaceSubtype(typeRep<JavaScriptObject>(), t2, strictMode) &&
+        _isInterfaceSubtype(t1, _pkgJSTypeForSubtyping, strictMode)) {
       return true;
     }
 
     // Compare two interface types.
-    return ${_isInterfaceSubtype(t1, t2, strictMode)};
+    return _isInterfaceSubtype(t1, t2, strictMode);
   }
 
   // Function subtyping.
-  if (!${_jsInstanceOf(t1, AbstractFunctionType)}) {
+  if (!_jsInstanceOf(t1, AbstractFunctionType)) {
     return false;
   }
 
   // Handle generic functions.
-  if (${_jsInstanceOf(t1, GenericFunctionType)}) {
-    if (!${_jsInstanceOf(t2, GenericFunctionType)}) {
+  if (_jsInstanceOf(t1, GenericFunctionType)) {
+    if (!_jsInstanceOf(t2, GenericFunctionType)) {
       return false;
     }
 
@@ -1509,8 +1517,8 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
     //
     // where TFresh is a list of fresh type variables that both g1 and g2 will
     // be instantiated with.
-    let formalCount = $t1.formalCount;
-    if (formalCount !== $t2.formalCount) {
+    var formalCount = JS<GenericFunctionType>('!', '#', t1).formalCount;
+    if (formalCount != JS<GenericFunctionType>('!', '#', t2).formalCount) {
       return false;
     }
 
@@ -1518,39 +1526,44 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
     // instantiated with the same ones. The instantiate operation is guaranteed
     // to avoid capture because it does not depend on its TypeVariable objects,
     // rather it uses JS function parameters to ensure correct binding.
-    let fresh = $t2.typeFormals;
+    var fresh = JS<GenericFunctionType>('!', '#', t2).typeFormals;
 
     // Without type bounds all will instantiate to dynamic. Only need to check
     // further if at least one of the functions has type bounds.
-    if ($t1.hasTypeBounds || $t2.hasTypeBounds) {
+    if (JS<bool>('!', '#.hasTypeBounds || #.hasTypeBounds', t1, t2)) {
       // Check the bounds of the type parameters of g1 and g2. Given a type
       // parameter `T1 extends U1` from g1, and a type parameter `T2 extends U2`
       // from g2, we must ensure that U1 and U2 are mutual subtypes.
       //
       // (Note there is no variance in the type bounds of type parameters of
       // generic functions).
-      let t1Bounds = $t1.instantiateTypeBounds(fresh);
-      let t2Bounds = $t2.instantiateTypeBounds(fresh);
-      for (let i = 0; i < formalCount; i++) {
-        if (t1Bounds[i] != t2Bounds[i]) {
-          if (!($_isSubtype(t1Bounds[i], t2Bounds[i], $strictMode)
-              && $_isSubtype(t2Bounds[i], t1Bounds[i], $strictMode))) {
+      var t1Bounds =
+          JS<GenericFunctionType>('!', '#', t1).instantiateTypeBounds(fresh);
+      var t2Bounds =
+          JS<GenericFunctionType>('!', '#', t2).instantiateTypeBounds(fresh);
+      for (var i = 0; i < formalCount; i++) {
+        var t1Bound = JS('!', '#[#]', t1Bounds, i);
+        var t2Bound = JS('!', '#[#]', t2Bounds, i);
+        if (JS<bool>('!', '# != #', t1Bound, t2Bound)) {
+          if (!(_isSubtype(t1Bound, t2Bound, strictMode) &&
+              _isSubtype(t2Bound, t1Bound, strictMode))) {
             return false;
           }
         }
       }
     }
 
-    $t1 = $t1.instantiate(fresh);
-    $t2 = $t2.instantiate(fresh);
-  } else if (${_jsInstanceOf(t2, GenericFunctionType)}) {
+    t1 = JS<GenericFunctionType>('!', '#', t1).instantiate(fresh);
+    t2 = JS<GenericFunctionType>('!', '#', t2).instantiate(fresh);
+  } else if (_jsInstanceOf(t2, GenericFunctionType)) {
     return false;
   }
 
   // Handle non-generic functions.
-  return ${_isFunctionSubtype(t1, t2, strictMode)};
-})()''');
+  return _isFunctionSubtype(t1, t2, strictMode);
+}
 
+@notNull
 bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) => JS('', '''(() => {
   // Instances of PackageJSType are all subtypes of each other.
   if (${_jsInstanceOf(t1, PackageJSType)}
