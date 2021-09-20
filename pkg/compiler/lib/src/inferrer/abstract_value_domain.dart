@@ -30,15 +30,15 @@ class AbstractBool {
 
   /// A value of `Abstract.True` is used when the property is known _always_ to
   /// be true.
-  static const AbstractBool True = const AbstractBool._(true);
+  static const AbstractBool True = AbstractBool._(true);
 
   /// A value of `Abstract.False` is used when the property is known _never_ to
   /// be true.
-  static const AbstractBool False = const AbstractBool._(false);
+  static const AbstractBool False = AbstractBool._(false);
 
   /// A value of `Abstract.Maybe` is used when the property might or might not
   /// be true.
-  static const AbstractBool Maybe = const AbstractBool._(null);
+  static const AbstractBool Maybe = AbstractBool._(null);
 
   static AbstractBool trueOrMaybe(bool value) => value ? True : Maybe;
 

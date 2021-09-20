@@ -110,11 +110,11 @@ enum TypeMaskKind {
 abstract class TypeMask implements AbstractValue {
   const TypeMask();
 
-  factory TypeMask.empty({bool hasLateSentinel: false}) =>
+  factory TypeMask.empty({bool hasLateSentinel = false}) =>
       FlatTypeMask.empty(hasLateSentinel: hasLateSentinel);
 
   factory TypeMask.exact(ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
@@ -126,7 +126,7 @@ abstract class TypeMask implements AbstractValue {
   }
 
   factory TypeMask.exactOrEmpty(ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     if (closedWorld.classHierarchy.isInstantiated(base)) {
       return FlatTypeMask.exact(base, closedWorld,
           hasLateSentinel: hasLateSentinel);
@@ -135,7 +135,7 @@ abstract class TypeMask implements AbstractValue {
   }
 
   factory TypeMask.subclass(ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
@@ -155,7 +155,7 @@ abstract class TypeMask implements AbstractValue {
   }
 
   factory TypeMask.subtype(ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return TypeMask.empty(hasLateSentinel: hasLateSentinel);
@@ -173,11 +173,11 @@ abstract class TypeMask implements AbstractValue {
     }
   }
 
-  factory TypeMask.nonNullEmpty({bool hasLateSentinel: false}) =>
+  factory TypeMask.nonNullEmpty({bool hasLateSentinel = false}) =>
       FlatTypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
 
   factory TypeMask.nonNullExact(ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
@@ -190,7 +190,7 @@ abstract class TypeMask implements AbstractValue {
 
   factory TypeMask.nonNullExactOrEmpty(
       ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     if (closedWorld.classHierarchy.isInstantiated(base)) {
       return FlatTypeMask.nonNullExact(base, closedWorld,
           hasLateSentinel: hasLateSentinel);
@@ -199,7 +199,7 @@ abstract class TypeMask implements AbstractValue {
   }
 
   factory TypeMask.nonNullSubclass(ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     assert(
         closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
@@ -219,7 +219,7 @@ abstract class TypeMask implements AbstractValue {
   }
 
   factory TypeMask.nonNullSubtype(ClassEntity base, JClosedWorld closedWorld,
-      {bool hasLateSentinel: false}) {
+      {bool hasLateSentinel = false}) {
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);

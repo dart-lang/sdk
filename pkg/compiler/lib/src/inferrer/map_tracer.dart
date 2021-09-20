@@ -10,7 +10,7 @@ import '../universe/selector.dart' show Selector;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
-Set<String> okMapSelectorsSet = new Set.from(const <String>[
+Set<String> okMapSelectorsSet = Set.from(const <String>[
   // From Object.
   "==",
   "hashCode",

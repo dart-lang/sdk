@@ -25,7 +25,7 @@ import 'types.dart';
 /// [TypeInformation.inQueue] that a node is in the queue only once at
 /// a time.
 class WorkQueue {
-  final Queue<TypeInformation> queue = new Queue<TypeInformation>();
+  final Queue<TypeInformation> queue = Queue<TypeInformation>();
 
   void add(TypeInformation element) {
     if (element.doNotEnqueue) return;
@@ -125,12 +125,12 @@ class TypeGraphInferrer implements TypesInferrer {
 
       bool isCalledOnce = typeInformation.isCalledOnce();
 
-      memberResults[member] = new GlobalTypeInferenceMemberResultImpl(
+      memberResults[member] = GlobalTypeInferenceMemberResultImpl(
           data, returnType, type,
           throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
     }
 
-    Set<FieldEntity> freeVariables = new Set<FieldEntity>();
+    Set<FieldEntity> freeVariables = Set<FieldEntity>();
     inferrer.types.forEachMemberType(
         (MemberEntity member, MemberTypeInformation typeInformation) {
       createMemberResults(member, typeInformation);
@@ -169,7 +169,7 @@ class TypeGraphInferrer implements TypesInferrer {
       allocatedLists[node] = typeInformation.type;
     });
 
-    GlobalTypeInferenceResults results = new GlobalTypeInferenceResultsImpl(
+    GlobalTypeInferenceResults results = GlobalTypeInferenceResultsImpl(
         closedWorld,
         _globalLocalsMap,
         _inferredDataBuilder.close(closedWorld),

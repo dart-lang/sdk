@@ -26,7 +26,7 @@ class ConstantValueTypeMasks
     if (closedWorld.interceptorData.isInterceptedClass(constant.type.element)) {
       return _abstractValueDomain.nonNullType;
     }
-    return new TypeMask.nonNullExact(constant.type.element, closedWorld);
+    return TypeMask.nonNullExact(constant.type.element, closedWorld);
   }
 
   @override
