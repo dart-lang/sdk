@@ -97,13 +97,11 @@ class InterceptorDataImpl implements InterceptorData {
   ///
   /// These members must be invoked with a correct explicit receiver even when
   /// the receiver is not an intercepted class.
-  final Map<String, Set<MemberEntity>> _interceptedMixinElements =
-      Map<String, Set<MemberEntity>>();
+  final Map<String, Set<MemberEntity>> _interceptedMixinElements = {};
 
-  final Map<String, Set<ClassEntity>> _interceptedClassesCache =
-      Map<String, Set<ClassEntity>>();
+  final Map<String, Set<ClassEntity>> _interceptedClassesCache = {};
 
-  final Set<ClassEntity> _noClasses = Set<ClassEntity>();
+  final Set<ClassEntity> _noClasses = {};
 
   InterceptorDataImpl(
       this._nativeData,
@@ -220,7 +218,7 @@ class InterceptorDataImpl implements InterceptorData {
     return _interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
       // determine if the given selector applies to them.
-      Set<ClassEntity> result = Set<ClassEntity>();
+      Set<ClassEntity> result = {};
       for (MemberEntity element in intercepted) {
         ClassEntity classElement = element.enclosingClass;
         if (_isCompileTimeOnlyClass(classElement)) continue;
@@ -246,7 +244,7 @@ class InterceptorDataImpl implements InterceptorData {
       closedWorld.classHierarchy.forEachStrictSubclassOf(use,
           (ClassEntity subclass) {
         if (_nativeData.isNativeOrExtendsNative(subclass)) {
-          if (result == null) result = Set<ClassEntity>();
+          if (result == null) result = {};
           result.add(subclass);
         }
         return IterationStep.CONTINUE;
@@ -290,17 +288,15 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to
   /// know whether a send must be intercepted or not.
-  final Map<String, Set<MemberEntity>> _interceptedElements =
-      <String, Set<MemberEntity>>{};
+  final Map<String, Set<MemberEntity>> _interceptedElements = {};
 
   /// Set of classes whose methods are intercepted.
-  final Set<ClassEntity> _interceptedClasses = Set<ClassEntity>();
+  final Set<ClassEntity> _interceptedClasses = {};
 
   /// Set of classes used as mixins on intercepted (native and primitive)
   /// classes. Methods on these classes might also be mixed in to regular Dart
   /// (unintercepted) classes.
-  final Set<ClassEntity> _classesMixedIntoInterceptedClasses =
-      Set<ClassEntity>();
+  final Set<ClassEntity> _classesMixedIntoInterceptedClasses = {};
 
   InterceptorDataBuilderImpl(
       this._nativeData, this._elementEnvironment, this._commonElements);
@@ -322,8 +318,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
       if (member.name == Identifiers.call) return;
       // All methods on [Object] are shadowed by [Interceptor].
       if (cls == _commonElements.objectClass) return;
-      Set<MemberEntity> set =
-          _interceptedElements[member.name] ??= Set<MemberEntity>();
+      Set<MemberEntity> set = _interceptedElements[member.name] ??= {};
       set.add(member);
     });
 
@@ -340,8 +335,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
           (ClassEntity cls, MemberEntity member) {
         // All methods on [Object] are shadowed by [Interceptor].
         if (cls == _commonElements.objectClass) return;
-        Set<MemberEntity> set =
-            _interceptedElements[member.name] ??= Set<MemberEntity>();
+        Set<MemberEntity> set = _interceptedElements[member.name] ??= {};
         set.add(member);
       });
     }

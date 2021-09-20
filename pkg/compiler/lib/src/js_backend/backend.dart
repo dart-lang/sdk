@@ -50,10 +50,10 @@ class FunctionInlineCache {
   static const int _canInlineInLoopMayInlineOutside = 3;
   static const int _canInline = 4;
 
-  final Map<FunctionEntity, int> _cachedDecisions = Map<FunctionEntity, int>();
+  final Map<FunctionEntity, int> _cachedDecisions = {};
 
-  final Set<FunctionEntity> _noInlineFunctions = Set<FunctionEntity>();
-  final Set<FunctionEntity> _tryInlineFunctions = Set<FunctionEntity>();
+  final Set<FunctionEntity> _noInlineFunctions = {};
+  final Set<FunctionEntity> _tryInlineFunctions = {};
 
   FunctionInlineCache(AnnotationsData annotationsData) {
     annotationsData.forEachNoInline((FunctionEntity function) {

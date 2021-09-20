@@ -67,25 +67,25 @@ abstract class NoSuchMethodRegistry {
 
 class NoSuchMethodRegistryImpl implements NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
-  final Set<FunctionEntity> defaultImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> defaultImpls = {};
 
   /// The implementations that fall into category B, described above.
-  final Set<FunctionEntity> throwingImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> throwingImpls = {};
 
   /// The implementations that fall into category C, described above.
   // TODO(johnniwinther): Remove this category when Dart 1 is no longer
   // supported.
-  final Set<FunctionEntity> notApplicableImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> notApplicableImpls = {};
 
   /// The implementations that fall into category D, described above.
-  final Set<FunctionEntity> otherImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> otherImpls = {};
 
   /// The implementations that have not yet been categorized.
-  final Set<FunctionEntity> _uncategorizedImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> _uncategorizedImpls = {};
 
   /// The implementations that a forwarding syntax as defined by
   /// [NoSuchMethodResolver.hasForwardSyntax].
-  final Set<FunctionEntity> forwardingSyntaxImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> forwardingSyntaxImpls = {};
 
   final CommonElements _commonElements;
   final NoSuchMethodResolver _resolver;
@@ -210,10 +210,10 @@ class NoSuchMethodDataImpl implements NoSuchMethodData {
   final Set<FunctionEntity> otherImpls;
 
   /// The implementations that fall into category D1
-  final Set<FunctionEntity> complexNoReturnImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> complexNoReturnImpls = {};
 
   /// The implementations that fall into category D2
-  final Set<FunctionEntity> complexReturningImpls = Set<FunctionEntity>();
+  final Set<FunctionEntity> complexReturningImpls = {};
 
   final Set<FunctionEntity> forwardingSyntaxImpls;
 

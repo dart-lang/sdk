@@ -205,17 +205,15 @@ class InferredDataImpl implements InferredData {
 }
 
 class InferredDataBuilderImpl implements InferredDataBuilder {
-  final Set<MemberEntity> _functionsCalledInLoop = Set<MemberEntity>();
-  Map<MemberEntity, SideEffectsBuilder> _sideEffectsBuilders =
-      <MemberEntity, SideEffectsBuilder>{};
-  final Set<FunctionEntity> prematureSideEffectAccesses = Set<FunctionEntity>();
+  final Set<MemberEntity> _functionsCalledInLoop = {};
+  Map<MemberEntity, SideEffectsBuilder> _sideEffectsBuilders = {};
+  final Set<FunctionEntity> prematureSideEffectAccesses = {};
 
-  final Set<FunctionEntity> _sideEffectsFreeElements = Set<FunctionEntity>();
+  final Set<FunctionEntity> _sideEffectsFreeElements = {};
 
-  final Set<FunctionEntity> _elementsThatCannotThrow = Set<FunctionEntity>();
+  final Set<FunctionEntity> _elementsThatCannotThrow = {};
 
-  final Set<FunctionEntity> _functionsThatMightBePassedToApply =
-      Set<FunctionEntity>();
+  final Set<FunctionEntity> _functionsThatMightBePassedToApply = {};
 
   InferredDataBuilderImpl(AnnotationsData annotationsData) {
     annotationsData.forEachNoThrows(registerCannotThrow);
@@ -239,8 +237,7 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   InferredData close(JClosedWorld closedWorld) {
     assert(_sideEffectsBuilders != null,
         "Inferred data has already been computed.");
-    Map<FunctionEntity, SideEffects> _sideEffects =
-        <FunctionEntity, SideEffects>{};
+    Map<FunctionEntity, SideEffects> _sideEffects = {};
     Iterable<SideEffectsBuilder> sideEffectsBuilders =
         _sideEffectsBuilders.values;
     emptyWorkList(sideEffectsBuilders);
@@ -260,8 +257,8 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
 
   static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
     // TODO(johnniwinther): Optimize this algorithm.
-    Queue<SideEffectsBuilder> queue = Queue<SideEffectsBuilder>();
-    Set<SideEffectsBuilder> inQueue = Set<SideEffectsBuilder>();
+    Queue<SideEffectsBuilder> queue = Queue();
+    Set<SideEffectsBuilder> inQueue = {};
 
     for (SideEffectsBuilder builder in sideEffectsBuilders) {
       queue.addLast(builder);

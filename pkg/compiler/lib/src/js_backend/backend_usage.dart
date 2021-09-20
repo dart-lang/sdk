@@ -110,12 +110,12 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   Setlet<ClassEntity> _globalClassDependencies;
 
   /// List of methods that the backend may use.
-  final Set<FunctionEntity> _helperFunctionsUsed = Set<FunctionEntity>();
+  final Set<FunctionEntity> _helperFunctionsUsed = {};
 
   /// List of classes that the backend may use.
-  final Set<ClassEntity> _helperClassesUsed = Set<ClassEntity>();
+  final Set<ClassEntity> _helperClassesUsed = {};
 
-  final Set<RuntimeTypeUse> _runtimeTypeUses = Set<RuntimeTypeUse>();
+  final Set<RuntimeTypeUse> _runtimeTypeUses = {};
 
   bool _needToInitializeIsolateAffinityTag = false;
   bool _needToInitializeDispatchProperty = false;
@@ -256,18 +256,14 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   @override
   void registerGlobalFunctionDependency(FunctionEntity element) {
     assert(element != null);
-    if (_globalFunctionDependencies == null) {
-      _globalFunctionDependencies = Setlet<FunctionEntity>();
-    }
+    _globalFunctionDependencies ??= Setlet();
     _globalFunctionDependencies.add(element);
   }
 
   @override
   void registerGlobalClassDependency(ClassEntity element) {
     assert(element != null);
-    if (_globalClassDependencies == null) {
-      _globalClassDependencies = Setlet<ClassEntity>();
-    }
+    _globalClassDependencies ??= Setlet();
     _globalClassDependencies.add(element);
   }
 
@@ -434,11 +430,11 @@ class BackendUsageImpl implements BackendUsage {
 
   @override
   Iterable<FunctionEntity> get globalFunctionDependencies =>
-      _globalFunctionDependencies ?? const <FunctionEntity>[];
+      _globalFunctionDependencies ?? const [];
 
   @override
   Iterable<ClassEntity> get globalClassDependencies =>
-      _globalClassDependencies ?? const <ClassEntity>[];
+      _globalClassDependencies ?? const [];
 
   Iterable<FunctionEntity> get helperFunctionsUsed => _helperFunctionsUsed;
 

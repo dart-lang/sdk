@@ -33,15 +33,14 @@ class BackendImpact {
   final EnumSet<BackendFeature> _features;
 
   const BackendImpact(
-      {this.staticUses = const <FunctionEntity>[],
-      this.globalUses = const <FunctionEntity>[],
-      this.dynamicUses = const <Selector>[],
-      this.instantiatedTypes = const <InterfaceType>[],
-      this.instantiatedClasses = const <ClassEntity>[],
-      this.globalClasses = const <ClassEntity>[],
-      this.otherImpacts = const <BackendImpact>[],
-      EnumSet<BackendFeature> features =
-          const EnumSet<BackendFeature>.fixed(0)})
+      {this.staticUses = const [],
+      this.globalUses = const [],
+      this.dynamicUses = const [],
+      this.instantiatedTypes = const [],
+      this.instantiatedClasses = const [],
+      this.globalClasses = const [],
+      this.otherImpacts = const [],
+      EnumSet<BackendFeature> features = const EnumSet.fixed(0)})
       : this._features = features;
 
   Iterable<BackendFeature> get features =>
@@ -738,7 +737,7 @@ class BackendImpacts {
         BackendImpact(globalClasses: [_commonElements.closureClass]);
   }
 
-  Map<int, BackendImpact> _genericInstantiation = <int, BackendImpact>{};
+  Map<int, BackendImpact> _genericInstantiation = {};
 
   BackendImpact getGenericInstantiation(int typeArgumentCount) =>
       _genericInstantiation[typeArgumentCount] ??= BackendImpact(staticUses: [

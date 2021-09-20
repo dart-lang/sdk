@@ -265,10 +265,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         FunctionType functionType =
             _elementEnvironment.getFunctionType(function);
 
-        var allParameterTypes = <DartType>[]
-          ..addAll(functionType.parameterTypes)
-          ..addAll(functionType.optionalParameterTypes)
-          ..addAll(functionType.namedParameterTypes);
+        var allParameterTypes = <DartType>[
+          ...functionType.parameterTypes,
+          ...functionType.optionalParameterTypes,
+          ...functionType.namedParameterTypes
+        ];
         for (var type in allParameterTypes) {
           if (type.withoutNullability is FunctionType) {
             var closureConverter = _commonElements.closureConverter;
@@ -454,7 +455,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the _commonElements in the resolution queue.
     // TODO(13155): Find a way to register fewer _commonElements.
-    List<FunctionEntity> staticUses = <FunctionEntity>[];
+    List<FunctionEntity> staticUses = [];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
       staticUses.add(helper.getStaticUse(_commonElements).element);
     }

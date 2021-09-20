@@ -135,7 +135,7 @@ part 'namer_names.dart';
 /// For local variables, the [Namer] only provides *proposed names*. These names
 /// must be disambiguated elsewhere.
 class Namer extends ModularNamer {
-  static const List<String> javaScriptKeywords = <String>[
+  static const List<String> javaScriptKeywords = [
     // ES5 7.6.1.1 Keywords.
     'break',
     'do',
@@ -238,7 +238,7 @@ class Namer extends ModularNamer {
     // Other words to avoid due to non-standard keyword-like behavior.
   ];
 
-  static const List<String> reservedPropertySymbols = <String>[
+  static const List<String> reservedPropertySymbols = [
     "__proto__", "prototype", "constructor", "call",
     // "use strict" disallows the use of "arguments" and "eval" as
     // variable names or property names. See ECMA-262, Edition 5.1,
@@ -304,7 +304,7 @@ class Namer extends ModularNamer {
 
   /// Symbols that we might be using in our JS snippets. Some of the symbols in
   /// these sections are in [reservedGlobalUpperCaseSymbols] above.
-  static const List<String> reservedGlobalSymbols = <String>[
+  static const List<String> reservedGlobalSymbols = [
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -394,7 +394,7 @@ class Namer extends ModularNamer {
 
   // TODO(joshualitt): Stop reserving these names after local naming is updated
   // to use frequencies.
-  static const List<String> reservedGlobalObjectNames = <String>[
+  static const List<String> reservedGlobalObjectNames = [
     "A",
     "B",
     "C", // Global object for *C*onstants.
@@ -423,7 +423,7 @@ class Namer extends ModularNamer {
     "Z",
   ];
 
-  static const List<String> reservedGlobalHelperFunctions = <String>[
+  static const List<String> reservedGlobalHelperFunctions = [
     "init",
   ];
 
@@ -1606,7 +1606,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   String root = null; // First word, usually a type name.
   bool failed = false; // Failed to generate something pretty.
-  List<String> fragments = <String>[];
+  List<String> fragments = [];
   int length = 0;
 
   ConstantNamingVisitor(this._namer, this._closedWorld, this._hasher);

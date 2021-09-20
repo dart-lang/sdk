@@ -265,7 +265,7 @@ class ConstantEmitter extends ModularConstantEmitter {
           classElement, "Compiler encoutered unexpected set class $className");
     }
 
-    List<jsAst.Expression> arguments = <jsAst.Expression>[
+    List<jsAst.Expression> arguments = [
       _constantReferenceGenerator(constant.entries),
     ];
 
@@ -281,7 +281,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   jsAst.Expression visitMap(constant_system.JavaScriptMapConstant constant,
       [_]) {
     jsAst.Expression jsMap() {
-      List<jsAst.Property> properties = <jsAst.Property>[];
+      List<jsAst.Property> properties = [];
       for (int i = 0; i < constant.length; i++) {
         StringConstantValue key = constant.keys[i];
         if (key.stringValue ==
@@ -299,7 +299,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     }
 
     jsAst.Expression jsGeneralMap() {
-      List<jsAst.Expression> data = <jsAst.Expression>[];
+      List<jsAst.Expression> data = [];
       for (int i = 0; i < constant.keys.length; i++) {
         jsAst.Expression keyExpression =
             _constantReferenceGenerator(constant.keys[i]);
@@ -314,7 +314,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     ClassEntity classElement = constant.type.element;
     String className = classElement.name;
 
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
+    List<jsAst.Expression> arguments = [];
 
     // The arguments of the JavaScript constructor for any given Dart class
     // are in the same order as the members of the class element.
@@ -396,7 +396,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     }
     jsAst.Expression constructor =
         _emitter.constructorAccess(constant.type.element);
-    List<jsAst.Expression> fields = <jsAst.Expression>[];
+    List<jsAst.Expression> fields = [];
     _elementEnvironment.forEachInstanceField(element, (_, FieldEntity field) {
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(field);
       if (fieldData.isElided) return;
@@ -415,7 +415,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       [_]) {
     ClassEntity cls =
         _commonElements.getInstantiationClass(constant.typeArguments.length);
-    List<jsAst.Expression> fields = <jsAst.Expression>[
+    List<jsAst.Expression> fields = [
       _constantReferenceGenerator(constant.function)
     ];
     fields.add(_reifiedTypeNewRti(

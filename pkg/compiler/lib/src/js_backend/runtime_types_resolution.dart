@@ -27,7 +27,7 @@ abstract class RtiNode {
   int _testState = 0;
   int _literalState = 0;
 
-  Iterable<RtiNode> get dependencies => _dependencies ?? const <RtiNode>[];
+  Iterable<RtiNode> get dependencies => _dependencies ?? const [];
 
   bool get hasDirectTest => _testState & 1 != 0;
   bool get hasIndirectTest => _testState & 2 != 0;
@@ -48,7 +48,7 @@ abstract class RtiNode {
       // [entity]!
       return false;
     }
-    _dependencies ??= Set<RtiNode>();
+    _dependencies ??= {};
     return _dependencies.add(node);
   }
 
@@ -214,7 +214,7 @@ class TypeVariableTests {
   final Set<DartType> explicitIsChecks;
 
   /// All implicit is-tests.
-  final Set<DartType> implicitIsChecks = Set<DartType>();
+  final Set<DartType> implicitIsChecks = {};
 
   TypeVariableTests(this._elementEnvironment, this._commonElements, this._world,
       this._genericInstantiations,
@@ -316,7 +316,7 @@ class TypeVariableTests {
     } else {
       dependencies = _methods[entity]?.dependencies;
     }
-    if (dependencies == null) return const <Entity>[];
+    if (dependencies == null) return const [];
     return dependencies.map((n) => n.entity).toSet();
   }
 
@@ -701,7 +701,7 @@ class TypeVariableTests {
     });
 
     if (forRtiNeeds) {
-      _appliedSelectorMap = <Selector, Set<Entity>>{};
+      _appliedSelectorMap = {};
     }
 
     _world.forEachDynamicTypeArgument(
@@ -1004,12 +1004,11 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
 class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
   final ElementEnvironment _elementEnvironment;
 
-  final Set<ClassEntity> classesUsingTypeVariableLiterals = Set<ClassEntity>();
+  final Set<ClassEntity> classesUsingTypeVariableLiterals = {};
 
-  final Set<FunctionEntity> methodsUsingTypeVariableLiterals =
-      Set<FunctionEntity>();
+  final Set<FunctionEntity> methodsUsingTypeVariableLiterals = {};
 
-  final Set<Local> localFunctionsUsingTypeVariableLiterals = Set<Local>();
+  final Set<Local> localFunctionsUsingTypeVariableLiterals = {};
 
   Map<Selector, Set<Entity>> selectorsNeedingTypeArgumentsForTesting;
 
@@ -1019,8 +1018,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       get instantiatedEntitiesNeedingTypeArgumentsForTesting =>
           _instantiatedEntitiesNeedingTypeArgumentsForTesting ?? const {};
 
-  final Set<GenericInstantiation> _genericInstantiations =
-      Set<GenericInstantiation>();
+  final Set<GenericInstantiation> _genericInstantiations = {};
 
   TypeVariableTests typeVariableTestsForTesting;
 
@@ -1054,12 +1052,12 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         closedWorld.commonElements,
         closedWorld,
         _genericInstantiations);
-    Set<ClassEntity> classesNeedingTypeArguments = Set<ClassEntity>();
-    Set<FunctionEntity> methodsNeedingSignature = Set<FunctionEntity>();
-    Set<FunctionEntity> methodsNeedingTypeArguments = Set<FunctionEntity>();
-    Set<Local> localFunctionsNeedingSignature = Set<Local>();
-    Set<Local> localFunctionsNeedingTypeArguments = Set<Local>();
-    Set<Entity> processedEntities = Set<Entity>();
+    Set<ClassEntity> classesNeedingTypeArguments = {};
+    Set<FunctionEntity> methodsNeedingSignature = {};
+    Set<FunctionEntity> methodsNeedingTypeArguments = {};
+    Set<Local> localFunctionsNeedingSignature = {};
+    Set<Local> localFunctionsNeedingTypeArguments = {};
+    Set<Entity> processedEntities = {};
 
     // Find the classes that need type arguments at runtime. Such
     // classes are:
@@ -1139,14 +1137,14 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
             }
           });
           localFunctionsNeedingSignature.add(function);
-          localFunctionsToRemove ??= Set<Local>();
+          localFunctionsToRemove ??= {};
           localFunctionsToRemove.add(function);
         }
       }
       for (FunctionEntity function in closurizedMembers) {
         if (checkFunctionType(_elementEnvironment.getFunctionType(function))) {
           methodsNeedingSignature.add(function);
-          closurizedMembersToRemove ??= Set<FunctionEntity>();
+          closurizedMembersToRemove ??= {};
           closurizedMembersToRemove.add(function);
         }
       }
@@ -1247,7 +1245,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     /// Set to `true` if subclasses of `Function` need runtimeType.
     bool neededOnFunctions = false;
 
-    Set<ClassEntity> classesDirectlyNeedingRuntimeType = Set<ClassEntity>();
+    Set<ClassEntity> classesDirectlyNeedingRuntimeType = {};
 
     Iterable<ClassEntity> impliedClasses(DartType type) {
       type = type.withoutNullability;
@@ -1346,7 +1344,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
           .subclassesOf(commonElements.objectClass)
           .toSet();
     } else {
-      allClassesNeedingRuntimeType = Set<ClassEntity>();
+      allClassesNeedingRuntimeType = {};
       // TODO(johnniwinther): Support this operation directly in
       // [ClosedWorld] using the [ClassSet]s.
       for (ClassEntity cls in classesDirectlyNeedingRuntimeType) {
@@ -1379,7 +1377,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       }
     }
 
-    Set<Selector> selectorsNeedingTypeArguments = Set<Selector>();
+    Set<Selector> selectorsNeedingTypeArguments = {};
     typeVariableTests
         .forEachAppliedSelector((Selector selector, Set<Entity> targets) {
       for (Entity target in targets) {
@@ -1388,10 +1386,9 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
             localFunctionsNeedingTypeArguments.contains(target)) {
           selectorsNeedingTypeArguments.add(selector);
           if (retainDataForTesting) {
-            selectorsNeedingTypeArgumentsForTesting ??=
-                <Selector, Set<Entity>>{};
+            selectorsNeedingTypeArgumentsForTesting ??= {};
             selectorsNeedingTypeArgumentsForTesting
-                .putIfAbsent(selector, () => Set<Entity>())
+                .putIfAbsent(selector, () => {})
                 .add(target);
           } else {
             return;
@@ -1399,7 +1396,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         }
       }
     });
-    Set<int> instantiationsNeedingTypeArguments = Set<int>();
+    Set<int> instantiationsNeedingTypeArguments = {};
     typeVariableTests.forEachInstantiatedEntity(
         (Entity target, Set<GenericInstantiation> instantiations) {
       if (methodsNeedingTypeArguments.contains(target) ||

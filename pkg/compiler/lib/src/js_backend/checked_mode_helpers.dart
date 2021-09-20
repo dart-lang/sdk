@@ -28,7 +28,7 @@ class CheckedModeHelpers {
   CheckedModeHelpers();
 
   /// All the checked mode helpers.
-  static const List<CheckedModeHelper> helpers = <CheckedModeHelper>[
+  static const List<CheckedModeHelper> helpers = [
     CheckedModeHelper('boolConversionCheck'),
   ];
 }
