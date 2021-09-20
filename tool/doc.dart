@@ -70,7 +70,6 @@ These rules are under active development.  Feedback is
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 final coreRules = <String?>[];
-final effectiveDartRules = <String?>[];
 final flutterRules = <String?>[];
 final pedanticRules = <String?>[];
 final recommendedRules = <String?>[];
@@ -80,16 +79,6 @@ final List<LintRule> rules =
     List<LintRule>.of(Registry.ruleRegistry, growable: false)..sort();
 
 late Map<String, SinceInfo> sinceInfo;
-
-Future<String> get effectiveDartLatestVersion async {
-  var url =
-      'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.yaml';
-  var client = http.Client();
-  print('loading $url...');
-  var req = await client.get(Uri.parse(url));
-  var parts = req.body.split('package:effective_dart/analysis_options.');
-  return parts[1].split('.yaml')[0];
-}
 
 String get enumerateErrorRules =>
     rules.where((r) => r.group == Group.errors).map(toDescription).join('\n\n');
@@ -142,15 +131,6 @@ Future<void> fetchBadgeInfo() async {
   if (pedantic != null) {
     for (var ruleConfig in pedantic.ruleConfigs) {
       pedanticRules.add(ruleConfig.name);
-    }
-  }
-
-  var latestEffectiveDart = await effectiveDartLatestVersion;
-  var effectiveDart = await fetchConfig(
-      'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.$latestEffectiveDart.yaml');
-  if (effectiveDart != null) {
-    for (var ruleConfig in effectiveDart.ruleConfigs) {
-      effectiveDartRules.add(ruleConfig.name);
     }
   }
 
@@ -240,11 +220,6 @@ String getBadges(String rule) {
     sb.write(
         '<a class="style-type" href="https://github.com/dart-lang/pedantic/#enabled-lints">'
         '<!--suppress HtmlUnknownTarget --><img alt="pedantic" src="style-pedantic.svg"></a>');
-  }
-  if (effectiveDartRules.contains(rule)) {
-    sb.write(
-        '<a class="style-type" href="https://github.com/tenhobi/effective_dart">'
-        '<!--suppress HtmlUnknownTarget --><img alt="effective dart" src="style-effective_dart.svg"></a>');
   }
   return sb.toString();
 }
@@ -423,10 +398,6 @@ class MarkdownIndexer {
       if (pedanticRules.contains(rule.name)) {
         buffer.writeln('[![pedantic](style-pedantic.svg)]'
             '(https://github.com/dart-lang/pedantic/#enabled-lints)');
-      }
-      if (effectiveDartRules.contains(rule.name)) {
-        buffer.writeln('[![effective dart](style-effective_dart.svg)]'
-            '(https://github.com/tenhobi/effective_dart)');
       }
       buffer.writeln();
     }
@@ -706,10 +677,6 @@ class RuleMarkdownGenerator {
     if (pedanticRules.contains(name)) {
       buffer.writeln('[![pedantic](style-pedantic.svg)]'
           '(https://github.com/dart-lang/pedantic/#enabled-lints)');
-    }
-    if (effectiveDartRules.contains(name)) {
-      buffer.writeln('[![effective dart](style-effective_dart.svg)]'
-          '(https://github.com/tenhobi/effective_dart)');
     }
 
     buffer.writeln();

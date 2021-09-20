@@ -22,11 +22,6 @@ const _allPathSuffix = '/example/all.yaml';
 final Version bottomDartSdk = Version(2, 0, 0);
 Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
 
-final _effectiveDartOptionsRootUrl = Uri.https(
-    'raw.githubusercontent.com', '/tenhobi/effective_dart/master/lib/');
-final _effectiveDartOptionsUrl =
-    _effectiveDartOptionsRootUrl.resolve('analysis_options.yaml');
-List<String>? _effectiveDartRules;
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
 final _flutterRepoOptionsUrl = Uri.https('raw.githubusercontent.com',
@@ -51,9 +46,6 @@ final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/dart-lang/stagehand/master/templates/analysis_options.yaml');
 
 List<String>? _stagehandRules;
-
-Future<List<String>> get effectiveDartRules async =>
-    _effectiveDartRules ??= await _fetchEffectiveDartRules();
 
 Future<List<String>> get flutterRepoRules async =>
     _flutterRepoRules ??= await score_utils.fetchRules(_flutterRepoOptionsUrl);
@@ -157,15 +149,6 @@ Future<String> _fetchDEPSforVersion(String version) async {
   var req = await client.get(
       Uri.https('raw.githubusercontent.com', '/dart-lang/sdk/$version/DEPS'));
   return req.body;
-}
-
-Future<List<String>> _fetchEffectiveDartRules() async {
-  var client = http.Client();
-  var req = await client.get(_effectiveDartOptionsUrl);
-  var includedOptions =
-      req.body.split('include: package:effective_dart/')[1].trim();
-  return score_utils
-      .fetchRules(_effectiveDartOptionsRootUrl.resolve(includedOptions));
 }
 
 Future<String?> _fetchLinterForVersion(String version) async {
