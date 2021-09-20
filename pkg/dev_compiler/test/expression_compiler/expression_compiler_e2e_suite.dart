@@ -21,7 +21,6 @@ import 'package:front_end/src/fasta/incremental_serializer.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as p;
-import 'package:source_maps/parser.dart' as source_maps;
 import 'package:source_maps/source_maps.dart' as source_maps;
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
