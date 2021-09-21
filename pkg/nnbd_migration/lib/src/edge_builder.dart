@@ -489,9 +489,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitAwaitExpression(AwaitExpression node) {
     var expressionType = _dispatch(node.expression)!;
-    // TODO(paulberry) Handle subclasses of Future.
-    if (expressionType.type!.isDartAsyncFuture ||
-        expressionType.type!.isDartAsyncFutureOr) {
+    var type = expressionType.type!;
+    if (_typeSystem.isSubtypeOf(type, typeProvider.futureDynamicType)) {
+      expressionType = _decoratedClassHierarchy!
+          .asInstanceOf(expressionType, typeProvider.futureElement)
+          .typeArguments[0]!;
+    } else if (type.isDartAsyncFutureOr) {
       expressionType = expressionType.typeArguments[0]!;
     }
     return expressionType;

@@ -1601,6 +1601,26 @@ void f({required String s}) {}
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_custom_future() async {
+    var content = '''
+class CustomFuture<T> implements Future<T> {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+f(CustomFuture<List<int>> x) async => (await x).first;
+''';
+    var expected = '''
+class CustomFuture<T> implements Future<T> {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+f(CustomFuture<List<int>> x) async => (await x).first;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_data_flow_assignment_field() async {
     var content = '''
 class C {
