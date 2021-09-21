@@ -968,7 +968,7 @@ class C {
     VariableDeclaration field = fields[0];
     expect(field.name.name, 'f');
 // validate the type
-    var typeArguments = (fieldList.type as TypeName).typeArguments!;
+    var typeArguments = (fieldList.type as NamedType).typeArguments!;
     expect(typeArguments.arguments, hasLength(1));
 // synthetic '>'
     Token token = typeArguments.endToken;

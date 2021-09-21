@@ -1776,7 +1776,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var identifier = asExpression.expression as SimpleIdentifier;
     expect(identifier.name, 'x');
     expect(asExpression.asOperator, isNotNull);
-    var typeName = asExpression.type as TypeName;
+    var typeName = asExpression.type as NamedType;
     expect(typeName.name.name, 'Y');
   }
 
@@ -1850,7 +1850,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var identifier = isExpression.expression as SimpleIdentifier;
     expect(identifier.name, 'x');
     expect(isExpression.isOperator, isNotNull);
-    var typeName = isExpression.type as TypeName;
+    var typeName = isExpression.type as NamedType;
     expect(typeName.name.name, 'Y');
   }
 

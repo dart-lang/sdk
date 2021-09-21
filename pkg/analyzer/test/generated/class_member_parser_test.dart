@@ -162,15 +162,15 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(list.isFinal, isFalse);
     expect(list.isLate, isFalse);
     expect(list.lateKeyword, isNull);
-    var type = list.type as TypeName;
+    var type = list.type as NamedType;
     expect(type.name.name, 'List');
     List typeArguments = type.typeArguments!.arguments;
     expect(typeArguments, hasLength(1));
-    var type2 = typeArguments[0] as TypeName;
+    var type2 = typeArguments[0] as NamedType;
     expect(type2.name.name, 'List');
     NodeList typeArguments2 = type2.typeArguments!.arguments;
     expect(typeArguments2, hasLength(1));
-    var type3 = typeArguments2[0] as TypeName;
+    var type3 = typeArguments2[0] as NamedType;
     expect(type3.name.name, 'N');
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
@@ -508,7 +508,7 @@ Function(int, String) v;
     expect(parameters, isNotNull);
     expect(parameters.parameters, hasLength(1));
     var parameter = parameters.parameters[0] as SimpleFormalParameter;
-    var parameterType = parameter.type as TypeName;
+    var parameterType = parameter.type as NamedType;
     expect(parameterType.name.name, 'T');
 
     expect(method.body, isNotNull);
@@ -544,14 +544,14 @@ Function(int, String) v;
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect((method.returnType as TypeName).name.name, 'T');
+    expect((method.returnType as NamedType).name.name, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     TypeParameter tp = method.typeParameters!.typeParameters[0];
     expect(tp.name.name, 'T');
     expect(tp.extendsKeyword, isNotNull);
-    expect((tp.bound as TypeName).name.name, 'num');
+    expect((tp.bound as NamedType).name.name, 'num');
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -569,14 +569,14 @@ Function(int, String) v;
     expect(method.propertyKeyword, isNull);
 
     {
-      var returnType = method.returnType as TypeName;
+      var returnType = method.returnType as NamedType;
       expect(returnType, isNotNull);
       expect(returnType.name.name, 'Map');
 
       List<TypeAnnotation> typeArguments = returnType.typeArguments!.arguments;
       expect(typeArguments, hasLength(2));
-      expect((typeArguments[0] as TypeName).name.name, 'int');
-      expect((typeArguments[1] as TypeName).name.name, 'T');
+      expect((typeArguments[0] as NamedType).name.name, 'int');
+      expect((typeArguments[1] as NamedType).name.name, 'T');
     }
 
     expect(method.name, isNotNull);
@@ -598,7 +598,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect((method.returnType as TypeName).name.name, 'T');
+    expect((method.returnType as NamedType).name.name, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
@@ -1780,7 +1780,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.operatorKeyword, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as TypeName).name.name, 'T');
+    expect((method.returnType as NamedType).name.name, 'T');
   }
 
   void test_parseGetter_static() {
@@ -1797,7 +1797,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as TypeName).name.name, 'T');
+    expect((method.returnType as NamedType).name.name, 'T');
   }
 
   void test_parseInitializedIdentifierList_type() {
@@ -1809,7 +1809,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     VariableDeclarationList fields = declaration.fields;
     expect(fields, isNotNull);
     expect(fields.keyword, isNull);
-    expect((fields.type as TypeName).name.name, 'T');
+    expect((fields.type as NamedType).name.name, 'T');
     expect(fields.variables, hasLength(3));
     expect(declaration.staticKeyword!.lexeme, 'static');
     expect(declaration.semicolon, isNotNull);
@@ -1844,7 +1844,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
-    expect((method.returnType as TypeName).name.name, 'T');
+    expect((method.returnType as NamedType).name.name, 'T');
   }
 
   void test_parseSetter_nonStatic() {
@@ -1861,7 +1861,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as TypeName).name.name, 'T');
+    expect((method.returnType as NamedType).name.name, 'T');
   }
 
   void test_parseSetter_static() {
@@ -1878,7 +1878,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as TypeName).name.name, 'T');
+    expect((method.returnType as NamedType).name.name, 'T');
   }
 
   void test_simpleFormalParameter_withDocComment() {

@@ -601,7 +601,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     DecoratedType decoratedType;
     if (type is FunctionType && node is! GenericFunctionType) {
-      (node as TypeName).typeArguments?.accept(this);
+      (node as NamedType).typeArguments?.accept(this);
       // node is a reference to a typedef.  Treat it like an inferred type (we
       // synthesize new nodes for it).  These nodes will be unioned with the
       // typedef nodes by the edge builder.

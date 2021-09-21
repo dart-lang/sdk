@@ -245,7 +245,7 @@ class ComplexParserTest extends FastaParserTestCase {
         parseStatement('x as bool? ? (x + y) : z;') as ExpressionStatement;
     var expression = statement.expression as ConditionalExpression;
     var asExpression = expression.condition as AsExpression;
-    var type = asExpression.type as TypeName;
+    var type = asExpression.type as NamedType;
     expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -260,7 +260,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression = statement.expression as ConditionalExpression;
     var condition = expression.condition as ParenthesizedExpression;
     var asExpression = condition.expression as AsExpression;
-    var type = asExpression.type as TypeName;
+    var type = asExpression.type as NamedType;
     expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -286,7 +286,7 @@ class ComplexParserTest extends FastaParserTestCase {
         parseStatement('x is String? ? (x + y) : z;') as ExpressionStatement;
     var expression = statement.expression as ConditionalExpression;
     var isExpression = expression.condition as IsExpression;
-    var type = isExpression.type as TypeName;
+    var type = isExpression.type as NamedType;
     expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -301,7 +301,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression = statement.expression as ConditionalExpression;
     var condition = expression.condition as ParenthesizedExpression;
     var isExpression = condition.expression as IsExpression;
-    var type = isExpression.type as TypeName;
+    var type = isExpression.type as NamedType;
     expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
