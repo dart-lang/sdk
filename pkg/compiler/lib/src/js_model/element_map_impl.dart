@@ -720,7 +720,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         // This is necessary to support when a class implements the same
         // supertype in multiple non-conflicting ways, like implementing A<int*>
         // and A<int?> or B<Object?> and B<dynamic>.
-        Set<InterfaceType> canonicalSupertypes = <InterfaceType>{};
+        Set<InterfaceType> canonicalSupertypes = {};
 
         InterfaceType processSupertype(ir.Supertype supertypeNode) {
           supertypeNode = classHierarchy.getClassAsInstanceOf(
@@ -898,7 +898,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     }
     var namedParameters = <String>[];
     var requiredNamedParameters = <String>{};
-    List<DartType> namedParameterTypes = <DartType>[];
+    List<DartType> namedParameterTypes = [];
     List<ir.VariableDeclaration> sortedNamedParameters =
         node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
@@ -1508,8 +1508,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   @override
   ConstantValue getRequiredSentinelConstantValue() {
-    return ConstructedConstantValue(
-        _commonElements.requiredSentinelType, <FieldEntity, ConstantValue>{});
+    return ConstructedConstantValue(_commonElements.requiredSentinelType, {});
   }
 
   @override
@@ -1771,7 +1770,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (info.boxedVariables.isNotEmpty) {
       NodeBox box = info.capturedVariablesAccessor;
 
-      Map<String, IndexedMember> memberMap = <String, IndexedMember>{};
+      Map<String, IndexedMember> memberMap = {};
       JRecord container = JRecord(member.library, box.name);
       BoxLocal boxLocal = BoxLocal(container);
       InterfaceType thisType =
@@ -1838,7 +1837,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     }
     String name = _computeClosureName(node);
     SourceSpan location = computeSourceSpanFromTreeNode(node);
-    Map<String, IndexedMember> memberMap = <String, IndexedMember>{};
+    Map<String, IndexedMember> memberMap = {};
 
     JClass classEntity = JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass

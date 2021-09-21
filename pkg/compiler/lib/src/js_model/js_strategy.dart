@@ -84,8 +84,7 @@ class JsBackendStrategy implements BackendStrategy {
   SourceInformationStrategy sourceInformationStrategy;
 
   /// The generated code as a js AST for compiled methods.
-  final Map<MemberEntity, js.Expression> generatedCode =
-      <MemberEntity, js.Expression>{};
+  final Map<MemberEntity, js.Expression> generatedCode = {};
 
   JsBackendStrategy(this._compiler) {
     bool generateSourceMap = _compiler.options.generateSourceMap;
@@ -332,7 +331,7 @@ class JsBackendStrategy implements BackendStrategy {
       generatedCode[member] = result.code;
     }
     if (retainDataForTesting) {
-      codegenImpactsForTesting ??= <MemberEntity, WorldImpact>{};
+      codegenImpactsForTesting ??= {};
       codegenImpactsForTesting[member] = result.impact;
     }
     WorldImpact worldImpact =

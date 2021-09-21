@@ -56,8 +56,7 @@ class JsClosedWorld implements JClosedWorld {
 
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
-  final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
-      <ClassEntity, Map<ClassEntity, bool>>{};
+  final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache = {};
 
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> implementedClasses;
@@ -277,8 +276,7 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
-    Map<ClassEntity, bool> secondMap =
-        _subtypeCoveredByCache[x] ??= <ClassEntity, bool>{};
+    Map<ClassEntity, bool> secondMap = _subtypeCoveredByCache[x] ??= {};
     return secondMap[y] ??= classHierarchy.subtypesOf(x).every(
         (ClassEntity cls) =>
             classHierarchy.isSubclassOf(cls, y) ||

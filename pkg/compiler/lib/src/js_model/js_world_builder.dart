@@ -677,7 +677,7 @@ E identity<E>(E element) => element;
 
 Map<K, V2> convertMap<K, V1, V2>(
     Map<K, V1> map, K convertKey(K key), V2 convertValue(V1 value)) {
-  Map<K, V2> newMap = <K, V2>{};
+  Map<K, V2> newMap = {};
   map.forEach((K key, V1 value) {
     K newKey = convertKey(key);
     V2 newValue = convertValue(value);
@@ -771,8 +771,7 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   final DartTypes _dartTypes;
   final bool allowFreeVariables;
 
-  Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables =
-      <FunctionTypeVariable, FunctionTypeVariable>{};
+  Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables = {};
 
   _TypeConverter(this._dartTypes, {this.allowFreeVariables = false});
 
