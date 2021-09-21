@@ -183,7 +183,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var typeName = node.constructorName.type;
     expectedTypeNameElement ??= expectedClassElement;
-    assertTypeName(typeName, expectedTypeNameElement, null,
+    assertNamedType(typeName, expectedTypeNameElement, null,
         expectedPrefix: expectedPrefix);
   }
 
@@ -463,7 +463,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var typeName = creation.constructorName.type;
     expectedTypeNameElement ??= expectedClassElement;
-    assertTypeName(typeName, expectedTypeNameElement, expectedType,
+    assertNamedType(typeName, expectedTypeNameElement, expectedType,
         expectedPrefix: expectedPrefix);
   }
 
@@ -570,6 +570,29 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var ref = findNode.simple(search);
     assertElement(ref, findElement.parameter(name));
     assertTypeNull(ref);
+  }
+
+  void assertNamedType(
+      NamedType node, Element? expectedElement, String? expectedType,
+      {Element? expectedPrefix}) {
+    assertType(node, expectedType);
+
+    if (expectedPrefix == null) {
+      var name = node.name as SimpleIdentifier;
+      assertElement(name, expectedElement);
+      // TODO(scheglov) Should this be null?
+//      assertType(name, expectedType);
+    } else {
+      var name = node.name as PrefixedIdentifier;
+      assertImportPrefix(name.prefix, expectedPrefix);
+      assertElement(name.identifier, expectedElement);
+
+      // TODO(scheglov) This should be null, but it is not.
+      // ResolverVisitor sets the tpe for `Bar` in `new foo.Bar()`. This is
+      // probably wrong. It is fine for the TypeName `foo.Bar` to have a type,
+      // and for `foo.Bar()` to have a type. But not a name of a type? No.
+//      expect(name.identifier.staticType, isNull);
+    }
   }
 
   void assertNamespaceDirectiveSelected(
@@ -805,31 +828,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       TypeLiteral node, Element? expectedElement, String expectedType,
       {Element? expectedPrefix}) {
     assertType(node, 'Type');
-    assertTypeName(node.typeName, expectedElement, expectedType,
+    assertNamedType(node.typeName, expectedElement, expectedType,
         expectedPrefix: expectedPrefix);
-  }
-
-  void assertTypeName(
-      TypeName node, Element? expectedElement, String? expectedType,
-      {Element? expectedPrefix}) {
-    assertType(node, expectedType);
-
-    if (expectedPrefix == null) {
-      var name = node.name as SimpleIdentifier;
-      assertElement(name, expectedElement);
-      // TODO(scheglov) Should this be null?
-//      assertType(name, expectedType);
-    } else {
-      var name = node.name as PrefixedIdentifier;
-      assertImportPrefix(name.prefix, expectedPrefix);
-      assertElement(name.identifier, expectedElement);
-
-      // TODO(scheglov) This should be null, but it is not.
-      // ResolverVisitor sets the tpe for `Bar` in `new foo.Bar()`. This is
-      // probably wrong. It is fine for the TypeName `foo.Bar` to have a type,
-      // and for `foo.Bar()` to have a type. But not a name of a type? No.
-//      expect(name.identifier.staticType, isNull);
-    }
   }
 
   void assertTypeNull(Expression node) {

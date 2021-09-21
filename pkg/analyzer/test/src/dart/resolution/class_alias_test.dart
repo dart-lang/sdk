@@ -35,9 +35,9 @@ class X = A with B implements C;
 
     var x = findElement.class_('X');
 
-    assertTypeName(findNode.typeName('A with'), findElement.class_('A'), 'A');
-    assertTypeName(findNode.typeName('B impl'), findElement.class_('B'), 'B');
-    assertTypeName(findNode.typeName('C;'), findElement.class_('C'), 'C');
+    assertNamedType(findNode.typeName('A with'), findElement.class_('A'), 'A');
+    assertNamedType(findNode.typeName('B impl'), findElement.class_('B'), 'B');
+    assertNamedType(findNode.typeName('C;'), findElement.class_('C'), 'C');
 
     assertType(x.supertype, 'A');
     assertElementTypes(x.mixins, ['B']);

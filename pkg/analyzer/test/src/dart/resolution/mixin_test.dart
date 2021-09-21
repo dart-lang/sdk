@@ -94,7 +94,7 @@ class A extends Object with M {} // A
     assertElementTypes(aElement.mixins, ['M']);
 
     var mRef = findNode.typeName('M {} // A');
-    assertTypeName(mRef, mElement, 'M');
+    assertNamedType(mRef, mElement, 'M');
   }
 
   test_classTypeAlias_with() async {
@@ -109,7 +109,7 @@ class A = Object with M;
     assertElementTypes(aElement.mixins, ['M']);
 
     var mRef = findNode.typeName('M;');
-    assertTypeName(mRef, mElement, 'M');
+    assertNamedType(mRef, mElement, 'M');
   }
 
   test_commentReference() async {
@@ -309,7 +309,7 @@ mixin M implements math.Random {}
     assertElementTypes(element.interfaces, ['Random']);
 
     var typeRef = findNode.typeName('Random {}');
-    assertTypeName(typeRef, randomElement, 'Random',
+    assertNamedType(typeRef, randomElement, 'Random',
         expectedPrefix: mathImport.prefix);
   }
 
@@ -324,7 +324,7 @@ mixin M implements int {}
     assertElementTypes(element.interfaces, ['int']);
 
     var typeRef = findNode.typeName('int {}');
-    assertTypeName(typeRef, intElement, 'int');
+    assertNamedType(typeRef, intElement, 'int');
   }
 
   test_error_implementsClause_nonClass_void() async {
@@ -339,7 +339,7 @@ mixin M implements void {}
     assertElementTypes(element.interfaces, []);
 
     var typeRef = findNode.typeName('void {}');
-    assertTypeName(typeRef, null, 'void');
+    assertNamedType(typeRef, null, 'void');
   }
 
   test_error_memberWithClassName_getter() async {
@@ -832,7 +832,7 @@ mixin M on math.Random {}
     assertElementTypes(element.superclassConstraints, ['Random']);
 
     var typeRef = findNode.typeName('Random {}');
-    assertTypeName(typeRef, randomElement, 'Random',
+    assertNamedType(typeRef, randomElement, 'Random',
         expectedPrefix: mathImport.prefix);
   }
 
@@ -848,7 +848,7 @@ mixin M on int {}
     assertElementTypes(element.superclassConstraints, ['int']);
 
     var typeRef = findNode.typeName('int {}');
-    assertTypeName(typeRef, intElement, 'int');
+    assertNamedType(typeRef, intElement, 'int');
   }
 
   test_error_onClause_nonInterface_dynamic() async {
@@ -863,7 +863,7 @@ mixin M on dynamic {}
     assertElementTypes(element.superclassConstraints, ['Object']);
 
     var typeRef = findNode.typeName('dynamic {}');
-    assertTypeName(typeRef, dynamicElement, 'dynamic');
+    assertNamedType(typeRef, dynamicElement, 'dynamic');
   }
 
   test_error_onClause_nonInterface_enum() async {
@@ -879,7 +879,7 @@ mixin M on E {}
     assertElementTypes(element.superclassConstraints, ['Object']);
 
     var typeRef = findNode.typeName('E {}');
-    assertTypeName(typeRef, findElement.enum_('E'), 'E');
+    assertNamedType(typeRef, findElement.enum_('E'), 'E');
   }
 
   test_error_onClause_nonInterface_void() async {
@@ -895,7 +895,7 @@ mixin M on void {}
     assertElementTypes(element.superclassConstraints, ['Object']);
 
     var typeRef = findNode.typeName('void {}');
-    assertTypeName(typeRef, null, 'void');
+    assertNamedType(typeRef, null, 'void');
   }
 
   test_error_onClause_OK_mixin() async {
@@ -956,7 +956,7 @@ mixin M<T> {
     var fNode = findNode.variableDeclaration('f;');
     assertElement(fNode.name, fElement);
 
-    assertTypeName(findNode.typeName('T f'), tElement, 'T');
+    assertNamedType(findNode.typeName('T f'), tElement, 'T');
 
     var accessors = element.accessors;
     expect(accessors, hasLength(2));
@@ -976,10 +976,10 @@ mixin M implements A, B {} // M
     assertElementTypes(element.interfaces, ['A', 'B']);
 
     var aRef = findNode.typeName('A, ');
-    assertTypeName(aRef, findElement.class_('A'), 'A');
+    assertNamedType(aRef, findElement.class_('A'), 'A');
 
     var bRef = findNode.typeName('B {} // M');
-    assertTypeName(bRef, findElement.class_('B'), 'B');
+    assertNamedType(bRef, findElement.class_('B'), 'B');
   }
 
   test_invalid_unresolved_before_mixin() async {
@@ -1064,10 +1064,10 @@ mixin M on A, B {} // M
     assertElementTypes(element.superclassConstraints, ['A', 'B']);
 
     var aRef = findNode.typeName('A, ');
-    assertTypeName(aRef, findElement.class_('A'), 'A');
+    assertNamedType(aRef, findElement.class_('A'), 'A');
 
     var bRef = findNode.typeName('B {} // M');
-    assertTypeName(bRef, findElement.class_('B'), 'B');
+    assertNamedType(bRef, findElement.class_('B'), 'B');
   }
 
   test_recursiveInterfaceInheritance_implements() async {

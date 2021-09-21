@@ -64,7 +64,7 @@ void f() {
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'int'},
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.typeName('int>'), intElement, 'int');
   }
 
   test_class_generic_unnamed_inferTypeArguments() async {
@@ -107,7 +107,7 @@ void f() {
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'int'},
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.typeName('int>'), intElement, 'int');
   }
 
   test_class_notGeneric() async {
