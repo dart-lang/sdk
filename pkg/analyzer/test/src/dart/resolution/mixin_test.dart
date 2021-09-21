@@ -93,7 +93,7 @@ class A extends Object with M {} // A
     var aElement = findElement.class_('A');
     assertElementTypes(aElement.mixins, ['M']);
 
-    var mRef = findNode.typeName('M {} // A');
+    var mRef = findNode.namedType('M {} // A');
     assertNamedType(mRef, mElement, 'M');
   }
 
@@ -108,7 +108,7 @@ class A = Object with M;
     var aElement = findElement.class_('A');
     assertElementTypes(aElement.mixins, ['M']);
 
-    var mRef = findNode.typeName('M;');
+    var mRef = findNode.namedType('M;');
     assertNamedType(mRef, mElement, 'M');
   }
 
@@ -308,7 +308,7 @@ mixin M implements math.Random {}
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, ['Random']);
 
-    var typeRef = findNode.typeName('Random {}');
+    var typeRef = findNode.namedType('Random {}');
     assertNamedType(typeRef, randomElement, 'Random',
         expectedPrefix: mathImport.prefix);
   }
@@ -323,7 +323,7 @@ mixin M implements int {}
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, ['int']);
 
-    var typeRef = findNode.typeName('int {}');
+    var typeRef = findNode.namedType('int {}');
     assertNamedType(typeRef, intElement, 'int');
   }
 
@@ -338,7 +338,7 @@ mixin M implements void {}
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, []);
 
-    var typeRef = findNode.typeName('void {}');
+    var typeRef = findNode.namedType('void {}');
     assertNamedType(typeRef, null, 'void');
   }
 
@@ -831,7 +831,7 @@ mixin M on math.Random {}
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, ['Random']);
 
-    var typeRef = findNode.typeName('Random {}');
+    var typeRef = findNode.namedType('Random {}');
     assertNamedType(typeRef, randomElement, 'Random',
         expectedPrefix: mathImport.prefix);
   }
@@ -847,7 +847,7 @@ mixin M on int {}
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, ['int']);
 
-    var typeRef = findNode.typeName('int {}');
+    var typeRef = findNode.namedType('int {}');
     assertNamedType(typeRef, intElement, 'int');
   }
 
@@ -862,7 +862,7 @@ mixin M on dynamic {}
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, ['Object']);
 
-    var typeRef = findNode.typeName('dynamic {}');
+    var typeRef = findNode.namedType('dynamic {}');
     assertNamedType(typeRef, dynamicElement, 'dynamic');
   }
 
@@ -878,7 +878,7 @@ mixin M on E {}
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, ['Object']);
 
-    var typeRef = findNode.typeName('E {}');
+    var typeRef = findNode.namedType('E {}');
     assertNamedType(typeRef, findElement.enum_('E'), 'E');
   }
 
@@ -894,7 +894,7 @@ mixin M on void {}
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, ['Object']);
 
-    var typeRef = findNode.typeName('void {}');
+    var typeRef = findNode.namedType('void {}');
     assertNamedType(typeRef, null, 'void');
   }
 
@@ -956,7 +956,7 @@ mixin M<T> {
     var fNode = findNode.variableDeclaration('f;');
     assertElement(fNode.name, fElement);
 
-    assertNamedType(findNode.typeName('T f'), tElement, 'T');
+    assertNamedType(findNode.namedType('T f'), tElement, 'T');
 
     var accessors = element.accessors;
     expect(accessors, hasLength(2));
@@ -975,10 +975,10 @@ mixin M implements A, B {} // M
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, ['A', 'B']);
 
-    var aRef = findNode.typeName('A, ');
+    var aRef = findNode.namedType('A, ');
     assertNamedType(aRef, findElement.class_('A'), 'A');
 
-    var bRef = findNode.typeName('B {} // M');
+    var bRef = findNode.namedType('B {} // M');
     assertNamedType(bRef, findElement.class_('B'), 'B');
   }
 
@@ -1063,10 +1063,10 @@ mixin M on A, B {} // M
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, ['A', 'B']);
 
-    var aRef = findNode.typeName('A, ');
+    var aRef = findNode.namedType('A, ');
     assertNamedType(aRef, findElement.class_('A'), 'A');
 
-    var bRef = findNode.typeName('B {} // M');
+    var bRef = findNode.namedType('B {} // M');
     assertNamedType(bRef, findElement.class_('B'), 'B');
   }
 

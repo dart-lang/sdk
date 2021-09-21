@@ -379,7 +379,7 @@ class A extends E {}
     var a = findElement.class_('A');
     assertType(a.supertype, 'Object');
 
-    var eRef = findNode.typeName('E {}');
+    var eRef = findNode.namedType('E {}');
     assertNamedType(eRef, findElement.enum_('E'), 'E');
   }
 
@@ -394,7 +394,7 @@ class A extends M {} // ref
     var a = findElement.class_('A');
     assertType(a.supertype, 'Object');
 
-    var mRef = findNode.typeName('M {} // ref');
+    var mRef = findNode.namedType('M {} // ref');
     assertNamedType(mRef, findElement.mixin('M'), 'M');
   }
 

@@ -1187,7 +1187,7 @@ f(Object o) => o as a.Future<Null>;
 
   Future<void> test_makeNullable() async {
     await analyze('f(int x) {}');
-    var typeName = findNode.typeName('int');
+    var typeName = findNode.namedType('int');
     var previewInfo = run({
       typeName: NodeChangeForTypeAnnotation()
         ..recordNullability(
@@ -1217,7 +1217,7 @@ f(Object o) => o as a.Future<Null>;
 
   Future<void> test_noChangeToTypeAnnotation() async {
     await analyze('int x = 0;');
-    var typeName = findNode.typeName('int');
+    var typeName = findNode.namedType('int');
     var previewInfo = run({
       typeName: NodeChangeForTypeAnnotation()
         ..recordNullability(
@@ -1233,7 +1233,7 @@ f(Object o) => o as a.Future<Null>;
 
   Future<void> test_noInfoForTypeAnnotation() async {
     await analyze('int x = 0;');
-    var typeName = findNode.typeName('int');
+    var typeName = findNode.namedType('int');
     var previewInfo = run({typeName: NodeChangeForTypeAnnotation()});
     expect(previewInfo, null);
   }

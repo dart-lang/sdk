@@ -2587,7 +2587,7 @@ const int b = a as int;
     assertElement(aRef, findElement.topGet('a'));
     assertType(aRef, 'num');
 
-    assertNamedType(findNode.typeName('int;'), intElement, 'int');
+    assertNamedType(findNode.namedType('int;'), intElement, 'int');
   }
 
   test_invalid_const_constructor_initializer_field_multiple() async {
@@ -2908,12 +2908,12 @@ main() {
     expect(result.errors, isNotEmpty);
 
     assertNamedType(
-      findNode.typeName('a.Future'),
+      findNode.namedType('a.Future'),
       futureElement,
       'Future<int>',
       expectedPrefix: findElement.import('dart:async').prefix,
     );
-    assertNamedType(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_invalid_fieldInitializer_field() async {
@@ -4614,7 +4614,7 @@ void main() {
 
     var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
 
-    var gType = findNode.typeName('Consumer<T>');
+    var gType = findNode.namedType('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeParameterType =
@@ -4641,7 +4641,7 @@ void main() {
 
     var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
 
-    var gType = findNode.typeName('Consumer<T>');
+    var gType = findNode.namedType('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeParameterType =
@@ -4668,7 +4668,7 @@ void main() {
 
     var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
 
-    var gType = findNode.typeName('Consumer<T>');
+    var gType = findNode.namedType('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeParameterType =
@@ -4695,7 +4695,7 @@ void main() {
 
     var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
 
-    var gType = findNode.typeName('Producer<T>');
+    var gType = findNode.namedType('Producer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
@@ -5693,7 +5693,7 @@ const b = C<String>.named(); // ref
       assertType(creation, 'C<int>');
 
       assertNamedType(creation.constructorName.type, c, 'C<int>');
-      assertNamedType(findNode.typeName('int>'), intElement, 'int');
+      assertNamedType(findNode.namedType('int>'), intElement, 'int');
     }
 
     {
@@ -5703,7 +5703,7 @@ const b = C<String>.named(); // ref
       assertType(creation, 'C<String>');
 
       assertNamedType(creation.constructorName.type, c, 'C<String>');
-      assertNamedType(findNode.typeName('String>'), stringElement, 'String');
+      assertNamedType(findNode.namedType('String>'), stringElement, 'String');
 
       assertMember(
           creation.constructorName.name, namedConstructor, {'T': 'String'});
@@ -5717,10 +5717,10 @@ class A extends Object with Map<int> {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var mapRef = findNode.typeName('Map<');
+    var mapRef = findNode.namedType('Map<');
     assertNamedType(mapRef, mapElement, 'Map<dynamic, dynamic>');
 
-    var intRef = findNode.typeName('int>');
+    var intRef = findNode.namedType('int>');
     assertNamedType(intRef, intElement, 'int');
   }
 
@@ -5731,13 +5731,13 @@ class A extends Object with List<int, double> {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var listRef = findNode.typeName('List<');
+    var listRef = findNode.namedType('List<');
     assertNamedType(listRef, listElement, 'List<dynamic>');
 
-    var intRef = findNode.typeName('int,');
+    var intRef = findNode.namedType('int,');
     assertNamedType(intRef, intElement, 'int');
 
-    var doubleRef = findNode.typeName('double>');
+    var doubleRef = findNode.namedType('double>');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5748,13 +5748,13 @@ class A<T> extends Object with T<int, double> {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var tRef = findNode.typeName('T<');
+    var tRef = findNode.namedType('T<');
     assertNamedType(tRef, findElement.typeParameter('T'), 'T');
 
-    var intRef = findNode.typeName('int,');
+    var intRef = findNode.namedType('int,');
     assertNamedType(intRef, intElement, 'int');
 
-    var doubleRef = findNode.typeName('double>');
+    var doubleRef = findNode.namedType('double>');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5765,10 +5765,10 @@ class A extends Map<int> {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var mapRef = findNode.typeName('Map<');
+    var mapRef = findNode.namedType('Map<');
     assertNamedType(mapRef, mapElement, 'Map<dynamic, dynamic>');
 
-    var intRef = findNode.typeName('int>');
+    var intRef = findNode.namedType('int>');
     assertNamedType(intRef, intElement, 'int');
   }
 
@@ -5779,13 +5779,13 @@ class A extends List<int, double> {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var listRef = findNode.typeName('List<');
+    var listRef = findNode.namedType('List<');
     assertNamedType(listRef, listElement, 'List<dynamic>');
 
-    var intRef = findNode.typeName('int,');
+    var intRef = findNode.namedType('int,');
     assertNamedType(intRef, intElement, 'int');
 
-    var doubleRef = findNode.typeName('double>');
+    var doubleRef = findNode.namedType('double>');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5796,13 +5796,13 @@ class A extends X<int, double> {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var xRef = findNode.typeName('X<');
+    var xRef = findNode.namedType('X<');
     assertNamedType(xRef, null, 'dynamic');
 
-    var intRef = findNode.typeName('int,');
+    var intRef = findNode.namedType('int,');
     assertNamedType(intRef, intElement, 'int');
 
-    var doubleRef = findNode.typeName('double>');
+    var doubleRef = findNode.namedType('double>');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5813,7 +5813,7 @@ class A extends X {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var xRef = findNode.typeName('X {}');
+    var xRef = findNode.namedType('X {}');
     assertNamedType(xRef, null, 'dynamic');
   }
 
@@ -5824,13 +5824,13 @@ class A<T> extends T<int, double> {}
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var tRef = findNode.typeName('T<');
+    var tRef = findNode.namedType('T<');
     assertNamedType(tRef, findElement.typeParameter('T'), 'T');
 
-    var intRef = findNode.typeName('int,');
+    var intRef = findNode.namedType('int,');
     assertNamedType(intRef, intElement, 'int');
 
-    var doubleRef = findNode.typeName('double>');
+    var doubleRef = findNode.namedType('double>');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5841,10 +5841,10 @@ typedef Map<int> F();
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var mapRef = findNode.typeName('Map<');
+    var mapRef = findNode.namedType('Map<');
     assertNamedType(mapRef, mapElement, 'Map<dynamic, dynamic>');
 
-    var intRef = findNode.typeName('int>');
+    var intRef = findNode.namedType('int>');
     assertNamedType(intRef, intElement, 'int');
   }
 
@@ -5855,13 +5855,13 @@ typedef List<int, double> F();
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var listRef = findNode.typeName('List<');
+    var listRef = findNode.namedType('List<');
     assertNamedType(listRef, listElement, 'List<dynamic>');
 
-    var intRef = findNode.typeName('int,');
+    var intRef = findNode.namedType('int,');
     assertNamedType(intRef, intElement, 'int');
 
-    var doubleRef = findNode.typeName('double>');
+    var doubleRef = findNode.namedType('double>');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5872,10 +5872,10 @@ typedef T<int> F<T>();
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var tRef = findNode.typeName('T<');
+    var tRef = findNode.namedType('T<');
     assertNamedType(tRef, findElement.typeParameter('T'), 'T');
 
-    var intRef = findNode.typeName('int>');
+    var intRef = findNode.namedType('int>');
     assertNamedType(intRef, intElement, 'int');
   }
 
@@ -5886,13 +5886,13 @@ int Function(double) g() => (double g) => 0;
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var intRef = findNode.typeName('int Function');
+    var intRef = findNode.namedType('int Function');
     assertNamedType(intRef, intElement, 'int');
 
     var functionRef = findNode.genericFunctionType('Function(double)');
     assertType(functionRef, 'int Function(double)');
 
-    var doubleRef = findNode.typeName('double) g');
+    var doubleRef = findNode.namedType('double) g');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5904,13 +5904,13 @@ List<double> b = [];
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var intRef = findNode.typeName('int a');
+    var intRef = findNode.namedType('int a');
     assertNamedType(intRef, intElement, 'int');
 
-    var listRef = findNode.typeName('List<double> b');
+    var listRef = findNode.namedType('List<double> b');
     assertNamedType(listRef, listElement, 'List<double>');
 
-    var doubleRef = findNode.typeName('double> b');
+    var doubleRef = findNode.namedType('double> b');
     assertNamedType(doubleRef, doubleElement, 'double');
   }
 
@@ -5922,10 +5922,10 @@ my.Future<int> a;
     await resolveTestFile();
     ImportElement myImport = result.libraryElement.imports[0];
 
-    var intRef = findNode.typeName('int> a');
+    var intRef = findNode.namedType('int> a');
     assertNamedType(intRef, intElement, 'int');
 
-    var futureRef = findNode.typeName('my.Future<int> a');
+    var futureRef = findNode.namedType('my.Future<int> a');
     assertNamedType(futureRef, futureElement, 'Future<int>',
         expectedPrefix: myImport.prefix);
   }
@@ -6910,10 +6910,10 @@ class B extends A<int> {}
     addTestFile(content);
     await resolveTestFile();
 
-    var aRef = findNode.typeName('A<int>');
+    var aRef = findNode.namedType('A<int>');
     assertNamedType(aRef, findElement.class_('A'), 'A<int>');
 
-    var intRef = findNode.typeName('int>');
+    var intRef = findNode.namedType('int>');
     assertNamedType(intRef, intElement, 'int');
   }
 

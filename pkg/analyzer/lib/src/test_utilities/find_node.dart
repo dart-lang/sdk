@@ -244,6 +244,10 @@ class FindNode {
     return _node(search, (n) => n is NamedExpression);
   }
 
+  NamedType namedType(String search) {
+    return _node(search, (n) => n is NamedType);
+  }
+
   NullLiteral nullLiteral(String search) {
     return _node(search, (n) => n is NullLiteral);
   }
@@ -368,10 +372,6 @@ class FindNode {
 
   TypeLiteral typeLiteral(String search) {
     return _node(search, (n) => n is TypeLiteral);
-  }
-
-  TypeName typeName(String search) {
-    return _node(search, (n) => n is TypeName);
   }
 
   TypeParameter typeParameter(String search) {

@@ -44,7 +44,7 @@ A.foo bar() {}
 extension E on int {}
 E a;
 ''', [error(CompileTimeErrorCode.NOT_A_TYPE, 22, 1)]);
-    var typeName = findNode.typeName('E a;');
+    var typeName = findNode.namedType('E a;');
     assertTypeDynamic(typeName.type);
     assertTypeNull(typeName.name);
   }

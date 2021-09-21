@@ -24,8 +24,8 @@ class B implements A, A {} // ref
     ]);
 
     var A = findElement.class_('A');
-    assertNamedType(findNode.typeName('A, A {} // ref'), A, 'A');
-    assertNamedType(findNode.typeName('A {} // ref'), A, 'A');
+    assertNamedType(findNode.namedType('A, A {} // ref'), A, 'A');
+    assertNamedType(findNode.namedType('A {} // ref'), A, 'A');
   }
 
   test_class_implements_2times_viaTypeAlias() async {
@@ -38,13 +38,13 @@ class C implements A, B {} // ref
     ]);
 
     assertNamedType(
-      findNode.typeName('A, B {} // ref'),
+      findNode.namedType('A, B {} // ref'),
       findElement.class_('A'),
       'A',
     );
 
     assertNamedType(
-      findNode.typeName('B {} // ref'),
+      findNode.namedType('B {} // ref'),
       findElement.typeAlias('B'),
       'A',
     );
