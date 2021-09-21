@@ -3604,16 +3604,9 @@ class IsolateKillerVisitor : public IsolateVisitor {
  private:
   bool ShouldKill(Isolate* isolate) {
     // If a target_ is specified, then only kill the target_.
-    // Otherwise, don't kill the core system isolates (e.g, service, kernel, or
-    // vm isolates).
+    // Otherwise, don't kill the service isolate or vm isolate.
     return (((target_ != nullptr) && (isolate == target_)) ||
-            ((target_ == nullptr) && !IsCoreSystemIsolate(isolate)));
-  }
-
-  bool IsCoreSystemIsolate(Isolate* isolate) {
-    return KernelIsolate::IsKernelIsolate(isolate) ||
-           ServiceIsolate::IsServiceIsolate(isolate) ||
-           Dart::vm_isolate() == isolate;
+            ((target_ == nullptr) && !IsSystemIsolate(isolate)));
   }
 
   Isolate* target_;
