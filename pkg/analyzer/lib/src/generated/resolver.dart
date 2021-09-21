@@ -3052,7 +3052,12 @@ class ScopeResolverVisitor extends ResolverBase {
   }
 
   @override
-  void visitTypeName(TypeName node) {}
+  void visitTypeName(TypeName node) {
+    // All TypeName(s) are already resolved, so we don't resolve it here.
+    // But there might be type arguments with Expression(s), such as
+    // annotations on formal parameters of GenericFunctionType(s).
+    node.typeArguments?.accept(this);
+  }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
