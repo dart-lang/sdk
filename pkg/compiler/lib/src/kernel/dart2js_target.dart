@@ -144,14 +144,14 @@ class Dart2jsTarget extends Target {
     var nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
-      // TODO (rileyporter): Merge js_util optimizations with other lowerings
-      // in the single pass in `transformations/lowering.dart`.
-      jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
               nativeClasses)
           .visitLibrary(library);
+      // TODO (rileyporter): Merge js_util optimizations with other lowerings
+      // in the single pass in `transformations/lowering.dart`.
+      jsUtilOptimizer.visitLibrary(library);
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
