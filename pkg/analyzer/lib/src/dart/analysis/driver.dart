@@ -232,11 +232,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Whether `dart:core` has been transitively discovered.
   bool _hasDartCoreDiscovered = false;
 
-  /// This function is invoked when the current session is about to be discarded.
-  /// The argument represents the path of the resource causing the session
-  /// to be discarded or `null` if there are multiple or this is unknown.
-  void Function(String?)? onCurrentSessionAboutToBeDiscarded;
-
   /// If testing data is being retained, a pointer to the object that is
   /// retaining the testing data.  Otherwise `null`.
   final TestingData? testingData;
@@ -304,7 +299,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {
-    _createNewSession(null);
+    _createNewSession();
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = AnalysisDriverTestView(this);
     _createFileTracker();
@@ -1212,7 +1207,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void resetUriResolution() {
     _fsState.resetUriResolution();
     _fileTracker.scheduleAllAddedFiles();
-    _changeHook(null);
+    _changeHook();
   }
 
   void _addDeclaredVariablesToSignature(ApiSignature buffer) {
@@ -1235,8 +1230,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Handles a notification from the [FileTracker] that there has been a change
   /// of state.
-  void _changeHook(String? path) {
-    _createNewSession(path);
+  void _changeHook() {
+    _createNewSession();
     clearLibraryContext();
     _priorityResults.clear();
     _scheduler.notify(this);
@@ -1522,10 +1517,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Create a new analysis session, so invalidating the current one.
-  void _createNewSession(String? path) {
-    if (onCurrentSessionAboutToBeDiscarded != null) {
-      onCurrentSessionAboutToBeDiscarded!(path);
-    }
+  void _createNewSession() {
     _currentSession = AnalysisSessionImpl(this);
   }
 
