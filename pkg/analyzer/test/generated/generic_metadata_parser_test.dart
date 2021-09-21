@@ -59,7 +59,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
     var className = annotation.name as PrefixedIdentifier;
     expect(className.prefix.name, 'p');
     expect(className.identifier.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as TypeName;
+    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
     var typeArgumentName = typeArgument.name as SimpleIdentifier;
     expect(typeArgumentName.name, 'B');
     expect(annotation.constructorName, isNull);
@@ -75,7 +75,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
     var className = annotation.name as PrefixedIdentifier;
     expect(className.prefix.name, 'p');
     expect(className.identifier.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as TypeName;
+    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
     var typeArgumentName = typeArgument.name as SimpleIdentifier;
     expect(typeArgumentName.name, 'B');
     expect(annotation.constructorName!.name, 'ctor');
@@ -90,7 +90,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
     var annotation = classDeclaration.metadata.single;
     var className = annotation.name as SimpleIdentifier;
     expect(className.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as TypeName;
+    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
     var typeArgumentName = typeArgument.name as SimpleIdentifier;
     expect(typeArgumentName.name, 'B');
     expect(annotation.constructorName, isNull);
@@ -105,7 +105,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
     var annotation = classDeclaration.metadata.single;
     var className = annotation.name as SimpleIdentifier;
     expect(className.name, 'A');
-    var typeArgument = annotation.typeArguments!.arguments.single as TypeName;
+    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
     var typeArgumentName = typeArgument.name as SimpleIdentifier;
     expect(typeArgumentName.name, 'B');
     expect(annotation.constructorName!.name, 'ctor');
@@ -127,7 +127,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
     var name = annotation.name as PrefixedIdentifier;
     expect(name.prefix.name, 'p');
     expect(name.identifier.name, 'x');
-    var typeArgument = annotation.typeArguments!.arguments.single as TypeName;
+    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
     var typeArgumentName = typeArgument.name as SimpleIdentifier;
     expect(typeArgumentName.name, 'A');
     expect(annotation.constructorName, isNull);
@@ -148,7 +148,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
     var annotation = classDeclaration.metadata.single;
     var name = annotation.name as SimpleIdentifier;
     expect(name.name, 'x');
-    var typeArgument = annotation.typeArguments!.arguments.single as TypeName;
+    var typeArgument = annotation.typeArguments!.arguments.single as NamedType;
     var typeArgumentName = typeArgument.name as SimpleIdentifier;
     expect(typeArgumentName.name, 'A');
     expect(annotation.constructorName, isNull);

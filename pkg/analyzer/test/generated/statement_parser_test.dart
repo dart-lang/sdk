@@ -27,7 +27,7 @@ class StatementParserTest extends FastaParserTestCase {
     var funct1 = statement.expression as FunctionExpressionInvocation;
     List<TypeAnnotation> typeArgs = funct1.typeArguments!.arguments;
     expect(typeArgs, hasLength(1));
-    var typeName = typeArgs[0] as TypeName;
+    var typeName = typeArgs[0] as NamedType;
     expect(typeName.name.name, 'int');
     expect(funct1.argumentList.arguments, hasLength(0));
 
@@ -1183,10 +1183,10 @@ main() {
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    var typeName = variableList.type as TypeName;
+    var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
-    var typeArgument = typeName.typeArguments!.arguments[0] as TypeName;
+    var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
     expect(typeArgument.name.name, 'T');
   }
 
@@ -1198,10 +1198,10 @@ main() {
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    var typeName = variableList.type as TypeName;
+    var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
-    var typeArgument = typeName.typeArguments!.arguments[0] as TypeName;
+    var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
     expect(typeArgument.name.name, 'T');
   }
 
@@ -1213,7 +1213,7 @@ main() {
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    var typeName = variableList.type as TypeName;
+    var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     expect(typeName.typeArguments!.arguments[0], isGenericFunctionType);
@@ -1223,7 +1223,7 @@ main() {
     var declaration = parseStatement('C<> c;') as VariableDeclarationStatement;
     assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
     VariableDeclarationList variables = declaration.variables;
-    var type = variables.type as TypeName;
+    var type = variables.type as NamedType;
     var argumentList = type.typeArguments!;
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));

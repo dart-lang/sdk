@@ -1174,7 +1174,7 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool visitTypeName(TypeName node) {
-    TypeName other = _other as TypeName;
+    var other = _other as NamedType;
     return isEqualNodes(node.name, other.name) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.question, other.question);

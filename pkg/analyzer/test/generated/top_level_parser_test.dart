@@ -93,15 +93,15 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.variables.type, isNotNull);
     expect(declaration.variables.type!.question, isNull);
     expect(declaration.variables.type, TypeMatcher<TypeName>());
-    var type = declaration.variables.type as TypeName;
+    var type = declaration.variables.type as NamedType;
     expect(type.name.name, "Future");
     expect(type.typeArguments!.arguments.length, 1);
     expect(type.typeArguments!.arguments.single, TypeMatcher<TypeName>());
-    var subType = type.typeArguments!.arguments.single as TypeName;
+    var subType = type.typeArguments!.arguments.single as NamedType;
     expect(subType.name.name, "List");
     expect(subType.typeArguments!.arguments.length, 1);
     expect(subType.typeArguments!.arguments.single, TypeMatcher<TypeName>());
-    var subSubType = subType.typeArguments!.arguments.single as TypeName;
+    var subSubType = subType.typeArguments!.arguments.single as NamedType;
     expect(subSubType.name.name, "");
     expect(subSubType.typeArguments, isNull);
   }
@@ -1467,7 +1467,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1483,7 +1483,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1499,7 +1499,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1516,7 +1516,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expect(declaration.documentationComment, isNull);
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1577,7 +1577,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);

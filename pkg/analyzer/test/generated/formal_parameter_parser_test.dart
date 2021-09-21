@@ -904,7 +904,7 @@ class C {
     var required = parameters[0] as SimpleFormalParameter;
     expect(required.identifier, isNull);
     expect(required.type, isTypeName);
-    expect((required.type as TypeName).name.name, 'A');
+    expect((required.type as NamedType).name.name, 'A');
 
     expect(parameters[1], isDefaultFormalParameter);
     var named = parameters[1] as DefaultFormalParameter;
@@ -912,7 +912,7 @@ class C {
     expect(named.parameter, isSimpleFormalParameter);
     var simple = named.parameter as SimpleFormalParameter;
     expect(simple.type, isTypeName);
-    expect((simple.type as TypeName).name.name, 'B');
+    expect((simple.type as NamedType).name.name, 'B');
   }
 
   void test_parseFormalParameterList_normal_positional() {
@@ -1016,7 +1016,7 @@ class C {
     var parameter = list.parameters[0] as SimpleFormalParameter;
     expect(parameter.toSource(), 'io.File ');
     expect(parameter.identifier!.token.isSynthetic, isTrue);
-    var type = parameter.type as TypeName;
+    var type = parameter.type as NamedType;
     var typeName = type.name as PrefixedIdentifier;
     expect(typeName.prefix.token.isSynthetic, isFalse);
     expect(typeName.identifier.token.isSynthetic, isFalse);
@@ -1037,7 +1037,7 @@ class C {
     var parameter = list.parameters[0] as SimpleFormalParameter;
     expect(parameter.toSource(), 'io. ');
     expect(parameter.identifier!.token.isSynthetic, isTrue);
-    var type = parameter.type as TypeName;
+    var type = parameter.type as NamedType;
     var typeName = type.name as PrefixedIdentifier;
     expect(typeName.prefix.token.isSynthetic, isFalse);
     expect(typeName.identifier.token.isSynthetic, isTrue);

@@ -27,6 +27,27 @@ class MetadataResolutionTest extends PubPackageResolutionTest {
     return findElement.importFind('package:test/a.dart');
   }
 
+  test_at_genericFunctionType_formalParameter() async {
+    await assertNoErrorsInCode(r'''
+const a = 42;
+List<void Function(@a int b)> f() => [];
+''');
+
+    var annotation = findNode.annotation('@a');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  element: self::@getter::a
+  name: SimpleIdentifier
+    staticElement: self::@getter::a
+    staticType: null
+    token: a
+''');
+    _assertAnnotationValueText(annotation, '''
+int 42
+''');
+  }
+
   test_location_partDirective() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 part of 'test.dart';

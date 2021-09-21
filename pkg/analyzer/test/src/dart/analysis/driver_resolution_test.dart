@@ -743,7 +743,7 @@ void main() {
       expect(target.staticElement, vElement);
       expect(target.staticType, typeProvider.numType);
 
-      var intName = asExpression.type as TypeName;
+      var intName = asExpression.type as NamedType;
       expect(intName.name.staticElement, typeProvider.intType.element);
       expect(intName.name.staticType, isNull);
     }
@@ -1723,7 +1723,7 @@ main() {
 
     var statement = statements[0] as VariableDeclarationStatement;
 
-    var typeName = statement.variables.type as TypeName;
+    var typeName = statement.variables.type as NamedType;
     expect(typeName.type, isDynamicType);
     expect(typeName.typeArguments!.arguments[0].type, typeProvider.intType);
 
@@ -2466,8 +2466,8 @@ var b = new C<num, String>.named(4, 'five');
       assertNamedType(typeName, cElement, 'C<int, double>');
 
       var typeArguments = typeName.typeArguments!.arguments;
-      assertNamedType(typeArguments[0] as TypeName, intElement, 'int');
-      assertNamedType(typeArguments[1] as TypeName, doubleElement, 'double');
+      assertNamedType(typeArguments[0] as NamedType, intElement, 'int');
+      assertNamedType(typeArguments[1] as NamedType, doubleElement, 'double');
 
       expect(creation.constructorName.name, isNull);
 
@@ -2485,8 +2485,8 @@ var b = new C<num, String>.named(4, 'five');
       assertNamedType(typeName, cElement, 'C<num, String>');
 
       var typeArguments = typeName.typeArguments!.arguments;
-      assertNamedType(typeArguments[0] as TypeName, numElement, 'num');
-      assertNamedType(typeArguments[1] as TypeName, stringElement, 'String');
+      assertNamedType(typeArguments[0] as NamedType, numElement, 'num');
+      assertNamedType(typeArguments[1] as NamedType, stringElement, 'String');
 
       var constructorName = creation.constructorName.name;
       assertMember(
@@ -3640,7 +3640,7 @@ main() {
     assertElement(tRef, tElement);
     assertTypeDynamic(tRef);
 
-    var typeName = prefixedName.parent as TypeName;
+    var typeName = prefixedName.parent as NamedType;
     expect(typeName.type, isDynamicType);
   }
 
@@ -3708,7 +3708,7 @@ main() {
     assertElement(tRef, tElement);
     assertTypeDynamic(tRef);
 
-    var typeName = prefixedName.parent as TypeName;
+    var typeName = prefixedName.parent as NamedType;
     expect(typeName.type, isDynamicType);
   }
 
@@ -3793,7 +3793,7 @@ void f(var a) {
     expect(target.staticElement, findElement.parameter('a'));
     expect(target.staticType, dynamicType);
 
-    var numName = isExpression.type as TypeName;
+    var numName = isExpression.type as NamedType;
     expect(numName.name.staticElement, typeProvider.numType.element);
     expect(numName.name.staticType, isNull);
   }
@@ -3813,7 +3813,7 @@ void f(var a) {
     expect(target.staticElement, findElement.parameter('a'));
     expect(target.staticType, dynamicType);
 
-    var numName = isExpression.type as TypeName;
+    var numName = isExpression.type as NamedType;
     expect(numName.name.staticElement, typeProvider.numType.element);
     expect(numName.name.staticType, isNull);
   }
@@ -3921,7 +3921,7 @@ void main() {
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, isNull);
 
-    var fReturnTypeNode = fNode.returnType as TypeName;
+    var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
     expect(fReturnTypeNode.type, doubleType);
 
@@ -4016,7 +4016,7 @@ void main() {
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, fElement.type);
 
-    var fReturnTypeNode = fNode.returnType as TypeName;
+    var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(tElement));
     expect(fReturnTypeNode.type, typeParameterTypeStar(tElement));
 
@@ -4148,7 +4148,7 @@ void main() {
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, isNull);
 
-    var fReturnTypeNode = fNode.returnType as TypeName;
+    var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
     expect(fReturnTypeNode.type, doubleType);
 
@@ -4240,7 +4240,7 @@ void main() {
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, isNull);
 
-    var fReturnTypeNode = fNode.returnType as TypeName;
+    var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
     expect(fReturnTypeNode.type, doubleType);
 
@@ -4451,7 +4451,7 @@ void main() {
     var gParameterType =
         ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
                 as SimpleFormalParameter)
-            .type as TypeName;
+            .type as NamedType;
     var tReference = gParameterType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4482,7 +4482,7 @@ void main() {
     expect(gTypeParameterType.element, same(tElement));
     var gParameterType =
         (gType.parameters.parameters[0] as SimpleFormalParameter).type
-            as TypeName;
+            as NamedType;
     var tReference = gParameterType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4514,7 +4514,7 @@ void main() {
     var gParameterType =
         ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
                 as SimpleFormalParameter)
-            .type as TypeName;
+            .type as NamedType;
     var tReference = gParameterType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4542,7 +4542,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
     expect(gTypeReturnType.element, same(tElement));
-    var gReturnType = gType.returnType as TypeName;
+    var gReturnType = gType.returnType as NamedType;
     var tReference = gReturnType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4566,11 +4566,11 @@ void main() {
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
     var yDeclaration = body.block.statements[0] as VariableDeclarationStatement;
-    var yType = yDeclaration.variables.type as TypeName;
+    var yType = yDeclaration.variables.type as NamedType;
     var yTypeType = yType.type as InterfaceType;
     var yTypeTypeArgument = yTypeType.typeArguments[0] as TypeParameterType;
     expect(yTypeTypeArgument.element, same(tElement));
-    var yElementType = yType.typeArguments!.arguments[0] as TypeName;
+    var yElementType = yType.typeArguments!.arguments[0] as NamedType;
     var tReference = yElementType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4594,7 +4594,7 @@ void main() {
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
     var yDeclaration = body.block.statements[0] as VariableDeclarationStatement;
-    var yType = yDeclaration.variables.type as TypeName;
+    var yType = yDeclaration.variables.type as NamedType;
     var tReference = yType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4621,7 +4621,7 @@ void main() {
         gTypeType.namedParameterTypes['u'] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
 
-    var gArgumentType = gType.typeArguments!.arguments[0] as TypeName;
+    var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4648,7 +4648,7 @@ void main() {
         gTypeType.normalParameterTypes[0] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
 
-    var gArgumentType = gType.typeArguments!.arguments[0] as TypeName;
+    var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4675,7 +4675,7 @@ void main() {
         gTypeType.optionalParameterTypes[0] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
 
-    var gArgumentType = gType.typeArguments!.arguments[0] as TypeName;
+    var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4701,7 +4701,7 @@ void main() {
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
     expect(gTypeReturnType.element, same(tElement));
 
-    var gArgumentType = gType.typeArguments!.arguments[0] as TypeName;
+    var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
     assertTypeNull(tReference);
@@ -4906,7 +4906,7 @@ void main() {
     LocalVariableElement vElement = vNode.declaredElement!;
     expect(vElement.type, typeProvider.numType);
 
-    var vTypeName = vNode.type as TypeName;
+    var vTypeName = vNode.type as NamedType;
     expect(vTypeName.type, typeProvider.numType);
 
     var vTypeIdentifier = vTypeName.name as SimpleIdentifier;
@@ -5083,7 +5083,7 @@ void g(C c) {
     expect(methodDeclaration.name.staticElement, same(methodElement));
     expect(methodDeclaration.name.staticType, isNull);
 
-    var fReturnTypeNode = methodDeclaration.returnType as TypeName;
+    var fReturnTypeNode = methodDeclaration.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
     expect(fReturnTypeNode.type, doubleType);
     //
@@ -5558,14 +5558,14 @@ void f<T, U>(T a, U b) {}
       List<TypeAnnotation> typeArguments = invocation.typeArguments!.arguments;
       expect(typeArguments, hasLength(2));
       {
-        var typeArgument = typeArguments[0] as TypeName;
+        var typeArgument = typeArguments[0] as NamedType;
         InterfaceType boolType = typeProvider.boolType;
         expect(typeArgument.type, boolType);
         expect(typeArgument.name.staticElement, boolType.element);
         expect(typeArgument.name.staticType, boolType);
       }
       {
-        var typeArgument = typeArguments[1] as TypeName;
+        var typeArgument = typeArguments[1] as NamedType;
         InterfaceType stringType = typeProvider.stringType;
         expect(typeArgument.type, stringType);
         expect(typeArgument.name.staticElement, stringType.element);
@@ -7140,7 +7140,7 @@ class C {
       assertType(node.declaredElement!.type, 'int Function(double)');
 
       // method return type
-      var returnType = node.returnType as TypeName;
+      var returnType = node.returnType as NamedType;
       var returnTypeName = returnType.name as SimpleIdentifier;
       expect(returnType.type, intType);
       expect(returnTypeName.staticElement, intElement);
@@ -7156,7 +7156,7 @@ class C {
         expect(pNode.declaredElement, isNotNull);
         expect(pNode.declaredElement!.type, doubleType);
 
-        var pType = pNode.type as TypeName;
+        var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
 
@@ -7172,7 +7172,7 @@ class C {
       assertType(node.declaredElement!.type, 'int Function()');
 
       // getter return type
-      var returnType = node.returnType as TypeName;
+      var returnType = node.returnType as NamedType;
       var returnTypeName = returnType.name as SimpleIdentifier;
       expect(returnType.type, intType);
       expect(returnTypeName.staticElement, intElement);
@@ -7190,7 +7190,7 @@ class C {
       assertType(node.declaredElement!.type, 'void Function(double)');
 
       // setter return type
-      var returnType = node.returnType as TypeName;
+      var returnType = node.returnType as NamedType;
       var returnTypeName = returnType.name as SimpleIdentifier;
       expect(returnType.type, VoidTypeImpl.instance);
       expect(returnTypeName.staticElement, isNull);
@@ -7206,7 +7206,7 @@ class C {
         expect(pNode.declaredElement, isNotNull);
         expect(pNode.declaredElement!.type, doubleType);
 
-        var pType = pNode.type as TypeName;
+        var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
 
@@ -7235,7 +7235,7 @@ void set topSetter(double p) {}
       assertType(node.declaredElement!.type, 'int Function(double)');
 
       // function return type
-      var returnType = node.returnType as TypeName;
+      var returnType = node.returnType as NamedType;
       var returnTypeName = returnType.name as SimpleIdentifier;
       expect(returnType.type, intType);
       expect(returnTypeName.staticElement, intElement);
@@ -7252,7 +7252,7 @@ void set topSetter(double p) {}
         expect(pNode.declaredElement, isNotNull);
         expect(pNode.declaredElement!.type, doubleType);
 
-        var pType = pNode.type as TypeName;
+        var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
 
@@ -7268,7 +7268,7 @@ void set topSetter(double p) {}
       assertType(node.declaredElement!.type, 'int Function()');
 
       // getter return type
-      var returnType = node.returnType as TypeName;
+      var returnType = node.returnType as NamedType;
       var returnTypeName = returnType.name as SimpleIdentifier;
       expect(returnType.type, intType);
       expect(returnTypeName.staticElement, intElement);
@@ -7286,7 +7286,7 @@ void set topSetter(double p) {}
       assertType(node.declaredElement!.type, 'void Function(double)');
 
       // setter return type
-      var returnType = node.returnType as TypeName;
+      var returnType = node.returnType as NamedType;
       var returnTypeName = returnType.name as SimpleIdentifier;
       expect(returnType.type, VoidTypeImpl.instance);
       expect(returnTypeName.staticElement, isNull);
@@ -7303,7 +7303,7 @@ void set topSetter(double p) {}
         expect(pNode.declaredElement, isNotNull);
         expect(pNode.declaredElement!.type, doubleType);
 
-        var pType = pNode.type as TypeName;
+        var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
 
@@ -7348,7 +7348,7 @@ class C<T> {
       FieldElement bElement = cElement.getField('b')!;
       var bDeclaration = cNode.members[1] as FieldDeclaration;
 
-      var typeName = bDeclaration.fields.type as TypeName;
+      var typeName = bDeclaration.fields.type as NamedType;
       var typeIdentifier = typeName.name as SimpleIdentifier;
       expect(typeIdentifier.staticElement, same(tElement));
       expect(typeIdentifier.staticType, isNull);
@@ -7438,7 +7438,7 @@ double b = 2.3;
       expect(bElement, same(unitElement.topLevelVariables[1]));
       expect(bElement.type, typeProvider.doubleType);
 
-      var typeName = bDeclaration.variables.type as TypeName;
+      var typeName = bDeclaration.variables.type as NamedType;
       _assertTypeNameSimple(typeName, typeProvider.doubleType);
 
       expect(bNode.name.staticElement, same(bElement));
@@ -7511,7 +7511,7 @@ void main() {
     expect(fDeclaration.name.staticElement, same(fElement));
     expect(fDeclaration.name.staticType, isNull);
 
-    var fReturnTypeNode = fDeclaration.returnType as TypeName;
+    var fReturnTypeNode = fDeclaration.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
     expect(fReturnTypeNode.type, doubleType);
     //
@@ -7579,7 +7579,7 @@ typedef int F<T>(bool a, T b);
     expect(aliasElement, same(findElement.typeAlias('F')));
     expect(function.returnType, typeProvider.intType);
 
-    _assertTypeNameSimple(alias.returnType as TypeName, typeProvider.intType);
+    _assertTypeNameSimple(alias.returnType as NamedType, typeProvider.intType);
 
     _assertSimpleParameter(
         alias.parameters.parameters[0] as SimpleFormalParameter,
@@ -7620,7 +7620,7 @@ class C<T extends A, U extends List<A>, V> {}
       TypeParameter tNode = cNode.typeParameters!.typeParameters[0];
       expect(tNode.declaredElement, same(cElement.typeParameters[0]));
 
-      var bound = tNode.bound as TypeName;
+      var bound = tNode.bound as NamedType;
       expect(bound.type, interfaceTypeNone(aElement));
 
       var boundIdentifier = bound.name as SimpleIdentifier;
@@ -7638,14 +7638,14 @@ class C<T extends A, U extends List<A>, V> {}
       TypeParameter uNode = cNode.typeParameters!.typeParameters[1];
       expect(uNode.declaredElement, same(cElement.typeParameters[1]));
 
-      var bound = uNode.bound as TypeName;
+      var bound = uNode.bound as NamedType;
       expect(bound.type, listOfA);
 
       var listIdentifier = bound.name as SimpleIdentifier;
       expect(listIdentifier.staticElement, same(listElement));
       expect(listIdentifier.staticType, isNull);
 
-      var aTypeName = bound.typeArguments!.arguments[0] as TypeName;
+      var aTypeName = bound.typeArguments!.arguments[0] as NamedType;
       expect(aTypeName.type, interfaceTypeNone(aElement));
 
       var aIdentifier = aTypeName.name as SimpleIdentifier;
@@ -7718,7 +7718,7 @@ void main() {
       var statement = statements[1] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       _assertTypeNameSimple(
-          catchClause.exceptionType as TypeName, typeProvider.intType);
+          catchClause.exceptionType as NamedType, typeProvider.intType);
 
       var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
       var exceptionElement =
@@ -7774,7 +7774,7 @@ void main() {
       var statement = statements[4] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       _assertTypeNameSimple(
-          catchClause.exceptionType as TypeName, typeProvider.intType);
+          catchClause.exceptionType as NamedType, typeProvider.intType);
       expect(catchClause.exceptionParameter, isNull);
       expect(catchClause.stackTraceParameter, isNull);
     }
@@ -7790,7 +7790,7 @@ main() {
     var statements = _getMainStatements(result);
     var variableDeclarationStatement =
         statements[0] as VariableDeclarationStatement;
-    var type = variableDeclarationStatement.variables.type as TypeName;
+    var type = variableDeclarationStatement.variables.type as NamedType;
     expect(type.type, isDynamicType);
     var typeName = type.name;
     assertTypeNull(typeName);
@@ -7812,7 +7812,7 @@ class C {
 
     FieldDeclaration fDeclaration = findNode.fieldDeclaration('F<int> f');
 
-    var typeName = fDeclaration.fields.type as TypeName;
+    var typeName = fDeclaration.fields.type as NamedType;
     assertType(typeName, 'int Function(bool)');
 
     var typeIdentifier = typeName.name as SimpleIdentifier;
@@ -7834,7 +7834,7 @@ main() {
     var statements = _getMainStatements(result);
     var variableDeclarationStatement =
         statements[0] as VariableDeclarationStatement;
-    var type = variableDeclarationStatement.variables.type as TypeName;
+    var type = variableDeclarationStatement.variables.type as NamedType;
     expect(type.type, isVoidType);
     var typeName = type.name;
     expect(typeName.staticType, isNull);
@@ -7863,7 +7863,7 @@ c.A a2;
 
     {
       var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
-      var typeName = declaration.variables.type as TypeName;
+      var typeName = declaration.variables.type as NamedType;
 
       var typeIdentifier = typeName.name as PrefixedIdentifier;
       expect(typeIdentifier.staticElement, aClass);
@@ -7876,7 +7876,7 @@ c.A a2;
 
     {
       var declaration = unit.declarations[1] as TopLevelVariableDeclaration;
-      var typeName = declaration.variables.type as TypeName;
+      var typeName = declaration.variables.type as NamedType;
 
       var typeIdentifier = typeName.name as PrefixedIdentifier;
       expect(typeIdentifier.staticElement, aClass);
@@ -8681,7 +8681,7 @@ main() {
     expect(node.declaredElement, same(element));
     expect(node.identifier!.staticElement, same(element));
 
-    var typeName = node.type as TypeName?;
+    var typeName = node.type as NamedType?;
     if (typeName != null) {
       expect(typeName.type, type);
       expect(typeName.name.staticElement, same(type!.element));
@@ -8689,7 +8689,7 @@ main() {
   }
 
   void _assertTypeNameSimple(TypeAnnotation typeName, DartType type) {
-    typeName as TypeName;
+    typeName as NamedType;
     expect(typeName.type, type);
 
     var identifier = typeName.name as SimpleIdentifier;

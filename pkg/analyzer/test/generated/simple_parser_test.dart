@@ -1605,13 +1605,13 @@ Function<A>(core.List<core.int> x) m() => null;
     var parameter = parameters[0] as SimpleFormalParameter;
     expect(parameter.identifier, isNull);
     expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'int');
+    expect((parameter.type as NamedType).name.name, 'int');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.identifier, isNull);
     expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'int');
+    expect((parameter.type as NamedType).name.name, 'int');
   }
 
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
@@ -1647,7 +1647,7 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_function_returnType_classFunction() {
     createParser('Function');
-    var functionType = parser.parseTypeAnnotation(false) as TypeName;
+    var functionType = parser.parseTypeAnnotation(false) as NamedType;
     expectNotNullIfNoErrors(functionType);
     assertNoErrors();
   }
@@ -1691,14 +1691,14 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameter.identifier, isNotNull);
     expect(parameter.identifier!.name, 's');
     expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'String');
+    expect((parameter.type as NamedType).name.name, 'String');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.identifier, isNotNull);
     expect(parameter.identifier!.name, 'i');
     expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'int');
+    expect((parameter.type as NamedType).name.name, 'int');
   }
 
   void test_parseTypeAnnotation_function_returnType_simple() {
@@ -1750,7 +1750,7 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_named() {
     createParser('A<B>');
-    var typeName = parser.parseTypeAnnotation(false) as TypeName;
+    var typeName = parser.parseTypeAnnotation(false) as NamedType;
     expectNotNullIfNoErrors(typeName);
     assertNoErrors();
   }
@@ -1782,7 +1782,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
-    var argument = argumentList.arguments[0] as TypeName;
+    var argument = argumentList.arguments[0] as NamedType;
     expect(argument, isNotNull);
     var innerList = argument.typeArguments!;
     expect(innerList, isNotNull);
@@ -1799,7 +1799,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(argumentList.rightBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
 
-    var argument = argumentList.arguments[0] as TypeName;
+    var argument = argumentList.arguments[0] as NamedType;
     expect(argument, isNotNull);
 
     var innerList = argument.typeArguments!;
@@ -1819,7 +1819,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(argumentList.rightBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
 
-    var argument = argumentList.arguments[0] as TypeName;
+    var argument = argumentList.arguments[0] as NamedType;
     expect(argument, isNotNull);
 
     var innerList = argument.typeArguments!;
@@ -1828,7 +1828,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(innerList.arguments, hasLength(1));
     expect(innerList.rightBracket, isNotNull);
 
-    var innerArgument = innerList.arguments[0] as TypeName;
+    var innerArgument = innerList.arguments[0] as NamedType;
     expect(innerArgument, isNotNull);
 
     var innerInnerList = innerArgument.typeArguments!;
@@ -1947,13 +1947,13 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameterList.typeParameters, hasLength(1));
     TypeParameter typeParameter = parameterList.typeParameters[0];
     expect(typeParameter.name.name, 'A');
-    var bound = typeParameter.bound as TypeName;
+    var bound = typeParameter.bound as NamedType;
     expect(bound.name.name, 'B');
     var typeArguments = bound.typeArguments!;
     expect(typeArguments.arguments, hasLength(1));
     expect(typeArguments.rightBracket, isNotNull);
     expect(typeArguments.rightBracket.precedingComments!.lexeme, '/* foo */');
-    var argument = typeArguments.arguments[0] as TypeName;
+    var argument = typeArguments.arguments[0] as NamedType;
     expect(argument.name.name, 'E');
   }
 
