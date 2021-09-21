@@ -799,6 +799,8 @@ compiler.''',
 
       if (configuration.validate()) {
         result.add(configuration);
+      } else if (namedConfiguration == null) {
+        _fail('The named configuration "$namedConfiguration" is invalid.');
       }
     }
 
