@@ -20,8 +20,7 @@ class LibraryContents {
 ///
 /// There exists exactly one instance per [OutputUnit].
 class LibrariesMap {
-  final Map<LibraryEntity, LibraryContents> _mapping =
-      <LibraryEntity, LibraryContents>{};
+  final Map<LibraryEntity, LibraryContents> _mapping = {};
 
   // It is very common to access the same library multiple times in a row, so
   // we cache the last access.
@@ -41,7 +40,7 @@ class LibrariesMap {
   LibraryContents _getMapping(LibraryEntity library) {
     if (_lastLibrary != library) {
       _lastLibrary = library;
-      _lastMapping = _mapping.putIfAbsent(library, () => new LibraryContents());
+      _lastMapping = _mapping.putIfAbsent(library, () => LibraryContents());
     }
     return _lastMapping;
   }
@@ -78,8 +77,7 @@ class LibrariesMap {
 class Registry {
   final OutputUnit _mainOutputUnit;
   final Sorter _sorter;
-  final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap =
-      <OutputUnit, LibrariesMap>{};
+  final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap = {};
 
   /// Cache for the last seen output unit.
   OutputUnit _lastOutputUnit;
@@ -111,12 +109,12 @@ class Registry {
   void registerOutputUnit(OutputUnit outputUnit) {
     if (outputUnit == _mainOutputUnit) {
       assert(mainLibrariesMap == null);
-      mainLibrariesMap = new LibrariesMap.main(_mainOutputUnit);
+      mainLibrariesMap = LibrariesMap.main(_mainOutputUnit);
     } else {
       assert(!_deferredLibrariesMap.containsKey(outputUnit));
       String name = outputUnit.name;
       _deferredLibrariesMap[outputUnit] =
-          new LibrariesMap.deferred(outputUnit, name);
+          LibrariesMap.deferred(outputUnit, name);
     }
   }
 

@@ -157,10 +157,10 @@ class ModelEmitter {
       this._sourceInformationStrategy,
       RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
-      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter),
+      : _constantOrdering = ConstantOrdering(_closedWorld.sorter),
         fragmentMerger = FragmentMerger(_options,
             _closedWorld.elementEnvironment, _closedWorld.outputUnitData) {
-    this.constantEmitter = new ConstantEmitter(
+    this.constantEmitter = ConstantEmitter(
         _options,
         _namer,
         _closedWorld.commonElements,
@@ -229,9 +229,9 @@ class ModelEmitter {
   int emitProgram(Program program, CodegenWorld codegenWorld) {
     MainFragment mainFragment = program.fragments.first;
     List<DeferredFragment> deferredFragments =
-        new List<DeferredFragment>.from(program.deferredFragments);
+        List<DeferredFragment>.from(program.deferredFragments);
 
-    FragmentEmitter fragmentEmitter = new FragmentEmitter(
+    FragmentEmitter fragmentEmitter = FragmentEmitter(
         _options,
         _dumpInfoTask,
         _namer,
@@ -305,12 +305,12 @@ class ModelEmitter {
         finalizedFragmentsToLoad);
 
     // Emit main Fragment.
-    var deferredLoadingState = new DeferredLoadingState();
+    var deferredLoadingState = DeferredLoadingState();
     js.Statement mainCode = fragmentEmitter.emitMainFragment(
         program, finalizedFragmentsToLoad, deferredLoadingState);
 
     // Count tokens and run finalizers.
-    js.TokenCounter counter = new js.TokenCounter();
+    js.TokenCounter counter = js.TokenCounter();
     for (var emittedFragments in deferredFragmentsCode.values) {
       for (var emittedFragment in emittedFragments) {
         counter.countTokens(emittedFragment.code);
@@ -411,7 +411,7 @@ var ${startupMetricsGlobal} =
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
         locationCollector = LocationCollector();
-        codeOutputListeners = <CodeOutputListener>[locationCollector];
+        codeOutputListeners = [locationCollector];
       });
     }
 
@@ -481,7 +481,7 @@ var ${startupMetricsGlobal} =
     LocationCollector locationCollector;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        locationCollector = new LocationCollector();
+        locationCollector = LocationCollector();
         outputListeners.add(locationCollector);
       });
     }
@@ -556,13 +556,13 @@ var ${startupMetricsGlobal} =
     //   deferredInitializer.current = <pretty-printed code>;
     //   deferredInitializer[<hash>] = deferredInitializer.current;
 
-    js.Program program = new js.Program([
+    js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
       if (isFirst) buildDeferredInitializerGlobal(),
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 
-    Hasher hasher = new Hasher();
+    Hasher hasher = Hasher();
     CodeBuffer buffer = js.createCodeBuffer(
         program, _options, _sourceInformationStrategy,
         monitor: _dumpInfoTask, listeners: [hasher]);

@@ -8922,6 +8922,16 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// Initialize a newly created identifier.
   SimpleIdentifierImpl(this.token);
 
+  /// Return the cascade that contains this [SimpleIdentifier].
+  CascadeExpressionImpl? get ancestorCascade {
+    var operatorType = token.previous?.type;
+    if (operatorType == TokenType.PERIOD_PERIOD ||
+        operatorType == TokenType.QUESTION_PERIOD_PERIOD) {
+      return thisOrAncestorOfType<CascadeExpressionImpl>();
+    }
+    return null;
+  }
+
   @override
   Token get beginToken => token;
 

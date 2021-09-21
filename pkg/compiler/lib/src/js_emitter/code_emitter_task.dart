@@ -15,8 +15,7 @@ import '../js/js.dart' as jsAst;
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
-import '../js_backend/runtime_types.dart'
-    show RuntimeTypesChecks;
+import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_model/js_strategy.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
@@ -78,16 +77,17 @@ class CodeEmitterTask extends CompilerTask {
   void _finalizeRti(CodegenInputs codegen, CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    _rtiChecks = _backendStrategy.rtiChecksBuilder.computeRequiredChecks(codegenWorld, options);
+    _rtiChecks = _backendStrategy.rtiChecksBuilder
+        .computeRequiredChecks(codegenWorld, options);
   }
 
   /// Creates the [Emitter] for this task.
   void createEmitter(
       Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
-      _nativeEmitter = new NativeEmitter(
+      _nativeEmitter = NativeEmitter(
           this, closedWorld, _backendStrategy.nativeCodegenEnqueuer);
-      _emitter = new startup_js_emitter.EmitterImpl(
+      _emitter = startup_js_emitter.EmitterImpl(
           _compiler.options,
           _compiler.reporter,
           _compiler.outputProvider,
@@ -99,7 +99,7 @@ class CodeEmitterTask extends CompilerTask {
           _backendStrategy.sourceInformationStrategy,
           this,
           _generateSourceMap);
-      metadataCollector = new MetadataCollector(
+      metadataCollector = MetadataCollector(
           _compiler.reporter, _emitter, codegen.rtiRecipeEncoder);
     });
   }

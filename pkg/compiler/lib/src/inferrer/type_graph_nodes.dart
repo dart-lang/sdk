@@ -85,11 +85,11 @@ abstract class TypeInformation {
 
   TypeInformation(this.type, this.context)
       : _inputs = <TypeInformation>[],
-        users = new Setlet<TypeInformation>();
+        users = Setlet<TypeInformation>();
 
   TypeInformation.noInputs(this.type, this.context)
       : _inputs = const <TypeInformation>[],
-        users = new Setlet<TypeInformation>();
+        users = Setlet<TypeInformation>();
 
   TypeInformation.untracked(this.type)
       : _inputs = const <TypeInformation>[],
@@ -97,7 +97,7 @@ abstract class TypeInformation {
         context = null;
 
   TypeInformation.withInputs(this.type, this.context, this._inputs)
-      : users = new Setlet<TypeInformation>();
+      : users = Setlet<TypeInformation>();
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -116,7 +116,7 @@ abstract class TypeInformation {
   // The below is not a compile time constant to make it differentiable
   // from other empty lists of [TypeInformation].
   static final STOP_TRACKING_INPUTS_MARKER =
-      new List<TypeInformation>.filled(0, null);
+      List<TypeInformation>.filled(0, null);
 
   bool areInputsTracked() {
     return inputs != STOP_TRACKING_INPUTS_MARKER;
@@ -158,7 +158,7 @@ abstract class TypeInformation {
     return inferrer.types.dynamicType.type;
   }
 
-  void giveUp(InferrerEngine inferrer, {bool clearInputs: true}) {
+  void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     abandonInferencing = true;
     // Do not remove [this] as a user of nodes in [inputs],
     // because our tracing analysis could be interested in tracing
@@ -223,8 +223,8 @@ abstract class TypeInformation {
   }
 
   String toStructuredText(String indent) {
-    StringBuffer sb = new StringBuffer();
-    _toStructuredText(sb, indent, new Set<TypeInformation>());
+    StringBuffer sb = StringBuffer();
+    _toStructuredText(sb, indent, Set<TypeInformation>());
     return sb.toString();
   }
 
@@ -251,12 +251,12 @@ class PlaceholderTypeInformation extends TypeInformation {
 
   @override
   void accept(TypeInformationVisitor visitor) {
-    throw new UnsupportedError("Cannot visit placeholder");
+    throw UnsupportedError("Cannot visit placeholder");
   }
 
   @override
   AbstractValue computeType(InferrerEngine inferrer) {
-    throw new UnsupportedError("Cannot refine placeholder");
+    throw UnsupportedError("Cannot refine placeholder");
   }
 
   @override
@@ -269,7 +269,7 @@ class PlaceholderTypeInformation extends TypeInformation {
 /// to a type where we know more about which instance method is being
 /// called.
 class ParameterInputs extends IterableBase<TypeInformation> {
-  final Map<TypeInformation, int> _inputs = new Map<TypeInformation, int>();
+  final Map<TypeInformation, int> _inputs = Map<TypeInformation, int>();
 
   void remove(TypeInformation info) {
     int existing = _inputs[info];
@@ -400,7 +400,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   void addCall(MemberEntity caller, Object node) {
     _callers ??= <MemberEntity, Setlet<Object>>{};
-    _callers.putIfAbsent(caller, () => new Setlet()).add(node);
+    _callers.putIfAbsent(caller, () => Setlet()).add(node);
   }
 
   void removeCall(MemberEntity caller, Object node) {
@@ -725,7 +725,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   ParameterTypeInformation.static(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context, this._parameter, this._type, this._method,
-      {bool isInitializingFormal: false})
+      {bool isInitializingFormal = false})
       : _isInstanceMemberParameter = false,
         _isClosureParameter = false,
         _isInitializingFormal = isInitializingFormal,
@@ -882,7 +882,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   @override
   String getInferredSignature(TypeSystem types) {
-    throw new UnsupportedError('ParameterTypeInformation.getInferredSignature');
+    throw UnsupportedError('ParameterTypeInformation.getInferredSignature');
   }
 }
 
@@ -923,7 +923,7 @@ bool validCallType(CallType callType, Object call, Selector selector) {
     case CallType.forIn:
       return call is ir.ForInStatement;
   }
-  throw new StateError('Unexpected call type $callType.');
+  throw StateError('Unexpected call type $callType.');
 }
 
 /// A [CallSiteTypeInformation] is a call found in the AST, or a
@@ -1121,7 +1121,7 @@ class IndirectDynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   @override
-  void giveUp(InferrerEngine inferrer, {bool clearInputs: true}) {
+  void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
       inferrer.updateSelectorInMember(
           caller, CallType.access, _call, selector, mask);
@@ -1451,7 +1451,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   }
 
   @override
-  void giveUp(InferrerEngine inferrer, {bool clearInputs: true}) {
+  void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
       inferrer.updateSelectorInMember(caller, _callType, _call, selector, mask);
       Iterable<MemberEntity> oldTargets = _concreteTargets;
@@ -1541,7 +1541,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 
   @override
   Iterable<MemberEntity> get callees {
-    throw new UnsupportedError("Cannot compute callees of a closure call.");
+    throw UnsupportedError("Cannot compute callees of a closure call.");
   }
 
   @override
@@ -1631,7 +1631,7 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
   StringLiteralTypeInformation(
       AbstractValueDomain abstractValueDomain, this.value, AbstractValue mask)
       : super(abstractValueDomain.createPrimitiveValue(
-            mask, new StringConstantValue(value)));
+            mask, StringConstantValue(value)));
 
   String asString() => value;
   @override
@@ -1649,7 +1649,7 @@ class BoolLiteralTypeInformation extends ConcreteTypeInformation {
   BoolLiteralTypeInformation(
       AbstractValueDomain abstractValueDomain, this.value, AbstractValue mask)
       : super(abstractValueDomain.createPrimitiveValue(
-            mask, value ? new TrueConstantValue() : new FalseConstantValue()));
+            mask, value ? TrueConstantValue() : FalseConstantValue()));
 
   @override
   String toString() => 'Type $type value ${value}';
@@ -1921,7 +1921,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
     if (_allKeysAreStrings && key is StringLiteralTypeInformation) {
       String keyString = key.asString();
       typeInfoMap.putIfAbsent(keyString, () {
-        newInfo = new ValueInMapTypeInformation(
+        newInfo = ValueInMapTypeInformation(
             abstractValueDomain, context, null, nonNull);
         return newInfo;
       });
@@ -1943,7 +1943,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
     if (_allKeysAreStrings && other.inDictionaryMode) {
       other.typeInfoMap.forEach((keyString, value) {
         typeInfoMap.putIfAbsent(keyString, () {
-          TypeInformation newInfo = new ValueInMapTypeInformation(
+          TypeInformation newInfo = ValueInMapTypeInformation(
               abstractValueDomain, context, null, false);
           newInfos.add(newInfo);
           return newInfo;
@@ -1978,7 +1978,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
   AbstractValue toTypeMask(InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (inDictionaryMode) {
-      Map<String, AbstractValue> mappings = new Map<String, AbstractValue>();
+      Map<String, AbstractValue> mappings = Map<String, AbstractValue>();
       for (var key in typeInfoMap.keys) {
         mappings[key] = typeInfoMap[key].type;
       }
@@ -2281,7 +2281,7 @@ abstract class TypeInformationVisitor<T> {
 
 AbstractValue _narrowType(
     JClosedWorld closedWorld, AbstractValue type, DartType annotation,
-    {bool isNullable: true}) {
+    {bool isNullable = true}) {
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
 
   AbstractValue _intersectionWith(AbstractValue otherType) {

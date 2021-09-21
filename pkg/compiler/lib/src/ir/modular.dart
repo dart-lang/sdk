@@ -14,7 +14,6 @@ import '../diagnostics/messages.dart';
 import '../diagnostics/source_span.dart';
 import '../kernel/element_map_impl.dart';
 import '../environment.dart';
-import '../ir/constants.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../options.dart';

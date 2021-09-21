@@ -51,7 +51,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   AbstractDataSink(
-      {this.useDataKinds: false, this.tagFrequencyMap, this.importedIndices}) {
+      {this.useDataKinds = false, this.tagFrequencyMap, this.importedIndices}) {
     _dartTypeNodeWriter = DartTypeNodeWriter(this);
     _stringIndex = _createSink<String>();
     _uriIndex = _createSink<Uri>();
@@ -99,7 +99,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     assert(_currentMemberContext != null,
         "DataSink has no current member context.");
     return _currentMemberData ??= _memberData[_currentMemberContext] ??=
-        new _MemberData(_currentMemberContext);
+        _MemberData(_currentMemberContext);
   }
 
   @override
@@ -117,17 +117,17 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeDartType(DartType value, {bool allowNull: false}) {
+  void writeDartType(DartType value, {bool allowNull = false}) {
     _writeDataKind(DataKind.dartType);
     _writeDartType(value, [], allowNull: allowNull);
   }
 
   void _writeDartType(
       DartType value, List<FunctionTypeVariable> functionTypeVariables,
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (value == null) {
       if (!allowNull) {
-        throw new UnsupportedError("Missing DartType is not allowed.");
+        throw UnsupportedError("Missing DartType is not allowed.");
       }
       writeEnum(DartTypeKind.none);
     } else {
@@ -136,17 +136,17 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeDartTypeNode(ir.DartType value, {bool allowNull: false}) {
+  void writeDartTypeNode(ir.DartType value, {bool allowNull = false}) {
     _writeDataKind(DataKind.dartTypeNode);
     _writeDartTypeNode(value, [], allowNull: allowNull);
   }
 
   void _writeDartTypeNode(
       ir.DartType value, List<ir.TypeParameter> functionTypeVariables,
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (value == null) {
       if (!allowNull) {
-        throw new UnsupportedError("Missing ir.DartType node is not allowed.");
+        throw UnsupportedError("Missing ir.DartType node is not allowed.");
       }
       writeEnum(DartTypeNodeKind.none);
     } else {
@@ -275,7 +275,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void writeTreeNodesInContext(Iterable<ir.TreeNode> values,
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -289,7 +289,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -306,13 +306,13 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     ir.TreeNode member = node;
     while (member is! ir.Member) {
       if (member == null) {
-        throw new UnsupportedError("No enclosing member of TreeNode "
+        throw UnsupportedError("No enclosing member of TreeNode "
             "$node (${node.runtimeType})");
       }
       member = member.parent;
     }
     _writeMemberNode(member);
-    return _memberData[member] ??= new _MemberData(member);
+    return _memberData[member] ??= _MemberData(member);
   }
 
   void _writeTreeNode(ir.TreeNode value, _MemberData memberData) {
@@ -366,7 +366,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       _writeEnumInternal(_FunctionNodeKind.functionDeclaration);
       _writeTreeNode(parent, memberData);
     } else {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           "Unsupported FunctionNode parent ${parent.runtimeType}");
     }
   }
@@ -388,7 +388,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       _writeFunctionNode(parent, memberData);
       _writeIntInternal(parent.typeParameters.indexOf(value));
     } else {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           "Unsupported TypeParameter parent ${parent.runtimeType}");
     }
   }
@@ -436,7 +436,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       writeEnum(LocalKind.typeVariableLocal);
       writeTypeVariable(local.typeVariable);
     } else {
-      throw new UnsupportedError("Unsupported local ${local.runtimeType}");
+      throw UnsupportedError("Unsupported local ${local.runtimeType}");
     }
   }
 
@@ -453,7 +453,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   void _writeDoubleValue(double value) {
-    ByteData data = new ByteData(8);
+    ByteData data = ByteData(8);
     data.setFloat64(0, value);
     writeInt(data.getUint16(0));
     writeInt(data.getUint16(2));
@@ -464,7 +464,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   @override
   void writeIntegerValue(int value) {
     _writeDataKind(DataKind.int);
-    _writeBigInt(new BigInt.from(value));
+    _writeBigInt(BigInt.from(value));
   }
 
   void _writeBigInt(BigInt value) {

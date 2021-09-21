@@ -42,7 +42,7 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
     node = node.parent;
   }
   if (uri != null) {
-    return new SourceSpan(uri, offset, offset + 1);
+    return SourceSpan(uri, offset, offset + 1);
   }
   return null;
 }
@@ -60,7 +60,7 @@ AsyncMarker getAsyncMarker(ir.FunctionNode node) {
       return AsyncMarker.SYNC_STAR;
     case ir.AsyncMarker.SyncYielding:
     default:
-      throw new UnsupportedError(
+      throw UnsupportedError(
           "Async marker ${node.asyncMarker} is not supported.");
   }
 }
@@ -76,7 +76,7 @@ Variance convertVariance(ir.TypeParameter node) {
     case ir.Variance.invariant:
       return Variance.invariant;
     default:
-      throw new UnsupportedError("Variance ${node.variance} is not supported.");
+      throw UnsupportedError("Variance ${node.variance} is not supported.");
   }
 }
 
@@ -125,7 +125,7 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
         if (receiver is ir.VariableGet && receiver.variable == node.variable) {
           // We have
           //   let #t1 = e0 in #t1 == null ? null : e1
-          return new NullAwareExpression(node.variable, body.otherwise);
+          return NullAwareExpression(node.variable, body.otherwise);
         }
       }
     }
@@ -238,7 +238,7 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
 
   @override
   bool defaultDartType(ir.DartType node) {
-    throw new UnsupportedError("FreeVariableVisitor.defaultTypeNode");
+    throw UnsupportedError("FreeVariableVisitor.defaultTypeNode");
   }
 }
 

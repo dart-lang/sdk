@@ -197,6 +197,19 @@ class PropertyElementResolver {
     required bool hasRead,
     required bool hasWrite,
   }) {
+    var ancestorCascade = node.ancestorCascade;
+    if (ancestorCascade != null) {
+      return _resolve(
+        node: node,
+        target: ancestorCascade.target,
+        isCascaded: true,
+        isNullAware: ancestorCascade.isNullAware,
+        propertyName: node,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
+    }
+
     Element? readElementRequested;
     Element? readElementRecovery;
     if (hasRead) {
@@ -479,7 +492,7 @@ class PropertyElementResolver {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PRIVATE_SETTER,
             propertyName,
-            [propertyName.name, typeReference.name],
+            [propertyName.name],
           );
         }
         _checkForStaticAccessToInstanceMember(propertyName, writeElement);

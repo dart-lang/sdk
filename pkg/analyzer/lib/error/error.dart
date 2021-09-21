@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
@@ -1014,23 +1013,15 @@ class AnalysisError implements Diagnostic {
   /// [length]. The error will have the given [errorCode] and the map  of
   /// [arguments] will be used to complete the message and correction. If any
   /// [contextMessages] are provided, they will be recorded with the error.
-  AnalysisError.withNamedArguments(this.source, int offset, int length,
-      this.errorCode, Map<String, dynamic> arguments,
+  ///
+  /// Deprecated - no analyzer errors use named arguments anymore.  Please use
+  /// `AnalysisError()`.
+  @deprecated
+  AnalysisError.withNamedArguments(Source source, int offset, int length,
+      ErrorCode errorCode, Map<String, dynamic> arguments,
       {List<DiagnosticMessage> contextMessages = const []})
-      : _contextMessages = contextMessages {
-    var messageText = applyArgumentsToTemplate(errorCode.message, arguments);
-    var correctionTemplate = errorCode.correction;
-    if (correctionTemplate != null) {
-      _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
-    }
-    _problemMessage = DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: messageText,
-      offset: offset,
-      url: null,
-    );
-  }
+      : this(source, offset, length, errorCode,
+            _translateNamedArguments(arguments), contextMessages);
 
   @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
@@ -1129,5 +1120,22 @@ class AnalysisError implements Diagnostic {
       errors.addAll(errorList);
     }
     return errors.toList();
+  }
+
+  static List<Object?>? _translateNamedArguments(
+      Map<String, dynamic> arguments) {
+    // All analyzer errors now use positional arguments, so if this method is
+    // being called, either no arguments were provided to the
+    // AnalysisError.withNamedArguments constructor, or the client was
+    // developed against an older version of the analyzer that used named
+    // arguments.  In either case, we'll make a best effort translation of named
+    // arguments to positional ones.  In the case where some arguments were
+    // provided, we have an assertion to alert the developer that they may not
+    // get correct results.
+    assert(
+        arguments.isEmpty,
+        'AnalysisError.withNamedArguments is no longer supported.  Making a '
+        'best effort translation to positional arguments.  Please use '
+        'AnalysisError() instead.');
   }
 }

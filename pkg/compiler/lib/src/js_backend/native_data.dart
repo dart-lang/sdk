@@ -186,20 +186,19 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
 
   /// Tag info for native JavaScript classes names. See
   /// [setNativeClassTagInfo].
-  Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
-      <ClassEntity, NativeClassTag>{};
+  Map<ClassEntity, NativeClassTag> nativeClassTagInfo = {};
 
   /// The JavaScript libraries implemented via typed JavaScript interop.
-  Map<LibraryEntity, String> jsInteropLibraries = <LibraryEntity, String>{};
+  Map<LibraryEntity, String> jsInteropLibraries = {};
 
   /// The JavaScript classes implemented via typed JavaScript interop.
-  Map<ClassEntity, String> jsInteropClasses = <ClassEntity, String>{};
+  Map<ClassEntity, String> jsInteropClasses = {};
 
   /// JavaScript interop classes annotated with `@anonymous`
-  Set<ClassEntity> anonymousJsInteropClasses = Set<ClassEntity>();
+  Set<ClassEntity> anonymousJsInteropClasses = {};
 
   /// The JavaScript members implemented via typed JavaScript interop.
-  Map<MemberEntity, String> jsInteropMembers = <MemberEntity, String>{};
+  Map<MemberEntity, String> jsInteropMembers = {};
 
   @override
   void setNativeClassTagInfo(ClassEntity cls, String tagText) {
@@ -477,19 +476,16 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
   final NativeBasicDataImpl _nativeBasicData;
 
   /// The JavaScript names for native JavaScript elements implemented.
-  Map<MemberEntity, String> nativeMemberName = <MemberEntity, String>{};
+  Map<MemberEntity, String> nativeMemberName = {};
 
   /// Cache for [NativeBehavior]s for calling native methods.
-  Map<FunctionEntity, NativeBehavior> nativeMethodBehavior =
-      <FunctionEntity, NativeBehavior>{};
+  Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = {};
 
   /// Cache for [NativeBehavior]s for reading from native fields.
-  Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
-      <FieldEntity, NativeBehavior>{};
+  Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior = {};
 
   /// Cache for [NativeBehavior]s for writing to native fields.
-  Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
-      <FieldEntity, NativeBehavior>{};
+  Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior = {};
 
   NativeDataBuilderImpl(this._nativeBasicData);
 

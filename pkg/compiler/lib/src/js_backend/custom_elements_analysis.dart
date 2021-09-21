@@ -158,10 +158,10 @@ class CustomElementsAnalysisJoin {
 
   // Classes that are candidates for needing constructors.  Classes are moved to
   // [activeClasses] when we know they need constructors.
-  final Set<ClassEntity> instantiatedClasses = Set<ClassEntity>();
+  final Set<ClassEntity> instantiatedClasses = {};
 
   // Classes explicitly named.
-  final Set<ClassEntity> selectedClasses = Set<ClassEntity>();
+  final Set<ClassEntity> selectedClasses = {};
 
   // True if we must conservatively include all extension classes.
   bool allClassesSelected = false;
@@ -170,7 +170,7 @@ class CustomElementsAnalysisJoin {
   bool demanded = false;
 
   // ClassesOutput: classes requiring metadata.
-  final Set<ClassEntity> activeClasses = Set<ClassEntity>();
+  final Set<ClassEntity> activeClasses = {};
 
   CustomElementsAnalysisJoin(
       this._elementEnvironment, this._commonElements, this._nativeData,
@@ -217,7 +217,7 @@ class CustomElementsAnalysisJoin {
   }
 
   List<ConstructorEntity> computeEscapingConstructors(ClassEntity cls) {
-    List<ConstructorEntity> result = <ConstructorEntity>[];
+    List<ConstructorEntity> result = [];
     // Only classes that extend native classes have constructors in the table.
     // We could refine this to classes that extend Element, but that would break
     // the tests and there is no sane reason to subclass other native classes.

@@ -32,7 +32,7 @@ import '../util/util.dart' show Setlet;
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
-  Set<ClassEntity> _recentClasses = Setlet<ClassEntity>();
+  Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
   final CodegenWorldBuilderImpl _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
@@ -50,7 +50,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final Queue<WorkItem> _queue = Queue<WorkItem>();
 
   /// All declaration elements that have been processed by codegen.
-  final Set<MemberEntity> _processedEntities = Set<MemberEntity>();
+  final Set<MemberEntity> _processedEntities = {};
 
   // If not `null` this is called when the queue has been emptied. It allows for
   // applying additional impacts before re-emptying the queue.

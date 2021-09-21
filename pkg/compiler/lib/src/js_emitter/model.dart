@@ -187,8 +187,8 @@ class StaticField {
   StaticField(this.element, this.name, this.getterName, this.code,
       {this.isFinal,
       this.isLazy,
-      this.isInitializedByConstant: false,
-      this.usesNonNullableInitialization: false});
+      this.isInitializedByConstant = false,
+      this.usesNonNullableInitialization = false});
 
   @override
   String toString() {
@@ -309,7 +309,7 @@ class Class {
     _mixinClass = mixinClass;
   }
 
-  js.Name get superclassName => superclass == null ? null : superclass.name;
+  js.Name get superclassName => superclass?.name;
 
   @override
   String toString() => 'Class(name=${name.key},element=$element)';

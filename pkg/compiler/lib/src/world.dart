@@ -13,7 +13,6 @@ import 'common_elements.dart'
         KCommonElements,
         KElementEnvironment;
 import 'deferred_load/output_unit.dart';
-import 'diagnostics/diagnostic_listener.dart';
 import 'elements/entities.dart';
 import 'elements/names.dart';
 import 'elements/types.dart';

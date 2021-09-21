@@ -4,11 +4,11 @@
 
 /*library: 
  a_pre_fragments=[
-  p1: {units: [1{l1}], usedBy: [], needs: []},
-  p2: {units: [2{l2}], usedBy: [], needs: []}],
+  p1: {units: [2{l1}], usedBy: [], needs: []},
+  p2: {units: [1{l2}], usedBy: [], needs: []}],
  b_finalized_fragments=[
-  f1: [1{l1}],
-  f2: [2{l2}]],
+  f1: [2{l1}],
+  f2: [1{l2}]],
  c_steps=[
   l1=(f1),
   l2=(f2)]
@@ -24,7 +24,7 @@ const c1 = const C(1);
 /*member: main:
  constants=[
   ConstructedConstant(C(x=IntConstant(1)))=main{},
-  ConstructedConstant(C(x=IntConstant(2)))=1{l1}],
+  ConstructedConstant(C(x=IntConstant(2)))=2{l1}],
  member_unit=main{}
 */
 main() async {

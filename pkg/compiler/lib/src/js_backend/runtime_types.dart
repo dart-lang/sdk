@@ -81,7 +81,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
       CodegenWorld codegenWorld, CompilerOptions options) {
     rtiChecksBuilderClosed = true;
 
-    Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
+    Map<ClassEntity, ClassUse> classUseMap = {};
     for (ClassEntity cls in _closedWorld.classHierarchy
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()) {
@@ -109,7 +109,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
 
   Set<FunctionType> computeCheckedFunctions(
       CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
-    return Set<FunctionType>();
+    return {};
   }
 }
 
@@ -132,7 +132,7 @@ abstract class RuntimeTypesSubstitutionsMixin
     // arguments and record all combination where the element of a checked
     // argument is a superclass of the element of an instantiated type.
     TypeCheckMapping result = TypeCheckMapping();
-    Set<ClassEntity> handled = Set<ClassEntity>();
+    Set<ClassEntity> handled = {};
 
     // Empty usage object for classes with no direct rti usage.
     final ClassUse emptyUse = ClassUse();
@@ -182,7 +182,7 @@ abstract class RuntimeTypesSubstitutionsMixin
       //
       // This set reflects the emitted class hierarchy and therefore uses
       // `getEffectiveMixinClass` to find the inherited mixins.
-      Set<ClassEntity> inheritedClasses = Set<ClassEntity>();
+      Set<ClassEntity> inheritedClasses = {};
       ClassEntity other = cls;
       while (other != null) {
         inheritedClasses.add(other);
@@ -354,7 +354,7 @@ abstract class RuntimeTypesSubstitutionsMixin
 
   @override
   Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks) {
-    Set<ClassEntity> instantiated = Set<ClassEntity>();
+    Set<ClassEntity> instantiated = {};
     ArgumentCollector collector = ArgumentCollector();
     for (ClassEntity target in checks.classes) {
       ClassChecks classChecks = checks[target];
@@ -474,12 +474,11 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
 
   @override
   Iterable<ClassEntity> get requiredClasses {
-    Set<ClassEntity> required = Set<ClassEntity>();
-    required.addAll(_typeArguments);
-    required.addAll(_typeLiterals);
-    required
-        .addAll(_substitutions.getClassesUsedInSubstitutions(requiredChecks));
-    return required;
+    return {
+      ..._typeArguments,
+      ..._typeLiterals,
+      ..._substitutions.getClassesUsedInSubstitutions(requiredChecks)
+    };
   }
 }
 
@@ -490,9 +489,9 @@ class RuntimeTypesImpl
   final JClosedWorld _closedWorld;
 
   // The set of type arguments tested against type variable bounds.
-  final Set<DartType> checkedTypeArguments = Set<DartType>();
+  final Set<DartType> checkedTypeArguments = {};
   // The set of tested type variable bounds.
-  final Set<DartType> checkedBounds = Set<DartType>();
+  final Set<DartType> checkedBounds = {};
 
   TypeChecks cachedRequiredChecks;
 
@@ -513,8 +512,7 @@ class RuntimeTypesImpl
 
   Map<ClassEntity, ClassUse> classUseMapForTesting;
 
-  final Set<GenericInstantiation> _genericInstantiations =
-      Set<GenericInstantiation>();
+  final Set<GenericInstantiation> _genericInstantiations = {};
 
   @override
   void registerTypeVariableBoundsSubtypeCheck(
@@ -537,14 +535,14 @@ class RuntimeTypesImpl
     Set<DartType> explicitIsChecks = typeVariableTests.explicitIsChecks;
     Set<DartType> implicitIsChecks = typeVariableTests.implicitIsChecks;
 
-    Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
+    Map<ClassEntity, ClassUse> classUseMap = {};
     if (retainDataForTesting) {
       classUseMapForTesting = classUseMap;
     }
 
-    Set<FunctionType> checkedFunctionTypes = Set<FunctionType>();
-    Set<ClassEntity> typeLiterals = Set<ClassEntity>();
-    Set<ClassEntity> typeArguments = Set<ClassEntity>();
+    Set<FunctionType> checkedFunctionTypes = {};
+    Set<ClassEntity> typeLiterals = {};
+    Set<ClassEntity> typeArguments = {};
 
     // The [liveTypeVisitor] is used to register class use in the type of
     // instantiated objects like `new T` and the function types of
@@ -711,7 +709,7 @@ class RuntimeTypesImpl
 
     // Collect classes that are 'live' either through instantiation or use in
     // type arguments.
-    List<ClassEntity> liveClasses = <ClassEntity>[];
+    List<ClassEntity> liveClasses = [];
     classUseMap.forEach((ClassEntity cls, ClassUse classUse) {
       if (classUse.isLive) {
         liveClasses.add(cls);
@@ -774,7 +772,7 @@ ClassFunctionType _computeFunctionType(
 }
 
 class TypeCheckMapping implements TypeChecks {
-  final Map<ClassEntity, ClassChecks> map = Map<ClassEntity, ClassChecks>();
+  final Map<ClassEntity, ClassChecks> map = {};
 
   @override
   ClassChecks operator [](ClassEntity element) {
@@ -802,7 +800,7 @@ class TypeCheckMapping implements TypeChecks {
 }
 
 class ArgumentCollector extends DartTypeVisitor<void, void> {
-  final Set<ClassEntity> classes = Set<ClassEntity>();
+  final Set<ClassEntity> classes = {};
 
   void addClass(ClassEntity cls) {
     classes.add(cls);
@@ -875,8 +873,7 @@ enum TypeVisitorState {
 }
 
 class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
-  Set<FunctionTypeVariable> _visitedFunctionTypeVariables =
-      Set<FunctionTypeVariable>();
+  Set<FunctionTypeVariable> _visitedFunctionTypeVariables = {};
 
   final void Function(ClassEntity entity, {TypeVisitorState state}) onClass;
   final void Function(TypeVariableEntity entity, {TypeVisitorState state})
@@ -1061,7 +1058,7 @@ class ClassUse {
 
   @override
   String toString() {
-    List<String> properties = <String>[];
+    List<String> properties = [];
     if (instance) {
       properties.add('instance');
     }

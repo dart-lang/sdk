@@ -701,8 +701,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else if (declaredType.isArray) {
         final typeArg = (declaredType as InterfaceType).typeArguments.single;
         if (!_isSized(typeArg)) {
+          AstNode errorNode = fieldType;
+          if (fieldType is TypeName) {
+            var typeArguments = fieldType.typeArguments?.arguments;
+            if (typeArguments != null && typeArguments.isNotEmpty) {
+              errorNode = typeArguments[0];
+            }
+          }
           _errorReporter.reportErrorForNode(FfiCode.NON_SIZED_TYPE_ARGUMENT,
-              fieldType, [_arrayClassName, typeArg.toString()]);
+              errorNode, [_arrayClassName, typeArg]);
         }
         final arrayDimensions = declaredType.arrayDimensions;
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);

@@ -123,10 +123,10 @@ class IrAnnotationData {
 
 IrAnnotationData processAnnotations(ModularCore modularCore) {
   ir.Component component = modularCore.component;
-  IrAnnotationData data = new IrAnnotationData();
+  IrAnnotationData data = IrAnnotationData();
 
   void processMember(ir.Member member) {
-    ir.StaticTypeContext staticTypeContext = new ir.StaticTypeContext(
+    ir.StaticTypeContext staticTypeContext = ir.StaticTypeContext(
         member, modularCore.constantEvaluator.typeEnvironment);
     List<PragmaAnnotationData> pragmaAnnotations;
     List<String> createsAnnotations;
@@ -180,7 +180,7 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
 
   for (ir.Library library in component.libraries) {
     ir.StaticTypeContext staticTypeContext =
-        new ir.StaticTypeContext.forAnnotations(
+        ir.StaticTypeContext.forAnnotations(
             library, modularCore.constantEvaluator.typeEnvironment);
     for (ir.Expression annotation in library.annotations) {
       if (annotation is ir.ConstantExpression) {
@@ -324,7 +324,7 @@ class PragmaAnnotationData {
   // TODO(johnniwinther): Support options objects when necessary.
   final bool hasOptions;
 
-  const PragmaAnnotationData(this.suffix, {this.hasOptions: false});
+  const PragmaAnnotationData(this.suffix, {this.hasOptions = false});
 
   String get name => 'dart2js:$suffix';
 
@@ -360,7 +360,7 @@ PragmaAnnotationData _getPragmaAnnotation(ir.Constant constant) {
     String prefix = 'dart2js:';
     if (!name.startsWith(prefix)) return null;
     String suffix = name.substring(prefix.length);
-    return new PragmaAnnotationData(suffix,
+    return PragmaAnnotationData(suffix,
         hasOptions: optionsValue is! ir.NullConstant);
   }
   return null;

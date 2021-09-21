@@ -511,7 +511,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
       // instantiated as int and String.
       registerNew(
           node.target,
-          new ir.InterfaceType(node.target.enclosingClass,
+          ir.InterfaceType(node.target.enclosingClass,
               node.target.enclosingLibrary.nonNullable, typeArguments),
           positionArguments,
           namedArguments,
@@ -679,7 +679,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handleConstantExpression(ir.ConstantExpression node) {
     ir.LibraryDependency import = getDeferredImport(node);
-    new ConstantImpactVisitor(this, import, node, staticTypeContext)
+    ConstantImpactVisitor(this, import, node, staticTypeContext)
         .visitConstant(node.constant);
   }
 }
@@ -697,8 +697,8 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
       StaticTypeCacheImpl staticTypeCache,
       ir.ClassHierarchy classHierarchy,
       VariableScopeModel variableScopeModel,
-      {this.useAsserts: false,
-      this.inferEffectivelyFinalVariableTypes: true})
+      {this.useAsserts = false,
+      this.inferEffectivelyFinalVariableTypes = true})
       : super(staticTypeContext, staticTypeCache, classHierarchy,
             variableScopeModel);
 
@@ -707,7 +707,7 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
       typeMapsForTesting = {};
     }
     node.accept(this);
-    return new ImpactBuilderData(
+    return ImpactBuilderData(
         node, impactData, typeMapsForTesting, getStaticTypeCache());
   }
 }
@@ -756,7 +756,7 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
 
   @override
   void defaultConstant(ir.Constant node) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "Unexpected constant ${node} (${node.runtimeType}).");
   }
 
@@ -795,7 +795,7 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       ir.Field field = reference.asField;
       registry.registerFieldConstantInitialization(
-          field, new ConstantReference(expression, value));
+          field, ConstantReference(expression, value));
       visitConstant(value);
     });
   }

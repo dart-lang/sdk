@@ -48,7 +48,7 @@ class MinifyNamer extends Namer
   // variables) because they clash with names from the DOM. However, it is
   // OK to use them as fields, as we only access fields directly if we know
   // the receiver type.
-  static const List<String> _reservedNativeProperties = <String>[
+  static const List<String> _reservedNativeProperties = [
     'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
     // 2-letter:
     'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
@@ -95,7 +95,7 @@ class MinifyNamer extends Namer
     // individually per program, but that would mean that the output of the
     // minifier was less stable from version to version of the program being
     // minified.
-    _populateSuggestedNames(instanceScope, const <String>[
+    _populateSuggestedNames(instanceScope, const [
       r'$add',
       r'add$1',
       r'$and',
@@ -136,7 +136,7 @@ class MinifyNamer extends Namer
       r'toString$0'
     ]);
 
-    _populateSuggestedNames(globalScope, const <String>[
+    _populateSuggestedNames(globalScope, const [
       r'Object',
       'wrapException',
       r'$eq',
@@ -208,7 +208,7 @@ class MinifyNamer extends Namer
     for (int n = 1; n <= 3; n++) {
       int h = hash;
       while (h > 10) {
-        List<int> codes = <int>[_letterNumber(h)];
+        List<int> codes = [_letterNumber(h)];
         int h2 = h ~/ ALPHABET_CHARACTERS;
         for (int i = 1; i < n; i++) {
           codes.add(_alphaNumericNumber(h2));
@@ -251,7 +251,7 @@ class MinifyNamer extends Namer
 
   /// Remember bad hashes to avoid using a the same character with long numbers
   /// for frequent hashes. For example, `closure` is a very common name.
-  Map<int, int> _badNames = Map<int, int>();
+  Map<int, int> _badNames = {};
 
   /// If we can't find a hash based name in the three-letter space, then base
   /// the name on a letter and a counter.
@@ -360,8 +360,7 @@ class _ConstructorBodyNamingScope {
 }
 
 abstract class _MinifyConstructorBodyNamer implements Namer {
-  Map<ClassEntity, _ConstructorBodyNamingScope> _constructorBodyScopes =
-      Map<ClassEntity, _ConstructorBodyNamingScope>();
+  Map<ClassEntity, _ConstructorBodyNamingScope> _constructorBodyScopes = {};
 
   @override
   jsAst.Name constructorBodyName(ConstructorBodyEntity method) {

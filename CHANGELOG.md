@@ -101,7 +101,10 @@
 
 #### Linter
 
-Updated the Linter to `1.11.0`, which includes changes that
+Updated the Linter to `1.12.0`, which includes changes that
+- update `avoid_print` to allow `kDebugMode`-wrapped print calls.
+- fix handling of initializing formals in `prefer_final_parameters`.
+- fix `unnecessary_parenthesis` false positive with function expressions.
 - adds support for constructor tear-offs to `avoid_redundant_argument_values`, 
   `unnecessary_lambdas`, and `unnecessary_parenthesis`.
 - adds a new lint: `unnecessary_constructor_name` to flag unnecessary uses of 

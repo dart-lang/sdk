@@ -117,10 +117,9 @@ abstract class GlobalTypeInferenceResults {
       InferredData inferredData) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
-      return new TrivialGlobalTypeInferenceResults(
-          closedWorld, globalLocalsMap);
+      return TrivialGlobalTypeInferenceResults(closedWorld, globalLocalsMap);
     }
-    return new GlobalTypeInferenceResultsImpl.readFromDataSource(
+    return GlobalTypeInferenceResultsImpl.readFromDataSource(
         source, elementMap, closedWorld, globalLocalsMap, inferredData);
   }
 
@@ -186,7 +185,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
       GlobalTypeInferenceResults results;
       if (compiler.disableTypeInference) {
         results =
-            new TrivialGlobalTypeInferenceResults(closedWorld, globalLocalsMap);
+            TrivialGlobalTypeInferenceResults(closedWorld, globalLocalsMap);
         _metrics = Metrics.none();
       } else {
         typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
@@ -233,9 +232,9 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       this.checkedForGrowableLists,
       this.returnsListElementTypeSet,
       this._allocatedLists)
-      : _deadFieldResult = new DeadFieldGlobalTypeInferenceResult(
-            closedWorld.abstractValueDomain),
-        _deadMethodResult = new DeadMethodGlobalTypeInferenceResult(
+      : _deadFieldResult =
+            DeadFieldGlobalTypeInferenceResult(closedWorld.abstractValueDomain),
+        _deadMethodResult = DeadMethodGlobalTypeInferenceResult(
             closedWorld.abstractValueDomain),
         _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
 
@@ -245,12 +244,12 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
       InferredData inferredData) {
-    source.registerLocalLookup(new LocalLookupImpl(globalLocalsMap));
+    source.registerLocalLookup(LocalLookupImpl(globalLocalsMap));
 
     source.begin(tag);
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
         source.readMemberMap((MemberEntity member) =>
-            new GlobalTypeInferenceMemberResult.readFromDataSource(
+            GlobalTypeInferenceMemberResult.readFromDataSource(
                 source,
                 elementMap.getMemberContextNode(member),
                 closedWorld.abstractValueDomain));
@@ -259,12 +258,12 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
             .readAbstractValueFromDataSource(source));
     Set<ir.TreeNode> checkedForGrowableLists = source.readTreeNodes().toSet();
     Set<Selector> returnsListElementTypeSet =
-        source.readList(() => new Selector.readFromDataSource(source)).toSet();
+        source.readList(() => Selector.readFromDataSource(source)).toSet();
     Map<ir.TreeNode, AbstractValue> allocatedLists = source.readTreeNodeMap(
         () => closedWorld.abstractValueDomain
             .readAbstractValueFromDataSource(source));
     source.end(tag);
-    return new GlobalTypeInferenceResultsImpl(
+    return GlobalTypeInferenceResultsImpl(
         closedWorld,
         globalLocalsMap,
         inferredData,
@@ -442,7 +441,7 @@ class GlobalTypeInferenceMemberResultImpl
       AbstractValueDomain abstractValueDomain) {
     source.begin(tag);
     GlobalTypeInferenceElementData data = source.readValueOrNull(() {
-      return new GlobalTypeInferenceElementData.readFromDataSource(
+      return GlobalTypeInferenceElementData.readFromDataSource(
           source, context, abstractValueDomain);
     });
     AbstractValue returnType =
@@ -452,7 +451,7 @@ class GlobalTypeInferenceMemberResultImpl
     bool throwsAlways = source.readBool();
     bool isCalledOnce = source.readBool();
     source.end(tag);
-    return new GlobalTypeInferenceMemberResultImpl(data, returnType, type,
+    return GlobalTypeInferenceMemberResultImpl(data, returnType, type,
         throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
   }
 
@@ -488,12 +487,12 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
   final TrivialGlobalTypeInferenceMemberResult _trivialMemberResult;
   final AbstractValue _trivialParameterResult;
   @override
-  final InferredData inferredData = new TrivialInferredData();
+  final InferredData inferredData = TrivialInferredData();
   @override
   final GlobalLocalsMap globalLocalsMap;
 
   TrivialGlobalTypeInferenceResults(this.closedWorld, this.globalLocalsMap)
-      : _trivialMemberResult = new TrivialGlobalTypeInferenceMemberResult(
+      : _trivialMemberResult = TrivialGlobalTypeInferenceMemberResult(
             closedWorld.abstractValueDomain.dynamicType),
         _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
 
@@ -560,7 +559,7 @@ class TrivialGlobalTypeInferenceMemberResult
   @override
   void writeToDataSink(DataSink sink, ir.Member context,
       AbstractValueDomain abstractValueDomain) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "TrivialGlobalTypeInferenceMemberResult.writeToDataSink");
   }
 }
@@ -601,7 +600,7 @@ class DeadFieldGlobalTypeInferenceResult
   @override
   void writeToDataSink(DataSink sink, ir.Member context,
       AbstractValueDomain abstractValueDomain) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
   }
 }
@@ -642,7 +641,7 @@ class DeadMethodGlobalTypeInferenceResult
   @override
   void writeToDataSink(DataSink sink, ir.Member context,
       AbstractValueDomain abstractValueDomain) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
   }
 }

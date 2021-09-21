@@ -22,12 +22,12 @@ class ObjectSink extends AbstractDataSink {
 
   @override
   void _begin(String tag) {
-    _data.add(new Tag('begin:$tag'));
+    _data.add(Tag('begin:$tag'));
   }
 
   @override
   void _end(String tag) {
-    _data.add(new Tag('end:$tag'));
+    _data.add(Tag('end:$tag'));
   }
 
   @override

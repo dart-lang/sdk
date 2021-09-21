@@ -111,7 +111,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   MetadataCollector(this.reporter, this._emitter, this._rtiRecipeEncoder);
 
   jsAst.Expression getTypesForOutputUnit(OutputUnit outputUnit) {
-    return _typesTokens.putIfAbsent(outputUnit, () => new _MetadataList());
+    return _typesTokens.putIfAbsent(outputUnit, () => _MetadataList());
   }
 
   void mergeOutputUnitMetadata(OutputUnit target, OutputUnit source) {
@@ -120,8 +120,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     // Merge _metadataMap
     var sourceMetadataMap = _metadataMap[source];
     if (sourceMetadataMap != null) {
-      var targetMetadataMap =
-          _metadataMap[target] ??= Map<String, List<BoundMetadataEntry>>();
+      var targetMetadataMap = _metadataMap[target] ??= {};
       _metadataMap.remove(source);
       sourceMetadataMap.forEach((str, entries) {
         var targetMetadataMapList = targetMetadataMap[str] ??= [];
@@ -132,8 +131,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     // Merge _typesMap
     var sourceTypesMap = _typesMap[source];
     if (sourceTypesMap != null) {
-      var targetTypesMap =
-          _typesMap[target] ??= Map<DartType, List<BoundMetadataEntry>>();
+      var targetTypesMap = _typesMap[target] ??= {};
       _typesMap.remove(source);
       sourceTypesMap.forEach((type, entries) {
         var targetTypesMapList = targetTypesMap[type] ??= [];
@@ -152,7 +150,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   jsAst.Expression _addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
-    _typesMap[outputUnit] ??= Map<DartType, List<BoundMetadataEntry>>();
+    _typesMap[outputUnit] ??= {};
     BoundMetadataEntry metadataEntry;
 
     if (_typesMap[outputUnit].containsKey(type)) {
@@ -170,7 +168,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   @override
   void finalizeTokens() {
     void countTokensInTypes(Iterable<BoundMetadataEntry> entries) {
-      jsAst.TokenCounter counter = new jsAst.TokenCounter();
+      jsAst.TokenCounter counter = jsAst.TokenCounter();
       entries
           .where((BoundMetadataEntry e) => e._rc > 0)
           .map((BoundMetadataEntry e) => e.entry)
@@ -196,7 +194,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       List<jsAst.Node> values =
           entries.map((BoundMetadataEntry e) => e.entry).toList();
 
-      return new jsAst.ArrayInitializer(values);
+      return jsAst.ArrayInitializer(values);
     }
 
     _typesTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
@@ -205,7 +203,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
         typesMap.values.forEach(countTokensInTypes);
         token.setExpression(finalizeMap(typesMap));
       } else {
-        token.setExpression(new jsAst.ArrayInitializer([]));
+        token.setExpression(jsAst.ArrayInitializer([]));
       }
     });
   }

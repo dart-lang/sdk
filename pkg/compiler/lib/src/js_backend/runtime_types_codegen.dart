@@ -47,10 +47,10 @@ class ClassChecks {
 
   final ClassFunctionType functionType;
 
-  ClassChecks(this.functionType) : _map = <ClassEntity, TypeCheck>{};
+  ClassChecks(this.functionType) : _map = {};
 
   const ClassChecks.empty()
-      : _map = const <ClassEntity, TypeCheck>{},
+      : _map = const {},
         functionType = null;
 
   void add(TypeCheck check) {

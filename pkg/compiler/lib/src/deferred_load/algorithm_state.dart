@@ -22,7 +22,7 @@ class AlgorithmState {
   final KClosedWorld closedWorld;
   final EntityDataRegistry registry;
   final Map<EntityData, ImportSet> entityToSet = {};
-  final Map<EntityData, EntityDataInfo> entityDataToInfo = {};
+  final Map<EntityData, Set<EntityData>> directDependencies = {};
   final ImportSetLattice importSets;
   final WorkQueue queue;
 
@@ -80,41 +80,35 @@ class AlgorithmState {
     }
   }
 
-  /// Returns the [EntityDataInfo] associated with a given [EntityData].
-  /// Note: In the event of a cache miss, i.e. the first time we ever see a new
-  /// [EntityData], we will add all reachable deferred roots to the queue for
-  /// processing.
-  EntityDataInfo getInfo(EntityData data) {
-    // Check for cached [EntityDataInfo], otherwise create a new one and
-    // collect dependencies.
-    var info = entityDataToInfo[data];
-    if (info == null) {
-      var infoBuilder =
-          EntityDataInfoBuilder(closedWorld, elementMap, compiler, registry);
-      var visitor = EntityDataInfoVisitor(infoBuilder);
-      data.accept(visitor);
-      info = infoBuilder.info;
-      entityDataToInfo[data] = info;
+  /// Processes an [EntityData], if we haven't seen it before we enqueue all
+  /// deferred roots and recursively populate caches.
+  void processEntity(EntityData entityData) {
+    if (directDependencies.containsKey(entityData)) return;
+    var infoBuilder =
+        EntityDataInfoBuilder(closedWorld, elementMap, compiler, registry);
+    var visitor = EntityDataInfoVisitor(infoBuilder);
+    entityData.accept(visitor);
+    var info = infoBuilder.info;
+    directDependencies[entityData] = info.directDependencies;
 
-      // This is the first time we have seen this [EntityData] before so process
-      // all deferred roots.
-      info.deferredRoots.forEach((entity, imports) {
-        for (ImportEntity deferredImport in imports) {
-          queue.addEntityData(entity, importSets.initialSetOf(deferredImport));
-        }
-      });
-    }
-    return info;
+    // This is the first time we have seen this [EntityData] before so process
+    // all deferred roots and direct dependencies.
+    info.deferredRoots.forEach((entity, imports) {
+      processEntity(entity);
+      for (ImportEntity deferredImport in imports) {
+        queue.addEntityData(entity, importSets.initialSetOf(deferredImport));
+      }
+    });
+    info.directDependencies.forEach(processEntity);
   }
 
   /// Updates the dependencies of a given [EntityData] from [oldSet] to
   /// [newSet].
   void updateDependencies(
       EntityData entityData, ImportSet oldSet, ImportSet newSet) {
-    var info = getInfo(entityData);
-
-    // Process all direct dependencies.
-    for (var entity in info.directDependencies) {
+    assert(directDependencies.containsKey(entityData));
+    var directDependenciesList = directDependencies[entityData];
+    for (var entity in directDependenciesList) {
       update(entity, oldSet, newSet);
     }
   }

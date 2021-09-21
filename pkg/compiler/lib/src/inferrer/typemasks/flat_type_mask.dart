@@ -26,7 +26,7 @@ class FlatTypeMask extends TypeMask {
   final int flags;
 
   static int _computeFlags(_FlatTypeMaskKind kind,
-      {bool isNullable: false, bool hasLateSentinel: false}) {
+      {bool isNullable = false, bool hasLateSentinel = false}) {
     int mask = _NONE_MASK;
     if (isNullable) mask |= _NULL_MASK;
     if (hasLateSentinel) mask |= _LATE_SENTINEL_MASK;
@@ -45,43 +45,43 @@ class FlatTypeMask extends TypeMask {
       flags & _LATE_SENTINEL_MASK != _NONE_MASK;
 
   factory FlatTypeMask.exact(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel: false}) =>
+          {bool hasLateSentinel = false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.exact, world,
           isNullable: true, hasLateSentinel: hasLateSentinel);
   factory FlatTypeMask.subclass(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel: false}) =>
+          {bool hasLateSentinel = false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subclass, world,
           isNullable: true, hasLateSentinel: hasLateSentinel);
   factory FlatTypeMask.subtype(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel: false}) =>
+          {bool hasLateSentinel = false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subtype, world,
           isNullable: true, hasLateSentinel: hasLateSentinel);
 
-  factory FlatTypeMask.nonNullEmpty({bool hasLateSentinel: false}) =>
+  factory FlatTypeMask.nonNullEmpty({bool hasLateSentinel = false}) =>
       hasLateSentinel
           ? const FlatTypeMask._(null, _LATE_SENTINEL_MASK)
           : const FlatTypeMask._(null, _NONE_MASK);
 
-  factory FlatTypeMask.empty({bool hasLateSentinel: false}) => hasLateSentinel
+  factory FlatTypeMask.empty({bool hasLateSentinel = false}) => hasLateSentinel
       ? const FlatTypeMask._(null, _NULL_MASK | _LATE_SENTINEL_MASK)
       : const FlatTypeMask._(null, _NULL_MASK);
 
   factory FlatTypeMask.nonNullExact(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel: false}) =>
+          {bool hasLateSentinel = false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.exact, world,
           hasLateSentinel: hasLateSentinel);
   factory FlatTypeMask.nonNullSubclass(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel: false}) =>
+          {bool hasLateSentinel = false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subclass, world,
           hasLateSentinel: hasLateSentinel);
   factory FlatTypeMask.nonNullSubtype(ClassEntity base, JClosedWorld world,
-          {bool hasLateSentinel: false}) =>
+          {bool hasLateSentinel = false}) =>
       FlatTypeMask._canonicalize(base, _FlatTypeMaskKind.subtype, world,
           hasLateSentinel: hasLateSentinel);
 
   factory FlatTypeMask._canonicalize(
       ClassEntity base, _FlatTypeMaskKind kind, JClosedWorld world,
-      {bool isNullable: false, bool hasLateSentinel: false}) {
+      {bool isNullable = false, bool hasLateSentinel = false}) {
     if (base == world.commonElements.nullClass) {
       return FlatTypeMask.empty(hasLateSentinel: hasLateSentinel);
     }

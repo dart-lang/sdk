@@ -152,7 +152,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
 
   CompoundName(this._parts);
 
-  CompoundName.from(List<jsAst.Name> parts) : this(<_NamerName>[...parts]);
+  CompoundName.from(List<jsAst.Name> parts) : this([...parts]);
 
   @override
   bool get isFinalized => _parts.every((name) => name.isFinalized);

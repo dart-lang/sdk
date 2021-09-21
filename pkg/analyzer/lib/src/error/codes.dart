@@ -14793,7 +14793,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try adjusting the number of type arguments to match the number "
               "of type parameters.",
-          hasPublishedDocs: true,
           uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION');
 
   /**
@@ -14912,8 +14911,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "but {2} type arguments were given.",
           correction:
               "Try adjusting the number of type arguments to match the number "
-              "of type parameters.",
-          hasPublishedDocs: true);
+              "of type parameters.");
 
   /**
    * Parameters:

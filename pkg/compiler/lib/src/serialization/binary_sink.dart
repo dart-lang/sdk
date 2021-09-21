@@ -13,10 +13,10 @@ class BinarySink extends AbstractDataSink {
   int _length = 0;
 
   BinarySink(this.sink,
-      {bool useDataKinds: false,
+      {bool useDataKinds = false,
       Map<String, int> tagFrequencyMap,
       DataSourceIndices importedIndices})
-      : _bufferedSink = new BufferedSink(sink),
+      : _bufferedSink = BufferedSink(sink),
         super(
             useDataKinds: useDataKinds,
             tagFrequencyMap: tagFrequencyMap,
