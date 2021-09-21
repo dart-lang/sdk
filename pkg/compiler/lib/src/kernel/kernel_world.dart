@@ -145,7 +145,7 @@ class KClosedWorldImpl implements KClosedWorld {
         if (!elementMap.classes
             .getEnv(member.enclosingClass)
             .checkHasMember(elementMap.getMemberNode(member))) {
-          throw new SpannableAssertionFailure(
+          throw SpannableAssertionFailure(
               member,
               "Member $member is in the environment of its enclosing class"
               " ${member.enclosingClass}.");

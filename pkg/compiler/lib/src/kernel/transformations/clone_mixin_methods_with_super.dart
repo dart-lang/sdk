@@ -19,7 +19,7 @@ class _CloneMixinMethodsWithSuper {
   /// libraries have already been transformed.
   static void transform(List<Library> libraries) {
     // Clone any mixed in methods that uses super.
-    var processedClasses = new Set<Class>();
+    var processedClasses = Set<Class>();
     for (var library in libraries) {
       for (var cls in library.classes) {
         if (processedClasses.add(cls)) {

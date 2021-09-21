@@ -59,7 +59,7 @@ class KernelImpactBuilder extends ImpactBuilderBase
       VariableScopeModel variableScopeModel,
       this._annotations,
       this._constantValuefier)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(
+      : this.impactBuilder = ResolutionWorldImpactBuilder(
             elementMap.commonElements.dartTypes, currentMember),
         super(staticTypeContext, staticTypeCache, elementMap.classHierarchy,
             variableScopeModel);
@@ -98,7 +98,7 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
 
   KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
       this._options, this._constantValuefier, this.staticTypeContext)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(
+      : this.impactBuilder = ResolutionWorldImpactBuilder(
             elementMap.commonElements.dartTypes, currentMember);
 
   @override
@@ -139,10 +139,10 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
     if (receiverType is ir.InterfaceType) {
-      return new StrongModeConstraint(commonElements, _nativeBasicData,
+      return StrongModeConstraint(commonElements, _nativeBasicData,
           elementMap.getClass(receiverType.classNode), relation);
     } else if (receiverType is ir.NullType) {
-      return new StrongModeConstraint(
+      return StrongModeConstraint(
           commonElements,
           _nativeBasicData,
           elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass),
@@ -155,7 +155,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerParameterCheck(ir.DartType irType) {
     DartType type = elementMap.getDartType(irType);
     if (type is! DynamicType) {
-      impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
+      impactBuilder.registerTypeUse(TypeUse.parameterCheck(type));
     }
   }
 
@@ -214,7 +214,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerSyncStar(ir.DartType elementType) {
     impactBuilder.registerFeature(Feature.SYNC_STAR);
-    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+    impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.syncStarIterableFactory,
         const CallStructure.unnamed(1, 1),
         <DartType>[elementMap.getDartType(elementType)]));
@@ -223,7 +223,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerAsync(ir.DartType elementType) {
     impactBuilder.registerFeature(Feature.ASYNC);
-    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+    impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncAwaitCompleterFactory,
         const CallStructure.unnamed(0, 1),
         <DartType>[elementMap.getDartType(elementType)]));
@@ -232,7 +232,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerAsyncStar(ir.DartType elementType) {
     impactBuilder.registerFeature(Feature.ASYNC_STAR);
-    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+    impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncStarStreamControllerFactory,
         const CallStructure.unnamed(1, 1),
         <DartType>[elementMap.getDartType(elementType)]));
@@ -260,22 +260,22 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerIntLiteral(int value) {
     impactBuilder.registerConstantLiteral(
-        new IntConstantValue(new BigInt.from(value).toUnsigned(64)));
+        IntConstantValue(BigInt.from(value).toUnsigned(64)));
   }
 
   @override
   void registerDoubleLiteral(double value) {
-    impactBuilder.registerConstantLiteral(new DoubleConstantValue(value));
+    impactBuilder.registerConstantLiteral(DoubleConstantValue(value));
   }
 
   @override
   void registerBoolLiteral(bool value) {
-    impactBuilder.registerConstantLiteral(new BoolConstantValue(value));
+    impactBuilder.registerConstantLiteral(BoolConstantValue(value));
   }
 
   @override
   void registerStringLiteral(String value) {
-    impactBuilder.registerConstantLiteral(new StringConstantValue(value));
+    impactBuilder.registerConstantLiteral(StringConstantValue(value));
   }
 
   @override
@@ -285,13 +285,13 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
 
   @override
   void registerNullLiteral() {
-    impactBuilder.registerConstantLiteral(new NullConstantValue());
+    impactBuilder.registerConstantLiteral(NullConstantValue());
   }
 
   @override
   void registerListLiteral(ir.DartType elementType,
       {bool isConst, bool isEmpty}) {
-    impactBuilder.registerListLiteral(new ListLiteralUse(
+    impactBuilder.registerListLiteral(ListLiteralUse(
         commonElements.listType(elementMap.getDartType(elementType)),
         isConstant: isConst,
         isEmpty: isEmpty));
@@ -300,7 +300,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerSetLiteral(ir.DartType elementType,
       {bool isConst, bool isEmpty}) {
-    impactBuilder.registerSetLiteral(new SetLiteralUse(
+    impactBuilder.registerSetLiteral(SetLiteralUse(
         commonElements.setType(elementMap.getDartType(elementType)),
         isConstant: isConst,
         isEmpty: isEmpty));
@@ -309,7 +309,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
       {bool isConst, bool isEmpty}) {
-    impactBuilder.registerMapLiteral(new MapLiteralUse(
+    impactBuilder.registerMapLiteral(MapLiteralUse(
         commonElements.mapType(
             elementMap.getDartType(keyType), elementMap.getDartType(valueType)),
         isConstant: isConst,
@@ -326,15 +326,15 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       ir.LibraryDependency import,
       {bool isConst}) {
     ConstructorEntity constructor = elementMap.getConstructor(target);
-    CallStructure callStructure = new CallStructure(
+    CallStructure callStructure = CallStructure(
         positionalArguments + namedArguments.length,
         namedArguments,
         typeArguments.length);
     ImportEntity deferredImport = elementMap.getImport(import);
     impactBuilder.registerStaticUse(isConst
-        ? new StaticUse.constConstructorInvoke(constructor, callStructure,
+        ? StaticUse.constConstructorInvoke(constructor, callStructure,
             elementMap.getDartType(type).withoutNullability, deferredImport)
-        : new StaticUse.typedConstructorInvoke(constructor, callStructure,
+        : StaticUse.typedConstructorInvoke(constructor, callStructure,
             elementMap.getDartType(type).withoutNullability, deferredImport));
     if (type.typeArguments.any((ir.DartType type) => type is! ir.DynamicType)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
@@ -355,7 +355,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     ImportEntity deferredImport = elementMap.getImport(import);
     InterfaceType type = elementMap.createInterfaceType(cls, typeArguments);
     impactBuilder
-        .registerTypeUse(new TypeUse.constInstantiation(type, deferredImport));
+        .registerTypeUse(TypeUse.constInstantiation(type, deferredImport));
   }
 
   @override
@@ -391,9 +391,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     // ssa-building.
     ConstructorEntity constructor =
         elementMap.getSuperConstructor(source, target);
-    impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
+    impactBuilder.registerStaticUse(StaticUse.superConstructorInvoke(
         constructor,
-        new CallStructure(positionalArguments + namedArguments.length,
+        CallStructure(positionalArguments + namedArguments.length,
             namedArguments, typeArguments.length)));
   }
 
@@ -405,7 +405,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<ir.DartType> typeArguments,
       ir.LibraryDependency import) {
     FunctionEntity target = elementMap.getMethod(procedure);
-    CallStructure callStructure = new CallStructure(
+    CallStructure callStructure = CallStructure(
         positionalArguments + namedArguments.length,
         namedArguments,
         typeArguments.length);
@@ -415,7 +415,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       return;
     } else {
       ImportEntity deferredImport = elementMap.getImport(import);
-      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+      impactBuilder.registerStaticUse(StaticUse.staticInvoke(
           target, callStructure, dartTypeArguments, deferredImport));
     }
   }
@@ -439,7 +439,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         InterfaceType type =
             elementMap.getInterfaceTypeForJsInterceptorCall(node);
         if (type != null) {
-          impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
+          impactBuilder.registerTypeUse(TypeUse.instantiation(type));
         }
         break;
       case ForeignKind.NONE:
@@ -457,7 +457,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     //   2. There is an invocation of fn with some number of type arguments.
     //
     impactBuilder.registerStaticUse(
-        new StaticUse.staticInvoke(target, callStructure, typeArguments));
+        StaticUse.staticInvoke(target, callStructure, typeArguments));
 
     if (typeArguments.length != 1) return;
     DartType matchedType = dartTypes.eraseLegacy(typeArguments.first);
@@ -467,30 +467,30 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     ClassEntity cls = interfaceType.element;
     InterfaceType thisType = elementMap.elementEnvironment.getThisType(cls);
 
-    impactBuilder.registerTypeUse(new TypeUse.isCheck(thisType));
+    impactBuilder.registerTypeUse(TypeUse.isCheck(thisType));
 
-    Selector selector = new Selector.callClosure(
+    Selector selector = Selector.callClosure(
         0, const <String>[], thisType.typeArguments.length);
-    impactBuilder.registerDynamicUse(
-        new DynamicUse(selector, null, thisType.typeArguments));
+    impactBuilder
+        .registerDynamicUse(DynamicUse(selector, null, thisType.typeArguments));
   }
 
   @override
   void registerStaticTearOff(
       ir.Procedure procedure, ir.LibraryDependency import) {
-    impactBuilder.registerStaticUse(new StaticUse.staticTearOff(
+    impactBuilder.registerStaticUse(StaticUse.staticTearOff(
         elementMap.getMethod(procedure), elementMap.getImport(import)));
   }
 
   @override
   void registerStaticGet(ir.Member member, ir.LibraryDependency import) {
-    impactBuilder.registerStaticUse(new StaticUse.staticGet(
+    impactBuilder.registerStaticUse(StaticUse.staticGet(
         elementMap.getMember(member), elementMap.getImport(import)));
   }
 
   @override
   void registerStaticSet(ir.Member member, ir.LibraryDependency import) {
-    impactBuilder.registerStaticUse(new StaticUse.staticSet(
+    impactBuilder.registerStaticUse(StaticUse.staticSet(
         elementMap.getMember(member), elementMap.getImport(import)));
   }
 
@@ -500,15 +500,15 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     if (target != null) {
       FunctionEntity method = elementMap.getMember(target);
       List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+      impactBuilder.registerStaticUse(StaticUse.superInvoke(
           method,
-          new CallStructure(positionalArguments + namedArguments.length,
+          CallStructure(positionalArguments + namedArguments.length,
               namedArguments, typeArguments.length),
           dartTypeArguments));
     } else {
       // TODO(johnniwinther): Remove this when the CFE checks for missing
       //  concrete super targets.
-      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+      impactBuilder.registerStaticUse(StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
@@ -520,14 +520,14 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     if (target != null) {
       MemberEntity member = elementMap.getMember(target);
       if (member.isFunction) {
-        impactBuilder.registerStaticUse(new StaticUse.superTearOff(member));
+        impactBuilder.registerStaticUse(StaticUse.superTearOff(member));
       } else {
-        impactBuilder.registerStaticUse(new StaticUse.superGet(member));
+        impactBuilder.registerStaticUse(StaticUse.superGet(member));
       }
     } else {
       // TODO(johnniwinther): Remove this when the CFE checks for missing
       //  concrete super targets.
-      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+      impactBuilder.registerStaticUse(StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
@@ -539,14 +539,14 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     if (target != null) {
       MemberEntity member = elementMap.getMember(target);
       if (member.isField) {
-        impactBuilder.registerStaticUse(new StaticUse.superFieldSet(member));
+        impactBuilder.registerStaticUse(StaticUse.superFieldSet(member));
       } else {
-        impactBuilder.registerStaticUse(new StaticUse.superSetterSet(member));
+        impactBuilder.registerStaticUse(StaticUse.superSetterSet(member));
       }
     } else {
       // TODO(johnniwinther): Remove this when the CFE checks for missing
       //  concrete super targets.
-      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+      impactBuilder.registerStaticUse(StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
       impactBuilder.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
@@ -559,14 +559,14 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    CallStructure callStructure = new CallStructure(
+    CallStructure callStructure = CallStructure(
         positionalArguments + namedArguments.length,
         namedArguments,
         typeArguments.length);
     List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
     // Invocation of a local function. No need for dynamic use, but
     // we need to track the type arguments.
-    impactBuilder.registerStaticUse(new StaticUse.closureCall(
+    impactBuilder.registerStaticUse(StaticUse.closureCall(
         elementMap.getLocalFunction(localFunction),
         callStructure,
         dartTypeArguments));
@@ -574,7 +574,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     // this when kernel adds an `isFunctionCall` flag to
     // [ir.MethodInvocation].
     impactBuilder.registerDynamicUse(
-        new DynamicUse(callStructure.callSelector, null, dartTypeArguments));
+        DynamicUse(callStructure.callSelector, null, dartTypeArguments));
   }
 
   @override
@@ -588,7 +588,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     Selector selector = elementMap.getInvocationSelector(
         name, positionalArguments, namedArguments, typeArguments.length);
     List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(new DynamicUse(selector,
+    impactBuilder.registerDynamicUse(DynamicUse(selector,
         _computeReceiverConstraint(receiverType, relation), dartTypeArguments));
   }
 
@@ -598,12 +598,12 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    CallStructure callStructure = new CallStructure(
+    CallStructure callStructure = CallStructure(
         positionalArguments + namedArguments.length,
         namedArguments,
         typeArguments.length);
     List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(new DynamicUse(
+    impactBuilder.registerDynamicUse(DynamicUse(
         callStructure.callSelector,
         _computeReceiverConstraint(receiverType, ClassRelation.subtype),
         dartTypeArguments));
@@ -618,7 +618,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(new DynamicUse(
+    impactBuilder.registerDynamicUse(DynamicUse(
         elementMap.getInvocationSelector(target.name, positionalArguments,
             namedArguments, typeArguments.length),
         _computeReceiverConstraint(receiverType, relation),
@@ -628,8 +628,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerDynamicGet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.getter(elementMap.getName(name)),
+    impactBuilder.registerDynamicUse(DynamicUse(
+        Selector.getter(elementMap.getName(name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
   }
@@ -637,8 +637,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerInstanceGet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.getter(elementMap.getName(target.name)),
+    impactBuilder.registerDynamicUse(DynamicUse(
+        Selector.getter(elementMap.getName(target.name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
   }
@@ -646,8 +646,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerDynamicSet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.setter(elementMap.getName(name)),
+    impactBuilder.registerDynamicUse(DynamicUse(
+        Selector.setter(elementMap.getName(name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
   }
@@ -655,8 +655,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.setter(elementMap.getName(target.name)),
+    impactBuilder.registerDynamicUse(DynamicUse(
+        Selector.setter(elementMap.getName(target.name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
   }
@@ -684,7 +684,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       }
     }
     impactBuilder.registerRuntimeTypeUse(
-        new RuntimeTypeUse(kind, receiverDartType, argumentDartType));
+        RuntimeTypeUse(kind, receiverDartType, argumentDartType));
   }
 
   @override
@@ -697,7 +697,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerGenericInstantiation(
       ir.FunctionType expressionType, List<ir.DartType> typeArguments) {
     // TODO(johnniwinther): Track which arities are used in instantiation.
-    impactBuilder.registerInstantiation(new GenericInstantiation(
+    impactBuilder.registerInstantiation(GenericInstantiation(
         elementMap.getDartType(expressionType).withoutNullability,
         typeArguments.map(elementMap.getDartType).toList()));
   }
@@ -711,7 +711,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerLocalFunction(ir.TreeNode node) {
     Local function = elementMap.getLocalFunction(node);
-    impactBuilder.registerStaticUse(new StaticUse.closure(function));
+    impactBuilder.registerStaticUse(StaticUse.closure(function));
   }
 
   @override
@@ -722,19 +722,18 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerIsCheck(ir.DartType type) {
     impactBuilder
-        .registerTypeUse(new TypeUse.isCheck(elementMap.getDartType(type)));
+        .registerTypeUse(TypeUse.isCheck(elementMap.getDartType(type)));
   }
 
   @override
   void registerImplicitCast(ir.DartType type) {
-    impactBuilder.registerTypeUse(
-        new TypeUse.implicitCast(elementMap.getDartType(type)));
+    impactBuilder
+        .registerTypeUse(TypeUse.implicitCast(elementMap.getDartType(type)));
   }
 
   @override
   void registerAsCast(ir.DartType type) {
-    impactBuilder
-        .registerTypeUse(new TypeUse.asCast(elementMap.getDartType(type)));
+    impactBuilder.registerTypeUse(TypeUse.asCast(elementMap.getDartType(type)));
   }
 
   @override
@@ -749,11 +748,11 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         _computeReceiverConstraint(iteratorType, iteratorClassRelation);
     impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
     impactBuilder.registerDynamicUse(
-        new DynamicUse(Selectors.iterator, receiverConstraint, const []));
+        DynamicUse(Selectors.iterator, receiverConstraint, const []));
     impactBuilder.registerDynamicUse(
-        new DynamicUse(Selectors.current, receiverConstraint, const []));
+        DynamicUse(Selectors.current, receiverConstraint, const []));
     impactBuilder.registerDynamicUse(
-        new DynamicUse(Selectors.moveNext, receiverConstraint, const []));
+        DynamicUse(Selectors.moveNext, receiverConstraint, const []));
   }
 
   @override
@@ -763,11 +762,11 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         _computeReceiverConstraint(iteratorType, iteratorClassRelation);
     impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
     impactBuilder.registerDynamicUse(
-        new DynamicUse(Selectors.cancel, receiverConstraint, const []));
+        DynamicUse(Selectors.cancel, receiverConstraint, const []));
     impactBuilder.registerDynamicUse(
-        new DynamicUse(Selectors.current, receiverConstraint, const []));
+        DynamicUse(Selectors.current, receiverConstraint, const []));
     impactBuilder.registerDynamicUse(
-        new DynamicUse(Selectors.moveNext, receiverConstraint, const []));
+        DynamicUse(Selectors.moveNext, receiverConstraint, const []));
   }
 
   @override
@@ -783,26 +782,26 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerCatchType(ir.DartType type) {
     impactBuilder
-        .registerTypeUse(new TypeUse.catchType(elementMap.getDartType(type)));
+        .registerTypeUse(TypeUse.catchType(elementMap.getDartType(type)));
   }
 
   @override
   void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import) {
     ImportEntity deferredImport = elementMap.getImport(import);
     impactBuilder.registerTypeUse(
-        new TypeUse.typeLiteral(elementMap.getDartType(type), deferredImport));
+        TypeUse.typeLiteral(elementMap.getDartType(type), deferredImport));
   }
 
   @override
   void registerFieldInitialization(ir.Field node) {
     impactBuilder
-        .registerStaticUse(new StaticUse.fieldInit(elementMap.getField(node)));
+        .registerStaticUse(StaticUse.fieldInit(elementMap.getField(node)));
   }
 
   @override
   void registerFieldConstantInitialization(
       ir.Field node, ConstantReference constant) {
-    impactBuilder.registerStaticUse(new StaticUse.fieldConstantInit(
+    impactBuilder.registerStaticUse(StaticUse.fieldConstantInit(
         elementMap.getField(node),
         _constantValuefier.visitConstant(constant.constant)));
   }
@@ -814,15 +813,15 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     ConstructorEntity target = elementMap.getConstructor(constructor);
-    impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
+    impactBuilder.registerStaticUse(StaticUse.superConstructorInvoke(
         target,
-        new CallStructure(positionalArguments + namedArguments.length,
+        CallStructure(positionalArguments + namedArguments.length,
             namedArguments, typeArguments.length)));
   }
 
   @override
   void registerLoadLibrary() {
-    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+    impactBuilder.registerStaticUse(StaticUse.staticInvoke(
         commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
     impactBuilder.registerFeature(Feature.LOAD_LIBRARY);
   }

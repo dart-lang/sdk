@@ -90,11 +90,11 @@ class KernelLoaderTask extends CompilerTask {
       }
 
       if (isDill) {
-        component = new ir.Component();
+        component = ir.Component();
         Future<void> read(Uri uri) async {
           api.Input input = await _compilerInput.readFromUri(uri,
               inputKind: api.InputKind.binary);
-          new BinaryBuilder(input.data).readComponent(component);
+          BinaryBuilder(input.data).readComponent(component);
         }
 
         await read(resolvedUri);
@@ -201,9 +201,8 @@ class KernelLoaderTask extends CompilerTask {
           _reporter.log('Writing dill to ${_options.outputUri}');
           api.BinaryOutputSink dillOutput =
               _compilerOutput.createBinarySink(_options.outputUri);
-          BinaryOutputSinkAdapter irSink =
-              new BinaryOutputSinkAdapter(dillOutput);
-          BinaryPrinter printer = new BinaryPrinter(irSink);
+          BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
+          BinaryPrinter printer = BinaryPrinter(irSink);
           printer.writeComponentFile(component);
           irSink.close();
         });
@@ -212,8 +211,8 @@ class KernelLoaderTask extends CompilerTask {
       if (forceSerialization) {
         // TODO(johnniwinther): Remove this when #34942 is fixed.
         List<int> data = serializeComponent(component);
-        component = new ir.Component();
-        new BinaryBuilder(data).readComponent(component);
+        component = ir.Component();
+        BinaryBuilder(data).readComponent(component);
       }
       return _toResult(component, moduleLibraries);
     });
@@ -230,7 +229,7 @@ class KernelLoaderTask extends CompilerTask {
       // entire SDK libraries, not all of them are used. We include anything
       // that is reachable from `main`. Note that all internal libraries that
       // the compiler relies on are reachable from `dart:core`.
-      var seen = new Set<Library>();
+      var seen = Set<Library>();
       search(ir.Library current) {
         if (!seen.add(current)) return;
         for (ir.LibraryDependency dep in current.dependencies) {
@@ -248,7 +247,7 @@ class KernelLoaderTask extends CompilerTask {
 
       libraries = libraries.where(seen.contains);
     }
-    return new KernelResult(component, rootLibraryUri,
+    return KernelResult(component, rootLibraryUri,
         libraries.map((lib) => lib.importUri).toList(), moduleLibraries);
   }
 }
