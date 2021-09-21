@@ -625,6 +625,9 @@ class MethodTypeInformation extends MemberTypeInformation {
   @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
+    if (inferrer.commonElements.isLateReadCheck(_method)) {
+      mask = inferrer.abstractValueDomain.excludeLateSentinel(mask);
+    }
     return _narrowType(inferrer.closedWorld, mask, _type.returnType);
   }
 
