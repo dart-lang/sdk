@@ -73,13 +73,12 @@ class ClassStubGenerator {
       }
     }
 
-    Map<jsAst.Name, jsAst.Expression> generatedStubs =
-        <jsAst.Name, jsAst.Expression>{};
+    Map<jsAst.Name, jsAst.Expression> generatedStubs = {};
 
     // Two selectors may match but differ only in type.  To avoid generating
     // identical stubs for each we track untyped selectors which already have
     // stubs.
-    Set<Selector> generatedSelectors = Set<Selector>();
+    Set<Selector> generatedSelectors = {};
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
@@ -91,8 +90,8 @@ class ClassStubGenerator {
         Selector callSelector = Selector.callClosureFrom(selector);
         jsAst.Name closureCallName = _namer.invocationName(callSelector);
 
-        List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-        List<jsAst.Expression> arguments = <jsAst.Expression>[];
+        List<jsAst.Parameter> parameters = [];
+        List<jsAst.Expression> arguments = [];
         if (isInterceptedMethod) {
           parameters.add(jsAst.Parameter(receiverArgumentName));
         }
@@ -120,7 +119,7 @@ class ClassStubGenerator {
   }
 
   Map<jsAst.Name, Selector> computeSelectorsForNsmHandlers() {
-    Map<jsAst.Name, Selector> jsNames = <jsAst.Name, Selector>{};
+    Map<jsAst.Name, Selector> jsNames = {};
 
     // Do not generate no such method handlers if there is no class.
     if (_codegenWorld.directlyInstantiatedClasses.isEmpty) {

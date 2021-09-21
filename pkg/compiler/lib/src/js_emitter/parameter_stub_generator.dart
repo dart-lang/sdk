@@ -28,7 +28,7 @@ import 'code_emitter_task.dart' show Emitter;
 import 'native_emitter.dart';
 
 class ParameterStubGenerator {
-  static final Set<Selector> emptySelectorSet = Set<Selector>();
+  static final Set<Selector> emptySelectorSet = {};
 
   final Emitter _emitter;
   final NativeEmitter _nativeEmitter;
@@ -301,10 +301,10 @@ class ParameterStubGenerator {
     }
 
     assert(emptySelectorSet.isEmpty);
-    liveSelectors ??= const <Selector, SelectorConstraints>{};
-    callSelectors ??= const <Selector, SelectorConstraints>{};
+    liveSelectors ??= const {};
+    callSelectors ??= const {};
 
-    List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
+    List<ParameterStubMethod> stubs = [];
 
     if (liveSelectors.isEmpty &&
         callSelectors.isEmpty &&
@@ -318,9 +318,9 @@ class ParameterStubGenerator {
     //
     // For example, for the call-selector `call(x, y)` the renamed selector
     // for member `foo` would be `foo(x, y)`.
-    Set<Selector> renamedCallSelectors = Set<Selector>();
+    Set<Selector> renamedCallSelectors = {};
 
-    Set<Selector> stubSelectors = Set<Selector>();
+    Set<Selector> stubSelectors = {};
 
     // Start with closure-call selectors, since since they imply the generation
     // of the non-call version.

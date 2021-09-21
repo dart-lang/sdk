@@ -133,7 +133,7 @@ class InterceptorStubGenerator {
       hasNative = anyNativeClasses;
     }
 
-    List<jsAst.Statement> statements = <jsAst.Statement>[];
+    List<jsAst.Statement> statements = [];
 
     if (hasNumber) {
       jsAst.Statement whenNumber;
@@ -220,7 +220,7 @@ class InterceptorStubGenerator {
     // chance of making the dispatch record access monomorphic.
     jsAst.PropertyAccess record = jsAst.PropertyAccess(use2, dispatchProperty);
 
-    List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
+    List<jsAst.Expression> arguments = [use1, record];
     FunctionEntity helper = _commonElements.isJsIndexable;
     jsAst.Expression helperExpression = _emitter.staticFunctionAccess(helper);
     return jsAst.Call(helperExpression, arguments);
@@ -382,7 +382,7 @@ class InterceptorStubGenerator {
     Set<ClassEntity> classes = interceptor.classes;
     jsAst.Name getInterceptorName = _namer.nameForGetInterceptor(classes);
 
-    List<String> parameterNames = <String>[];
+    List<String> parameterNames = [];
     parameterNames.add('receiver');
 
     if (selector.isSetter) {
@@ -401,7 +401,7 @@ class InterceptorStubGenerator {
 
     jsAst.Statement optimizedPath =
         _fastPathForOneShotInterceptor(selector, classes);
-    if (optimizedPath == null) optimizedPath = js.statement(';');
+    optimizedPath ??= js.statement(';');
 
     return js('function(#) { #; return #.#(receiver).#(#) }', [
       parameterNames,
@@ -418,7 +418,7 @@ class InterceptorStubGenerator {
     CustomElementsCodegenAnalysis analysis = _customElementsCodegenAnalysis;
     if (!analysis.needsTable) return null;
 
-    List<jsAst.Expression> elements = <jsAst.Expression>[];
+    List<jsAst.Expression> elements = [];
     Iterable<ConstantValue> constants =
         _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {

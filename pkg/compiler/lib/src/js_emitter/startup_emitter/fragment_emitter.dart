@@ -1201,7 +1201,7 @@ class FragmentEmitter {
         collect(superclass);
       }
 
-      subclasses.putIfAbsent(superclass, () => <Class>[]).add(cls);
+      subclasses.putIfAbsent(superclass, () => []).add(cls);
 
       seen.add(cls);
     }
@@ -1835,8 +1835,8 @@ class FragmentEmitter {
     // therefore unused in this emitter.
     // TODO(johnniwinther): Remove the need for adding an empty list of
     // mangled names.
-    globals.add(js.Property(
-        js.string(MANGLED_NAMES), js.ObjectInitializer(<js.Property>[])));
+    globals
+        .add(js.Property(js.string(MANGLED_NAMES), js.ObjectInitializer([])));
 
     globals.addAll(emitMetadata(program));
 

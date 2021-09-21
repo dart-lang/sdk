@@ -49,7 +49,7 @@ class TypeTestProperties {
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassEntity] for which the is checks were
   /// generated.
-  final Map<ClassEntity, TypeTests> _properties = <ClassEntity, TypeTests>{};
+  final Map<ClassEntity, TypeTests> _properties = {};
 
   void addIsTest(ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
     TypeTests typeTests = _properties.putIfAbsent(cls, () => TypeTests());
@@ -187,7 +187,7 @@ class RuntimeTypeGenerator {
       ClassEntity cls,
       FunctionTypeSignatureEmitter generateFunctionTypeSignature,
       void emitTypeCheck(TypeCheck check)) {
-    Setlet<ClassEntity> generated = Setlet<ClassEntity>();
+    Setlet<ClassEntity> generated = Setlet();
 
     // Precomputed is checks.
     ClassChecks classChecks = _rtiChecks.requiredChecks[cls];

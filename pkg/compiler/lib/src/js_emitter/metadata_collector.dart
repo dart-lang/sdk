@@ -120,8 +120,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     // Merge _metadataMap
     var sourceMetadataMap = _metadataMap[source];
     if (sourceMetadataMap != null) {
-      var targetMetadataMap =
-          _metadataMap[target] ??= Map<String, List<BoundMetadataEntry>>();
+      var targetMetadataMap = _metadataMap[target] ??= {};
       _metadataMap.remove(source);
       sourceMetadataMap.forEach((str, entries) {
         var targetMetadataMapList = targetMetadataMap[str] ??= [];
@@ -132,8 +131,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     // Merge _typesMap
     var sourceTypesMap = _typesMap[source];
     if (sourceTypesMap != null) {
-      var targetTypesMap =
-          _typesMap[target] ??= Map<DartType, List<BoundMetadataEntry>>();
+      var targetTypesMap = _typesMap[target] ??= {};
       _typesMap.remove(source);
       sourceTypesMap.forEach((type, entries) {
         var targetTypesMapList = targetTypesMap[type] ??= [];
@@ -152,7 +150,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   jsAst.Expression _addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
-    _typesMap[outputUnit] ??= Map<DartType, List<BoundMetadataEntry>>();
+    _typesMap[outputUnit] ??= {};
     BoundMetadataEntry metadataEntry;
 
     if (_typesMap[outputUnit].containsKey(type)) {

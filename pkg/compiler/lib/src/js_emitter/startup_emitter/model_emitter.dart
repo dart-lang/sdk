@@ -411,7 +411,7 @@ var ${startupMetricsGlobal} =
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
         locationCollector = LocationCollector();
-        codeOutputListeners = <CodeOutputListener>[locationCollector];
+        codeOutputListeners = [locationCollector];
       });
     }
 

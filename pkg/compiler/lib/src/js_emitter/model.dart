@@ -309,7 +309,7 @@ class Class {
     _mixinClass = mixinClass;
   }
 
-  js.Name get superclassName => superclass == null ? null : superclass.name;
+  js.Name get superclassName => superclass?.name;
 
   @override
   String toString() => 'Class(name=${name.key},element=$element)';

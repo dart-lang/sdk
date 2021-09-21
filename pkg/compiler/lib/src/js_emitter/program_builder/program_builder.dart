@@ -147,7 +147,7 @@ class ProgramBuilder {
 
   /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
-  final Map<ClassEntity, Class> _classes = <ClassEntity, Class>{};
+  final Map<ClassEntity, Class> _classes = {};
 
   /// Mapping from [ClassEntity] to constructed [ClassTypeData] object. Used to build
   /// libraries.
@@ -155,11 +155,11 @@ class ProgramBuilder {
 
   /// Mapping from [OutputUnit] to constructed [Fragment]. We need this to
   /// generate the deferredLoadingMap (to know which hunks to load).
-  final Map<OutputUnit, Fragment> _outputs = <OutputUnit, Fragment>{};
+  final Map<OutputUnit, Fragment> _outputs = {};
 
   /// Mapping from [ConstantValue] to constructed [Constant]. We need this to
   /// update field-initializers to point to the ConstantModel.
-  final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
+  final Map<ConstantValue, Constant> _constants = {};
 
   Set<Class> _unneededNativeClasses;
 
@@ -314,7 +314,7 @@ class ProgramBuilder {
   List<Constant> _buildConstants(LibrariesMap librariesMap) {
     List<ConstantValue> constantValues =
         collector.outputConstantLists[librariesMap.outputUnit];
-    if (constantValues == null) return const <Constant>[];
+    if (constantValues == null) return const [];
     return constantValues
         .map((ConstantValue value) => _constants[value])
         .toList(growable: false);
@@ -323,7 +323,7 @@ class ProgramBuilder {
   List<StaticField> _buildStaticNonFinalFields(LibrariesMap librariesMap) {
     List<FieldEntity> staticNonFinalFields =
         collector.outputStaticNonFinalFieldLists[librariesMap.outputUnit];
-    if (staticNonFinalFields == null) return const <StaticField>[];
+    if (staticNonFinalFields == null) return const [];
 
     return staticNonFinalFields.map(_buildStaticField).toList(growable: false);
   }
@@ -604,7 +604,7 @@ class ProgramBuilder {
       }
     }
 
-    List<StubMethod> noSuchMethodStubs = <StubMethod>[];
+    List<StubMethod> noSuchMethodStubs = [];
 
     if (_backendUsage.isNoSuchMethodUsed &&
         cls == _commonElements.objectClass) {
@@ -635,7 +635,7 @@ class ProgramBuilder {
     bool isMixinApplicationWithMembers = false;
     if (!onlyForConstructorOrRti) {
       if (_elementEnvironment.isMixinApplicationWithMembers(cls)) {
-        List<MemberEntity> members = <MemberEntity>[];
+        List<MemberEntity> members = [];
         void add(MemberEntity member) {
           if (member.enclosingClass == cls) {
             members.add(member);
@@ -650,7 +650,7 @@ class ProgramBuilder {
           _sorter.sortMembers(members).forEach(visitMember);
         }
       } else if (!_elementEnvironment.isMixinApplication(cls)) {
-        List<MemberEntity> members = <MemberEntity>[];
+        List<MemberEntity> members = [];
         _elementEnvironment.forEachLocalClassMember(cls, members.add);
         _elementEnvironment.forEachInjectedClassMember(cls, members.add);
         _elementEnvironment.forEachConstructorBody(cls, members.add);
@@ -676,8 +676,8 @@ class ProgramBuilder {
         cls, _generatedCode,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
-    List<StubMethod> checkedSetters = <StubMethod>[];
-    List<StubMethod> isChecks = <StubMethod>[];
+    List<StubMethod> checkedSetters = [];
+    List<StubMethod> isChecks = [];
     if (_nativeData.isJsInteropClass(cls)) {
       // TODO(johnniwinther): Instead of generating all stubs for each
       // js-interop class we should generate a stub for each implemented class.
@@ -948,7 +948,7 @@ class ProgramBuilder {
 
   List<ParameterStubMethod> _generateParameterStubs(
       FunctionEntity element, bool canTearOff, bool canBeApplied) {
-    if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
+    if (!_methodNeedsStubs(element)) return const [];
 
     ParameterStubGenerator generator = ParameterStubGenerator(
         _task.emitter,
@@ -1025,7 +1025,7 @@ class ProgramBuilder {
 
   List<Field> _buildFields(
       {bool isHolderInterceptedClass = false, ClassEntity cls}) {
-    List<Field> fields = <Field>[];
+    List<Field> fields = [];
 
     void visitField(FieldEntity field, js.Name name, bool needsGetter,
         bool needsSetter, bool needsCheckedSetter) {

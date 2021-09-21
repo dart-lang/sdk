@@ -69,8 +69,8 @@ class InstantiationStubGenerator {
     // }
     // ```
 
-    List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
+    List<jsAst.Parameter> parameters = [];
+    List<jsAst.Expression> arguments = [];
 
     for (int i = 0; i < callSelector.argumentCount; i++) {
       String jsName = 'a$i';
@@ -156,7 +156,7 @@ class InstantiationStubGenerator {
         _codegenWorld.invocationsByName(call);
 
     Set<ParameterStructure> computeLiveParameterStructures() {
-      Set<ParameterStructure> parameterStructures = Set<ParameterStructure>();
+      Set<ParameterStructure> parameterStructures = {};
 
       void process(FunctionEntity function) {
         if (function.parameterStructure.typeParameters == typeArgumentCount) {
@@ -171,7 +171,7 @@ class InstantiationStubGenerator {
       return parameterStructures;
     }
 
-    List<StubMethod> stubs = <StubMethod>[];
+    List<StubMethod> stubs = [];
 
     // For every call-selector generate a stub to the corresponding selector
     // with filled-in type arguments.
