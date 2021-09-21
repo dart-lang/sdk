@@ -943,7 +943,7 @@ main() {
       'foo<int>();',
       expectedTypeArguments: ['int'],
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.typeName('int>'), intElement, 'int');
   }
 
   test_error_undefinedMethod_hasTarget_class_typeParameter() async {
@@ -1296,7 +1296,7 @@ main() {
       findElement.topFunction('foo'),
       'void Function()',
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.typeName('int>'), intElement, 'int');
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
@@ -1315,7 +1315,7 @@ main() {
       'Map<dynamic, dynamic> Function()',
       expectedTypeArguments: ['dynamic', 'dynamic'],
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.typeName('int>'), intElement, 'int');
   }
 
   test_hasReceiver_class_staticGetter() async {

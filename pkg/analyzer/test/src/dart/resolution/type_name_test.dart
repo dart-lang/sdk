@@ -35,7 +35,7 @@ import 'a.dart';
 f(A a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       import_a.class_('A'),
       'A*',
@@ -54,7 +54,7 @@ import 'a.dart';
 f(A a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       import_a.class_('A'),
       'A<num*>*',
@@ -73,7 +73,7 @@ import 'a.dart';
 f(A a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       import_a.class_('A'),
       'A<dynamic>*',
@@ -92,7 +92,7 @@ import 'a.dart';
 f(A<int> a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A<int> a'),
       import_a.class_('A'),
       'A<int*>*',
@@ -114,7 +114,7 @@ f(F a) {}
     var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
-    assertTypeName(typeName, element, 'int* Function(bool*)*');
+    assertNamedType(typeName, element, 'int* Function(bool*)*');
 
     assertTypeAlias(
       typeName.typeOrThrow,
@@ -138,7 +138,7 @@ f(F a) {}
     var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
-    assertTypeName(typeName, element, 'dynamic Function(bool*)*');
+    assertNamedType(typeName, element, 'dynamic Function(bool*)*');
 
     assertTypeAlias(
       typeName.typeOrThrow,
@@ -162,7 +162,7 @@ f(F a) {}
     var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
-    assertTypeName(typeName, element, 'num* Function(bool*)*');
+    assertNamedType(typeName, element, 'num* Function(bool*)*');
 
     assertTypeAlias(
       typeName.typeOrThrow,
@@ -186,7 +186,7 @@ f(F<int> a) {}
     var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F<int> a');
-    assertTypeName(typeName, element, 'int* Function(bool*)*');
+    assertNamedType(typeName, element, 'int* Function(bool*)*');
 
     assertTypeAlias(
       typeName.typeOrThrow,
@@ -209,7 +209,7 @@ f(A a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       import_a.class_('A'),
       'A',
@@ -230,7 +230,7 @@ f(A a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       import_a.class_('A'),
       'A<num*>',
@@ -251,7 +251,7 @@ f(A a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       import_a.class_('A'),
       'A<dynamic>',
@@ -272,7 +272,7 @@ f(A<int> a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A<int> a'),
       import_a.class_('A'),
       'A<int>',
@@ -293,7 +293,7 @@ f(F a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F a'),
       import_a.typeAlias('F'),
       'int* Function()',
@@ -314,7 +314,7 @@ f(F a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F a'),
       import_a.typeAlias('F'),
       'num* Function()',
@@ -335,7 +335,7 @@ f(F a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F a'),
       import_a.typeAlias('F'),
       'dynamic Function()',
@@ -356,7 +356,7 @@ f(F<int> a) {}
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F<int> a'),
       import_a.typeAlias('F'),
       'int* Function()',
@@ -374,7 +374,7 @@ void f() {
 }
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<int>()'),
       findElement.typeAlias('X'),
       'A<int>',
@@ -392,7 +392,7 @@ void f() {
 }
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X()'),
       findElement.typeAlias('X'),
       'A<int>',
@@ -410,7 +410,7 @@ void f() {
 }
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<int>()'),
       findElement.typeAlias('X'),
       'A<int>',
@@ -423,13 +423,13 @@ typedef X<T> = Map<int, T>;
 void f(X<String> a, X<String?> b) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<String>'),
       findElement.typeAlias('X'),
       'Map<int, String>',
     );
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<String?>'),
       findElement.typeAlias('X'),
       'Map<int, String?>',
@@ -446,7 +446,7 @@ import 'a.dart';
 void f(X<String> a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<String>'),
       findElement.importFind('package:test/a.dart').typeAlias('X'),
       'Map<int*, String*>*',
@@ -459,13 +459,13 @@ typedef X<T> = List<T?>;
 void f(X<int> a, X<int?> b) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<int>'),
       findElement.typeAlias('X'),
       'List<int?>',
     );
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<int?>'),
       findElement.typeAlias('X'),
       'List<int?>',
@@ -482,7 +482,7 @@ import 'a.dart';
 void f(X<int> a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<int>'),
       findElement.importFind('package:test/a.dart').typeAlias('X'),
       'List<int*>*',
@@ -495,13 +495,13 @@ typedef X = Never;
 void f(X a, X? b) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X a'),
       findElement.typeAlias('X'),
       'Never',
     );
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X? b'),
       findElement.typeAlias('X'),
       'Never?',
@@ -518,7 +518,7 @@ import 'a.dart';
 void f(X a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X a'),
       findElement.importFind('package:test/a.dart').typeAlias('X'),
       'Null*',
@@ -531,13 +531,13 @@ typedef X = Never?;
 void f(X a, X? b) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X a'),
       findElement.typeAlias('X'),
       'Never?',
     );
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X? b'),
       findElement.typeAlias('X'),
       'Never?',
@@ -550,7 +550,7 @@ typedef X<T> = T?;
 void f(X<int> a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<int>'),
       findElement.typeAlias('X'),
       'int?',
@@ -563,7 +563,7 @@ typedef X<T> = Map<int, T>;
 X<String> f() => {};
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('X<String>'),
       findElement.typeAlias('X'),
       'Map<int, String>',
@@ -576,7 +576,7 @@ typedef Nothing = void;
 Nothing f() {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('Nothing f()'),
       findElement.typeAlias('Nothing'),
       'void',
@@ -592,7 +592,7 @@ class A {}
 f(A a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       findElement.class_('A'),
       typeStr('A', 'A*'),
@@ -606,7 +606,7 @@ class A<T extends num> {}
 f(A a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       findElement.class_('A'),
       typeStr('A<num>', 'A<num*>*'),
@@ -620,7 +620,7 @@ class A<T> {}
 f(A a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A a'),
       findElement.class_('A'),
       typeStr('A<dynamic>', 'A<dynamic>*'),
@@ -634,7 +634,7 @@ class A<T> {}
 f(A<int> a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A<int> a'),
       findElement.class_('A'),
       typeStr('A<int>', 'A<int*>*'),
@@ -648,7 +648,7 @@ import 'dart:core';
 dynamic a;
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('dynamic a;'),
       dynamicElement,
       'dynamic',
@@ -662,7 +662,7 @@ import 'dart:core' as mycore;
 mycore.dynamic a;
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('mycore.dynamic a;'),
       dynamicElement,
       'dynamic',
@@ -679,7 +679,7 @@ dynamic a;
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('dynamic a;'),
       null,
       'dynamic',
@@ -691,7 +691,7 @@ dynamic a;
 dynamic a;
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('dynamic a;'),
       dynamicElement,
       'dynamic',
@@ -705,7 +705,7 @@ typedef F = int Function();
 f(F a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F a'),
       findElement.typeAlias('F'),
       typeStr('int Function()', 'int* Function()*'),
@@ -719,7 +719,7 @@ typedef F<T extends num> = T Function();
 f(F a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F a'),
       findElement.typeAlias('F'),
       typeStr('num Function()', 'num* Function()*'),
@@ -733,7 +733,7 @@ typedef F<T> = T Function();
 f(F a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F a'),
       findElement.typeAlias('F'),
       typeStr('dynamic Function()', 'dynamic Function()*'),
@@ -747,7 +747,7 @@ typedef F<T> = T Function();
 f(F<int> a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('F<int> a'),
       findElement.typeAlias('F'),
       typeStr('int Function()', 'int* Function()*'),
@@ -765,7 +765,7 @@ main() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A();'),
       null,
       'dynamic',
@@ -782,7 +782,7 @@ main() {
 }
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A();'),
       findElement.class_('A'),
       typeStr('A', 'A*'),
@@ -798,7 +798,7 @@ main() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('A();'),
       null,
       'dynamic',
@@ -814,7 +814,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('int.double'),
       null,
       'dynamic',
@@ -831,7 +831,7 @@ void f() {
       error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10),
     ]);
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('int.double'),
       null,
       'dynamic',
@@ -844,7 +844,7 @@ void f() {
 f(Never a) {}
 ''');
 
-    assertTypeName(
+    assertNamedType(
       findNode.typeName('Never a'),
       neverElement,
       typeStr('Never', 'Null*'),
