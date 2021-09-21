@@ -33836,7 +33836,7 @@ library
     expect(variable, isNotNull);
     expect(variable.isFinal, isFalse);
     expect(variable.getter, same(getter));
-    expect('${variable.type}', 'int');
+    _assertTypeStr(variable.type, 'int');
     expect(variable, same(_elementOfDefiningUnit(library, ['@variable', 'x'])));
   }
 

@@ -1809,6 +1809,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     return '{$entriesStr}';
   }
 
+  /// TODO(scheglov) Make [type] non-nullable?
   String? _typeStr(DartType? type) {
     return type?.getDisplayString(withNullability: _withNullability);
   }
@@ -1989,7 +1990,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var type in types) {
-          _writelnWithIndent('$type');
+          var typeStr = _typeStr(type);
+          _writelnWithIndent('$typeStr');
         }
       });
     }

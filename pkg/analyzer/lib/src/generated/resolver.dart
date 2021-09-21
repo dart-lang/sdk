@@ -580,8 +580,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
                   computeMemberId(whyNotPromotedVisitor.propertyReference!);
               args.add('target: $id');
             }
-            if (whyNotPromotedVisitor.propertyType != null) {
-              args.add('type: ${whyNotPromotedVisitor.propertyType}');
+            var propertyType = whyNotPromotedVisitor.propertyType;
+            if (propertyType != null) {
+              var propertyTypeStr = propertyType.getDisplayString(
+                withNullability: true,
+              );
+              args.add('type: $propertyTypeStr');
             }
             if (args.isNotEmpty) {
               nonPromotionReasonText += '(${args.join(', ')})';
