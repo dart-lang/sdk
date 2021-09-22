@@ -79,6 +79,7 @@ export 'default_language_version.dart' show defaultLanguageVersion;
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart' as astToText;
 import 'core_types.dart';
+import 'class_hierarchy.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
@@ -1725,6 +1726,13 @@ class ExtensionMemberDescriptor {
   }
 }
 
+enum CallSiteAccessKind {
+  methodInvocation,
+  getterInvocation,
+  setterInvocation,
+  operatorInvocation,
+}
+
 /// Elements of the 'show' and 'hide' clauses of an extension type declaration.
 class ExtensionTypeShowHideClause {
   /// The types in the 'show clause' of the extension type declaration.
@@ -1834,6 +1842,62 @@ class ExtensionTypeShowHideClause {
   ///   }
   ///   extension type E on A hide operator +, operator * {}
   final List<Reference> hiddenOperators = <Reference>[];
+
+  Reference? findShownReference(Name name,
+      CallSiteAccessKind callSiteAccessKind, ClassHierarchy hierarchy) {
+    List<Reference> shownReferences;
+    List<Reference> hiddenReferences;
+    switch (callSiteAccessKind) {
+      case CallSiteAccessKind.getterInvocation:
+        shownReferences = shownGetters;
+        hiddenReferences = hiddenGetters;
+        break;
+      case CallSiteAccessKind.setterInvocation:
+        shownReferences = shownSetters;
+        hiddenReferences = hiddenSetters;
+        break;
+      case CallSiteAccessKind.methodInvocation:
+        shownReferences = shownMethods;
+        hiddenReferences = hiddenMethods;
+        break;
+      case CallSiteAccessKind.operatorInvocation:
+        shownReferences = shownOperators;
+        hiddenReferences = hiddenOperators;
+        break;
+    }
+
+    Reference? reference = _findMember(
+        name, shownReferences, shownSupertypes, hierarchy, callSiteAccessKind);
+    if (reference != null &&
+        _findMember(name, hiddenReferences, hiddenSupertypes, hierarchy,
+                callSiteAccessKind) ==
+            null) {
+      return reference;
+    }
+
+    return null;
+  }
+
+  Reference? _findMember(
+      Name name,
+      List<Reference> references,
+      List<Supertype> interfaces,
+      ClassHierarchy hierarchy,
+      CallSiteAccessKind callSiteAccessKind) {
+    for (Reference reference in references) {
+      if (reference.asMember.name == name) {
+        return reference;
+      }
+    }
+    for (Supertype interface in interfaces) {
+      Member? member = hierarchy.getInterfaceMember(interface.classNode, name,
+          setter: callSiteAccessKind == CallSiteAccessKind.setterInvocation);
+      if (member != null) {
+        return member.reference;
+      }
+    }
+    return null;
+  }
 }
 
 // ------------------------------------------------------------------------

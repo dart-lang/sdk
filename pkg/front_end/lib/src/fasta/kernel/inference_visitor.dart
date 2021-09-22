@@ -3047,7 +3047,9 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, node.propertyName, node.writeOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     DartType writeType = inferrer.getSetterType(writeTarget, receiverType);
 
     ExpressionInferenceResult binaryResult = _computeBinaryExpression(
@@ -3108,7 +3110,9 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, node.propertyName, receiver.fileOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
 
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
@@ -3235,7 +3239,8 @@ class InferenceVisitor
 
     ObjectAccessTarget indexGetTarget = inferrer.findInterfaceMember(
         receiverType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType indexType = inferrer.getIndexKeyType(indexGetTarget, receiverType);
 
@@ -3277,7 +3282,8 @@ class InferenceVisitor
 
     ObjectAccessTarget indexSetTarget = inferrer.findInterfaceMember(
         receiverType, indexSetName, node.fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType indexType = inferrer.getIndexKeyType(indexSetTarget, receiverType);
     DartType valueType =
@@ -3500,7 +3506,8 @@ class InferenceVisitor
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, indexGetName, node.readOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind checkKind =
         inferrer.preCheckInvocationContravariance(receiverType, readTarget,
@@ -3510,7 +3517,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, indexSetName, node.writeOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType writeIndexType =
         inferrer.getIndexKeyType(writeTarget, receiverType);
@@ -4031,7 +4039,8 @@ class InferenceVisitor
 
     ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
         leftType, equalsName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     assert(
         equalsTarget.isInstanceMember ||
@@ -4077,7 +4086,8 @@ class InferenceVisitor
       // Ensure operator == member even for `Never`.
       Member target = inferrer
           .findInterfaceMember(const DynamicType(), equalsName, -1,
-              instrumented: false)
+              instrumented: false,
+              callSiteAccessKind: CallSiteAccessKind.operatorInvocation)
           .member!;
       equals = new EqualsCall(left, right,
           functionType: functionType, interfaceTarget: target as Procedure)
@@ -4115,7 +4125,8 @@ class InferenceVisitor
 
     ObjectAccessTarget binaryTarget = inferrer.findInterfaceMember(
         leftType, binaryName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind binaryCheckKind =
         inferrer.preCheckInvocationContravariance(leftType, binaryTarget,
@@ -4296,7 +4307,8 @@ class InferenceVisitor
       Map<DartType, NonPromotionReason> Function() whyNotPromoted) {
     ObjectAccessTarget unaryTarget = inferrer.findInterfaceMember(
         expressionType, unaryName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind unaryCheckKind =
         inferrer.preCheckInvocationContravariance(expressionType, unaryTarget,
@@ -4656,7 +4668,8 @@ class InferenceVisitor
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, propertyName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
     DartType readType = inferrer.getGetterType(readTarget, receiverType);
 
@@ -4945,7 +4958,8 @@ class InferenceVisitor
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, indexGetName, node.readOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind readCheckKind =
         inferrer.preCheckInvocationContravariance(receiverType, readTarget,
@@ -4997,7 +5011,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, indexSetName, node.writeOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType writeIndexType =
         inferrer.getIndexKeyType(writeTarget, receiverType);
@@ -5143,7 +5158,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         nonNullReceiverType, node.propertyName, node.writeOffset,
-        setter: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        includeExtensionMethods: true);
 
     DartType valueType =
         inferrer.getSetterType(writeTarget, nonNullReceiverType);
@@ -5611,7 +5627,9 @@ class InferenceVisitor
 
     ObjectAccessTarget target = inferrer.findInterfaceMember(
         receiverType, node.name, node.fileOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     if (target.isInstanceMember || target.isObjectMember) {
       if (inferrer.instrumentation != null &&
           receiverType == const DynamicType()) {
@@ -5673,7 +5691,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         nonNullReceiverType, node.name, node.writeOffset,
-        setter: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        includeExtensionMethods: true);
 
     DartType valueType =
         inferrer.getSetterType(writeTarget, nonNullReceiverType);
@@ -6980,7 +6999,9 @@ class PropertyForInVariable implements ForInVariable {
     DartType receiverType = receiverResult.inferredType;
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, propertySet.name, propertySet.fileOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     DartType elementType =
         _writeType = inferrer.getSetterType(writeTarget, receiverType);
     Expression? error = inferrer.reportMissingInterfaceMember(
@@ -7038,7 +7059,8 @@ class SuperPropertyForInVariable implements ForInVariable {
     DartType receiverType = inferrer.thisType!;
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, superPropertySet.name, superPropertySet.fileOffset,
-        setter: true, instrumented: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true);
     if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
       superPropertySet.interfaceTarget = writeTarget.member;
     }

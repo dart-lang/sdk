@@ -879,57 +879,20 @@ class TypeInferrerImpl implements TypeInferrer {
   ObjectAccessTarget _findShownExtensionTypeMember(
       ExtensionType receiverType, Name name, int fileOffset,
       {required ObjectAccessTarget defaultTarget,
-      required bool isSetter,
+      required CallSiteAccessKind callSiteAccessKind,
       required bool isPotentiallyNullable}) {
     Extension extension = receiverType.extension;
     ExtensionTypeShowHideClause? showHideClause = extension.showHideClause;
     if (showHideClause == null) return defaultTarget;
 
-    kernel.Reference? findMember(Name name, List<kernel.Reference> references,
-        List<Supertype> interfaces,
-        {required bool isSetter}) {
-      for (kernel.Reference reference in references) {
-        if (reference.asMember.name == name) {
-          return reference;
-        }
-      }
-      for (Supertype interface in interfaces) {
-        Member? member = classHierarchy
-            .getInterfaceMember(interface.classNode, name, setter: isSetter);
-        if (member != null) {
-          return member.reference;
-        }
-      }
-      return null;
-    }
-
-    List<kernel.Reference> shownReferences = isSetter
-        ? showHideClause.shownSetters
-        : <kernel.Reference>[
-            ...showHideClause.shownGetters,
-            ...showHideClause.shownMethods,
-            ...showHideClause.shownOperators
-          ];
-    List<kernel.Reference> hiddenReferences = isSetter
-        ? showHideClause.hiddenSetters
-        : <kernel.Reference>[
-            ...showHideClause.hiddenGetters,
-            ...showHideClause.hiddenMethods,
-            ...showHideClause.hiddenOperators
-          ];
-
-    kernel.Reference? reference = findMember(
-        name, shownReferences, showHideClause.shownSupertypes,
-        isSetter: isSetter);
-    if (reference != null &&
-        findMember(name, hiddenReferences, showHideClause.hiddenSupertypes,
-                isSetter: isSetter) ==
-            null) {
+    kernel.Reference? reference = showHideClause.findShownReference(
+        name, callSiteAccessKind, classHierarchy);
+    if (reference != null) {
       return new ObjectAccessTarget.interfaceMember(reference.asMember,
           isPotentiallyNullable: isPotentiallyNullable);
+    } else {
+      return defaultTarget;
     }
-
-    return defaultTarget;
   }
 
   /// Returns extension member declared immediately for [receiverType].
@@ -1163,11 +1126,13 @@ class TypeInferrerImpl implements TypeInferrer {
   /// be targeted due to, e.g., an incorrect argument count).
   ObjectAccessTarget findInterfaceMember(
       DartType receiverType, Name name, int fileOffset,
-      {bool setter: false,
+      {required CallSiteAccessKind callSiteAccessKind,
       bool instrumented: true,
       bool includeExtensionMethods: false}) {
     // ignore: unnecessary_null_comparison
     assert(receiverType != null && isKnown(receiverType));
+
+    bool isSetter = callSiteAccessKind == CallSiteAccessKind.setterInvocation;
 
     DartType receiverBound = resolveTypeParameter(receiverType);
 
@@ -1181,8 +1146,8 @@ class TypeInferrerImpl implements TypeInferrer {
         : coreTypes.objectClass;
 
     if (isReceiverTypePotentiallyNullable) {
-      Member? member =
-          _getInterfaceMember(coreTypes.objectClass, name, setter, fileOffset);
+      Member? member = _getInterfaceMember(
+          coreTypes.objectClass, name, isSetter, fileOffset);
       if (member != null) {
         // Null implements all Object members so this is not considered a
         // potentially nullable access.
@@ -1194,7 +1159,7 @@ class TypeInferrerImpl implements TypeInferrer {
             coreTypes.objectClass,
             name,
             fileOffset,
-            setter: setter);
+            setter: isSetter);
         if (target != null) {
           return target;
         }
@@ -1212,7 +1177,8 @@ class TypeInferrerImpl implements TypeInferrer {
         case Nullability.nullable:
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.
-          return findInterfaceMember(const NullType(), name, fileOffset);
+          return findInterfaceMember(const NullType(), name, fileOffset,
+              callSiteAccessKind: callSiteAccessKind);
         case Nullability.undetermined:
           return internalProblem(
               templateInternalProblemUnsupportedNullability.withArguments(
@@ -1226,7 +1192,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
     ObjectAccessTarget? target;
     Member? interfaceMember =
-        _getInterfaceMember(classNode, name, setter, fileOffset);
+        _getInterfaceMember(classNode, name, isSetter, fileOffset);
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(interfaceMember,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
@@ -1243,10 +1209,11 @@ class TypeInferrerImpl implements TypeInferrer {
     } else if (library.enableExtensionTypesInLibrary &&
         receiverBound is ExtensionType) {
       target = _findDirectExtensionTypeMember(receiverBound, name, fileOffset,
-          isSetter: setter, defaultTarget: const ObjectAccessTarget.missing());
+          isSetter: isSetter,
+          defaultTarget: const ObjectAccessTarget.missing());
       if (target.kind == ObjectAccessTargetKind.missing) {
         target = _findShownExtensionTypeMember(receiverBound, name, fileOffset,
-            isSetter: setter,
+            callSiteAccessKind: callSiteAccessKind,
             isPotentiallyNullable: isReceiverTypePotentiallyNullable,
             defaultTarget: const ObjectAccessTarget.missing());
       }
@@ -1276,7 +1243,7 @@ class TypeInferrerImpl implements TypeInferrer {
             classNode,
             name,
             fileOffset,
-            setter: setter,
+            setter: isSetter,
             defaultTarget: target,
             isPotentiallyNullableAccess: true)!;
       } else {
@@ -1285,7 +1252,7 @@ class TypeInferrerImpl implements TypeInferrer {
             classNode,
             name,
             fileOffset,
-            setter: setter,
+            setter: isSetter,
             defaultTarget: target)!;
       }
     }
@@ -3665,7 +3632,9 @@ class TypeInferrerImpl implements TypeInferrer {
 
     ObjectAccessTarget target = findInterfaceMember(
         receiverType, name, fileOffset,
-        instrumented: true, includeExtensionMethods: true);
+        instrumented: true,
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
 
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
