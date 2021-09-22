@@ -53,8 +53,7 @@
         'pkg/analyzer/lib/src/dart/error/hint_codes\\.dart|'
         'pkg/analyzer/lib/src/dart/error/lint_codes\\.dart|'
         'pkg/analyzer/lib/src/dart/error/todo_codes\\.dart|'
-        'pkg/analyzer/lib/src/html/error/html_codes\\.dart|'
-        'pkg/dart_messages/lib/shared_messages\\.dart'
+        'pkg/analyzer/lib/src/html/error/html_codes\\.dart'
         ')$'
       )
     },

@@ -23,7 +23,6 @@ const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /// Keys for the [MessageTemplate]s.
 enum MessageKind {
-  ABSTRACT_GETTER,
   COMPILER_CRASHED,
   COMPLEX_RETURNING_NSM,
   COMPLEX_THROWING_NSM,
@@ -113,21 +112,6 @@ class MessageTemplate {
     MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT: MessageTemplate(
         MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
         "Argument for 'JS_INTERCEPTOR_CONSTANT' must be a type constant."),
-
-    MessageKind.ABSTRACT_GETTER: MessageTemplate(
-        MessageKind.ABSTRACT_GETTER,
-        "The getter '#{name}' has no implementation in "
-        "class '#{class}'.",
-        howToFix: "Try adding a body to '#{name}' or declaring "
-            "'#{class}' to be 'abstract'.",
-        examples: [
-          """
-class Class {
-  get getter;
-}
-main() => new Class();
-"""
-        ]),
 
     MessageKind.INVALID_METADATA: MessageTemplate(
         MessageKind.INVALID_METADATA,
