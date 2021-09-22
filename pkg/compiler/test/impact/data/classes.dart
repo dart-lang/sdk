@@ -264,8 +264,8 @@ enum Enum { A }
 
 /*member: testEnum:
  static=[
-  Enum._name=StringConstant("Enum.A"),
-  Enum.index=IntConstant(0)],
+  _Enum._name=StringConstant("A"),
+  _Enum.index=IntConstant(0)],
  type=[
   const:Enum,
   inst:JSInt,

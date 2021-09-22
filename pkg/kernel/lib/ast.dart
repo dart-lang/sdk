@@ -1673,7 +1673,7 @@ class ExtensionMemberDescriptor {
   /// The name of the extension member.
   ///
   /// The name of the generated top-level member is mangled to ensure
-  /// uniqueness. This name is used to lookup an extension method the
+  /// uniqueness. This name is used to lookup an extension method in the
   /// extension itself.
   Name name;
 

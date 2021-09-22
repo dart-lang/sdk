@@ -18,20 +18,20 @@ class Fisk<T extends core::Object* = dynamic> extends core::Object /*hasConstCon
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Foo extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int* index;
-  final field core::String* _name;
+class Foo extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Foo*>* values = const <self::Foo*>[self::Foo::bar, self::Foo::baz, self::Foo::cafebabe];
   @self::hest
-  static const field self::Foo* bar = const self::Foo::•(0, "Foo.bar");
+  static const field self::Foo* bar = const self::Foo::•(0, "bar");
   @self::Fisk::fisk<core::int*>(self::hest)
-  static const field self::Foo* baz = const self::Foo::•(1, "Foo.baz");
-  static const field self::Foo* cafebabe = const self::Foo::•(2, "Foo.cafebabe");
-  const constructor •(core::int* index, core::String* _name) → self::Foo*
-    : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
+  static const field self::Foo* baz = const self::Foo::•(1, "baz");
+  static const field self::Foo* cafebabe = const self::Foo::•(2, "cafebabe");
+  const constructor •(core::int* index, core::String* name) → self::Foo*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::Foo::_name}{core::String*};
+    return "Foo.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -48,10 +48,10 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///annotation_on_enum_values.dart:15:6 -> ListConstant(const <Foo*>[const Foo{Foo.index: 0, Foo._name: "Foo.bar"}, const Foo{Foo.index: 1, Foo._name: "Foo.baz"}, const Foo{Foo.index: 2, Foo._name: "Foo.cafebabe"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///annotation_on_enum_values.dart:15:6 -> ListConstant(const <Foo*>[const Foo{_Enum.index: 0, _Enum._name: "bar"}, const Foo{_Enum.index: 1, _Enum._name: "baz"}, const Foo{_Enum.index: 2, _Enum._name: "cafebabe"}])
 Evaluated: StaticGet @ org-dartlang-testcase:///annotation_on_enum_values.dart:16:4 -> IntConstant(42)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:17:3 -> InstanceConstant(const Foo{Foo.index: 0, Foo._name: "Foo.bar"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:17:3 -> InstanceConstant(const Foo{_Enum.index: 0, _Enum._name: "bar"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:18:4 -> InstanceConstant(const Fisk<int*>{Fisk.x: 42})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:19:3 -> InstanceConstant(const Foo{Foo.index: 1, Foo._name: "Foo.baz"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:20:3 -> InstanceConstant(const Foo{Foo.index: 2, Foo._name: "Foo.cafebabe"})
-Extra constant evaluation: evaluated: 11, effectively constant: 6
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:19:3 -> InstanceConstant(const Foo{_Enum.index: 1, _Enum._name: "baz"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:20:3 -> InstanceConstant(const Foo{_Enum.index: 2, _Enum._name: "cafebabe"})
+Extra constant evaluation: evaluated: 12, effectively constant: 6

@@ -7,7 +7,9 @@
 /*library: scope=[
   A2,
   B2,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 class A1 {}
 

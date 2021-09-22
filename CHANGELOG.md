@@ -31,7 +31,7 @@
     if (!iIsNull) {
       print(i + 1); // OK, because `i` is known to be non-null
     }
-  }
+  }<>
   ```
 
   Previously, the above program had a compile-time error because type promotion
@@ -82,7 +82,11 @@
 
 ### `dart:core`
 
+- Add extension `name` getter on enum values.
 - Add `Enum.compareByIndex` helper function for comparing enum values by index.
+- Add `Enum.compareByName` helper function for comparing enum values by name.
+- Add extension methods on `Iterable<T extends Enum>`, intended for
+  `SomeEnumType.values` lists, to look up values by name.
 
 ### Tools
 
@@ -130,9 +134,9 @@ Updated the Linter to `1.12.0`, which includes changes that
 - update `avoid_print` to allow `kDebugMode`-wrapped print calls.
 - fix handling of initializing formals in `prefer_final_parameters`.
 - fix `unnecessary_parenthesis` false positive with function expressions.
-- adds support for constructor tear-offs to `avoid_redundant_argument_values`, 
+- adds support for constructor tear-offs to `avoid_redundant_argument_values`,
   `unnecessary_lambdas`, and `unnecessary_parenthesis`.
-- adds a new lint: `unnecessary_constructor_name` to flag unnecessary uses of 
+- adds a new lint: `unnecessary_constructor_name` to flag unnecessary uses of
   `.new`.
 - improves regular expression parsing performance for common checks
   (`camel_case_types`, `file_names`, etc.).
@@ -180,9 +184,9 @@ Updated the Linter to `1.12.0`, which includes changes that
   [`false_secrets`](https://dart.dev/go/false-secrets) section of your
   `pubspec.yaml`.
 - Fixes unicode terminal detection windows.
-- New flag `--example` to the commands 
+- New flag `--example` to the commands
   `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
-  folder dependencies to be updated after operating in the current directory. 
+  folder dependencies to be updated after operating in the current directory.
 
 ## 2.14.2 - 2021-09-16
 

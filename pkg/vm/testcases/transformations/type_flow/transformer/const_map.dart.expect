@@ -2,11 +2,9 @@ library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class _AttributeName extends core::Object implements core::Enum /*isEnum*/  {
-[@vm.inferred-type.metadata=dart.core::_Smi] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->i]  final field core::int index;
-[@vm.inferred-type.metadata=dart.core::_OneByteString] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  final field core::String _name;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method toString() → core::String
-    return [@vm.direct-call.metadata=#lib::_AttributeName._name] [@vm.inferred-type.metadata=dart.core::_OneByteString] this.{self::_AttributeName::_name}{core::String};
+class _AttributeName extends core::_Enum /*isEnum*/  {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method toString() → core::String
+    return "_AttributeName.${[@vm.direct-call.metadata=dart.core::_Enum._name] this.{core::_Enum::_name}{core::String}}";
 }
 class _Attribute extends core::Object {
   constructor _() → self::_Attribute
@@ -23,11 +21,11 @@ static method main() → void {
 }
 constants  {
   #C1 = 1
-  #C2 = "_AttributeName.sibling"
+  #C2 = "sibling"
   #C3 = self::_AttributeName {index:#C1, _name:#C2}
   #C4 = 3
   #C5 = 0
-  #C6 = "_AttributeName.name"
+  #C6 = "name"
   #C7 = self::_AttributeName {index:#C5, _name:#C6}
   #C8 = <core::int*, self::_AttributeName*>{#C1:#C3, #C4:#C7)
 }

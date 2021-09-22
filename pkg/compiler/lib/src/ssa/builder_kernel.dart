@@ -4499,12 +4499,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   int _extractEnumIndexFromConstantValue(
       ConstantValue constant, ClassEntity classElement) {
-    if (constant is ConstructedConstantValue) {
-      if (constant.type.element == classElement) {
-        assert(constant.fields.length == 1 || constant.fields.length == 2);
-        ConstantValue indexConstant = constant.fields.values.first;
-        if (indexConstant is IntConstantValue) {
-          return indexConstant.intValue.toInt();
+    if (constant is ConstructedConstantValue &&
+        constant.type.element == classElement) {
+      assert(constant.fields.length >= 1);
+      for (var field in constant.fields.keys) {
+        if (field.memberName.text == "index") {
+          ConstantValue indexConstant = constant.fields[field];
+          if (indexConstant is IntConstantValue) {
+            return indexConstant.intValue.toInt();
+          }
+          break;
         }
       }
     }
