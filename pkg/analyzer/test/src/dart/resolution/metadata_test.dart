@@ -1200,7 +1200,7 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.typeName('C c').name.staticElement!;
+    var classC = findNode.namedType('C c').name.staticElement!;
     var annotation = classC.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 B
@@ -1230,7 +1230,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.typeName('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').name.staticElement!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1259,7 +1259,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.typeName('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').name.staticElement!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A

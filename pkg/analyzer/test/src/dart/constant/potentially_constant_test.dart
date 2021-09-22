@@ -563,7 +563,7 @@ class A<T> {
     var x = const <T>[0, 1, 2];
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T>[0')]);
+''', () => _xInitializer(), () => [findNode.namedType('T>[0')]);
   }
 
   test_literal_bool() async {
@@ -646,7 +646,7 @@ class A<T> {
   }
 }
 ''', () => _xInitializer(),
-        () => [findNode.typeName('T,'), findNode.typeName('T>{')]);
+        () => [findNode.namedType('T,'), findNode.namedType('T>{')]);
   }
 
   test_methodInvocation_identical() async {
@@ -978,7 +978,7 @@ class A<T> {
     var x = const <T>{0, 1, 2};
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T>{0')]);
+''', () => _xInitializer(), () => [findNode.namedType('T>{0')]);
   }
 
   test_simpleIdentifier_class() async {
@@ -1174,7 +1174,7 @@ class A<T> {
     var x = a as T;
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T;')]);
+''', () => _xInitializer(), () => [findNode.namedType('T;')]);
   }
 
   test_isExpression_typeParameter() async {
@@ -1185,7 +1185,7 @@ class A<T> {
     var x = a is T;
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T;')]);
+''', () => _xInitializer(), () => [findNode.namedType('T;')]);
   }
 
   _assertNotConst(String code, AstNode Function() getNode,

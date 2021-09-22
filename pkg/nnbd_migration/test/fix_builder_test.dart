@@ -1327,7 +1327,7 @@ int _f({int x = 0}) => x + 1;
 int _f({int/*?*/ x}) => 1;
 ''');
     visitAll(
-        changes: {findNode.typeName('int/*?*/ x'): isMakeNullableDueToHint});
+        changes: {findNode.namedType('int/*?*/ x'): isMakeNullableDueToHint});
   }
 
   Future<void>
@@ -1367,7 +1367,7 @@ void _f({@required int/*?*/ x}) {}
 ''');
     visitAll(changes: {
       findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword,
-      findNode.typeName('int'): isMakeNullableDueToHint,
+      findNode.namedType('int'): isMakeNullableDueToHint,
     });
   }
 
@@ -1594,7 +1594,7 @@ void Function(int/*?*/) _f() {
 }
 void _g(int/*?*/ x) {}
 ''');
-    var intTypeAnnotation = findNode.typeName('int)');
+    var intTypeAnnotation = findNode.namedType('int)');
     var genericFunctionTypeAnnotation =
         findNode.genericFunctionType('Function(int)');
     visitTypeAnnotation(genericFunctionTypeAnnotation, 'void Function(int?)',
@@ -1608,7 +1608,7 @@ void _f() {
 }
 int/*?*/ _g() => null;
 ''');
-    var intTypeAnnotation = findNode.typeName('int Function');
+    var intTypeAnnotation = findNode.namedType('int Function');
     var genericFunctionTypeAnnotation =
         findNode.genericFunctionType('Function');
     visitTypeAnnotation(genericFunctionTypeAnnotation, 'int? Function()',

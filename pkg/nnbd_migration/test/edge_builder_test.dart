@@ -8108,7 +8108,7 @@ import 'dart:math';
 void f(Point<int> x) {}
 ''');
     var pointClass =
-        findNode.typeName('Point').name.staticElement as ClassElement;
+        findNode.namedType('Point').name.staticElement as ClassElement;
     var pointBound =
         variables!.decoratedTypeParameterBound(pointClass.typeParameters[0])!;
     _assertType(pointBound.type!, 'num');

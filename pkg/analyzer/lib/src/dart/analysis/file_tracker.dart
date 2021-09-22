@@ -5,12 +5,6 @@
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
-/// Callback used by [FileTracker] to report to its client that files have been
-/// added, changed, or removed, and therefore more analysis may be necessary.
-/// [path] is the path of the file that was added, changed, or removed, or
-/// `null` if multiple files were added, changed, or removed.
-typedef FileTrackerChangeHook = void Function(String? path);
-
 /// Maintains the file system state needed by the analysis driver, as well as
 /// information about files that have changed and the impact of those changes.
 ///
@@ -24,7 +18,7 @@ typedef FileTrackerChangeHook = void Function(String? path);
 class FileTracker {
   /// Callback invoked whenever a change occurs that may require the client to
   /// perform analysis.
-  final FileTrackerChangeHook _changeHook;
+  final void Function() _changeHook;
 
   /// The logger to write performed operations and performance to.
   final PerformanceLog _logger;
@@ -109,14 +103,14 @@ class FileTracker {
     _fsState.markFileForReading(path);
     addedFiles.add(path);
     _pendingFiles.add(path);
-    _changeHook(path);
+    _changeHook();
   }
 
   /// Adds the given [paths] to the set of "added files".
   void addFiles(Iterable<String> paths) {
     addedFiles.addAll(paths);
     _pendingFiles.addAll(paths);
-    _changeHook(null);
+    _changeHook();
   }
 
   /// Adds the given [path] to the set of "changed files".
@@ -126,7 +120,7 @@ class FileTracker {
       _pendingChangedFiles.add(path);
     }
     _fsState.markFileForReading(path);
-    _changeHook(path);
+    _changeHook();
   }
 
   /// Removes the given [path] from the set of "pending files".
@@ -171,7 +165,7 @@ class FileTracker {
     // files seems extreme.
     _fsState.removeFile(path);
     _pendingFiles.addAll(addedFiles);
-    _changeHook(path);
+    _changeHook();
   }
 
   /// Schedule all added files for analysis.

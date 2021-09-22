@@ -28,7 +28,7 @@ dart_package(
       'int v = 0;',
     );
     assertNoErrorsInResult();
-    assertType(findNode.typeName('int v'), 'int*');
+    assertType(findNode.namedType('int v'), 'int*');
   }
 
   test_buildFile_nonNullable() async {
@@ -44,7 +44,7 @@ dart_package(
       'int v = 0;',
     );
     assertNoErrorsInResult();
-    assertType(findNode.typeName('int v'), 'int');
+    assertType(findNode.namedType('int v'), 'int');
 
     // Non-nullable in test/.
     await resolveFileCode(
@@ -52,7 +52,7 @@ dart_package(
       'int v = 0;',
     );
     assertNoErrorsInResult();
-    assertType(findNode.typeName('int v'), 'int');
+    assertType(findNode.namedType('int v'), 'int');
 
     // Non-nullable in bin/.
     await resolveFileCode(
@@ -60,7 +60,7 @@ dart_package(
       'int v = 0;',
     );
     assertNoErrorsInResult();
-    assertType(findNode.typeName('int v'), 'int');
+    assertType(findNode.namedType('int v'), 'int');
   }
 
   test_buildFile_nonNullable_oneLine_noComma() async {
@@ -73,7 +73,7 @@ dart_package(null_safety = True)
       'int v = 0;',
     );
     assertNoErrorsInResult();
-    assertType(findNode.typeName('int v'), 'int');
+    assertType(findNode.namedType('int v'), 'int');
   }
 
   test_buildFile_nonNullable_withComments() async {
@@ -89,7 +89,7 @@ dart_package(
       'int v = 0;',
     );
     assertNoErrorsInResult();
-    assertType(findNode.typeName('int v'), 'int');
+    assertType(findNode.namedType('int v'), 'int');
   }
 
   test_noBuildFile_legacy() async {
@@ -97,6 +97,6 @@ dart_package(
 int v = 0;
 ''');
 
-    assertType(findNode.typeName('int v'), 'int*');
+    assertType(findNode.namedType('int v'), 'int*');
   }
 }
