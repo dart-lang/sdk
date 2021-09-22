@@ -5,11 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-/// A simple class to find all [TypeName]s and track if they all get visited.
+/// A simple class to find all [NamedType]s and track if they all get visited.
 class TypeNameTracker extends RecursiveAstVisitor<void> {
-  final Set<TypeName> _nodes = {};
+  final Set<NamedType> _nodes = {};
 
-  bool _isTrueTypeName(TypeName node) {
+  bool _isTrueNamedType(NamedType node) {
     final parent = node.parent;
     if (parent is ConstructorName) {
       // We only need to visit C in `new C()`, just `int` in `new C<int>()`.
@@ -21,14 +21,14 @@ class TypeNameTracker extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    if (_isTrueTypeName(node)) {
+    if (_isTrueNamedType(node)) {
       _nodes.add(node);
     }
     super.visitTypeName(node);
   }
 
-  void nodeVisited(TypeName node) {
-    if (_isTrueTypeName(node) && !_nodes.remove(node)) {
+  void nodeVisited(NamedType node) {
+    if (_isTrueNamedType(node) && !_nodes.remove(node)) {
       throw StateError('Visited unexpected type name $node');
     }
   }

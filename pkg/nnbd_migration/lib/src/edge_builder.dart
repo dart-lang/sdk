@@ -1934,7 +1934,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // _nullCheckHints.
       var token = typeName.endToken;
       _nullCheckHints[token] = getPostfixHint(token);
-      typeNameVisited(
+      namedTypeVisited(
           typeName); // Note this has been visited to TypeNameTracker.
       return null;
     } finally {
