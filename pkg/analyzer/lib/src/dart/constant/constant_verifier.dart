@@ -129,6 +129,21 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    super.visitFunctionReference(node);
+    if (node.inConstantContext) {
+      var typeArguments = node.typeArguments;
+      if (typeArguments == null) {
+        return;
+      }
+      for (var typeArgument in typeArguments.arguments) {
+        _checkForConstWithTypeParameters(typeArgument,
+            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF);
+      }
+    }
+  }
+
+  @override
   void visitGenericFunctionType(GenericFunctionType node) {
     // TODO(srawlins): Also check interface types (TypeName?).
     super.visitGenericFunctionType(node);
