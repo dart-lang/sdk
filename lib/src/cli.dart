@@ -18,7 +18,9 @@ const processFileFailedExitCode = 65;
 
 const unableToProcessExitCode = 64;
 String? getRoot(List<String> paths) =>
-    paths.length == 1 && Directory(paths[0]).existsSync() ? paths[0] : null;
+    paths.length == 1 && Directory(paths.first).existsSync()
+        ? paths.first
+        : null;
 
 bool isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;

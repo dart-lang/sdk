@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitStringInterpolation(StringInterpolation node) {
     if (node.parent is AdjacentStrings) return;
     if (node.elements.length == 3) {
-      var start = node.elements[0] as InterpolationString;
+      var start = node.elements.first as InterpolationString;
       var interpolation = node.elements[1] as InterpolationExpression;
       var end = node.elements[2] as InterpolationString;
       if (start.value.isEmpty && end.value.isEmpty) {

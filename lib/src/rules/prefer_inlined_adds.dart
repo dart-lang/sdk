@@ -61,12 +61,12 @@ class _Visitor extends SimpleAstVisitor {
     var sections = cascade?.cascadeSections;
     var target = cascade?.target;
     if (target is! ListLiteral ||
-        (sections != null && sections[0] != invocation)) {
+        (sections != null && sections.first != invocation)) {
       // todo (pq): consider extending to handle set literals.
       return;
     }
 
-    if (addAll && invocation.argumentList.arguments[0] is! ListLiteral) {
+    if (addAll && invocation.argumentList.arguments.first is! ListLiteral) {
       // Handled by: prefer_spread_collections
       return;
     }

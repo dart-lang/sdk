@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor {
     if (body is BlockFunctionBody) {
       var statements = body.block.statements;
       if (statements.length == 1) {
-        var statement = statements[0];
+        var statement = statements.first;
         if (statement is ReturnStatement) {
           expressionToTest = statement.expression;
         }

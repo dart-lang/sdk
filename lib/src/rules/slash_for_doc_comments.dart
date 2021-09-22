@@ -40,7 +40,7 @@ bool isJavaStyle(Comment comment) {
     return false;
   }
   //Should be only one
-  return comment.tokens[0].lexeme.startsWith('/**');
+  return comment.tokens.first.lexeme.startsWith('/**');
 }
 
 class SlashForDocComments extends LintRule {
@@ -98,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     var directives = node.directives;
     if (directives.isNotEmpty) {
-      checkComment(directives[0].documentationComment);
+      checkComment(directives.first.documentationComment);
     }
   }
 

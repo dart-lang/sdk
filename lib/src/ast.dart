@@ -187,7 +187,7 @@ bool isSimpleGetter(MethodDeclaration declaration) {
   } else if (body is BlockFunctionBody) {
     var block = body.block;
     if (block.statements.length == 1) {
-      var statement = block.statements[0];
+      var statement = block.statements.first;
       if (statement is ReturnStatement) {
         return _checkForSimpleGetter(declaration, statement.expression);
       }
@@ -221,7 +221,7 @@ bool isSimpleSetter(MethodDeclaration setter) {
   } else if (body is BlockFunctionBody) {
     var block = body.block;
     if (block.statements.length == 1) {
-      var statement = block.statements[0];
+      var statement = block.statements.first;
       if (statement is ExpressionStatement) {
         return _checkForSimpleSetter(setter, statement.expression);
       }
@@ -312,7 +312,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
 
     var parameters = setter.parameters?.parameters;
     if (parameters != null && parameters.length == 1) {
-      return rightElement == parameters[0].declaredElement;
+      return rightElement == parameters.first.declaredElement;
     }
   }
 

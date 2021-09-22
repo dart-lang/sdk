@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (target != null &&
         node.methodName.token.value() == 'forEach' &&
         node.argumentList.arguments.isNotEmpty &&
-        node.argumentList.arguments[0] is FunctionExpression &&
+        node.argumentList.arguments.first is FunctionExpression &&
         _isNonNullableIterable(target.staticType) &&
         !_hasMethodChaining(node)) {
       rule.reportLint(node.function);

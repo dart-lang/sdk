@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (body is BlockFunctionBody) {
         var statements = body.block.statements;
         if (statements.length == 1) {
-          var statement = statements[0];
+          var statement = statements.first;
           if (statement is ReturnStatement) {
             return statement.expression;
           }
@@ -97,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           var parameters = expression.parameters?.parameters;
           if (parameters != null &&
               parameters.length == 1 &&
-              parameters[0].isRequired) {
+              parameters.first.isRequired) {
             if (extractBody(expression) != null) {
               return expression;
             }
