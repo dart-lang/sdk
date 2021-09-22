@@ -650,7 +650,6 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
-  thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (is_mutator) {
     // The mutator thread structure stays alive and attached to the isolate as

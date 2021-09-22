@@ -1191,7 +1191,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   thread->ClearStickyError();
-  thread->clear_pending_functions();
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_class_->IsSmi());
