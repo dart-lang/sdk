@@ -4,12 +4,16 @@ library from "org-dartlang-test:///late_statics.dart" as lat {
   import "org-dartlang-test:///late_statics_lib.dart" as lib;
 
   static method testUninitializedNonFinalTopLevelField() → void {
-    dart.core::print(lat2::a.{_late_helper::_Cell::readField}<dart.core::int>(){() → dart.core::int});
-    lat2::a.{_late_helper::_Cell::value} = 42;
-    dart.core::print(lat2::a.{_late_helper::_Cell::readField}<dart.core::int>(){() → dart.core::int});
+    dart.core::print(lat2::a);
+    lat2::a = 42;
+    dart.core::print(lat2::a);
   }
 }
 library from "org-dartlang-test:///late_statics_lib.dart" as lat2 {
 
-  static final field _late_helper::_Cell a = new _late_helper::_Cell::named("a");
+  static final field _late_helper::_Cell _#a = new _late_helper::_Cell::named("a");
+  static get a() → dart.core::int
+    return lat2::_#a.{_late_helper::_Cell::readField}<dart.core::int>(){() → dart.core::int};
+  static set a(dart.core::int value) → void
+    return lat2::_#a.{_late_helper::_Cell::value} = value;
 }

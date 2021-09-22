@@ -1,23 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/dart2js/late_from_dill/main.dart:59:11: Error: Setter not found: 'a'.
-//   Statics.a = 42;
-//           ^
-//
-// pkg/front_end/testcases/dart2js/late_from_dill/main.dart:65:11: Error: Setter not found: 'b'.
-//   Statics.b = 42;
-//           ^
-//
-// pkg/front_end/testcases/dart2js/late_from_dill/main.dart:81:7: Error: Setter not found: 'a'.
-//   lib.a = 42;
-//       ^
-//
-// pkg/front_end/testcases/dart2js/late_from_dill/main.dart:87:7: Error: Setter not found: 'b'.
-//   lib.b = 42;
-//       ^
-//
 import self as self;
 import "main_lib1.dart" as mai;
 import "dart:core" as core;
@@ -69,16 +50,12 @@ static method testInitializedFinalInstanceField() → void {
 }
 static method testUninitializedNonFinalStaticField() → void {
   core::print(mai::Statics::a);
-  invalid-expression "pkg/front_end/testcases/dart2js/late_from_dill/main.dart:59:11: Error: Setter not found: 'a'.
-  Statics.a = 42;
-          ^";
+  mai::Statics::a = 42;
   core::print(mai::Statics::a);
 }
 static method testUninitializedFinalStaticField() → void {
   core::print(mai::Statics::b);
-  invalid-expression "pkg/front_end/testcases/dart2js/late_from_dill/main.dart:65:11: Error: Setter not found: 'b'.
-  Statics.b = 42;
-          ^";
+  mai::Statics::b = 42;
   core::print(mai::Statics::b);
 }
 static method testInitializedNonFinalStaticField() → void {
@@ -91,16 +68,12 @@ static method testInitializedFinalStaticField() → void {
 }
 static method testUninitializedNonFinalTopLevelField() → void {
   core::print(mai2::a);
-  invalid-expression "pkg/front_end/testcases/dart2js/late_from_dill/main.dart:81:7: Error: Setter not found: 'a'.
-  lib.a = 42;
-      ^";
+  mai2::a = 42;
   core::print(mai2::a);
 }
 static method testUninitializedFinalTopLevelField() → void {
   core::print(mai2::b);
-  invalid-expression "pkg/front_end/testcases/dart2js/late_from_dill/main.dart:87:7: Error: Setter not found: 'b'.
-  lib.b = 42;
-      ^";
+  mai2::b = 42;
   core::print(mai2::b);
 }
 static method testInitializedNonFinalTopLevelField() → void {
@@ -157,8 +130,8 @@ class C extends core::Object {
   }
 }
 class Statics extends core::Object {
-  static final field _la::_Cell a = new _la::_Cell::named("a");
-  static final field _la::_Cell b = new _la::_Cell::named("b");
+  static final field _la::_Cell _#a = new _la::_Cell::named("a");
+  static final field _la::_Cell _#b = new _la::_Cell::named("b");
   late static field core::int c = 1.{core::int::unary-}(){() → core::int};
   late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
   synthetic constructor •() → mai::Statics
@@ -166,6 +139,14 @@ class Statics extends core::Object {
     ;
   static method _#new#tearOff() → mai::Statics
     return new mai::Statics::•();
+  static get a() → core::int
+    return mai::Statics::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set a(core::int value) → void
+    return mai::Statics::_#a.{_la::_Cell::value} = value;
+  static get b() → core::int
+    return mai::Statics::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set b(core::int value) → void
+    return mai::Statics::_#b.{_la::_Cell::finalFieldValue} = value;
 }
 static method testNullableUninitializedNonFinalLocal() → void {
   final _la::_Cell x = new _la::_Cell::named("x");
@@ -216,13 +197,21 @@ static method testNonNullableInitializedFinalLocal() → void {
 
 library /*isNonNullableByDefault*/;
 import self as mai2;
-import "dart:_late_helper" as _la;
 import "dart:core" as core;
+import "dart:_late_helper" as _la;
 
-static final field _la::_Cell a = new _la::_Cell::named("a");
-static final field _la::_Cell b = new _la::_Cell::named("b");
+static final field _la::_Cell _#a = new _la::_Cell::named("a");
+static final field _la::_Cell _#b = new _la::_Cell::named("b");
 late static field core::int c = 1.{core::int::unary-}(){() → core::int};
 late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
+static get a() → core::int
+  return mai2::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set a(core::int value) → void
+  return mai2::_#a.{_la::_Cell::value} = value;
+static get b() → core::int
+  return mai2::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set b(core::int value) → void
+  return mai2::_#b.{_la::_Cell::finalFieldValue} = value;
 
 
 Extra constant evaluation status:
@@ -236,4 +225,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///main_lib1.dart:63:23 ->
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///main_lib1.dart:71:22 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///main_lib2.dart:7:14 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///main_lib2.dart:8:20 -> DoubleConstant(-1.0)
-Extra constant evaluation: evaluated: 205, effectively constant: 10
+Extra constant evaluation: evaluated: 229, effectively constant: 10
