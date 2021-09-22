@@ -181,9 +181,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertElement(node, expectedConstructorElement);
     assertType(node, expectedType);
 
-    var typeName = node.constructorName.type;
+    var namedType = node.constructorName.type;
     expectedTypeNameElement ??= expectedClassElement;
-    assertNamedType(typeName, expectedTypeNameElement, null,
+    assertNamedType(namedType, expectedTypeNameElement, null,
         expectedPrefix: expectedPrefix);
   }
 
@@ -461,9 +461,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     assertType(creation, expectedType);
 
-    var typeName = creation.constructorName.type;
+    var namedType = creation.constructorName.type;
     expectedTypeNameElement ??= expectedClassElement;
-    assertNamedType(typeName, expectedTypeNameElement, expectedType,
+    assertNamedType(namedType, expectedTypeNameElement, expectedType,
         expectedPrefix: expectedPrefix);
   }
 
@@ -763,7 +763,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       actual = typeOrNode.staticType;
     } else if (typeOrNode is GenericFunctionType) {
       actual = typeOrNode.type;
-    } else if (typeOrNode is TypeName) {
+    } else if (typeOrNode is NamedType) {
       actual = typeOrNode.type;
     } else {
       fail('Unsupported node: (${typeOrNode.runtimeType}) $typeOrNode');
@@ -913,7 +913,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is PropertyAccess) {
       return node.propertyName.staticElement;
-    } else if (node is TypeName) {
+    } else if (node is NamedType) {
       return node.name.staticElement;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');

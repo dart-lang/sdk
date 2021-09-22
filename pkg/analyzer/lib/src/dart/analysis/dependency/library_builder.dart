@@ -169,7 +169,7 @@ class _LibraryBuilder {
   void _addClassOrMixin(ClassOrMixinDeclaration node) {
     var enclosingClassName = node.name.name;
 
-    TypeName? enclosingSuperClass;
+    NamedType? enclosingSuperClass;
     if (node is ClassDeclaration) {
       enclosingSuperClass = node.extendsClause?.superclass;
     }
@@ -303,7 +303,7 @@ class _LibraryBuilder {
 
   void _addConstructor(
     Node enclosingClass,
-    TypeName? enclosingSuperClass,
+    NamedType? enclosingSuperClass,
     List<Node> classMembers,
     ConstructorDeclaration node,
   ) {

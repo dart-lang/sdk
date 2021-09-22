@@ -122,7 +122,7 @@ class DefaultTypesBuilder {
             current != null && step < typeParameters.length;
             ++step) {
           var bound = current.bound;
-          if (bound is TypeName) {
+          if (bound is NamedType) {
             var typeNameIdentifier = bound.name;
             if (typeNameIdentifier is SimpleIdentifier) {
               current = typeParametersByName[typeNameIdentifier.name];

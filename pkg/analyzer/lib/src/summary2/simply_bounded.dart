@@ -252,7 +252,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   /// Otherwise `true` is returned.
   bool _visitType(List<SimplyBoundedNode> dependencies, TypeAnnotation type,
       bool allowTypeParameters) {
-    if (type is TypeName) {
+    if (type is NamedType) {
       var element = type.name.staticElement;
 
       if (element is TypeParameterElement) {

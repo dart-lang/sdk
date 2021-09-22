@@ -40,7 +40,7 @@ bool _isInterfaceTypeInterface(InterfaceType type) {
   return true;
 }
 
-List<InterfaceType> _toInterfaceTypeList(List<TypeName>? nodeList) {
+List<InterfaceType> _toInterfaceTypeList(List<NamedType>? nodeList) {
   if (nodeList != null) {
     return nodeList
         .map((e) => e.type)

@@ -100,7 +100,7 @@ class _ClassVerifier {
   final List<ClassMember> members;
   final ImplementsClause? implementsClause;
   final OnClause? onClause;
-  final TypeName? superclass;
+  final NamedType? superclass;
   final WithClause? withClause;
 
   final List<InterfaceType> directSuperInterfaces = [];
@@ -318,10 +318,10 @@ class _ClassVerifier {
     }
   }
 
-  /// Verify that the given [typeName] does not extend, implement, or mixes-in
+  /// Verify that the given [namedType] does not extend, implement, or mixes-in
   /// types such as `num` or `String`.
-  bool _checkDirectSuperType(TypeName typeName, ErrorCode errorCode) {
-    if (typeName.isSynthetic) {
+  bool _checkDirectSuperType(NamedType namedType, ErrorCode errorCode) {
+    if (namedType.isSynthetic) {
       return false;
     }
 
@@ -331,10 +331,10 @@ class _ClassVerifier {
       return false;
     }
 
-    DartType type = typeName.typeOrThrow;
+    DartType type = namedType.typeOrThrow;
     if (type is InterfaceType &&
         typeProvider.isNonSubtypableClass(type.element)) {
-      reporter.reportErrorForNode(errorCode, typeName, [type]);
+      reporter.reportErrorForNode(errorCode, namedType, [type]);
       return true;
     }
 
@@ -347,9 +347,9 @@ class _ClassVerifier {
   bool _checkDirectSuperTypes() {
     var hasError = false;
     if (implementsClause != null) {
-      for (var typeName in implementsClause!.interfaces) {
+      for (var namedType in implementsClause!.interfaces) {
         if (_checkDirectSuperType(
-          typeName,
+          namedType,
           CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
         )) {
           hasError = true;
@@ -357,9 +357,9 @@ class _ClassVerifier {
       }
     }
     if (onClause != null) {
-      for (var typeName in onClause!.superclassConstraints) {
+      for (var namedType in onClause!.superclassConstraints) {
         if (_checkDirectSuperType(
-          typeName,
+          namedType,
           CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
         )) {
           hasError = true;
@@ -375,9 +375,9 @@ class _ClassVerifier {
       }
     }
     if (withClause != null) {
-      for (var typeName in withClause!.mixinTypes) {
+      for (var namedType in withClause!.mixinTypes) {
         if (_checkDirectSuperType(
-          typeName,
+          namedType,
           CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         )) {
           hasError = true;
