@@ -22,7 +22,7 @@ class LegacyCompilerInput implements CompilerInput {
   LegacyCompilerInput(this._inputProvider);
 
   @override
-  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.UTF8}) {
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind = InputKind.UTF8}) {
     // The switch handles all enum values, but not null.
     // ignore: missing_return
     return _inputProvider(uri).then((/*String|List<int>*/ data) {
@@ -30,9 +30,9 @@ class LegacyCompilerInput implements CompilerInput {
         case InputKind.UTF8:
           SourceFile sourceFile;
           if (data is List<int>) {
-            sourceFile = new Utf8BytesSourceFile(uri, data);
+            sourceFile = Utf8BytesSourceFile(uri, data);
           } else if (data is String) {
-            sourceFile = new StringSourceFile.fromUri(uri, data);
+            sourceFile = StringSourceFile.fromUri(uri, data);
           } else {
             throw "Expected a 'String' or a 'List<int>' from the input "
                 "provider, but got: ${Error.safeToString(data)}.";
@@ -42,7 +42,7 @@ class LegacyCompilerInput implements CompilerInput {
           if (data is String) {
             data = utf8.encode(data);
           }
-          return new Binary(uri, data);
+          return Binary(uri, data);
       }
     });
   }
@@ -82,14 +82,14 @@ class LegacyCompilerOutput implements CompilerOutput {
           break;
         default:
       }
-      return new LegacyOutputSink(_outputProvider(name, extension));
+      return LegacyOutputSink(_outputProvider(name, extension));
     }
     return NullSink.outputProvider(name, extension, type);
   }
 
   @override
   BinaryOutputSink createBinarySink(Uri uri) {
-    throw new UnsupportedError("LegacyCompilerOutput.createBinarySink");
+    throw UnsupportedError("LegacyCompilerOutput.createBinarySink");
   }
 }
 

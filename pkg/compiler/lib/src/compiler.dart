@@ -59,7 +59,7 @@ import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld, KClosedWorld;
 
-typedef CompilerDiagnosticReporter MakeReporterFunction(
+typedef MakeReporterFunction = CompilerDiagnosticReporter Function(
     Compiler compiler, CompilerOptions options);
 
 abstract class Compiler {
@@ -138,7 +138,7 @@ abstract class Compiler {
   Compiler(
       {CompilerOptions options,
       api.CompilerOutput outputProvider,
-      this.environment: const _EmptyEnvironment(),
+      this.environment = const _EmptyEnvironment(),
       MakeReporterFunction makeReporter})
       : this.options = options {
     options.deriveOptions();
@@ -155,38 +155,38 @@ abstract class Compiler {
     }
 
     CompilerTask kernelFrontEndTask;
-    selfTask = new GenericTask('self', measurer);
-    _outputProvider = new _CompilerOutput(this, outputProvider);
+    selfTask = GenericTask('self', measurer);
+    _outputProvider = _CompilerOutput(this, outputProvider);
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
-      _reporter = new CompilerDiagnosticReporter(this);
+      _reporter = CompilerDiagnosticReporter(this);
     }
-    kernelFrontEndTask = new GenericTask('Front end', measurer);
-    frontendStrategy = new KernelFrontendStrategy(
+    kernelFrontEndTask = GenericTask('Front end', measurer);
+    frontendStrategy = KernelFrontendStrategy(
         kernelFrontEndTask, options, reporter, environment);
     backendStrategy = createBackendStrategy();
     _impactCache = <Entity, WorldImpact>{};
-    _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
+    _impactCacheDeleter = _MapImpactCacheDeleter(_impactCache);
 
     if (options.showInternalProgress) {
-      progress = new InteractiveProgress();
+      progress = InteractiveProgress();
     }
 
-    enqueuer = new EnqueueTask(this);
+    enqueuer = EnqueueTask(this);
 
     tasks = [
-      kernelLoader = new KernelLoaderTask(
+      kernelLoader = KernelLoaderTask(
           options, provider, _outputProvider, reporter, measurer),
       kernelFrontEndTask,
-      globalInference = new GlobalTypeInferenceTask(this),
+      globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.
       enqueuer,
-      dumpInfoTask = new DumpInfoTask(this),
+      dumpInfoTask = DumpInfoTask(this),
       selfTask,
-      serializationTask = new SerializationTask(
+      serializationTask = SerializationTask(
           options, reporter, provider, outputProvider, measurer),
     ];
 
@@ -197,7 +197,7 @@ abstract class Compiler {
   ///
   /// Override this to mock the backend strategy for testing.
   BackendStrategy createBackendStrategy() {
-    return new JsBackendStrategy(this);
+    return JsBackendStrategy(this);
   }
 
   ResolutionWorldBuilder resolutionWorldBuilderForTesting;
@@ -225,7 +225,7 @@ abstract class Compiler {
   Future<bool> run(Uri uri) => selfTask.measureSubtask("run", () {
         measurer.startWallClock();
 
-        return new Future.sync(() => runInternal(uri))
+        return Future.sync(() => runInternal(uri))
             .catchError((error, StackTrace stackTrace) =>
                 _reporter.onError(uri, error, stackTrace))
             .whenComplete(() {
@@ -339,7 +339,7 @@ abstract class Compiler {
       runCodegenEnqueuer(codegenResults);
     } else {
       reporter.log('Compiling methods');
-      CodegenResults codegenResults = new OnDemandCodegenResults(
+      CodegenResults codegenResults = OnDemandCodegenResults(
           globalTypeInferenceResults,
           codegenInputs,
           backendStrategy.functionCompiler);
@@ -383,7 +383,7 @@ abstract class Compiler {
         resolutionEnqueuer.worldBuilder.registerClass(cls);
       });
     }
-    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl mainImpact = WorldImpactBuilderImpl();
     FunctionEntity mainFunction = frontendStrategy.computeMain(mainImpact);
 
     // In order to see if a library is deferred, we must compute the
@@ -392,8 +392,7 @@ abstract class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    impactStrategy = new JavaScriptImpactStrategy(
-        impactCacheDeleter, dumpInfoTask,
+    impactStrategy = JavaScriptImpactStrategy(impactCacheDeleter, dumpInfoTask,
         supportDeferredLoad: deferredLoadTask.isProgramSplit,
         supportDumpInfo: options.dumpInfo);
 
@@ -444,9 +443,9 @@ abstract class Compiler {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Performing global type inference');
     GlobalLocalsMap globalLocalsMap =
-        new GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
+        GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
     InferredDataBuilder inferredDataBuilder =
-        new InferredDataBuilderImpl(closedWorld.annotationsData);
+        InferredDataBuilderImpl(closedWorld.annotationsData);
     return globalInference.runGlobalTypeInference(
         mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
@@ -511,7 +510,7 @@ abstract class Compiler {
   }
 
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    _userCodeLocations.add(new CodeLocation(rootLibraryUri));
+    _userCodeLocations.add(CodeLocation(rootLibraryUri));
     selfTask.measureSubtask("compileFromKernel", () {
       JsClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
@@ -627,7 +626,7 @@ abstract class Compiler {
 
   /// Messages for which compile-time errors are reported but compilation
   /// continues regardless.
-  static const List<MessageKind> BENIGN_ERRORS = const <MessageKind>[
+  static const List<MessageKind> BENIGN_ERRORS = <MessageKind>[
     MessageKind.INVALID_METADATA,
     MessageKind.INVALID_METADATA_GENERIC,
   ];
@@ -675,7 +674,7 @@ abstract class Compiler {
   ///
   /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
   /// if no entrypoints have been set.
-  bool inUserCode(Entity element, {bool assumeInUserCode: false}) {
+  bool inUserCode(Entity element, {bool assumeInUserCode = false}) {
     if (element == null) return assumeInUserCode;
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return false;
@@ -696,7 +695,7 @@ abstract class Compiler {
       int slashPos = libraryUri.path.indexOf('/');
       if (slashPos != -1) {
         String packageName = libraryUri.path.substring(0, slashPos);
-        return new Uri(scheme: 'package', path: packageName);
+        return Uri(scheme: 'package', path: packageName);
       }
     }
     return libraryUri;
@@ -769,7 +768,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     SourceSpan span = spanFromSpannable(spannable);
     MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     Message message = template.message(arguments, options);
-    return new DiagnosticMessage(span, spannable, message);
+    return DiagnosticMessage(span, spannable, message);
   }
 
   @override
@@ -818,8 +817,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
               reportDiagnostic(message, infos, kind);
               return;
             }
-            SuppressionInfo info = suppressedWarnings.putIfAbsent(
-                uri, () => new SuppressionInfo());
+            SuppressionInfo info =
+                suppressedWarnings.putIfAbsent(uri, () => SuppressionInfo());
             if (kind == api.Diagnostic.WARNING) {
               info.warnings++;
             } else {
@@ -970,7 +969,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   void log(message) {
     Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
         .message({'text': '$message'}, options);
-    reportDiagnostic(new DiagnosticMessage(null, null, msg),
+    reportDiagnostic(DiagnosticMessage(null, null, msg),
         const <DiagnosticMessage>[], api.Diagnostic.VERBOSE_INFO);
   }
 
@@ -991,7 +990,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         } else {
           reportDiagnostic(
               createMessage(
-                  new SourceSpan(uri, 0, 0), MessageKind.COMPILER_CRASHED),
+                  SourceSpan(uri, 0, 0), MessageKind.COMPILER_CRASHED),
               const <DiagnosticMessage>[],
               api.Diagnostic.CRASH);
         }
@@ -1000,7 +999,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } catch (doubleFault) {
       // Ignoring exceptions in exception handling.
     }
-    return new Future.error(error, stackTrace);
+    return Future.error(error, stackTrace);
   }
 
   @override
@@ -1025,7 +1024,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
           'hints': info.hints.toString(),
           'uri': uri.toString(),
         }, options);
-        reportDiagnostic(new DiagnosticMessage(null, null, message),
+        reportDiagnostic(DiagnosticMessage(null, null, message),
             const <DiagnosticMessage>[], api.Diagnostic.HINT);
       });
     }
@@ -1075,7 +1074,7 @@ class Progress {
 /// with 500ms intervals.
 class ProgressImpl implements Progress {
   final DiagnosticReporter _reporter;
-  final Stopwatch _stopwatch = new Stopwatch()..start();
+  final Stopwatch _stopwatch = Stopwatch()..start();
 
   ProgressImpl(this._reporter);
 
@@ -1097,8 +1096,8 @@ class ProgressImpl implements Progress {
 /// with 500ms intervals using escape sequences to keep the progress data on a
 /// single line.
 class InteractiveProgress implements Progress {
-  final Stopwatch _stopwatchPhase = new Stopwatch()..start();
-  final Stopwatch _stopwatchInterval = new Stopwatch()..start();
+  final Stopwatch _stopwatchPhase = Stopwatch()..start();
+  final Stopwatch _stopwatchInterval = Stopwatch()..start();
   @override
   void startPhase() {
     print('');
@@ -1111,7 +1110,7 @@ class InteractiveProgress implements Progress {
     if (_stopwatchInterval.elapsedMilliseconds > 500) {
       var time = _stopwatchPhase.elapsedMilliseconds / 1000;
       var rate = count / _stopwatchPhase.elapsedMilliseconds;
-      var s = new StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
+      var s = StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
         ..write('\x1b[48;5;40m\x1b[30m==>\x1b[0m $prefix')
         ..write(count)
         ..write('$suffix Elapsed time: ')

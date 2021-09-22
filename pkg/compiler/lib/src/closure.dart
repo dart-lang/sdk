@@ -70,20 +70,20 @@ class ScopeInfo {
     ScopeInfoKind kind = source.readEnum(ScopeInfoKind.values);
     switch (kind) {
       case ScopeInfoKind.scopeInfo:
-        return new JsScopeInfo.readFromDataSource(source);
+        return JsScopeInfo.readFromDataSource(source);
       case ScopeInfoKind.capturedScope:
-        return new JsCapturedScope.readFromDataSource(source);
+        return JsCapturedScope.readFromDataSource(source);
       case ScopeInfoKind.capturedLoopScope:
-        return new JsCapturedLoopScope.readFromDataSource(source);
+        return JsCapturedLoopScope.readFromDataSource(source);
       case ScopeInfoKind.closureRepresentationInfo:
-        return new JsClosureClassInfo.readFromDataSource(source);
+        return JsClosureClassInfo.readFromDataSource(source);
     }
-    throw new UnsupportedError('Unexpected ScopeInfoKind $kind');
+    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// Serializes this [ScopeInfo] to [sink].
   void writeToDataSink(DataSink sink) {
-    throw new UnsupportedError('${runtimeType}.writeToDataSink');
+    throw UnsupportedError('${runtimeType}.writeToDataSink');
   }
 
   /// Convenience reference pointer to the element representing `this`.
@@ -131,13 +131,13 @@ class CapturedScope extends ScopeInfo {
     switch (kind) {
       case ScopeInfoKind.scopeInfo:
       case ScopeInfoKind.closureRepresentationInfo:
-        throw new UnsupportedError('Unexpected CapturedScope kind $kind');
+        throw UnsupportedError('Unexpected CapturedScope kind $kind');
       case ScopeInfoKind.capturedScope:
-        return new JsCapturedScope.readFromDataSource(source);
+        return JsCapturedScope.readFromDataSource(source);
       case ScopeInfoKind.capturedLoopScope:
-        return new JsCapturedLoopScope.readFromDataSource(source);
+        return JsCapturedLoopScope.readFromDataSource(source);
     }
-    throw new UnsupportedError('Unexpected ScopeInfoKind $kind');
+    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// If true, this closure accesses a variable that was defined in an outside
@@ -179,11 +179,11 @@ class CapturedLoopScope extends CapturedScope {
       case ScopeInfoKind.scopeInfo:
       case ScopeInfoKind.closureRepresentationInfo:
       case ScopeInfoKind.capturedScope:
-        throw new UnsupportedError('Unexpected CapturedLoopScope kind $kind');
+        throw UnsupportedError('Unexpected CapturedLoopScope kind $kind');
       case ScopeInfoKind.capturedLoopScope:
-        return new JsCapturedLoopScope.readFromDataSource(source);
+        return JsCapturedLoopScope.readFromDataSource(source);
     }
-    throw new UnsupportedError('Unexpected ScopeInfoKind $kind');
+    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// True if this loop scope declares in the first part of the loop
@@ -247,12 +247,12 @@ class ClosureRepresentationInfo extends ScopeInfo {
       case ScopeInfoKind.scopeInfo:
       case ScopeInfoKind.capturedScope:
       case ScopeInfoKind.capturedLoopScope:
-        throw new UnsupportedError(
+        throw UnsupportedError(
             'Unexpected ClosureRepresentationInfo kind $kind');
       case ScopeInfoKind.closureRepresentationInfo:
-        return new JsClosureClassInfo.readFromDataSource(source);
+        return JsClosureClassInfo.readFromDataSource(source);
     }
-    throw new UnsupportedError('Unexpected ScopeInfoKind $kind');
+    throw UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
 
   /// The original local function before any translation.
@@ -376,7 +376,7 @@ class TypeVariableLocal implements Local {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('type_variable_local(');
     sb.write(typeVariable);
     sb.write(')');
