@@ -175,40 +175,6 @@ void runExpressionCompilationTests(TestDriver driver) {
           ]));
     });
 
-    test('compile expressions include "dart.library..." environment defines.',
-        () async {
-      driver.requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': driver.inputs,
-      });
-
-      driver.requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'const bool.fromEnvironment("dart.library.html")',
-        'line': 5,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {'formal': 'formal'},
-        'libraryUri': driver.config.testModule.libraryUri,
-        'moduleName': driver.config.testModule.moduleName,
-      });
-
-      expect(
-          driver.responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'infos': isEmpty,
-              'compiledProcedure': contains('true'),
-            })
-          ]));
-    });
-
     test('can compile expressions in main', () async {
       driver.requestController.add({
         'command': 'UpdateDeps',

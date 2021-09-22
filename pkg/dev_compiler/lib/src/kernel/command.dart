@@ -819,8 +819,7 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   }
 
   // Add platform defined variables
-  // TODO(47243) Remove when all code paths read these from the `Target`.
-  declaredVariables.addAll(sdkLibraryEnvironmentDefines);
+  declaredVariables.addAll(sdkLibraryVariables);
 
   return declaredVariables;
 }
