@@ -2,7 +2,7 @@ library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-abstract class A extends core::Object implements core::Enum {
+abstract class A extends core::_Enum {
 }
 abstract class B extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → void;

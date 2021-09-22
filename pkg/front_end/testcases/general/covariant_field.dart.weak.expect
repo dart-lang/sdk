@@ -15,7 +15,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::num* invariantField = null;
-  covariant field core::num* covariantField = null;
+  covariant-by-declaration field core::num* covariantField = null;
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
@@ -37,7 +37,7 @@ abstract class B extends core::Object implements self::A {
   abstract get invariantField() → core::num*;
   abstract set invariantField(core::num* value) → void;
   abstract get covariantField() → core::num*;
-  abstract set covariantField(covariant core::num* value) → void;
+  abstract set covariantField(covariant-by-declaration core::num* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -56,7 +56,7 @@ abstract class C extends core::Object implements self::A {
   abstract get invariantField() → core::int*;
   set invariantField(core::int* value) → void {}
   abstract get covariantField() → core::int*;
-  set covariantField(covariant core::int* value) → void {}
+  set covariantField(covariant-by-declaration core::int* value) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -73,9 +73,9 @@ abstract class D extends core::Object implements self::A {
     : super core::Object::•()
     ;
   abstract get invariantField() → core::int*;
-  set invariantField(covariant core::int* value) → void {}
+  set invariantField(covariant-by-declaration core::int* value) → void {}
   abstract get covariantField() → core::int*;
-  set covariantField(covariant core::int* value) → void {}
+  set covariantField(covariant-by-declaration core::int* value) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

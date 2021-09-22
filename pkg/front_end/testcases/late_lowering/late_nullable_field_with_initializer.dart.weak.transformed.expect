@@ -10,7 +10,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   field core::int? _#Class#lateInstanceField = null;
   field core::bool _#Class#lateInstanceField#isSet = false;
   final field self::Class::T? field;
-  generic-covariant-impl field self::Class::T? _#Class#lateGenericInstanceField = null;
+  covariant-by-class field self::Class::T? _#Class#lateGenericInstanceField = null;
   field core::bool _#Class#lateGenericInstanceField#isSet = false;
   constructor •(self::Class::T? field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
@@ -68,11 +68,11 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     }
     return this.{self::Class::_#Class#lateGenericInstanceField}{self::Class::T?};
   }
-  set lateGenericInstanceField(generic-covariant-impl self::Class::T? #t4) → void {
+  set lateGenericInstanceField(covariant-by-class self::Class::T? #t4) → void {
     this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
   }
-  method instanceMethod(generic-covariant-impl self::Class::T? value) → dynamic {
+  method instanceMethod(covariant-by-class self::Class::T? value) → dynamic {
     self::expect(16, this.{self::Class::lateInstanceField}{core::int?});
     this.{self::Class::lateInstanceField} = 17;
     self::expect(17, this.{self::Class::lateInstanceField}{core::int?});

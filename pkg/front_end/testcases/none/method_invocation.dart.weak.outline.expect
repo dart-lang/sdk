@@ -9,7 +9,7 @@ class Class1 extends core::Object {
     ;
 }
 class Class2<T extends core::Object? = dynamic> extends core::Object {
-  generic-covariant-impl field self::Class2::T% field;
+  covariant-by-class field self::Class2::T% field;
   field core::Function nonNullableFunctionField;
   field core::Function? nullableFunctionField;
   field () → void nonNullableFunctionTypedField;

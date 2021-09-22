@@ -6,7 +6,7 @@ class Super<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Super<self::Super::T%>
     : super core::Object::•()
     ;
-  method method(generic-covariant-impl self::Super::T% t) → void {}
+  method method(covariant-by-class self::Super::T% t) → void {}
 }
 class Mixin extends core::Object {
   synthetic constructor •() → self::Mixin
@@ -18,7 +18,7 @@ class Class = self::Super<core::int> with self::Mixin {
   synthetic constructor •() → self::Class
     : super self::Super::•()
     ;
-  forwarding-stub method method(generic-covariant-impl core::int t) → void
+  forwarding-stub method method(covariant-by-class core::int t) → void
     return super.{self::Mixin::method}(t);
 }
 class Subclass extends self::Class {

@@ -18,7 +18,7 @@ class _Y<T extends core::Object* = dynamic> extends core::Object /*hasConstConst
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class A<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::_Y<self::A::T*>* x;
+  covariant-by-class field self::_Y<self::A::T*>* x;
   constructor •(self::_Y<self::A::T*>* x) → self::A<self::A::T*>*
     : self::A::x = x, super core::Object::•()
     ;

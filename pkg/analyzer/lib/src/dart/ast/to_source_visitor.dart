@@ -600,7 +600,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     sink.write('implements ');
-    _visitNodeList(node.interfaces, separator: ', ');
+    _visitNodeList(node.interfaces2, separator: ', ');
   }
 
   @override
@@ -776,7 +776,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     sink.write('on ');
-    _visitNodeList(node.superclassConstraints, separator: ', ');
+    _visitNodeList(node.superclassConstraints2, separator: ', ');
   }
 
   @override
@@ -1072,7 +1072,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     sink.write('with ');
-    _visitNodeList(node.mixinTypes, separator: ', ');
+    _visitNodeList(node.mixinTypes2, separator: ', ');
   }
 
   @override

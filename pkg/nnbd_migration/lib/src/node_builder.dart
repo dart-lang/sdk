@@ -871,13 +871,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var supertypes = <NamedType?>[];
     supertypes.add(superclass);
     if (withClause != null) {
-      supertypes.addAll(withClause.mixinTypes);
+      supertypes.addAll(withClause.mixinTypes2);
     }
     if (implementsClause != null) {
-      supertypes.addAll(implementsClause.interfaces);
+      supertypes.addAll(implementsClause.interfaces2);
     }
     if (onClause != null) {
-      supertypes.addAll(onClause.superclassConstraints);
+      supertypes.addAll(onClause.superclassConstraints2);
     }
     var decoratedSupertypes = <ClassElement, DecoratedType?>{};
     _pushNullabilityNodeTarget(

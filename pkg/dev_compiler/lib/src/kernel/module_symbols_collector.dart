@@ -174,7 +174,7 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var kind = node.isFieldFormal
+    var kind = node.isInitializingFormal
         ? VariableSymbolKind.formal
         : VariableSymbolKind.local;
     var variableSymbol = _createVariableSymbol(node, kind);

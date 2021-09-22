@@ -531,6 +531,10 @@ abstract class Enum {
   int get index;
 }
 
+abstract class _Enum extends Enum {
+  String _name;
+}
+
 abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }

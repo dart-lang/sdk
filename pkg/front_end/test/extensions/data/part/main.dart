@@ -5,7 +5,9 @@
 /*library: scope=[
   Extension,
   _extension#0,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 part 'part.dart';
 

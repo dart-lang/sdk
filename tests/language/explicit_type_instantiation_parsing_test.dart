@@ -302,7 +302,7 @@ void main() {
   // Parsed as a generic instantiation, but `d` is not generic function or type.
   // Being dynamic doesn't help.
   // Would be valid if parsed as operators.
-  expect1(v < X, X > (2));
+  expect1(d < X, X > (2));
   //        ^^^^^^^^
   // [cfe] unspecified
   // [analyzer] unspecified

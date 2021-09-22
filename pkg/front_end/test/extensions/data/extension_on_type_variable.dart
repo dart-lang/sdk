@@ -6,7 +6,9 @@
 
 /*library: scope=[
   GeneralGeneric,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 /*class: GeneralGeneric:
  builder-name=GeneralGeneric,

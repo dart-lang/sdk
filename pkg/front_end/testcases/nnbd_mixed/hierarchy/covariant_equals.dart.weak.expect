@@ -6,7 +6,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  operator ==(covariant self::A* other) → core::bool*
+  operator ==(covariant-by-declaration self::A* other) → core::bool*
     return true;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -22,14 +22,14 @@ class B extends self::A {
   synthetic constructor •() → self::B*
     : super self::A::•()
     ;
-  operator ==(covariant self::A* other) → core::bool*
+  operator ==(covariant-by-declaration self::A* other) → core::bool*
     return true;
 }
 class C<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
-  operator ==(covariant generic-covariant-impl self::C<self::C::T*>* other) → core::bool*
+  operator ==(covariant-by-declaration covariant-by-class self::C<self::C::T*>* other) → core::bool*
     return true;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

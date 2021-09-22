@@ -48,13 +48,13 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T%>
     : super core::Object::•()
     ;
-  operator +(generic-covariant-impl self::Class<self::Class::T%> other) → self::Class<self::Class::T%>
+  operator +(covariant-by-class self::Class<self::Class::T%> other) → self::Class<self::Class::T%>
     return other;
   operator unary-() → self::Class<self::Class::T%>
     return this;
   operator [](core::int index) → self::Class<self::Class::T%>
     return this;
-  operator []=(core::int index, generic-covariant-impl self::Class<self::Class::T%> value) → void {}
+  operator []=(core::int index, covariant-by-class self::Class<self::Class::T%> value) → void {}
   method method(core::double o) → core::int
     return 42;
 }

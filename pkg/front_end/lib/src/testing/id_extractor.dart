@@ -312,7 +312,7 @@ abstract class DataExtractor<T> extends Visitor<void>
 
   @override
   void visitVariableGet(VariableGet node) {
-    if (node.variable.name != null && !node.variable.isFieldFormal) {
+    if (node.variable.name != null && !node.variable.isInitializingFormal) {
       // Skip use of synthetic variables.
       computeForNode(node, computeDefaultNodeId(node));
     }

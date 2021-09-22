@@ -6,7 +6,9 @@
 
 /*library: scope=[
   ShownExtension3,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 /*class: ShownExtension3:
  builder-name=ShownExtension3,

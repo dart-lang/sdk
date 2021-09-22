@@ -30,7 +30,7 @@ import "dart:core" as core;
 abstract class A extends core::Object {
   late field core::int property4;
   late field core::int? property5;
-  late covariant field core::int property6;
+  late covariant-by-declaration field core::int property6;
   constructor •(core::int property4, core::int? property5, core::int property6) → self::A
     : self::A::property4 = property4, self::A::property5 = property5, self::A::property6 = property6, super core::Object::•()
     ;

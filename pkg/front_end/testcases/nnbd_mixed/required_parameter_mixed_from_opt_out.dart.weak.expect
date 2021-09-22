@@ -9,13 +9,13 @@ class Super extends core::Object {
   synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
-  method method({required covariant core::int named = #C1}) → void {}
+  method method({required covariant-by-declaration core::int named = #C1}) → void {}
 }
 abstract class _Class&Super&Mixin = self::Super with req::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  forwarding-stub method /*isLegacy*/ method({covariant core::int* named = #C1}) → void
+  forwarding-stub method /*isLegacy*/ method({covariant-by-declaration core::int* named = #C1}) → void
     return super.{req::Mixin::method}(named: named);
   abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
@@ -28,7 +28,7 @@ class SubClass extends self::Class {
   synthetic constructor •() → self::SubClass
     : super self::Class::•()
     ;
-  method method({required covariant core::int named = #C1}) → void {}
+  method method({required covariant-by-declaration core::int named = #C1}) → void {}
 }
 static method main() → dynamic {}
 

@@ -21,7 +21,7 @@ class Foo<T extends self::A?> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::T%>
     : super core::Object::•()
     ;
-  method doPromotionsToNullable(generic-covariant-impl self::Foo::T% t) → dynamic {
+  method doPromotionsToNullable(covariant-by-class self::Foo::T% t) → dynamic {
     if(t is{ForNonNullableByDefault} self::B?) {
       self::Foo::T% bar = t{self::Foo::T% & self::B? /* '%' & '?' = '%' */};
       if(t{self::Foo::T% & self::B? /* '%' & '?' = '%' */} is{ForNonNullableByDefault} self::C?) {
@@ -29,7 +29,7 @@ class Foo<T extends self::A?> extends core::Object {
       }
     }
   }
-  method doPromotionsToNonNullable(generic-covariant-impl self::Foo::T% t) → dynamic {
+  method doPromotionsToNonNullable(covariant-by-class self::Foo::T% t) → dynamic {
     if(t is{ForNonNullableByDefault} self::B) {
       self::Foo::T% bar = t{self::Foo::T% & self::B /* '%' & '!' = '!' */};
       if(t{self::Foo::T% & self::B /* '%' & '!' = '!' */} is{ForNonNullableByDefault} self::C) {

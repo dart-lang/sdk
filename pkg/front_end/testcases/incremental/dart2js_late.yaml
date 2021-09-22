@@ -23,7 +23,6 @@ worlds:
 
   - entry: late_statics.dart
     worldType: updated
-    errors: true # (currently?) dart2js changes the interface and doesn't have the setter anymore. dartbug.com/45854
     expectInitializeFromDill: false
     invalidate:
       - late_statics.dart

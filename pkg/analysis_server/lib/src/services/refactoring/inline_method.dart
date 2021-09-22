@@ -147,13 +147,15 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   // local variables and functions
   {
     var localsRange = _getLocalsConflictingRange(node);
-    var enclosingExecutable = getEnclosingExecutableNode(node)!;
-    var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
-    visibleRangeMap.forEach((element, elementRange) {
-      if (elementRange.intersects(localsRange)) {
-        result.add(element.displayName);
-      }
-    });
+    var enclosingExecutable = getEnclosingExecutableNode(node);
+    if (enclosingExecutable != null) {
+      var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
+      visibleRangeMap.forEach((element, elementRange) {
+        if (elementRange.intersects(localsRange)) {
+          result.add(element.displayName);
+        }
+      });
+    }
   }
   // fields
   {

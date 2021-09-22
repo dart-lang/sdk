@@ -18,8 +18,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
+import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/dart/resolver/type_name_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -63,7 +63,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final bool _isNonNullableByDefault;
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
-  final TypeNameResolver _typeNameResolver;
+  final NamedTypeResolver _typeNameResolver;
 
   /// This index is incremented every time we visit a [LibraryDirective].
   /// There is just one [LibraryElement], so we can support only one node.
@@ -103,7 +103,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       isNonNullableByDefault: isNonNullableByDefault,
     );
 
-    var typeNameResolver = TypeNameResolver(
+    var typeNameResolver = NamedTypeResolver(
       libraryElement,
       typeProvider,
       isNonNullableByDefault,
@@ -992,7 +992,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.typeArguments?.accept(this);
 
     _typeNameResolver.nameScope = _nameScope;
-    _typeNameResolver.resolveTypeName(node);
+    _typeNameResolver.resolve(node);
 
     if (_typeNameResolver.rewriteResult != null) {
       _typeNameResolver.rewriteResult!.accept(this);
@@ -1223,7 +1223,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.interfaces,
+      clause.interfaces2,
       CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
     );
   }
@@ -1232,7 +1232,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.superclassConstraints,
+      clause.superclassConstraints2,
       CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     );
   }
@@ -1242,11 +1242,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (redirectedConstructor == null) return;
 
     var namedType = redirectedConstructor.type;
-    _typeNameResolver.redirectedConstructor_typeName = namedType;
+    _typeNameResolver.redirectedConstructor_namedType = namedType;
 
     redirectedConstructor.accept(this);
 
-    _typeNameResolver.redirectedConstructor_typeName = null;
+    _typeNameResolver.redirectedConstructor_namedType = null;
   }
 
   /// Return the [InterfaceType] of the given [namedType].
@@ -1258,9 +1258,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// classes).
   void _resolveType(TypeNameImpl namedType, ErrorCode errorCode,
       {bool asClass = false}) {
-    _typeNameResolver.classHierarchy_typeName = namedType;
+    _typeNameResolver.classHierarchy_namedType = namedType;
     visitTypeName(namedType);
-    _typeNameResolver.classHierarchy_typeName = null;
+    _typeNameResolver.classHierarchy_namedType = null;
 
     if (_typeNameResolver.hasErrorReported) {
       return;
@@ -1302,13 +1302,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveWithClause(WithClause? clause) {
     if (clause == null) return;
 
-    for (var namedType in clause.mixinTypes) {
-      _typeNameResolver.withClause_typeName = namedType;
+    for (var namedType in clause.mixinTypes2) {
+      _typeNameResolver.withClause_namedType = namedType;
       _resolveType(
         namedType as TypeNameImpl,
         CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
       );
-      _typeNameResolver.withClause_typeName = null;
+      _typeNameResolver.withClause_namedType = null;
     }
   }
 

@@ -1673,7 +1673,7 @@ class ExtensionMemberDescriptor {
   /// The name of the extension member.
   ///
   /// The name of the generated top-level member is mangled to ensure
-  /// uniqueness. This name is used to lookup an extension method the
+  /// uniqueness. This name is used to lookup an extension method in the
   /// extension itself.
   Name name;
 
@@ -10121,7 +10121,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       int flags: -1,
       bool isFinal: false,
       bool isConst: false,
-      bool isFieldFormal: false,
+      bool isInitializingFormal: false,
       bool isCovariantByDeclaration: false,
       bool isLate: false,
       bool isRequired: false,
@@ -10134,7 +10134,7 @@ class VariableDeclaration extends Statement implements Annotatable {
     } else {
       this.isFinal = isFinal;
       this.isConst = isConst;
-      this.isFieldFormal = isFieldFormal;
+      this.isInitializingFormal = isInitializingFormal;
       this.isCovariantByDeclaration = isCovariantByDeclaration;
       this.isLate = isLate;
       this.isRequired = isRequired;
@@ -10146,7 +10146,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   VariableDeclaration.forValue(this.initializer,
       {bool isFinal: true,
       bool isConst: false,
-      bool isFieldFormal: false,
+      bool isInitializingFormal: false,
       bool isLate: false,
       bool isRequired: false,
       bool isLowered: false,
@@ -10156,7 +10156,7 @@ class VariableDeclaration extends Statement implements Annotatable {
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
-    this.isFieldFormal = isFieldFormal;
+    this.isInitializingFormal = isInitializingFormal;
     this.isLate = isLate;
     this.isRequired = isRequired;
     this.isLowered = isLowered;
@@ -10164,9 +10164,9 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagFieldFormal = 1 << 2;
-  static const int FlagCovariant = 1 << 3;
-  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagInitializingFormal = 1 << 2;
+  static const int FlagCovariantByDeclaration = 1 << 3;
+  static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagRequired = 1 << 6;
   static const int FlagLowered = 1 << 7;
@@ -10176,12 +10176,12 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   /// Whether the parameter is declared with the `covariant` keyword.
   // TODO(johnniwinther): Rename to isCovariantByDeclaration
-  bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
+  bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
 
-  /// Whether the variable is declared as a field formal parameter of
+  /// Whether the variable is declared as an initializing formal parameter of
   /// a constructor.
   @informative
-  bool get isFieldFormal => flags & FlagFieldFormal != 0;
+  bool get isInitializingFormal => flags & FlagInitializingFormal != 0;
 
   /// If this [VariableDeclaration] is a parameter of a method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -10190,7 +10190,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
   // TODO(johnniwinther): Rename to isCovariantByClass
-  bool get isCovariantByClass => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the variable is declared with the `late` keyword.
   ///
@@ -10236,18 +10236,22 @@ class VariableDeclaration extends Statement implements Annotatable {
   }
 
   void set isCovariantByDeclaration(bool value) {
-    flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
+    flags = value
+        ? (flags | FlagCovariantByDeclaration)
+        : (flags & ~FlagCovariantByDeclaration);
   }
 
   @informative
-  void set isFieldFormal(bool value) {
-    flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
+  void set isInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagInitializingFormal)
+        : (flags & ~FlagInitializingFormal);
   }
 
   void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   void set isLate(bool value) {

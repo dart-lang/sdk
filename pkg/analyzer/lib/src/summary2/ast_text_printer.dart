@@ -570,7 +570,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     _token(node.implementsKeyword);
-    _nodeList(node.interfaces, node.endToken.next);
+    _nodeList(node.interfaces2, node.endToken.next);
   }
 
   @override
@@ -731,7 +731,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     _token(node.onKeyword);
-    _nodeList(node.superclassConstraints, node.endToken.next);
+    _nodeList(node.superclassConstraints2, node.endToken.next);
   }
 
   @override
@@ -1003,7 +1003,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     _token(node.withKeyword);
-    _nodeList(node.mixinTypes, node.endToken.next);
+    _nodeList(node.mixinTypes2, node.endToken.next);
   }
 
   @override

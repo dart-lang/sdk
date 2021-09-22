@@ -60,7 +60,7 @@ abstract class A extends core::Object {
   }
   get property6() → core::int
     return this.{self::A::_#A#property6#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::A::_#A#property6}{core::int?} in #t4{core::int} : throw new _in::LateError::fieldNI("property6");
-  set property6(covariant core::int #t5) → void {
+  set property6(covariant-by-declaration core::int #t5) → void {
     this.{self::A::_#A#property6#isSet} = true;
     this.{self::A::_#A#property6} = #t5;
   }

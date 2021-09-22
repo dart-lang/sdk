@@ -16,7 +16,7 @@ class A<contravariant T extends core::Object? = dynamic, U extends core::Object?
   final field (self::A::T%) →? void field;
   synthetic constructor •() → self::A<self::A::T%, self::A::U%, self::A::V%>
     ;
-  method method(self::A::T% t, (self::A::U%) → void u, generic-covariant-impl self::A::V% v) → void
+  method method(self::A::T% t, (self::A::U%) → void u, covariant-by-class self::A::V% v) → void
     ;
   method method2(self::A::T% x, [self::A::T? y]) → void
     ;
@@ -52,7 +52,7 @@ class C<contravariant T extends core::Object? = dynamic> extends core::Object {
 abstract class D<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::D<self::D::T%>
     ;
-  abstract method method(generic-covariant-impl self::D::T% x) → core::int;
+  abstract method method(covariant-by-class self::D::T% x) → core::int;
 }
 class E<invariant T extends core::Object? = dynamic> extends core::Object {
   final field (self::E::T%) → void f;
@@ -64,7 +64,7 @@ class E<invariant T extends core::Object? = dynamic> extends core::Object {
 class F<invariant T extends core::Object? = dynamic> extends self::E<self::F::T%> implements self::D<self::F::T%> {
   constructor •((self::F::T%) → void f) → self::F<self::F::T%>
     ;
-  forwarding-stub method method(generic-covariant-impl self::F::T% x) → core::int
+  forwarding-stub method method(covariant-by-class self::F::T% x) → core::int
     return super.{self::E::method}(x);
 }
 class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Object implements self::B<self::NoSuchMethod::T%> {

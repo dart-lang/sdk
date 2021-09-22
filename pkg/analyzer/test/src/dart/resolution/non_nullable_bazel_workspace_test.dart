@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:pub_semver/pub_semver.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -63,6 +66,52 @@ dart_package(
     assertType(findNode.namedType('int v'), 'int');
   }
 
+  test_buildFile_nonNullable_languageVersion_current() async {
+    newFile('$myPackageRootPath/BUILD', content: r'''
+dart_package(
+  null_safety = True,
+)
+''');
+
+    await resolveFileCode(
+      '$myPackageRootPath/lib/a.dart',
+      'int v = 0;',
+    );
+    _assertLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
+  }
+
+  test_buildFile_nonNullable_languageVersion_fromWorkspace() async {
+    newFile('$workspaceRootPath/dart/build_defs/bzl/language.bzl', content: r'''
+_version = "2.9"
+_version_null_safety = "2.14"
+_version_for_analyzer = _version_null_safety
+
+language = struct(
+    version = _version,
+    version_null_safety = _version_null_safety,
+    version_for_analyzer = _version_for_analyzer,
+)
+''');
+
+    newFile('$myPackageRootPath/BUILD', content: r'''
+dart_package(
+  null_safety = True,
+)
+''');
+
+    await resolveFileCode(
+      '$myPackageRootPath/lib/a.dart',
+      'int v = 0;',
+    );
+    _assertLanguageVersion(
+      package: Version.parse('2.14.0'),
+      override: null,
+    );
+  }
+
   test_buildFile_nonNullable_oneLine_noComma() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
 dart_package(null_safety = True)
@@ -98,5 +147,14 @@ int v = 0;
 ''');
 
     assertType(findNode.namedType('int v'), 'int*');
+  }
+
+  void _assertLanguageVersion({
+    required Version package,
+    required Version? override,
+  }) async {
+    var element = result.libraryElement;
+    expect(element.languageVersion.package, package);
+    expect(element.languageVersion.override, override);
   }
 }

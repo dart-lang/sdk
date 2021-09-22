@@ -6,7 +6,7 @@ class A<X extends core::num*> extends core::Object {
   synthetic constructor •() → self::A<self::A::X*>*
     : super core::Object::•()
     ;
-  method f<generic-covariant-impl Y extends self::A::X*>(self::A::f::Y* y) → void {}
+  method f<covariant-by-class Y extends self::A::X*>(self::A::f::Y* y) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -29,7 +29,7 @@ static method expectThrows(() →* void f) → dynamic {
 }
 static method main() → dynamic {
   self::A<core::num*>* a = new self::A::•<core::int*>();
-  <Y extends core::num*>(Y*) →* void f = a.{self::A::f}{<generic-covariant-impl Y extends core::num*>(Y*) →* void};
+  <Y extends core::num*>(Y*) →* void f = a.{self::A::f}{<covariant-by-class Y extends core::num*>(Y*) →* void};
   self::expectThrows(() → Null {
     f<core::double*>(3.14){(core::double*) →* void};
   });

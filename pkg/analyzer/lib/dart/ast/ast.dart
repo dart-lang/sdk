@@ -2577,7 +2577,11 @@ abstract class ImplementsClause implements AstNode {
   Token get implementsKeyword;
 
   /// Return the list of the interfaces that are being implemented.
+  @Deprecated('Use interfaces2 instead')
   NodeList<TypeName> get interfaces;
+
+  /// Return the list of the interfaces that are being implemented.
+  NodeList<NamedType> get interfaces2;
 }
 
 /// An import directive.
@@ -3402,7 +3406,11 @@ abstract class OnClause implements AstNode {
   Token get onKeyword;
 
   /// Return the list of the classes are superclass constraints for the mixin.
+  @Deprecated('Use superclassConstraints2 instead')
   NodeList<TypeName> get superclassConstraints;
+
+  /// Return the list of the classes are superclass constraints for the mixin.
+  NodeList<NamedType> get superclassConstraints2;
 }
 
 /// A parenthesized expression.
@@ -4450,7 +4458,11 @@ abstract class WhileStatement implements Statement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class WithClause implements AstNode {
   /// Return the names of the mixins that were specified.
+  @Deprecated('Use mixinTypes2 instead')
   NodeList<TypeName> get mixinTypes;
+
+  /// Return the names of the mixins that were specified.
+  NodeList<NamedType> get mixinTypes2;
 
   /// Return the token representing the 'with' keyword.
   Token get withKeyword;

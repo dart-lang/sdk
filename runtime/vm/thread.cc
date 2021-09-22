@@ -98,7 +98,6 @@ Thread::Thread(bool is_vm_isolate)
       stack_overflow_count_(0),
       hierarchy_info_(NULL),
       type_usage_info_(NULL),
-      pending_functions_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
@@ -217,17 +216,6 @@ void Thread::InitVMConstants() {
   this->object##_handle_ = this->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
-}
-
-GrowableObjectArrayPtr Thread::pending_functions() {
-  if (pending_functions_ == GrowableObjectArray::null()) {
-    pending_functions_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  return pending_functions_;
-}
-
-void Thread::clear_pending_functions() {
-  pending_functions_ = GrowableObjectArray::null();
 }
 
 void Thread::set_active_exception(const Object& value) {
@@ -613,7 +601,6 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&pending_functions_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&global_object_pool_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));

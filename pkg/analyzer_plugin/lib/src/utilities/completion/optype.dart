@@ -1408,7 +1408,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    if (node.mixinTypes.contains(entity)) {
+    if (node.mixinTypes2.contains(entity)) {
       optype.completionLocation = 'WithClause_mixinType';
     }
     optype.includeTypeNameSuggestions = true;

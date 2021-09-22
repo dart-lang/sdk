@@ -1225,12 +1225,16 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
+  // The enum_cls is the actual declared class.
+  // The shared super-class holds the fields for index and name.
+  const Class& super_cls = Class::Handle(zone, enum_cls.SuperClass());
+
   const Field& index_field =
-      Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
+      Field::Handle(zone, super_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
 
   const Field& name_field = Field::Handle(
-      zone, enum_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+      zone, super_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
   ASSERT(!name_field.IsNull());
 
   const String& enum_name = String::Handle(zone, enum_cls.ScrubbedName());

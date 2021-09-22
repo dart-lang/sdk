@@ -2,24 +2,22 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int index;
-  final field core::String _name;
+class A extends core::_Enum /*isEnum*/  {
   static const field core::List<self::A> values = const <self::A>[self::A::a, self::A::b];
-  static const field self::A a = const self::A::•(0, "A.a");
-  static const field self::A b = const self::A::•(1, "A.b");
-  const constructor •(core::int index, core::String _name) → self::A
-    : self::A::index = index, self::A::_name = _name, super core::Object::•()
+  static const field self::A a = const self::A::•(0, "a");
+  static const field self::A b = const self::A::•(1, "b");
+  const constructor •(core::int index, core::String name) → self::A
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String
-    return this.{self::A::_name}{core::String};
+    return "A.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic
   ;
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum.dart:5:6 -> ListConstant(const <A*>[const A{A.index: 0, A._name: "A.a"}, const A{A.index: 1, A._name: "A.b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:6:3 -> InstanceConstant(const A{A.index: 0, A._name: "A.a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:7:3 -> InstanceConstant(const A{A.index: 1, A._name: "A.b"})
-Extra constant evaluation: evaluated: 7, effectively constant: 3
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum.dart:5:6 -> ListConstant(const <A*>[const A{_Enum.index: 0, _Enum._name: "a"}, const A{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:6:3 -> InstanceConstant(const A{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:7:3 -> InstanceConstant(const A{_Enum.index: 1, _Enum._name: "b"})
+Extra constant evaluation: evaluated: 8, effectively constant: 3

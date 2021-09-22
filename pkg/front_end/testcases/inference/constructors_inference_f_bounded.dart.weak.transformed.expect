@@ -39,8 +39,8 @@ class Cloneable<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Pair<T extends self::Cloneable<self::Pair::T*>* = self::Cloneable<dynamic>*, U extends self::Cloneable<self::Pair::U*>* = self::Cloneable<dynamic>*> extends core::Object {
-  generic-covariant-impl field self::Pair::T* t;
-  generic-covariant-impl field self::Pair::U* u;
+  covariant-by-class field self::Pair::T* t;
+  covariant-by-class field self::Pair::U* u;
   constructor •(self::Pair::T* t, self::Pair::U* u) → self::Pair<self::Pair::T*, self::Pair::U*>*
     : self::Pair::t = t, self::Pair::u = u, super core::Object::•()
     ;

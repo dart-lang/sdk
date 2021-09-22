@@ -26,7 +26,7 @@ abstract class _E&Object&A&D = self::_E&Object&A with iss::D /*isAnonymousMixin,
   const synthetic constructor •() → self::_E&Object&A&D*
     : super self::_E&Object&A::•()
     ;
-  forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*
+  forwarding-stub method method(covariant-by-declaration core::num* i, {core::String* s = #C1}) → core::String*
     return super.{self::_E&Object&A::method}(i, s: s);
 }
 class E extends self::_E&Object&A&D {
@@ -87,7 +87,7 @@ abstract class Interface2 extends core::Object {
   synthetic constructor •() → iss::Interface2*
     : super core::Object::•()
     ;
-  abstract method method(covariant core::int* i) → core::String*;
+  abstract method method(covariant-by-declaration core::int* i) → core::String*;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -143,7 +143,7 @@ abstract class D extends core::Object implements iss::Interface, iss::Interface2
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub method method(covariant core::num* i) → core::String*;
+  abstract forwarding-stub method method(covariant-by-declaration core::num* i) → core::String*;
 }
 abstract class F extends core::Object implements iss::Interface {
   synthetic constructor •() → iss::F*

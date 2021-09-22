@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::num*> extends core::Object {
-  generic-covariant-impl field self::C::T* a;
+  covariant-by-class field self::C::T* a;
   synthetic constructor •() → self::C<self::C::T*>*
     ;
-  method op(generic-covariant-impl self::C::T* b) → void
+  method op(covariant-by-class self::C::T* b) → void
     ;
-  method opEq(generic-covariant-impl self::C::T* b) → void
+  method opEq(covariant-by-class self::C::T* b) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

@@ -21,8 +21,8 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// Helper for resolving types.
 ///
-/// The client must set [nameScope] before calling [resolveTypeName].
-class TypeNameResolver {
+/// The client must set [nameScope] before calling [resolve].
+class NamedTypeResolver {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
@@ -37,26 +37,26 @@ class TypeNameResolver {
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
   /// or [ImplementsClause].
-  TypeName? classHierarchy_typeName;
+  NamedType? classHierarchy_namedType;
 
   /// If not `null`, a direct child the [WithClause] in the [enclosingClass].
-  TypeName? withClause_typeName;
+  NamedType? withClause_namedType;
 
-  /// If not `null`, the [TypeName] of the redirected constructor being
+  /// If not `null`, the [NamedType] of the redirected constructor being
   /// resolved, in the [enclosingClass].
-  TypeName? redirectedConstructor_typeName;
+  NamedType? redirectedConstructor_namedType;
 
-  /// If [resolveTypeName] finds out that the given [TypeName] with a
+  /// If [resolve] finds out that the given [NamedType] with a
   /// [PrefixedIdentifier] name is actually the name of a class and the name of
   /// the constructor, it rewrites the [ConstructorName] to correctly represent
   /// the type and the constructor name, and set this field to the rewritten
   /// [ConstructorName]. Otherwise this field will be set `null`.
   ConstructorName? rewriteResult;
 
-  /// If [resolveTypeName] reported an error, this flag is set to `true`.
+  /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  TypeNameResolver(this._libraryElement, TypeProvider typeProvider,
+  NamedTypeResolver(this._libraryElement, TypeProvider typeProvider,
       this.isNonNullableByDefault, this.errorReporter)
       : typeSystem = _libraryElement.typeSystem,
         dynamicType = typeProvider.dynamicType;
@@ -70,11 +70,11 @@ class TypeNameResolver {
         : NullabilitySuffix.star;
   }
 
-  /// Resolve the given [TypeName] - set its element and static type. Only the
+  /// Resolve the given [NamedType] - set its element and static type. Only the
   /// given [node] is resolved, all its children must be already resolved.
   ///
-  /// The client must set [nameScope] before calling [resolveTypeName].
-  void resolveTypeName(TypeNameImpl node) {
+  /// The client must set [nameScope] before calling [resolve].
+  void resolve(TypeNameImpl node) {
     rewriteResult = null;
     hasErrorReported = false;
 
@@ -128,7 +128,7 @@ class TypeNameResolver {
 
   /// Return type arguments, exactly [parameterCount].
   List<DartType> _buildTypeArguments(
-      TypeName node, TypeArgumentList argumentList, int parameterCount) {
+      NamedType node, TypeArgumentList argumentList, int parameterCount) {
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
 
@@ -151,7 +151,7 @@ class TypeNameResolver {
     );
   }
 
-  NullabilitySuffix _getNullability(TypeName node) {
+  NullabilitySuffix _getNullability(NamedType node) {
     if (isNonNullableByDefault) {
       if (node.question != null) {
         return NullabilitySuffix.question;
@@ -162,7 +162,7 @@ class TypeNameResolver {
     return NullabilitySuffix.star;
   }
 
-  /// We are resolving the [TypeName] in a redirecting constructor of the
+  /// We are resolving the [NamedType] in a redirecting constructor of the
   /// [enclosingClass].
   InterfaceType _inferRedirectedConstructor(ClassElement element) {
     if (element == enclosingClass) {
@@ -188,7 +188,7 @@ class TypeNameResolver {
     }
   }
 
-  DartType _instantiateElement(TypeName node, Element element) {
+  DartType _instantiateElement(NamedType node, Element element) {
     var nullability = _getNullability(node);
 
     var argumentList = node.typeArguments;
@@ -236,7 +236,7 @@ class TypeNameResolver {
     }
 
     if (element is ClassElement) {
-      if (identical(node, withClause_typeName)) {
+      if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
           if (mixin.element == element) {
             return mixin;
@@ -244,7 +244,7 @@ class TypeNameResolver {
         }
       }
 
-      if (identical(node, redirectedConstructor_typeName)) {
+      if (identical(node, redirectedConstructor_namedType)) {
         return _inferRedirectedConstructor(element);
       }
 
@@ -355,8 +355,8 @@ class TypeNameResolver {
   /// but the [type] is nullable (because the question mark was specified,
   /// or the type alias is nullable), report an error, and return the
   /// corresponding non-nullable type.
-  DartType _verifyNullability(TypeName node, DartType type) {
-    if (identical(node, classHierarchy_typeName)) {
+  DartType _verifyNullability(NamedType node, DartType type) {
+    if (identical(node, classHierarchy_namedType)) {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         var parent = node.parent;
         if (parent is ExtendsClause || parent is ClassTypeAlias) {
@@ -388,7 +388,7 @@ class TypeNameResolver {
   }
 
   DartType _verifyTypeAliasForContext(
-    TypeName node,
+    NamedType node,
     TypeAliasElement element,
     DartType type,
   ) {
@@ -446,7 +446,7 @@ class TypeNameResolver {
     return type;
   }
 
-  static bool _isInstanceCreation(TypeName node) {
+  static bool _isInstanceCreation(NamedType node) {
     var parent = node.parent;
     return parent is ConstructorName &&
         parent.parent is InstanceCreationExpression;
@@ -459,7 +459,7 @@ class _ErrorHelper {
 
   _ErrorHelper(this.errorReporter);
 
-  bool reportNewWithNonType(TypeName node) {
+  bool reportNewWithNonType(NamedType node) {
     var constructorName = node.parent;
     if (constructorName is ConstructorName) {
       var instanceCreation = constructorName.parent;
@@ -479,7 +479,7 @@ class _ErrorHelper {
     return false;
   }
 
-  void reportNullOrNonTypeElement(TypeName node, Element? element) {
+  void reportNullOrNonTypeElement(NamedType node, Element? element) {
     var identifier = node.name;
     var errorNode = _getErrorNode(node);
 
@@ -596,12 +596,12 @@ class _ErrorHelper {
   }
 
   /// Returns the simple identifier of the given (maybe prefixed) identifier.
-  static Identifier _getErrorNode(TypeName node) {
+  static Identifier _getErrorNode(NamedType node) {
     Identifier identifier = node.name;
     if (identifier is PrefixedIdentifier) {
       // The prefixed identifier can be:
-      // 1. new importPrefix.TypeName()
-      // 2. new TypeName.constructorName()
+      // 1. new importPrefix.NamedType()
+      // 2. new NamedType.constructorName()
       // 3. new unresolved.Unresolved()
       if (identifier.prefix.staticElement is PrefixElement) {
         return identifier.identifier;
@@ -614,7 +614,7 @@ class _ErrorHelper {
   }
 
   /// Check if the [node] is the type in a redirected constructor name.
-  static bool _isRedirectingConstructor(TypeName node) {
+  static bool _isRedirectingConstructor(NamedType node) {
     var parent = node.parent;
     if (parent is ConstructorName) {
       var grandParent = parent.parent;
@@ -626,7 +626,7 @@ class _ErrorHelper {
   }
 
   /// Checks if the [node] is the type in an `as` expression.
-  static bool _isTypeInAsExpression(TypeName node) {
+  static bool _isTypeInAsExpression(NamedType node) {
     var parent = node.parent;
     if (parent is AsExpression) {
       return identical(parent.type, node);
@@ -635,7 +635,7 @@ class _ErrorHelper {
   }
 
   /// Checks if the [node] is the exception type in a `catch` clause.
-  static bool _isTypeInCatchClause(TypeName node) {
+  static bool _isTypeInCatchClause(NamedType node) {
     var parent = node.parent;
     if (parent is CatchClause) {
       return identical(parent.exceptionType, node);
@@ -644,7 +644,7 @@ class _ErrorHelper {
   }
 
   /// Checks if the [node] is the type in an `is` expression.
-  static bool _isTypeInIsExpression(TypeName node) {
+  static bool _isTypeInIsExpression(NamedType node) {
     var parent = node.parent;
     if (parent is IsExpression) {
       return identical(parent.type, node);
@@ -653,7 +653,7 @@ class _ErrorHelper {
   }
 
   /// Checks if the [node] is an element in a type argument list.
-  static bool _isTypeInTypeArgumentList(TypeName node) {
+  static bool _isTypeInTypeArgumentList(NamedType node) {
     return node.parent is TypeArgumentList;
   }
 }

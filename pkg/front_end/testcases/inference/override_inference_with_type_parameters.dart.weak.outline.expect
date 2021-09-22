@@ -5,7 +5,7 @@ import "dart:core" as core;
 abstract class A<X extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X*>*
     ;
-  abstract method foo({generic-covariant-impl core::Iterable<self::A::X*>* x}) → void;
+  abstract method foo({covariant-by-class core::Iterable<self::A::X*>* x}) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -20,7 +20,7 @@ abstract class A<X extends core::Object* = dynamic> extends core::Object {
 class B<Y extends core::Object* = dynamic> extends core::Object implements self::A<self::B::Y*> {
   synthetic constructor •() → self::B<self::B::Y*>*
     ;
-  method foo({generic-covariant-impl core::Iterable<self::B::Y*>* x}) → void
+  method foo({covariant-by-class core::Iterable<self::B::Y*>* x}) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

@@ -5,13 +5,13 @@ import "dart:core" as core;
 class Class<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T%>
     ;
-  operator +(generic-covariant-impl self::Class<self::Class::T%> other) → self::Class<self::Class::T%>
+  operator +(covariant-by-class self::Class<self::Class::T%> other) → self::Class<self::Class::T%>
     ;
   operator unary-() → self::Class<self::Class::T%>
     ;
   operator [](core::int index) → self::Class<self::Class::T%>
     ;
-  operator []=(core::int index, generic-covariant-impl self::Class<self::Class::T%> value) → void
+  operator []=(core::int index, covariant-by-class self::Class<self::Class::T%> value) → void
     ;
   method method(core::double o) → core::int
     ;

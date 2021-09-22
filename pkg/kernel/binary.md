@@ -1387,7 +1387,7 @@ type VariableDeclarationPlain {
 
   List<Expression> annotations;
 
-  Byte flags (isFinal, isConst, isFieldFormal, isCovariantByDeclaration,
+  Byte flags (isFinal, isConst, isInitializingFormal, isCovariantByDeclaration,
               isCovariantByClass, isLate, isRequired, isLowered);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,

@@ -88,9 +88,9 @@ class ReferenceCollector {
     // Parts of classes.
     _visitTypeAnnotation(extendsClause?.superclass);
     _visitTypeAnnotation(superClass);
-    _visitTypeAnnotations(withClause?.mixinTypes);
-    _visitTypeAnnotations(onClause?.superclassConstraints);
-    _visitTypeAnnotations(implementsClause?.interfaces);
+    _visitTypeAnnotations(withClause?.mixinTypes2);
+    _visitTypeAnnotations(onClause?.superclassConstraints2);
+    _visitTypeAnnotations(implementsClause?.interfaces2);
 
     // Parts of executables.
     _visitFormalParameterList(formalParameters);

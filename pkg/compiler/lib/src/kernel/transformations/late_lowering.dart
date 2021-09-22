@@ -71,22 +71,15 @@ class LateLowering {
   bool _shouldLowerInstanceField(Field field) =>
       field.isLate && !field.isStatic;
 
-  String _mangleFieldName(Field field) {
-    assert(_shouldLowerInstanceField(field));
-    Class cls = field.enclosingClass!;
-    return '_#${cls.name}#${field.name.text}';
+  Name _mangleFieldCellName(Field field) {
+    assert(_shouldLowerStaticField(field));
+    return Name('_#${field.name.text}', field.enclosingLibrary);
   }
 
-  void transformAdditionalExports(Library library) {
-    List<Reference> additionalExports = library.additionalExports;
-    Set<Reference> newExports = {};
-    additionalExports.removeWhere((Reference reference) {
-      Field? cell = _fieldCells[reference.node];
-      if (cell == null) return false;
-      newExports.add(cell.getterReference);
-      return true;
-    });
-    additionalExports.addAll(newExports);
+  Name _mangleFieldName(Field field) {
+    assert(_shouldLowerInstanceField(field));
+    Class cls = field.enclosingClass!;
+    return Name('_#${cls.name}#${field.name.text}', field.enclosingLibrary);
   }
 
   ConstructorInvocation _callCellConstructor(Expression name, int fileOffset) =>
@@ -154,6 +147,13 @@ class LateLowering {
           Arguments([value])..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
 
+  void exitLibrary() {
+    assert(_variableCells.isEmpty);
+    _fieldCells.clear();
+    _backingInstanceFields.clear();
+    _getterToField.clear();
+  }
+
   void enterFunction() {
     _variableCells.add(null);
   }
@@ -198,6 +198,7 @@ class LateLowering {
         type: InterfaceType(_coreTypes.cellClass, nonNullable),
         isFinal: true)
       ..fileOffset = fileOffset;
+
     return _addToCurrentScope(variable, cell);
   }
 
@@ -282,17 +283,71 @@ class LateLowering {
     return _fieldCells.putIfAbsent(field, () {
       int fileOffset = field.fileOffset;
       Name name = field.name;
-      field.getterReference.canonicalName?.unbind();
-      field.setterReference?.canonicalName?.unbind();
-      return Field.immutable(name,
+      Uri fileUri = field.fileUri;
+      DartType type = field.type;
+      Field fieldCell = Field.immutable(_mangleFieldCellName(field),
           type: InterfaceType(_coreTypes.cellClass, nonNullable),
           initializer: _callCellConstructor(
               _nameLiteral(name.text, fileOffset), fileOffset),
           isFinal: true,
           isStatic: true,
-          fileUri: field.fileUri)
+          fileUri: fileUri)
         ..fileOffset = fileOffset
         ..isNonNullableByDefault = true;
+      StaticGet fieldCellAccess() =>
+          StaticGet(fieldCell)..fileOffset = fileOffset;
+
+      Procedure getter = Procedure(
+          name,
+          ProcedureKind.Getter,
+          FunctionNode(
+              ReturnStatement(
+                  _callReader(_readField, fieldCellAccess(), type, fileOffset))
+                ..fileOffset = fileOffset,
+              returnType: type)
+            ..fileOffset = fileOffset,
+          isStatic: true,
+          fileUri: fileUri,
+          reference: field.getterReference)
+        ..fileOffset = fileOffset
+        ..isNonNullableByDefault = true;
+
+      VariableDeclaration setterValue = VariableDeclaration('value', type: type)
+        ..fileOffset = fileOffset;
+      VariableGet setterValueRead() =>
+          VariableGet(setterValue)..fileOffset = fileOffset;
+
+      Procedure setter = Procedure(
+          name,
+          ProcedureKind.Setter,
+          FunctionNode(
+              ReturnStatement(_callSetter(
+                  field.isFinal
+                      ? _coreTypes.cellFinalFieldValueSetter
+                      : _coreTypes.cellValueSetter,
+                  fieldCellAccess(),
+                  setterValueRead(),
+                  fileOffset))
+                ..fileOffset = fileOffset,
+              positionalParameters: [setterValue],
+              returnType: VoidType())
+            ..fileOffset = fileOffset,
+          isStatic: true,
+          fileUri: fileUri,
+          reference: field.setterReference)
+        ..fileOffset = fileOffset
+        ..isNonNullableByDefault = true;
+
+      TreeNode parent = field.parent!;
+      if (parent is Class) {
+        parent.addProcedure(getter);
+        parent.addProcedure(setter);
+      } else if (parent is Library) {
+        parent.addProcedure(getter);
+        parent.addProcedure(setter);
+      }
+
+      return fieldCell;
     });
   }
 
@@ -313,7 +368,7 @@ class LateLowering {
     Expression? initializer = field.initializer;
     Class enclosingClass = field.enclosingClass!;
 
-    Name mangledName = Name(_mangleFieldName(field), field.enclosingLibrary);
+    Name mangledName = _mangleFieldName(field);
     Field backingField = Field.mutable(mangledName,
         type: type,
         initializer: StaticInvocation(_coreTypes.createSentinelMethod,
@@ -517,37 +572,5 @@ class LateLowering {
     }
     return FieldInitializer(backingField, initializer.value)
       ..fileOffset = initializer.fileOffset;
-  }
-
-  StaticGet _fieldCellAccess(Field field, int fileOffset) =>
-      StaticGet(_fieldCell(field))..fileOffset = fileOffset;
-
-  TreeNode transformStaticGet(StaticGet node, Member contextMember) {
-    _contextMember = contextMember;
-
-    Member target = node.target;
-    if (target is Field && _shouldLowerStaticField(target)) {
-      int fileOffset = node.fileOffset;
-      StaticGet cell = _fieldCellAccess(target, fileOffset);
-      return _callReader(_readField, cell, target.type, fileOffset);
-    }
-
-    return node;
-  }
-
-  TreeNode transformStaticSet(StaticSet node, Member contextMember) {
-    _contextMember = contextMember;
-
-    Member target = node.target;
-    if (target is Field && _shouldLowerStaticField(target)) {
-      int fileOffset = node.fileOffset;
-      StaticGet cell = _fieldCellAccess(target, fileOffset);
-      Procedure setter = target.isFinal
-          ? _coreTypes.cellFinalFieldValueSetter
-          : _coreTypes.cellValueSetter;
-      return _callSetter(setter, cell, node.value, fileOffset);
-    }
-
-    return node;
   }
 }

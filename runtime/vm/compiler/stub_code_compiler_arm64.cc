@@ -415,6 +415,13 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Load the code object.
   __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
+#if defined(DART_COMPRESSED_POINTERS)
+  // Partially setup HEAP_BITS for LoadCompressed[FieldFromOffset].
+  ASSERT(IsAbiPreservedRegister(HEAP_BITS));  // Need to save and restore.
+  __ Push(HEAP_BITS);
+  __ ldr(HEAP_BITS, compiler::Address(THR, target::Thread::heap_base_offset()));
+  __ LsrImmediate(HEAP_BITS, HEAP_BITS, 32);
+#endif
   __ LoadCompressedFieldFromOffset(
       R10, R10, compiler::target::GrowableObjectArray::data_offset());
   __ LoadCompressed(
@@ -427,6 +434,9 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
           /*array=*/R10,
           /*index=*/R9,
           /*temp=*/TMP));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ Pop(HEAP_BITS);
+#endif
   __ LoadFieldFromOffset(R10, R10,
                          compiler::target::Code::entry_point_offset());
 

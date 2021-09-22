@@ -1211,9 +1211,9 @@ Arguments wrapArguments(
 const Map<int, String> variableDeclarationFlagToName = const {
   VariableDeclaration.FlagFinal: "final",
   VariableDeclaration.FlagConst: "const",
-  VariableDeclaration.FlagFieldFormal: "field-formal",
-  VariableDeclaration.FlagCovariant: "covariant",
-  VariableDeclaration.FlagGenericCovariantImpl: "generic-covariant-impl",
+  VariableDeclaration.FlagInitializingFormal: "field-formal",
+  VariableDeclaration.FlagCovariantByDeclaration: "covariant",
+  VariableDeclaration.FlagCovariantByClass: "generic-covariant-impl",
   VariableDeclaration.FlagLate: "late",
   VariableDeclaration.FlagRequired: "required",
   VariableDeclaration.FlagLowered: "lowered",

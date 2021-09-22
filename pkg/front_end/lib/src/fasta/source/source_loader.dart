@@ -1632,6 +1632,9 @@ class Object {
 abstract class Enum {
 }
 
+abstract class _Enum {
+}
+
 class String {}
 
 class Symbol {}

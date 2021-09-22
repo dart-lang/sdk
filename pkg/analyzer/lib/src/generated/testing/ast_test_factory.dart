@@ -261,7 +261,7 @@ class AstTestFactory {
           String name,
           TypeParameterList? typeParameters,
           Keyword? abstractKeyword,
-          TypeName superclass,
+          NamedType superclass,
           WithClause withClause,
           ImplementsClause? implementsClause) =>
       astFactory.classTypeAlias(
@@ -402,7 +402,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.EQ),
           expression);
 
-  static ConstructorNameImpl constructorName(TypeName type, String? name) =>
+  static ConstructorNameImpl constructorName(NamedType type, String? name) =>
       astFactory.constructorName(
           type,
           name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
@@ -511,7 +511,7 @@ class AstTestFactory {
       astFactory.expressionStatement(
           expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
-  static ExtendsClauseImpl extendsClause(TypeName type) => astFactory
+  static ExtendsClauseImpl extendsClause(NamedType type) => astFactory
       .extendsClause(TokenFactory.tokenFromKeyword(Keyword.EXTENDS), type);
 
   static ExtensionDeclarationImpl extensionDeclaration(
@@ -795,7 +795,7 @@ class AstTestFactory {
               : TokenFactory.tokenFromKeyword(Keyword.ELSE),
           elseStatement);
 
-  static ImplementsClauseImpl implementsClause(List<TypeName> types) =>
+  static ImplementsClauseImpl implementsClause(List<NamedType> types) =>
       astFactory.implementsClause(
           TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), types);
 
@@ -863,12 +863,12 @@ class AstTestFactory {
           argumentList(arguments));
 
   static InstanceCreationExpressionImpl instanceCreationExpression2(
-          Keyword? keyword, TypeName type,
+          Keyword? keyword, NamedType type,
           [List<Expression> arguments = const []]) =>
       instanceCreationExpression3(keyword, type, null, arguments);
 
   static InstanceCreationExpressionImpl instanceCreationExpression3(
-          Keyword? keyword, TypeName type, String? identifier,
+          Keyword? keyword, NamedType type, String? identifier,
           [List<Expression> arguments = const []]) =>
       instanceCreationExpression(
           keyword,
@@ -1531,7 +1531,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body);
 
-  static WithClauseImpl withClause(List<TypeName> types) =>
+  static WithClauseImpl withClause(List<NamedType> types) =>
       astFactory.withClause(TokenFactory.tokenFromKeyword(Keyword.WITH), types);
 
   static YieldStatementImpl yieldEachStatement(Expression expression) =>

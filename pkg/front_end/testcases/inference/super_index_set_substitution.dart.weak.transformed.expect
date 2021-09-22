@@ -9,7 +9,7 @@ class B<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
-  operator []=(generic-covariant-impl core::Map<core::int*, self::B::T*>* x, generic-covariant-impl core::List<self::B::T*>* y) → void {}
+  operator []=(covariant-by-class core::Map<core::int*, self::B::T*>* x, covariant-by-class core::List<self::B::T*>* y) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -25,7 +25,7 @@ class C<U extends core::Object* = dynamic> extends self::B<asy::Future<self::C::
   synthetic constructor •() → self::C<self::C::U*>*
     : super self::B::•()
     ;
-  operator []=(generic-covariant-impl core::Object* x, generic-covariant-impl core::Object* y) → void {}
+  operator []=(covariant-by-class core::Object* x, covariant-by-class core::Object* y) → void {}
   method h() → void {
     super.{self::B::[]=}(self::f<core::Map<core::int*, asy::Future<self::C::U*>*>*>(), self::f<core::List<asy::Future<self::C::U*>*>*>());
   }

@@ -10,11 +10,11 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   field core::bool _#C#field1#isSet = false;
   field FutureOr<dynamic>? _#C#field2 = null;
   field core::bool _#C#field2#isSet = false;
-  generic-covariant-impl field FutureOr<self::C::T%>? _#C#field3 = null;
+  covariant-by-class field FutureOr<self::C::T%>? _#C#field3 = null;
   field core::bool _#C#field3#isSet = false;
-  generic-covariant-impl field FutureOr<self::C::T?>? _#C#field4 = null;
+  covariant-by-class field FutureOr<self::C::T?>? _#C#field4 = null;
   field core::bool _#C#field4#isSet = false;
-  generic-covariant-impl field FutureOr<self::C::T?>? _#C#field5 = null;
+  covariant-by-class field FutureOr<self::C::T?>? _#C#field5 = null;
   field core::bool _#C#field5#isSet = false;
   synthetic constructor •() → self::C<self::C::T%>
     : super core::Object::•()
@@ -33,19 +33,19 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   }
   get field3() → FutureOr<self::C::T%>
     return this.{self::C::_#C#field3#isSet}{core::bool} ?{FutureOr<self::C::T%>} let final FutureOr<self::C::T%>? #t3 = this.{self::C::_#C#field3}{FutureOr<self::C::T%>?} in #t3{FutureOr<self::C::T%>} : throw new _in::LateError::fieldNI("field3");
-  set field3(generic-covariant-impl FutureOr<self::C::T%>#t4) → void {
+  set field3(covariant-by-class FutureOr<self::C::T%>#t4) → void {
     this.{self::C::_#C#field3#isSet} = true;
     this.{self::C::_#C#field3} = #t4;
   }
   get field4() → FutureOr<self::C::T?>
     return this.{self::C::_#C#field4#isSet}{core::bool} ?{FutureOr<self::C::T?>} this.{self::C::_#C#field4}{FutureOr<self::C::T?>?} : throw new _in::LateError::fieldNI("field4");
-  set field4(generic-covariant-impl FutureOr<self::C::T?>#t5) → void {
+  set field4(covariant-by-class FutureOr<self::C::T?>#t5) → void {
     this.{self::C::_#C#field4#isSet} = true;
     this.{self::C::_#C#field4} = #t5;
   }
   get field5() → FutureOr<self::C::T?>?
     return this.{self::C::_#C#field5#isSet}{core::bool} ?{FutureOr<self::C::T?>?} this.{self::C::_#C#field5}{FutureOr<self::C::T?>?} : throw new _in::LateError::fieldNI("field5");
-  set field5(generic-covariant-impl FutureOr<self::C::T?>? #t6) → void {
+  set field5(covariant-by-class FutureOr<self::C::T?>? #t6) → void {
     this.{self::C::_#C#field5#isSet} = true;
     this.{self::C::_#C#field5} = #t6;
   }

@@ -6,6 +6,8 @@
 
 /*library: scope=[
   async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName,
   lib1.dart.AmbiguousExtension1,
   lib1.dart.AmbiguousExtension2,
   lib1.dart.UnambiguousExtension1,

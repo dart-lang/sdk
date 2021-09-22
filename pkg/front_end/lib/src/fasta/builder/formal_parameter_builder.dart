@@ -141,7 +141,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           type: builtType,
           isFinal: isFinal,
           isConst: isConst,
-          isFieldFormal: isInitializingFormal,
+          isInitializingFormal: isInitializingFormal,
           isCovariantByDeclaration: isCovariantByDeclaration,
           isRequired: isNamedRequired,
           hasDeclaredInitializer: hasDeclaredInitializer,

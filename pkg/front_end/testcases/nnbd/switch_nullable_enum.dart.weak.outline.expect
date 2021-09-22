@@ -2,17 +2,15 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class Enum extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int index;
-  final field core::String _name;
+class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::e1, self::Enum::e2];
-  static const field self::Enum e1 = const self::Enum::•(0, "Enum.e1");
-  static const field self::Enum e2 = const self::Enum::•(1, "Enum.e2");
-  const constructor •(core::int index, core::String _name) → self::Enum
-    : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
+  static const field self::Enum e1 = const self::Enum::•(0, "e1");
+  static const field self::Enum e2 = const self::Enum::•(1, "e2");
+  const constructor •(core::int index, core::String name) → self::Enum
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String
-    return this.{self::Enum::_name}{core::String};
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 static method method1(self::Enum? e) → core::int
   ;
@@ -31,7 +29,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///switch_nullable_enum.dart:5:6 -> ListConstant(const <Enum*>[const Enum{Enum.index: 0, Enum._name: "Enum.e1"}, const Enum{Enum.index: 1, Enum._name: "Enum.e2"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:5:13 -> InstanceConstant(const Enum{Enum.index: 0, Enum._name: "Enum.e1"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:5:17 -> InstanceConstant(const Enum{Enum.index: 1, Enum._name: "Enum.e2"})
-Extra constant evaluation: evaluated: 7, effectively constant: 3
+Evaluated: ListLiteral @ org-dartlang-testcase:///switch_nullable_enum.dart:5:6 -> ListConstant(const <Enum*>[const Enum{_Enum.index: 0, _Enum._name: "e1"}, const Enum{_Enum.index: 1, _Enum._name: "e2"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:5:13 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:5:17 -> InstanceConstant(const Enum{_Enum.index: 1, _Enum._name: "e2"})
+Extra constant evaluation: evaluated: 8, effectively constant: 3

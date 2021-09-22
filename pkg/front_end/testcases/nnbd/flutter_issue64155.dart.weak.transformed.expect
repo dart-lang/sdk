@@ -5,7 +5,7 @@ import "dart:async" as asy;
 import "dart:_internal" as _in;
 
 abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
-  method test(generic-covariant-impl asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> /* originally async */ {
+  method test(covariant-by-class asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> /* originally async */ {
     final asy::_Future<self::TestMixin::T%> :async_future = new asy::_Future::•<self::TestMixin::T%>();
     core::bool* :is_sync = false;
     FutureOr<self::TestMixin::T%>? :return_value;
@@ -73,7 +73,7 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
   const synthetic constructor •() → self::_Class1&Object&TestMixin
     : super core::Object::•()
     ;
-  method test(generic-covariant-impl asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String> /* originally async */ {
+  method test(covariant-by-class asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String> /* originally async */ {
     final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
     core::bool* :is_sync = false;
     FutureOr<core::String>? :return_value;
@@ -132,7 +132,7 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
   const synthetic constructor •() → self::_Class2&Object&TestMixin
     : super core::Object::•()
     ;
-  method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String> /* originally async */ {
+  method test(covariant-by-class asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String> /* originally async */ {
     final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
     core::bool* :is_sync = false;
     FutureOr<core::String>? :return_value;

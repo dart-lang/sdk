@@ -51,7 +51,7 @@ class Bar<T extends core::Iterable<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::Bar::T* t) → void {
+  method foo(covariant-by-class self::Bar::T* t) → void {
     for (core::String* i in t) {
       core::int* x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
@@ -73,7 +73,7 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
   synthetic constructor •() → self::Baz<self::Baz::T*, self::Baz::E*, self::Baz::S*>*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::Baz::S* t) → void {
+  method foo(covariant-by-class self::Baz::S* t) → void {
     for (self::Baz::T* i in t) {
       core::int* x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;

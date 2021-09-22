@@ -42,9 +42,7 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   }
   @#C1
-  class CompilationStrategy extends dart.core::Object implements dart.core::Enum /*isEnum*/  {
-    final field dart.core::int* index;
-    final field dart.core::String* _name;
+  class CompilationStrategy extends dart.core::_Enum /*isEnum*/  {
     static const field dart.core::List<main::CompilationStrategy*>* values = #C15;
     @#C1
     static const field main::CompilationStrategy* direct = #C5;
@@ -54,11 +52,13 @@ library from "org-dartlang-test:///main.dart" as main {
     static const field main::CompilationStrategy* toData = #C11;
     @#C1
     static const field main::CompilationStrategy* fromData = #C14;
-    const constructor •(dart.core::int* index, dart.core::String* _name) → main::CompilationStrategy*
-      : main::CompilationStrategy::index = index, main::CompilationStrategy::_name = _name, super dart.core::Object::•()
+    const constructor •(dart.core::int* index, dart.core::String* name) → main::CompilationStrategy*
+      : super dart.core::_Enum::•(index, name)
       ;
     method toString() → dart.core::String*
-      return this.{main::CompilationStrategy::_name}{dart.core::String*};
+      return "CompilationStrategy.${this.{dart.core::_Enum::_name}{dart.core::String}}";
+    abstract member-signature get index() → dart.core::int*; -> dart.core::_Enum::index
+    abstract member-signature get _name() → dart.core::String*; -> dart.core::_Enum::_name
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -82,16 +82,16 @@ constants  {
   #C1 = "hello"
   #C2 = dart.core::_Override {}
   #C3 = 0
-  #C4 = "CompilationStrategy.direct"
+  #C4 = "direct"
   #C5 = main::CompilationStrategy {index:#C3, _name:#C4}
   #C6 = 1
-  #C7 = "CompilationStrategy.toKernel"
+  #C7 = "toKernel"
   #C8 = main::CompilationStrategy {index:#C6, _name:#C7}
   #C9 = 2
-  #C10 = "CompilationStrategy.toData"
+  #C10 = "toData"
   #C11 = main::CompilationStrategy {index:#C9, _name:#C10}
   #C12 = 3
-  #C13 = "CompilationStrategy.fromData"
+  #C13 = "fromData"
   #C14 = main::CompilationStrategy {index:#C12, _name:#C13}
   #C15 = <main::CompilationStrategy*>[#C5, #C8, #C11, #C14]
 }

@@ -11,11 +11,9 @@ class A extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method getBar() → core::String
     return "bar";
 }
-class B extends core::Object implements core::Enum /*isEnum*/  {
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4] [@vm.unboxing-info.metadata=()->i]  final field core::int index;
-[@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B.b2")] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field core::String _name;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method toString() → core::String
-    return [@vm.direct-call.metadata=#lib::B._name] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B.b2")] this.{self::B::_name}{core::String};
+class B extends core::_Enum /*isEnum*/  {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method toString() → core::String
+    return "B.${[@vm.direct-call.metadata=dart.core::_Enum._name] this.{core::_Enum::_name}{core::String}}";
 }
 static method test0() → void {
   core::print(#C1);
@@ -65,7 +63,7 @@ constants  {
   #C4 = 3.14
   #C5 = "bazz"
   #C6 = 1
-  #C7 = "B.b2"
+  #C7 = "b2"
   #C8 = self::B {index:#C6, _name:#C7}
   #C9 = 2
   #C10 = 3

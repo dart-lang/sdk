@@ -206,6 +206,9 @@ class BazelWorkspace extends Workspace
   /// to avoid this in cases when `BUILD` files are always available.
   final bool _lookForBuildFileSubstitutes;
 
+  /// The language version for this workspace, `null` if cannot be read.
+  final Version? _languageVersion;
+
   /// The cache of packages. The key is the directory path, the value is
   /// the corresponding package.
   final Map<String, BazelWorkspacePackage> _directoryToPackage = {};
@@ -220,7 +223,8 @@ class BazelWorkspace extends Workspace
     this.binPaths,
     this.genfiles, {
     required bool lookForBuildFileSubstitutes,
-  }) : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes;
+  })  : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes,
+        _languageVersion = _readLanguageVersion(provider, root);
 
   /// Stream of files that we tried to find along with their potential or actual
   /// paths.
@@ -564,6 +568,33 @@ class BazelWorkspace extends Workspace
   static Folder? _firstExistingFolder(Folder root, List<String> names) => names
       .map((name) => root.getChildAssumingFolder(name))
       .firstWhereOrNull((folder) => folder.exists);
+
+  /// Return the default language version of the workspace.
+  ///
+  /// Return `null` if cannot be read, for example because the file does not
+  /// exist, or is not available in this build configuration (batch analysis).
+  static Version? _readLanguageVersion(
+    ResourceProvider resourceProvider,
+    String rootPath,
+  ) {
+    var file = resourceProvider.getFile(
+      resourceProvider.pathContext.joinAll(
+        [rootPath, 'dart', 'build_defs', 'bzl', 'language.bzl'],
+      ),
+    );
+
+    String content;
+    try {
+      content = file.readAsStringSync();
+    } on FileSystemException {
+      return null;
+    }
+
+    final pattern = RegExp(r'_version_null_safety\s*=\s*"(\d+\.\d+)"');
+    for (var match in pattern.allMatches(content)) {
+      return Version.parse('${match.group(1)}.0');
+    }
+  }
 }
 
 /// Information about a package defined in a BazelWorkspace.
@@ -597,7 +628,7 @@ class BazelWorkspacePackage extends WorkspacePackage {
   @override
   Version? get languageVersion {
     _readBuildFile();
-    return _languageVersion;
+    return _languageVersion ?? workspace._languageVersion;
   }
 
   @override

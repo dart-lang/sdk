@@ -15,13 +15,13 @@ abstract class B<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::X%>
     : super core::Object::•()
     ;
-  abstract method foo(generic-covariant-impl self::B::X% x) → self::B::X%;
+  abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
 }
 abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&B
     : super self::A::•()
     ;
-  forwarding-stub method foo(generic-covariant-impl core::num x) → core::num
+  forwarding-stub method foo(covariant-by-class core::num x) → core::num
     return super.{self::A::foo}(x);
 }
 class C extends self::_C&A&B {

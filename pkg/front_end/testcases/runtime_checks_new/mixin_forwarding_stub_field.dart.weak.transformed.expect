@@ -48,9 +48,9 @@ abstract class I<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   abstract get x() → self::I::T*;
-  abstract set x(generic-covariant-impl self::I::T* value) → void;
+  abstract set x(covariant-by-class self::I::T* value) → void;
   abstract get y() → core::Object*;
-  abstract set y(covariant core::Object* value) → void;
+  abstract set y(covariant-by-declaration core::Object* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -80,8 +80,8 @@ class M extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends self::B implements self::I<core::int*>, self::M /*isEliminatedMixin*/  {
-  generic-covariant-impl field core::int* x = null;
-  covariant field core::int* y = null;
+  covariant-by-class field core::int* x = null;
+  covariant-by-declaration field core::int* y = null;
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;

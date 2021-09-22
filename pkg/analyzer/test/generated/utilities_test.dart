@@ -1225,7 +1225,7 @@ class ListGetter_NodeReplacerTest_test_implementsClause
   ListGetter_NodeReplacerTest_test_implementsClause(int arg0) : super(arg0);
 
   @override
-  NodeList<NamedType> getList(ImplementsClause node) => node.interfaces;
+  NodeList<NamedType> getList(ImplementsClause node) => node.interfaces2;
 }
 
 class ListGetter_NodeReplacerTest_test_labeledStatement
@@ -1327,7 +1327,7 @@ class ListGetter_NodeReplacerTest_test_withClause
   ListGetter_NodeReplacerTest_test_withClause(int arg0) : super(arg0);
 
   @override
-  NodeList<NamedType> getList(WithClause node) => node.mixinTypes;
+  NodeList<NamedType> getList(WithClause node) => node.mixinTypes2;
 }
 
 class ListGetter_NodeReplacerTest_testAnnotatedNode

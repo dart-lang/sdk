@@ -118,7 +118,7 @@ import "dart:core" as core;
 abstract class A extends core::Object {
   field core::int property4 = 0;
   field core::int property5 = 0;
-  covariant field core::num property6 = 0;
+  covariant-by-declaration field core::num property6 = 0;
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;

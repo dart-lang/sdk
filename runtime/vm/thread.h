@@ -695,9 +695,6 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, unboxed_double_runtime_arg_);
   }
 
-  GrowableObjectArrayPtr pending_functions();
-  void clear_pending_functions();
-
   static intptr_t global_object_pool_offset() {
     return OFFSET_OF(Thread, global_object_pool_);
   }
@@ -1127,7 +1124,6 @@ class Thread : public ThreadState {
   CompilerState* compiler_state_ = nullptr;
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
-  GrowableObjectArrayPtr pending_functions_;
 
   CompilerTimings* compiler_timings_ = nullptr;
 
