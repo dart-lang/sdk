@@ -1791,7 +1791,7 @@ class CompletionResult {
           return CompletionGroup.mixinElement;
         }
         if (entity is SimpleIdentifier &&
-            entity.parent is TypeName &&
+            entity.parent is NamedType &&
             entity.parent!.parent is ConstructorName &&
             entity.parent!.parent!.parent is InstanceCreationExpression) {
           return CompletionGroup.constructorElement;

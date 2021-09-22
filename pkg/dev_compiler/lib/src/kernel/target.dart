@@ -160,12 +160,12 @@ class DevCompilerTarget extends Target {
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
               _nativeClasses!)
           .visitLibrary(library);
+      jsUtilOptimizer.visitLibrary(library);
     }
   }
 

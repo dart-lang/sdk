@@ -252,7 +252,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
-    if (node.parent is TypeName) {
+    if (node.parent is NamedType) {
       if (element is ClassElement) {
         AstNode parent2 = node.parent!.parent!;
         if (parent2 is IsExpression) {

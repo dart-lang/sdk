@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as api;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
+
+import '../js_interop.dart' show getJSName;
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
@@ -80,6 +83,79 @@ class JsUtilOptimizer extends Transformer {
     node.transformChildren(this);
     _staticTypeContext.leaveMember(node);
     return node;
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    _staticTypeContext.enterMember(node);
+    // Getters, setters, and fields declared as `static` will be skipped,
+    // because they do not have a node.kind of ProcedureKind.Method.
+    if (node.isExternal &&
+        node.isExtensionMember &&
+        node.kind == ProcedureKind.Method) {
+      var transformedBody;
+      if (api.getExtensionMemberKind(node) == ProcedureKind.Getter) {
+        transformedBody = _getExternalGetterBody(node);
+      } else if (api.getExtensionMemberKind(node) == ProcedureKind.Setter) {
+        transformedBody = _getExternalSetterBody(node);
+      }
+      // TODO(rileyporter): Add transformation for external extension methods,
+      // static members, and any operators we decide to support.
+      if (transformedBody != null) {
+        node.function.body = transformedBody;
+        node.isExternal = false;
+      }
+    } else {
+      node.transformChildren(this);
+    }
+    _staticTypeContext.leaveMember(node);
+    return node;
+  }
+
+  /// Returns a new function body for the given [node] external getter.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.getProperty` for the given external getter.
+  ReturnStatement _getExternalGetterBody(Procedure node) {
+    var function = node.function;
+    assert(function.positionalParameters.length == 1);
+    var getPropertyInvocation = StaticInvocation(
+        _getPropertyTarget,
+        Arguments([
+          VariableGet(function.positionalParameters.first),
+          StringLiteral(_getMemberName(node))
+        ]))
+      ..fileOffset = node.fileOffset;
+    return ReturnStatement(AsExpression(
+        _lowerGetProperty(getPropertyInvocation), function.returnType));
+  }
+
+  /// Returns a new function body for the given [node] external setter.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.setProperty` for the given external setter.
+  ReturnStatement _getExternalSetterBody(Procedure node) {
+    var function = node.function;
+    assert(function.positionalParameters.length == 2);
+    var setPropertyInvocation = StaticInvocation(
+        _setPropertyTarget,
+        Arguments([
+          VariableGet(function.positionalParameters.first),
+          StringLiteral(_getMemberName(node)),
+          VariableGet(function.positionalParameters.last)
+        ]))
+      ..fileOffset = node.fileOffset;
+    return ReturnStatement(AsExpression(
+        _lowerSetProperty(setPropertyInvocation), function.returnType));
+  }
+
+  /// Returns the member name, either from the `@JS` annotation if non-empty,
+  /// or parsed from CFE generated node name.
+  String _getMemberName(Procedure node) {
+    var jsAnnotationName = getJSName(node);
+    return jsAnnotationName.isNotEmpty
+        ? jsAnnotationName
+        : node.name.text.substring(node.name.text.indexOf('#') + 1);
   }
 
   /// Replaces js_util method calls with optimization when possible.

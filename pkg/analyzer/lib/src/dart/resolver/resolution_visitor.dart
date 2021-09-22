@@ -1241,36 +1241,36 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var redirectedConstructor = node.redirectedConstructor;
     if (redirectedConstructor == null) return;
 
-    var typeName = redirectedConstructor.type;
-    _typeNameResolver.redirectedConstructor_typeName = typeName;
+    var namedType = redirectedConstructor.type;
+    _typeNameResolver.redirectedConstructor_typeName = namedType;
 
     redirectedConstructor.accept(this);
 
     _typeNameResolver.redirectedConstructor_typeName = null;
   }
 
-  /// Return the [InterfaceType] of the given [typeName].
+  /// Return the [InterfaceType] of the given [namedType].
   ///
   /// If the resulting type is not a valid interface type, return `null`.
   ///
   /// The flag [asClass] specifies if the type will be used as a class, so mixin
   /// declarations are not valid (they declare interfaces and mixins, but not
   /// classes).
-  void _resolveType(TypeNameImpl typeName, ErrorCode errorCode,
+  void _resolveType(TypeNameImpl namedType, ErrorCode errorCode,
       {bool asClass = false}) {
-    _typeNameResolver.classHierarchy_typeName = typeName;
-    visitTypeName(typeName);
+    _typeNameResolver.classHierarchy_typeName = namedType;
+    visitTypeName(namedType);
     _typeNameResolver.classHierarchy_typeName = null;
 
     if (_typeNameResolver.hasErrorReported) {
       return;
     }
 
-    DartType type = typeName.typeOrThrow;
+    DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element.isEnum || element.isMixin && asClass) {
-        _errorReporter.reportErrorForNode(errorCode, typeName);
+        _errorReporter.reportErrorForNode(errorCode, namedType);
         return;
       }
       return;
@@ -1278,7 +1278,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     // If the type is not an InterfaceType, then visitTypeName() sets the type
     // to be a DynamicTypeImpl
-    Identifier name = typeName.name;
+    Identifier name = namedType.name;
     if (!_libraryElement.shouldIgnoreUndefinedIdentifier(name)) {
       _errorReporter.reportErrorForNode(errorCode, name);
     }
@@ -1293,19 +1293,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ///        be an enum
   /// @param dynamicTypeError the error to produce if the type name is "dynamic"
   /// @return an array containing all of the types that were resolved.
-  void _resolveTypes(NodeList<TypeName> typeNames, ErrorCode errorCode) {
-    for (var typeName in typeNames) {
-      _resolveType(typeName as TypeNameImpl, errorCode);
+  void _resolveTypes(NodeList<NamedType> namedTypes, ErrorCode errorCode) {
+    for (var namedType in namedTypes) {
+      _resolveType(namedType as TypeNameImpl, errorCode);
     }
   }
 
   void _resolveWithClause(WithClause? clause) {
     if (clause == null) return;
 
-    for (var typeName in clause.mixinTypes) {
-      _typeNameResolver.withClause_typeName = typeName;
+    for (var namedType in clause.mixinTypes) {
+      _typeNameResolver.withClause_typeName = namedType;
       _resolveType(
-        typeName as TypeNameImpl,
+        namedType as TypeNameImpl,
         CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
       );
       _typeNameResolver.withClause_typeName = null;

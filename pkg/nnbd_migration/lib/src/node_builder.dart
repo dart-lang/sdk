@@ -539,7 +539,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Map<String, DecoratedType?> namedParameters =
         const <String, DecoratedType>{};
     if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
-      if (node is TypeName) {
+      if (node is NamedType) {
         if (node.typeArguments == null) {
           int index = 0;
           typeArguments = type.typeArguments
@@ -621,7 +621,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitTypeName(TypeName node) {
-    typeNameVisited(node); // Note this has been visited to TypeNameTracker.
+    namedTypeVisited(node); // Note this has been visited to TypeNameTracker.
     return visitTypeAnnotation(node);
   }
 
@@ -864,11 +864,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _handleSupertypeClauses(
       NamedCompilationUnitMember astNode,
       ClassElement declaredElement,
-      TypeName? superclass,
+      NamedType? superclass,
       WithClause? withClause,
       ImplementsClause? implementsClause,
       OnClause? onClause) {
-    var supertypes = <TypeName?>[];
+    var supertypes = <NamedType?>[];
     supertypes.add(superclass);
     if (withClause != null) {
       supertypes.addAll(withClause.mixinTypes);

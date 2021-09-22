@@ -82,7 +82,7 @@ class SimpleIdentifierResolver {
         parent is MethodInvocation ||
         parent is PrefixedIdentifier && parent.prefix == node ||
         parent is PropertyAccess ||
-        parent is TypeName) {
+        parent is NamedType) {
       return false;
     }
     return true;

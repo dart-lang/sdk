@@ -56,7 +56,7 @@ class ReferenceCollector {
       {String? enclosingClassName,
       String? thisNodeName,
       List<ConstructorInitializer>? constructorInitializers,
-      TypeName? enclosingSuperClass,
+      NamedType? enclosingSuperClass,
       Expression? expression,
       ExtendsClause? extendsClause,
       FormalParameterList? formalParameters,
@@ -66,7 +66,7 @@ class ReferenceCollector {
       OnClause? onClause,
       ConstructorName? redirectedConstructor,
       TypeAnnotation? returnType,
-      TypeName? superClass,
+      NamedType? superClass,
       TypeAnnotation? type,
       TypeParameterList? typeParameters,
       TypeParameterList? typeParameters2,
@@ -264,7 +264,7 @@ class ReferenceCollector {
   }
 
   /// Record reference to the constructor of the [type] with the given [name].
-  void _visitConstructor(TypeName type, SimpleIdentifier? name) {
+  void _visitConstructor(NamedType type, SimpleIdentifier? name) {
     _visitTypeAnnotation(type);
 
     if (name != null) {
@@ -275,7 +275,7 @@ class ReferenceCollector {
   }
 
   void _visitConstructorInitializers(
-      TypeName? superClass, List<ConstructorInitializer>? initializers) {
+      NamedType? superClass, List<ConstructorInitializer>? initializers) {
     if (initializers == null) return;
 
     for (var i = 0; i < initializers.length; i++) {
@@ -805,7 +805,7 @@ class ReferenceCollector {
       _visitFormalParameterList(node.parameters);
 
       _localScopes.exit();
-    } else if (node is TypeName) {
+    } else if (node is NamedType) {
       var identifier = node.name;
       _visitExpression(identifier);
       _visitTypeArguments(node.typeArguments);

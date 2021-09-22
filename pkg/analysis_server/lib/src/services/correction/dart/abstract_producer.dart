@@ -539,7 +539,7 @@ abstract class _AbstractCorrectionProducer {
   bool mightBeTypeIdentifier(AstNode node) {
     if (node is SimpleIdentifier) {
       var parent = node.parent;
-      if (parent is TypeName) {
+      if (parent is NamedType) {
         return true;
       }
       return _isNameOfType(node.name);

@@ -185,7 +185,7 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList? typeParameters,
           Token equals,
           Token? abstractKeyword,
-          TypeName superclass,
+          NamedType superclass,
           WithClause withClause,
           ImplementsClause? implementsClause,
           Token semicolon) =>
@@ -296,7 +296,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ConstructorNameImpl constructorName(
-          TypeName type, Token? period, SimpleIdentifier? name) =>
+          NamedType type, Token? period, SimpleIdentifier? name) =>
       ConstructorNameImpl(
           type as TypeNameImpl, period, name as SimpleIdentifierImpl?);
 
@@ -433,7 +433,7 @@ class AstFactoryImpl extends AstFactory {
       ExpressionStatementImpl(expression as ExpressionImpl, semicolon);
 
   @override
-  ExtendsClauseImpl extendsClause(Token extendsKeyword, TypeName superclass) =>
+  ExtendsClauseImpl extendsClause(Token extendsKeyword, NamedType superclass) =>
       ExtendsClauseImpl(extendsKeyword, superclass as TypeNameImpl);
 
   @override
@@ -782,7 +782,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ImplementsClauseImpl implementsClause(
-          Token implementsKeyword, List<TypeName> interfaces) =>
+          Token implementsKeyword, List<NamedType> interfaces) =>
       ImplementsClauseImpl(implementsKeyword, interfaces);
 
   @override
@@ -980,6 +980,16 @@ class AstFactoryImpl extends AstFactory {
       NamedExpressionImpl(name as LabelImpl, expression as ExpressionImpl);
 
   @override
+  TypeNameImpl namedType({
+    required Identifier name,
+    TypeArgumentList? typeArguments,
+    Token? question,
+  }) =>
+      TypeNameImpl(
+          name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
+          question: question);
+
+  @override
   NativeClauseImpl nativeClause(Token nativeKeyword, StringLiteral? name) =>
       NativeClauseImpl(nativeKeyword, name as StringLiteralImpl?);
 
@@ -998,7 +1008,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   OnClauseImpl onClause(
-          Token onKeyword, List<TypeName> superclassConstraints) =>
+          Token onKeyword, List<NamedType> superclassConstraints) =>
       OnClauseImpl(onKeyword, superclassConstraints);
 
   @override
@@ -1231,7 +1241,7 @@ class AstFactoryImpl extends AstFactory {
       TypeArgumentListImpl(leftBracket, arguments, rightBracket);
 
   @override
-  TypeLiteralImpl typeLiteral({required TypeName typeName}) =>
+  TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
       TypeLiteralImpl(typeName as TypeNameImpl);
 
   @override
@@ -1316,7 +1326,7 @@ class AstFactoryImpl extends AstFactory {
           condition as ExpressionImpl, rightParenthesis, body as StatementImpl);
 
   @override
-  WithClauseImpl withClause(Token withKeyword, List<TypeName> mixinTypes) =>
+  WithClauseImpl withClause(Token withKeyword, List<NamedType> mixinTypes) =>
       WithClauseImpl(withKeyword, mixinTypes);
 
   @override

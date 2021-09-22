@@ -281,7 +281,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           node is TypeArgumentList) {
         continue;
       }
-      if (node is ConstructorName || node is Label || node is TypeName) {
+      if (node is ConstructorName || node is Label || node is NamedType) {
         singleExpression = null;
         coveringExpressionOffsets.clear();
         coveringExpressionLengths.clear();

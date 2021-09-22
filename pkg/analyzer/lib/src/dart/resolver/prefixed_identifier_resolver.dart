@@ -63,7 +63,7 @@ class PrefixedIdentifierResolver {
       identifier.staticType = type;
       return;
     } else if (element is TypeAliasElement) {
-      if (node.parent is TypeName) {
+      if (node.parent is NamedType) {
         // no type
       } else {
         var type = _typeProvider.typeType;
@@ -129,7 +129,7 @@ class PrefixedIdentifierResolver {
         parent is MethodInvocation ||
         parent is PrefixedIdentifier && parent.prefix == node ||
         parent is PropertyAccess ||
-        parent is TypeName) {
+        parent is NamedType) {
       return false;
     }
     return true;

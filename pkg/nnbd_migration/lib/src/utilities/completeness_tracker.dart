@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
+import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/type_name_tracker.dart';
 
 /// Mixin that verifies (via assertion checks) that a visitor visits a
@@ -17,12 +17,6 @@ mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
   AnnotationTracker? _annotationTracker;
   TypeNameTracker? _typeNameTracker;
 
-  @override
-  T? visitAnnotation(Annotation node) {
-    annotationVisited(node);
-    return super.visitAnnotation(node);
-  }
-
   void annotationVisited(Annotation node) {
     assert(() {
       _annotationTracker!.nodeVisited(node);
@@ -30,11 +24,17 @@ mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
     }());
   }
 
-  void typeNameVisited(TypeName node) {
+  void namedTypeVisited(NamedType node) {
     assert(() {
       _typeNameTracker!.nodeVisited(node);
       return true;
     }());
+  }
+
+  @override
+  T? visitAnnotation(Annotation node) {
+    annotationVisited(node);
+    return super.visitAnnotation(node);
   }
 
   @override

@@ -522,9 +522,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     recordRelationOffset(element, kind, token.offset, token.length, true);
   }
 
-  /// Record a relation between a super [typeName] and its [Element].
-  void recordSuperType(TypeName typeName, IndexRelationKind kind) {
-    Identifier name = typeName.name;
+  /// Record a relation between a super [namedType] and its [Element].
+  void recordSuperType(NamedType namedType, IndexRelationKind kind) {
+    Identifier name = namedType.name;
     Element? element = name.staticElement;
     bool isQualified;
     SimpleIdentifier relNode;
@@ -538,7 +538,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     recordRelation(element, kind, relNode, isQualified);
     recordRelation(
         element, IndexRelationKind.IS_REFERENCED_BY, relNode, isQualified);
-    typeName.typeArguments?.accept(this);
+    namedType.typeArguments?.accept(this);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -660,8 +660,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    for (TypeName typeName in node.interfaces) {
-      recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
+    for (NamedType namedType in node.interfaces) {
+      recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
@@ -713,8 +713,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitOnClause(OnClause node) {
-    for (TypeName typeName in node.superclassConstraints) {
-      recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
+    for (NamedType namedType in node.superclassConstraints) {
+      recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
@@ -830,14 +830,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitWithClause(WithClause node) {
-    for (TypeName typeName in node.mixinTypes) {
-      recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
+    for (NamedType namedType in node.mixinTypes) {
+      recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
     }
   }
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtype(String name,
-      {TypeName? superclass,
+      {NamedType? superclass,
       WithClause? withClause,
       OnClause? onClause,
       ImplementsClause? implementsClause,
@@ -853,7 +853,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
           element.name;
     }
 
-    void addSupertype(TypeName? type) {
+    void addSupertype(NamedType? type) {
       var element = type?.name.staticElement;
       if (element is ClassElement) {
         String id = getClassElementId(element);

@@ -1657,7 +1657,7 @@ COMPILE_ASSERT(kWriteBarrierSlotReg == R13);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            Address stub_code,
                                            bool cards) {
-  Label add_to_mark_stack, remember_card;
+  Label add_to_mark_stack, remember_card, lost_race;
   __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
   __ j(ZERO, &add_to_mark_stack);
 
@@ -1676,17 +1676,23 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 #endif
   }
 
-  // Update the tags that this object has been remembered.
-  // RDX: Address being stored
-  // RAX: Current tag value
-  // lock+andq is an atomic read-modify-write.
-  __ lock();
-  __ andq(FieldAddress(RDX, target::Object::tags_offset()),
-          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+  __ pushq(RAX);  // Spill.
+  __ pushq(RCX);  // Spill.
 
-  // Save registers being destroyed.
-  __ pushq(RAX);
-  __ pushq(RCX);
+  // Atomically clear kOldAndNotRemembered.
+  Label retry;
+  __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
+  __ Bind(&retry);
+  __ movq(RCX, RAX);
+  __ testq(RCX,
+           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  __ j(ZERO, &lost_race);  // Remembered by another thread.
+  __ andq(RCX,
+          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+  // On failure, RAX is updated with the current value.
+  __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
+  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1704,9 +1710,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ incq(RCX);
   __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
   __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
-  // Restore values.
-  __ popq(RCX);
-  __ popq(RAX);
+  __ popq(RCX);  // Unspill.
+  __ popq(RAX);  // Unspill.
   __ j(EQUAL, &overflow, Assembler::kNearJump);
   __ ret();
 
@@ -1728,15 +1733,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
 
   // Atomically clear kOldAndNotMarkedBit.
-  Label retry, lost_race, marking_overflow;
+  Label retry_marking, marking_overflow;
   __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
-  __ Bind(&retry);
+  __ Bind(&retry_marking);
   __ movq(RCX, RAX);
   __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ j(ZERO, &lost_race);  // Marked by another thread.
   __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+  // On failure, RAX is updated with the current value.
   __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
-  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
 
   __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
   __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));

@@ -1717,7 +1717,7 @@ COMPILE_ASSERT(kWriteBarrierSlotReg == R25);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            Address stub_code,
                                            bool cards) {
-  Label add_to_mark_stack, remember_card;
+  Label add_to_mark_stack, remember_card, lost_race;
   __ tbz(&add_to_mark_stack, R0,
          target::ObjectAlignment::kNewObjectBitPosition);
 
@@ -1739,13 +1739,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Push(R3);
   __ Push(R4);
 
-  // Atomically set the remembered bit of the object header.
+  // Atomically clear kOldAndNotRememberedBit.
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R1, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   Label retry;
   __ Bind(&retry);
   __ ldxr(R2, R3, kEightBytes);
+  __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotRememberedBit);
   __ AndImmediate(R2, R2,
                   ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ stxr(R4, R2, R3, kEightBytes);
@@ -1791,7 +1792,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Push(R4);  // Spill.
 
   // Atomically clear kOldAndNotMarkedBit.
-  Label marking_retry, lost_race, marking_overflow;
+  Label marking_retry, marking_overflow;
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R0, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
@@ -1828,6 +1829,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ ret();
 
   __ Bind(&lost_race);
+  __ clrex();
   __ Pop(R4);  // Unspill.
   __ Pop(R3);  // Unspill.
   __ Pop(R2);  // Unspill.

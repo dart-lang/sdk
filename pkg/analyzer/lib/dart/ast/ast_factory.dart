@@ -149,7 +149,7 @@ abstract class AstFactory {
       TypeParameterList? typeParameters,
       Token equals,
       Token? abstractKeyword,
-      TypeName superclass,
+      NamedType superclass,
       WithClause withClause,
       ImplementsClause? implementsClause,
       Token semicolon);
@@ -230,7 +230,7 @@ abstract class AstFactory {
   /// Returns a newly created constructor name. The [period] and [name] can be
   /// `null` if the constructor being named is the unnamed constructor.
   ConstructorName constructorName(
-      TypeName type, Token? period, SimpleIdentifier? name);
+      NamedType type, Token? period, SimpleIdentifier? name);
 
   /// Returns a newly created constructor reference.
   ConstructorReference constructorReference(
@@ -344,7 +344,7 @@ abstract class AstFactory {
       Expression expression, Token? semicolon);
 
   /// Returns a newly created extends clause.
-  ExtendsClause extendsClause(Token extendsKeyword, TypeName superclass);
+  ExtendsClause extendsClause(Token extendsKeyword, NamedType superclass);
 
   /// Return a newly created extension declaration. The list of [typeParameters]
   /// can be `null` if there are no type parameters.
@@ -578,7 +578,7 @@ abstract class AstFactory {
 
   /// Returns a newly created implements clause.
   ImplementsClause implementsClause(
-      Token implementsKeyword, List<TypeName> interfaces);
+      Token implementsKeyword, List<NamedType> interfaces);
 
   /// Returns a newly created import directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
@@ -712,6 +712,15 @@ abstract class AstFactory {
   /// Returns a newly created named expression.
   NamedExpression namedExpression(Label name, Expression expression);
 
+  /// Returns a newly created named type. The [typeArguments] can be `null` if
+  /// there are no type arguments. The [question] can be `null` if there is no
+  /// question mark.
+  NamedType namedType({
+    required Identifier name,
+    TypeArgumentList? typeArguments,
+    Token? question,
+  });
+
   /// Returns a newly created native clause.
   NativeClause nativeClause(Token nativeKeyword, StringLiteral? name);
 
@@ -728,7 +737,7 @@ abstract class AstFactory {
   NullLiteral nullLiteral(Token literal);
 
   /// Return a newly created on clause.
-  OnClause onClause(Token onKeyword, List<TypeName> superclassConstraints);
+  OnClause onClause(Token onKeyword, List<NamedType> superclassConstraints);
 
   /// Returns a newly created parenthesized expression.
   ParenthesizedExpression parenthesizedExpression(
@@ -904,7 +913,7 @@ abstract class AstFactory {
       Token leftBracket, List<TypeAnnotation> arguments, Token rightBracket);
 
   /// Returns a newly created type literal.
-  TypeLiteral typeLiteral({required TypeName typeName});
+  TypeLiteral typeLiteral({required NamedType typeName});
 
   /// Returns a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments. The [question] can be `null` if there is no
@@ -962,7 +971,7 @@ abstract class AstFactory {
       Expression condition, Token rightParenthesis, Statement body);
 
   /// Returns a newly created with clause.
-  WithClause withClause(Token withKeyword, List<TypeName> mixinTypes);
+  WithClause withClause(Token withKeyword, List<NamedType> mixinTypes);
 
   /// Returns a newly created yield expression. The [star] can be `null` if no
   /// star was provided.

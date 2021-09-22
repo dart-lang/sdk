@@ -1750,8 +1750,8 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_named() {
     createParser('A<B>');
-    var typeName = parser.parseTypeAnnotation(false) as NamedType;
-    expectNotNullIfNoErrors(typeName);
+    var namedType = parser.parseTypeAnnotation(false) as NamedType;
+    expectNotNullIfNoErrors(namedType);
     assertNoErrors();
   }
 
@@ -1851,20 +1851,20 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeName_parameterized() {
     createParser('List<int>');
-    TypeName typeName = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(typeName);
+    NamedType namedType = parser.parseTypeName(false);
+    expectNotNullIfNoErrors(namedType);
     assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNotNull);
+    expect(namedType.name, isNotNull);
+    expect(namedType.typeArguments, isNotNull);
   }
 
   void test_parseTypeName_simple() {
     createParser('int');
-    TypeName typeName = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(typeName);
+    NamedType namedType = parser.parseTypeName(false);
+    expectNotNullIfNoErrors(namedType);
     assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNull);
+    expect(namedType.name, isNotNull);
+    expect(namedType.typeArguments, isNull);
   }
 
   void test_parseTypeParameter_bounded_functionType_noReturn() {

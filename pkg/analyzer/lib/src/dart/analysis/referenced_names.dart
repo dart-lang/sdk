@@ -17,7 +17,7 @@ Set<String> computeReferencedNames(CompilationUnit unit) {
 Set<String> computeSubtypedNames(CompilationUnit unit) {
   Set<String> subtypedNames = <String>{};
 
-  void _addSubtypedName(TypeName? type) {
+  void _addSubtypedName(NamedType? type) {
     if (type != null) {
       Identifier name = type.name;
       if (name is SimpleIdentifier) {
@@ -28,7 +28,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
     }
   }
 
-  void _addSubtypedNames(List<TypeName>? types) {
+  void _addSubtypedNames(List<NamedType>? types) {
     types?.forEach(_addSubtypedName);
   }
 

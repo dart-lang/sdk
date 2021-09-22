@@ -29,7 +29,7 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
 };
 
 /// A marker used in place of `null` when a function has no return type.
-final TypeName NO_RETURN_TYPE = astFactory.typeName(
+final NamedType NO_RETURN_TYPE = astFactory.typeName(
     astFactory.simpleIdentifier(StringToken(TokenType.IDENTIFIER, '', 0)),
     null);
 
@@ -246,7 +246,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
 
   // If the type is unresolved, use the declared type.
   if (type.isDynamic) {
-    if (declaredType is TypeName) {
+    if (declaredType is NamedType) {
       return declaredType.name.name;
     }
     return DYNAMIC;

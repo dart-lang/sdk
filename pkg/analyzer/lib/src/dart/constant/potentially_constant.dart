@@ -348,7 +348,7 @@ class _ConstantTypeChecker {
   /// Return `true` if the [node] is a constant type expression.
   bool check(TypeAnnotation? node) {
     if (potentially) {
-      if (node is TypeName) {
+      if (node is NamedType) {
         var element = node.name.staticElement;
         if (element is TypeParameterElement) {
           var enclosing = element.enclosingElement;
@@ -357,7 +357,7 @@ class _ConstantTypeChecker {
       }
     }
 
-    if (node is TypeName) {
+    if (node is NamedType) {
       if (_isConstantTypeName(node.name)) {
         var arguments = node.typeArguments?.arguments;
         if (arguments != null) {

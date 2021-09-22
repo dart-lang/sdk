@@ -48,7 +48,7 @@ class Rename extends Change<_Data> {
           // named constructor.
           builder.addSimpleReplacement(range.node(nameNode), newName);
         }
-      } else if (parent is TypeName && parent.parent is ConstructorName) {
+      } else if (parent is NamedType && parent.parent is ConstructorName) {
         // The constructor was renamed from an unnamed constructor to a named
         // constructor.
         builder.addSimpleInsertion(parent.end, '.$newName');

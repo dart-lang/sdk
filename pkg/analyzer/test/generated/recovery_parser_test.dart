@@ -1086,7 +1086,7 @@ class C {
     expect(expression.notOperator, isNotNull);
     TypeAnnotation type = expression.type;
     expect(type, isNotNull);
-    expect(type is TypeName && type.name.isSynthetic, isTrue);
+    expect(type is NamedType && type.name.isSynthetic, isTrue);
     var thenStatement = ifStatement.thenStatement as ExpressionStatement;
     expect(thenStatement.semicolon!.isSynthetic, isTrue);
     var simpleId = thenStatement.expression as SimpleIdentifier;

@@ -151,7 +151,7 @@ class InlineTypedef extends CorrectionProducer {
 class _ReferenceFinder extends RecursiveAstVisitor {
   final String typeName;
 
-  TypeName? reference;
+  NamedType? reference;
 
   int count = 0;
 

@@ -813,7 +813,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     // `is dynamic` or `is! dynamic`
     if (rightType.isDynamic) {
-      var rightTypeStr = rightNode is TypeName ? rightNode.name.name : null;
+      var rightTypeStr = rightNode is NamedType ? rightNode.name.name : null;
       if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
         report();
         return true;

@@ -167,7 +167,7 @@ class DartUnitHighlightsComputer {
     Set<SemanticTokenModifiers>? semanticModifiers;
     var parent = node.parent;
     var grandParent = parent?.parent;
-    if (parent is TypeName &&
+    if (parent is NamedType &&
         grandParent is ConstructorName &&
         grandParent.parent is InstanceCreationExpression) {
       // new Class()

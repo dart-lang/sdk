@@ -69,7 +69,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Only the Allocator, Opaque and Struct class may be extended.
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      final TypeName superclass = extendsClause.superclass;
+      final NamedType superclass = extendsClause.superclass;
       final ffiClass = superclass.ffiClass;
       if (ffiClass != null) {
         final className = ffiClass.name;
@@ -99,7 +99,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     // No classes from the FFI may be explicitly implemented.
-    void checkSupertype(TypeName typename, FfiCode subtypeOfFfiCode,
+    void checkSupertype(NamedType typename, FfiCode subtypeOfFfiCode,
         FfiCode subtypeOfStructCode) {
       final superName = typename.name.staticElement?.name;
       if (superName == _allocatorClassName) {
@@ -116,14 +116,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var implementsClause = node.implementsClause;
     if (implementsClause != null) {
-      for (TypeName type in implementsClause.interfaces) {
+      for (NamedType type in implementsClause.interfaces) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
       }
     }
     var withClause = node.withClause;
     if (withClause != null) {
-      for (TypeName type in withClause.mixinTypes) {
+      for (NamedType type in withClause.mixinTypes) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
       }
@@ -702,7 +702,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final typeArg = (declaredType as InterfaceType).typeArguments.single;
         if (!_isSized(typeArg)) {
           AstNode errorNode = fieldType;
-          if (fieldType is TypeName) {
+          if (fieldType is NamedType) {
             var typeArguments = fieldType.typeArguments?.arguments;
             if (typeArguments != null && typeArguments.isNotEmpty) {
               errorNode = typeArguments[0];
@@ -1354,7 +1354,7 @@ extension on DartType {
   }
 }
 
-extension on TypeName {
+extension on NamedType {
   /// If this is a name of class from `dart:ffi`, return it.
   ClassElement? get ffiClass {
     return name.staticElement.ffiClass;
