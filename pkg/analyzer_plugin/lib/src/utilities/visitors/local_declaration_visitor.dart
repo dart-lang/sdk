@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 /// declarations in those nodes. Consumers typically call [visit] which catches
 /// the exception thrown by [finished].
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
-  static final TypeName STACKTRACE_TYPE = astFactory.typeName(
+  static final NamedType STACKTRACE_TYPE = astFactory.typeName(
       astFactory
           .simpleIdentifier(StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
       null);

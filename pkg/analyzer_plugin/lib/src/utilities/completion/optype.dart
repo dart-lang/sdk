@@ -1120,7 +1120,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return;
       }
       optype.isPrefixed = true;
-      if (node.parent is TypeName && node.parent?.parent is ConstructorName) {
+      if (node.parent is NamedType && node.parent?.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
       } else if (node.parent is Annotation) {
         optype.includeConstructorSuggestions = true;
