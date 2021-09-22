@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/src/version.dart';
 
@@ -172,13 +171,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   );
 
   @override
-  int get hashCode {
-    int hash = 0;
-    for (var flag in _flags) {
-      hash = JenkinsSmiHash.combine(hash, flag.hashCode);
-    }
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hashAll(_flags);
 
   @override
   bool operator ==(Object other) {

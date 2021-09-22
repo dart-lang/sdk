@@ -8,7 +8,6 @@
 
 import 'dart:convert' hide JsonDecoder;
 
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
@@ -66,12 +65,10 @@ class AddContentOverlay implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, 704418402);
-    hash = JenkinsSmiHash.combine(hash, content.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        704418402,
+        content.hashCode,
+      );
 }
 
 /// AnalysisError
@@ -252,19 +249,17 @@ class AnalysisError implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, severity.hashCode);
-    hash = JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, correction.hashCode);
-    hash = JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = JenkinsSmiHash.combine(hash, url.hashCode);
-    hash = JenkinsSmiHash.combine(hash, contextMessages.hashCode);
-    hash = JenkinsSmiHash.combine(hash, hasFix.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        severity.hashCode,
+        type.hashCode,
+        location.hashCode,
+        message.hashCode,
+        correction.hashCode,
+        code.hashCode,
+        url.hashCode,
+        contextMessages.hashCode,
+        hasFix.hashCode,
+      );
 }
 
 /// AnalysisErrorSeverity
@@ -477,12 +472,10 @@ class ChangeContentOverlay implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, 873118866);
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        873118866,
+        edits.hashCode,
+      );
 }
 
 /// CompletionSuggestion
@@ -918,33 +911,31 @@ class CompletionSuggestion implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
-    hash = JenkinsSmiHash.combine(hash, completion.hashCode);
-    hash = JenkinsSmiHash.combine(hash, displayText.hashCode);
-    hash = JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, replacementLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isPotential.hashCode);
-    hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
-    hash = JenkinsSmiHash.combine(hash, docComplete.hashCode);
-    hash = JenkinsSmiHash.combine(hash, declaringType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultArgumentListTextRanges.hashCode);
-    hash = JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
-    hash = JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterType.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hashAll([
+        kind.hashCode,
+        relevance.hashCode,
+        completion.hashCode,
+        displayText.hashCode,
+        replacementOffset.hashCode,
+        replacementLength.hashCode,
+        selectionOffset.hashCode,
+        selectionLength.hashCode,
+        isDeprecated.hashCode,
+        isPotential.hashCode,
+        docSummary.hashCode,
+        docComplete.hashCode,
+        declaringType.hashCode,
+        defaultArgumentListString.hashCode,
+        defaultArgumentListTextRanges.hashCode,
+        element.hashCode,
+        returnType.hashCode,
+        parameterNames.hashCode,
+        parameterTypes.hashCode,
+        requiredParameterCount.hashCode,
+        hasNamedParameters.hashCode,
+        parameterName.hashCode,
+        parameterType.hashCode,
+      ]);
 }
 
 /// CompletionSuggestionKind
@@ -1139,12 +1130,10 @@ class DiagnosticMessage implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, location.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        message.hashCode,
+        location.hashCode,
+      );
 }
 
 /// Element
@@ -1347,18 +1336,16 @@ class Element implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = JenkinsSmiHash.combine(hash, flags.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, typeParameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, aliasedType.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        kind.hashCode,
+        name.hashCode,
+        location.hashCode,
+        flags.hashCode,
+        parameters.hashCode,
+        returnType.hashCode,
+        typeParameters.hashCode,
+        aliasedType.hashCode,
+      );
 }
 
 /// ElementKind
@@ -1753,13 +1740,11 @@ class FoldingRegion implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        kind.hashCode,
+        offset.hashCode,
+        length.hashCode,
+      );
 }
 
 /// HighlightRegion
@@ -1835,13 +1820,11 @@ class HighlightRegion implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        type.hashCode,
+        offset.hashCode,
+        length.hashCode,
+      );
 }
 
 /// HighlightRegionType
@@ -2545,15 +2528,13 @@ class KytheEntry implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, source.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, target.hashCode);
-    hash = JenkinsSmiHash.combine(hash, fact.hashCode);
-    hash = JenkinsSmiHash.combine(hash, value.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        source.hashCode,
+        kind.hashCode,
+        target.hashCode,
+        fact.hashCode,
+        value.hashCode,
+      );
 }
 
 /// KytheVName
@@ -2659,15 +2640,13 @@ class KytheVName implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, signature.hashCode);
-    hash = JenkinsSmiHash.combine(hash, corpus.hashCode);
-    hash = JenkinsSmiHash.combine(hash, root.hashCode);
-    hash = JenkinsSmiHash.combine(hash, path.hashCode);
-    hash = JenkinsSmiHash.combine(hash, language.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        signature.hashCode,
+        corpus.hashCode,
+        root.hashCode,
+        path.hashCode,
+        language.hashCode,
+      );
 }
 
 /// LinkedEditGroup
@@ -2770,13 +2749,11 @@ class LinkedEditGroup implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, positions.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, suggestions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        positions.hashCode,
+        length.hashCode,
+        suggestions.hashCode,
+      );
 }
 
 /// LinkedEditSuggestion
@@ -2839,12 +2816,10 @@ class LinkedEditSuggestion implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, value.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        value.hashCode,
+        kind.hashCode,
+      );
 }
 
 /// LinkedEditSuggestionKind
@@ -3043,17 +3018,15 @@ class Location implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
-    hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
-    hash = JenkinsSmiHash.combine(hash, endLine.hashCode);
-    hash = JenkinsSmiHash.combine(hash, endColumn.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file.hashCode,
+        offset.hashCode,
+        length.hashCode,
+        startLine.hashCode,
+        startColumn.hashCode,
+        endLine.hashCode,
+        endColumn.hashCode,
+      );
 }
 
 /// NavigationRegion
@@ -3131,13 +3104,11 @@ class NavigationRegion implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset.hashCode,
+        length.hashCode,
+        targets.hashCode,
+      );
 }
 
 /// NavigationTarget
@@ -3287,18 +3258,16 @@ class NavigationTarget implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, fileIndex.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
-    hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        kind.hashCode,
+        fileIndex.hashCode,
+        offset.hashCode,
+        length.hashCode,
+        startLine.hashCode,
+        startColumn.hashCode,
+        codeOffset.hashCode,
+        codeLength.hashCode,
+      );
 }
 
 /// Occurrences
@@ -3375,13 +3344,11 @@ class Occurrences implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        element.hashCode,
+        offsets.hashCode,
+        length.hashCode,
+      );
 }
 
 /// Outline
@@ -3509,16 +3476,14 @@ class Outline implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, children.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        element.hashCode,
+        offset.hashCode,
+        length.hashCode,
+        codeOffset.hashCode,
+        codeLength.hashCode,
+        children.hashCode,
+      );
 }
 
 /// ParameterInfo
@@ -3609,14 +3574,12 @@ class ParameterInfo implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultValue.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        kind.hashCode,
+        name.hashCode,
+        type.hashCode,
+        defaultValue.hashCode,
+      );
 }
 
 /// ParameterKind
@@ -3748,12 +3711,10 @@ class Position implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file.hashCode,
+        offset.hashCode,
+      );
 }
 
 /// RefactoringKind
@@ -3963,15 +3924,13 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id.hashCode,
+        kind.hashCode,
+        type.hashCode,
+        name.hashCode,
+        parameters.hashCode,
+      );
 }
 
 /// RefactoringMethodParameterKind
@@ -4111,13 +4070,11 @@ class RefactoringProblem implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, severity.hashCode);
-    hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, location.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        severity.hashCode,
+        message.hashCode,
+        location.hashCode,
+      );
 }
 
 /// RefactoringProblemSeverity
@@ -4248,11 +4205,7 @@ class RemoveContentOverlay implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, 114870849);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => 114870849;
 }
 
 /// SourceChange
@@ -4397,15 +4350,13 @@ class SourceChange implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selection.hashCode);
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        message.hashCode,
+        edits.hashCode,
+        linkedEditGroups.hashCode,
+        selection.hashCode,
+        id.hashCode,
+      );
 }
 
 /// SourceEdit
@@ -4512,14 +4463,12 @@ class SourceEdit implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, replacement.hashCode);
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset.hashCode,
+        length.hashCode,
+        replacement.hashCode,
+        id.hashCode,
+      );
 }
 
 /// SourceFileEdit
@@ -4610,11 +4559,9 @@ class SourceFileEdit implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, fileStamp.hashCode);
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file.hashCode,
+        fileStamp.hashCode,
+        edits.hashCode,
+      );
 }

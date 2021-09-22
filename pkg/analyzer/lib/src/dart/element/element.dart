@@ -42,7 +42,6 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
@@ -2735,14 +2734,7 @@ class ElementLocationImpl implements ElementLocation {
   }
 
   @override
-  int get hashCode {
-    int result = 0;
-    for (int i = 0; i < _components.length; i++) {
-      String component = _components[i];
-      result = JenkinsSmiHash.combine(result, component.hashCode);
-    }
-    return result;
-  }
+  int get hashCode => Object.hashAll(_components);
 
   @override
   bool operator ==(Object object) {

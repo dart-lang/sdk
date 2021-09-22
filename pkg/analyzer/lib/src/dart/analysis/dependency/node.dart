@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:convert/convert.dart';
 
 /// The reference to a class member.
@@ -23,7 +22,7 @@ class ClassMemberReference {
   final int hashCode;
 
   ClassMemberReference(this.target, this.name)
-      : hashCode = JenkinsSmiHash.hash2(target.hashCode, name.hashCode);
+      : hashCode = Object.hash(target.hashCode, name.hashCode);
 
   @override
   bool operator ==(Object other) {
@@ -121,7 +120,7 @@ class LibraryQualifiedName {
 
   factory LibraryQualifiedName(Uri libraryUri, String name) {
     var isPrivate = name.startsWith('_');
-    var hashCode = JenkinsSmiHash.hash2(libraryUri.hashCode, name.hashCode);
+    var hashCode = Object.hash(libraryUri.hashCode, name.hashCode);
     return LibraryQualifiedName._internal(
         libraryUri, name, isPrivate, hashCode);
   }

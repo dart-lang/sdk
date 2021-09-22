@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-09-10T11:44:31.694550",
+  "generated": "2021-09-21T21:00:34.058842",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -82,7 +82,7 @@
       "name": "analyzer",
       "rootUri": "../pkg/analyzer",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_cli",
@@ -476,7 +476,7 @@
       "name": "nnbd_migration",
       "rootUri": "../pkg/nnbd_migration",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "oauth2",

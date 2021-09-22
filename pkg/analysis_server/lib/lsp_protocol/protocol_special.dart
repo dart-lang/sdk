@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonRpcVersion = '2.0';
 
@@ -36,20 +35,15 @@ bool lspEquals(dynamic obj1, dynamic obj2) {
 /// Returns an objects hash code, recursively combining hashes for items in
 /// Maps/Lists.
 int lspHashCode(dynamic obj) {
-  var hash = 0;
   if (obj is List) {
-    for (var element in obj) {
-      hash = JenkinsSmiHash.combine(hash, lspHashCode(element));
-    }
+    return Object.hashAll(obj.map(lspHashCode));
   } else if (obj is Map) {
-    for (var key in obj.keys) {
-      hash = JenkinsSmiHash.combine(hash, lspHashCode(key));
-      hash = JenkinsSmiHash.combine(hash, lspHashCode(obj[key]));
-    }
+    return Object.hashAll(obj.entries
+        .expand((element) => [element.key, element.value])
+        .map(lspHashCode));
   } else {
-    hash = obj.hashCode;
+    return obj.hashCode;
   }
-  return JenkinsSmiHash.finish(hash);
 }
 
 Object? specToJson(Object? obj) {
