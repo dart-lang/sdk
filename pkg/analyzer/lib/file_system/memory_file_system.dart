@@ -480,9 +480,7 @@ class _MemoryFile extends _MemoryResource implements File {
     var canonicalPath = provider._resolveLinks(path);
     var data = provider._pathToData[canonicalPath];
     if (data is! _FileData) {
-      // TODO(scheglov) Remove the path from the message.
-      // When https://github.com/dart-lang/dartdoc/pull/2796 is in google3.
-      throw FileSystemException(path, 'File "$path" does not exist.');
+      throw FileSystemException(path, 'File does not exist.');
     }
     return data.bytes;
   }
