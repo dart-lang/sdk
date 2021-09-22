@@ -23,11 +23,8 @@ dependencies:
   yaml: ^3.0.0
 
 dev_dependencies:
-  async: any # referenced in tests
   benchmark_harness: ^2.0.0
   cli_util: ^0.3.0
-  fixnum:
-    path: test_data/mock_packages/fixnum
   github: ^8.0.1
   grinder: ^0.9.0
   lints: ^1.0.0
