@@ -7,8 +7,8 @@ import "dart:async";
 typedef G<invariant T extends core::Object? = dynamic> = <S extends T% = dynamic>(S%) → dynamic;
 typedef H<invariant T extends core::Object? = dynamic> = <S extends FutureOr<T%> = dynamic>(S%, FutureOr<T%>) → dynamic;
 class C<T extends core::Object? = dynamic> extends core::Object {
-  generic-covariant-impl field <S extends self::C::T% = dynamic>(S%) → dynamic field1;
-  generic-covariant-impl field <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2;
+  covariant-by-class field <S extends self::C::T% = dynamic>(S%) → dynamic field1;
+  covariant-by-class field <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2;
   constructor •(<S extends self::C::T% = dynamic>(S%) → dynamic field1, <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2) → self::C<self::C::T%>
     ;
 }

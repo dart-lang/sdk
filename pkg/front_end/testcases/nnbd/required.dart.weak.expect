@@ -59,7 +59,7 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
-  method method({core::int a = #C1, required core::int b = #C2, required final core::int c = #C2, required covariant final core::int d = #C2}) → dynamic {}
+  method method({core::int a = #C1, required core::int b = #C2, required final core::int c = #C2, required covariant-by-declaration final core::int d = #C2}) → dynamic {}
 }
 abstract class A extends core::Object {
   synthetic constructor •() → self::A

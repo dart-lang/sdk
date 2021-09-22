@@ -3,21 +3,21 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::C::T* field1;
-  generic-covariant-impl field () →* self::C::T* field2;
+  covariant-by-class field self::C::T* field1;
+  covariant-by-class field () →* self::C::T* field2;
   field (self::C::T*) →* void field3;
-  generic-covariant-impl field (self::C::T*) →* self::C::T* field4;
-  generic-covariant-impl field () →* () →* self::C::T* field5;
+  covariant-by-class field (self::C::T*) →* self::C::T* field4;
+  covariant-by-class field () →* () →* self::C::T* field5;
   field (() →* self::C::T*) →* void field6;
-  generic-covariant-impl field (() →* self::C::T*) →* self::C::T* field7;
-  generic-covariant-impl field ((self::C::T*) →* void) →* void field8;
-  generic-covariant-impl field ((self::C::T*) →* void) →* self::C::T* field9;
-  generic-covariant-impl field ((self::C::T*) →* self::C::T*) →* void field10;
-  generic-covariant-impl field ((self::C::T*) →* self::C::T*) →* self::C::T* field11;
-  generic-covariant-impl field <S extends self::C::T* = dynamic>() →* S* field12;
-  generic-covariant-impl field <S extends self::C::T* = dynamic>(S*) →* void field13;
-  generic-covariant-impl field <S extends self::C::T* = dynamic>(S*) →* S* field14;
-  generic-covariant-impl field (<S extends self::C::T* = dynamic>() →* S*) →* void field15;
+  covariant-by-class field (() →* self::C::T*) →* self::C::T* field7;
+  covariant-by-class field ((self::C::T*) →* void) →* void field8;
+  covariant-by-class field ((self::C::T*) →* void) →* self::C::T* field9;
+  covariant-by-class field ((self::C::T*) →* self::C::T*) →* void field10;
+  covariant-by-class field ((self::C::T*) →* self::C::T*) →* self::C::T* field11;
+  covariant-by-class field <S extends self::C::T* = dynamic>() →* S* field12;
+  covariant-by-class field <S extends self::C::T* = dynamic>(S*) →* void field13;
+  covariant-by-class field <S extends self::C::T* = dynamic>(S*) →* S* field14;
+  covariant-by-class field (<S extends self::C::T* = dynamic>() →* S*) →* void field15;
   constructor •(self::C::T* field1) → self::C<self::C::T*>*
     : self::C::field1 = field1, self::C::field2 = () → self::C::T* => field1, self::C::field3 = (self::C::T* t) → Null {}, self::C::field4 = (self::C::T* t) → self::C::T* => t, self::C::field5 = () → () →* self::C::T* => () → self::C::T* => field1, self::C::field6 = (() →* self::C::T* f) → Null {}, self::C::field7 = (() →* self::C::T* f) → self::C::T* => field1, self::C::field8 = ((self::C::T*) →* void f) → Null {}, self::C::field9 = ((self::C::T*) →* void f) → self::C::T* => field1, self::C::field10 = ((self::C::T*) →* self::C::T* f) → Null {}, self::C::field11 = ((self::C::T*) →* self::C::T* f) → self::C::T* => field1, self::C::field12 = <S extends self::C::T*>() → Null => null, self::C::field13 = <S extends self::C::T*>(S* s) → Null {}, self::C::field14 = <S extends self::C::T*>(S* s) → S* => s, self::C::field15 = (<S extends self::C::T*>() →* S* f) → Null {}, super core::Object::•()
     ;
@@ -51,94 +51,94 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     return this.{self::C::field14}{<S extends self::C::T* = dynamic>(S*) →* S*};
   get getter15() → (<S extends self::C::T* = dynamic>() →* S*) →* void
     return this.{self::C::field15}{(<S extends self::C::T* = dynamic>() →* S*) →* void};
-  set setter1(generic-covariant-impl self::C::T* value) → void {
+  set setter1(covariant-by-class self::C::T* value) → void {
     this.{self::C::field1} = value;
   }
-  set setter2(generic-covariant-impl () →* self::C::T* value) → void {
+  set setter2(covariant-by-class () →* self::C::T* value) → void {
     this.{self::C::field2} = value;
   }
   set setter3((self::C::T*) →* void value) → void {
     this.{self::C::field3} = value;
   }
-  set setter4(generic-covariant-impl (self::C::T*) →* self::C::T* value) → void {
+  set setter4(covariant-by-class (self::C::T*) →* self::C::T* value) → void {
     this.{self::C::field4} = value;
   }
-  set setter5(generic-covariant-impl () →* () →* self::C::T* value) → void {
+  set setter5(covariant-by-class () →* () →* self::C::T* value) → void {
     this.{self::C::field5} = value;
   }
   set setter6((() →* self::C::T*) →* void value) → void {
     this.{self::C::field6} = value;
   }
-  set setter7(generic-covariant-impl (() →* self::C::T*) →* self::C::T* value) → void {
+  set setter7(covariant-by-class (() →* self::C::T*) →* self::C::T* value) → void {
     this.{self::C::field7} = value;
   }
-  set setter8(generic-covariant-impl ((self::C::T*) →* void) →* void value) → void {
+  set setter8(covariant-by-class ((self::C::T*) →* void) →* void value) → void {
     this.{self::C::field8} = value;
   }
-  set setter9(generic-covariant-impl ((self::C::T*) →* void) →* self::C::T* value) → void {
+  set setter9(covariant-by-class ((self::C::T*) →* void) →* self::C::T* value) → void {
     this.{self::C::field9} = value;
   }
-  set setter10(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* void value) → void {
+  set setter10(covariant-by-class ((self::C::T*) →* self::C::T*) →* void value) → void {
     this.{self::C::field10} = value;
   }
-  set setter11(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void {
+  set setter11(covariant-by-class ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void {
     this.{self::C::field11} = value;
   }
-  set setter12(generic-covariant-impl <S extends self::C::T* = dynamic>() →* S* value) → void {
+  set setter12(covariant-by-class <S extends self::C::T* = dynamic>() →* S* value) → void {
     this.{self::C::field12} = value;
   }
-  set setter13(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* void value) → void {
+  set setter13(covariant-by-class <S extends self::C::T* = dynamic>(S*) →* void value) → void {
     this.{self::C::field13} = value;
   }
-  set setter14(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* S* value) → void {
+  set setter14(covariant-by-class <S extends self::C::T* = dynamic>(S*) →* S* value) → void {
     this.{self::C::field14} = value;
   }
-  set setter15(generic-covariant-impl (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void {
+  set setter15(covariant-by-class (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void {
     this.{self::C::field15} = value;
   }
-  method method1(generic-covariant-impl self::C::T* value) → void {
+  method method1(covariant-by-class self::C::T* value) → void {
     this.{self::C::field1} = value;
   }
-  method method2(generic-covariant-impl () →* self::C::T* value) → void {
+  method method2(covariant-by-class () →* self::C::T* value) → void {
     this.{self::C::field2} = value;
   }
   method method3((self::C::T*) →* void value) → void {
     this.{self::C::field3} = value;
   }
-  method method4(generic-covariant-impl (self::C::T*) →* self::C::T* value) → void {
+  method method4(covariant-by-class (self::C::T*) →* self::C::T* value) → void {
     this.{self::C::field4} = value;
   }
-  method method5(generic-covariant-impl () →* () →* self::C::T* value) → void {
+  method method5(covariant-by-class () →* () →* self::C::T* value) → void {
     this.{self::C::field5} = value;
   }
   method method6((() →* self::C::T*) →* void value) → void {
     this.{self::C::field6} = value;
   }
-  method method7(generic-covariant-impl (() →* self::C::T*) →* self::C::T* value) → void {
+  method method7(covariant-by-class (() →* self::C::T*) →* self::C::T* value) → void {
     this.{self::C::field7} = value;
   }
-  method method8(generic-covariant-impl ((self::C::T*) →* void) →* void value) → void {
+  method method8(covariant-by-class ((self::C::T*) →* void) →* void value) → void {
     this.{self::C::field8} = value;
   }
-  method method9(generic-covariant-impl ((self::C::T*) →* void) →* self::C::T* value) → void {
+  method method9(covariant-by-class ((self::C::T*) →* void) →* self::C::T* value) → void {
     this.{self::C::field9} = value;
   }
-  method method10(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* void value) → void {
+  method method10(covariant-by-class ((self::C::T*) →* self::C::T*) →* void value) → void {
     this.{self::C::field10} = value;
   }
-  method method11(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void {
+  method method11(covariant-by-class ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void {
     this.{self::C::field11} = value;
   }
-  method method12(generic-covariant-impl <S extends self::C::T* = dynamic>() →* S* value) → void {
+  method method12(covariant-by-class <S extends self::C::T* = dynamic>() →* S* value) → void {
     this.{self::C::field12} = value;
   }
-  method method13(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* void value) → void {
+  method method13(covariant-by-class <S extends self::C::T* = dynamic>(S*) →* void value) → void {
     this.{self::C::field13} = value;
   }
-  method method14(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* S* value) → void {
+  method method14(covariant-by-class <S extends self::C::T* = dynamic>(S*) →* S* value) → void {
     this.{self::C::field14} = value;
   }
-  method method15(generic-covariant-impl (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void {
+  method method15(covariant-by-class (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void {
     this.{self::C::field15} = value;
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

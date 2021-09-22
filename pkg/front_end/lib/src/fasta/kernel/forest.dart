@@ -644,7 +644,7 @@ class Forest {
       DartType? type,
       bool isFinal: false,
       bool isConst: false,
-      bool isFieldFormal: false,
+      bool isInitializingFormal: false,
       bool isCovariantByDeclaration: false,
       bool isLocalFunction: false}) {
     // ignore: unnecessary_null_comparison
@@ -654,7 +654,7 @@ class Forest {
         initializer: initializer,
         isFinal: isFinal,
         isConst: isConst,
-        isFieldFormal: isFieldFormal,
+        isInitializingFormal: isInitializingFormal,
         isCovariantByDeclaration: isCovariantByDeclaration,
         isLocalFunction: isLocalFunction,
         hasDeclaredInitializer: initializer != null);

@@ -5,8 +5,8 @@ import "dart:core" as core;
 abstract class I<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::T*>*
     ;
-  abstract method f1(generic-covariant-impl self::I::T* x) → void;
-  abstract method f2(generic-covariant-impl self::I::T* x) → void;
+  abstract method f1(covariant-by-class self::I::T* x) → void;
+  abstract method f2(covariant-by-class self::I::T* x) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -21,9 +21,9 @@ abstract class I<T extends core::Object* = dynamic> extends core::Object {
 class C<U extends core::Object* = dynamic> extends core::Object implements self::I<core::int*> {
   synthetic constructor •() → self::C<self::C::U*>*
     ;
-  method f1(generic-covariant-impl core::int* x) → void
+  method f1(covariant-by-class core::int* x) → void
     ;
-  method f2(generic-covariant-impl core::int* x, [generic-covariant-impl self::C::U* y]) → void
+  method f2(covariant-by-class core::int* x, [covariant-by-class self::C::U* y]) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -39,9 +39,9 @@ class C<U extends core::Object* = dynamic> extends core::Object implements self:
 class D<U extends core::Object* = dynamic> extends self::C<self::D::U*> {
   synthetic constructor •() → self::D<self::D::U*>*
     ;
-  method f1(generic-covariant-impl core::int* x) → void
+  method f1(covariant-by-class core::int* x) → void
     ;
-  method f2(generic-covariant-impl core::int* x, [generic-covariant-impl self::D::U* y]) → void
+  method f2(covariant-by-class core::int* x, [covariant-by-class self::D::U* y]) → void
     ;
 }
 static method g1(self::C<core::num*>* c) → void

@@ -19,7 +19,7 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class D extends core::Object implements self::C {
-  covariant field core::int* x = null;
+  covariant-by-declaration field core::int* x = null;
   synthetic constructor •() → self::D*
     : super core::Object::•()
     ;
@@ -40,7 +40,7 @@ class E extends core::Object implements self::D {
     ;
   get x() → core::int*
     return 0;
-  set x(covariant core::int* value) → void {}
+  set x(covariant-by-declaration core::int* value) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

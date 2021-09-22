@@ -336,7 +336,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   void _handleVariableDeclaration(
       ir.VariableDeclaration node, VariableUse usage) {
-    if (!node.isFieldFormal) {
+    if (!node.isInitializingFormal) {
       _scopeVariables.add(node);
     }
 

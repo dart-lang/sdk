@@ -121,7 +121,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T%>
     : super core::Object::•()
     ;
-  operator ==(covariant generic-covariant-impl self::Class<self::Class::T%> other) → core::bool
+  operator ==(covariant-by-declaration covariant-by-class self::Class<self::Class::T%> other) → core::bool
     return true;
   method method(dynamic o) → dynamic {}
 }

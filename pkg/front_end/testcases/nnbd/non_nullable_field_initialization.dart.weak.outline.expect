@@ -34,8 +34,8 @@ class A extends core::Object {
     ;
 }
 class B<X extends core::Object?, Y extends core::Object> extends core::Object {
-  generic-covariant-impl field self::B::X% fieldOfB;
-  generic-covariant-impl field self::B::Y fieldOfB2;
+  covariant-by-class field self::B::X% fieldOfB;
+  covariant-by-class field self::B::Y fieldOfB2;
   constructor foo() → self::B<self::B::X%, self::B::Y>
     ;
   constructor bar(self::B::X% fieldOfB, self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
@@ -46,22 +46,22 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
   field core::int fieldOfM;
 }
 abstract class N<X extends core::Object?, Y extends core::Object> extends core::Object /*isMixinDeclaration*/  {
-  generic-covariant-impl field self::N::X% fieldOfN;
-  generic-covariant-impl field self::N::Y fieldOfN2;
+  covariant-by-class field self::N::X% fieldOfN;
+  covariant-by-class field self::N::Y fieldOfN2;
 }
 class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   static field core::int? staticFieldOfX;
   static field core::int staticFieldOfXInitialized;
-  generic-covariant-impl field self::C::X? fieldOfX;
+  covariant-by-class field self::C::X? fieldOfX;
   field core::int? fieldOfX2;
   field dynamic fieldOfX3;
   field Null fieldOfX4;
   field () →? core::int fieldOfX5;
-  generic-covariant-impl field self::C::Y? fieldOfX6;
+  covariant-by-class field self::C::Y? fieldOfX6;
   late static field core::int lateStaticFieldOfC;
   late field core::int fieldOfC7;
-  late generic-covariant-impl field self::C::X% fieldOfC8;
-  late generic-covariant-impl field self::C::Y fieldOfC9;
+  late covariant-by-class field self::C::X% fieldOfC8;
+  late covariant-by-class field self::C::Y fieldOfC9;
   field core::int fieldOfC10;
   constructor foo(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
     ;
@@ -71,16 +71,16 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
 abstract class L<X extends core::Object?, Y extends core::Object> extends core::Object /*isMixinDeclaration*/  {
   static field core::int? staticFieldOfL;
   static field core::int staticFieldOfLInitialized;
-  generic-covariant-impl field self::L::X? fieldOfL;
+  covariant-by-class field self::L::X? fieldOfL;
   field core::int? fieldOfL2;
   field dynamic fieldOfL3;
   field Null fieldOfL4;
   field () →? core::int fieldOfL5;
-  generic-covariant-impl field self::L::Y? fieldOfL6;
+  covariant-by-class field self::L::Y? fieldOfL6;
   late static field core::int lateStaticFieldOfM;
   late field core::int fieldOfM7;
-  late generic-covariant-impl field self::L::X% fieldOfM8;
-  late generic-covariant-impl field self::L::Y fieldOfM9;
+  late covariant-by-class field self::L::X% fieldOfM8;
+  late covariant-by-class field self::L::Y fieldOfM9;
 }
 extension P on self::Foo {
   static field staticFieldOfE = self::P|staticFieldOfE;

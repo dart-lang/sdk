@@ -8,14 +8,14 @@ import "org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart"
 class Super extends core::Object {
   synthetic constructor •() → self::Super
     ;
-  method method({required covariant core::int named}) → void
+  method method({required covariant-by-declaration core::int named}) → void
     ;
 }
 abstract class _Class&Super&Mixin = self::Super with req::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  forwarding-stub method /*isLegacy*/ method({covariant core::int* named}) → void
+  forwarding-stub method /*isLegacy*/ method({covariant-by-declaration core::int* named}) → void
     return super.{req::Mixin::method}(named: named);
   abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
@@ -26,7 +26,7 @@ class Class extends self::_Class&Super&Mixin {
 class SubClass extends self::Class {
   synthetic constructor •() → self::SubClass
     ;
-  method method({required covariant core::int named}) → void
+  method method({required covariant-by-declaration core::int named}) → void
     ;
 }
 static method main() → dynamic

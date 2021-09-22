@@ -9,11 +9,11 @@ class Element extends core::Object {
     ;
 }
 class Class<E extends self::Element?> extends core::Object {
-  generic-covariant-impl field self::Class::E? element;
+  covariant-by-class field self::Class::E? element;
   constructor •(self::Class::E? element) → self::Class<self::Class::E%>
     : self::Class::element = element, super core::Object::•()
     ;
-  method setElement(generic-covariant-impl self::Class::E? element) → void {
+  method setElement(covariant-by-class self::Class::E? element) → void {
     if(!(this.{self::Class::element}{self::Class::E?} =={core::Object::==}{(core::Object) → core::bool} element)) {
       this.{self::Class::element} = element;
       core::Set<self::Element> elements = new col::_CompactLinkedHashSet::•<self::Element>();

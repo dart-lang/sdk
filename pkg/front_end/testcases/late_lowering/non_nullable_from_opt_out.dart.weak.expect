@@ -40,7 +40,7 @@ class Class<T extends core::Object> extends core::Object {
   field core::bool _#Class#instanceField#isSet = false;
   field dynamic _#Class#finalInstanceField = null;
   field core::bool _#Class#finalInstanceField#isSet = false;
-  generic-covariant-impl field non::Class::T? _#Class#instanceTypeVariable = null;
+  covariant-by-class field non::Class::T? _#Class#instanceTypeVariable = null;
   field core::bool _#Class#instanceTypeVariable#isSet = false;
   field non::Class::T? _#Class#finalInstanceTypeVariable = null;
   field core::bool _#Class#finalInstanceTypeVariable#isSet = false;
@@ -68,7 +68,7 @@ class Class<T extends core::Object> extends core::Object {
     }
   get instanceTypeVariable() → non::Class::T
     return this.{non::Class::_#Class#instanceTypeVariable#isSet}{core::bool} ?{non::Class::T} let final non::Class::T? #t4 = this.{non::Class::_#Class#instanceTypeVariable}{non::Class::T?} in #t4{non::Class::T} : throw new _in::LateError::fieldNI("instanceTypeVariable");
-  set instanceTypeVariable(generic-covariant-impl non::Class::T #t5) → void {
+  set instanceTypeVariable(covariant-by-class non::Class::T #t5) → void {
     this.{non::Class::_#Class#instanceTypeVariable#isSet} = true;
     this.{non::Class::_#Class#instanceTypeVariable} = #t5;
   }

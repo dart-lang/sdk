@@ -16,13 +16,13 @@ class B extends core::Object {
     ;
 }
 abstract class C<T extends core::Object? = dynamic> extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  abstract set /*isLegacy*/ bar(generic-covariant-impl self::C::T? value) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  abstract set /*isLegacy*/ bar(covariant-by-class self::C::T? value) → void;
 }
 class D extends core::Object implements self::C<core::int> {
   synthetic constructor •() → self::D
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  set /*isLegacy*/ bar(generic-covariant-impl core::int? value) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  set /*isLegacy*/ bar(covariant-by-class core::int? value) → void;
 }
 abstract class E extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  abstract get /*isLegacy*/ bar() → core::int;

@@ -6,13 +6,13 @@ typedef Callback<contravariant T extends core::Object* = dynamic> = (T*) →* vo
 class Foo<T extends core::Object* = dynamic> extends core::Object {
   final field self::Foo::T* finalField;
   final field (self::Foo::T*) →* void callbackField;
-  generic-covariant-impl field self::Foo::T* mutableField;
+  covariant-by-class field self::Foo::T* mutableField;
   field (self::Foo::T*) →* void mutableCallbackField;
   constructor •(self::Foo::T* finalField, (self::Foo::T*) →* void callbackField) → self::Foo<self::Foo::T*>*
     ;
-  method method(generic-covariant-impl self::Foo::T* x) → void
+  method method(covariant-by-class self::Foo::T* x) → void
     ;
-  set setter(generic-covariant-impl self::Foo::T* x) → void
+  set setter(covariant-by-class self::Foo::T* x) → void
     ;
   method withCallback((self::Foo::T*) →* void callback) → void
     ;

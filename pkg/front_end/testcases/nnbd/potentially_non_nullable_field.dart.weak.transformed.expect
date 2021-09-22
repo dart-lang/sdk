@@ -30,11 +30,11 @@ class A<T extends core::Object?> extends core::Object {
   late field core::int? lz;
   field core::int lv;
   field core::int lu;
-  generic-covariant-impl field self::A::T% lt = null;
-  generic-covariant-impl field self::A::T? ls = null;
-  late generic-covariant-impl field self::A::T% lr;
-  generic-covariant-impl field self::A::T% lp;
-  generic-covariant-impl field self::A::T% lq;
+  covariant-by-class field self::A::T% lt = null;
+  covariant-by-class field self::A::T? ls = null;
+  late covariant-by-class field self::A::T% lr;
+  covariant-by-class field self::A::T% lp;
+  covariant-by-class field self::A::T% lq;
   constructor •(core::int lv, self::A::T% lp, self::A::T% t) → self::A<self::A::T%>
     : self::A::lv = lv, self::A::lp = lp, self::A::lu = 42, self::A::lq = t, super core::Object::•()
     ;

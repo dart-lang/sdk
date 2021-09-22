@@ -19,7 +19,7 @@ class A extends core::Object {
   @self::Annotation::•()
   external get covariantInstanceField() → core::num;
   @self::Annotation::•()
-  external set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  external set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
   @self::Annotation::•()
   external static get staticField() → core::int;
   @self::Annotation::•()
@@ -30,7 +30,7 @@ class A extends core::Object {
   external set untypedInstanceField(dynamic #externalFieldValue) → void;
   external get untypedFinalInstanceField() → dynamic;
   external get untypedCovariantInstanceField() → dynamic;
-  external set untypedCovariantInstanceField(covariant dynamic #externalFieldValue) → void;
+  external set untypedCovariantInstanceField(covariant-by-declaration dynamic #externalFieldValue) → void;
   external static get untypedStaticField() → dynamic;
   external static set untypedStaticField(dynamic #externalFieldValue) → void;
   external static get untypedFinalStaticField() → dynamic;
@@ -45,7 +45,7 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   @self::Annotation::•()
   external get covariantInstanceField() → core::num;
   @self::Annotation::•()
-  external set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  external set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
   @self::Annotation::•()
   external static get staticField() → core::int;
   @self::Annotation::•()
@@ -56,7 +56,7 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   external set untypedInstanceField(dynamic #externalFieldValue) → void;
   external get untypedFinalInstanceField() → dynamic;
   external get untypedCovariantInstanceField() → dynamic;
-  external set untypedCovariantInstanceField(covariant dynamic #externalFieldValue) → void;
+  external set untypedCovariantInstanceField(covariant-by-declaration dynamic #externalFieldValue) → void;
   external static get untypedStaticField() → dynamic;
   external static set untypedStaticField(dynamic #externalFieldValue) → void;
   external static get untypedFinalStaticField() → dynamic;
@@ -68,12 +68,12 @@ class C extends core::Object implements self::A {
   external set instanceField(core::int #externalFieldValue) → void;
   external get finalInstanceField() → core::int;
   external get covariantInstanceField() → core::num;
-  external set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  external set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
   external get untypedInstanceField() → dynamic;
   external set untypedInstanceField(dynamic #externalFieldValue) → void;
   external get untypedFinalInstanceField() → dynamic;
   external get untypedCovariantInstanceField() → dynamic;
-  external set untypedCovariantInstanceField(covariant dynamic #externalFieldValue) → void;
+  external set untypedCovariantInstanceField(covariant-by-declaration dynamic #externalFieldValue) → void;
 }
 extension Extension on self::A {
   get extensionInstanceField = self::Extension|get#extensionInstanceField;

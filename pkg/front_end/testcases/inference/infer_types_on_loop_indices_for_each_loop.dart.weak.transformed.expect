@@ -51,7 +51,7 @@ class Bar<T extends core::Iterable<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::Bar::T* t) → void {
+  method foo(covariant-by-class self::Bar::T* t) → void {
     {
       core::Iterator<core::String*>* :sync-for-iterator = t.{core::Iterable::iterator}{core::Iterator<core::String*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -79,7 +79,7 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
   synthetic constructor •() → self::Baz<self::Baz::T*, self::Baz::E*, self::Baz::S*>*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::Baz::S* t) → void {
+  method foo(covariant-by-class self::Baz::S* t) → void {
     {
       core::Iterator<self::Baz::T*>* :sync-for-iterator = t.{core::Iterable::iterator}{core::Iterator<self::Baz::T*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

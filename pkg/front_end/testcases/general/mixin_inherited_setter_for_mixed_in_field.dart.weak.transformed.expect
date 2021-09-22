@@ -18,11 +18,11 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C<T extends self::A*> extends core::Object {
-  generic-covariant-impl field self::C::T* _field = null;
+  covariant-by-class field self::C::T* _field = null;
   synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::C::T* x) → dynamic {
+  method foo(covariant-by-class self::C::T* x) → dynamic {
     this.{self::C::_field} = x;
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -42,11 +42,11 @@ class D extends self::C<self::B*> {
     ;
 }
 abstract class _Foo&Object&C extends core::Object implements self::C<self::B*> /*isAnonymousMixin,isEliminatedMixin*/  {
-  generic-covariant-impl field self::B* _field = null;
+  covariant-by-class field self::B* _field = null;
   synthetic constructor •() → self::_Foo&Object&C*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::B* x) → dynamic {
+  method foo(covariant-by-class self::B* x) → dynamic {
     this.{self::C::_field} = x;
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

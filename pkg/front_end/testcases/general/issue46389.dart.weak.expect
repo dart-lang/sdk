@@ -23,22 +23,22 @@ abstract class B<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::X%>
     : super core::Object::•()
     ;
-  abstract method foo(generic-covariant-impl self::B::X% x) → self::B::X%;
-  abstract method bar({required generic-covariant-impl self::B::X% x = #C1}) → self::B::X%;
-  abstract set baz(generic-covariant-impl self::B::X% x) → void;
-  abstract set boz(generic-covariant-impl self::B::X% x) → void;
+  abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
+  abstract method bar({required covariant-by-class self::B::X% x = #C1}) → self::B::X%;
+  abstract set baz(covariant-by-class self::B::X% x) → void;
+  abstract set boz(covariant-by-class self::B::X% x) → void;
 }
 abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&B
     : super self::A::•()
     ;
-  forwarding-stub set boz(generic-covariant-impl core::num x) → void
+  forwarding-stub set boz(covariant-by-class core::num x) → void
     return super.{self::A::boz} = x as core::int;
-  forwarding-stub method foo(generic-covariant-impl core::num x) → core::num
+  forwarding-stub method foo(covariant-by-class core::num x) → core::num
     return super.{self::A::foo}(x as core::int);
-  forwarding-stub method bar({required generic-covariant-impl core::num x = #C1}) → core::num
+  forwarding-stub method bar({required covariant-by-class core::num x = #C1}) → core::num
     return super.{self::A::bar}(x: x as core::int);
-  forwarding-stub set baz(generic-covariant-impl core::num x) → void
+  forwarding-stub set baz(covariant-by-class core::num x) → void
     return super.{self::A::baz} = x as core::int;
 }
 class C extends self::_C&A&B {

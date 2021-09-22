@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Pair<T extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::Pair::T* t;
-  generic-covariant-impl field self::Pair::U* u;
+  covariant-by-class field self::Pair::T* t;
+  covariant-by-class field self::Pair::U* u;
   constructor •(self::Pair::T* t, self::Pair::U* u) → self::Pair<self::Pair::T*, self::Pair::U*>*
     : self::Pair::t = t, self::Pair::u = u, super core::Object::•()
     ;

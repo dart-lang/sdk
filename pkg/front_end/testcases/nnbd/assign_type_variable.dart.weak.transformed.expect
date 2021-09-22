@@ -6,7 +6,7 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::E%>
     : super core::Object::•()
     ;
-  method method(generic-covariant-impl self::Class::E% e) → void {
+  method method(covariant-by-class self::Class::E% e) → void {
     e = self::id<self::Class::E%>(e);
     e = self::id<self::Class::E%>(e);
     if(!(e == null)) {

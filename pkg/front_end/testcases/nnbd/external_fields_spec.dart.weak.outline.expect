@@ -8,7 +8,7 @@ class A extends core::Object {
   external get i1() → core::int;
   external set i1(core::int #externalFieldValue) → void;
   external get cx() → dynamic;
-  external set cx(covariant dynamic #externalFieldValue) → void;
+  external set cx(covariant-by-declaration dynamic #externalFieldValue) → void;
   external static get s1() → core::int;
   external static set s1(core::int #externalFieldValue) → void;
   external static get fx() → dynamic;

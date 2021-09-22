@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::A<self::A::T*>* f;
+  covariant-by-class field self::A<self::A::T*>* f;
   constructor •() → self::A<self::A::T*>*
     ;
   static factory factory<T extends core::Object* = dynamic>() → self::A<self::A::factory::T*>*

@@ -6,7 +6,7 @@ class Foo<S extends core::num> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::S>
     : super core::Object::•()
     ;
-  method test1(generic-covariant-impl self::Foo::S x) → void {
+  method test1(covariant-by-class self::Foo::S x) → void {
     (self::Foo::S) → self::Foo::S f = self::Test|get#test<self::Foo::S>(x);
   }
 }

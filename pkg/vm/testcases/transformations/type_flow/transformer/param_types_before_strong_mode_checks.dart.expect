@@ -23,13 +23,13 @@ class A extends core::Object {
   }
 }
 abstract class B extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  abstract method method2(covariant dynamic arg) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  abstract method method2(covariant-by-declaration dynamic arg) → void;
 }
 class C extends core::Object implements self::B {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method method2(covariant self::T0 t0) → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method method2(covariant-by-declaration self::T0 t0) → void {
     [@vm.direct-call.metadata=#lib::T2.foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}(){() → void};
   }
 }

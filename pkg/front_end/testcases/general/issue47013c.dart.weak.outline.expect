@@ -17,7 +17,7 @@ class D extends core::Object implements self::D1, self::D2 {
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  method m(covariant self::D d) → void
+  method m(covariant-by-declaration self::D d) → void
     ;
 }
 abstract class B1 extends core::Object {

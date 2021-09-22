@@ -20,7 +20,7 @@ class Foo extends core::Object {
 class Bar<T extends core::Iterable<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     ;
-  method foo(generic-covariant-impl self::Bar::T* t) → void
+  method foo(covariant-by-class self::Bar::T* t) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -36,7 +36,7 @@ class Bar<T extends core::Iterable<core::String*>*> extends core::Object {
 class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz::T*>* = core::Iterable<dynamic>*, S extends self::Baz::E* = core::Iterable<dynamic>*> extends core::Object {
   synthetic constructor •() → self::Baz<self::Baz::T*, self::Baz::E*, self::Baz::S*>*
     ;
-  method foo(generic-covariant-impl self::Baz::S* t) → void
+  method foo(covariant-by-class self::Baz::S* t) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

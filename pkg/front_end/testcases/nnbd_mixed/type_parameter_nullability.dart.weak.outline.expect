@@ -7,9 +7,9 @@ import "org-dartlang-testcase:///type_parameter_nullability_lib.dart";
 class C<T extends core::num?, S extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T%, self::C::S%, self::C::U%>
     ;
-  method promoteNullable(generic-covariant-impl self::C::T? t) → void
+  method promoteNullable(covariant-by-class self::C::T? t) → void
     ;
-  method nullableAsUndetermined(generic-covariant-impl self::C::S? s) → void
+  method nullableAsUndetermined(covariant-by-class self::C::S? s) → void
     ;
 }
 static method main() → dynamic
@@ -22,7 +22,7 @@ import "dart:core" as core;
 class D<T extends core::num*> extends core::Object {
   synthetic constructor •() → self2::D<self2::D::T*>*
     ;
-  method promoteLegacy(generic-covariant-impl self2::D::T* t) → void
+  method promoteLegacy(covariant-by-class self2::D::T* t) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
