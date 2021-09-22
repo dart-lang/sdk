@@ -3436,15 +3436,15 @@ class AstBuilder extends StackListener {
       if (declaration.withClause == null) {
         declaration.withClause = withClause;
       } else {
-        declaration.withClause!.mixinTypes.addAll(withClause.mixinTypes);
+        declaration.withClause!.mixinTypes2.addAll(withClause.mixinTypes2);
       }
     }
     if (implementsClause != null) {
       if (declaration.implementsClause == null) {
         declaration.implementsClause = implementsClause;
       } else {
-        declaration.implementsClause!.interfaces
-            .addAll(implementsClause.interfaces);
+        declaration.implementsClause!.interfaces2
+            .addAll(implementsClause.interfaces2);
       }
     }
   }
@@ -3486,16 +3486,16 @@ class AstBuilder extends StackListener {
       if (mixinDeclaration!.onClause == null) {
         mixinDeclaration!.onClause = onClause;
       } else {
-        mixinDeclaration!.onClause!.superclassConstraints
-            .addAll(onClause.superclassConstraints);
+        mixinDeclaration!.onClause!.superclassConstraints2
+            .addAll(onClause.superclassConstraints2);
       }
     }
     if (implementsClause != null) {
       if (mixinDeclaration!.implementsClause == null) {
         mixinDeclaration!.implementsClause = implementsClause;
       } else {
-        mixinDeclaration!.implementsClause!.interfaces
-            .addAll(implementsClause.interfaces);
+        mixinDeclaration!.implementsClause!.interfaces2
+            .addAll(implementsClause.interfaces2);
       }
     }
   }

@@ -1223,7 +1223,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.interfaces,
+      clause.interfaces2,
       CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
     );
   }
@@ -1232,7 +1232,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (clause == null) return;
 
     _resolveTypes(
-      clause.superclassConstraints,
+      clause.superclassConstraints2,
       CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
     );
   }
@@ -1302,7 +1302,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveWithClause(WithClause? clause) {
     if (clause == null) return;
 
-    for (var namedType in clause.mixinTypes) {
+    for (var namedType in clause.mixinTypes2) {
       _typeNameResolver.withClause_namedType = namedType;
       _resolveType(
         namedType as TypeNameImpl,

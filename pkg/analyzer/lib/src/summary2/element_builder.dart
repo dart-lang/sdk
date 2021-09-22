@@ -601,7 +601,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    node.interfaces.accept(this);
+    node.interfaces2.accept(this);
   }
 
   @override
@@ -746,7 +746,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitOnClause(OnClause node) {
-    node.superclassConstraints.accept(this);
+    node.superclassConstraints2.accept(this);
   }
 
   @override
@@ -895,7 +895,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    node.mixinTypes.accept(this);
+    node.mixinTypes2.accept(this);
   }
 
   List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {

@@ -152,7 +152,7 @@ class _ClassVerifier {
     //   class C extends S&M2 { ...members of C... }
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
-    var mixinNodes = withClause?.mixinTypes;
+    var mixinNodes = withClause?.mixinTypes2;
     var mixinTypes = classElement.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
@@ -347,7 +347,7 @@ class _ClassVerifier {
   bool _checkDirectSuperTypes() {
     var hasError = false;
     if (implementsClause != null) {
-      for (var namedType in implementsClause!.interfaces) {
+      for (var namedType in implementsClause!.interfaces2) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
@@ -357,7 +357,7 @@ class _ClassVerifier {
       }
     }
     if (onClause != null) {
-      for (var namedType in onClause!.superclassConstraints) {
+      for (var namedType in onClause!.superclassConstraints2) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
@@ -375,7 +375,7 @@ class _ClassVerifier {
       }
     }
     if (withClause != null) {
-      for (var namedType in withClause!.mixinTypes) {
+      for (var namedType in withClause!.mixinTypes2) {
         if (_checkDirectSuperType(
           namedType,
           CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,

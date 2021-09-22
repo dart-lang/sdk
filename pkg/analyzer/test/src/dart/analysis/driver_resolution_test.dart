@@ -6963,7 +6963,7 @@ class D extends A<bool> with B<int> implements C<double> {}
         nullabilitySuffix: NullabilitySuffix.none,
       );
 
-      NamedType mixinType = dNode.withClause!.mixinTypes[0];
+      NamedType mixinType = dNode.withClause!.mixinTypes2[0];
       expect(mixinType.type, expectedType);
 
       var identifier = mixinType.name as SimpleIdentifier;
@@ -6977,7 +6977,7 @@ class D extends A<bool> with B<int> implements C<double> {}
         nullabilitySuffix: NullabilitySuffix.none,
       );
 
-      NamedType implementedType = dNode.implementsClause!.interfaces[0];
+      NamedType implementedType = dNode.implementsClause!.interfaces2[0];
       expect(implementedType.type, expectedType);
 
       var identifier = implementedType.name as SimpleIdentifier;
@@ -7032,7 +7032,7 @@ class D = A<bool> with B<int> implements C<double>;
         nullabilitySuffix: NullabilitySuffix.none,
       );
 
-      NamedType mixinType = dNode.withClause.mixinTypes[0];
+      NamedType mixinType = dNode.withClause.mixinTypes2[0];
       expect(mixinType.type, expectedType);
 
       var identifier = mixinType.name as SimpleIdentifier;
@@ -7046,7 +7046,7 @@ class D = A<bool> with B<int> implements C<double>;
         nullabilitySuffix: NullabilitySuffix.none,
       );
 
-      NamedType interfaceType = dNode.implementsClause!.interfaces[0];
+      NamedType interfaceType = dNode.implementsClause!.interfaces2[0];
       expect(interfaceType.type, expectedType);
 
       var identifier = interfaceType.name as SimpleIdentifier;

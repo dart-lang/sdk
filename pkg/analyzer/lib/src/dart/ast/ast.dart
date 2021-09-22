@@ -5756,11 +5756,11 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   Token implementsKeyword;
 
   /// The interfaces that are being implemented.
-  final NodeListImpl<TypeName> _interfaces = NodeListImpl._();
+  final NodeListImpl<NamedType> _interfaces = NodeListImpl._();
 
   /// Initialize a newly created implements clause.
   ImplementsClauseImpl(this.implementsKeyword, List<NamedType> interfaces) {
-    _interfaces._initialize2(this, interfaces);
+    _interfaces._initialize(this, interfaces);
   }
 
   @override
@@ -5770,13 +5770,17 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(implementsKeyword)
-    ..addAll(interfaces);
+    ..addAll(interfaces2);
 
   @override
   Token get endToken => _interfaces.endToken!;
 
+  @Deprecated('Use interfaces2 instead')
   @override
-  NodeListImpl<TypeName> get interfaces => _interfaces;
+  NodeList<TypeName> get interfaces => _DelegatingTypeNameList(_interfaces);
+
+  @override
+  NodeListImpl<NamedType> get interfaces2 => _interfaces;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImplementsClause(this);
@@ -7635,20 +7639,6 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
       }
     }
   }
-
-  /// Set the [owner] of this container, and populate it with [elements].
-  /// TODO(scheglov) Remove this method, it exists only to implicitly cast.
-  void _initialize2<E2>(AstNodeImpl owner, List<E2>? elements) {
-    _owner = owner;
-    if (elements != null) {
-      var length = elements.length;
-      for (var i = 0; i < length; i++) {
-        var node = elements[i] as E;
-        _elements.add(node);
-        owner._becomeParentOf(node as AstNodeImpl);
-      }
-    }
-  }
 }
 
 /// A formal parameter that is required (is not optional).
@@ -7836,11 +7826,11 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   Token onKeyword;
 
   /// The classes are super-class constraints for the mixin.
-  final NodeListImpl<TypeName> _superclassConstraints = NodeListImpl._();
+  final NodeListImpl<NamedType> _superclassConstraints = NodeListImpl._();
 
   /// Initialize a newly created on clause.
   OnClauseImpl(this.onKeyword, List<NamedType> superclassConstraints) {
-    _superclassConstraints._initialize2(this, superclassConstraints);
+    _superclassConstraints._initialize(this, superclassConstraints);
   }
 
   @override
@@ -7856,7 +7846,11 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   Token get endToken => _superclassConstraints.endToken!;
 
   @override
-  NodeListImpl<TypeName> get superclassConstraints => _superclassConstraints;
+  NodeList<TypeName> get superclassConstraints =>
+      _DelegatingTypeNameList(_superclassConstraints);
+
+  @override
+  NodeListImpl<NamedType> get superclassConstraints2 => _superclassConstraints;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitOnClause(this);
@@ -10877,11 +10871,11 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   Token withKeyword;
 
   /// The names of the mixins that were specified.
-  final NodeListImpl<TypeName> _mixinTypes = NodeListImpl._();
+  final NodeListImpl<NamedType> _mixinTypes = NodeListImpl._();
 
   /// Initialize a newly created with clause.
   WithClauseImpl(this.withKeyword, List<NamedType> mixinTypes) {
-    _mixinTypes._initialize2(this, mixinTypes);
+    _mixinTypes._initialize(this, mixinTypes);
   }
 
   @override
@@ -10896,8 +10890,12 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   @override
   Token get endToken => _mixinTypes.endToken!;
 
+  @Deprecated('Use mixinTypes2 instead')
   @override
-  NodeListImpl<TypeName> get mixinTypes => _mixinTypes;
+  NodeList<TypeName> get mixinTypes => _DelegatingTypeNameList(_mixinTypes);
+
+  @override
+  NodeListImpl<NamedType> get mixinTypes2 => _mixinTypes;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWithClause(this);
@@ -10965,6 +10963,76 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+}
+
+/// Implementation of `NodeList<TypeName>` that delegates.
+class _DelegatingTypeNameList
+    with ListMixin<TypeName>
+    implements NodeList<TypeName> {
+  final NodeListImpl<NamedType> _delegate;
+
+  _DelegatingTypeNameList(this._delegate);
+
+  @override
+  Token? get beginToken {
+    return _delegate.beginToken;
+  }
+
+  @override
+  Token? get endToken {
+    return _delegate.endToken;
+  }
+
+  @override
+  int get length => _delegate.length;
+
+  @override
+  set length(int newLength) {
+    _delegate.length = newLength;
+  }
+
+  @override
+  AstNodeImpl get owner => _delegate.owner;
+
+  @override
+  TypeName operator [](int index) {
+    return _delegate[index] as TypeName;
+  }
+
+  @override
+  void operator []=(int index, TypeName node) {
+    _delegate[index] = node;
+  }
+
+  @override
+  void accept(AstVisitor visitor) {
+    _delegate.accept(visitor);
+  }
+
+  @override
+  void add(NamedType node) {
+    _delegate.add(node);
+  }
+
+  @override
+  void addAll(Iterable<TypeName> nodes) {
+    _delegate.addAll(nodes);
+  }
+
+  @override
+  void clear() {
+    _delegate.clear();
+  }
+
+  @override
+  void insert(int index, TypeName node) {
+    _delegate.insert(index, node);
+  }
+
+  @override
+  TypeName removeAt(int index) {
+    return _delegate.removeAt(index) as TypeName;
   }
 }
 

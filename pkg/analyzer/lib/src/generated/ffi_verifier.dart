@@ -116,14 +116,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var implementsClause = node.implementsClause;
     if (implementsClause != null) {
-      for (NamedType type in implementsClause.interfaces) {
+      for (NamedType type in implementsClause.interfaces2) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
       }
     }
     var withClause = node.withClause;
     if (withClause != null) {
-      for (NamedType type in withClause.mixinTypes) {
+      for (NamedType type in withClause.mixinTypes2) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
       }

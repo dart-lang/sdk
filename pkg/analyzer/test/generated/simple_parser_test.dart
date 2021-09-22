@@ -1381,7 +1381,7 @@ abstract class Foo {}
     ImplementsClause clause = parseImplementsClause('implements A, B, C');
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
-    expect(clause.interfaces, hasLength(3));
+    expect(clause.interfaces2, hasLength(3));
     expect(clause.implementsKeyword, isNotNull);
   }
 
@@ -1389,7 +1389,7 @@ abstract class Foo {}
     ImplementsClause clause = parseImplementsClause('implements A');
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
-    expect(clause.interfaces, hasLength(1));
+    expect(clause.interfaces2, hasLength(1));
     expect(clause.implementsKeyword, isNotNull);
   }
 
@@ -2077,7 +2077,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes, hasLength(3));
+    expect(clause.mixinTypes2, hasLength(3));
   }
 
   void test_parseWithClause_single() {
@@ -2085,7 +2085,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes, hasLength(1));
+    expect(clause.mixinTypes2, hasLength(1));
   }
 
   void test_typeAlias_37733() {

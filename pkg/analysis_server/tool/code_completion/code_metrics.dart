@@ -775,7 +775,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     _visitChildren(node, {
-      'interfaces': node.interfaces,
+      'interfaces': node.interfaces2,
     });
     super.visitImplementsClause(node);
   }
@@ -976,7 +976,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     _visitChildren(node, {
-      'superclassConstraints': node.superclassConstraints,
+      'superclassConstraints': node.superclassConstraints2,
     });
     super.visitOnClause(node);
   }
@@ -1286,7 +1286,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     _visitChildren(node, {
-      'mixinTypes': node.mixinTypes,
+      'mixinTypes': node.mixinTypes2,
     });
     super.visitWithClause(node);
   }

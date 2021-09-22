@@ -660,7 +660,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    for (NamedType namedType in node.interfaces) {
+    for (NamedType namedType in node.interfaces2) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
@@ -713,7 +713,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitOnClause(OnClause node) {
-    for (NamedType namedType in node.superclassConstraints) {
+    for (NamedType namedType in node.superclassConstraints2) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
@@ -830,7 +830,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitWithClause(WithClause node) {
-    for (NamedType namedType in node.mixinTypes) {
+    for (NamedType namedType in node.mixinTypes2) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
     }
   }
@@ -862,9 +862,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     addSupertype(superclass);
-    withClause?.mixinTypes.forEach(addSupertype);
-    onClause?.superclassConstraints.forEach(addSupertype);
-    implementsClause?.interfaces.forEach(addSupertype);
+    withClause?.mixinTypes2.forEach(addSupertype);
+    onClause?.superclassConstraints2.forEach(addSupertype);
+    implementsClause?.interfaces2.forEach(addSupertype);
 
     void addMemberName(SimpleIdentifier identifier) {
       String name = identifier.name;
