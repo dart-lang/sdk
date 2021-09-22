@@ -84,7 +84,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
     nodesToBuildType.addDeclaration(node);
@@ -125,7 +125,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override

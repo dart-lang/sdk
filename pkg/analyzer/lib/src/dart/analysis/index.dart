@@ -627,13 +627,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       offset = node.period!.offset;
       length = node.name!.end - offset;
     } else {
-      offset = node.type.end;
+      offset = node.type2.end;
       length = 0;
     }
 
     recordRelationOffset(element, kind, offset, length, true);
 
-    node.type.accept(this);
+    node.type2.accept(this);
   }
 
   @override
@@ -655,7 +655,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
+    recordSuperType(node.superclass2, IndexRelationKind.IS_EXTENDED_BY);
   }
 
   @override
@@ -714,7 +714,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitNamedType(NamedType node) {
     AstNode parent = node.parent!;
-    if (parent is ClassTypeAlias && parent.superclass == node) {
+    if (parent is ClassTypeAlias && parent.superclass2 == node) {
       recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
     } else {
       super.visitNamedType(node);
@@ -892,7 +892,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
     _addSubtype(node.name.name,
-        superclass: node.extendsClause?.superclass,
+        superclass: node.extendsClause?.superclass2,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
         memberNodes: node.members);
@@ -901,7 +901,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
     _addSubtype(node.name.name,
-        superclass: node.superclass,
+        superclass: node.superclass2,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
         memberNodes: const []);

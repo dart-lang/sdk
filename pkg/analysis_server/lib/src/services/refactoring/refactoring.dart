@@ -418,7 +418,7 @@ abstract class RenameRefactoring implements Refactoring {
     // Rename the class when on `new` in an instance creation.
     if (node is InstanceCreationExpression) {
       var creation = node;
-      var typeIdentifier = creation.constructorName.type.name;
+      var typeIdentifier = creation.constructorName.type2.name;
       element = typeIdentifier.staticElement;
       offset = typeIdentifier.offset;
       length = typeIdentifier.length;

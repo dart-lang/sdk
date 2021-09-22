@@ -3428,7 +3428,7 @@ class AstBuilder extends StackListener {
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
     var declaration = declarations.last as ClassDeclarationImpl;
     if (extendsClause != null) {
-      if (declaration.extendsClause?.superclass == null) {
+      if (declaration.extendsClause?.superclass2 == null) {
         declaration.extendsClause = extendsClause;
       }
     }

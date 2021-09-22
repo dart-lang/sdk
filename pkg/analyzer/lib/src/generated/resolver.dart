@@ -1242,7 +1242,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type.accept(this);
+    node.type2.accept(this);
     node.accept(elementResolver);
   }
 
@@ -2452,7 +2452,7 @@ class ScopeResolverVisitor extends ResolverBase {
     node.documentationComment?.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }

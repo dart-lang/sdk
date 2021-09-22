@@ -361,7 +361,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       properties.addNode('name', node.name);
       properties.addToken('period', node.period);
       properties.addElement('staticElement', node.staticElement);
-      properties.addNode('type', node.type);
+      properties.addNode('type', node.type2);
       _writeProperties(properties);
     });
   }
@@ -522,7 +522,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExtendsClause');
     _withIndent(() {
       var properties = _Properties();
-      properties.addNode('superclass', node.superclass);
+      properties.addNode('superclass', node.superclass2);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1433,7 +1433,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeLiteral');
     _withIndent(() {
       var properties = _Properties();
-      properties.addNode('typeName', node.typeName);
+      // TODO(scheglov) Change to 'type'.
+      properties.addNode('typeName', node.type);
       _addExpression(properties, node);
       _writeProperties(properties);
     });

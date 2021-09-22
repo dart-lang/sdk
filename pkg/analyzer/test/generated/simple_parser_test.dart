@@ -1171,7 +1171,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('A.n');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1180,7 +1180,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('p.A.n');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
   }
@@ -1189,7 +1189,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('A');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1198,7 +1198,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('p.A');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1246,8 +1246,8 @@ abstract class Foo {}
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.extendsKeyword, isNotNull);
-    expect(clause.superclass, isNotNull);
-    expect(clause.superclass, isTypeName);
+    expect(clause.superclass2, isNotNull);
+    expect(clause.superclass2, isTypeName);
   }
 
   void test_parseFunctionBody_block() {
@@ -1432,7 +1432,7 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     var creation = body.expression as InstanceCreationExpressionImpl;
     expect(creation.keyword, isNull);
     ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'C<E>');
+    expect(constructorName.type2.toSource(), 'C<E>');
     expect(constructorName.period, isNotNull);
     expect(constructorName.name, isNotNull);
     expect(creation.argumentList, isNotNull);
@@ -1467,7 +1467,7 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     var creation = body.expression as InstanceCreationExpression;
     expect(creation.keyword, isNull);
     ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'p.C<E>');
+    expect(constructorName.type2.toSource(), 'p.C<E>');
     expect(constructorName.period, isNotNull);
     expect(constructorName.name, isNotNull);
     expect(creation.argumentList, isNotNull);

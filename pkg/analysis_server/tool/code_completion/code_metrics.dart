@@ -326,7 +326,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'abstractKeyword': node.abstractKeyword,
       'name': node.name,
       'typeParameters': node.typeParameters,
-      'superclass': node.superclass,
+      'superclass': node.superclass2,
       'withClause': node.withClause,
       'implementsClause': node.implementsClause,
     });
@@ -409,7 +409,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorName(ConstructorName node) {
     _visitChildren(node, {
-      'type': node.type,
+      'type': node.type2,
       'name': node.name,
     });
     super.visitConstructorName(node);
@@ -531,7 +531,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitExtendsClause(ExtendsClause node) {
     _visitChildren(node, {
-      'superclass': node.superclass,
+      'superclass': node.superclass2,
     });
     super.visitExtendsClause(node);
   }

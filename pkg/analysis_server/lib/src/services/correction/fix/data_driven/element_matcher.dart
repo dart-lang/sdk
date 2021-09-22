@@ -199,7 +199,10 @@ class ElementMatcher {
       return [parent.extensionName.name];
     } else if (parent is InstanceCreationExpression) {
       var constructorName = parent.constructorName;
-      return [constructorName.name?.name ?? '', constructorName.type.name.name];
+      return [
+        constructorName.name?.name ?? '',
+        constructorName.type2.name.name
+      ];
     } else if (parent is MethodInvocation) {
       var methodName = parent.methodName;
       var targetName = _nameOfTarget(parent.realTarget);

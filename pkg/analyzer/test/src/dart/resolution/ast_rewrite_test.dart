@@ -197,7 +197,7 @@ f() {
       expectedSubstitution: {'T': 'int'},
     );
     _assertTypeArgumentList(
-      creation.constructorName.type.typeArguments,
+      creation.constructorName.type2.typeArguments,
       ['int'],
     );
     expect((creation as InstanceCreationExpressionImpl).typeArguments, isNull);

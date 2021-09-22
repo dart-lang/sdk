@@ -86,7 +86,7 @@ class ReferenceCollector {
     _visitTypeParameterList(typeParameters2);
 
     // Parts of classes.
-    _visitTypeAnnotation(extendsClause?.superclass);
+    _visitTypeAnnotation(extendsClause?.superclass2);
     _visitTypeAnnotation(superClass);
     _visitTypeAnnotations(withClause?.mixinTypes2);
     _visitTypeAnnotations(onClause?.superclassConstraints2);
@@ -303,7 +303,7 @@ class ReferenceCollector {
   void _visitConstructorName(ConstructorName? node) {
     if (node == null) return;
 
-    _visitConstructor(node.type, node.name);
+    _visitConstructor(node.type2, node.name);
   }
 
   void _visitExpression(Expression? node, {bool get = true, bool set = false}) {

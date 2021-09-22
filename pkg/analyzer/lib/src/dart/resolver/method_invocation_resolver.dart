@@ -165,15 +165,15 @@ class MethodInvocationResolver {
     }
 
     if (receiver is TypeLiteralImpl &&
-        receiver.typeName.typeArguments != null &&
-        receiver.typeName.type is FunctionType) {
+        receiver.type.typeArguments != null &&
+        receiver.type.type is FunctionType) {
       // There is no possible resolution for a property access of a function
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
         nameNode,
-        [name, receiver.typeName.name.name],
+        [name, receiver.type.name.name],
       );
       _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
       return;

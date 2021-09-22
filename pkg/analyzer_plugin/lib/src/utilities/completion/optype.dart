@@ -254,7 +254,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (name != null) {
         constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName.type.name.staticElement;
+        var classElem = parent.constructorName.type2.name.staticElement;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -452,7 +452,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    if (identical(entity, node.superclass)) {
+    if (identical(entity, node.superclass2)) {
       optype.completionLocation = 'ClassTypeAlias_superclass';
       optype.includeTypeNameSuggestions = true;
     }
@@ -646,7 +646,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    if (identical(entity, node.superclass)) {
+    if (identical(entity, node.superclass2)) {
       optype.completionLocation = 'ExtendsClause_superclass';
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = _nonMixinClasses;

@@ -463,7 +463,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    _recordDataForNode('ClassTypeAlias_superclass', node.superclass);
+    _recordDataForNode('ClassTypeAlias_superclass', node.superclass2);
     var context = 'superclass';
     _recordKeyword('ClassTypeAlias_$context', node.withClause);
     context = 'with';
@@ -643,7 +643,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    _recordDataForNode('ExtendsClause_superclass', node.superclass);
+    _recordDataForNode('ExtendsClause_superclass', node.superclass2);
     super.visitExtendsClause(node);
   }
 

@@ -181,7 +181,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertElement(node, expectedConstructorElement);
     assertType(node, expectedType);
 
-    var namedType = node.constructorName.type;
+    var namedType = node.constructorName.type2;
     expectedTypeNameElement ??= expectedClassElement;
     assertNamedType(namedType, expectedTypeNameElement, null,
         expectedPrefix: expectedPrefix);
@@ -461,7 +461,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     assertType(creation, expectedType);
 
-    var namedType = creation.constructorName.type;
+    var namedType = creation.constructorName.type2;
     expectedTypeNameElement ??= expectedClassElement;
     assertNamedType(namedType, expectedTypeNameElement, expectedType,
         expectedPrefix: expectedPrefix);
@@ -828,7 +828,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       TypeLiteral node, Element? expectedElement, String expectedType,
       {Element? expectedPrefix}) {
     assertType(node, 'Type');
-    assertNamedType(node.typeName, expectedElement, expectedType,
+    assertNamedType(node.type, expectedElement, expectedType,
         expectedPrefix: expectedPrefix);
   }
 

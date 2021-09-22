@@ -676,7 +676,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorReference(ConstructorReference node) {
     var constructorName = node.constructorName;
-    constructorName.type.accept(this);
+    constructorName.type2.accept(this);
 
     // We have a `ConstructorReference` only when it is resolved.
     // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,

@@ -20,7 +20,7 @@ class ConstructorReferenceResolver {
 
   void resolve(ConstructorReferenceImpl node) {
     if (!_resolver.isConstructorTearoffsEnabled &&
-        node.constructorName.type.typeArguments == null) {
+        node.constructorName.type2.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
       _resolver.errorReporter.reportErrorForNode(
@@ -49,7 +49,7 @@ class ConstructorReferenceResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.constructorName.type.name.staticElement;
+      var enclosingElement = node.constructorName.type2.name.staticElement;
       if (enclosingElement is TypeAliasElement) {
         enclosingElement = enclosingElement.aliasedType.element;
       }
@@ -123,7 +123,7 @@ class ConstructorReferenceResolver {
         constructorName.staticElement = constructorElement.declaration;
         constructorName.name?.staticElement = constructorElement.declaration;
         node.staticType = inferred;
-        constructorName.type.type = null;
+        constructorName.type2.type = null;
       }
     } else {
       var constructorElement = constructorName.staticElement;
@@ -132,7 +132,7 @@ class ConstructorReferenceResolver {
       } else {
         node.staticType = constructorElement.type;
       }
-      constructorName.type.type = null;
+      constructorName.type2.type = null;
     }
   }
 }

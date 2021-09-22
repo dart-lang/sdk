@@ -266,7 +266,7 @@ class Getter_NodeReplacerTest_test_classDeclaration_6
 class Getter_NodeReplacerTest_test_classTypeAlias
     implements NodeReplacerTest_Getter<ClassTypeAlias, NamedType> {
   @override
-  NamedType get(ClassTypeAlias node) => node.superclass;
+  NamedType get(ClassTypeAlias node) => node.superclass2;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias_2
@@ -374,7 +374,7 @@ class Getter_NodeReplacerTest_test_constructorFieldInitializer_2
 class Getter_NodeReplacerTest_test_constructorName
     implements NodeReplacerTest_Getter<ConstructorName, NamedType> {
   @override
-  NamedType get(ConstructorName node) => node.type;
+  NamedType get(ConstructorName node) => node.type2;
 }
 
 class Getter_NodeReplacerTest_test_constructorName_2
@@ -454,7 +454,7 @@ class Getter_NodeReplacerTest_test_expressionStatement
 class Getter_NodeReplacerTest_test_extendsClause
     implements NodeReplacerTest_Getter<ExtendsClause, NamedType> {
   @override
-  NamedType get(ExtendsClause node) => node.superclass;
+  NamedType get(ExtendsClause node) => node.superclass2;
 }
 
 class Getter_NodeReplacerTest_test_fieldDeclaration

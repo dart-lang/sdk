@@ -681,7 +681,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitClassTypeAlias(ClassTypeAlias node) {
-    _dispatch(node.superclass);
+    _dispatch(node.superclass2);
     _dispatch(node.implementsClause);
     _dispatch(node.withClause);
     var classElement = node.declaredElement!;
@@ -775,7 +775,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitConstructorDeclaration(ConstructorDeclaration node) {
     _fieldsNotInitializedByConstructor =
         _fieldsNotInitializedAtDeclaration!.toSet();
-    _dispatch(node.redirectedConstructor?.type.typeArguments);
+    _dispatch(node.redirectedConstructor?.type2.typeArguments);
     _handleExecutableDeclaration(
         node,
         node.declaredElement!,
@@ -1181,7 +1181,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var typeParameters = callee.enclosingElement.typeParameters;
     Iterable<DartType?> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
-    var typeArguments = node.constructorName.type.typeArguments;
+    var typeArguments = node.constructorName.type2.typeArguments;
     late List<EdgeOrigin> parameterEdgeOrigins;
     var target =
         NullabilityNodeTarget.text('constructed type').withCodeRef(node);
@@ -2530,7 +2530,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var callee = redirectedConstructor.staticElement!.declaration;
     var redirectedClass = callee.enclosingElement;
     var calleeType = _variables!.decoratedElementType(callee);
-    var typeArguments = redirectedConstructor.type.typeArguments;
+    var typeArguments = redirectedConstructor.type2.typeArguments;
     var typeArgumentTypes =
         typeArguments?.arguments.map((t) => t.type).toList();
     _handleInvocationArguments(

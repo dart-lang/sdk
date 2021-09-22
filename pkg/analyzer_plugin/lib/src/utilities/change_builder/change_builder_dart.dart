@@ -950,7 +950,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       name = expression.methodName.name;
     } else if (expression is InstanceCreationExpression) {
       var constructorName = expression.constructorName;
-      var typeName = constructorName.type;
+      var typeName = constructorName.type2;
       var typeNameIdentifier = typeName.name;
       // new ClassName()
       if (typeNameIdentifier is SimpleIdentifier) {

@@ -1098,7 +1098,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       node.typeOrThrow,
       FunctionState(node.constructorName.staticElement),
     );
-    var typeArgumentList = node.constructorName.type.typeArguments;
+    var typeArgumentList = node.constructorName.type2.typeArguments;
     if (typeArgumentList == null) {
       return constructorTearoffResult;
     } else {

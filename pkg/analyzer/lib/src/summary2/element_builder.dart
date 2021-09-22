@@ -161,7 +161,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }
@@ -240,7 +240,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override

@@ -165,7 +165,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.name.accept(this);
     node.typeParameters?.accept(this);
     _token(node.equals);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
     _token(node.semicolon);
@@ -229,7 +229,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type.accept(this);
+    node.type2.accept(this);
     _token(node.period);
     node.name?.accept(this);
   }
@@ -336,7 +336,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitExtendsClause(ExtendsClause node) {
     _token(node.extendsKeyword);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override

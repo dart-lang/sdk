@@ -45,7 +45,7 @@ class InheritanceOverrideVerifier {
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
-          superclass: declaration.extendsClause?.superclass,
+          superclass: declaration.extendsClause?.superclass2,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is ClassTypeAlias) {
@@ -58,7 +58,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
-          superclass: declaration.superclass,
+          superclass: declaration.superclass2,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is MixinDeclaration) {

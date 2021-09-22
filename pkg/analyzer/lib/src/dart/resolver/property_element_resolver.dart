@@ -382,7 +382,7 @@ class PropertyElementResolver {
       targetType = _typeSystem.promoteToNonNull(targetType);
     }
 
-    if (target is TypeLiteral && target.typeName.type is FunctionType) {
+    if (target is TypeLiteral && target.type.type is FunctionType) {
       // There is no possible resolution for a property access of a function
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
@@ -390,13 +390,13 @@ class PropertyElementResolver {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
           propertyName,
-          [propertyName.name, target.typeName.name.name],
+          [propertyName.name, target.type.name.name],
         );
       } else {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
           propertyName,
-          [propertyName.name, target.typeName.name.name],
+          [propertyName.name, target.type.name.name],
         );
       }
       return PropertyElementResolverResult();

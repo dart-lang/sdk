@@ -670,7 +670,7 @@ f() {}
 
     var constructorName = constC.constructorName;
     expect(constructorName.staticElement, constructorC);
-    expect(constructorName.type.type, interfaceTypeNone(elementC));
+    expect(constructorName.type2.type, interfaceTypeNone(elementC));
   }
 
   test_annotation_unprefixed_topLevelVariable() async {
@@ -1309,7 +1309,7 @@ class B {
       var constructorName = constructor.redirectedConstructor!;
       expect(constructorName.staticElement, same(aUnnamed));
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.type, interfaceTypeNone(aElement));
 
       var identifier = namedType.name as SimpleIdentifier;
@@ -1329,7 +1329,7 @@ class B {
       var constructorName = constructor.redirectedConstructor!;
       expect(constructorName.staticElement, same(aNamed));
 
-      var namedType = constructorName.type;
+      var namedType = constructorName.type2;
       expect(namedType.type, interfaceTypeNone(aElement));
 
       var identifier = namedType.name as SimpleIdentifier;
@@ -1378,7 +1378,7 @@ class B<U> {
       var constructorName = constructor.redirectedConstructor!;
       expect(constructorName.staticElement, same(actualMember));
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.type, auType);
 
       var identifier = namedType.name as SimpleIdentifier;
@@ -1400,7 +1400,7 @@ class B<U> {
       var constructorName = constructor.redirectedConstructor!;
       expect(constructorName.staticElement, same(actualMember));
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.type, auType);
 
       var identifier = namedType.name as SimpleIdentifier;
@@ -2077,7 +2077,7 @@ var b = new C.named();
       expect(constructorName.name, isNull);
       expect(constructorName.staticElement, defaultConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       Identifier typeIdentifier = namedType.name;
@@ -2095,7 +2095,7 @@ var b = new C.named();
       expect(constructorName.staticElement, namedConstructor);
       expect(constructorName.name!.staticType, isNull);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       var typeIdentifier = namedType.name as SimpleIdentifier;
@@ -2130,7 +2130,7 @@ var v = new X(1, b: true, c: 3.0);
     expect(constructorName.name, isNull);
     expect(constructorName.staticElement, constructorElement);
 
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     expect(namedType.typeArguments, isNull);
 
     Identifier typeIdentifier = namedType.name;
@@ -2171,7 +2171,7 @@ var b = new C.named(2);
       expect(constructorName.name, isNull);
       expect(constructorName.staticElement, defaultConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       Identifier typeIdentifier = namedType.name;
@@ -2193,7 +2193,7 @@ var b = new C.named(2);
       expect(constructorName.name!.staticElement, namedConstructor);
       expect(constructorName.name!.staticType, isNull);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       var typeIdentifier = namedType.name as SimpleIdentifier;
@@ -2245,7 +2245,7 @@ main() {
       expect(constructorName.name, isNull);
       expect(constructorName.staticElement, defaultConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       var typeIdentifier = namedType.name as PrefixedIdentifier;
@@ -2275,7 +2275,7 @@ main() {
       expect(constructorName.name!.staticType, isNull);
       expect(constructorName.staticElement, namedConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       var typeIdentifier = namedType.name as PrefixedIdentifier;
@@ -2305,7 +2305,7 @@ main() {
       expect(constructorName.name!.staticType, isNull);
       expect(constructorName.staticElement, namedConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments!.arguments, hasLength(1));
       _assertTypeNameSimple(
           namedType.typeArguments!.arguments[0], typeProvider.boolType);
@@ -2360,7 +2360,7 @@ class C<T> {
       expect(constructorName.name, isNull);
       expect(constructorName.staticElement, defaultConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       var typeIdentifier = namedType.name as SimpleIdentifier;
@@ -2382,7 +2382,7 @@ class C<T> {
       expect(constructorName.name, isNull);
       expect(constructorName.staticElement, defaultConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments!.arguments, hasLength(1));
       _assertTypeNameSimple(
           namedType.typeArguments!.arguments[0], typeProvider.boolType);
@@ -2407,7 +2407,7 @@ class C<T> {
       expect(constructorName.name!.staticType, isNull);
       expect(constructorName.staticElement, namedConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments, isNull);
 
       var typeIdentifier = namedType.name as SimpleIdentifier;
@@ -2430,7 +2430,7 @@ class C<T> {
       expect(constructorName.name!.staticType, isNull);
       expect(constructorName.staticElement, namedConstructor);
 
-      NamedType namedType = constructorName.type;
+      NamedType namedType = constructorName.type2;
       expect(namedType.typeArguments!.arguments, hasLength(1));
       _assertTypeNameSimple(
           namedType.typeArguments!.arguments[0], typeProvider.boolType);
@@ -2462,7 +2462,7 @@ var b = new C<num, String>.named(4, 'five');
       assertMember(creation, defaultConstructor, {'K': 'int', 'V': 'double'});
       assertType(creation, 'C<int, double>');
 
-      var namedType = creation.constructorName.type;
+      var namedType = creation.constructorName.type2;
       assertNamedType(namedType, cElement, 'C<int, double>');
 
       var typeArguments = namedType.typeArguments!.arguments;
@@ -2481,7 +2481,7 @@ var b = new C<num, String>.named(4, 'five');
       assertMember(creation, namedConstructor, {'K': 'num', 'V': 'String'});
       assertType(creation, 'C<num, String>');
 
-      var namedType = creation.constructorName.type;
+      var namedType = creation.constructorName.type2;
       assertNamedType(namedType, cElement, 'C<num, String>');
 
       var typeArguments = namedType.typeArguments!.arguments;
@@ -3077,7 +3077,7 @@ main() {
       ConstructorName constructorName = creation.constructorName;
       expect(constructorName.name, isNull);
 
-      NamedType type = constructorName.type;
+      NamedType type = constructorName.type2;
       expect(type.typeArguments, isNull);
       assertElement(type.name, c);
       assertTypeNull(type.name);
@@ -3094,7 +3094,7 @@ main() {
       ConstructorName constructorName = creation.constructorName;
       expect(constructorName.name!.name, 'named');
 
-      NamedType type = constructorName.type;
+      NamedType type = constructorName.type2;
       expect(type.typeArguments, isNull);
       assertElement(type.name, c);
       assertType(type.name, 'C<bool>');
@@ -3111,7 +3111,7 @@ main() {
       ConstructorName constructorName = creation.constructorName;
       expect(constructorName.name!.name, 'named2');
 
-      NamedType type = constructorName.type;
+      NamedType type = constructorName.type2;
       assertTypeArguments(type.typeArguments!, [doubleType]);
       assertElement(type.name, c);
       assertType(type.name, 'C<double>');
@@ -5622,7 +5622,7 @@ const b = C.named(); // ref
       assertElement(creation, c.unnamedConstructor);
       assertType(creation, 'C');
 
-      assertNamedType(creation.constructorName.type, c, 'C');
+      assertNamedType(creation.constructorName.type2, c, 'C');
     }
 
     {
@@ -5631,7 +5631,7 @@ const b = C.named(); // ref
       assertElement(creation, namedConstructor);
       assertType(creation, 'C');
 
-      assertNamedType(creation.constructorName.type, c, 'C');
+      assertNamedType(creation.constructorName.type2, c, 'C');
       assertElement(creation.constructorName.name, namedConstructor);
     }
   }
@@ -5658,7 +5658,7 @@ const b = p.C.named(); // ref
       assertElement(creation, c.unnamedConstructor);
       assertType(creation, 'C');
 
-      assertNamedType(creation.constructorName.type, c, 'C',
+      assertNamedType(creation.constructorName.type2, c, 'C',
           expectedPrefix: import.prefix);
     }
 
@@ -5668,7 +5668,7 @@ const b = p.C.named(); // ref
       assertElement(creation, namedConstructor);
       assertType(creation, 'C');
 
-      assertNamedType(creation.constructorName.type, c, 'C',
+      assertNamedType(creation.constructorName.type2, c, 'C',
           expectedPrefix: import.prefix);
       assertElement(creation.constructorName.name, namedConstructor);
     }
@@ -5692,7 +5692,7 @@ const b = C<String>.named(); // ref
       assertMember(creation, c.unnamedConstructor!, {'T': 'int'});
       assertType(creation, 'C<int>');
 
-      assertNamedType(creation.constructorName.type, c, 'C<int>');
+      assertNamedType(creation.constructorName.type2, c, 'C<int>');
       assertNamedType(findNode.namedType('int>'), intElement, 'int');
     }
 
@@ -5702,7 +5702,7 @@ const b = C<String>.named(); // ref
       assertMember(creation, namedConstructor, {'T': 'String'});
       assertType(creation, 'C<String>');
 
-      assertNamedType(creation.constructorName.type, c, 'C<String>');
+      assertNamedType(creation.constructorName.type2, c, 'C<String>');
       assertNamedType(findNode.namedType('String>'), stringElement, 'String');
 
       assertMember(
@@ -6949,7 +6949,7 @@ class D extends A<bool> with B<int> implements C<double> {}
         nullabilitySuffix: NullabilitySuffix.none,
       );
 
-      NamedType superClass = dNode.extendsClause!.superclass;
+      NamedType superClass = dNode.extendsClause!.superclass2;
       expect(superClass.type, expectedType);
 
       var identifier = superClass.name as SimpleIdentifier;
@@ -7018,7 +7018,7 @@ class D = A<bool> with B<int> implements C<double>;
         nullabilitySuffix: NullabilitySuffix.none,
       );
 
-      NamedType superClass = dNode.superclass;
+      NamedType superClass = dNode.superclass2;
       expect(superClass.type, expectedType);
 
       var identifier = superClass.name as SimpleIdentifier;
@@ -7951,7 +7951,7 @@ main() {
     ConstructorName constructorName = creation.constructorName;
     expect(constructorName.name, isNull);
 
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     expect(namedType.type, isDynamicType);
 
     var typeIdentifier = namedType.name as SimpleIdentifier;
@@ -7983,7 +7983,7 @@ main() {
     ConstructorName constructorName = creation.constructorName;
     expect(constructorName.name, isNull);
 
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     expect(namedType.type, isDynamicType);
 
     var typePrefixed = namedType.name as PrefixedIdentifier;
@@ -8027,7 +8027,7 @@ main() {
     ConstructorName constructorName = creation.constructorName;
     expect(constructorName.name, isNull);
 
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     expect(namedType.type, isDynamicType);
 
     var typePrefixed = namedType.name as PrefixedIdentifier;
@@ -8065,7 +8065,7 @@ main() {
 
     ConstructorName constructorName = creation.constructorName;
 
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     expect(namedType.type, isDynamicType);
 
     var typePrefixed = namedType.name as PrefixedIdentifier;
@@ -8111,7 +8111,7 @@ main() {
 
     ConstructorName constructorName = creation.constructorName;
 
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     expect(namedType.type, isDynamicType);
 
     var typePrefixed = namedType.name as PrefixedIdentifier;
@@ -8158,7 +8158,7 @@ main() {
 
     ConstructorName constructorName = creation.constructorName;
 
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     assertType(namedType, 'Random');
 
     var typePrefixed = namedType.name as PrefixedIdentifier;
@@ -8627,7 +8627,7 @@ main() {
     var constructorElement = classElement.unnamedConstructor;
     expect(constructorName.staticElement, constructorElement);
 
-    var namedType = constructorName.type;
+    var namedType = constructorName.type2;
     expect(namedType.typeArguments, isNull);
 
     var typeIdentifier = namedType.name as SimpleIdentifier;

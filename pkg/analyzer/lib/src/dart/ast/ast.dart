@@ -1709,12 +1709,16 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   bool get isAbstract => abstractKeyword != null;
 
+  @Deprecated('Use superclass2 instead')
   @override
   TypeNameImpl get superclass => _superclass;
 
-  set superclass(TypeName superclass) {
+  set superclass(NamedType superclass) {
     _superclass = _becomeParentOf(superclass as TypeNameImpl);
   }
+
+  @override
+  TypeNameImpl get superclass2 => _superclass;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -2638,12 +2642,16 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _name = _becomeParentOf(name as SimpleIdentifierImpl?);
   }
 
+  @Deprecated('Use type2 instead')
   @override
   TypeNameImpl get type => _type;
 
-  set type(TypeName type) {
+  set type(NamedType type) {
     _type = _becomeParentOf(type as TypeNameImpl);
   }
+
+  @override
+  TypeNameImpl get type2 => _type;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
@@ -3648,12 +3656,16 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   @override
   Token get endToken => _superclass.endToken;
 
+  @Deprecated('Use superclass2 instead')
   @override
   TypeNameImpl get superclass => _superclass;
 
   set superclass(TypeName name) {
     _superclass = _becomeParentOf(name as TypeNameImpl);
   }
+
+  @override
+  TypeNameImpl get superclass2 => _superclass;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtendsClause(this);
@@ -10209,19 +10221,24 @@ class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   }
 
   @override
-  Token get beginToken => typeName.beginToken;
+  Token get beginToken => _typeName.beginToken;
 
   @override
-  Iterable<SyntacticEntity> get childEntities => ChildEntities()..add(typeName);
+  Iterable<SyntacticEntity> get childEntities =>
+      ChildEntities()..add(_typeName);
 
   @override
-  Token get endToken => typeName.endToken;
+  Token get endToken => _typeName.endToken;
 
   @override
-  Precedence get precedence => typeName.typeArguments == null
-      ? typeName.name.precedence
+  Precedence get precedence => _typeName.typeArguments == null
+      ? _typeName.name.precedence
       : Precedence.postfix;
 
+  @override
+  TypeNameImpl get type => _typeName;
+
+  @Deprecated('Use namedType instead')
   @override
   TypeNameImpl get typeName => _typeName;
 
@@ -10234,7 +10251,7 @@ class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    typeName.accept(visitor);
+    _typeName.accept(visitor);
   }
 }
 

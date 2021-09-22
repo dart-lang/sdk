@@ -132,7 +132,7 @@ const x = p.C<int>();
 
     var constructorName = creation.constructorName;
 
-    var typeName = constructorName.type;
+    var typeName = constructorName.type2;
     assertType(typeName, 'C<int>');
 
     var pC = typeName.name as PrefixedIdentifier;

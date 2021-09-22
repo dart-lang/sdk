@@ -1953,7 +1953,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type.accept(this);
+    node.type2.accept(this);
     _tokenOrNull(node.period);
     node.name?.accept(this);
   }
