@@ -12,6 +12,8 @@ import 'dart:isolate';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/kernel/target.dart'
+    show sdkLibraryEnvironmentDefines;
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -206,7 +208,7 @@ class ExpressionCompilerWorker {
     @required Uri sdkSummary,
     @required FileSystem fileSystem,
     Uri packagesFile,
-    Map<String, String> environmentDefines = const {},
+    Map<String, String> environmentDefines,
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri sdkRoot,
     bool trackWidgetCreation = false,
@@ -228,7 +230,11 @@ class ExpressionCompilerWorker {
           TargetFlags(trackWidgetCreation: trackWidgetCreation))
       ..fileSystem = fileSystem
       ..omitPlatform = true
-      ..environmentDefines = environmentDefines
+      ..environmentDefines = {
+        if (environmentDefines != null) ...environmentDefines,
+        // TODO(47243) Remove when all code paths read these from the `Target`.
+        ...sdkLibraryEnvironmentDefines
+      }
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
