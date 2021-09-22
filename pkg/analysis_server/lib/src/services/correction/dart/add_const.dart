@@ -79,7 +79,7 @@ class AddConst extends CorrectionProducer {
       await insertAtOffset(targetNode);
       return;
     }
-    if (targetNode is TypeName) {
+    if (targetNode is NamedType) {
       targetNode = targetNode.parent;
     }
     if (targetNode is ConstructorName) {

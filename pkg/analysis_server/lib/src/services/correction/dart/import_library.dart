@@ -143,7 +143,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
     if (node is PrefixedIdentifier) {
       var parent = node.parent;
-      if (parent is TypeName) {
+      if (parent is NamedType) {
         return true;
       }
     }

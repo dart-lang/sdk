@@ -819,8 +819,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     // At the start of each type name.
-    for (var typeName in node.interfaces) {
-      _recordDataForNode('ImplementsClause_interface', typeName);
+    for (var namedType in node.interfaces) {
+      _recordDataForNode('ImplementsClause_interface', namedType);
     }
     super.visitImplementsClause(node);
   }
@@ -1251,8 +1251,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    for (var typeName in node.mixinTypes) {
-      _recordDataForNode('WithClause_mixinType', typeName);
+    for (var namedType in node.mixinTypes) {
+      _recordDataForNode('WithClause_mixinType', namedType);
     }
     super.visitWithClause(node);
   }

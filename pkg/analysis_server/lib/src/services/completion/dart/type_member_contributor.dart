@@ -129,9 +129,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }
@@ -143,9 +143,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }
@@ -157,9 +157,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.functionType?.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.functionType?.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }
@@ -188,9 +188,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredMethod(MethodDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }

@@ -100,7 +100,7 @@ class TemplateContext {
         return parent.parent?.parent?.parent;
       } else if (parent is MethodInvocation && parent.methodName == node) {
         return parent;
-      } else if (parent is TypeName &&
+      } else if (parent is NamedType &&
           parent.parent is ConstructorName &&
           parent.parent?.parent is InstanceCreationExpression) {
         return parent.parent?.parent;

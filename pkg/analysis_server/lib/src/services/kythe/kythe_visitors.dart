@@ -558,7 +558,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     // return type
     //
     var returnType = node.returnType;
-    if (returnType is TypeName) {
+    if (returnType is NamedType) {
       _handleRefEdge(
         returnType.name.staticElement,
         const <String>[schema.REF_EDGE],
@@ -1235,7 +1235,7 @@ mixin OutputUtils {
     addEdge(funcTypeVName, schema.PARAM_EDGE, fnBuiltin, ordinalIntValue: i++);
 
     KytheVName? returnTypeVName;
-    if (returnNode is TypeName) {
+    if (returnNode is NamedType) {
       // MethodDeclaration and FunctionDeclaration both return a TypeName from
       // returnType
       if (returnNode.typeOrThrow.isVoid) {

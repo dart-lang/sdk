@@ -244,7 +244,7 @@ class ModifyParameters extends Change<_Data> {
     } else if (grandParent is InvocationExpression) {
       var argumentList = grandParent.argumentList;
       return _Data(argumentList);
-    } else if (parent is TypeName &&
+    } else if (parent is NamedType &&
         grandParent is ConstructorName &&
         greatGrandParent is InstanceCreationExpression) {
       var argumentList = greatGrandParent.argumentList;

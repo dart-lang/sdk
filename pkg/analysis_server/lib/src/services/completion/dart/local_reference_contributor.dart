@@ -437,7 +437,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   bool _isUnused(String identifier) => RegExp(r'^_+$').hasMatch(identifier);
 
   bool _isVoid(TypeAnnotation? returnType) {
-    if (returnType is TypeName) {
+    if (returnType is NamedType) {
       var id = returnType.name;
       if (id.name == 'void') {
         return true;

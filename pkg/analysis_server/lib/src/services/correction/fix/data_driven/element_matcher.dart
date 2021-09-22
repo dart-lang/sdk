@@ -127,7 +127,7 @@ class ElementMatcher {
         // don't represent parameters as elements, the element we need to match
         // against is the invocation containing those arguments.
         return _componentsFromParent(parent.parent!.parent!);
-      } else if (parent is TypeName && parent.parent is ConstructorName) {
+      } else if (parent is NamedType && parent.parent is ConstructorName) {
         return ['', node.name];
       } else if (parent is MethodDeclaration && node == parent.name) {
         return [node.name];
@@ -139,7 +139,7 @@ class ElementMatcher {
       return _componentsFromIdentifier(node);
     } else if (node is PrefixedIdentifier) {
       var parent = node.parent;
-      if (parent is TypeName && parent.parent is ConstructorName) {
+      if (parent is NamedType && parent.parent is ConstructorName) {
         return ['', node.identifier.name];
       }
       return [node.identifier.name];
