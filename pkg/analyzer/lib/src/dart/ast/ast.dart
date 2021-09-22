@@ -5759,8 +5759,8 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   final NodeListImpl<TypeName> _interfaces = NodeListImpl._();
 
   /// Initialize a newly created implements clause.
-  ImplementsClauseImpl(this.implementsKeyword, List<TypeName> interfaces) {
-    _interfaces._initialize(this, interfaces);
+  ImplementsClauseImpl(this.implementsKeyword, List<NamedType> interfaces) {
+    _interfaces._initialize2(this, interfaces);
   }
 
   @override
@@ -7635,6 +7635,20 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
       }
     }
   }
+
+  /// Set the [owner] of this container, and populate it with [elements].
+  /// TODO(scheglov) Remove this method, it exists only to implicitly cast.
+  void _initialize2<E2>(AstNodeImpl owner, List<E2>? elements) {
+    _owner = owner;
+    if (elements != null) {
+      var length = elements.length;
+      for (var i = 0; i < length; i++) {
+        var node = elements[i] as E;
+        _elements.add(node);
+        owner._becomeParentOf(node as AstNodeImpl);
+      }
+    }
+  }
 }
 
 /// A formal parameter that is required (is not optional).
@@ -7825,8 +7839,8 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   final NodeListImpl<TypeName> _superclassConstraints = NodeListImpl._();
 
   /// Initialize a newly created on clause.
-  OnClauseImpl(this.onKeyword, List<TypeName> superclassConstraints) {
-    _superclassConstraints._initialize(this, superclassConstraints);
+  OnClauseImpl(this.onKeyword, List<NamedType> superclassConstraints) {
+    _superclassConstraints._initialize2(this, superclassConstraints);
   }
 
   @override
@@ -10866,8 +10880,8 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   final NodeListImpl<TypeName> _mixinTypes = NodeListImpl._();
 
   /// Initialize a newly created with clause.
-  WithClauseImpl(this.withKeyword, List<TypeName> mixinTypes) {
-    _mixinTypes._initialize(this, mixinTypes);
+  WithClauseImpl(this.withKeyword, List<NamedType> mixinTypes) {
+    _mixinTypes._initialize2(this, mixinTypes);
   }
 
   @override
