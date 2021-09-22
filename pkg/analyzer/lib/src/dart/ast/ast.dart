@@ -10304,7 +10304,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   }
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeName(this);
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedType(this);
 
   @override
   void visitChildren(AstVisitor visitor) {

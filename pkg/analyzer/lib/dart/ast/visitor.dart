@@ -449,6 +449,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitNamedExpression(NamedExpression node) => visitExpression(node);
 
+  @override
+  // ignore: deprecated_member_use_from_same_package
+  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+
   R? visitNamespaceDirective(NamespaceDirective node) =>
       visitUriBasedDirective(node);
 
@@ -592,6 +596,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitTypeLiteral(TypeLiteral node) => visitExpression(node);
 
+  @Deprecated('Override visitNamedType instead')
   @override
   R? visitTypeName(TypeName node) => visitNode(node);
 
@@ -1132,6 +1137,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitNamedType(NamedType node) {
+    // ignore: deprecated_member_use_from_same_package
+    return visitTypeName(node as TypeName);
+  }
+
+  @override
   R? visitNativeClause(NativeClause node) {
     node.visitChildren(this);
     return null;
@@ -1348,6 +1359,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
+  @Deprecated('Override visitNamedType instead')
   @override
   R? visitTypeName(TypeName node) {
     node.visitChildren(this);
@@ -1663,6 +1675,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => null;
 
   @override
+  // ignore: deprecated_member_use_from_same_package
+  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+
+  @override
   R? visitNativeClause(NativeClause node) => null;
 
   @override
@@ -1772,6 +1788,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitTypeLiteral(TypeLiteral node) => null;
 
+  @Deprecated('Override visitNamedType instead')
   @override
   R? visitTypeName(TypeName node) => null;
 
@@ -2067,6 +2084,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => _throw(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
+  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+
+  @override
   R? visitNativeClause(NativeClause node) => _throw(node);
 
   @override
@@ -2178,6 +2199,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitTypeLiteral(TypeLiteral node) => _throw(node);
 
+  @Deprecated('Override visitNamedType instead')
   @override
   R? visitTypeName(TypeName node) => _throw(node);
 
@@ -2883,6 +2905,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitNamedType(NamedType node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitNamedType(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitNativeClause(NativeClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitNativeClause(node);
@@ -3171,6 +3201,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
+  @Deprecated('Override visitNamedType instead')
   @override
   T? visitTypeName(TypeName node) {
     stopwatch.start();
@@ -3520,6 +3551,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => visitNode(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
+  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+
+  @override
   R? visitNativeClause(NativeClause node) => visitNode(node);
 
   @override
@@ -3637,6 +3672,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitTypeLiteral(TypeLiteral node) => visitNode(node);
 
+  @Deprecated('Override visitNamedType instead')
   @override
   R? visitTypeName(TypeName node) => visitNode(node);
 

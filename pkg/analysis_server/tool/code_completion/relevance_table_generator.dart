@@ -973,6 +973,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    // There are no completions.
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     // There are no completions.
     super.visitNativeClause(node);
@@ -1196,12 +1202,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode('TypeArgumentList_argument', typeArgument);
     }
     super.visitTypeArgumentList(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    // There are no completions.
-    super.visitTypeName(node);
   }
 
   @override

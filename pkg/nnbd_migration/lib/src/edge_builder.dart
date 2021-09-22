@@ -221,7 +221,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// initializer in the constructor declaration.
   Set<FieldElement?>? _fieldsNotInitializedByConstructor;
 
-  /// Current nesting depth of [visitTypeName]
+  /// Current nesting depth of [visitNamedType]
   int _typeNameNesting = 0;
 
   final Set<PromotableElement> _lateHintedLocals = {};
@@ -1412,6 +1412,82 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType? visitNamedType(NamedType node) {
+    try {
+      _typeNameNesting++;
+      var typeArguments = node.typeArguments?.arguments;
+      var element = node.name.staticElement;
+      if (element is TypeAliasElement) {
+        var aliasedElement =
+            element.aliasedElement as GenericFunctionTypeElement;
+        final typedefType = _variables!.decoratedElementType(aliasedElement);
+        final typeNameType = _variables!.decoratedTypeAnnotation(source, node);
+
+        Map<TypeParameterElement, DecoratedType> substitutions;
+        if (node.typeArguments == null) {
+          // TODO(mfairhurst): substitute instantiations to bounds
+          substitutions = {};
+        } else {
+          substitutions =
+              Map<TypeParameterElement, DecoratedType>.fromIterables(
+                  element.typeParameters,
+                  node.typeArguments!.arguments.map(
+                      (t) => _variables!.decoratedTypeAnnotation(source, t)));
+        }
+
+        final decoratedType = typedefType.substitute(substitutions);
+        final origin = TypedefReferenceOrigin(source, node);
+        _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
+            isUnion: true);
+        _linkDecoratedTypes(
+            decoratedType.returnType!, typeNameType.returnType, origin,
+            isUnion: true);
+      } else if (element is TypeParameterizedElement) {
+        if (typeArguments == null) {
+          var instantiatedType =
+              _variables!.decoratedTypeAnnotation(source, node);
+          var origin = InstantiateToBoundsOrigin(source, node);
+          for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
+            _linkDecoratedTypes(
+                instantiatedType.typeArguments[i]!,
+                _variables!
+                    .decoratedTypeParameterBound(element.typeParameters[i]),
+                origin,
+                isUnion: false);
+          }
+        } else {
+          for (int i = 0; i < typeArguments.length; i++) {
+            DecoratedType? bound;
+            bound = _variables!
+                .decoratedTypeParameterBound(element.typeParameters[i]);
+            assert(bound != null);
+            var argumentType =
+                _variables!.decoratedTypeAnnotation(source, typeArguments[i]);
+            _checkAssignment(
+                TypeParameterInstantiationOrigin(source, typeArguments[i]),
+                FixReasonTarget.root,
+                source: argumentType,
+                destination: bound!,
+                hard: true);
+          }
+        }
+      }
+      node.visitChildren(this);
+      // If the type name is followed by a `/*!*/` comment, it is considered to
+      // apply to the type and not to the "as" expression.  In order to prevent
+      // a future call to _handleNullCheck from interpreting it as applying to
+      // the "as" expression, we need to store the `/*!*/` comment in
+      // _nullCheckHints.
+      var token = node.endToken;
+      _nullCheckHints[token] = getPostfixHint(token);
+      namedTypeVisited(node); // Note this has been visited to TypeNameTracker.
+      return null;
+    } finally {
+      _typeNameNesting--;
+    }
+  }
+
+  @override
   DecoratedType? visitNamespaceDirective(NamespaceDirective node) {
     // skip directives, but not their metadata
     _dispatchList(node.metadata);
@@ -1862,84 +1938,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis!.tryFinallyStatement_end();
     }
     return null;
-  }
-
-  @override
-  DecoratedType? visitTypeName(TypeName typeName) {
-    try {
-      _typeNameNesting++;
-      var typeArguments = typeName.typeArguments?.arguments;
-      var element = typeName.name.staticElement;
-      if (element is TypeAliasElement) {
-        var aliasedElement =
-            element.aliasedElement as GenericFunctionTypeElement;
-        final typedefType = _variables!.decoratedElementType(aliasedElement);
-        final typeNameType =
-            _variables!.decoratedTypeAnnotation(source, typeName);
-
-        Map<TypeParameterElement, DecoratedType> substitutions;
-        if (typeName.typeArguments == null) {
-          // TODO(mfairhurst): substitute instantiations to bounds
-          substitutions = {};
-        } else {
-          substitutions =
-              Map<TypeParameterElement, DecoratedType>.fromIterables(
-                  element.typeParameters,
-                  typeName.typeArguments!.arguments.map(
-                      (t) => _variables!.decoratedTypeAnnotation(source, t)));
-        }
-
-        final decoratedType = typedefType.substitute(substitutions);
-        final origin = TypedefReferenceOrigin(source, typeName);
-        _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
-            isUnion: true);
-        _linkDecoratedTypes(
-            decoratedType.returnType!, typeNameType.returnType, origin,
-            isUnion: true);
-      } else if (element is TypeParameterizedElement) {
-        if (typeArguments == null) {
-          var instantiatedType =
-              _variables!.decoratedTypeAnnotation(source, typeName);
-          var origin = InstantiateToBoundsOrigin(source, typeName);
-          for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
-            _linkDecoratedTypes(
-                instantiatedType.typeArguments[i]!,
-                _variables!
-                    .decoratedTypeParameterBound(element.typeParameters[i]),
-                origin,
-                isUnion: false);
-          }
-        } else {
-          for (int i = 0; i < typeArguments.length; i++) {
-            DecoratedType? bound;
-            bound = _variables!
-                .decoratedTypeParameterBound(element.typeParameters[i]);
-            assert(bound != null);
-            var argumentType =
-                _variables!.decoratedTypeAnnotation(source, typeArguments[i]);
-            _checkAssignment(
-                TypeParameterInstantiationOrigin(source, typeArguments[i]),
-                FixReasonTarget.root,
-                source: argumentType,
-                destination: bound!,
-                hard: true);
-          }
-        }
-      }
-      typeName.visitChildren(this);
-      // If the type name is followed by a `/*!*/` comment, it is considered to
-      // apply to the type and not to the "as" expression.  In order to prevent
-      // a future call to _handleNullCheck from interpreting it as applying to
-      // the "as" expression, we need to store the `/*!*/` comment in
-      // _nullCheckHints.
-      var token = typeName.endToken;
-      _nullCheckHints[token] = getPostfixHint(token);
-      namedTypeVisited(
-          typeName); // Note this has been visited to TypeNameTracker.
-      return null;
-    } finally {
-      _typeNameNesting--;
-    }
   }
 
   @override

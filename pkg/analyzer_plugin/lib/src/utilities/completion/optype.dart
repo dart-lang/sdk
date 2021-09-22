@@ -1073,6 +1073,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    // The entity won't be the first child entity (node.name), since
+    // CompletionTarget would have chosen an edge higher in the parse tree. So
+    // it must be node.typeArguments, meaning that the cursor is between the
+    // type name and the "<" that starts the type arguments. In this case,
+    // we have no completions to offer.
+    assert(identical(entity, node.typeArguments));
+  }
+
+  @override
   void visitNode(AstNode node) {
     // no suggestion by default
   }
@@ -1350,16 +1360,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitTypedLiteral(TypedLiteral node) {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    // The entity won't be the first child entity (node.name), since
-    // CompletionTarget would have chosen an edge higher in the parse tree. So
-    // it must be node.typeArguments, meaning that the cursor is between the
-    // type name and the "<" that starts the type arguments. In this case,
-    // we have no completions to offer.
-    assert(identical(entity, node.typeArguments));
   }
 
   @override

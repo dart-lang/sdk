@@ -954,6 +954,16 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _visitChildren(node, {
+      'name': node.name,
+      'typeArguments': node.typeArguments,
+      'question': node.question,
+    });
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     _visitChildren(node, {
       'name': node.name,
@@ -1217,16 +1227,6 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'arguments': node.arguments,
     });
     super.visitTypeArgumentList(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    _visitChildren(node, {
-      'name': node.name,
-      'typeArguments': node.typeArguments,
-      'question': node.question,
-    });
-    super.visitTypeName(node);
   }
 
   @override

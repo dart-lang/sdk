@@ -443,6 +443,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       node.expression.accept(this)!;
 
   @override
+  bool visitNamedType(NamedType node) => false;
+
+  @override
   bool visitNode(AstNode node) {
     throw StateError(
         'Missing a visit method for a node of type ${node.runtimeType}');
@@ -555,9 +558,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitTypeLiteral(TypeLiteral node) => _nodeExits(node.typeName);
-
-  @override
-  bool visitTypeName(TypeName node) => false;
 
   @override
   bool visitVariableDeclaration(VariableDeclaration node) {

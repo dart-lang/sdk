@@ -72,6 +72,7 @@ class Tag {
   static const int MethodInvocation = 59;
   static const int MixinDeclaration = 67;
   static const int NamedExpression = 60;
+  static const int NamedType = 39;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PostfixExpression = 94;
@@ -93,7 +94,6 @@ class Tag {
   static const int ThrowExpression = 81;
   static const int TypeArgumentList = 38;
   static const int TypeLiteral = 102;
-  static const int TypeName = 39;
   static const int TypeParameter = 40;
   static const int TypeParameterList = 41;
   static const int VariableDeclaration = 42;

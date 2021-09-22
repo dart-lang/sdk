@@ -698,6 +698,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    var question = node.question;
+    if (question != null) {
+      var name = node.name.name;
+      var type = node.typeOrThrow;
+      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
+      // not report synthetic `dynamic` in place of an unresolved type.
+      if ((type.element == _nullType.element ||
+              (type.isDynamic && name == 'dynamic')) &&
+          type.alias == null) {
+        _errorReporter.reportErrorForToken(
+            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+      }
+    }
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
@@ -769,24 +787,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _deprecatedVerifier.popInDeprecated();
     }
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    var question = node.question;
-    if (question != null) {
-      var name = node.name.name;
-      var type = node.typeOrThrow;
-      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
-      // not report synthetic `dynamic` in place of an unresolved type.
-      if ((type.element == _nullType.element ||
-              (type.isDynamic && name == 'dynamic')) &&
-          type.alias == null) {
-        _errorReporter.reportErrorForToken(
-            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
-      }
-    }
-    super.visitTypeName(node);
   }
 
   /// Check for the passed is expression for the unnecessary type check hint

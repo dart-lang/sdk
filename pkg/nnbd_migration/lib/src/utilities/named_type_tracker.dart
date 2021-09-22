@@ -9,22 +9,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class NamedTypeTracker extends RecursiveAstVisitor<void> {
   final Set<NamedType> _nodes = {};
 
-  bool _isTrueNamedType(NamedType node) {
-    final parent = node.parent;
-    if (parent is ConstructorName) {
-      // We only need to visit C in `new C()`, just `int` in `new C<int>()`.
-      return parent.type != node;
-    }
-
-    return true;
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    if (_isTrueNamedType(node)) {
-      _nodes.add(node);
-    }
-    super.visitTypeName(node);
+  void finalize() {
+    assert(_nodes.isEmpty, 'Annotation nodes not visited: $_nodes');
   }
 
   void nodeVisited(NamedType node) {
@@ -33,7 +19,21 @@ class NamedTypeTracker extends RecursiveAstVisitor<void> {
     }
   }
 
-  void finalize() {
-    assert(_nodes.isEmpty, 'Annotation nodes not visited: $_nodes');
+  @override
+  void visitNamedType(NamedType node) {
+    if (_isTrueNamedType(node)) {
+      _nodes.add(node);
+    }
+    super.visitNamedType(node);
+  }
+
+  bool _isTrueNamedType(NamedType node) {
+    final parent = node.parent;
+    if (parent is ConstructorName) {
+      // We only need to visit C in `new C()`, just `int` in `new C<int>()`.
+      return parent.type != node;
+    }
+
+    return true;
   }
 }

@@ -1001,6 +1001,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _typeArgumentsVerifier.checkNamedType(node);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     // TODO(brianwilkerson) Figure out the right rule for when 'native' is
     // allowed.
@@ -1215,12 +1221,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForTypeAnnotationDeferredClass(type);
     }
     super.visitTypeArgumentList(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    _typeArgumentsVerifier.checkNamedType(node);
-    super.visitTypeName(node);
   }
 
   @override
@@ -5126,7 +5126,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
   _UninstantiatedBoundChecker(this._errorReporter);
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     var typeArgs = node.typeArguments;
     if (typeArgs != null) {
       typeArgs.accept(this);

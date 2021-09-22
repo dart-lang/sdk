@@ -165,8 +165,8 @@ class AstBinaryReader {
         return _readTypeArgumentList();
       case Tag.TypeLiteral:
         return _readTypeLiteral();
-      case Tag.TypeName:
-        return _readTypeName();
+      case Tag.NamedType:
+        return _readNamedType();
       case Tag.TypeParameter:
         return _readTypeParameter();
       case Tag.TypeParameterList:
@@ -864,6 +864,20 @@ class AstBinaryReader {
     return node;
   }
 
+  TypeName _readNamedType() {
+    var flags = _readByte();
+    var name = readNode() as Identifier;
+    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+
+    var node = astFactory.namedType(
+      name: name,
+      typeArguments: typeArguments,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+    );
+    node.type = _reader.readType();
+    return node;
+  }
+
   List<T> _readNodeList<T>() {
     var length = _reader.readUInt30();
     return List.generate(length, (_) => readNode() as T);
@@ -1151,20 +1165,6 @@ class AstBinaryReader {
     var typeName = readNode() as TypeName;
     var node = astFactory.typeLiteral(typeName: typeName);
     _readExpressionResolution(node);
-    return node;
-  }
-
-  TypeName _readTypeName() {
-    var flags = _readByte();
-    var name = readNode() as Identifier;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
-
-    var node = astFactory.typeName(
-      name,
-      typeArguments,
-      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-    );
-    node.type = _reader.readType();
     return node;
   }
 

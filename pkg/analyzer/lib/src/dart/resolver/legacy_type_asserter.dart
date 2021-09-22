@@ -97,15 +97,15 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitTypeAnnotation(TypeAnnotation node) {
+  void visitNamedType(NamedType node) {
     _assertLegacyType(node.type);
-    super.visitTypeAnnotation(node);
+    super.visitNamedType(node);
   }
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitTypeAnnotation(TypeAnnotation node) {
     _assertLegacyType(node.type);
-    super.visitTypeName(node);
+    super.visitTypeAnnotation(node);
   }
 
   @override

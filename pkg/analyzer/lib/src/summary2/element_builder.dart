@@ -745,6 +745,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitOnClause(OnClause node) {
     node.superclassConstraints2.accept(this);
   }
@@ -865,11 +870,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     node.arguments.accept(this);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    node.typeArguments?.accept(this);
   }
 
   @override

@@ -513,6 +513,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _writeByte(Tag.NamedType);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion: node.question != null,
+        hasTypeArguments: node.typeArguments != null,
+      ),
+    );
+
+    _writeNode(node.name);
+    _writeOptionalNode(node.typeArguments);
+
+    _sink.writeType(node.type);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _writeByte(Tag.NullLiteral);
     _storeExpression(node);
@@ -729,23 +746,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.TypeLiteral);
     _writeNode(node.typeName);
     _storeExpression(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    _writeByte(Tag.TypeName);
-
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasQuestion: node.question != null,
-        hasTypeArguments: node.typeArguments != null,
-      ),
-    );
-
-    _writeNode(node.name);
-    _writeOptionalNode(node.typeArguments);
-
-    _sink.writeType(node.type);
   }
 
   @override

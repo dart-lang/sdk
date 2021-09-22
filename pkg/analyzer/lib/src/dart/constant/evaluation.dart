@@ -1297,6 +1297,29 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       node.expression.accept(this);
 
   @override
+  DartObjectImpl? visitNamedType(NamedType node) {
+    var type = node.type;
+
+    if (type == null) {
+      return null;
+    }
+
+    if (!_isNonNullableByDefault && hasTypeParameterReference(type)) {
+      return super.visitNamedType(node);
+    }
+
+    if (_substitution != null) {
+      type = _substitution!.substituteType(type);
+    }
+
+    return DartObjectImpl(
+      typeSystem,
+      _typeProvider.typeType,
+      TypeState(type),
+    );
+  }
+
+  @override
   DartObjectImpl? visitNode(AstNode node) {
     // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
     // error code.
@@ -1481,29 +1504,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       typeSystem,
       _typeProvider.symbolType,
       SymbolState(buffer.toString()),
-    );
-  }
-
-  @override
-  DartObjectImpl? visitTypeName(TypeName node) {
-    var type = node.type;
-
-    if (type == null) {
-      return null;
-    }
-
-    if (!_isNonNullableByDefault && hasTypeParameterReference(type)) {
-      return super.visitTypeName(node);
-    }
-
-    if (_substitution != null) {
-      type = _substitution!.substituteType(type);
-    }
-
-    return DartObjectImpl(
-      typeSystem,
-      _typeProvider.typeType,
-      TypeState(type),
     );
   }
 

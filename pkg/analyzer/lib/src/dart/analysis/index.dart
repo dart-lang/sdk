@@ -712,6 +712,16 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    AstNode parent = node.parent!;
+    if (parent is ClassTypeAlias && parent.superclass == node) {
+      recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
+    } else {
+      super.visitNamedType(node);
+    }
+  }
+
+  @override
   void visitOnClause(OnClause node) {
     for (NamedType namedType in node.superclassConstraints2) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
@@ -816,16 +826,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
           element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
     }
     node.argumentList.accept(this);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    AstNode parent = node.parent!;
-    if (parent is ClassTypeAlias && parent.superclass == node) {
-      recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
-    } else {
-      super.visitTypeName(node);
-    }
   }
 
   @override

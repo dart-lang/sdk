@@ -496,6 +496,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _runSubscriptions(node, registry._forNamedType);
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     _runSubscriptions(node, registry._forNativeClause);
     super.visitNativeClause(node);
@@ -695,12 +701,6 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    _runSubscriptions(node, registry._forTypeName);
-    super.visitTypeName(node);
-  }
-
-  @override
   void visitTypeParameter(TypeParameter node) {
     _runSubscriptions(node, registry._forTypeParameter);
     super.visitTypeParameter(node);
@@ -861,6 +861,7 @@ class NodeLintRegistry {
   final List<_Subscription<MethodInvocation>> _forMethodInvocation = [];
   final List<_Subscription<MixinDeclaration>> _forMixinDeclaration = [];
   final List<_Subscription<NamedExpression>> _forNamedExpression = [];
+  final List<_Subscription<NamedType>> _forNamedType = [];
   final List<_Subscription<NativeClause>> _forNativeClause = [];
   final List<_Subscription<NativeFunctionBody>> _forNativeFunctionBody = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
@@ -899,7 +900,6 @@ class NodeLintRegistry {
       _forTopLevelVariableDeclaration = [];
   final List<_Subscription<TryStatement>> _forTryStatement = [];
   final List<_Subscription<TypeArgumentList>> _forTypeArgumentList = [];
-  final List<_Subscription<TypeName>> _forTypeName = [];
   final List<_Subscription<TypeParameter>> _forTypeParameter = [];
   final List<_Subscription<TypeParameterList>> _forTypeParameterList = [];
   final List<_Subscription<VariableDeclaration>> _forVariableDeclaration = [];
@@ -1263,6 +1263,10 @@ class NodeLintRegistry {
     _forNamedExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addNamedType(LintRule linter, AstVisitor visitor) {
+    _forNamedType.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addNativeClause(LintRule linter, AstVisitor visitor) {
     _forNativeClause.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1407,8 +1411,9 @@ class NodeLintRegistry {
     _forTypeArgumentList.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  @Deprecated('Use addNamedType() instead')
   void addTypeName(LintRule linter, AstVisitor visitor) {
-    _forTypeName.add(_Subscription(linter, visitor, _getTimer(linter)));
+    addNamedType(linter, visitor);
   }
 
   void addTypeParameter(LintRule linter, AstVisitor visitor) {

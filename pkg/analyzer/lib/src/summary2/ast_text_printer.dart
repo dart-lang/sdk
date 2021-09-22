@@ -711,6 +711,13 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    node.name.accept(this);
+    node.typeArguments?.accept(this);
+    _token(node.question);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     _token(node.nativeKeyword);
     node.name?.accept(this);
@@ -941,13 +948,6 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.leftBracket);
     _nodeList(node.arguments, node.rightBracket);
     _token(node.rightBracket);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    node.name.accept(this);
-    node.typeArguments?.accept(this);
-    _token(node.question);
   }
 
   @override

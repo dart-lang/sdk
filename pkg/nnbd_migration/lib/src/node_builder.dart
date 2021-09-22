@@ -499,6 +499,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitNamedType(NamedType node) {
+    namedTypeVisited(node); // Note this has been visited to NamedTypeTracker.
+    return visitTypeAnnotation(node);
+  }
+
+  @override
   DecoratedType? visitSetOrMapLiteral(SetOrMapLiteral node) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -617,12 +623,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _variables!.recordDecoratedTypeAnnotation(source, node, decoratedType);
     _handleNullabilityHint(node, decoratedType);
     return decoratedType;
-  }
-
-  @override
-  DecoratedType visitTypeName(TypeName node) {
-    namedTypeVisited(node); // Note this has been visited to TypeNameTracker.
-    return visitTypeAnnotation(node);
   }
 
   @override

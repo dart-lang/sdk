@@ -513,6 +513,8 @@ abstract class AstVisitor<R> {
 
   R? visitNamedExpression(NamedExpression node);
 
+  R? visitNamedType(NamedType node);
+
   R? visitNativeClause(NativeClause node);
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
@@ -586,6 +588,7 @@ abstract class AstVisitor<R> {
 
   R? visitTypeLiteral(TypeLiteral node);
 
+  @Deprecated('Override visitNamedType instead')
   R? visitTypeName(TypeName node);
 
   R? visitTypeParameter(TypeParameter node);

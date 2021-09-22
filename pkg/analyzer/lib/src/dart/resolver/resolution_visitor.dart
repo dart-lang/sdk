@@ -882,6 +882,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(covariant TypeNameImpl node) {
+    node.typeArguments?.accept(this);
+
+    _typeNameResolver.nameScope = _nameScope;
+    _typeNameResolver.resolve(node);
+
+    if (_typeNameResolver.rewriteResult != null) {
+      _typeNameResolver.rewriteResult!.accept(this);
+    }
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     _withElementWalker(null, () {
       super.visitPartDirective(node);
@@ -985,18 +997,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _buildLocalElements(statements);
       statements.accept(this);
     });
-  }
-
-  @override
-  void visitTypeName(covariant TypeNameImpl node) {
-    node.typeArguments?.accept(this);
-
-    _typeNameResolver.nameScope = _nameScope;
-    _typeNameResolver.resolve(node);
-
-    if (_typeNameResolver.rewriteResult != null) {
-      _typeNameResolver.rewriteResult!.accept(this);
-    }
   }
 
   @override
@@ -1259,7 +1259,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveType(TypeNameImpl namedType, ErrorCode errorCode,
       {bool asClass = false}) {
     _typeNameResolver.classHierarchy_namedType = namedType;
-    visitTypeName(namedType);
+    visitNamedType(namedType);
     _typeNameResolver.classHierarchy_namedType = null;
 
     if (_typeNameResolver.hasErrorReported) {
@@ -1276,7 +1276,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    // If the type is not an InterfaceType, then visitTypeName() sets the type
+    // If the type is not an InterfaceType, then visitNamedType() sets the type
     // to be a DynamicTypeImpl
     Identifier name = namedType.name;
     if (!_libraryElement.shouldIgnoreUndefinedIdentifier(name)) {

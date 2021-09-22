@@ -756,6 +756,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _visitNode(node.name);
+    _visitNode(node.typeArguments);
+    if (node.question != null) {
+      sink.write('?');
+    }
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     sink.write('native ');
     _visitNode(node.name);
@@ -1012,11 +1021,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    _visitNode(node.name);
-    _visitNode(node.typeArguments);
-    if (node.question != null) {
-      sink.write('?');
-    }
+    throw StateError('Should not be invoked');
   }
 
   @override
