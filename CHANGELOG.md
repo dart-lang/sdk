@@ -95,9 +95,34 @@
 
 #### Dart VM
 
-- **Breaking Change** [#45451](https://github.com/dart-lang/sdk/issues/45451) :
+- **Breaking Change** [#45451](https://github.com/dart-lang/sdk/issues/45451):
   Support for `dart-ext:`-style native extensions has been removed as previously
   announced. Use `dart:ffi` to bind to native libraries instead.
+
+- **Breaking Change** [#46754](https://github.com/dart-lang/sdk/issues/46754):
+  Isolates spawned via the `Isolate.spawn()` API are now grouped, operate on the
+  same managed heap and can therefore share various VM-internal data structures.
+
+  This leads to ~100x faster isolate startup latency, ~10-100x lower
+  per-isolate base memory overhead and ~8x faster inter-isolate communication.
+
+  Making isolates operate on the same heap will also make them collaborate on
+  garbage collections, which changes performance characteristics for GC-heavy
+  applications that may - in rare cases - negatively affect pause times or
+  throughput.
+
+- Allow closures both in inter-isolate messages as well as as entrypoints in
+  `Isolate.spawn(<entrypoint>, ...)` calls. Closures and their enclosing context
+  may need to be copied in this process. The enclosing context is - as with
+  normal messages - verified to only contain objects that are sendable.
+
+  Note of caution: The Dart VM's current representation of enclosing variables
+  in closures can make closures hang on to more variables than strictly needed.
+  Using such closures in inter-isolate communication can therefore lead to
+  copying of larger transitive object graphs. If the extended transitive
+  closure includes objects that are illegal to send, the sending will fail.
+  See [#36983](https://github.com/dart-lang/sdk/issues/36983), which tracks this
+  existing memory leak issue.
 
 #### Linter
 

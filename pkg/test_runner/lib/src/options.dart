@@ -90,6 +90,11 @@ enum _OptionValueType { bool, int, string }
 
 /// Parses command line arguments and produces a test runner configuration.
 class OptionsParser {
+  /// Allows tests to specify a custom test matrix.
+  final String _testMatrixFile;
+
+  OptionsParser([this._testMatrixFile = 'tools/bots/test_matrix.json']);
+
   static final List<_Option> _options = [
     _Option('mode', 'Mode in which to run the tests.',
         abbr: 'm', values: ['all', ...Mode.names]),
@@ -799,7 +804,7 @@ compiler.''',
 
       if (configuration.validate()) {
         result.add(configuration);
-      } else if (namedConfiguration == null) {
+      } else if (namedConfiguration != null) {
         _fail('The named configuration "$namedConfiguration" is invalid.');
       }
     }
@@ -807,8 +812,7 @@ compiler.''',
     var namedConfigurationOption = data["named_configuration"] as String;
     if (namedConfigurationOption != null) {
       var namedConfigurations = namedConfigurationOption.split(',');
-      var testMatrixFile = "tools/bots/test_matrix.json";
-      var testMatrix = TestMatrix.fromPath(testMatrixFile);
+      var testMatrix = TestMatrix.fromPath(_testMatrixFile);
       for (var namedConfiguration in namedConfigurations) {
         var configuration = testMatrix.configurations.singleWhere(
             (c) => c.name == namedConfiguration,
@@ -822,7 +826,7 @@ compiler.''',
               ' The following configurations are available:\n'
               '  * ${names.join('\n  * ')}');
         }
-        addConfiguration(configuration);
+        addConfiguration(configuration, namedConfiguration);
       }
       return result;
     }

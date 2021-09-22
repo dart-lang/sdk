@@ -28,6 +28,10 @@ void testOptions() {
 
   var configuration = parseConfiguration(['--nnbd=weak']);
   Expect.equals(NnbdMode.weak, configuration.nnbdMode);
+
+  // Filter invalid configurations when not passing a named configuration.
+  configurations = parseConfigurations(['--arch=simarm', '--system=android']);
+  Expect.isEmpty(configurations);
 }
 
 void testValidation() {
@@ -48,6 +52,10 @@ void testValidation() {
   // Don't allow multiple.
   expectValidationError(['--nnbd=weak,strong'],
       'Only a single value is allowed for option "--nnbd".');
+
+  // Don't allow invalid named configurations.
+  expectValidationError(['-ninvalid-vm-android-simarm'],
+      'The named configuration "invalid-vm-android-simarm" is invalid.');
 }
 
 TestConfiguration parseConfiguration(List<String> arguments) {
@@ -57,7 +65,7 @@ TestConfiguration parseConfiguration(List<String> arguments) {
 }
 
 List<TestConfiguration> parseConfigurations(List<String> arguments) {
-  var parser = OptionsParser();
+  var parser = OptionsParser('pkg/test_runner/test/test_matrix.json');
   var configurations = parser.parse(arguments);
 
   // By default, without an explicit selector, you get two configurations, one
@@ -70,7 +78,7 @@ List<TestConfiguration> parseConfigurations(List<String> arguments) {
 
 void expectValidationError(List<String> arguments, String error) {
   try {
-    OptionsParser().parse(arguments);
+    OptionsParser('pkg/test_runner/test/test_matrix.json').parse(arguments);
     Expect.fail('Should have thrown an exception, but did not.');
   } on OptionParseException catch (exception) {
     Expect.equals(error, exception.message);
