@@ -14,9 +14,7 @@ import 'package:path/path.dart' as path;
 import 'analyzer.dart';
 import 'utils.dart';
 
-List<String>? _reservedWords;
-
-List<String> get reservedWords => _reservedWords ??= _collectReservedWords();
+late final List<String> reservedWords = _collectReservedWords();
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
