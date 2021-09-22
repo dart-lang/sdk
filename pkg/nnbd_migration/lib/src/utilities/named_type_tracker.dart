@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// A simple class to find all [NamedType]s and track if they all get visited.
-class TypeNameTracker extends RecursiveAstVisitor<void> {
+class NamedTypeTracker extends RecursiveAstVisitor<void> {
   final Set<NamedType> _nodes = {};
 
   bool _isTrueNamedType(NamedType node) {
