@@ -65,7 +65,7 @@ void check(String expected, Object generator) {
   Expect.stringEquals(expected, "$generator");
 }
 
-void main() async {
+Future<void> main() async {
   await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
     Token token = scanString("    myToken").tokens;
     Uri uri = Uri.parse("org-dartlang-test:my_library.dart");

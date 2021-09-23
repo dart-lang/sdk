@@ -46,7 +46,7 @@ void usage(String extraMessage) {
   exit(1);
 }
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
   File inputFile;

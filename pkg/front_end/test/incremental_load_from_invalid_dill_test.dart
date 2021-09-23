@@ -73,7 +73,7 @@ class Tester {
   CompilerOptions options;
   IncrementalCompiler compiler;
 
-  void compileExpectInitializeFailAndSpecificWarning(
+  Future<void> compileExpectInitializeFailAndSpecificWarning(
       Code expectedWarningCode, bool writeFileOnCrashReport) async {
     errorMessages.clear();
     warningMessages.clear();

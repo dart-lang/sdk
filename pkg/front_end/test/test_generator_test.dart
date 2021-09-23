@@ -17,7 +17,7 @@ import 'package:kernel/kernel.dart' show Component;
 
 import 'incremental_suite.dart' as helper;
 
-void main() async {
+Future<void> main() async {
   CompilerAndOptions compilerAndOptions = TestCompiler.initialize();
   TestCompiler compiler = compilerAndOptions.compiler;
   bool hasNewline = true;

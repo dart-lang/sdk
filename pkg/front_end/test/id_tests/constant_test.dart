@@ -22,7 +22,7 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/constants/data'));
   await runTests<String>(dataDir,

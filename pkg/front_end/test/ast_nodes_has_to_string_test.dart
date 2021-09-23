@@ -10,7 +10,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import 'incremental_suite.dart' as helper;
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   exitCode = 1;
   Map<Uri, List<Class>> classMap = {};
   Map<Uri, List<Class>> classMapWithOne = {};

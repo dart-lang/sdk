@@ -1089,16 +1089,19 @@ void KernelLoader::FinishTopLevelClassLoading(
       helper_.ReadByte();                    // skip flags.
       helper_.SkipTypeParametersList();      // skip type parameter list.
       helper_.SkipDartType();                // skip on-type.
-      helper_.SkipListOfDartTypes();         // skip shown types.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown members.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown getters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown setters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip shown operators.
-      helper_.SkipListOfDartTypes();                // skip hidden types.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden members.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden getters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden setters.
-      helper_.SkipListOfCanonicalNameReferences();  // skip hidden operators.
+      Tag tag = helper_.ReadTag();
+      if (tag != kNothing) {
+        helper_.SkipListOfDartTypes();                // skip shown types.
+        helper_.SkipListOfCanonicalNameReferences();  // skip shown members.
+        helper_.SkipListOfCanonicalNameReferences();  // skip shown getters.
+        helper_.SkipListOfCanonicalNameReferences();  // skip shown setters.
+        helper_.SkipListOfCanonicalNameReferences();  // skip shown operators.
+        helper_.SkipListOfDartTypes();                // skip hidden types.
+        helper_.SkipListOfCanonicalNameReferences();  // skip hidden members.
+        helper_.SkipListOfCanonicalNameReferences();  // skip hidden getters.
+        helper_.SkipListOfCanonicalNameReferences();  // skip hidden setters.
+        helper_.SkipListOfCanonicalNameReferences();  // skip hidden operators.
+      }
 
       const intptr_t extension_member_count = helper_.ReadListLength();
       for (intptr_t j = 0; j < extension_member_count; ++j) {

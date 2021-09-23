@@ -23,7 +23,7 @@ import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-void main() async {
+Future<void> main() async {
   await asyncTest(() async {
     await testRedirectingFactoryDirect();
     await testRedirectingFactorySerialized();

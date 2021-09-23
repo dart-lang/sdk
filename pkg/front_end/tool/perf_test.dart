@@ -7,7 +7,7 @@ library front_end.tool.perf_test;
 import 'dart:io' show Platform;
 import 'perf.dart' as m;
 
-void main() async {
+Future<void> main() async {
   var benchIds = ['scan', 'parse'];
   var inputFile =
       Platform.script.resolve('../lib/src/api_prototype/file_system.dart').path;

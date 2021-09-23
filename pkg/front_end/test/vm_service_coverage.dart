@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'vm_service_helper.dart' as vmService;
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   CoverageHelper coverageHelper = new CoverageHelper();
 
   List<String> allArgs = <String>[];
@@ -19,7 +19,7 @@ void main(List<String> args) async {
   ]);
   allArgs.addAll(args);
 
-  coverageHelper.start(allArgs);
+  await coverageHelper.start(allArgs);
 }
 
 class CoverageHelper extends vmService.LaunchingVMServiceHelper {

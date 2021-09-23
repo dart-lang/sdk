@@ -20,7 +20,7 @@ const Version experimentReleaseVersion = const Version(2, 9);
 /// The version used in this test as the experiment enabled version.
 const Version experimentEnabledVersion = const Version(2, 10);
 
-void main() async {
+Future<void> main() async {
   print('--------------------------------------------------------------------');
   print('Test off-by-default with command-line flag');
   print('--------------------------------------------------------------------');
@@ -58,7 +58,7 @@ void main() async {
       versionOptsInAllowed: experimentReleaseVersion);
 }
 
-void test(
+Future<void> test(
     {bool enableNonNullableByDefault,
     bool enableNonNullableExplicitly,
     Version versionImpliesOptIn,

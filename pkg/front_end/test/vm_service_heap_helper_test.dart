@@ -49,7 +49,7 @@ Future<void> main(List<String> args) async {
     throwOnPossibleLeak: false,
   );
 
-  heapHelper.start(
+  await heapHelper.start(
     [
       "--enable-asserts",
       Platform.script.toString(),

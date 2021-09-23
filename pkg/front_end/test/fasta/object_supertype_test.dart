@@ -80,7 +80,7 @@ Future<void> test() async {
       .map((DiagnosticMessage message) => getMessageCodeObject(message).name)
       .toSet();
 
-  void check(String objectHeader, List<Code> expectedCodes) async {
+  Future<void> check(String objectHeader, List<Code> expectedCodes) async {
     List<DiagnosticMessage> messages = (await outline(objectHeader))
         .where((DiagnosticMessage message) =>
             !normalErrors.contains(getMessageCodeObject(message).name))

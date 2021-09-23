@@ -13,7 +13,7 @@ import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<Features>(dataDir,
       args: args,
