@@ -6,7 +6,7 @@ part of dart.core;
 
 /// Prints a string representation of the object to the console.
 void print(Object? object) {
-  String line = object.toString();
+  String line = checkNotNullable(object.toString(), "object.toString()");
   var toZone = printToZone;
   if (toZone == null) {
     printToConsole(line);
