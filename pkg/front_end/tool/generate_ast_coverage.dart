@@ -13,7 +13,7 @@ Uri computeCoverageUri(Uri repoDir) {
   return repoDir.resolve('pkg/kernel/lib/src/coverage.dart');
 }
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Uri output = args.isEmpty
       ? computeCoverageUri(Uri.base)
       : new File(args[0]).absolute.uri;

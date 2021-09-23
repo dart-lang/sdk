@@ -9,6 +9,7 @@ linter:
     - curly_braces_in_flow_control_structures
     - prefer_adjacent_string_concatenation
     - unawaited_futures
+    - avoid_void_async
     - recursive_getters
     - avoid_empty_else
     - empty_statements

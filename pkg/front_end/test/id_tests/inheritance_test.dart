@@ -20,7 +20,7 @@ import 'package:kernel/type_algebra.dart';
 
 const String cfeFromBuilderMarker = 'cfe:builder';
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
   await runTests<String>(dataDir,

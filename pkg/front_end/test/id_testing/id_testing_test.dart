@@ -29,7 +29,7 @@ import 'package:kernel/ast.dart'
         Library,
         TreeNode;
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<String>(dataDir,
       args: args,

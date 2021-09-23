@@ -64,7 +64,7 @@ AstTextStrategy getStrategy(String marker) {
   throw new UnsupportedError("Unexpected marker '${marker}'.");
 }
 
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<String>(dataDir,
       args: args,

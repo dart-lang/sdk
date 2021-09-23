@@ -327,7 +327,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
   // Compile [test.expression], update [test.errors] with results.
   // As a side effect - verify that generated procedure can be serialized.
-  void compileExpression(TestCase test, IncrementalCompiler compiler,
+  Future<void> compileExpression(TestCase test, IncrementalCompiler compiler,
       Component component, Context context) async {
     Map<String, DartType> definitions = {};
     for (String name in test.definitions) {
@@ -386,7 +386,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
         context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(
             await new File.fromUri(dillFileUri).readAsBytes());
       }
-      compileExpression(test, sourceCompiler, component, context);
+      await compileExpression(test, sourceCompiler, component, context);
 
       var dillCompiler =
           new IncrementalCompiler(context.compilerContext, dillFileUri);
@@ -399,7 +399,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       // Since it compiled successfully from source, the bootstrap-from-Dill
       // should also succeed without errors.
       assert(errors.isEmpty);
-      compileExpression(test, dillCompiler, component, context);
+      await compileExpression(test, dillCompiler, component, context);
     }
     return new Result.pass(tests);
   }
