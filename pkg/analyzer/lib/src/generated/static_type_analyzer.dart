@@ -180,7 +180,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
     _inferInstanceCreationExpression(node);
-    recordStaticType(node, node.constructorName.type.typeOrThrow);
+    recordStaticType(node, node.constructorName.type2.typeOrThrow);
   }
 
   /// <blockquote>
@@ -365,7 +365,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return;
     }
 
-    var typeName = constructorName.type;
+    var typeName = constructorName.type2;
     var typeArguments = typeName.typeArguments;
 
     var constructorType = elementToInfer.asType;

@@ -676,7 +676,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorReference(ConstructorReference node) {
     var constructorName = node.constructorName;
-    constructorName.type.accept(this);
+    constructorName.type2.accept(this);
 
     // We have a `ConstructorReference` only when it is resolved.
     // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,
@@ -967,6 +967,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    var type = node.type;
+    if (type != null) {
+      if (type.isDynamic && node.name.name == 'dynamic') {
+        computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
+        return null;
+      }
+    }
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     super.visitNativeClause(node);
@@ -1115,18 +1127,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.finallyKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitTryStatement(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    var type = node.type;
-    if (type != null) {
-      if (type.isDynamic && node.name.name == 'dynamic') {
-        computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
-        return null;
-      }
-    }
-    super.visitTypeName(node);
   }
 
   @override

@@ -161,7 +161,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }
@@ -240,7 +240,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override
@@ -745,6 +745,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitOnClause(OnClause node) {
     node.superclassConstraints2.accept(this);
   }
@@ -865,11 +870,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     node.arguments.accept(this);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    node.typeArguments?.accept(this);
   }
 
   @override

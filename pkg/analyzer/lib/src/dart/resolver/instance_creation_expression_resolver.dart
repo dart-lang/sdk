@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// This resolver is responsible for rewriting a given
 /// [InstanceCreationExpression] as a [MethodInvocation] if the parsed
 /// [ConstructorName]'s `type` resolves to a [FunctionReference] or
-/// [ConstructorReference], instead of a [TypeName].
+/// [ConstructorReference], instead of a [NamedType].
 class InstanceCreationExpressionResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
@@ -36,7 +36,7 @@ class InstanceCreationExpressionResolver {
     // InstanceCreationExpression needs to be rewritten as a MethodInvocation
     // with a target of `a.m<int>` (a FunctionReference) and a name of `apply`.
     if (node.keyword == null) {
-      var typeNameTypeArguments = node.constructorName.type.typeArguments;
+      var typeNameTypeArguments = node.constructorName.type2.typeArguments;
       if (typeNameTypeArguments != null) {
         // This could be a method call on a function reference or a constructor
         // reference.
@@ -50,7 +50,7 @@ class InstanceCreationExpressionResolver {
 
   void _inferArgumentTypes(covariant InstanceCreationExpressionImpl node) {
     var constructorName = node.constructorName;
-    var typeName = constructorName.type;
+    var typeName = constructorName.type2;
     var typeArguments = typeName.typeArguments;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
@@ -90,7 +90,7 @@ class InstanceCreationExpressionResolver {
             ResolverVisitor.resolveArgumentsToParameters(
                 arguments, inferred.parameters, null);
 
-        constructorName.type.type = inferred.returnType;
+        constructorName.type2.type = inferred.returnType;
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
@@ -124,7 +124,7 @@ class InstanceCreationExpressionResolver {
         node.argumentList, whyNotPromotedList);
   }
 
-  /// Resolve [node] which has a [TypeName] with type arguments (given as
+  /// Resolve [node] which has a [NamedType] with type arguments (given as
   /// [typeNameTypeArguments]).
   ///
   /// The instance creation expression may actually be a method call on a
@@ -133,7 +133,7 @@ class InstanceCreationExpressionResolver {
     InstanceCreationExpressionImpl node,
     TypeArgumentListImpl typeNameTypeArguments,
   ) {
-    var typeNameName = node.constructorName.type.name;
+    var typeNameName = node.constructorName.type2.name;
     if (typeNameName is SimpleIdentifierImpl) {
       // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
       // [MethodInvocation].

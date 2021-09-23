@@ -45,7 +45,7 @@ class AstRewriter {
       // Either `new` or `const` has been specified.
       return node;
     }
-    var typeName = node.constructorName.type.name;
+    var typeName = node.constructorName.type2.name;
     if (typeName is SimpleIdentifier) {
       var element = nameScope.lookup(typeName.name).getter;
       if (element is FunctionElement ||
@@ -388,7 +388,10 @@ class AstRewriter {
           [classElement.name, constructorElement.name]);
     }
 
-    var typeName = astFactory.typeName(typeNameIdentifier, typeArguments);
+    var typeName = astFactory.namedType(
+      name: typeNameIdentifier,
+      typeArguments: typeArguments,
+    );
     var constructorName = astFactory.constructorName(
         typeName, node.operator, constructorIdentifier);
     var instanceCreationExpression = astFactory.instanceCreationExpression(
@@ -407,7 +410,7 @@ class AstRewriter {
       return node;
     }
 
-    var typeName = astFactory.typeName(node.prefix, null);
+    var typeName = astFactory.namedType(name: node.prefix);
     var constructorName =
         astFactory.constructorName(typeName, node.period, node.identifier);
     var constructorReference =
@@ -436,7 +439,10 @@ class AstRewriter {
 
     var operator = node.operator;
 
-    var typeName = astFactory.typeName(receiver, typeArguments);
+    var typeName = astFactory.namedType(
+      name: receiver,
+      typeArguments: typeArguments,
+    );
     var constructorName =
         astFactory.constructorName(typeName, operator, node.propertyName);
     var constructorReference =
@@ -450,10 +456,14 @@ class AstRewriter {
     required SimpleIdentifier prefixIdentifier,
     required SimpleIdentifier typeIdentifier,
   }) {
-    var typeName = astFactory.typeName(
-        astFactory.prefixedIdentifier(
-            prefixIdentifier, node.operator!, typeIdentifier),
-        node.typeArguments);
+    var typeName = astFactory.namedType(
+      name: astFactory.prefixedIdentifier(
+        prefixIdentifier,
+        node.operator!,
+        typeIdentifier,
+      ),
+      typeArguments: node.typeArguments,
+    );
     var constructorName = astFactory.constructorName(typeName, null, null);
     var instanceCreationExpression = astFactory.instanceCreationExpression(
         null, constructorName, node.argumentList);
@@ -465,7 +475,10 @@ class AstRewriter {
     required MethodInvocation node,
     required SimpleIdentifier typeIdentifier,
   }) {
-    var typeName = astFactory.typeName(typeIdentifier, node.typeArguments);
+    var typeName = astFactory.namedType(
+      name: typeIdentifier,
+      typeArguments: node.typeArguments,
+    );
     var constructorName = astFactory.constructorName(typeName, null, null);
     var instanceCreationExpression = astFactory.instanceCreationExpression(
         null, constructorName, node.argumentList);
@@ -492,7 +505,7 @@ class AstRewriter {
           typeArguments,
           [classElement.name, constructorElement.name]);
     }
-    var typeName = astFactory.typeName(typeIdentifier, null);
+    var typeName = astFactory.namedType(name: typeIdentifier);
     var constructorName = astFactory.constructorName(
         typeName, node.operator, constructorIdentifier);
     // TODO(scheglov) I think we should drop "typeArguments" below.
@@ -508,8 +521,10 @@ class AstRewriter {
     required Identifier function,
     required TypeAliasElement element,
   }) {
-    var typeName = astFactory.typeName(node.constructorName.type.name,
-        node.constructorName.type.typeArguments);
+    var typeName = astFactory.namedType(
+      name: node.constructorName.type2.name,
+      typeArguments: node.constructorName.type2.typeArguments,
+    );
     typeName.type = element.aliasedType;
     typeName.name.staticType = element.aliasedType;
     var typeLiteral = astFactory.typeLiteral(typeName: typeName);
@@ -531,7 +546,7 @@ class AstRewriter {
   }) {
     var functionReference = astFactory.functionReference(
       function: function,
-      typeArguments: node.constructorName.type.typeArguments,
+      typeArguments: node.constructorName.type2.typeArguments,
     );
     var methodInvocation = astFactory.methodInvocation(
       functionReference,

@@ -275,8 +275,6 @@ const isTypeArgumentList = TypeMatcher<TypeArgumentList>();
 
 const isTypedLiteral = TypeMatcher<TypedLiteral>();
 
-const isTypeName = TypeMatcher<TypeName>();
-
 const isTypeParameter = TypeMatcher<TypeParameter>();
 
 const isTypeParameterList = TypeMatcher<TypeParameterList>();

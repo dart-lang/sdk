@@ -88,19 +88,17 @@ class JsUtilOptimizer extends Transformer {
   @override
   visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
-    // Getters, setters, and fields declared as `static` will be skipped,
-    // because they do not have a node.kind of ProcedureKind.Method.
-    if (node.isExternal &&
-        node.isExtensionMember &&
-        node.kind == ProcedureKind.Method) {
+    if (node.isExternal && node.isExtensionMember && !_isDeclaredStatic(node)) {
       var transformedBody;
       if (api.getExtensionMemberKind(node) == ProcedureKind.Getter) {
         transformedBody = _getExternalGetterBody(node);
       } else if (api.getExtensionMemberKind(node) == ProcedureKind.Setter) {
         transformedBody = _getExternalSetterBody(node);
+      } else if (api.getExtensionMemberKind(node) == ProcedureKind.Method) {
+        transformedBody = _getExternalMethodBody(node);
       }
-      // TODO(rileyporter): Add transformation for external extension methods,
-      // static members, and any operators we decide to support.
+      // TODO(rileyporter): Add transformation for static members and any
+      // operators we decide to support.
       if (transformedBody != null) {
         node.function.body = transformedBody;
         node.isExternal = false;
@@ -149,13 +147,50 @@ class JsUtilOptimizer extends Transformer {
         _lowerSetProperty(setPropertyInvocation), function.returnType));
   }
 
+  /// Returns a new function body for the given [node] external method.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.callMethod` for the given external method.
+  ReturnStatement _getExternalMethodBody(Procedure node) {
+    var function = node.function;
+    var callMethodInvocation = StaticInvocation(
+        _callMethodTarget,
+        Arguments([
+          VariableGet(function.positionalParameters.first),
+          StringLiteral(_getMemberName(node)),
+          ListLiteral(function.positionalParameters
+              .sublist(1)
+              .map((argument) => VariableGet(argument))
+              .toList())
+        ]))
+      ..fileOffset = node.fileOffset;
+    return ReturnStatement(AsExpression(
+        _lowerCallMethod(callMethodInvocation), function.returnType));
+  }
+
   /// Returns the member name, either from the `@JS` annotation if non-empty,
   /// or parsed from CFE generated node name.
   String _getMemberName(Procedure node) {
     var jsAnnotationName = getJSName(node);
-    return jsAnnotationName.isNotEmpty
-        ? jsAnnotationName
-        : node.name.text.substring(node.name.text.indexOf('#') + 1);
+    if (jsAnnotationName.isNotEmpty) {
+      return jsAnnotationName;
+    }
+    // TODO(rileyporter): Switch to using the ExtensionMemberDescriptor data.
+    var nodeName = node.name.text;
+    if (nodeName.contains('#')) {
+      return nodeName.substring(nodeName.indexOf('#') + 1);
+    } else {
+      return nodeName.substring(nodeName.indexOf('|') + 1);
+    }
+  }
+
+  /// Returns whether the given extension [node] is declared as `static`.
+  ///
+  /// All extension members have `isStatic` true, but the members declared as
+  /// static will not have a synthesized `this` variable.
+  bool _isDeclaredStatic(Procedure node) {
+    return node.function.positionalParameters.isEmpty ||
+        node.function.positionalParameters.first.name != '#this';
   }
 
   /// Replaces js_util method calls with optimization when possible.

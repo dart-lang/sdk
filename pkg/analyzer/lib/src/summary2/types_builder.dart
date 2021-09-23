@@ -122,7 +122,7 @@ class TypesBuilder {
 
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      var type = extendsClause.superclass.type;
+      var type = extendsClause.superclass2.type;
       if (type is InterfaceType && _isInterfaceTypeClass(type)) {
         element.supertype = type;
       } else {
@@ -146,7 +146,7 @@ class TypesBuilder {
   void _classTypeAlias(ClassTypeAlias node) {
     var element = node.declaredElement as ClassElementImpl;
 
-    var superType = node.superclass.type;
+    var superType = node.superclass2.type;
     if (superType is InterfaceType && _isInterfaceTypeInterface(superType)) {
       element.supertype = superType;
     } else {

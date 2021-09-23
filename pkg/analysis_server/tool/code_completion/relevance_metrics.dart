@@ -456,7 +456,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitClassTypeAlias(ClassTypeAlias node) {
     var wasInGenericContext = inGenericContext;
     inGenericContext = inGenericContext || node.typeParameters != null;
-    _recordDataForNode('ClassTypeAlias (superclass)', node.superclass);
+    _recordDataForNode('ClassTypeAlias (superclass)', node.superclass2);
     var context = 'superclass';
     _recordTokenType('ClassDeclaration ($context)', node.withClause);
     context = 'with';
@@ -646,7 +646,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    _recordDataForNode('ExtendsClause (type)', node.superclass);
+    _recordDataForNode('ExtendsClause (type)', node.superclass2);
     super.visitExtendsClause(node);
   }
 
@@ -1043,6 +1043,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    // There are no completions.
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     // There are no completions.
     super.visitNativeClause(node);
@@ -1296,12 +1302,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode('TypeArgumentList (argument)', typeArgument);
     }
     super.visitTypeArgumentList(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    // There are no completions.
-    super.visitTypeName(node);
   }
 
   @override

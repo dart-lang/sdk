@@ -653,7 +653,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
           if (constructorName is ConstructorName) {
             var instanceCreationExpression = constructorName.parent;
             if (instanceCreationExpression is InstanceCreationExpression &&
-                constructorName.type.name == node) {
+                constructorName.type2.name == node) {
               if (instanceCreationExpression.keyword != null ||
                   constructorName.name == null) {
                 elementKind = protocol.ElementKind.CONSTRUCTOR;

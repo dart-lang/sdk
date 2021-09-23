@@ -399,7 +399,7 @@ class HintCode extends AnalyzerErrorCode {
     correction: "Try replacing the use of the deprecated member with the "
         "replacement.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
+    uniqueName: 'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
   );
 
   /**
@@ -413,7 +413,7 @@ class HintCode extends AnalyzerErrorCode {
     correction: "Try replacing the use of the deprecated member with the "
         "replacement.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+    uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
   );
 
   /**
@@ -992,7 +992,7 @@ class HintCode extends AnalyzerErrorCode {
     "The Dart language version override number must begin with '@dart'",
     correction: "Specify a Dart language version override with a comment "
         "like '// @dart = 2.0'.",
-    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
   );
 
   /// Invalid Dart language version comments don't follow the specification [1].
@@ -1011,7 +1011,7 @@ class HintCode extends AnalyzerErrorCode {
         "an '=' character",
     correction: "Specify a Dart language version override with a comment "
         "like '// @dart = 2.0'.",
-    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
   );
 
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER = HintCode(
@@ -1047,7 +1047,7 @@ class HintCode extends AnalyzerErrorCode {
         "the word 'dart' in all lower case",
     correction: "Specify a Dart language version override with a comment "
         "like '// @dart = 2.0'.",
-    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
   );
 
   /// Invalid Dart language version comments don't follow the specification [1].
@@ -1066,7 +1066,7 @@ class HintCode extends AnalyzerErrorCode {
         "version number, like '2.0', after the '=' character.",
     correction: "Specify a Dart language version override with a comment "
         "like '// @dart = 2.0'.",
-    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
   );
 
   /// Invalid Dart language version comments don't follow the specification [1].
@@ -1085,7 +1085,7 @@ class HintCode extends AnalyzerErrorCode {
         "a letter",
     correction: "Specify a Dart language version override with a comment "
         "like '// @dart = 2.0'.",
-    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
   );
 
   /// Invalid Dart language version comments don't follow the specification [1].
@@ -1105,8 +1105,7 @@ class HintCode extends AnalyzerErrorCode {
         "any non-whitespace characters",
     correction: "Specify a Dart language version override with a comment "
         "like '// @dart = 2.0'.",
-    uniqueName:
-        'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
   );
 
   /// Invalid Dart language version comments don't follow the specification [1].
@@ -1126,7 +1125,7 @@ class HintCode extends AnalyzerErrorCode {
         'exactly two slashes.',
     correction: "Specify a Dart language version override with a comment "
         "like '// @dart = 2.0'.",
-    uniqueName: 'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+    uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
   );
 
   /**
@@ -1477,7 +1476,7 @@ class HintCode extends AnalyzerErrorCode {
     'MISSING_REQUIRED_PARAM',
     "The parameter '{0}' is required. {1}.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
+    uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
   );
 
   /**
@@ -1746,7 +1745,7 @@ class HintCode extends AnalyzerErrorCode {
         "is marked as '@literal'.",
     correction: "Try replacing the 'new' keyword with 'const'.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+    uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
   );
 
   /**
@@ -1851,7 +1850,7 @@ class HintCode extends AnalyzerErrorCode {
     correction: "Try updating this class to match the superclass, or "
         "removing the override annotation.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_FIELD',
   );
 
   /**
@@ -1865,7 +1864,7 @@ class HintCode extends AnalyzerErrorCode {
     correction: "Try updating this class to match the superclass, or "
         "removing the override annotation.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_GETTER',
   );
 
   /**
@@ -1913,7 +1912,7 @@ class HintCode extends AnalyzerErrorCode {
     correction: "Try updating this class to match the superclass, or "
         "removing the override annotation.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_METHOD',
   );
 
   /**
@@ -1927,7 +1926,7 @@ class HintCode extends AnalyzerErrorCode {
     correction: "Try updating this class to match the superclass, or "
         "removing the override annotation.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
+    uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
   );
 
   /**
@@ -3314,7 +3313,7 @@ class HintCode extends AnalyzerErrorCode {
     "A value for optional parameter '{0}' isn't ever given.",
     correction: "Try removing the unused parameter.",
     hasPublishedDocs: true,
-    uniqueName: 'HintCode.UNUSED_ELEMENT_PARAMETER',
+    uniqueName: 'UNUSED_ELEMENT_PARAMETER',
   );
 
   /**
@@ -3495,7 +3494,7 @@ class HintCode extends AnalyzerErrorCode {
         "Try using the result by invoking a member, passing it to a function, "
         "or returning it from this function.",
     hasPublishedDocs: false,
-    uniqueName: 'HintCode.UNUSED_RESULT_WITH_MESSAGE',
+    uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
   );
 
   /**
@@ -3559,7 +3558,7 @@ class HintCode extends AnalyzerErrorCode {
           hasPublishedDocs: hasPublishedDocs,
           message: message,
           name: name,
-          uniqueName: uniqueName ?? 'HintCode.$name',
+          uniqueName: 'HintCode.${uniqueName ?? name}',
         );
 
   @override

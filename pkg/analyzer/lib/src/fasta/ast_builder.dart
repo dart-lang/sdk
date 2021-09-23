@@ -254,9 +254,8 @@ class AstBuilder extends StackListener {
       name: name,
       typeParameters: typeParameters,
       onKeyword: Tokens.on_(),
-      extendedType: ast.typeName(
-        _tmpSimpleIdentifier(),
-        null,
+      extendedType: ast.namedType(
+        name: _tmpSimpleIdentifier(),
       ), // extendedType is set in [endExtensionDeclaration]
       showClause: null,
       hideClause: null,
@@ -1110,8 +1109,16 @@ class AstBuilder extends StackListener {
     var constructorName = pop() as SimpleIdentifier?;
     var typeArguments = pop() as TypeArgumentList?;
     var typeNameIdentifier = pop() as Identifier;
-    push(ast.constructorName(ast.typeName(typeNameIdentifier, typeArguments),
-        periodBeforeName, constructorName));
+    push(
+      ast.constructorName(
+        ast.namedType(
+          name: typeNameIdentifier,
+          typeArguments: typeArguments,
+        ),
+        periodBeforeName,
+        constructorName,
+      ),
+    );
   }
 
   @override
@@ -1988,11 +1995,11 @@ class AstBuilder extends StackListener {
 
     ImplementsClause? implementsClause;
     if (implementsKeyword != null) {
-      var interfaces = pop() as List<TypeName>;
+      var interfaces = pop() as List<NamedType>;
       implementsClause = ast.implementsClause(implementsKeyword, interfaces);
     }
     var withClause = pop(NullValue.WithClause) as WithClause;
-    var superclass = pop() as TypeName;
+    var superclass = pop() as NamedType;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2311,7 +2318,7 @@ class AstBuilder extends StackListener {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(popTypedList<TypeName>(count) ?? NullValue.TypeList);
+    push(popTypedList<NamedType>(count) ?? NullValue.TypeList);
   }
 
   @override
@@ -2531,7 +2538,7 @@ class AstBuilder extends StackListener {
       pop();
       typeCount--;
     }
-    var supertype = pop() as TypeName?;
+    var supertype = pop() as NamedType?;
     if (supertype != null) {
       push(ast.extendsClause(extendsKeyword!, supertype));
     } else {
@@ -2592,7 +2599,7 @@ class AstBuilder extends StackListener {
     debugEvent("ClassImplements");
 
     if (implementsKeyword != null) {
-      var interfaces = popTypedList2<TypeName>(interfacesCount);
+      var interfaces = popTypedList2<NamedType>(interfacesCount);
       push(ast.implementsClause(implementsKeyword, interfaces));
     } else {
       push(NullValue.IdentifierList);
@@ -2602,7 +2609,7 @@ class AstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
-    var mixinTypes = pop() as List<TypeName>;
+    var mixinTypes = pop() as List<NamedType>;
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -3248,7 +3255,7 @@ class AstBuilder extends StackListener {
     debugEvent("MixinOn");
 
     if (onKeyword != null) {
-      var types = popTypedList2<TypeName>(typeCount);
+      var types = popTypedList2<NamedType>(typeCount);
       push(ast.onClause(onKeyword, types));
     } else {
       push(NullValue.IdentifierList);
@@ -3268,7 +3275,7 @@ class AstBuilder extends StackListener {
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     assert(optionalOrNull('with', withKeyword));
-    var mixinTypes = pop() as List<TypeName>;
+    var mixinTypes = pop() as List<NamedType>;
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -3428,7 +3435,7 @@ class AstBuilder extends StackListener {
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
     var declaration = declarations.last as ClassDeclarationImpl;
     if (extendsClause != null) {
-      if (declaration.extendsClause?.superclass == null) {
+      if (declaration.extendsClause?.superclass2 == null) {
         declaration.extendsClause = extendsClause;
       }
     }
@@ -3614,7 +3621,13 @@ class AstBuilder extends StackListener {
 
     var arguments = pop() as TypeArgumentList?;
     var name = pop() as Identifier;
-    push(ast.typeName(name, arguments, question: questionMark));
+    push(
+      ast.namedType(
+        name: name,
+        typeArguments: arguments,
+        question: questionMark,
+      ),
+    );
   }
 
   @override

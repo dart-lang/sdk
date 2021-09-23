@@ -51,7 +51,7 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var labelText = node.constructorName.type.name.name;
+    var labelText = node.constructorName.type2.name.name;
     var name = node.constructorName.name;
     if (name != null) {
       labelText += '.${name.name}';

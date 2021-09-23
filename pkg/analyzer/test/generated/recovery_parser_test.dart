@@ -1468,7 +1468,7 @@ class C {
     var expression =
         parseExpression("x is", codes: [ParserErrorCode.EXPECTED_TYPE_NAME])
             as IsExpression;
-    expect(expression.type, isTypeName);
+    expect(expression.type, isNamedType);
     expect(expression.type.isSynthetic, isTrue);
   }
 

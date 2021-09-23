@@ -69,7 +69,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Only the Allocator, Opaque and Struct class may be extended.
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      final NamedType superclass = extendsClause.superclass;
+      final NamedType superclass = extendsClause.superclass2;
       final ffiClass = superclass.ffiClass;
       if (ffiClass != null) {
         final className = ffiClass.name;

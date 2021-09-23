@@ -2648,6 +2648,8 @@ _A constant constructor tearoff can't use a type parameter as a type argument._
 
 _A constant creation can't use a type parameter as a type argument._
 
+_A constant function tearoff can't use a type parameter as a type argument._
+
 #### Description
 
 The analyzer produces this diagnostic when a type parameter is used as a

@@ -677,18 +677,18 @@ class CompilerOptions implements DiagnosticOptions {
     // null? In unittests we use the same compiler to analyze or build multiple
     // entrypoints.
     if (librariesSpecificationUri == null) {
-      throw new ArgumentError("[librariesSpecificationUri] is null.");
+      throw ArgumentError("[librariesSpecificationUri] is null.");
     }
     if (librariesSpecificationUri!.path.endsWith('/')) {
-      throw new ArgumentError(
+      throw ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
     Map<fe.ExperimentalFlag, bool> experimentalFlags =
-        new Map.from(fe.defaultExperimentalFlags);
+        Map.from(fe.defaultExperimentalFlags);
     experimentalFlags.addAll(explicitExperimentalFlags);
     if (platformBinaries == null &&
         equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
-      throw new ArgumentError("Missing required ${Flags.platformBinaries}");
+      throw ArgumentError("Missing required ${Flags.platformBinaries}");
     }
     if (_soundNullSafety && _noSoundNullSafety) {
       throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
@@ -809,10 +809,10 @@ class CheckPolicy {
   /// Whether the type assertion should be emitted and checked.
   final bool isEmitted;
 
-  const CheckPolicy({this.isTrusted: false, this.isEmitted: false});
+  const CheckPolicy({this.isTrusted = false, this.isEmitted = false});
 
-  static const trusted = const CheckPolicy(isTrusted: true);
-  static const checked = const CheckPolicy(isEmitted: true);
+  static const trusted = CheckPolicy(isTrusted: true);
+  static const checked = CheckPolicy(isEmitted: true);
 
   @override
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
@@ -872,7 +872,7 @@ Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options,
     {void Function(String)? onError, void Function(String)? onWarning}) {
   List<String>? experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
-  onError ??= (String error) => throw new ArgumentError(error);
+  onError ??= (String error) => throw ArgumentError(error);
   onWarning ??= (String warning) => print(warning);
   return fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
       onError: onError, onWarning: onWarning);

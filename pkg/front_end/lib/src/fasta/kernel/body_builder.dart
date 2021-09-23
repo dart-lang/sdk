@@ -56,7 +56,6 @@ import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
-import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
@@ -219,7 +218,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// When parsing this initializer `x = x`, `x` must be resolved in two
   /// different scopes. The first `x` must be resolved in the class' scope, the
   /// second in the formal parameter scope.
-  bool inInitializer = false;
+  bool inInitializerLeftHandSide = false;
+
+  /// This is set to true when we are parsing constructor initializers.
+  bool inConstructorInitializer = false;
 
   /// Set to `true` when we are parsing a field initializer either directly
   /// or within an initializer list.
@@ -264,7 +266,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   Link<bool> _isOrAsOperatorTypeState = const Link<bool>().prepend(false);
 
-  @override
   bool get inIsOrAsOperatorType => _isOrAsOperatorTypeState.head;
 
   Link<bool> _localInitializerState = const Link<bool>().prepend(false);
@@ -294,7 +295,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   ConstantContext constantContext = ConstantContext.none;
 
-  UnresolvedType? currentLocalVariableType;
+  DartType? currentLocalVariableType;
 
   // Using non-null value to initialize this field based on performance advice
   // from VM engineers. TODO(ahe): Does this still apply?
@@ -478,7 +479,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (node is DartType) {
       unhandled("DartType", "push", -1, uri);
     }
-    inInitializer = false;
+    inInitializerLeftHandSide = false;
     super.push(node);
   }
 
@@ -852,7 +853,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // `invalid-type`.
       UnresolvedType? type = pop() as UnresolvedType?;
       if (type != null) {
-        buildDartType(type);
+        buildDartType(type, allowPotentiallyConstantType: false);
       }
     }
     pop(); // Annotations.
@@ -956,6 +957,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (functionNestingLevel == 0) {
       prepareInitializers();
     }
+    inConstructorInitializer = true;
   }
 
   @override
@@ -964,12 +966,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (functionNestingLevel == 0) {
       scope = formalParameterScope ?? new Scope.immutable();
     }
+    inConstructorInitializer = false;
   }
 
   @override
   void beginInitializer(Token token) {
     debugEvent("beginInitializer");
-    inInitializer = true;
+    inInitializerLeftHandSide = true;
     inFieldInitializer = true;
   }
 
@@ -985,7 +988,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     debugEvent("endInitializer");
     inFieldInitializer = false;
-    assert(!inInitializer);
+    assert(!inInitializerLeftHandSide);
     Object? node = pop();
     List<Initializer> initializers;
 
@@ -1805,7 +1808,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (isInForest) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(
-          arguments, buildDartTypeArguments(typeArguments));
+          arguments,
+          buildDartTypeArguments(typeArguments,
+              allowPotentiallyConstantType: false));
     } else {
       assert(typeArguments == null ||
           (receiver is TypeUseGenerator &&
@@ -2357,25 +2362,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("handleIdentifier");
     String name = token.lexeme;
     if (context.isScopeReference) {
-      assert(!inInitializer ||
+      assert(!inInitializerLeftHandSide ||
           this.scope == enclosingScope ||
           this.scope.parent == enclosingScope);
       // This deals with this kind of initializer: `C(a) : a = a;`
-      Scope scope = inInitializer ? enclosingScope : this.scope;
+      Scope scope = inInitializerLeftHandSide ? enclosingScope : this.scope;
       push(scopeLookup(scope, name, token));
     } else {
-      if (context.inDeclaration) {
-        if (context == IdentifierContext.topLevelVariableDeclaration ||
-            context == IdentifierContext.fieldDeclaration) {
-          constantContext = member.isConst
-              ? ConstantContext.inferred
-              : !member.isStatic &&
-                      classBuilder != null &&
-                      classBuilder!.declaresConstConstructor
-                  ? ConstantContext.required
-                  : ConstantContext.none;
-        }
-      } else if (constantContext != ConstantContext.none &&
+      if (!context.inDeclaration &&
+          constantContext != ConstantContext.none &&
           !context.allowedInConstantExpression) {
         addProblem(fasta.messageNotAConstantExpression, token.charOffset,
             token.length);
@@ -2446,7 +2441,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
         (inFieldInitializer && !inLateFieldInitializer) &&
-        !inInitializer) {
+        !inInitializerLeftHandSide) {
       // We cannot access a class instance member in an initializer of a
       // field.
       //
@@ -2469,7 +2464,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (!isQualified && isDeclarationInstanceContext) {
         assert(declaration == null);
         if (constantContext != ConstantContext.none ||
-            (inFieldInitializer && !inLateFieldInitializer) && !inInitializer) {
+            (inFieldInitializer && !inLateFieldInitializer) &&
+                !inInitializerLeftHandSide) {
           return new UnresolvedNameGenerator(this, token, n,
               unresolvedReadKind: UnresolvedKind.Unknown);
         }
@@ -2521,7 +2517,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else if (declaration.isClassInstanceMember) {
       if (constantContext != ConstantContext.none &&
-          !inInitializer &&
+          !inInitializerLeftHandSide &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
           // "this.field" parameters according to old semantics. Under the new
           // semantics, such parameters introduces a new parameter with that
@@ -2884,9 +2880,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         identifier.name, functionNestingLevel,
         forSyntheticToken: identifier.token.isSynthetic,
         initializer: initializer,
-        type: currentLocalVariableType != null
-            ? buildDartType(currentLocalVariableType!)
-            : null,
+        type: currentLocalVariableType,
         isFinal: isFinal,
         isConst: isConst,
         isLate: isLate,
@@ -2906,6 +2900,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginFieldInitializer(Token token) {
     inFieldInitializer = true;
+    constantContext = member.isConst
+        ? ConstantContext.inferred
+        : !member.isStatic &&
+                classBuilder != null &&
+                classBuilder!.declaresConstConstructor
+            ? ConstantContext.required
+            : ConstantContext.none;
     if (member is FieldBuilder) {
       FieldBuilder fieldBuilder = member as FieldBuilder;
       inLateFieldInitializer = fieldBuilder.isLate;
@@ -2928,17 +2929,26 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     inLateFieldInitializer = false;
     assert(assignmentOperator.stringValue == "=");
     push(popForValue());
+    constantContext = ConstantContext.none;
   }
 
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
+    constantContext = member.isConst
+        ? ConstantContext.inferred
+        : !member.isStatic &&
+                classBuilder != null &&
+                classBuilder!.declaresConstConstructor
+            ? ConstantContext.required
+            : ConstantContext.none;
     if (constantContext == ConstantContext.inferred) {
       // Creating a null value to prevent the Dart VM from crashing.
       push(forest.createNullLiteral(offsetForToken(token)));
     } else {
       push(NullValue.FieldInitializer);
     }
+    constantContext = ConstantContext.none;
   }
 
   @override
@@ -2963,7 +2973,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
-    UnresolvedType? type = pop() as UnresolvedType?;
+    UnresolvedType? unresolvedType =
+        pop(NullValue.UnresolvedType) as UnresolvedType?;
+    DartType? type = unresolvedType != null
+        ? buildDartType(unresolvedType, allowPotentiallyConstantType: false)
+        : null;
     int modifiers = (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     _enterLocalState(inLateLocalInitializer: lateToken != null);
@@ -2983,7 +2997,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (count == 1) {
       Object? node = pop();
       constantContext = pop() as ConstantContext;
-      currentLocalVariableType = pop() as UnresolvedType?;
+      currentLocalVariableType = pop(NullValue.Type) as DartType?;
       currentLocalVariableModifiers = pop() as int;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (node is ParserRecovery) {
@@ -3003,7 +3017,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           const FixedNullableList<VariableDeclaration>()
               .popNonNullable(stack, count, dummyVariableDeclaration);
       constantContext = pop() as ConstantContext;
-      currentLocalVariableType = pop() as UnresolvedType?;
+      currentLocalVariableType = pop(NullValue.Type) as DartType?;
       currentLocalVariableModifiers = pop() as int;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (variables == null) {
@@ -3404,7 +3418,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             lengthOfSpan(leftBracket, leftBracket.endGroup));
         typeArgument = const InvalidType();
       } else {
-        typeArgument = buildDartType(typeArguments.single);
+        typeArgument = buildDartType(typeArguments.single,
+            allowPotentiallyConstantType: false);
         typeArgument = instantiateToBounds(
             typeArgument, coreTypes.objectClass, libraryBuilder.library);
       }
@@ -3428,7 +3443,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Token leftBrace, List<dynamic>? setOrMapEntries) {
     DartType typeArgument;
     if (typeArguments != null) {
-      typeArgument = buildDartType(typeArguments.single);
+      typeArgument = buildDartType(typeArguments.single,
+          allowPotentiallyConstantType: false);
       typeArgument = instantiateToBounds(
           typeArgument, coreTypes.objectClass, libraryBuilder.library);
     } else {
@@ -3568,8 +3584,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         keyType = const InvalidType();
         valueType = const InvalidType();
       } else {
-        keyType = buildDartType(typeArguments[0]);
-        valueType = buildDartType(typeArguments[1]);
+        keyType = buildDartType(typeArguments[0],
+            allowPotentiallyConstantType: false);
+        valueType = buildDartType(typeArguments[1],
+            allowPotentiallyConstantType: false);
         keyType = instantiateToBounds(
             keyType, coreTypes.objectClass, libraryBuilder.library);
         valueType = instantiateToBounds(
@@ -3698,8 +3716,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     TypeBuilder? result;
     if (name is Generator) {
+      bool allowPotentiallyConstantType;
+      if (libraryBuilder.isNonNullableByDefault) {
+        if (enableConstructorTearOffsInLibrary) {
+          allowPotentiallyConstantType = true;
+        } else {
+          allowPotentiallyConstantType = inIsOrAsOperatorType;
+        }
+      } else {
+        allowPotentiallyConstantType = false;
+      }
       result = name.buildTypeWithResolvedArguments(
-          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments);
+          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
       // ignore: unnecessary_null_comparison
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
@@ -3944,7 +3973,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // where not calling [buildDartType] leads to a missing compile-time
       // error. Also, notice that the type of the problematic parameter isn't
       // `invalid-type`.
-      buildDartType(type);
+      buildDartType(type, allowPotentiallyConstantType: false);
     }
     int modifiers = pop() as int;
     if (inCatchClause) {
@@ -4152,7 +4181,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         popIfNotNull(onKeyword) as UnresolvedType?;
     DartType exceptionType;
     if (unresolvedExceptionType != null) {
-      exceptionType = buildDartType(unresolvedExceptionType);
+      exceptionType = buildDartType(unresolvedExceptionType,
+          allowPotentiallyConstantType: false);
     } else {
       exceptionType = (libraryBuilder.isNonNullableByDefault
           ? coreTypes.objectNonNullableRawType
@@ -4855,8 +4885,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (enableConstructorTearOffsInLibrary && inImplicitCreationContext) {
       Expression receiver = receiverFunction();
       if (typeArguments != null) {
-        receiver = forest.createInstantiation(instantiationOffset, receiver,
-            buildDartTypeArguments(typeArguments));
+        receiver = forest.createInstantiation(
+            instantiationOffset,
+            receiver,
+            buildDartTypeArguments(typeArguments,
+                allowPotentiallyConstantType: true));
       }
       return forest.createMethodInvocation(invocationOffset, receiver,
           new Name(constructorName, libraryBuilder.nameOrigin), arguments);
@@ -4864,7 +4897,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (typeArguments != null) {
         assert(forest.argumentsTypeArguments(arguments).isEmpty);
         forest.argumentsSetTypeArguments(
-            arguments, buildDartTypeArguments(typeArguments));
+            arguments,
+            buildDartTypeArguments(typeArguments,
+                allowPotentiallyConstantType: false));
       }
       return buildUnresolvedError(
           forest.createNullLiteral(instantiationOffset),
@@ -5085,7 +5120,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (typeArguments != null && !isTypeArgumentsInForest) {
         assert(forest.argumentsTypeArguments(arguments).isEmpty);
         forest.argumentsSetTypeArguments(
-            arguments, buildDartTypeArguments(typeArguments));
+            arguments,
+            buildDartTypeArguments(typeArguments,
+                allowPotentiallyConstantType: false));
       }
     }
     if (type is ClassBuilder) {
@@ -5319,7 +5356,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         push(_createReadOnlyVariableAccess(extensionThis!, token,
             offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
       } else {
-        push(new ThisAccessGenerator(this, token, inInitializer,
+        push(new ThisAccessGenerator(this, token, inInitializerLeftHandSide,
             inFieldInitializer, inLateFieldInitializer));
       }
     } else {
@@ -5336,7 +5373,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         extensionThis == null) {
       MemberBuilder memberBuilder = member as MemberBuilder;
       memberBuilder.member.transformerFlags |= TransformerFlag.superCalls;
-      push(new ThisAccessGenerator(this, token, inInitializer,
+      push(new ThisAccessGenerator(this, token, inInitializerLeftHandSide,
           inFieldInitializer, inLateFieldInitializer,
           isSuper: true));
     } else {
@@ -5979,7 +6016,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // If in an assert initializer, make sure [inInitializer] is false so we
     // use the formal parameter scope. If this is any other kind of assert,
     // inInitializer should be false anyway.
-    inInitializer = false;
+    inInitializerLeftHandSide = false;
   }
 
   @override
@@ -6765,7 +6802,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             openAngleBracket.charOffset, noLength));
       } else {
         push(new Instantiation(
-            toValue(operand), buildDartTypeArguments(typeArguments))
+            toValue(operand),
+            buildDartTypeArguments(typeArguments,
+                allowPotentiallyConstantType: true))
           ..fileOffset = openAngleBracket.charOffset);
       }
     } else {
@@ -6780,94 +6819,72 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  UnresolvedType validateTypeUse(UnresolvedType unresolved,
-      {required bool nonInstanceAccessIsError,
-      required bool allowPotentiallyConstantType}) {
-    // ignore: unnecessary_null_comparison
-    assert(nonInstanceAccessIsError != null);
+  UnresolvedType validateTypeVariableUse(UnresolvedType unresolved,
+      {required bool allowPotentiallyConstantType}) {
     // ignore: unnecessary_null_comparison
     assert(allowPotentiallyConstantType != null);
-    TypeBuilder builder = unresolved.builder;
-    if (builder is NamedTypeBuilder && builder.declaration!.isTypeVariable) {
-      TypeVariableBuilder typeParameterBuilder =
-          builder.declaration as TypeVariableBuilder;
-      TypeParameter typeParameter = typeParameterBuilder.parameter;
-      LocatedMessage? message = _validateTypeUseIsInternal(
-          builder, unresolved.fileUri, unresolved.charOffset,
-          allowPotentiallyConstantType: allowPotentiallyConstantType);
-      if (message == null) return unresolved;
-      return new UnresolvedType(
-          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
-              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
-            ..bind(new InvalidTypeDeclarationBuilder(
-                typeParameter.name!, message)),
-          unresolved.charOffset,
-          unresolved.fileUri);
-    } else if (builder is FunctionTypeBuilder) {
-      LocatedMessage? message = _validateTypeUseIsInternal(
-          builder, unresolved.fileUri, unresolved.charOffset,
-          allowPotentiallyConstantType: allowPotentiallyConstantType);
-      if (message == null) return unresolved;
-      // TODO(johnniwinther): We should either remove this method completely and
-      // fully handle this with `nonInstanceContext`, or fully handle all types
-      // and remove `nonInstanceContext`.
-      return new UnresolvedType(
-          new FixedTypeBuilder(
-              const InvalidType(), unresolved.fileUri, unresolved.charOffset),
-          unresolved.charOffset,
-          unresolved.fileUri);
-    }
+    _validateTypeVariableUseInternal(
+        unresolved.builder, unresolved.fileUri, unresolved.charOffset,
+        allowPotentiallyConstantType: allowPotentiallyConstantType);
     return unresolved;
   }
 
-  LocatedMessage? _validateTypeUseIsInternal(
+  void _validateTypeVariableUseInternal(
       TypeBuilder? builder, Uri fileUri, int charOffset,
       {required bool allowPotentiallyConstantType}) {
     // ignore: unnecessary_null_comparison
     assert(allowPotentiallyConstantType != null);
-    if (builder is NamedTypeBuilder && builder.declaration!.isTypeVariable) {
-      TypeVariableBuilder typeParameterBuilder =
-          builder.declaration as TypeVariableBuilder;
-      TypeParameter typeParameter = typeParameterBuilder.parameter;
-      LocatedMessage message;
-      bool extensionField =
-          member.isExtensionMember && member.isField && !member.isExternal;
-      if ((extensionField || !isDeclarationInstanceContext) &&
-          (typeParameter.parent is Class ||
-              typeParameter.parent is Extension)) {
-        message = fasta.messageTypeVariableInStaticContext.withLocation(
-            builder.fileUri ?? fileUri,
-            builder.charOffset ?? charOffset,
-            typeParameter.name!.length);
-      } else if (constantContext == ConstantContext.inferred &&
-          !allowPotentiallyConstantType) {
-        message = fasta.messageTypeVariableInConstantContext
-            .withLocation(fileUri, charOffset, typeParameter.name!.length);
-      } else {
-        return null;
+    if (builder is NamedTypeBuilder) {
+      if (builder.declaration!.isTypeVariable) {
+        TypeVariableBuilder typeParameterBuilder =
+            builder.declaration as TypeVariableBuilder;
+        TypeParameter typeParameter = typeParameterBuilder.parameter;
+        bool extensionField =
+            member.isExtensionMember && member.isField && !member.isExternal;
+        if ((extensionField || !isDeclarationInstanceContext) &&
+            (typeParameter.parent is Class ||
+                typeParameter.parent is Extension)) {
+          // TODO(johnniwinther): Can we unify this check with the similar check
+          // in NamedTypeBuilder.buildTypeInternal. If we skip it here, the
+          // error below (type variable in constant context) will be emitted
+          // _instead_ of this (type variable in static context), which seems
+          // like an odd prioritization.
+          LocatedMessage message = fasta.messageTypeVariableInStaticContext
+              .withLocation(builder.fileUri ?? fileUri,
+                  builder.charOffset ?? charOffset, typeParameter.name!.length);
+          builder.bind(
+              new InvalidTypeDeclarationBuilder(typeParameter.name!, message));
+          addProblem(message.messageObject, message.charOffset, message.length);
+        } else if (constantContext != ConstantContext.none &&
+            (!inConstructorInitializer || !allowPotentiallyConstantType)) {
+          LocatedMessage message = fasta.messageTypeVariableInConstantContext
+              .withLocation(fileUri, charOffset, typeParameter.name!.length);
+          builder.bind(
+              new InvalidTypeDeclarationBuilder(typeParameter.name!, message));
+          addProblem(message.messageObject, message.charOffset, message.length);
+        }
       }
-      addProblem(message.messageObject, message.charOffset, message.length);
-      return message;
+      if (builder.arguments != null) {
+        for (TypeBuilder typeBuilder in builder.arguments!) {
+          _validateTypeVariableUseInternal(
+              typeBuilder,
+              typeBuilder.fileUri ?? fileUri,
+              typeBuilder.charOffset ?? charOffset,
+              allowPotentiallyConstantType: allowPotentiallyConstantType);
+        }
+      }
     } else if (builder is FunctionTypeBuilder) {
-      LocatedMessage? result = _validateTypeUseIsInternal(
-          builder.returnType, fileUri, charOffset,
+      _validateTypeVariableUseInternal(builder.returnType, fileUri, charOffset,
           allowPotentiallyConstantType: allowPotentiallyConstantType);
-      if (result != null) {
-        return result;
-      }
       if (builder.formals != null) {
         for (FormalParameterBuilder formalParameterBuilder
             in builder.formals!) {
-          result = _validateTypeUseIsInternal(
+          _validateTypeVariableUseInternal(
               formalParameterBuilder.type, fileUri, charOffset,
               allowPotentiallyConstantType: allowPotentiallyConstantType);
-          if (result != null) {
-            return result;
-          }
         }
       }
     }
-    return null;
   }
 
   @override
@@ -7026,10 +7043,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   DartType buildDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError: false,
-      bool allowPotentiallyConstantType: false}) {
-    return validateTypeUse(unresolvedType,
-            nonInstanceAccessIsError: nonInstanceAccessIsError,
+      {required bool allowPotentiallyConstantType}) {
+    return validateTypeVariableUse(unresolvedType,
             allowPotentiallyConstantType: allowPotentiallyConstantType)
         .builder
         .build(libraryBuilder);
@@ -7037,20 +7052,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   DartType buildTypeLiteralDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError: false,
-      bool allowPotentiallyConstantType: false}) {
-    return validateTypeUse(unresolvedType,
-            nonInstanceAccessIsError: nonInstanceAccessIsError,
+      {required bool allowPotentiallyConstantType}) {
+    return validateTypeVariableUse(unresolvedType,
             allowPotentiallyConstantType: allowPotentiallyConstantType)
         .builder
         .buildTypeLiteralType(libraryBuilder);
   }
 
   @override
-  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes) {
+  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes,
+      {required bool allowPotentiallyConstantType}) {
     if (unresolvedTypes == null) return <DartType>[];
     return new List<DartType>.generate(
-        unresolvedTypes.length, (int i) => buildDartType(unresolvedTypes[i]),
+        unresolvedTypes.length,
+        (int i) => buildDartType(unresolvedTypes[i],
+            allowPotentiallyConstantType: allowPotentiallyConstantType),
         growable: true);
   }
 

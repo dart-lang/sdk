@@ -48,9 +48,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Member? lookupInstanceMember(Name name, {bool isSetter, bool isSuper});
 
-  /// `true` if we are in the type of an as expression.
-  bool get inIsOrAsOperatorType;
-
   bool get enableExtensionTypesInLibrary;
 
   bool get enableConstFunctionsInLibrary;
@@ -125,9 +122,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       TypeDeclarationBuilder? typeAliasBuilder,
       required UnresolvedKind unresolvedKind});
 
-  UnresolvedType validateTypeUse(UnresolvedType unresolved,
-      {required bool nonInstanceAccessIsError,
-      required bool allowPotentiallyConstantType});
+  UnresolvedType validateTypeVariableUse(UnresolvedType unresolved,
+      {required bool allowPotentiallyConstantType});
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -150,12 +146,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Arguments arguments, Expression expression);
 
   DartType buildDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError: false});
+      {required bool allowPotentiallyConstantType});
 
   DartType buildTypeLiteralDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError});
+      {required bool allowPotentiallyConstantType});
 
-  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes);
+  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes,
+      {required bool allowPotentiallyConstantType});
 
   void reportDuplicatedDeclaration(
       Builder existing, String name, int charOffset);

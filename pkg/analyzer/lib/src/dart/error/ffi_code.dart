@@ -404,7 +404,7 @@ class FfiCode extends AnalyzerErrorCode {
           hasPublishedDocs: hasPublishedDocs,
           message: message,
           name: name,
-          uniqueName: uniqueName ?? 'FfiCode.$name',
+          uniqueName: 'FfiCode.${uniqueName ?? name}',
         );
 
   @override

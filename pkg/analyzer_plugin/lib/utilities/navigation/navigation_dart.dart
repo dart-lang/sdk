@@ -315,7 +315,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // add regions
-    var typeName = node.type;
+    var typeName = node.type2;
     // [prefix].ClassName
     {
       var name = typeName.name;

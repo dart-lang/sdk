@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -10,6 +11,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstWithTypeParametersConstructorTearoffTest);
+    defineReflectiveTests(ConstWithTypeParametersFunctionTearoffTest);
     defineReflectiveTests(ConstWithTypeParametersTest);
   });
 }
@@ -77,6 +79,71 @@ class A<T> {
 class A<T> {
   void m() {
     A<T>.new;
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ConstWithTypeParametersFunctionTearoffTest
+    extends PubPackageResolutionTest {
+  @FailingTest(
+    reason: 'The default value of an optional parameter is not considered a '
+        '"constant context". Currently only ConstantVerifier checks '
+        'CONST_WITH_TYPE_PARAMETERS (and related) errors, and only for '
+        'constant contexts. These checks should probably be moved to '
+        'ConstantVisitor (evaluation.dart), so as to check all expressions '
+        'expected to be constant expressions. Another example of a missing '
+        'error is a field initializer in a class with a constant constructor.',
+  )
+  test_defaultValue() async {
+    addTestFile('''
+void f<T>(T a) {}
+class A<U> {
+  void m([void Function(U) fn = f<U>]) {}
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  test_direct() async {
+    await assertErrorsInCode('''
+void f<T>(T a) {}
+class A<U> {
+  void m() {
+    const c = f<U>;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          60, 1),
+    ]);
+  }
+
+  test_indirect() async {
+    await assertErrorsInCode('''
+void f<T>(T a) {}
+class A<U> {
+  void m() {
+    const c = f<List<U>>;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          65, 1),
+    ]);
+  }
+
+  test_nonConst() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+class A<U> {
+  void m() {
+    f<U>;
   }
 }
 ''');

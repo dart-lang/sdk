@@ -453,7 +453,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForConflictingClassTypeVariableErrorCodes();
-      var superclass = node.extendsClause?.superclass;
+      var superclass = node.extendsClause?.superclass2;
       var implementsClause = node.implementsClause;
       var withClause = node.withClause;
 
@@ -490,7 +490,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       _enclosingClass = node.declaredElement as ClassElementImpl;
       _checkClassInheritance(
-          node, node.superclass, node.withClause, node.implementsClause);
+          node, node.superclass2, node.withClause, node.implementsClause);
       _checkForMainFunction(node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
@@ -868,7 +868,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorName constructorName = node.constructorName;
-    NamedType namedType = constructorName.type;
+    NamedType namedType = constructorName.type2;
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
       _checkForConstOrNewWithAbstractClass(node, namedType, type);
@@ -998,6 +998,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } finally {
       _enclosingClass = outerClass;
     }
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    _typeArgumentsVerifier.checkNamedType(node);
+    super.visitNamedType(node);
   }
 
   @override
@@ -1218,12 +1224,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    _typeArgumentsVerifier.checkNamedType(node);
-    super.visitTypeName(node);
-  }
-
-  @override
   void visitTypeParameter(TypeParameter node) {
     _checkForBuiltInIdentifierAsName(node.name,
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
@@ -1436,7 +1436,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (redirectedElement == null) {
       // If the element is null, we check for the
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
-      NamedType constructorNamedType = redirectedConstructor.type;
+      NamedType constructorNamedType = redirectedConstructor.type2;
       DartType redirectedType = constructorNamedType.typeOrThrow;
       if (redirectedType.element != null && !redirectedType.isDynamic) {
         // Prepare the constructor name
@@ -1616,10 +1616,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (extendsClause != null) {
-      var superElement = extendsClause.superclass.name.staticElement;
+      var superElement = extendsClause.superclass2.name.staticElement;
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
-            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass2);
       }
     }
 
@@ -5126,7 +5126,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
   _UninstantiatedBoundChecker(this._errorReporter);
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     var typeArgs = node.typeArguments;
     if (typeArgs != null) {
       typeArgs.accept(this);

@@ -171,7 +171,7 @@ class _LibraryBuilder {
 
     NamedType? enclosingSuperClass;
     if (node is ClassDeclaration) {
-      enclosingSuperClass = node.extendsClause?.superclass;
+      enclosingSuperClass = node.extendsClause?.superclass2;
     }
 
     enclosingClassNameSignature =
@@ -288,7 +288,7 @@ class _LibraryBuilder {
     var api = referenceCollector.collect(
       apiTokenSignature,
       typeParameters: node.typeParameters,
-      superClass: node.superclass,
+      superClass: node.superclass2,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
     );

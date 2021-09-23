@@ -165,7 +165,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.name.accept(this);
     node.typeParameters?.accept(this);
     _token(node.equals);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
     _token(node.semicolon);
@@ -229,7 +229,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.type.accept(this);
+    node.type2.accept(this);
     _token(node.period);
     node.name?.accept(this);
   }
@@ -336,7 +336,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitExtendsClause(ExtendsClause node) {
     _token(node.extendsKeyword);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override
@@ -711,6 +711,13 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    node.name.accept(this);
+    node.typeArguments?.accept(this);
+    _token(node.question);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     _token(node.nativeKeyword);
     node.name?.accept(this);
@@ -941,13 +948,6 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.leftBracket);
     _nodeList(node.arguments, node.rightBracket);
     _token(node.rightBracket);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    node.name.accept(this);
-    node.typeArguments?.accept(this);
-    _token(node.question);
   }
 
   @override

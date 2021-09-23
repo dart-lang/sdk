@@ -108,7 +108,7 @@ class ValueKinds {
   static const ValueKind TokenOrNull =
       const SingleValueKind<type.Token>(NullValue.Token);
   static const ValueKind TypeOrNull =
-      const SingleValueKind<type.UnresolvedType>(NullValue.Type);
+      const SingleValueKind<type.UnresolvedType>(NullValue.UnresolvedType);
   static const ValueKind TypeArguments =
       const SingleValueKind<List<type.UnresolvedType>>();
   static const ValueKind TypeArgumentsOrNull =
@@ -116,7 +116,7 @@ class ValueKinds {
   static const ValueKind TypeBuilder =
       const SingleValueKind<type.TypeBuilder>();
   static const ValueKind TypeBuilderOrNull =
-      const SingleValueKind<type.TypeBuilder>(NullValue.Type);
+      const SingleValueKind<type.TypeBuilder>(NullValue.UnresolvedType);
   static const ValueKind TypeBuilderListOrNull =
       const SingleValueKind<List<type.TypeBuilder>>(NullValue.TypeBuilderList);
   static const ValueKind TypeVariableListOrNull =

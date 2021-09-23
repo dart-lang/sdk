@@ -84,7 +84,7 @@ class _AvoidIntRule extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _AvoidIntVisitor(this);
-    registry.addTypeName(this, visitor);
+    registry.addNamedType(this, visitor);
   }
 }
 
@@ -94,7 +94,7 @@ class _AvoidIntVisitor extends SimpleAstVisitor {
   _AvoidIntVisitor(this.rule);
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     if (node.name.name == 'int') {
       rule.reportLint(node.name);
     }

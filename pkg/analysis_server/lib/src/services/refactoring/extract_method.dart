@@ -966,6 +966,14 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    super.visitNamedType(node);
+    if (_isFirstSelectedNode(node)) {
+      invalidSelection('Cannot extract a single type reference.');
+    }
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     if (_isFirstSelectedNode(node)) {
@@ -983,14 +991,6 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
           (node.parent as PrefixedIdentifier).identifier == node) {
         invalidSelection('Can not extract name part of a property access.');
       }
-    }
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    super.visitTypeName(node);
-    if (_isFirstSelectedNode(node)) {
-      invalidSelection('Cannot extract a single type reference.');
     }
   }
 

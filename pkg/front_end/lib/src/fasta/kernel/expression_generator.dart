@@ -260,7 +260,9 @@ abstract class Generator {
   Expression_Generator applyTypeArguments(
       int fileOffset, List<UnresolvedType>? typeArguments) {
     return new Instantiation(
-        buildSimpleRead(), _helper.buildDartTypeArguments(typeArguments))
+        buildSimpleRead(),
+        _helper.buildDartTypeArguments(typeArguments,
+            allowPotentiallyConstantType: true))
       ..fileOffset = fileOffset;
   }
 
@@ -270,7 +272,8 @@ abstract class Generator {
   /// The type arguments have not been resolved and should be resolved to
   /// create a [TypeBuilder] for a valid type.
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments) {
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      {required bool allowPotentiallyConstantType}) {
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
     NamedTypeBuilder result = new NamedTypeBuilder(
         token.lexeme,
@@ -2897,11 +2900,13 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments) {
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      {required bool allowPotentiallyConstantType}) {
     String name = "${prefixGenerator._plainNameForRead}."
         "${suffixGenerator._plainNameForRead}";
     TypeBuilder type = suffixGenerator.buildTypeWithResolvedArguments(
-        nullabilityBuilder, arguments);
+        nullabilityBuilder, arguments,
+        allowPotentiallyConstantType: allowPotentiallyConstantType);
     LocatedMessage message;
     if (type is NamedTypeBuilder &&
         type.declaration is InvalidTypeDeclarationBuilder) {
@@ -2912,7 +2917,8 @@ class DeferredAccessGenerator extends Generator {
       int charOffset = offsetForToken(prefixGenerator.token);
       message = templateDeferredTypeAnnotation
           .withArguments(
-              _helper.buildDartType(new UnresolvedType(type, charOffset, _uri)),
+              _helper.buildDartType(new UnresolvedType(type, charOffset, _uri),
+                  allowPotentiallyConstantType: allowPotentiallyConstantType),
               prefixGenerator._plainNameForRead,
               _helper.libraryBuilder.isNonNullableByDefault)
           .withLocation(
@@ -3022,17 +3028,19 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments) {
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      {required bool allowPotentiallyConstantType}) {
     if (declaration.isExtension && !_helper.enableExtensionTypesInLibrary) {
       // Extension declarations cannot be used as types.
-      return super
-          .buildTypeWithResolvedArguments(nullabilityBuilder, arguments);
+      return super.buildTypeWithResolvedArguments(nullabilityBuilder, arguments,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
     }
     if (arguments != null) {
       int expected = declaration.typeVariablesCount;
       if (arguments.length != expected) {
         // Build the type arguments to report any errors they may have.
-        _helper.buildDartTypeArguments(arguments);
+        _helper.buildDartTypeArguments(arguments,
+            allowPotentiallyConstantType: allowPotentiallyConstantType);
         _helper.warnTypeArgumentsMismatch(
             declaration.name, expected, fileOffset);
         // We ignore the provided arguments, which will in turn return the
@@ -3048,11 +3056,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       argumentBuilders =
           new List<TypeBuilder>.generate(arguments.length, (int i) {
         return _helper
-            .validateTypeUse(arguments![i],
-                nonInstanceAccessIsError: false,
-                allowPotentiallyConstantType:
-                    _helper.libraryBuilder.isNonNullableByDefault &&
-                        _helper.inIsOrAsOperatorType)
+            .validateTypeVariableUse(arguments![i],
+                allowPotentiallyConstantType: allowPotentiallyConstantType)
             .builder;
       }, growable: false);
     }
@@ -3105,10 +3110,12 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 new UnresolvedType(
                     buildTypeWithResolvedArguments(
                         _helper.libraryBuilder.nonNullableBuilder,
-                        typeArguments),
+                        typeArguments,
+                        allowPotentiallyConstantType: true),
                     fileOffset,
                     _uri),
-                nonInstanceAccessIsError: true));
+                allowPotentiallyConstantType:
+                    _helper.enableConstructorTearOffsInLibrary));
       }
     }
     return _expression!;
@@ -3131,8 +3138,16 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           isUsedAsClass: true,
           usedAsClassCharOffset: this.fileOffset,
           usedAsClassFileUri: _uri);
-      List<TypeBuilder>? aliasedTypeArguments =
-          typeArguments?.map((unknownType) => unknownType.builder).toList();
+
+      bool isConstructorTearOff = send is PropertySelector &&
+          _helper.enableConstructorTearOffsInLibrary &&
+          declarationBuilder is ClassBuilder;
+      List<TypeBuilder>? aliasedTypeArguments = typeArguments
+          ?.map((unknownType) => _helper
+              .validateTypeVariableUse(unknownType,
+                  allowPotentiallyConstantType: isConstructorTearOff)
+              .builder)
+          .toList();
       if (aliasedTypeArguments != null &&
           aliasedTypeArguments.length != aliasBuilder.typeVariablesCount) {
         _helper.libraryBuilder.addProblem(
@@ -3236,8 +3251,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                       _helper.libraryBuilder, unaliasedTypeArguments);
                 }
               } else if (typeArguments != null) {
-                builtTypeArguments =
-                    _helper.buildDartTypeArguments(typeArguments);
+                builtTypeArguments = _helper.buildDartTypeArguments(
+                    typeArguments,
+                    allowPotentiallyConstantType: true);
               }
               if (isGenericTypedefTearOff) {
                 if (isProperRenameForClass(_helper.typeEnvironment,
@@ -3670,7 +3686,9 @@ abstract class ErroneousExpressionGenerator extends Generator {
     if (typeArguments != null) {
       assert(_forest.argumentsTypeArguments(arguments).isEmpty);
       _forest.argumentsSetTypeArguments(
-          arguments, _helper.buildDartTypeArguments(typeArguments));
+          arguments,
+          _helper.buildDartTypeArguments(typeArguments,
+              allowPotentiallyConstantType: false));
     }
     return buildError(arguments, kind: UnresolvedKind.Constructor);
   }
@@ -4145,7 +4163,8 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments) {
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      {required bool allowPotentiallyConstantType}) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
@@ -4269,7 +4288,8 @@ class ParserErrorGenerator extends Generator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments) {
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      {required bool allowPotentiallyConstantType}) {
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
     NamedTypeBuilder result = new NamedTypeBuilder(
         token.lexeme,

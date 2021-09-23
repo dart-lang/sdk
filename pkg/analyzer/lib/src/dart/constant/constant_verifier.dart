@@ -117,7 +117,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorReference(ConstructorReference node) {
     super.visitConstructorReference(node);
     if (node.inConstantContext) {
-      _checkForConstWithTypeParameters(node.constructorName.type,
+      _checkForConstWithTypeParameters(node.constructorName.type2,
           CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF);
     }
   }
@@ -126,6 +126,21 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    super.visitFunctionReference(node);
+    if (node.inConstantContext) {
+      var typeArguments = node.typeArguments;
+      if (typeArguments == null) {
+        return;
+      }
+      for (var typeArgument in typeArguments.arguments) {
+        _checkForConstWithTypeParameters(typeArgument,
+            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF);
+      }
+    }
   }
 
   @override
@@ -143,7 +158,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      NamedType namedType = node.constructorName.type;
+      NamedType namedType = node.constructorName.type2;
       _checkForConstWithTypeParameters(
           namedType, CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
 

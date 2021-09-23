@@ -84,7 +84,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
     nodesToBuildType.addDeclaration(node);
@@ -125,7 +125,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override
@@ -315,28 +315,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitOnClause(OnClause node) {
-    node.superclassConstraints2.accept(this);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    node.type?.accept(this);
-    nodesToBuildType.addDeclaration(node);
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    node.variables.accept(this);
-  }
-
-  @override
-  void visitTypeArgumentList(TypeArgumentList node) {
-    node.arguments.accept(this);
-  }
-
-  @override
-  void visitTypeName(covariant TypeNameImpl node) {
+  void visitNamedType(covariant TypeNameImpl node) {
     var typeIdentifier = node.name;
 
     Element? element;
@@ -387,6 +366,27 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.type = builder;
       nodesToBuildType.addTypeBuilder(builder);
     }
+  }
+
+  @override
+  void visitOnClause(OnClause node) {
+    node.superclassConstraints2.accept(this);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    node.type?.accept(this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    node.variables.accept(this);
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    node.arguments.accept(this);
   }
 
   @override

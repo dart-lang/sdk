@@ -255,7 +255,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.equals, other.equals) &&
         isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
-        isEqualNodes(node.superclass, other.superclass) &&
+        isEqualNodes(node.superclass2, other.superclass2) &&
         isEqualNodes(node.withClause, other.withClause) &&
         isEqualNodes(node.implementsClause, other.implementsClause) &&
         isEqualTokens(node.semicolon, other.semicolon);
@@ -338,7 +338,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitConstructorName(ConstructorName node) {
     ConstructorName other = _other as ConstructorName;
-    return isEqualNodes(node.type, other.type) &&
+    return isEqualNodes(node.type2, other.type2) &&
         isEqualTokens(node.period, other.period) &&
         isEqualNodes(node.name, other.name);
   }
@@ -467,7 +467,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause other = _other as ExtendsClause;
     return isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
-        isEqualNodes(node.superclass, other.superclass);
+        isEqualNodes(node.superclass2, other.superclass2);
   }
 
   @override
@@ -883,6 +883,14 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool? visitNamedType(NamedType node) {
+    NamedType other = _other as NamedType;
+    return isEqualNodes(node.name, other.name) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualTokens(node.question, other.question);
+  }
+
+  @override
   bool visitNativeClause(NativeClause node) {
     NativeClause other = _other as NativeClause;
     return isEqualTokens(node.nativeKeyword, other.nativeKeyword) &&
@@ -1169,15 +1177,13 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitTypeLiteral(TypeLiteral node) {
     TypeLiteral other = _other as TypeLiteral;
-    return isEqualNodes(node.typeName, other.typeName);
+    return isEqualNodes(node.type, other.type);
   }
 
+  @Deprecated('Override visitNamedType instead')
   @override
   bool visitTypeName(TypeName node) {
-    var other = _other as NamedType;
-    return isEqualNodes(node.name, other.name) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
-        isEqualTokens(node.question, other.question);
+    throw StateError('Should not be invoked');
   }
 
   @override
@@ -1759,8 +1765,8 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.typeParameters, _oldNode)) {
       node.typeParameters = _newNode as TypeParameterList;
       return true;
-    } else if (identical(node.superclass, _oldNode)) {
-      node.superclass = _newNode as TypeName;
+    } else if (identical(node.superclass2, _oldNode)) {
+      node.superclass = _newNode as NamedType;
       return true;
     } else if (identical(node.withClause, _oldNode)) {
       node.withClause = _newNode as WithClause;
@@ -1870,8 +1876,8 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitConstructorName(covariant ConstructorNameImpl node) {
-    if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeName;
+    if (identical(node.type2, _oldNode)) {
+      node.type = _newNode as NamedType;
       return true;
     } else if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
@@ -1996,8 +2002,8 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitExtendsClause(covariant ExtendsClauseImpl node) {
-    if (identical(node.superclass, _oldNode)) {
-      node.superclass = _newNode as TypeName;
+    if (identical(node.superclass2, _oldNode)) {
+      node.superclass = _newNode as NamedType;
       return true;
     }
     return visitNode(node);
@@ -2520,6 +2526,18 @@ class NodeReplacer implements AstVisitor<bool> {
     return visitNode(node);
   }
 
+  @override
+  bool? visitNamedType(covariant TypeNameImpl node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as Identifier;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
   bool visitNamespaceDirective(covariant NamespaceDirectiveImpl node) {
     if (_replaceInList(node.combinators)) {
       return true;
@@ -2567,7 +2585,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitOnClause(covariant OnClauseImpl node) {
-    if (_replaceInList(node.superclassConstraints)) {
+    if (_replaceInList(node.superclassConstraints2)) {
       return true;
     }
     return visitNode(node);
@@ -2838,7 +2856,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitTypeLiteral(covariant TypeLiteralImpl node) {
-    if (identical(node.typeName, _oldNode)) {
+    if (identical(node.type, _oldNode)) {
       node.typeName = _newNode as TypeNameImpl;
       return true;
     }
@@ -2847,14 +2865,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitTypeName(covariant TypeNameImpl node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as Identifier;
-      return true;
-    } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList;
-      return true;
-    }
-    return visitNode(node);
+    throw StateError('Should not be invoked');
   }
 
   @override

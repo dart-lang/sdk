@@ -61,7 +61,7 @@ class FunctionReferenceResolver {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
-          [function.constructorName.type.name, function.constructorName.name],
+          [function.constructorName.type2.name, function.constructorName.name],
         );
         _resolve(node: node, rawType: function.staticType);
       }
@@ -697,7 +697,10 @@ class FunctionReferenceResolver {
     // This involves a fair amount of resolution, as [name] may be a prefixed
     // identifier, etc. [TypeName]s should be resolved in [ResolutionVisitor],
     // and this could be done for nodes like this via [AstRewriter].
-    var typeName = astFactory.typeName(name, node.typeArguments);
+    var typeName = astFactory.namedType(
+      name: name,
+      typeArguments: node.typeArguments,
+    );
     typeName.type = instantiatedType;
     typeName.name.staticType = instantiatedType;
     var typeLiteral = astFactory.typeLiteral(typeName: typeName);

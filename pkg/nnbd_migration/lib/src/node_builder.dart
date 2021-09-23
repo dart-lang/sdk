@@ -131,7 +131,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.nativeClause?.accept(this);
     node.members.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass,
+    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass2,
         node.withClause, node.implementsClause, null);
     var constructors = classElement.constructors;
     if (constructors.length == 1) {
@@ -157,7 +157,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.name.accept(this);
     node.typeParameters?.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.superclass,
+    _handleSupertypeClauses(node, classElement, node.superclass2,
         node.withClause, node.implementsClause, null);
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
@@ -203,7 +203,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitConstructorName(ConstructorName node) {
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('constructed type'),
-        () => node.type.accept(this));
+        () => node.type2.accept(this));
     node.name?.accept(this);
     return null;
   }
@@ -499,6 +499,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitNamedType(NamedType node) {
+    namedTypeVisited(node); // Note this has been visited to NamedTypeTracker.
+    return visitTypeAnnotation(node);
+  }
+
+  @override
   DecoratedType? visitSetOrMapLiteral(SetOrMapLiteral node) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -617,12 +623,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _variables!.recordDecoratedTypeAnnotation(source, node, decoratedType);
     _handleNullabilityHint(node, decoratedType);
     return decoratedType;
-  }
-
-  @override
-  DecoratedType visitTypeName(TypeName node) {
-    namedTypeVisited(node); // Note this has been visited to TypeNameTracker.
-    return visitTypeAnnotation(node);
   }
 
   @override

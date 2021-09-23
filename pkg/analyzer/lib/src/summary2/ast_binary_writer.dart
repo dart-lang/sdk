@@ -166,7 +166,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     // We need to inform the applier about the right shape of the AST.
     // _sink.writeByte(node.name != null ? 1 : 0);
 
-    _writeNode(node.type);
+    _writeNode(node.type2);
     _writeOptionalNode(node.name);
 
     _sink.writeElement(node.staticElement);
@@ -513,6 +513,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _writeByte(Tag.NamedType);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion: node.question != null,
+        hasTypeArguments: node.typeArguments != null,
+      ),
+    );
+
+    _writeNode(node.name);
+    _writeOptionalNode(node.typeArguments);
+
+    _sink.writeType(node.type);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _writeByte(Tag.NullLiteral);
     _storeExpression(node);
@@ -727,25 +744,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitTypeLiteral(TypeLiteral node) {
     _writeByte(Tag.TypeLiteral);
-    _writeNode(node.typeName);
+    _writeNode(node.type);
     _storeExpression(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    _writeByte(Tag.TypeName);
-
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasQuestion: node.question != null,
-        hasTypeArguments: node.typeArguments != null,
-      ),
-    );
-
-    _writeNode(node.name);
-    _writeOptionalNode(node.typeArguments);
-
-    _sink.writeType(node.type);
   }
 
   @override

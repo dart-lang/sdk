@@ -814,7 +814,7 @@ main() {
 
     var creation = findNode.instanceCreation('M.named();');
     var m = findElement.mixin('M');
-    assertElement(creation.constructorName.type.name, m);
+    assertElement(creation.constructorName.type2.name, m);
   }
 
   test_error_onClause_deferredClass() async {

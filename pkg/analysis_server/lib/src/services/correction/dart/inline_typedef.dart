@@ -158,11 +158,11 @@ class _ReferenceFinder extends RecursiveAstVisitor {
   _ReferenceFinder(this.typeName);
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     if (node.name.name == typeName) {
       reference ??= node;
       count++;
     }
-    super.visitTypeName(node);
+    super.visitNamedType(node);
   }
 }

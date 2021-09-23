@@ -944,7 +944,7 @@ class ParserProxy extends analyzer.Parser {
   }
 
   @override
-  TypeName parseTypeName(bool inExpression) {
+  NamedType parseTypeName(bool inExpression) {
     return _run('unspecified', () => super.parseTypeName(inExpression));
   }
 

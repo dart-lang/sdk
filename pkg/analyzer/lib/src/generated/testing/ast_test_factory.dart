@@ -1444,13 +1444,19 @@ class AstTestFactory {
 
   static TypeNameImpl typeName3(Identifier name,
           [List<TypeAnnotation>? arguments]) =>
-      astFactory.typeName(name, typeArgumentList(arguments));
+      astFactory.namedType(
+        name: name,
+        typeArguments: typeArgumentList(arguments),
+      );
 
   static TypeNameImpl typeName4(String name,
           [List<TypeAnnotation>? arguments, bool question = false]) =>
-      astFactory.typeName(identifier3(name), typeArgumentList(arguments),
-          question:
-              question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
+      astFactory.namedType(
+        name: identifier3(name),
+        typeArguments: typeArgumentList(arguments),
+        question:
+            question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null,
+      );
 
   static TypeParameterImpl typeParameter(String name) =>
       astFactory.typeParameter(null, null, identifier3(name), null, null);

@@ -513,6 +513,8 @@ abstract class AstVisitor<R> {
 
   R? visitNamedExpression(NamedExpression node);
 
+  R? visitNamedType(NamedType node);
+
   R? visitNativeClause(NativeClause node);
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
@@ -586,6 +588,7 @@ abstract class AstVisitor<R> {
 
   R? visitTypeLiteral(TypeLiteral node);
 
+  @Deprecated('Override visitNamedType instead')
   R? visitTypeName(TypeName node);
 
   R? visitTypeParameter(TypeParameter node);
@@ -900,7 +903,11 @@ abstract class ClassTypeAlias implements TypeAlias {
   SimpleIdentifier get name;
 
   /// Return the name of the superclass of the class being declared.
+  @Deprecated('Use superclass2 instead')
   TypeName get superclass;
+
+  /// Return the name of the superclass of the class being declared.
+  NamedType get superclass2;
 
   /// Return the type parameters for the class, or `null` if the class does not
   /// have any type parameters.
@@ -1307,7 +1314,11 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   Token? get period;
 
   /// Return the name of the type defining the constructor.
+  @Deprecated('Use type2 instead')
   TypeName get type;
+
+  /// Return the name of the type defining the constructor.
+  NamedType get type2;
 }
 
 /// An expression representing a reference to a constructor, e.g. the expression
@@ -1682,7 +1693,11 @@ abstract class ExtendsClause implements AstNode {
   Token get extendsKeyword;
 
   /// Return the name of the class that is being extended.
+  @Deprecated('Use superclass2 instead')
   TypeName get superclass;
+
+  /// Return the name of the class that is being extended.
+  NamedType get superclass2;
 }
 
 /// The declaration of an extension of a type.
@@ -3236,7 +3251,7 @@ abstract class NamedExpression implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamedType implements TypeAnnotation {
+abstract class NamedType implements TypeAnnotation, ShowHideClauseElement {
   /// Return `true` if this type is a deferred type.
   ///
   /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
@@ -4247,6 +4262,10 @@ abstract class TypedLiteral implements Literal {
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeLiteral implements Expression {
   /// The type represented by this literal.
+  NamedType get type;
+
+  /// The type represented by this literal.
+  @Deprecated('Use namedType instead')
   TypeName get typeName;
 }
 
@@ -4256,7 +4275,8 @@ abstract class TypeLiteral implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeName implements NamedType, ShowHideClauseElement {}
+@Deprecated('Use NamedType instead')
+abstract class TypeName implements NamedType {}
 
 /// A type parameter.
 ///

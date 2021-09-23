@@ -13,7 +13,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
 /// The state of an object representing a boolean value.
@@ -185,7 +184,7 @@ class DartObjectImpl implements DartObject {
   Map<String, DartObjectImpl>? get fields => _state.fields;
 
   @override
-  int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
+  int get hashCode => Object.hash(type.hashCode, _state.hashCode);
 
   @override
   bool get hasKnownValue => !_state.isUnknown;

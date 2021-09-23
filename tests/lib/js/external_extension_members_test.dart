@@ -33,6 +33,14 @@ extension FooExt on Foo {
   external set setter(_);
   @JS('setterAnnotation')
   external set annotatedSetter(_);
+
+  external num getField();
+  @JS('toString')
+  external String extToString();
+  external dynamic getFirstEl(list);
+  external num sumFn(a, b);
+  @JS('sumFn')
+  external num otherSumFn(a, b);
 }
 
 @JS('module.Bar')
@@ -54,6 +62,22 @@ void main() {
 
       this.getter = a;
       this.getterAnnotation = a;
+    }
+
+    Foo.prototype.toString = function() {
+      return "Foo: " + this.field;
+    }
+
+    Foo.prototype.getField = function() {
+      return this.field;
+    }
+
+    Foo.prototype.getFirstEl = function(list) {
+      return list[0];
+    }
+
+    Foo.prototype.sumFn = function(a, b) {
+      return a + b;
     }
 
     var module = {Bar: Foo};
@@ -92,6 +116,16 @@ void main() {
 
     foo.annotatedSetter = 'whale';
     expect(js_util.getProperty(foo, 'setterAnnotation'), equals('whale'));
+  });
+
+  test('methods', () {
+    var foo = Foo(42);
+
+    expect(foo.getField(), equals(42));
+    expect(foo.extToString(), equals('Foo: 42'));
+    expect(foo.getFirstEl([1, 2, 3]), equals(1));
+    expect(foo.sumFn(2, 3), equals(5));
+    expect(foo.otherSumFn(10, 5), equals(15));
   });
 
   test('module class', () {

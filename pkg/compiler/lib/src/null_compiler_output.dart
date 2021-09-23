@@ -19,7 +19,7 @@ class NullCompilerOutput implements CompilerOutput {
 
   @override
   BinaryOutputSink createBinarySink(Uri uri) {
-    return new NullBinarySink(uri);
+    return NullBinarySink(uri);
   }
 }
 
@@ -41,7 +41,7 @@ class NullSink implements OutputSink {
   /// Convenience method for getting an [api.CompilerOutputProvider].
   static NullSink outputProvider(
       String name, String extension, OutputType type) {
-    return new NullSink('$name.$extension.$type');
+    return NullSink('$name.$extension.$type');
   }
 }
 

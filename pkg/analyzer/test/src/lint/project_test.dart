@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/lint/project.dart';
 import 'package:test/test.dart';
 
@@ -18,7 +18,7 @@ defineTests() {
       // TODO(brianwilkerson) These tests fail on the bots because the cwd is
       // not the same there as when we run tests locally.
       group('cwd', () async {
-        var project = await DartProject.create(_AnalysisDriverMock(), []);
+        var project = await DartProject.create(_AnalysisSessionMock(), []);
         test('name', () {
           expect(project.name, 'analyzer');
         });
@@ -61,7 +61,7 @@ defineTests() {
   });
 }
 
-class _AnalysisDriverMock implements AnalysisDriver {
+class _AnalysisSessionMock implements AnalysisSession {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -1223,7 +1223,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     var decoratedType = _fixBuilder._variables!
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
@@ -1233,7 +1233,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     }
     (node as TypeNameImpl).type =
         _fixBuilder._variables!.toFinalType(decoratedType);
-    super.visitTypeName(node);
+    super.visitNamedType(node);
   }
 
   void _addRequiredKeyword(DefaultFormalParameter parameter,

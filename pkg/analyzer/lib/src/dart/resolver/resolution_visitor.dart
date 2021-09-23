@@ -53,7 +53,7 @@ class ElementHolder {
 /// 1. Set existing top-level elements from [_elementWalker] to corresponding
 ///    nodes in AST.
 /// 2. Create and set new elements for local declarations.
-/// 3. Resolve all [TypeName]s - set elements and types.
+/// 3. Resolve all [NamedType]s - set elements and types.
 /// 4. Resolve all [GenericFunctionType]s - set their types.
 /// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
@@ -235,7 +235,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           ErrorCode errorCode = withClause == null
               ? CompileTimeErrorCode.EXTENDS_NON_CLASS
               : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-          _resolveType(extendsClause.superclass, errorCode, asClass: true);
+          _resolveType(extendsClause.superclass2, errorCode, asClass: true);
         }
 
         _resolveWithClause(withClause);
@@ -265,7 +265,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         node.typeParameters?.accept(this);
 
         _resolveType(
-          node.superclass,
+          node.superclass2,
           CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS,
           asClass: true,
         );
@@ -761,7 +761,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
     if (newNode != node) {
-      if (node.constructorName.type.typeArguments != null &&
+      if (node.constructorName.type2.typeArguments != null &&
           newNode is MethodInvocation &&
           newNode.target is FunctionReference &&
           !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
@@ -882,6 +882,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(covariant TypeNameImpl node) {
+    node.typeArguments?.accept(this);
+
+    _typeNameResolver.nameScope = _nameScope;
+    _typeNameResolver.resolve(node);
+
+    if (_typeNameResolver.rewriteResult != null) {
+      _typeNameResolver.rewriteResult!.accept(this);
+    }
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     _withElementWalker(null, () {
       super.visitPartDirective(node);
@@ -985,18 +997,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _buildLocalElements(statements);
       statements.accept(this);
     });
-  }
-
-  @override
-  void visitTypeName(covariant TypeNameImpl node) {
-    node.typeArguments?.accept(this);
-
-    _typeNameResolver.nameScope = _nameScope;
-    _typeNameResolver.resolve(node);
-
-    if (_typeNameResolver.rewriteResult != null) {
-      _typeNameResolver.rewriteResult!.accept(this);
-    }
   }
 
   @override
@@ -1241,7 +1241,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var redirectedConstructor = node.redirectedConstructor;
     if (redirectedConstructor == null) return;
 
-    var namedType = redirectedConstructor.type;
+    var namedType = redirectedConstructor.type2;
     _typeNameResolver.redirectedConstructor_namedType = namedType;
 
     redirectedConstructor.accept(this);
@@ -1259,7 +1259,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveType(TypeNameImpl namedType, ErrorCode errorCode,
       {bool asClass = false}) {
     _typeNameResolver.classHierarchy_namedType = namedType;
-    visitTypeName(namedType);
+    visitNamedType(namedType);
     _typeNameResolver.classHierarchy_namedType = null;
 
     if (_typeNameResolver.hasErrorReported) {
@@ -1276,7 +1276,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    // If the type is not an InterfaceType, then visitTypeName() sets the type
+    // If the type is not an InterfaceType, then visitNamedType() sets the type
     // to be a DynamicTypeImpl
     Identifier name = namedType.name;
     if (!_libraryElement.shouldIgnoreUndefinedIdentifier(name)) {
