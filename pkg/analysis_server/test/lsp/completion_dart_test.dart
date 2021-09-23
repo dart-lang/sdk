@@ -1560,7 +1560,7 @@ void f() {
     expect(completions, hasLength(1));
     final resolved = await resolveCompletion(completions.first);
     // It should not include auto-import text since it's already imported.
-    expect(resolved.detail, isNot(contains('Auto import from')));
+    expect(resolved.detail, isNull);
   }
 
   Future<void> test_suggestionSets_filtersOutAlreadyImportedSymbols() async {
