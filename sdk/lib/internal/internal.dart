@@ -749,8 +749,7 @@ T checkNotNullable<T extends Object>(T value, String name) {
 class NotNullableError<T> extends Error implements TypeError {
   final String _name;
   NotNullableError(this._name);
-  String toString() =>
-      "Null is not a valid value for the parameter '$_name' of type '$T'";
+  String toString() => "Null is not a valid value for '$_name' of type '$T'";
 }
 
 /// A function that returns the value or default value (if invoked with `null`
