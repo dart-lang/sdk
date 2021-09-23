@@ -415,7 +415,6 @@ class LibraryBuilder {
       unitElement.librarySource = inputLibrary.source;
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = inputUnit.source;
-      unitElement.sourceContent = inputUnit.sourceContent;
       unitElement.uri = inputUnit.partUriStr;
       unitElement.setCodeRange(0, unitNode.length);
 

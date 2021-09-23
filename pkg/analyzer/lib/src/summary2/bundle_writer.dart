@@ -449,7 +449,6 @@ class BundleWriter {
     _sink._writeStringReference('${unitElement.source.uri}');
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
-    _sink.writeOptionalStringUtf8(unitElement.sourceContent);
     _resolutionSink._writeAnnotationList(unitElement.metadata);
     _writeUnitElementMacroGenerationDataList(unitElement);
     _writeList(unitElement.classes, _writeClassElement);

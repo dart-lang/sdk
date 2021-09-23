@@ -107,16 +107,6 @@ class ElementWalker {
             (element.aliasedElement as GenericFunctionTypeElement).parameters,
         _typeParameters = element.typeParameters;
 
-  String? get _unitSourceContent {
-    Element? element = this.element;
-    while (element != null) {
-      if (element is CompilationUnitElementImpl) {
-        return element.sourceContent;
-      }
-      element = element.enclosingElement;
-    }
-  }
-
   void consumeLocalElements() {
     _functionIndex = _functions!.length;
   }
@@ -138,8 +128,7 @@ class ElementWalker {
         '[accessors: $accessors]'
         '[element.source: ${element.source?.fullName}]'
         '[libraryFilePath: $libraryFilePath]'
-        '[unitFilePath: $unitFilePath]'
-        '[unitSourceContent: $_unitSourceContent]',
+        '[unitFilePath: $unitFilePath]',
       );
     }
     return _accessors![_accessorIndex++] as PropertyAccessorElementImpl;
@@ -158,8 +147,7 @@ class ElementWalker {
         '[classes: $classes]'
         '[element.source: ${element.source?.fullName}]'
         '[libraryFilePath: $libraryFilePath]'
-        '[unitFilePath: $unitFilePath]'
-        '[unitSourceContent: $_unitSourceContent]',
+        '[unitFilePath: $unitFilePath]',
       );
     }
     return _classes![_classIndex++] as ClassElementImpl;
@@ -215,8 +203,7 @@ class ElementWalker {
         '[variables: $variables]'
         '[element.source: ${element.source?.fullName}]'
         '[libraryFilePath: $libraryFilePath]'
-        '[unitFilePath: $unitFilePath]'
-        '[unitSourceContent: $_unitSourceContent]',
+        '[unitFilePath: $unitFilePath]',
       );
     }
     return _variables![_variableIndex++] as VariableElementImpl;
