@@ -6837,7 +6837,7 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
     intptr_t num_free_fun_type_params,
     Heap::Space space,
     TrailPtr trail) const {
-  ASSERT(!IsInstantiated(kAny, num_free_fun_type_params));
+  ASSERT(!IsInstantiated());
   if ((instantiator_type_arguments.IsNull() ||
        instantiator_type_arguments.Length() == Length()) &&
       IsUninstantiatedIdentity()) {
@@ -6855,8 +6855,7 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
     // during finalization of V, which is also the instantiator. T depends
     // solely on the type parameters of A and will be replaced by a non-null
     // type before A is marked as finalized.
-    if (!type.IsNull() &&
-        !type.IsInstantiated(kAny, num_free_fun_type_params)) {
+    if (!type.IsNull() && !type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
                                   num_free_fun_type_params, space, trail);
@@ -8771,16 +8770,14 @@ AbstractTypePtr FunctionType::InstantiateFrom(
       sig_type_params.set_flags(Array::Handle(zone, type_params.flags()));
       TypeArguments& type_args = TypeArguments::Handle(zone);
       type_args = type_params.bounds();
-      if (!type_args.IsNull() &&
-          !type_args.IsInstantiated(kAny, num_free_fun_type_params)) {
+      if (!type_args.IsNull() && !type_args.IsInstantiated()) {
         type_args = type_args.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
             num_free_fun_type_params, space, trail);
       }
       sig_type_params.set_bounds(type_args);
       type_args = type_params.defaults();
-      if (!type_args.IsNull() &&
-          !type_args.IsInstantiated(kAny, num_free_fun_type_params)) {
+      if (!type_args.IsNull() && !type_args.IsInstantiated()) {
         type_args = type_args.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
             num_free_fun_type_params, space, trail);
@@ -8791,7 +8788,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
   }
 
   type = result_type();
-  if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
+  if (!type.IsInstantiated()) {
     type = type.InstantiateFrom(instantiator_type_arguments,
                                 function_type_arguments,
                                 num_free_fun_type_params, space, trail);
@@ -8810,7 +8807,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
   sig.set_parameter_types(Array::Handle(Array::New(num_params, space)));
   for (intptr_t i = 0; i < num_params; i++) {
     type = ParameterTypeAt(i);
-    if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
+    if (!type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
                                   num_free_fun_type_params, space, trail);
@@ -21799,16 +21796,11 @@ bool TypeParameter::IsEquivalent(const Instance& other,
     if (!other_type_param.IsFunctionTypeParameter()) {
       return false;
     }
+    if (base() != other_type_param.base() ||
+        index() != other_type_param.index()) {
+      return false;
+    }
     if (kind == TypeEquality::kInSubtypeTest) {
-      // To be equivalent, the function type parameters should be declared
-      // at the same position in the generic function. Their index therefore
-      // needs adjustment before comparison.
-      // Example: 'foo<F>(bar<B>(B b)) { }' and 'baz<Z>(Z z) { }', baz can
-      // be assigned to bar, although B has index 1 and Z index 0.
-      if (index() - base() !=
-          other_type_param.index() - other_type_param.base()) {
-        return false;
-      }
       AbstractType& upper_bound = AbstractType::Handle(bound());
       AbstractType& other_type_param_upper_bound =
           AbstractType::Handle(other_type_param.bound());
@@ -21822,10 +21814,6 @@ bool TypeParameter::IsEquivalent(const Instance& other,
         return false;
       }
     } else {
-      if (base() != other_type_param.base() ||
-          index() != other_type_param.index()) {
-        return false;
-      }
       AbstractType& type = AbstractType::Handle(bound());
       AbstractType& other_type = AbstractType::Handle(other_type_param.bound());
       if (!type.IsEquivalent(other_type, kind, trail)) {
@@ -21956,22 +21944,26 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
     ASSERT(IsFinalized());
     if (index() >= num_free_fun_type_params) {
       // Do not instantiate the function type parameter, but possibly its bound.
+      // Also adjust index/base of the type parameter.
       result = ptr();
       AbstractType& upper_bound = AbstractType::Handle(bound());
-      if (!upper_bound.IsInstantiated(kAny, num_free_fun_type_params,
-                                      nullptr)) {
+      if (!upper_bound.IsInstantiated()) {
         upper_bound = upper_bound.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
             num_free_fun_type_params, space, trail);
-        if ((upper_bound.IsTypeRef() &&
-             TypeRef::Cast(upper_bound).type() == Type::NeverType()) ||
-            (upper_bound.ptr() == Type::NeverType())) {
-          // Normalize 'X extends Never' to 'Never'.
-          result = Type::NeverType();
-        } else if (upper_bound.ptr() != bound()) {
-          result ^= Object::Clone(result, space);
-          TypeParameter::Cast(result).set_bound(upper_bound);
-        }
+      }
+      if ((upper_bound.IsTypeRef() &&
+           TypeRef::Cast(upper_bound).type() == Type::NeverType()) ||
+          (upper_bound.ptr() == Type::NeverType())) {
+        // Normalize 'X extends Never' to 'Never'.
+        result = Type::NeverType();
+      } else if ((upper_bound.ptr() != bound()) ||
+                 (num_free_fun_type_params != 0)) {
+        result ^= Object::Clone(result, space);
+        const auto& tp = TypeParameter::Cast(result);
+        tp.set_bound(upper_bound);
+        tp.set_base(tp.base() - num_free_fun_type_params);
+        tp.set_index(tp.index() - num_free_fun_type_params);
       }
     } else if (function_type_arguments.IsNull()) {
       return Type::DynamicType();
@@ -25522,8 +25514,7 @@ FunctionTypePtr Closure::GetInstantiatedSignature(Zone* zone) const {
   } else {
     num_free_params = kAllFree;
   }
-  if (num_free_params == kCurrentAndEnclosingFree ||
-      !sig.IsInstantiated(kAny)) {
+  if (num_free_params == kCurrentAndEnclosingFree || !sig.IsInstantiated()) {
     sig ^= sig.InstantiateFrom(inst_type_args, fn_type_args, num_free_params,
                                Heap::kOld);
   }
