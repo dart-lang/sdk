@@ -903,7 +903,7 @@ class C {
     expect(parameters[0], isSimpleFormalParameter);
     var required = parameters[0] as SimpleFormalParameter;
     expect(required.identifier, isNull);
-    expect(required.type, isTypeName);
+    expect(required.type, isNamedType);
     expect((required.type as NamedType).name.name, 'A');
 
     expect(parameters[1], isDefaultFormalParameter);
@@ -911,7 +911,7 @@ class C {
     expect(named.identifier, isNotNull);
     expect(named.parameter, isSimpleFormalParameter);
     var simple = named.parameter as SimpleFormalParameter;
-    expect(simple.type, isTypeName);
+    expect(simple.type, isNamedType);
     expect((simple.type as NamedType).name.name, 'B');
   }
 

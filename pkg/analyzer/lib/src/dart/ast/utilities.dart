@@ -884,7 +884,7 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool? visitNamedType(NamedType node) {
-    TypeName other = _other as TypeName;
+    NamedType other = _other as NamedType;
     return isEqualNodes(node.name, other.name) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.question, other.question);
@@ -1180,6 +1180,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(node.type, other.type);
   }
 
+  @Deprecated('Override visitNamedType instead')
   @override
   bool visitTypeName(TypeName node) {
     throw StateError('Should not be invoked');
@@ -1765,7 +1766,7 @@ class NodeReplacer implements AstVisitor<bool> {
       node.typeParameters = _newNode as TypeParameterList;
       return true;
     } else if (identical(node.superclass2, _oldNode)) {
-      node.superclass = _newNode as TypeName;
+      node.superclass = _newNode as NamedType;
       return true;
     } else if (identical(node.withClause, _oldNode)) {
       node.withClause = _newNode as WithClause;
@@ -1876,7 +1877,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitConstructorName(covariant ConstructorNameImpl node) {
     if (identical(node.type2, _oldNode)) {
-      node.type = _newNode as TypeName;
+      node.type = _newNode as NamedType;
       return true;
     } else if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
@@ -2002,7 +2003,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitExtendsClause(covariant ExtendsClauseImpl node) {
     if (identical(node.superclass2, _oldNode)) {
-      node.superclass = _newNode as TypeName;
+      node.superclass = _newNode as NamedType;
       return true;
     }
     return visitNode(node);
@@ -2584,7 +2585,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitOnClause(covariant OnClauseImpl node) {
-    if (_replaceInList(node.superclassConstraints)) {
+    if (_replaceInList(node.superclassConstraints2)) {
       return true;
     }
     return visitNode(node);

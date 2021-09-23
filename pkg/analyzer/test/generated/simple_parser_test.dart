@@ -1247,7 +1247,7 @@ abstract class Foo {}
     assertNoErrors();
     expect(clause.extendsKeyword, isNotNull);
     expect(clause.superclass2, isNotNull);
-    expect(clause.superclass2, isTypeName);
+    expect(clause.superclass2, isNamedType);
   }
 
   void test_parseFunctionBody_block() {
@@ -1604,13 +1604,13 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameters[0], isSimpleFormalParameter);
     var parameter = parameters[0] as SimpleFormalParameter;
     expect(parameter.identifier, isNull);
-    expect(parameter.type, isTypeName);
+    expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'int');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.identifier, isNull);
-    expect(parameter.type, isTypeName);
+    expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'int');
   }
 
@@ -1690,14 +1690,14 @@ Function<A>(core.List<core.int> x) m() => null;
     var parameter = parameters[0] as SimpleFormalParameter;
     expect(parameter.identifier, isNotNull);
     expect(parameter.identifier!.name, 's');
-    expect(parameter.type, isTypeName);
+    expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'String');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.identifier, isNotNull);
     expect(parameter.identifier!.name, 'i');
-    expect(parameter.type, isTypeName);
+    expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'int');
   }
 
@@ -1892,7 +1892,7 @@ Function<A>(core.List<core.int> x) m() => null;
     TypeParameter parameter = parser.parseTypeParameter();
     expectNotNullIfNoErrors(parameter);
     assertNoErrors();
-    expect(parameter.bound, isTypeName);
+    expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
     expect(parameter.name, isNotNull);
   }
@@ -1902,7 +1902,7 @@ Function<A>(core.List<core.int> x) m() => null;
     TypeParameter parameter = parser.parseTypeParameter();
     expectNotNullIfNoErrors(parameter);
     assertNoErrors();
-    expect(parameter.bound, isTypeName);
+    expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
     expect(parameter.name, isNotNull);
   }

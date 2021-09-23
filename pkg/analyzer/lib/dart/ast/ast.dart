@@ -3251,7 +3251,7 @@ abstract class NamedExpression implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamedType implements TypeAnnotation {
+abstract class NamedType implements TypeAnnotation, ShowHideClauseElement {
   /// Return `true` if this type is a deferred type.
   ///
   /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
@@ -4275,7 +4275,8 @@ abstract class TypeLiteral implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeName implements NamedType, ShowHideClauseElement {}
+@Deprecated('Use NamedType instead')
+abstract class TypeName implements NamedType {}
 
 /// A type parameter.
 ///

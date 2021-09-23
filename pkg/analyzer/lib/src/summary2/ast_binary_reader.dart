@@ -331,7 +331,7 @@ class AstBinaryReader {
   }
 
   ConstructorName _readConstructorName() {
-    var type = readNode() as TypeName;
+    var type = readNode() as NamedType;
     var name = _readOptionalNode() as SimpleIdentifier?;
 
     var node = astFactory.constructorName(
@@ -864,7 +864,7 @@ class AstBinaryReader {
     return node;
   }
 
-  TypeName _readNamedType() {
+  NamedType _readNamedType() {
     var flags = _readByte();
     var name = readNode() as Identifier;
     var typeArguments = _readOptionalNode() as TypeArgumentList?;
@@ -1162,7 +1162,7 @@ class AstBinaryReader {
   }
 
   TypeLiteral _readTypeLiteral() {
-    var typeName = readNode() as TypeName;
+    var typeName = readNode() as NamedType;
     var node = astFactory.typeLiteral(typeName: typeName);
     _readExpressionResolution(node);
     return node;

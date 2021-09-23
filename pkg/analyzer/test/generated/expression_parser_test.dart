@@ -1808,7 +1808,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isTypeName);
+    expect(asExpression.type, isNamedType);
   }
 
   void test_parseRelationalExpression_as_simple() {
@@ -1818,7 +1818,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isTypeName);
+    expect(asExpression.type, isNamedType);
   }
 
   void test_parseRelationalExpression_as_simple_function() {
@@ -1828,7 +1828,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isTypeName);
+    expect(asExpression.type, isNamedType);
   }
 
   void test_parseRelationalExpression_is() {

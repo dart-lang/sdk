@@ -697,7 +697,10 @@ class FunctionReferenceResolver {
     // This involves a fair amount of resolution, as [name] may be a prefixed
     // identifier, etc. [TypeName]s should be resolved in [ResolutionVisitor],
     // and this could be done for nodes like this via [AstRewriter].
-    var typeName = astFactory.typeName(name, node.typeArguments);
+    var typeName = astFactory.namedType(
+      name: name,
+      typeArguments: node.typeArguments,
+    );
     typeName.type = instantiatedType;
     typeName.name.staticType = instantiatedType;
     var typeLiteral = astFactory.typeLiteral(typeName: typeName);

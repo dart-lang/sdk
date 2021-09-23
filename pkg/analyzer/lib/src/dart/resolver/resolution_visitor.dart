@@ -53,7 +53,7 @@ class ElementHolder {
 /// 1. Set existing top-level elements from [_elementWalker] to corresponding
 ///    nodes in AST.
 /// 2. Create and set new elements for local declarations.
-/// 3. Resolve all [TypeName]s - set elements and types.
+/// 3. Resolve all [NamedType]s - set elements and types.
 /// 4. Resolve all [GenericFunctionType]s - set their types.
 /// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {

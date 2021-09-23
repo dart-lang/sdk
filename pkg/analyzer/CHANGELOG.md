@@ -2,6 +2,16 @@
 * Deprecated `ResourceProvider.getModificationTimes()`.
 * Deprecated `MemoryResourceProvider.newDummyLink()`.
 * Deprecated `MemoryResourceProvider.updateFile()`.
+* Deprecated `TypeName`, use `NamedType` instead.
+* Override `AstVisitor.visitNamedType()` instead of `visitTypeName()`.
+* Deprecated `ClassTypeAlias.superclass`, use `superclass2` instead.
+* Deprecated `ConstructorName.type`, use `type2` instead.
+* Deprecated `ExtendsClause.superclass`, use `superclass2` instead.
+* Deprecated `ImplementsClause.interfaces`, use `interfaces2` instead.
+* Deprecated `OnClause.superclassConstraints`, use `superclassConstraints2` instead.
+* Deprecated `TypeLiteral.typeName`, use `type` instead.
+* Deprecated `WithClause.mixinTypes`, use `mixinTypes2` instead.
+* Deprecated `AstFactory.typeName()`, use `namedType()` instead.
 
 ## 2.3.0
 * Enable `constructor-tearoffs` feature by default in `2.15`.

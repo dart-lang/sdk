@@ -29,9 +29,11 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
 };
 
 /// A marker used in place of `null` when a function has no return type.
-final NamedType NO_RETURN_TYPE = astFactory.typeName(
-    astFactory.simpleIdentifier(StringToken(TokenType.IDENTIFIER, '', 0)),
-    null);
+final NamedType NO_RETURN_TYPE = astFactory.namedType(
+  name: astFactory.simpleIdentifier(
+    StringToken(TokenType.IDENTIFIER, '', 0),
+  ),
+);
 
 /// Add default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].

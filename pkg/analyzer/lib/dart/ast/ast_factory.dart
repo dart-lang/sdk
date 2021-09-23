@@ -918,6 +918,7 @@ abstract class AstFactory {
   /// Returns a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments. The [question] can be `null` if there is no
   /// question mark.
+  @Deprecated('Use namedType() instead')
   TypeName typeName(Identifier name, TypeArgumentList? typeArguments,
       {Token? question});
 

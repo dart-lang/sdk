@@ -3660,7 +3660,7 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   @override
   TypeNameImpl get superclass => _superclass;
 
-  set superclass(TypeName name) {
+  set superclass(NamedType name) {
     _superclass = _becomeParentOf(name as TypeNameImpl);
   }
 
@@ -7852,11 +7852,12 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(onKeyword)
-    ..addAll(superclassConstraints);
+    ..addAll(superclassConstraints2);
 
   @override
   Token get endToken => _superclassConstraints.endToken!;
 
+  @Deprecated('Use superclassConstraints2 instead')
   @override
   NodeList<TypeName> get superclassConstraints =>
       _DelegatingTypeNameList(_superclassConstraints);
@@ -8990,7 +8991,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// This element is set when this identifier is used not as an expression,
   /// but just to reference some element.
   ///
-  /// Examples are the name of the type in a [TypeName], the name of the method
+  /// Examples are the name of the type in a [NamedType], the name of the method
   /// in a [MethodInvocation], the name of the constructor in a
   /// [ConstructorName], the name of the property in a [PropertyAccess], the
   /// prefix and the identifier in a [PrefixedIdentifier] (which then can be
@@ -10259,6 +10260,7 @@ class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
 ///
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
+/// ignore: deprecated_member_use_from_same_package
 class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   /// The name of the type.
   IdentifierImpl _name;
@@ -10984,6 +10986,7 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
 }
 
 /// Implementation of `NodeList<TypeName>` that delegates.
+@Deprecated('Use NamedType instead')
 class _DelegatingTypeNameList
     with ListMixin<TypeName>
     implements NodeList<TypeName> {

@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// This resolver is responsible for rewriting a given
 /// [InstanceCreationExpression] as a [MethodInvocation] if the parsed
 /// [ConstructorName]'s `type` resolves to a [FunctionReference] or
-/// [ConstructorReference], instead of a [TypeName].
+/// [ConstructorReference], instead of a [NamedType].
 class InstanceCreationExpressionResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
@@ -124,7 +124,7 @@ class InstanceCreationExpressionResolver {
         node.argumentList, whyNotPromotedList);
   }
 
-  /// Resolve [node] which has a [TypeName] with type arguments (given as
+  /// Resolve [node] which has a [NamedType] with type arguments (given as
   /// [typeNameTypeArguments]).
   ///
   /// The instance creation expression may actually be a method call on a

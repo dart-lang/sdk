@@ -1244,6 +1244,7 @@ class AstFactoryImpl extends AstFactory {
   TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
       TypeLiteralImpl(typeName as TypeNameImpl);
 
+  @Deprecated('Use namedType() instead')
   @override
   TypeNameImpl typeName(Identifier name, TypeArgumentList? typeArguments,
           {Token? question}) =>

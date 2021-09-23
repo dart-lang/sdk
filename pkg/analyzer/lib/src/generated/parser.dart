@@ -248,13 +248,13 @@ class Parser {
     return astBuilder.pop() as TypeArgumentList;
   }
 
-  TypeName parseTypeName(bool inExpression) {
+  NamedType parseTypeName(bool inExpression) {
     Token previous = fastaParser.syntheticPreviousToken(currentToken);
     currentToken = fasta
         .computeType(previous, true, !inExpression)
         .parseType(previous, fastaParser)
         .next!;
-    return astBuilder.pop() as TypeName;
+    return astBuilder.pop() as NamedType;
   }
 
   TypeParameter parseTypeParameter() {
