@@ -69,6 +69,7 @@ enum NullValue {
   TypeList,
   TypeVariable,
   TypeVariables,
+  UnresolvedType,
   VarFinalOrConstToken,
   WithClause,
 }
@@ -374,7 +375,7 @@ abstract class StackListener extends Listener {
   @override
   void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
-    push(NullValue.Type);
+    push(NullValue.UnresolvedType);
   }
 
   @override
