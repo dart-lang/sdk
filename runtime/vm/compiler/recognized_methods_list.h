@@ -221,7 +221,7 @@ namespace dart {
   V(::, _storePointer, FfiStorePointer, 0xea6b7751)                            \
   V(::, _fromAddress, FfiFromAddress, 0xfd8cb1cc)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7cde87be)                           \
-  V(::, getNativeField, GetNativeField, 0x95b4ec94)                            \
+  V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \

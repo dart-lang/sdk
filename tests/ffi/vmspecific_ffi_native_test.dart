@@ -122,7 +122,7 @@ void main() {
   Expect.equals(123456, passAsPointer(cwnf));
 
   // Test that the transform to wrap NativeFieldWrapperClass1 objects in
-  // getNativeField(..) doesn't violate the original argument's liveness.
+  // _getNativeField(..) doesn't violate the original argument's liveness.
   Expect.equals(
       314159,
       passAsPointerAndValue(

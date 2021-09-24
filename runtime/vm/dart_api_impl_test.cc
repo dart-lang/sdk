@@ -4241,20 +4241,39 @@ static Dart_NativeFunction SecretKeeperNativeResolver(Dart_Handle name,
   return reinterpret_cast<Dart_NativeFunction>(Builtin_SecretKeeper_KeepSecret);
 }
 
+static intptr_t ReturnPtrAsInt(void* ptr) {
+  return reinterpret_cast<intptr_t>(ptr);
+}
+
+static void* SecretKeeperFfiNativeResolver(const char* name, uintptr_t argn) {
+  if (strcmp(name, "returnPtrAsInt") == 0 && argn == 1) {
+    return reinterpret_cast<void*>(&ReturnPtrAsInt);
+  }
+  return nullptr;
+}
+
 TEST_CASE(DartAPI_NativeFieldAccess) {
   const char* kScriptChars = R"(
+    import 'dart:ffi';
     import 'dart:nativewrappers';
     class SecretKeeper extends NativeFieldWrapperClass1 {
       SecretKeeper(int secret) { _keepSecret(secret); }
       @pragma("vm:external-name", "SecretKeeper_KeepSecret")
       external void _keepSecret(int secret);
     }
-    main() => getNativeField(SecretKeeper(321));
+    // Argument auto-conversion will wrap `o` in `_getNativeField()`.
+    @FfiNative<IntPtr Function(Pointer<Void>)>('returnPtrAsInt')
+    external int returnPtrAsInt(NativeFieldWrapperClass1 o);
+    main() => returnPtrAsInt(SecretKeeper(321));
   )";
 
   Dart_Handle result;
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, SecretKeeperNativeResolver);
+
+  result = Dart_SetFfiNativeResolver(lib, &SecretKeeperFfiNativeResolver);
+  EXPECT_VALID(result);
+
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
   EXPECT_VALID(result);
@@ -4265,18 +4284,27 @@ TEST_CASE(DartAPI_NativeFieldAccess) {
   EXPECT_EQ(321, value);
 }
 
+// Test that trying to access an unset native field (internally through
+// _getNativeField(..)) will result in a Dart exception (and not crash).
 TEST_CASE(DartAPI_NativeFieldAccess_Throws) {
   const char* kScriptChars = R"(
+    import 'dart:ffi';
     import 'dart:nativewrappers';
     class ForgetfulSecretKeeper extends NativeFieldWrapperClass1 {
       ForgetfulSecretKeeper(int secret) { /* Forget to init. native field. */ }
     }
-    main() => getNativeField(ForgetfulSecretKeeper(321));
+    // Argument auto-conversion will wrap `o` in `_getNativeField()`.
+    @FfiNative<IntPtr Function(Pointer<Void>)>('returnPtrAsInt')
+    external int returnPtrAsInt(NativeFieldWrapperClass1 o);
+    main() => returnPtrAsInt(ForgetfulSecretKeeper(321));
   )";
 
   Dart_Handle result;
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, SecretKeeperNativeResolver);
+
+  result = Dart_SetFfiNativeResolver(lib, &SecretKeeperFfiNativeResolver);
+  EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 

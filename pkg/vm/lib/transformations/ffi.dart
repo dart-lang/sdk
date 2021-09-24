@@ -467,8 +467,8 @@ class FfiTransformer extends Transformer {
             'dart:ffi',
             'DynamicLibraryExtension',
             LibraryIndex.tearoffPrefix + 'lookupFunction'),
-        getNativeFieldFunction =
-            index.getTopLevelProcedure('dart:nativewrappers', 'getNativeField'),
+        getNativeFieldFunction = index.getTopLevelProcedure(
+            'dart:nativewrappers', '_getNativeField'),
         reachabilityFenceFunction =
             index.getTopLevelProcedure('dart:_internal', 'reachabilityFence') {
     nativeFieldWrapperClassType =
