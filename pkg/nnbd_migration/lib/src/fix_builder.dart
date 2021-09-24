@@ -635,7 +635,7 @@ class MigrationResolutionHooksImpl
     var resultType =
         _fixBuilder!._typeSystem.promoteToNonNull(type as TypeImpl);
     _flowAnalysis!.nonNullAssert_end(node);
-    return node is NullLiteral && hint == null
+    return type.isDartCoreNull && hint == null
         ? NoValidMigrationChange(resultType)
         : NullCheckChange(resultType, hint: hint);
   }

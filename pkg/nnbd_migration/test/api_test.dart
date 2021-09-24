@@ -6746,6 +6746,24 @@ void f() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_null_typed_expression_wiithout_valid_migration() async {
+    var content = '''
+void f(int/*!*/ x) {}
+void g() {
+  f(h());
+}
+Null h() => null;
+''';
+    var expected = '''
+void f(int x) {}
+void g() {
+  f(h());
+}
+Null h() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_nullable_use_of_typedef() async {
     var content = '''
 typedef F<T> = int Function(T);
