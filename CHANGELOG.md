@@ -2,6 +2,201 @@
 
 ### Language
 
+- **[Constructor tearoffs][]**: **BETA PREVIEW**
+
+  Previous Dart versions allowed a method on an instance to be passed as a
+  closure, and similarly for static methods. This is commonly referred to as
+  "closurizing" or "tearing off" a method. Constructors were not previously
+  eligible for closurization, forcing users to explicitly write wrapper
+  functions when using constructors as first class functions, as in the calls to
+  `List.map` in the following example:
+
+  ```dart
+  class A {
+    int x;
+    A(this.x);
+    A.fromString(String s) : x = int.parse(s);
+  }
+
+  void main() {
+    var listOfInts = [1, 2, 3];
+    var listOfStrings = ["1", "2", "3"];
+    for(var a in listOfInts.map((x) => A(x))) {
+      print(a.x);
+    }
+    for(var a in listOfStrings.map((x) => A.fromString(x))) {
+      print(a.x);
+    }
+  }
+  ```
+
+  New in Dart 2.15, constructors are now allowed to be torn off. Named
+  constructors are closurized using their declared name (here `A.fromString`),
+  and unnamed closures are referred to for closurization using the keyword `new`
+  (here `A.new`). The example above may now be written as:
+
+  ```dart
+  class A {
+    int x;
+    A(this.x);
+    A.fromString(String s) : x = int.parse(s);
+  }
+
+  void main() {
+    var listOfInts = [1, 2, 3];
+    var listOfStrings = ["1", "2", "3"];
+    for(A a in listOfInts.map(A.new)) {
+      print(a.x);
+    }
+    for(A a in listOfStrings.map(A.fromString)) {
+      print(a.x);
+    }
+  }
+  ```
+
+  Constructors for generic classes may be torn off as generic functions, or
+  instantiated at the tear off site. So in the following code, the tear off
+  `G.new` used to initialize the variable `f` produces a generic function which
+  may be used to produce an instance of `G<T>` for any type `T` provided when
+  `f` is called. The tear off `G<String>.new` used to initialize the variable
+  `g` on the other hand produces a non-generic function which may only be used
+  to produce instances of type `G<String>`.
+
+  ```dart
+  class G<T> {
+    T x;
+    G(this.x);
+  }
+
+  void main() {
+    G<T> Function<T>(T x) f = G.new;
+    var x = f<int>(3);
+    G<String> Function(String y) g = G<String>.new;
+    var y = g("hello");
+  }
+  ```
+
+  The new constructor tearoff feature is currently in **BETA PREVIEW**. The
+  feature is enabled in beta releases only, and is still subject to breaking
+  changes. It is not fully supported by all tools and there may be known issues
+  with the tool support. Feedback on the feature is welcome, but it is not
+  recommended that production code use the feature until it has been released in
+  a stable version.
+
+  The new constructor tearoff feature is only available as part of the 2.15
+  [language version](https://dart.dev/guides/language/evolution). To use this
+  feature, you must set the lower bound on the sdk constraint for your package
+  to 2.15 or greater (if using a beta preview release, an sdk constraint of
+  `>=2.15.0-0` must be used).
+
+- **[Generic type literals][Explicit instantiation]**: **BETA PREVIEW**
+
+  Previous Dart versions allowed class names to be used as type literals. So
+  for example,`int` may be used as an expression, producing a value of type
+  `Type`. Generic classes (e.g. `List`) could be referred to by name as an
+  expression, but no type arguments could be provided and so only the `dynamic`
+  instantiation could be produced directly as an expression without using
+  indirect methods:
+
+  ```dart
+  // Workaround to capture generic type literals.
+  Type typeOf<T>() => T;
+
+  void main() {
+    var x = int; // The Type literal corresponding to `int`.
+    var y = List; // The Type literal corresponding to `List<dynamic>`.
+    // Use workaround to capture generic type literal.
+    var z = typeOf<List<int>>(); // The Type literal for `List<int>`.
+  }
+  ```
+
+  New in Dart 2.15, instantiations of generic classes may now be used as Type
+  literals:
+
+  ```dart
+  void main() {
+    var x = int; // The Type literal corresponding to `int`.
+    var y = List; // The Type literal corresponding to `List<dynamic>`.
+    var z = List<int>; // The Type literal corresponding to `List<int>`.
+  }
+  ```
+
+  The new generic type literal feature is currently in **BETA PREVIEW**. The
+  feature is enabled in beta releases only, and is still subject to breaking
+  changes. It is not fully supported by all tools and there may be known issues
+  with the tool support. Feedback on the feature is welcome, but it is not
+  recommended that production code use the feature until it has been released in
+  a stable version.
+
+  Generic type literals are only available as part of the 2.15 [language
+  version](https://dart.dev/guides/language/evolution). To use this feature, you
+  must set the lower bound on the sdk constraint for your package to 2.15 or
+  greater (if using a beta preview release, an sdk constraint of
+  `>=2.15.0-0` must be used).
+
+- **[Explicit generic method instantiations][Explicit instantiation]**: **BETA
+    PREVIEW**
+
+  Previous Dart versions allowed generic methods to be implicitly specialized
+  (or "instantiated") to non-generic versions when assigned to a location with a
+  compatible monomorphic type. Example:
+
+  ```dart
+  // The generic identity function.
+  T id<T>(T x) => x;
+
+  void main() {
+    // Initialize `intId` with a version of `id` implicitly specialized to
+    // `int`.
+    int Function(int) intId = id;
+    print(intId(3));
+    // Initialize `stringId` with a version of `id` implicitly specialized to
+    // `String`.
+    String Function(String) stringId = id;
+    print(stringId("hello"));
+  }
+  ```
+
+  New in Dart 2.15, generic methods may be explicitly instantiated using the
+  syntax `f<T>` where `f` is the generic method to specialize and `T` is the
+  type argument (in general, type arguments) to be used to specialize the
+  method. Example:
+
+  ```dart
+  // The generic identity function.
+  T id<T>(T x) => x;
+
+  void main() {
+    // Initialize `intId` with a version of `id` explicitly specialized to
+    // `int`.
+    var intId = id<int>;
+    print(intId(3));
+    // Initialize `stringId` with a version of `id` explicitly specialized to
+    // `String`.
+    var stringId = id<String>;
+    print(stringId("hello"));
+  }
+  ```
+
+  The new generic method instantation feature is currently in **BETA PREVIEW**.
+  The feature is enabled in beta releases only, and is still subject to breaking
+  changes. It is not fully supported by all tools and there may be known issues
+  with the tool support. Feedback on the feature is welcome, but it is not
+  recommended that production code use the feature until it has been released in
+  a stable version.
+
+  Explicit generic method instantiations are only available as part of the 2.15
+  [language version](https://dart.dev/guides/language/evolution). To use this
+  feature, you must set the lower bound on the sdk constraint for your package
+  to 2.15 or greater (if using a beta preview release, an sdk constraint of
+  `>=2.15.0-0` must be used).
+
+  [Constructor tearoffs]:
+        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md
+
+  [Explicit instantiation]:
+        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
+
 - Annotations on type parameters of classes can no longer refer to class members
   without a prefix.  For example, this used to be permitted:
 
