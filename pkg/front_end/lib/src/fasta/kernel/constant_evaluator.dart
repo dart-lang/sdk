@@ -4083,7 +4083,7 @@ class InstanceBuilder {
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     fields.forEach((Field field, Constant value) {
       assert(value is! UnevaluatedConstant);
-      fieldValues[field.getterReference] = value;
+      fieldValues[field.fieldReference] = value;
     });
     assert(unusedArguments.isEmpty);
     return new InstanceConstant(klass.reference, typeArguments, fieldValues);
@@ -4092,7 +4092,7 @@ class InstanceBuilder {
   InstanceCreation buildUnevaluatedInstance() {
     final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     fields.forEach((Field field, Constant value) {
-      fieldValues[field.getterReference] = evaluator.extract(value);
+      fieldValues[field.fieldReference] = evaluator.extract(value);
     });
     return new InstanceCreation(
         klass.reference, typeArguments, fieldValues, asserts, unusedArguments);

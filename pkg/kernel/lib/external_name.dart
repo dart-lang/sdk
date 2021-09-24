@@ -44,11 +44,11 @@ String? _getExternalNameValue(CoreTypes coreTypes, Expression annotation) {
         return (constant.fieldValues.values.single as StringConstant).value;
       } else if (_isPragma(constant.classNode)) {
         final String pragmaName =
-            (constant.fieldValues[coreTypes.pragmaName.getterReference]
+            (constant.fieldValues[coreTypes.pragmaName.fieldReference]
                     as StringConstant)
                 .value;
         final Constant? pragmaOptionsValue =
-            constant.fieldValues[coreTypes.pragmaOptions.getterReference];
+            constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
         final String? pragmaOptions = pragmaOptionsValue is StringConstant
             ? pragmaOptionsValue.value
             : null;

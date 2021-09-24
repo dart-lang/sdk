@@ -1326,6 +1326,24 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitField(Field node) {
+    CanonicalName? fieldCanonicalName = node.fieldReference.canonicalName;
+    if (fieldCanonicalName == null) {
+      throw new ArgumentError('Missing canonical name for $node');
+    }
+    String? fieldOrphancy = node.fieldReference.getOrphancyDescription(node);
+    if (fieldOrphancy != null) {
+      throw new ArgumentError('Trying to serialize orphaned field reference.\n'
+          '${fieldOrphancy}');
+    }
+    fieldOrphancy =
+        fieldCanonicalName.getOrphancyDescription(node, node.fieldReference);
+    if (fieldOrphancy != null) {
+      throw new ArgumentError(
+          'Trying to serialize orphaned field canonical name.\n'
+          '(${node.runtimeType}:${node.hashCode})\n'
+          '${fieldOrphancy}');
+    }
+
     CanonicalName? getterCanonicalName = node.getterReference.canonicalName;
     if (getterCanonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
@@ -1367,6 +1385,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     enterScope(memberScope: true);
     writeByte(Tag.Field);
+    writeNonNullCanonicalNameReference(fieldCanonicalName);
     writeNonNullCanonicalNameReference(getterCanonicalName);
     writeNullAllowedCanonicalNameReference(setterCanonicalName);
     writeUriReference(node.fileUri);

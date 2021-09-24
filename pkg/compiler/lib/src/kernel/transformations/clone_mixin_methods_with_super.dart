@@ -61,7 +61,7 @@ class _CloneMixinMethodsWithSuper {
         Procedure? existingGetter = existingNonSetters[field.name];
         Procedure? existingSetter = existingSetters[field.name];
         cls.addField(cloneVisitor.cloneField(
-            field, existingGetter?.reference, existingSetter?.reference));
+            field, null, existingGetter?.reference, existingSetter?.reference));
         if (existingGetter != null) {
           cls.procedures.remove(existingGetter);
         }

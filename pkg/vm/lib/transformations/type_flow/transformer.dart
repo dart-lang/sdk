@@ -1757,6 +1757,11 @@ class _TreeShakerPass2 extends RemovingTransformer {
       // write a dangling reference to the deleted member.
       if (node is Field) {
         assert(
+            node.fieldReference.node == node,
+            "Trying to remove canonical name from field reference on $node "
+            "which has been repurposed for ${node.fieldReference.node}.");
+        node.fieldReference.canonicalName?.unbind();
+        assert(
             node.getterReference.node == node,
             "Trying to remove canonical name from getter reference on $node "
             "which has been repurposed for ${node.getterReference.node}.");

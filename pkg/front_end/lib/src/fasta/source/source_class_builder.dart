@@ -864,8 +864,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.stubTarget = null;
   }
 
-  void _addRedirectingConstructor(SourceFactoryBuilder constructorBuilder,
-      SourceLibraryBuilder library, Reference? getterReference) {
+  void _addRedirectingConstructor(
+      SourceFactoryBuilder constructorBuilder,
+      SourceLibraryBuilder library,
+      Reference? fieldReference,
+      Reference? getterReference) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
     // source code.
@@ -888,6 +891,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           isFinal: true,
           initializer: literal,
           fileUri: cls.fileUri,
+          fieldReference: fieldReference,
           getterReference: getterReference)
         ..fileOffset = cls.fileOffset;
       cls.addField(field);
@@ -930,11 +934,18 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                Reference? getterReference =
-                    referencesFromIndexed?.lookupGetterReference(new Name(
-                        "_redirecting#", referencesFromIndexed!.library));
+                Reference? fieldReference;
+                Reference? getterReference;
+                if (referencesFromIndexed != null) {
+                  Name name =
+                      new Name(redirectingName, referencesFromIndexed!.library);
+                  fieldReference =
+                      referencesFromIndexed!.lookupFieldReference(name);
+                  getterReference =
+                      referencesFromIndexed!.lookupGetterReference(name);
+                }
                 _addRedirectingConstructor(
-                    declaration, library, getterReference);
+                    declaration, library, fieldReference, getterReference);
               }
               Member? targetNode;
               if (targetBuilder is FunctionBuilder) {

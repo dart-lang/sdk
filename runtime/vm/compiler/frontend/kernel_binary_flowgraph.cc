@@ -238,7 +238,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         ReadBool();
         const NameIndex field_name = ReadCanonicalNameReference();
         const Field& field =
-            Field::Handle(Z, H.LookupFieldByKernelGetterOrSetter(field_name));
+            Field::Handle(Z, H.LookupFieldByKernelField(field_name));
         initializer_fields[i] = &field;
         SkipExpression();
         continue;

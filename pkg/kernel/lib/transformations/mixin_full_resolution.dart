@@ -120,6 +120,8 @@ class MixinFullResolution {
       }
 
       for (var field in class_.mixin.fields) {
+        Reference? fieldReference =
+            indexedClass?.lookupFieldReference(field.name);
         Reference? getterReference =
             indexedClass?.lookupGetterReference(field.name);
         Reference? setterReference =
@@ -132,8 +134,8 @@ class MixinFullResolution {
           setterReference = setters[field.name]?.reference;
           setterReference?.canonicalName?.unbind();
         }
-        Field clone =
-            cloner.cloneField(field, getterReference, setterReference);
+        Field clone = cloner.cloneField(
+            field, fieldReference, getterReference, setterReference);
         Procedure? setter = setters[field.name];
         if (setter != null) {
           setters.remove(field.name);

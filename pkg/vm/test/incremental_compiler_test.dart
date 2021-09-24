@@ -1045,9 +1045,9 @@ main() {
       }
     });
 
-    /// This test basicaly verifies that components `relink` method is correctly
-    /// called when rejecting (i.e. logically going back in time to before a
-    /// rejected compilation).
+    /// This test basically verifies that components `relink` method is
+    /// correctly called when rejecting (i.e. logically going back in time to
+    /// before a rejected compilation).
     test('check links after reject', () async {
       final Uri fooUri = Uri.file('${mytest.path}/foo.dart');
       new File.fromUri(fooUri).writeAsStringSync("""

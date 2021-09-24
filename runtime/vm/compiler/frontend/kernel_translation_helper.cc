@@ -316,8 +316,22 @@ bool TranslationHelper::IsFactory(NameIndex name) {
   return StringEquals(CanonicalNameString(kind), "@factories");
 }
 
+bool TranslationHelper::IsField(NameIndex name) {
+  // Fields with private names have the import URI of the library where they
+  // are visible as the parent and the string "@fields" as the parent's parent.
+  // Fields with non-private names have the string "@fields" as the parent.
+  if (IsRoot(name)) {
+    return false;
+  }
+  NameIndex kind = CanonicalNameParent(name);
+  if (IsPrivate(name)) {
+    kind = CanonicalNameParent(kind);
+  }
+  return StringEquals(CanonicalNameString(kind), "@fields");
+}
+
 NameIndex TranslationHelper::EnclosingName(NameIndex name) {
-  ASSERT(IsConstructor(name) || IsProcedure(name));
+  ASSERT(IsConstructor(name) || IsProcedure(name) || IsField(name));
   NameIndex enclosing = CanonicalNameParent(CanonicalNameParent(name));
   if (IsPrivate(name)) {
     enclosing = CanonicalNameParent(enclosing);
@@ -572,6 +586,27 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(!klass.IsNull());
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
+}
+
+FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
+  ASSERT(IsField(kernel_field));
+  NameIndex enclosing = EnclosingName(kernel_field);
+
+  Class& klass = Class::Handle(Z);
+  if (IsLibrary(enclosing)) {
+    Library& library =
+        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
+    klass = library.toplevel_class();
+    CheckStaticLookup(klass);
+  } else {
+    ASSERT(IsClass(enclosing));
+    klass = LookupClassByKernelClass(enclosing);
+  }
+  Field& field = Field::Handle(
+      Z, klass.LookupFieldAllowPrivate(
+             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  CheckStaticLookup(field);
+  return field.ptr();
 }
 
 FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
@@ -1005,6 +1040,11 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       ASSERT(tag == kField);
       if (++next_read_ == field) return;
     }
+      FALL_THROUGH;
+    case kCanonicalNameField:
+      canonical_name_field_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_field.
+      if (++next_read_ == field) return;
       FALL_THROUGH;
     case kCanonicalNameGetter:
       canonical_name_getter_ =

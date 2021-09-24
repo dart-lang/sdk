@@ -116,7 +116,7 @@ class ProtobufHandler {
         if (constant is InstanceConstant &&
             constant.classReference == _tagNumberClass.reference) {
           if (messageClass._usedTags.add((constant
-                  .fieldValues[_tagNumberField.getterReference] as IntConstant)
+                  .fieldValues[_tagNumberField.fieldReference] as IntConstant)
               .value)) {
             _invalidatedClasses.add(messageClass);
           }

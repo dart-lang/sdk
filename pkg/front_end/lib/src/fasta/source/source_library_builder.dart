@@ -1023,12 +1023,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     if (unserializableExports != null) {
       Name fieldName = new Name("_exports#", library);
+      Reference? fieldReference =
+          referencesFromIndexed?.lookupFieldReference(fieldName);
       Reference? getterReference =
           referencesFromIndexed?.lookupGetterReference(fieldName);
       library.addField(new Field.immutable(fieldName,
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
+          fieldReference: fieldReference,
           getterReference: getterReference,
           fileUri: library.fileUri));
     }
@@ -2246,8 +2249,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       extensionName = currentTypeParameterScopeBuilder.name;
     }
 
+    Reference? fieldReference;
     Reference? fieldGetterReference;
     Reference? fieldSetterReference;
+    Reference? lateIsSetFieldReference;
     Reference? lateIsSetGetterReference;
     Reference? lateIsSetSetterReference;
     Reference? lateGetterReference;
@@ -2264,18 +2269,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           (_currentClassReferencesFromIndexed ?? referencesFromIndexed)!;
       Name nameToLookupName = nameScheme.getFieldName(FieldNameType.Field, name,
           isSynthesized: fieldIsLateWithLowering);
+      fieldReference = indexedContainer.lookupFieldReference(nameToLookupName);
       fieldGetterReference =
           indexedContainer.lookupGetterReference(nameToLookupName);
       fieldSetterReference =
           indexedContainer.lookupSetterReference(nameToLookupName);
       if (fieldIsLateWithLowering) {
-        Name lateIsSetNameName = nameScheme.getFieldName(
+        Name lateIsSetName = nameScheme.getFieldName(
             FieldNameType.IsSetField, name,
             isSynthesized: fieldIsLateWithLowering);
+        lateIsSetFieldReference =
+            indexedContainer.lookupFieldReference(lateIsSetName);
         lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetNameName);
+            indexedContainer.lookupGetterReference(lateIsSetName);
         lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetNameName);
+            indexedContainer.lookupSetterReference(lateIsSetName);
         lateGetterReference = indexedContainer.lookupGetterReference(
             nameScheme.getFieldName(FieldNameType.Getter, name,
                 isSynthesized: fieldIsLateWithLowering));
@@ -2295,8 +2303,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOffset,
         charEndOffset,
         nameScheme,
+        fieldReference: fieldReference,
         fieldGetterReference: fieldGetterReference,
         fieldSetterReference: fieldSetterReference,
+        lateIsSetFieldReference: lateIsSetFieldReference,
         lateIsSetGetterReference: lateIsSetGetterReference,
         lateIsSetSetterReference: lateIsSetSetterReference,
         lateGetterReference: lateGetterReference,
