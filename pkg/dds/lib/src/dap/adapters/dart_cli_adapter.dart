@@ -145,6 +145,11 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     } else {
       await launchAsProcess(vmPath, processArgs);
     }
+
+    // Delay responding until the debugger is connected.
+    if (debug) {
+      await debuggerInitialized;
+    }
   }
 
   /// Called by [attachRequest] to request that we actually connect to the app
@@ -249,7 +254,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// Called by [terminateRequest] to request that we gracefully shut down the
   /// app being run (or in the case of an attach, disconnect).
   Future<void> terminateImpl() async {
-    terminatePids(ProcessSignal.sigint);
+    terminatePids(ProcessSignal.sigterm);
     await _process?.exitCode;
   }
 

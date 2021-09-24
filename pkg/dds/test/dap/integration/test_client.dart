@@ -36,11 +36,20 @@ class DapTestClient {
   final _serverRequestHandlers =
       <String, FutureOr<Object?> Function(Object?)>{};
 
+  late final Future<Uri?> vmServiceUri;
+
   DapTestClient._(
     this._channel,
     this._logger, {
     this.captureVmServiceTraffic = false,
   }) {
+    // Set up a future that will complete when the 'dart.debuggerUris' event is
+    // emitted by the debug adapter so tests have easy access to it.
+    vmServiceUri = event('dart.debuggerUris').then<Uri?>((event) {
+      final body = event.body as Map<String, Object?>;
+      return Uri.parse(body['vmServiceUri'] as String);
+    }).catchError((e) => null);
+
     _subscription = _channel.listen(
       _handleMessage,
       onDone: () {
@@ -58,6 +67,16 @@ class DapTestClient {
   /// Returns a stream of [OutputEventBody] events.
   Stream<OutputEventBody> get outputEvents => events('output')
       .map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
+
+  /// Returns a stream of custom 'dart.serviceExtensionAdded' events.
+  Stream<Map<String, Object?>> get serviceExtensionAddedEvents =>
+      events('dart.serviceExtensionAdded')
+          .map((e) => e.body as Map<String, Object?>);
+
+  /// Returns a stream of custom 'dart.serviceRegistered' events.
+  Stream<Map<String, Object?>> get serviceRegisteredEvents =>
+      events('dart.serviceRegistered')
+          .map((e) => e.body as Map<String, Object?>);
 
   /// Returns a stream of 'dart.testNotification' custom events from the
   /// package:test JSON reporter.
@@ -114,6 +133,11 @@ class DapTestClient {
     await resumeFuture;
 
     return attachResponse;
+  }
+
+  /// Calls a service method via a custom request.
+  Future<Response> callService(String name, Object? params) {
+    return custom('callService', {'method': name, 'params': params});
   }
 
   /// Sends a continue request for the given thread.
