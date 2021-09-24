@@ -139,7 +139,7 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "370575258503ca4cb11d6449e82a1c4fd7c2777f",
+  "pub_rev": "15a46117da29cc572fba620241c83a2117cdae09",
   "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
@@ -173,6 +173,7 @@ vars = {
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "832b096c0c24798d3df46faa7b7661fe930573c2",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
+  "yaml_edit_rev": "ffcbbc22884f590663ec451f48fd8388ba7c49f4",
   "yaml_rev": "2af44871f684c89e973a96e39026b8b88dda1987",
   "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
@@ -471,6 +472,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
       "@" + Var("web_socket_channel_rev"),
+  Var("dart_root") + "/third_party/pkg/yaml_edit":
+      Var("dart_git") + "yaml_edit.git" + "@" + Var("yaml_edit_rev"),
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 
