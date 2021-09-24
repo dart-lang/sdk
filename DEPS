@@ -44,9 +44,9 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "21e89324642656dcd903e97352d9d16da6a361ee",
+  "co19_rev": "e9f3b0239dedd349084ca1e0b9d2ceacf4b2a1ef",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "3e1ea1af9ef293d7f6a8f3332b5c71c7072a30e0",
+  "co19_2_rev": "13344ad01472df9badfa78fd6aa411f042e13354",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
@@ -139,7 +139,7 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "370575258503ca4cb11d6449e82a1c4fd7c2777f",
+  "pub_rev": "15a46117da29cc572fba620241c83a2117cdae09",
   "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
@@ -173,6 +173,7 @@ vars = {
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "832b096c0c24798d3df46faa7b7661fe930573c2",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
+  "yaml_edit_rev": "ffcbbc22884f590663ec451f48fd8388ba7c49f4",
   "yaml_rev": "2af44871f684c89e973a96e39026b8b88dda1987",
   "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
@@ -471,6 +472,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
       "@" + Var("web_socket_channel_rev"),
+  Var("dart_root") + "/third_party/pkg/yaml_edit":
+      Var("dart_git") + "yaml_edit.git" + "@" + Var("yaml_edit_rev"),
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 

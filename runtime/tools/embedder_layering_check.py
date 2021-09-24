@@ -7,7 +7,6 @@
 # Simple tool for verifying that sources from the standalone embedder do not
 # directly include sources from the VM or vice versa.
 
-import glob
 import os
 import re
 import sys
@@ -28,7 +27,7 @@ EXTRA_TEST_FILES = [
 
 def CheckFile(sdk_root, path):
     includes = set()
-    with open(os.path.join(sdk_root, path)) as file:
+    with open(os.path.join(sdk_root, path), encoding='utf-8') as file:
         for line in file:
             m = INCLUDE_DIRECTIVE_RE.match(line)
             if m is not None:
