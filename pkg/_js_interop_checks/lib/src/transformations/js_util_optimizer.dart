@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as api;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -37,6 +36,7 @@ class JsUtilOptimizer extends Transformer {
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
+  Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _jsTarget =
@@ -74,6 +74,7 @@ class JsUtilOptimizer extends Transformer {
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
+    _extensionMemberIndex = null;
     return lib;
   }
 
@@ -88,26 +89,41 @@ class JsUtilOptimizer extends Transformer {
   @override
   visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
-    if (node.isExternal && node.isExtensionMember && !_isDeclaredStatic(node)) {
-      var transformedBody;
-      if (api.getExtensionMemberKind(node) == ProcedureKind.Getter) {
-        transformedBody = _getExternalGetterBody(node);
-      } else if (api.getExtensionMemberKind(node) == ProcedureKind.Setter) {
-        transformedBody = _getExternalSetterBody(node);
-      } else if (api.getExtensionMemberKind(node) == ProcedureKind.Method) {
-        transformedBody = _getExternalMethodBody(node);
+    var transformedBody;
+    if (node.isExternal && node.isExtensionMember) {
+      var index = _extensionMemberIndex ??=
+          _createExtensionMembersIndex(node.enclosingLibrary);
+      var nodeDescriptor = index[node.reference]!;
+      if (!nodeDescriptor.isStatic) {
+        if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
+          transformedBody = _getExternalGetterBody(node);
+        } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
+          transformedBody = _getExternalSetterBody(node);
+        } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
+          transformedBody = _getExternalMethodBody(node);
+        }
       }
-      // TODO(rileyporter): Add transformation for static members and any
-      // operators we decide to support.
-      if (transformedBody != null) {
-        node.function.body = transformedBody;
-        node.isExternal = false;
-      }
+    }
+    if (transformedBody != null) {
+      node.function.body = transformedBody;
+      node.isExternal = false;
     } else {
       node.transformChildren(this);
     }
     _staticTypeContext.leaveMember(node);
     return node;
+  }
+
+  /// Returns and initializes `_extensionMemberIndex` to an index of the member
+  /// reference to the member `ExtensionMemberDescriptor`, for all extension
+  /// members in the given [library].
+  Map<Reference, ExtensionMemberDescriptor> _createExtensionMembersIndex(
+      Library library) {
+    _extensionMemberIndex = {};
+    library.extensions.forEach((extension) => extension.members.forEach(
+        (descriptor) =>
+            _extensionMemberIndex![descriptor.member] = descriptor));
+    return _extensionMemberIndex!;
   }
 
   /// Returns a new function body for the given [node] external getter.
@@ -121,7 +137,7 @@ class JsUtilOptimizer extends Transformer {
         _getPropertyTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberName(node))
+          StringLiteral(_getExtensionMemberName(node))
         ]))
       ..fileOffset = node.fileOffset;
     return ReturnStatement(AsExpression(
@@ -139,7 +155,7 @@ class JsUtilOptimizer extends Transformer {
         _setPropertyTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberName(node)),
+          StringLiteral(_getExtensionMemberName(node)),
           VariableGet(function.positionalParameters.last)
         ]))
       ..fileOffset = node.fileOffset;
@@ -157,7 +173,7 @@ class JsUtilOptimizer extends Transformer {
         _callMethodTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberName(node)),
+          StringLiteral(_getExtensionMemberName(node)),
           ListLiteral(function.positionalParameters
               .sublist(1)
               .map((argument) => VariableGet(argument))
@@ -168,29 +184,17 @@ class JsUtilOptimizer extends Transformer {
         _lowerCallMethod(callMethodInvocation), function.returnType));
   }
 
-  /// Returns the member name, either from the `@JS` annotation if non-empty,
-  /// or parsed from CFE generated node name.
-  String _getMemberName(Procedure node) {
+  /// Returns the extension member name.
+  ///
+  /// Returns either the name from the `@JS` annotation if non-empty, or the
+  /// declared name of the extension member. Does not return the CFE generated
+  /// name for the top level member for this extension member.
+  String _getExtensionMemberName(Procedure node) {
     var jsAnnotationName = getJSName(node);
     if (jsAnnotationName.isNotEmpty) {
       return jsAnnotationName;
     }
-    // TODO(rileyporter): Switch to using the ExtensionMemberDescriptor data.
-    var nodeName = node.name.text;
-    if (nodeName.contains('#')) {
-      return nodeName.substring(nodeName.indexOf('#') + 1);
-    } else {
-      return nodeName.substring(nodeName.indexOf('|') + 1);
-    }
-  }
-
-  /// Returns whether the given extension [node] is declared as `static`.
-  ///
-  /// All extension members have `isStatic` true, but the members declared as
-  /// static will not have a synthesized `this` variable.
-  bool _isDeclaredStatic(Procedure node) {
-    return node.function.positionalParameters.isEmpty ||
-        node.function.positionalParameters.first.name != '#this';
+    return _extensionMemberIndex![node.reference]!.name.text;
   }
 
   /// Replaces js_util method calls with optimization when possible.
