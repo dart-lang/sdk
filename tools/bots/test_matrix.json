@@ -2886,13 +2886,6 @@
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js nnbd unit tests",
-          "arguments": [
-            "-nunittest-weak-asserts-no-sdk-linux",
-            "pkg//compiler/"
-          ]
         }
       ]
     },
