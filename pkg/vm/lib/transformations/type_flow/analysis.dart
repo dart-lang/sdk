@@ -1008,11 +1008,12 @@ class _TFClassImpl extends TFClass {
       target = typeFlowAnalysis.hierarchyCache.hierarchy.getDispatchTarget(
           classNode, selector.name,
           setter: selector.isSetter);
-      if (target != null) {
-        _dispatchTargets[selector] = target;
-      }
+      target ??= _DispatchableInvocation.kNoSuchMethodMarker;
+      _dispatchTargets[selector] = target;
     }
-    return target;
+    return identical(target, _DispatchableInvocation.kNoSuchMethodMarker)
+        ? null
+        : target;
   }
 
   String dump() => "$this {supers: $supertypes}";
