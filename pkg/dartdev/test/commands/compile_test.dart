@@ -20,6 +20,7 @@ const String unsoundNullSafetyMessage =
     'Info: Compiling without sound null safety';
 
 void defineCompileTests() {
+  final isRunningOnIA32 = Platform.version.contains('ia32');
   // *** NOTE ***: These tests *must* be run with the `--use-sdk` option
   // as they depend on a fully built SDK to resolve various snapshot files
   // used by compilation.
@@ -51,6 +52,12 @@ void defineCompileTests() {
         'Usage: dart compile <subcommand> [arguments]',
       ),
     );
+
+    expect(result.stdout, contains('jit-snapshot'));
+    expect(result.stdout, contains('kernel'));
+    expect(result.stdout, contains('js'));
+    expect(result.stdout, contains('aot-snapshot'));
+    expect(result.stdout, contains('exe'));
     expect(result.exitCode, 0);
   });
 
@@ -118,7 +125,41 @@ void defineCompileTests() {
     expect(result.stdout, contains('I love executables'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
+
+  test('Compile to executable disabled on IA32', () {
+    final p = project(mainSrc: 'void main() { print("I love executables"); }');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        inFile,
+      ],
+    );
+
+    expect(result.stderr,
+        "'dart compile exe' is not supported on x86 architectures");
+    expect(result.exitCode, 64);
+  }, skip: !isRunningOnIA32);
+
+  test('Compile to AOT snapshot disabled on IA32', () {
+    final p = project(mainSrc: 'void main() { print("I love executables"); }');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'aot-snapshot',
+        inFile,
+      ],
+    );
+
+    expect(result.stderr,
+        "'dart compile aot-snapshot' is not supported on x86 architectures");
+    expect(result.exitCode, 64);
+  }, skip: !isRunningOnIA32);
 
   test('Compile and run executable with options', () {
     final p = project(
@@ -151,7 +192,7 @@ void defineCompileTests() {
     expect(result.stdout, contains('42'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile and run aot snapshot', () {
     final p = project(mainSrc: 'void main() { print("I love AOT"); }');
@@ -182,7 +223,7 @@ void defineCompileTests() {
     expect(result.stdout, contains('I love AOT'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile and run kernel snapshot', () {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
@@ -266,7 +307,7 @@ void main() {
     expect(result.exitCode, compileErrorExitCode);
     expect(File(outFile).existsSync(), false,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile exe with warnings', () {
     final p = project(mainSrc: '''
@@ -293,7 +334,7 @@ void main() {
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile exe with sound null safety', () {
     final p = project(mainSrc: '''void main() {}''');
@@ -315,7 +356,7 @@ void main() {
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile exe with unsound null safety', () {
     final p = project(mainSrc: '''
@@ -340,7 +381,7 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile and run exe with --sound-null-safety', () {
     final p = project(mainSrc: '''void main() {
@@ -374,7 +415,7 @@ void main() {}
     expect(result.stdout, contains('sound'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile and run exe with --no-sound-null-safety', () {
     final p = project(mainSrc: '''void main() {
@@ -408,7 +449,7 @@ void main() {}
     expect(result.stdout, contains('unsound'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile exe without info', () {
     final p = project(mainSrc: '''void main() {}''');
@@ -432,7 +473,7 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile exe without warnings', () {
     final p = project(mainSrc: '''
@@ -459,7 +500,7 @@ void main() {
         predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile JS with sound null safety', () {
     final p = project(mainSrc: '''void main() {}''');
@@ -579,7 +620,7 @@ void main() {
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile AOT snapshot with unsound null safety', () {
     final p = project(mainSrc: '''
@@ -604,7 +645,7 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile AOT snapshot without info', () {
     final p = project(mainSrc: '''void main() {}''');
@@ -628,7 +669,7 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile AOT snapshot without warnings', () {
     final p = project(mainSrc: '''
@@ -655,7 +696,7 @@ void main() {
         predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile AOT snapshot with warnings', () {
     final p = project(mainSrc: '''
@@ -683,7 +724,7 @@ void main() {
     expect(result.stdout, contains('Warning: '));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  });
+  }, skip: isRunningOnIA32);
 
   test('Compile kernel with invalid trailing argument', () {
     final p = project(mainSrc: '''void main() {}''');

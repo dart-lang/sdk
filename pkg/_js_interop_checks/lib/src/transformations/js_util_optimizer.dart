@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as api;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -13,7 +12,6 @@ import '../js_interop.dart' show getJSName;
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
 class JsUtilOptimizer extends Transformer {
-  final Procedure _jsTarget;
   final Procedure _callMethodTarget;
   final List<Procedure> _callMethodUncheckedTargets;
   final Procedure _callConstructorTarget;
@@ -32,16 +30,16 @@ class JsUtilOptimizer extends Transformer {
     'setProperty'
   ];
   final Iterable<Procedure> _allowedInteropJsUtilTargets;
+  final Procedure _jsTarget;
   final Procedure _allowInteropTarget;
   final Procedure _listEmptyFactory;
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
+  Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
-      : _jsTarget =
-            _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
-        _callMethodTarget =
+      : _callMethodTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
         _callMethodUncheckedTargets = List<Procedure>.generate(
             5,
@@ -59,6 +57,8 @@ class JsUtilOptimizer extends Transformer {
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
         _setPropertyUncheckedTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', '_setPropertyUnchecked'),
+        _jsTarget =
+            _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
         _allowInteropTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
         _allowedInteropJsUtilTargets = _allowedInteropJsUtilMembers.map(
@@ -74,6 +74,7 @@ class JsUtilOptimizer extends Transformer {
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
+    _extensionMemberIndex = null;
     return lib;
   }
 
@@ -88,26 +89,41 @@ class JsUtilOptimizer extends Transformer {
   @override
   visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
-    if (node.isExternal && node.isExtensionMember && !_isDeclaredStatic(node)) {
-      var transformedBody;
-      if (api.getExtensionMemberKind(node) == ProcedureKind.Getter) {
-        transformedBody = _getExternalGetterBody(node);
-      } else if (api.getExtensionMemberKind(node) == ProcedureKind.Setter) {
-        transformedBody = _getExternalSetterBody(node);
-      } else if (api.getExtensionMemberKind(node) == ProcedureKind.Method) {
-        transformedBody = _getExternalMethodBody(node);
+    var transformedBody;
+    if (node.isExternal && node.isExtensionMember) {
+      var index = _extensionMemberIndex ??=
+          _createExtensionMembersIndex(node.enclosingLibrary);
+      var nodeDescriptor = index[node.reference]!;
+      if (!nodeDescriptor.isStatic) {
+        if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
+          transformedBody = _getExternalGetterBody(node);
+        } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
+          transformedBody = _getExternalSetterBody(node);
+        } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
+          transformedBody = _getExternalMethodBody(node);
+        }
       }
-      // TODO(rileyporter): Add transformation for static members and any
-      // operators we decide to support.
-      if (transformedBody != null) {
-        node.function.body = transformedBody;
-        node.isExternal = false;
-      }
+    }
+    if (transformedBody != null) {
+      node.function.body = transformedBody;
+      node.isExternal = false;
     } else {
       node.transformChildren(this);
     }
     _staticTypeContext.leaveMember(node);
     return node;
+  }
+
+  /// Returns and initializes `_extensionMemberIndex` to an index of the member
+  /// reference to the member `ExtensionMemberDescriptor`, for all extension
+  /// members in the given [library].
+  Map<Reference, ExtensionMemberDescriptor> _createExtensionMembersIndex(
+      Library library) {
+    _extensionMemberIndex = {};
+    library.extensions.forEach((extension) => extension.members.forEach(
+        (descriptor) =>
+            _extensionMemberIndex![descriptor.member] = descriptor));
+    return _extensionMemberIndex!;
   }
 
   /// Returns a new function body for the given [node] external getter.
@@ -121,11 +137,11 @@ class JsUtilOptimizer extends Transformer {
         _getPropertyTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberName(node))
+          StringLiteral(_getExtensionMemberName(node))
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(AsExpression(
-        _lowerGetProperty(getPropertyInvocation), function.returnType));
+    return ReturnStatement(
+        AsExpression(getPropertyInvocation, function.returnType));
   }
 
   /// Returns a new function body for the given [node] external setter.
@@ -139,7 +155,7 @@ class JsUtilOptimizer extends Transformer {
         _setPropertyTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberName(node)),
+          StringLiteral(_getExtensionMemberName(node)),
           VariableGet(function.positionalParameters.last)
         ]))
       ..fileOffset = node.fileOffset;
@@ -157,7 +173,7 @@ class JsUtilOptimizer extends Transformer {
         _callMethodTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
-          StringLiteral(_getMemberName(node)),
+          StringLiteral(_getExtensionMemberName(node)),
           ListLiteral(function.positionalParameters
               .sublist(1)
               .map((argument) => VariableGet(argument))
@@ -168,43 +184,30 @@ class JsUtilOptimizer extends Transformer {
         _lowerCallMethod(callMethodInvocation), function.returnType));
   }
 
-  /// Returns the member name, either from the `@JS` annotation if non-empty,
-  /// or parsed from CFE generated node name.
-  String _getMemberName(Procedure node) {
+  /// Returns the extension member name.
+  ///
+  /// Returns either the name from the `@JS` annotation if non-empty, or the
+  /// declared name of the extension member. Does not return the CFE generated
+  /// name for the top level member for this extension member.
+  String _getExtensionMemberName(Procedure node) {
     var jsAnnotationName = getJSName(node);
     if (jsAnnotationName.isNotEmpty) {
       return jsAnnotationName;
     }
-    // TODO(rileyporter): Switch to using the ExtensionMemberDescriptor data.
-    var nodeName = node.name.text;
-    if (nodeName.contains('#')) {
-      return nodeName.substring(nodeName.indexOf('#') + 1);
-    } else {
-      return nodeName.substring(nodeName.indexOf('|') + 1);
-    }
-  }
-
-  /// Returns whether the given extension [node] is declared as `static`.
-  ///
-  /// All extension members have `isStatic` true, but the members declared as
-  /// static will not have a synthesized `this` variable.
-  bool _isDeclaredStatic(Procedure node) {
-    return node.function.positionalParameters.isEmpty ||
-        node.function.positionalParameters.first.name != '#this';
+    return _extensionMemberIndex![node.reference]!.name.text;
   }
 
   /// Replaces js_util method calls with optimization when possible.
   ///
-  /// Lowers `getProperty` for any argument type straight to JS fragment call.
-  /// Lowers `setProperty` to `_setPropertyUnchecked` for values that are
+  /// Lowers `setProperty` to  `_setPropertyUnchecked` for values that are
   /// not Function type and guaranteed to be interop allowed.
   /// Lowers `callMethod` to `_callMethodUncheckedN` when the number of given
   /// arguments is 0-4 and all arguments are guaranteed to be interop allowed.
+  /// Lowers `callConstructor` to `_callConstructorUncheckedN` when there are
+  /// 0-4 arguments and all arguments are guaranteed to be interop allowed.
   @override
   visitStaticInvocation(StaticInvocation node) {
-    if (node.target == _getPropertyTarget) {
-      node = _lowerGetProperty(node);
-    } else if (node.target == _setPropertyTarget) {
+    if (node.target == _setPropertyTarget) {
       node = _lowerSetProperty(node);
     } else if (node.target == _callMethodTarget) {
       node = _lowerCallMethod(node);
@@ -213,28 +216,6 @@ class JsUtilOptimizer extends Transformer {
     }
     node.transformChildren(this);
     return node;
-  }
-
-  /// Lowers the given js_util `getProperty` call to the foreign_helper JS call
-  /// for any argument type. Lowers `getProperty(o, name)` to
-  /// `JS('Object|Null', '#.#', o, name)`.
-  StaticInvocation _lowerGetProperty(StaticInvocation node) {
-    Arguments arguments = node.arguments;
-    assert(arguments.types.isEmpty);
-    assert(arguments.positional.length == 2);
-    assert(arguments.named.isEmpty);
-    return StaticInvocation(
-        _jsTarget,
-        Arguments(
-          [
-            StringLiteral("Object|Null"),
-            StringLiteral("#.#"),
-            ...arguments.positional
-          ],
-          // TODO(rileyporter): Copy type from getProperty when it's generic.
-          types: [DynamicType()],
-        )..fileOffset = arguments.fileOffset)
-      ..fileOffset = node.fileOffset;
   }
 
   /// Lowers the given js_util `setProperty` call to `_setPropertyUnchecked`

@@ -261,6 +261,13 @@ Remove debugging information from the output and save it separately to the speci
         !Sdk.checkArtifactExists(genSnapshot)) {
       return 255;
     }
+    // AOT compilation isn't supported on ia32. Currently, generating an
+    // executable only supports AOT runtimes, so these commands are disabled.
+    if (Platform.version.contains('ia32')) {
+      stderr.write(
+          "'dart compile $format' is not supported on x86 architectures");
+      return 64;
+    }
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       // This throws.

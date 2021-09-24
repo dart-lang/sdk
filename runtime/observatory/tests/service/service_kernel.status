@@ -47,6 +47,7 @@ awaiter_async_stack_contents_test: SkipByDesign # Debugger is disabled in AOT mo
 bad_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 break_on_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_async_function_test: SkipByDesign # Debugger is disabled in AOT mode.
+break_on_dart_colon_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_default_constructor_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_child_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_many_child_isolates_test: SkipByDesign # Debugger is disabled in AOT mode.
