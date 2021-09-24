@@ -14,6 +14,14 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstRewriteMethodInvocationTest);
+    defineReflectiveTests(AstRewritePrefixedIdentifierTest);
+
+    // TODO(srawlins): Add AstRewriteInstanceCreationExpressionTest test, likely
+    // moving many test cases from ConstructorReferenceResolutionTest,
+    // FunctionReferenceResolutionTest, and TypeLiteralResolutionTest.
+    // TODO(srawlins): Add AstRewritePropertyAccessTest test, likely
+    // moving many test cases from ConstructorReferenceResolutionTest,
+    // FunctionReferenceResolutionTest, and TypeLiteralResolutionTest.
   });
 }
 
@@ -483,4 +491,44 @@ void f() {
         .toList();
     expect(argumentStrings, expectedArguments);
   }
+}
+
+@reflectiveTest
+class AstRewritePrefixedIdentifierTest extends PubPackageResolutionTest {
+  test_constructorReference_inAssignment_onLeftSide() async {
+    await assertErrorsInCode('''
+class C {}
+
+void f() {
+  C.new = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3),
+    ]);
+
+    var identifier = findNode.prefixed('C.new');
+    // The left side of the assignment is resolved by
+    // [PropertyElementResolver._resolveTargetClassElement], which looks for
+    // getters and setters on `C`, and does not recover with other elements
+    // (methods, constructors). This prefixed identifier can have a real
+    // `staticElement` if we add such recovery.
+    assertElement(identifier, null);
+  }
+
+  test_constructorReference_inAssignment_onRightSide() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+Function? f;
+void g() {
+  f = C.new;
+}
+''');
+
+    var identifier = findNode.constructorReference('C.new');
+    assertElement(identifier, findElement.unnamedConstructor('C'));
+  }
+
+  // TODO(srawlins): Complete tests of all cases of rewriting (or not) a
+  // prefixed identifier.
 }

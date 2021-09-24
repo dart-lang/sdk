@@ -66,7 +66,7 @@ class TodoFinder {
   /// any continuations).
   Token? _scrapeTodoComment(Token commentToken, LineInfo lineInfo) {
     Iterable<RegExpMatch> matches =
-        TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
+        Todo.TODO_REGEX.allMatches(commentToken.lexeme);
     // Track the comment that will be returned for looking for the next todo.
     // This will be moved along if additional comments are consumed by multiline
     // TODOs.
@@ -110,7 +110,7 @@ class TodoFinder {
                   // And indented more than the original 'todo' text.
                   columnOfFirstNoneMarkerOrWhitespace == column + 1 &&
                   // And not their own todos.
-                  !TodoCode.TODO_REGEX.hasMatch(nextComment.lexeme);
+                  !Todo.TODO_REGEX.hasMatch(nextComment.lexeme);
           if (!isContinuation) {
             break;
           }
@@ -127,7 +127,7 @@ class TodoFinder {
       }
 
       _errorReporter.reportErrorForOffset(
-          TodoCode.forKind(todoKind), offset, end - offset, [todoText]);
+          Todo.forKind(todoKind), offset, end - offset, [todoText]);
     }
 
     return nextComment;

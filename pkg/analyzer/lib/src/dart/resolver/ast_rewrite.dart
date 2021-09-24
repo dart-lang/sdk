@@ -225,22 +225,25 @@ class AstRewriter {
   /// The [PrefixedIdentifier] may need to be rewritten as a
   /// [ConstructorReference].
   AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifier node) {
-    if (node.parent is Annotation) {
+    var parent = node.parent;
+    if (parent is Annotation) {
       // An annotations which is a const constructor invocation can initially be
       // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
       return node;
     }
-    if (node.parent is CommentReference) {
+    if (parent is CommentReference) {
       // TODO(srawlins): This probably should be rewritten to a
       // [ConstructorReference] at some point.
+      return node;
+    }
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      // A constructor cannot be assigned to, in some expression like
+      // `C.new = foo`; do not rewrite.
       return node;
     }
     var identifier = node.identifier;
     if (identifier.isSynthetic) {
       // This isn't a constructor reference.
-      return node;
-    }
-    if (node.parent is AssignmentExpression) {
       return node;
     }
     var prefix = node.prefix;

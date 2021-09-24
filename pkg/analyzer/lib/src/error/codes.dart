@@ -5088,7 +5088,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "others aren't.",
     correction: "Try adding initializers for the fields.",
     hasPublishedDocs: true,
-    uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+    uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS',
   );
 
   /**
@@ -9069,7 +9069,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS =
       CompileTimeErrorCode(
-          'NO_GENERATIVE_CONSTRUCTOR_IN_SUPERCLASS',
+          'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
           "The class '{0}' cannot extend '{1}' because '{1}' only has factory "
               "constructors (no generative constructors), and '{0}' has at "
               "least one generative constructor.",
