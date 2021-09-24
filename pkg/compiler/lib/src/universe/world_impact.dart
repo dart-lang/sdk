@@ -164,7 +164,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 class StagedWorldImpactBuilder implements WorldImpactBuilder {
   final bool collectImpacts;
   WorldImpactBuilderImpl _currentBuilder;
-  List<WorldImpactBuilderImpl> _builders = [];
+  final List<WorldImpactBuilderImpl> _builders = [];
 
   StagedWorldImpactBuilder({this.collectImpacts = false});
 

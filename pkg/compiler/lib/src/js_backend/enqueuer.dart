@@ -32,7 +32,7 @@ import '../util/util.dart' show Setlet;
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
-  Set<ClassEntity> _recentClasses = Setlet();
+  final Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
   final CodegenWorldBuilderImpl _worldBuilder;
   final WorkItemBuilder _workItemBuilder;

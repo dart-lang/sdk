@@ -28,7 +28,7 @@ class BaseNativeClassFinder implements NativeClassFinder {
   final KElementEnvironment _elementEnvironment;
   final NativeBasicData _nativeBasicData;
 
-  Map<String, ClassEntity> _tagOwner = {};
+  final Map<String, ClassEntity> _tagOwner = {};
 
   BaseNativeClassFinder(this._elementEnvironment, this._nativeBasicData);
 

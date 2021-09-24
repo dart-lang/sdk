@@ -25,7 +25,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   IndexedSource<ImportEntity> _importIndex;
   IndexedSource<ConstantValue> _constantIndex;
 
-  Map<Type, IndexedSource> _generalCaches = {};
+  final Map<Type, IndexedSource> _generalCaches = {};
 
   ir.Member _currentMemberContext;
   _MemberData _currentMemberData;

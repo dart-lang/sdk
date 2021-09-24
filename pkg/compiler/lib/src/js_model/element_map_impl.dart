@@ -115,15 +115,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   /// Map from members to the call methods created for their nested closures.
-  Map<IndexedMember, List<IndexedFunction>> _nestedClosureMap = {};
+  final Map<IndexedMember, List<IndexedFunction>> _nestedClosureMap = {};
 
   /// NativeData is need for computation of the default super class and
   /// parameter ordering.
   NativeData nativeData;
 
-  Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
+  final Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
 
-  Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
+  final Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
 
   LateOutputUnitDataBuilder lateOutputUnitDataBuilder;
 

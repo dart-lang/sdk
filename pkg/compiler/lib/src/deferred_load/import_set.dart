@@ -56,10 +56,10 @@ class ImportSetLattice {
 
   /// Index of deferred imports that defines the canonical order used by the
   /// operations below.
-  Map<ImportEntity, _DeferredImport> _importIndex = {};
+  final Map<ImportEntity, _DeferredImport> _importIndex = {};
 
   /// The canonical instance representing the empty import set.
-  ImportSet _emptySet = ImportSet.empty();
+  final ImportSet _emptySet = ImportSet.empty();
 
   /// The [ImportSet] representing the main output unit.
   ImportSet _mainSet;

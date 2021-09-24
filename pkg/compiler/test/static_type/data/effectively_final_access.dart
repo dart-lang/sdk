@@ -15,8 +15,8 @@ effectivelyFinalFunctionTyped() {
   Function f = (int i) => /*spec.int*/ i;
   /*spec.int Function(int)*/ f
       . /*spec.invoke: [int Function(int)]->int*/ call(0);
-  (/*spec.int Function(int)*/ f.call)
-      /*spec.invoke: [int Function(int)]->int*/ (0);
+  (/*spec.int Function(int)*/ f
+      .call) /*spec.invoke: [int Function(int)]->int*/ (0);
 }
 
 effectivelyFinalGenericFunctionTyped(T Function<T>(T) g) {
@@ -35,8 +35,8 @@ effectivelyFinalDynamicallyTyped() {
   /*spec.List<int>*/ list /*spec.[List<int>]->int*/
           [0] /*spec.invoke: [int]->int*/ +
       0;
-  (/*spec.List<int>*/ list.contains)
-      /*spec.invoke: [bool Function(Object)]->bool*/ (0);
+  (/*spec.List<int>*/ list
+      .contains) /*spec.invoke: [bool Function(Object)]->bool*/ (0);
   /*spec.List<int>*/ list
       /*spec.update: [List<int>]->void*/ /*spec.[List<int>]->int*/
       [0] /*spec.invoke: [int]->int*/ ++;
@@ -48,8 +48,8 @@ effectivelyFinalPartiallyTyped() {
   /*spec.List<int>*/ list /*spec.[List<int>]->int*/
           [0] /*spec.invoke: [int]->int*/ +
       0;
-  (/*spec.List<int>*/ list.contains)
-      /*spec.invoke: [bool Function(Object)]->bool*/ (0);
+  (/*spec.List<int>*/ list
+      .contains) /*spec.invoke: [bool Function(Object)]->bool*/ (0);
   /*spec.List<int>*/ list
       /*spec.update: [List<int>]->void*/ /*spec.[List<int>]->int*/
       [0] /*spec.invoke: [int]->int*/ ++;

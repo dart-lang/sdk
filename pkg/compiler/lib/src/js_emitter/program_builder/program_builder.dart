@@ -165,7 +165,7 @@ class ProgramBuilder {
 
   ClassEntity get _jsInteropInterceptor =>
       _commonElements.jsJavaScriptObjectClass;
-  List<StubMethod> _jsInteropIsChecks = [];
+  final List<StubMethod> _jsInteropIsChecks = [];
   final Set<TypeCheck> _jsInteropTypeChecks = {};
 
   Program buildProgram({bool storeFunctionTypesInMetadata = false}) {

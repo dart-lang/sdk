@@ -8,18 +8,19 @@ import '../common/names.dart';
 import 'modular.dart';
 
 class IrAnnotationData {
-  Map<ir.Class, String> _nativeClassNames = {};
-  Set<ir.Member> _nativeMembers = {};
-  Map<ir.Member, String> _nativeMemberNames = {};
-  Map<ir.Member, List<String>> _createsAnnotations = {};
-  Map<ir.Member, List<String>> _returnsAnnotations = {};
+  final Map<ir.Class, String> _nativeClassNames = {};
+  final Set<ir.Member> _nativeMembers = {};
+  final Map<ir.Member, String> _nativeMemberNames = {};
+  final Map<ir.Member, List<String>> _createsAnnotations = {};
+  final Map<ir.Member, List<String>> _returnsAnnotations = {};
 
-  Map<ir.Library, String> _jsInteropLibraryNames = {};
-  Map<ir.Class, String> _jsInteropClassNames = {};
-  Set<ir.Class> _anonymousJsInteropClasses = {};
-  Map<ir.Member, String> _jsInteropMemberNames = {};
+  final Map<ir.Library, String> _jsInteropLibraryNames = {};
+  final Map<ir.Class, String> _jsInteropClassNames = {};
+  final Set<ir.Class> _anonymousJsInteropClasses = {};
+  final Map<ir.Member, String> _jsInteropMemberNames = {};
 
-  Map<ir.Member, List<PragmaAnnotationData>> _memberPragmaAnnotations = {};
+  final Map<ir.Member, List<PragmaAnnotationData>> _memberPragmaAnnotations =
+      {};
 
   // Returns the text from the `@Native(<text>)` annotation of [node], if any.
   String getNativeClassName(ir.Class node) => _nativeClassNames[node];

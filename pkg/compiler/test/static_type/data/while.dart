@@ -55,8 +55,7 @@ whileNext(Class c) {
 }
 
 whileNextGeneric(GenericClass<int> c) {
-  while (
-      /*GenericClass<int>*/ c != null) {
+  while (/*GenericClass<int>*/ c != null) {
     c = /*GenericClass<int>*/ c.next;
   }
   return /*GenericClass<int>*/ c;

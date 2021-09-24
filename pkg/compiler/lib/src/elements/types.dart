@@ -129,7 +129,7 @@ abstract class DartType {
 ///
 /// This is used to compute the equivalence relation on types coinductively.
 class _Assumptions {
-  Map<FunctionTypeVariable, Set<FunctionTypeVariable>> _assumptionMap =
+  final Map<FunctionTypeVariable, Set<FunctionTypeVariable>> _assumptionMap =
       <FunctionTypeVariable, Set<FunctionTypeVariable>>{};
 
   void _addAssumption(FunctionTypeVariable a, FunctionTypeVariable b) {
@@ -1054,7 +1054,7 @@ abstract class DartTypeSubstitutionVisitor<A>
   DartTypes get dartTypes;
 
   // The input type is a DAG and we must preserve the sharing.
-  Map<DartType, DartType> _map = Map.identity();
+  final Map<DartType, DartType> _map = Map.identity();
 
   DartType _mapped(DartType oldType, DartType newType) {
     assert(_map[oldType] == null);

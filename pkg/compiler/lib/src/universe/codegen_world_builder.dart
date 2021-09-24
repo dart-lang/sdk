@@ -604,7 +604,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 }
 
 class CodegenWorldImpl implements CodegenWorld {
-  JClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   final Map<MemberEntity, MemberUsage> _liveMemberUsage;
 

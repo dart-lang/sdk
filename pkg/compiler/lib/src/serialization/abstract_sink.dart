@@ -23,7 +23,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   List<String> _tags;
 
   /// Map of [_MemberData] object for serialized kernel member nodes.
-  Map<ir.Member, _MemberData> _memberData = {};
+  final Map<ir.Member, _MemberData> _memberData = {};
 
   IndexedSink<String> _stringIndex;
   IndexedSink<Uri> _uriIndex;
@@ -31,7 +31,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   IndexedSink<ImportEntity> _importIndex;
   IndexedSink<ConstantValue> _constantIndex;
 
-  Map<Type, IndexedSink> _generalCaches = {};
+  final Map<Type, IndexedSink> _generalCaches = {};
 
   EntityWriter _entityWriter = const EntityWriter();
   CodegenWriter _codegenWriter;

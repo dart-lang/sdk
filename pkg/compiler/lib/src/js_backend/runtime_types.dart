@@ -873,7 +873,7 @@ enum TypeVisitorState {
 }
 
 class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
-  Set<FunctionTypeVariable> _visitedFunctionTypeVariables = {};
+  final Set<FunctionTypeVariable> _visitedFunctionTypeVariables = {};
 
   final void Function(ClassEntity entity, {TypeVisitorState state}) onClass;
   final void Function(TypeVariableEntity entity, {TypeVisitorState state})

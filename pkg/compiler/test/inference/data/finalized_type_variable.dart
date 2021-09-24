@@ -24,8 +24,7 @@ class ViewCardComponent extends AppView<CardComponent> {
   @pragma('dart2js:noInline')
   set ng_title(String /*Value([exact=JSString], value: "foo")*/ value) {
     if (/*invoke: [exact=ViewCardComponent]*/ checkBinding(
-        /*[exact=ViewCardComponent]*/ _title,
-        value)) {
+        /*[exact=ViewCardComponent]*/ _title, value)) {
       /*[exact=ViewCardComponent]*/ ctx
           . /*update: [null|exact=CardComponent]*/ title = value;
       /*update: [exact=ViewCardComponent]*/ _title = value;
@@ -33,8 +32,7 @@ class ViewCardComponent extends AppView<CardComponent> {
   }
 
   /*member: ViewCardComponent.checkBinding:Value([exact=JSBool], value: true)*/
-  checkBinding(
-          /*Value([null|exact=JSString], value: "foo")*/ a,
+  checkBinding(/*Value([null|exact=JSString], value: "foo")*/ a,
           /*Value([exact=JSString], value: "foo")*/ b) =>
       true;
 }
@@ -53,8 +51,7 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   @pragma('dart2js:noInline')
   set ng_title(String /*Value([exact=JSString], value: "bar")*/ value) {
     if (/*invoke: [exact=ViewCardComponent2]*/ checkBinding(
-        /*[exact=ViewCardComponent2]*/ _title,
-        value)) {
+        /*[exact=ViewCardComponent2]*/ _title, value)) {
       /*[exact=ViewCardComponent2]*/ ctx
           . /*update: [null|exact=CardComponent2]*/ title = value;
       /*update: [exact=ViewCardComponent2]*/ _title = value;
@@ -62,8 +59,7 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   }
 
   /*member: ViewCardComponent2.checkBinding:Value([exact=JSBool], value: true)*/
-  checkBinding(
-          /*Value([null|exact=JSString], value: "bar")*/ a,
+  checkBinding(/*Value([null|exact=JSString], value: "bar")*/ a,
           /*Value([exact=JSString], value: "bar")*/ b) =>
       true;
 }

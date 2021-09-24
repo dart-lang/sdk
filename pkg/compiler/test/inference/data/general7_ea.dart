@@ -9,8 +9,7 @@
 /// _disabled_.
 
 /*member: foo:Value([null|exact=JSBool], value: true)*/
-foo(
-        /*Union([exact=JSBool], [exact=JSString], [exact=JSUInt31])*/ x,
+foo(/*Union([exact=JSBool], [exact=JSString], [exact=JSUInt31])*/ x,
         [/*Value([null|exact=JSBool], value: true)*/ y]) =>
     y;
 

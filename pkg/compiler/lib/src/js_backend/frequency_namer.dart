@@ -11,7 +11,7 @@ class FrequencyBasedNamer extends Namer
   _FieldNamingRegistry fieldRegistry;
   List<TokenName> tokens = [];
 
-  Map<NamingScope, TokenScope> _tokenScopes = {};
+  final Map<NamingScope, TokenScope> _tokenScopes = {};
 
   @override
   String get genericInstantiationPrefix => r'$I';

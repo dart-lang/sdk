@@ -74,7 +74,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   Map<ir.Expression, TypeMap> typeMapsForTesting;
   // TODO(johnniwinther): Change the key to `InstanceGet` when the old method
   //  invocation encoding is no longer used.
-  Map<ir.Expression, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
+  final Map<ir.Expression, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
 
   final ir.ClassHierarchy hierarchy;
 
@@ -124,7 +124,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   bool completes(ir.DartType type) => type != const DoesNotCompleteType();
 
   Set<ir.VariableDeclaration> _currentVariables;
-  Set<ir.VariableDeclaration> _invalidatedVariables =
+  final Set<ir.VariableDeclaration> _invalidatedVariables =
       Set<ir.VariableDeclaration>();
 
   TypeMap _typeMapBase = const TypeMap();

@@ -56,11 +56,13 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   /// Keep track of the mutated local variables so that we don't need to box
   /// non-mutated variables. We know these are only VariableDeclarations because
   /// type variable types and `this` types can't be mutated!
-  Set<ir.VariableDeclaration> _mutatedVariables = Set<ir.VariableDeclaration>();
+  final Set<ir.VariableDeclaration> _mutatedVariables =
+      Set<ir.VariableDeclaration>();
 
   /// The set of variables that are accessed in some form, whether they are
   /// mutated or not.
-  Set<ir.Node /* ir.VariableDeclaration | TypeParameterTypeWithContext */ >
+  final Set<
+          ir.Node /* ir.VariableDeclaration | TypeParameterTypeWithContext */ >
       _capturedVariables = Set<ir.Node>();
 
   /// If true, the visitor is currently traversing some nodes that are inside a

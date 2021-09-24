@@ -502,7 +502,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
   bool get shouldEmitText => !useBinaryFormat;
   // TODO(sigmund): delete the stack once we stop emitting the source text.
-  List<_CodeData> _stack = [];
+  final List<_CodeData> _stack = [];
   void enterNode(jsAst.Node node, int start) {
     var data = _nodeData[node];
     data?.start = start;
@@ -682,7 +682,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 /// Helper class to store what dump-info will show for a piece of code.
 // TODO(sigmund): delete once we no longer emit text by default.
 class _CodeData extends CodeSpan {
-  StringBuffer _text = StringBuffer();
+  final StringBuffer _text = StringBuffer();
   @override
   String get text => '$_text';
   int get length => end - start;

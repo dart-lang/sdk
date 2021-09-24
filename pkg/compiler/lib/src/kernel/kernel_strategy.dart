@@ -54,8 +54,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
   final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
       NativeBasicDataBuilderImpl();
   NativeBasicData _nativeBasicData;
-  CompilerOptions _options;
-  CompilerTask _compilerTask;
+  final CompilerOptions _options;
+  final CompilerTask _compilerTask;
   KernelToElementMapImpl _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 

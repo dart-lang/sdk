@@ -174,16 +174,16 @@ class ClosureDataBuilder {
   final AnnotationsData _annotationsData;
 
   /// Map of the scoping information that corresponds to a particular entity.
-  Map<MemberEntity, ScopeInfo> _scopeMap = {};
-  Map<ir.TreeNode, CapturedScope> _capturedScopesMap = {};
+  final Map<MemberEntity, ScopeInfo> _scopeMap = {};
+  final Map<ir.TreeNode, CapturedScope> _capturedScopesMap = {};
   // Indicates the type variables (if any) that are captured in a given
   // Signature function.
-  Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap = {};
+  final Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap = {};
 
-  Map<ir.LocalFunction, ClosureRepresentationInfo>
+  final Map<ir.LocalFunction, ClosureRepresentationInfo>
       _localClosureRepresentationMap = {};
 
-  Map<MemberEntity, MemberEntity> _enclosingMembers = {};
+  final Map<MemberEntity, MemberEntity> _enclosingMembers = {};
 
   ClosureDataBuilder(this._elementMap, this._annotationsData);
 

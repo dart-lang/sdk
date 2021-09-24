@@ -440,8 +440,8 @@ int indexTypeVariable(
 }
 
 class _RulesetEntry {
-  Set<InterfaceType> _supertypes = {};
-  Map<TypeVariableType, DartType> _typeVariables = {};
+  final Set<InterfaceType> _supertypes = {};
+  final Map<TypeVariableType, DartType> _typeVariables = {};
 
   bool get isEmpty => _supertypes.isEmpty && _typeVariables.isEmpty;
   bool get isNotEmpty => _supertypes.isNotEmpty || _typeVariables.isNotEmpty;

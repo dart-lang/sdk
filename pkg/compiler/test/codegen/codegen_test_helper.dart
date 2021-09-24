@@ -134,7 +134,7 @@ class CodeDataInterpreter implements DataInterpreter<String> {
   const CodeDataInterpreter();
 
   String _clean(String code) => code.replaceAll(_re, '');
-  static RegExp _re = RegExp(r'[\n\r]\s*');
+  static final RegExp _re = RegExp(r'[\n\r]\s*');
 
   @override
   String isAsExpected(String actualData, String expectedData) {

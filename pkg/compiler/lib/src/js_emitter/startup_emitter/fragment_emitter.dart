@@ -585,7 +585,7 @@ class FragmentEmitter {
   final CodegenWorld _codegenWorld;
   RecipeEncoder _recipeEncoder;
   RulesetEncoder _rulesetEncoder;
-  DeferredHolderExpressionFinalizer _holderFinalizer;
+  final DeferredHolderExpressionFinalizer _holderFinalizer;
 
   ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
   CommonElements get _commonElements => _closedWorld.commonElements;

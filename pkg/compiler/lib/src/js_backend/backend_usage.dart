@@ -104,7 +104,7 @@ abstract class BackendUsageBuilder {
 }
 
 class BackendUsageBuilderImpl implements BackendUsageBuilder {
-  FrontendStrategy _frontendStrategy;
+  final FrontendStrategy _frontendStrategy;
   // TODO(johnniwinther): Remove the need for these.
   Setlet<FunctionEntity> _globalFunctionDependencies;
   Setlet<ClassEntity> _globalClassDependencies;
