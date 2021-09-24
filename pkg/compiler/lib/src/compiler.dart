@@ -962,7 +962,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } else if (node is HInstruction) {
       element = node.sourceElement;
     }
-    return element != null ? element : currentElement;
+    return element ?? currentElement;
   }
 
   @override

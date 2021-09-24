@@ -386,7 +386,7 @@ class Test {
       this.warnings: const <MessageKind>[]})
       : _source = null;
 
-  String get source => _source != null ? _source : _sources['main.dart'];
+  String get source => _source ?? _sources['main.dart'];
 
   Map<String, String> get sources =>
       _source != null ? {'main.dart': _source} : _sources;

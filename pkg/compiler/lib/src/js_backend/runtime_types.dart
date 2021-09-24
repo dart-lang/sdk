@@ -777,7 +777,7 @@ class TypeCheckMapping implements TypeChecks {
   @override
   ClassChecks operator [](ClassEntity element) {
     ClassChecks result = map[element];
-    return result != null ? result : const ClassChecks.empty();
+    return result ?? const ClassChecks.empty();
   }
 
   void operator []=(ClassEntity element, ClassChecks checks) {

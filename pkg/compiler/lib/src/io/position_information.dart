@@ -77,8 +77,7 @@ class PositionSourceInformation extends SourceInformation {
 
   @override
   SourceSpan get sourceSpan {
-    SourceLocation location =
-        startPosition != null ? startPosition : innerPosition;
+    SourceLocation location = startPosition ?? innerPosition;
     Uri uri = location.sourceUri;
     int offset = location.offset;
     return SourceSpan(uri, offset, offset);

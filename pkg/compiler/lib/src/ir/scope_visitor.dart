@@ -402,7 +402,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
             // If this typeParameter is part of a typedef then its parent is
             // null because it has no context. Just pass in null for the
             // context in that case.
-            typeParameter.parent != null ? typeParameter.parent.parent : null);
+            typeParameter.parent?.parent);
 
     ir.TreeNode context = _executableContext;
     if (_isInsideClosure && context is ir.Procedure && context.isFactory) {

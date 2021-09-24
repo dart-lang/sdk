@@ -37,7 +37,7 @@ class DiffColumn {
   }
 
   @override
-  String toString() => '$type${index != null ? index : ''}';
+  String toString() => '$type${index ?? ''}';
 }
 
 /// A block of code in an output column.

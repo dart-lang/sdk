@@ -45,7 +45,7 @@ class PowersetValue implements AbstractValue {
 }
 
 AbstractValue unwrapOrNull(PowersetValue powerset) {
-  return powerset == null ? null : powerset._abstractValue;
+  return powerset?._abstractValue;
 }
 
 PowersetValue wrapOrNull(AbstractValue abstractValue, int powersetBits) {

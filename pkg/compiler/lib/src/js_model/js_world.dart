@@ -406,7 +406,7 @@ class JsClosedWorld implements JClosedWorld {
       }
     }
     Iterable<ClassEntity> uses = _liveMixinUses[cls];
-    return uses != null ? uses : const <ClassEntity>[];
+    return uses ?? const <ClassEntity>[];
   }
 
   @override
