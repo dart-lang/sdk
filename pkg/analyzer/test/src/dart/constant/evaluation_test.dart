@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -120,6 +121,62 @@ const a = identical(C<int>.new, C.new);
     );
   }
 
+  test_identical_functionReference_explicitTypeArgs_differentElements() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+void bar<T>(T a) {}
+const g = identical(foo<int>, bar<int>);
+''');
+    expect(
+      _evaluateConstant('g'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_functionReference_explicitTypeArgs_differentTypeArgs() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo<String>);
+''');
+    expect(
+      _evaluateConstant('g'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_functionReference_explicitTypeArgs_onlyOneHasTypeArgs() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo);
+''');
+    expect(
+      _evaluateConstant('g'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_functionReference_explicitTypeArgs_sameElement() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo<int>);
+''');
+    expect(
+      _evaluateConstant('g'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_functionReference_uninstantiated_sameElement() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const g = identical(foo, foo);
+''');
+    expect(
+      _evaluateConstant('g'),
+      _boolValue(true),
+    );
+  }
+
   test_visitAsExpression_potentialConstType() async {
     await assertNoErrorsInCode('''
 const num three = 3;
@@ -221,6 +278,128 @@ const c = 0xFF >>> 0;
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0xFF);
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
+    await resolveTestCode('''
+const b = true;
+void foo<T>(T a) {}
+void bar<T>(T a) {}
+const g = (b ? foo : bar)<int>;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('foo'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_complexExpression_differentTypes() async {
+    await resolveTestCode('''
+const b = true;
+void foo<T>(String a, T b) {}
+void bar<T>(T a, String b) {}
+const g = (b ? foo : bar)<int>;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(String, int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('foo'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_functionName_constantType() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+const g = f<int>;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_functionName_notMatchingBound() async {
+    await resolveTestCode('''
+void f<T extends num>(T a) {}
+const g = f<String>;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(String)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['String']);
+  }
+
+  test_visitFunctionReference_functionName_explicitTypeArgs_notType() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const g = foo<true>;
+''');
+    var result = _evaluateConstantOrNull('g', errorCodes: [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
+  }
+
+  test_visitFunctionReference_functionName_explicitTypeArgs_tooFew() async {
+    await resolveTestCode('''
+void foo<T, U>(T a, U b) {}
+const g = foo<int>;
+''');
+    var result = _evaluateConstantOrNull('g');
+    // The wrong number of arguments is reported elsewhere. Here, the result is
+    // simply `null`.
+    expect(result, isNull);
+  }
+
+  test_visitFunctionReference_functionName_explicitTypeArgs_tooMany() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const g = foo<int, String>;
+''');
+    var result = _evaluateConstantOrNull('g');
+    // The wrong number of arguments is reported elsewhere. Here, the result is
+    // simply `null`.
+    expect(result, isNull);
+  }
+
+  test_visitFunctionReference_functionName_explicitTypeArgs_typeParameter() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+
+class C<U> {
+  void m() {
+    static const g = f<U>;
+  }
+}
+''');
+    var result = _evaluateConstantLocal('g')!;
+    assertType(result.type, 'void Function(U)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['U']);
+  }
+
+  test_visitFunctionReference_uninstantiated_complexExpression() async {
+    await resolveTestCode('''
+const b = true;
+void foo<T>(T a) {}
+void bar<T>(T a) {}
+const g = b ? foo : bar;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function<T>(T)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('foo'));
+    _assertTypeArguments(result, null);
+  }
+
+  test_visitFunctionReference_uninstantiated_functionName() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+const g = f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function<T>(T)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, null);
   }
 
   test_visitSimpleIdentifier_className() async {
@@ -1320,6 +1499,19 @@ const b = 3;''');
 }
 
 class ConstantVisitorTestSupport extends PubPackageResolutionTest {
+  void _assertTypeArguments(DartObject value, List<String>? typeArgumentNames) {
+    var typeArguments = (value as DartObjectImpl).typeArguments;
+    if (typeArguments == null) {
+      expect(typeArguments, typeArgumentNames);
+      return;
+    }
+    expect(
+      typeArguments.map(
+          (arg) => arg.toTypeValue()!.getDisplayString(withNullability: true)),
+      equals(typeArgumentNames),
+    );
+  }
+
   DartObjectImpl _evaluateConstant(
     String name, {
     List<ErrorCode>? errorCodes,
@@ -1334,6 +1526,21 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     )!;
   }
 
+  DartObjectImpl? _evaluateConstantLocal(
+    String name, {
+    List<ErrorCode>? errorCodes,
+    Map<String, String> declaredVariables = const {},
+    Map<String, DartObjectImpl>? lexicalEnvironment,
+  }) {
+    var expression = findNode.variableDeclaration(name).initializer!;
+    return _evaluateExpression(
+      expression,
+      errorCodes: errorCodes,
+      declaredVariables: declaredVariables,
+      lexicalEnvironment: lexicalEnvironment,
+    );
+  }
+
   DartObjectImpl? _evaluateConstantOrNull(
     String name, {
     List<ErrorCode>? errorCodes,
@@ -1341,7 +1548,20 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
     var expression = findNode.topVariableDeclarationByName(name).initializer!;
+    return _evaluateExpression(
+      expression,
+      errorCodes: errorCodes,
+      declaredVariables: declaredVariables,
+      lexicalEnvironment: lexicalEnvironment,
+    );
+  }
 
+  DartObjectImpl? _evaluateExpression(
+    Expression expression, {
+    List<ErrorCode>? errorCodes,
+    Map<String, String> declaredVariables = const {},
+    Map<String, DartObjectImpl>? lexicalEnvironment,
+  }) {
     var unit = this.result.unit;
     var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
@@ -1351,7 +1571,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       isNonNullableByDefault: false,
     );
 
-    DartObjectImpl? result = expression.accept(
+    var result = expression.accept(
       ConstantVisitor(
         ConstantEvaluationEngine(
           declaredVariables: DeclaredVariables.fromMap(declaredVariables),

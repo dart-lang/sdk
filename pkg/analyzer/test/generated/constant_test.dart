@@ -28,7 +28,7 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
     }
     expect(
       typeArguments.map(
-          (arg) => arg.toTypeValue()!.getDisplayString(withNullability: false)),
+          (arg) => arg.toTypeValue()!.getDisplayString(withNullability: true)),
       equals(typeArgumentNames),
     );
   }
@@ -226,151 +226,12 @@ class C {
     await _assertValueBool(false, "'a' == 'b'");
   }
 
-  test_functionReference_explicitTypeArgs_badBound() async {
-    var result = await _getExpressionValue("foo<String>", context: '''
-void foo<T extends num>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'void Function(String)');
-    assertElement(value.toFunctionValue(), findElement.topFunction('foo'));
-    assertTypeArguments(value, ['String']);
-  }
-
-  test_functionReference_explicitTypeArgs_differentElements() async {
-    var result = await _getExpressionValue("(b ? foo : bar)<int>", context: '''
-const b = true;
-void foo<T>(String a, T b) {}
-void bar<T>(T a, String b) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'void Function(String, int)');
-    assertElement(value.toFunctionValue(), findElement.topFunction('foo'));
-    assertTypeArguments(value, ['int']);
-  }
-
-  test_functionReference_explicitTypeArgs_identifier() async {
-    // TODO(srawlins): Add test where the type argument is a type variable.
-    var result = await _getExpressionValue("foo<int>", context: '''
-void foo<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    var value = result.value!;
-    assertType(value.type, 'void Function(int)');
-    assertElement(value.toFunctionValue(), findElement.topFunction('foo'));
-    assertTypeArguments(value, ['int']);
-  }
-
-  test_functionReference_explicitTypeArgs_nonIdentifier() async {
-    var result = await _getExpressionValue("(b ? foo : bar)<int>", context: '''
-const b = true;
-void foo<T>(T a) {}
-void bar<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    var value = result.value!;
-    assertType(value.type, 'void Function(int)');
-    assertElement(value.toFunctionValue(), findElement.topFunction('foo'));
-    assertTypeArguments(value, ['int']);
-  }
-
-  test_functionReference_explicitTypeArgs_notAType() async {
-    var result = await _getExpressionValue("foo<true>", context: '''
-void foo<T>(T a) {}
-''');
-    expect(result.isValid, isFalse);
-  }
-
-  test_functionReference_explicitTypeArgs_tooFew() async {
-    var result = await _getExpressionValue("foo<int>", context: '''
-void foo<T, U>(T a) {}
-''');
-    expect(result.isValid, isFalse);
-  }
-
-  test_functionReference_explicitTypeArgs_tooMany() async {
-    var result = await _getExpressionValue("foo<int, int>", context: '''
-void foo<T>(T a) {}
-''');
-    expect(result.isValid, isFalse);
-  }
-
-  test_functionReference_uninstantiated_identifier() async {
-    var result = await _getExpressionValue("foo", context: '''
-void foo<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'void Function<T>(T)');
-    assertElement(value.toFunctionValue(), findElement.topFunction('foo'));
-    assertTypeArguments(value, null);
-  }
-
-  test_functionReference_uninstantiated_nonIdentifier() async {
-    var result = await _getExpressionValue("b ? foo : bar", context: '''
-const b = true;
-void foo<T>(T a) {}
-void bar<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'void Function<T>(T)');
-    assertElement(value.toFunctionValue(), findElement.topFunction('foo'));
-    assertTypeArguments(value, null);
-  }
-
   test_greaterThan_int_int() async {
     await _assertValueBool(false, "2 > 3");
   }
 
   test_greaterThanOrEqual_int_int() async {
     await _assertValueBool(false, "2 >= 3");
-  }
-
-  test_identical_functionReference_explicitTypeArgs_differentElements() async {
-    var result =
-        await _getExpressionValue("identical(foo<int>, bar<int>)", context: '''
-void foo<T>(T a) {}
-void bar<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'bool');
-    expect(value.toBoolValue(), false);
-  }
-
-  test_identical_functionReference_explicitTypeArgs_differentTypeArgs() async {
-    var result = await _getExpressionValue("identical(foo<int>, foo<String>)",
-        context: '''
-void foo<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'bool');
-    expect(value.toBoolValue(), false);
-  }
-
-  test_identical_functionReference_explicitTypeArgs_sameElement() async {
-    var result =
-        await _getExpressionValue("identical(foo<int>, foo<int>)", context: '''
-void foo<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'bool');
-    expect(value.toBoolValue(), true);
-  }
-
-  test_identical_functionReference_onlyOneHasTypeArgs() async {
-    var result =
-        await _getExpressionValue("identical(foo<int>, foo)", context: '''
-void foo<T>(T a) {}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'bool');
-    expect(value.toBoolValue(), false);
   }
 
   @failingTest
