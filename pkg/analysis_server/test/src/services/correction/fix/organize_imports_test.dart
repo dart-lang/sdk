@@ -40,4 +40,39 @@ import 'dart:io';
 void f(Stream<String> args) { }
 ''');
   }
+
+  Future<void> test_organizePathImports() async {
+    newFile('/home/test/lib/a.dart', content: '''
+class A {
+  static void m() {}
+}
+''');
+    newFile('/home/test/lib/a/b.dart', content: '''
+class B {
+  static void m() {}
+}
+''');
+
+    await resolveTestCode('''
+import 'dart:async';
+import 'a/b.dart';
+import 'a.dart';
+
+void f(Stream<String> args) {
+  A.m();
+  B.m();
+}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+import 'a.dart';
+import 'a/b.dart';
+
+void f(Stream<String> args) {
+  A.m();
+  B.m();
+}
+''');
+  }
 }
