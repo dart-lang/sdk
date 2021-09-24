@@ -173,7 +173,7 @@ vars = {
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "832b096c0c24798d3df46faa7b7661fe930573c2",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
-  "yaml_edit_rev": "ffcbbc22884f590663ec451f48fd8388ba7c49f4",
+  "yaml_edit_rev": "df1452bfe1653286277a1a8f34dddf3e4fbedd9e",
   "yaml_rev": "2af44871f684c89e973a96e39026b8b88dda1987",
   "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",

@@ -1970,8 +1970,11 @@ void doSimulateTransformer(Component c) {
     Name fieldName = new Name("unique_SimulateTransformer");
     Field field = new Field.immutable(fieldName,
         isFinal: true,
-        getterReference: lib.reference.canonicalName
+        fieldReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
+            .reference,
+        getterReference: lib.reference.canonicalName
+            ?.getChildFromFieldGetterWithName(fieldName)
             .reference,
         fileUri: lib.fileUri);
     lib.addField(field);
@@ -1983,8 +1986,11 @@ void doSimulateTransformer(Component c) {
       fieldName = new Name("unique_SimulateTransformer");
       field = new Field.immutable(fieldName,
           isFinal: true,
-          getterReference: c.reference.canonicalName
+          fieldReference: lib.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
+              .reference,
+          getterReference: c.reference.canonicalName
+              ?.getChildFromFieldGetterWithName(fieldName)
               .reference,
           fileUri: c.fileUri);
       c.addField(field);

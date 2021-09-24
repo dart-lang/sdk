@@ -372,12 +372,12 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         // overhead of converting Handles.
         // If we find an NFWC1 object being passed to an FfiNative signature
         // taking a Pointer, we automatically wrap the argument in a call to
-        // `Pointer.fromAddress(getNativeField(obj))`.
+        // `Pointer.fromAddress(_getNativeField(obj))`.
         // Example:
         //   passAsPointer(ClassWithNativeField());
         // Becomes, roughly:
         //   #t0 = PointerClassWithNativeField();
-        //   passAsPointer(Pointer.fromAddress(getNativeField(#t0)));
+        //   passAsPointer(Pointer.fromAddress(_getNativeField(#t0)));
         //   reachabilityFence(#t0);
         final ffiNativeAnn = _tryGetFfiNativeAnnotation(target);
         if (ffiNativeAnn != null) {
@@ -404,7 +404,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                     isFinal: true);
                 tmpsArgs.add(tmpPtr);
 
-                // Pointer.fromAddress(getNativeField(#t1)).
+                // Pointer.fromAddress(_getNativeField(#t1)).
                 final ptr = StaticInvocation(
                     fromAddressInternal,
                     Arguments([
@@ -430,7 +430,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             // {
             //   T #t0;
             //   final NativeFieldWrapperClass1 #t1 = MyNFWC1();
-            //   #t0 = foo(Pointer.fromAddress(getNativeField(#t1)));
+            //   #t0 = foo(Pointer.fromAddress(_getNativeField(#t1)));
             //   reachabilityFence(#t1);
             // } => #t0
             final tmpResult =

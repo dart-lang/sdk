@@ -109,6 +109,7 @@ class TranslationHelper {
   bool IsGetter(NameIndex name);
   bool IsSetter(NameIndex name);
   bool IsFactory(NameIndex name);
+  bool IsField(NameIndex name);
 
   // For a member (field, constructor, or procedure) return the canonical name
   // of the enclosing class or library.
@@ -165,6 +166,7 @@ class TranslationHelper {
   virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
   virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
 
+  FieldPtr LookupFieldByKernelField(NameIndex field);
   FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
                                              bool required = true);
   FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure,
@@ -444,6 +446,7 @@ class FieldHelper {
  public:
   enum Field {
     kStart,  // tag.
+    kCanonicalNameField,
     kCanonicalNameGetter,
     kCanonicalNameSetter,
     kSourceUriIndex,
@@ -491,6 +494,7 @@ class FieldHelper {
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
 
+  NameIndex canonical_name_field_;
   NameIndex canonical_name_getter_;
   NameIndex canonical_name_setter_;
   TokenPosition position_ = TokenPosition::kNoSource;

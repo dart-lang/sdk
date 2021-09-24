@@ -696,9 +696,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final constant = annotation.constant;
         if (constant is InstanceConstant &&
             constant.classNode == pragmaClass &&
-            constant.fieldValues[pragmaName.getterReference] ==
+            constant.fieldValues[pragmaName.fieldReference] ==
                 StringConstant(vmFfiStructFields)) {
-          return constant.fieldValues[pragmaOptions.getterReference]
+          return constant.fieldValues[pragmaOptions.fieldReference]
               as InstanceConstant?;
         }
       }
@@ -708,7 +708,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   Set<Class> _compoundAnnotatedDependencies(InstanceConstant layoutConstant) {
     final fieldTypes = layoutConstant
-        .fieldValues[ffiStructLayoutTypesField.getterReference] as ListConstant;
+        .fieldValues[ffiStructLayoutTypesField.fieldReference] as ListConstant;
     final result = <Class>{};
     for (final fieldType in fieldTypes.entries) {
       if (fieldType is TypeLiteralConstant) {
@@ -726,7 +726,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   CompoundNativeTypeCfe _compoundAnnotatedNativeTypeCfe(Class compoundClass) {
     final layoutConstant = _compoundAnnotatedFields(compoundClass)!;
     final fieldTypes = layoutConstant
-        .fieldValues[ffiStructLayoutTypesField.getterReference] as ListConstant;
+        .fieldValues[ffiStructLayoutTypesField.fieldReference] as ListConstant;
     final members = <NativeTypeCfe>[];
     for (final fieldType in fieldTypes.entries) {
       if (fieldType is TypeLiteralConstant) {
@@ -734,14 +734,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         members
             .add(NativeTypeCfe(this, dartType, compoundCache: compoundCache));
       } else if (fieldType is InstanceConstant) {
-        final singleElementConstant = fieldType
-                .fieldValues[ffiInlineArrayElementTypeField.getterReference]
-            as TypeLiteralConstant;
+        final singleElementConstant =
+            fieldType.fieldValues[ffiInlineArrayElementTypeField.fieldReference]
+                as TypeLiteralConstant;
         final singleElementType = NativeTypeCfe(
             this, singleElementConstant.type,
             compoundCache: compoundCache);
         final arrayLengthConstant =
-            fieldType.fieldValues[ffiInlineArrayLengthField.getterReference]
+            fieldType.fieldValues[ffiInlineArrayLengthField.fieldReference]
                 as IntConstant;
         final arrayLength = arrayLengthConstant.value;
         members.add(ArrayNativeTypeCfe(singleElementType, arrayLength));
@@ -749,7 +749,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
     if (compoundClass.superclass == structClass) {
       final packingConstant = layoutConstant
-          .fieldValues[ffiStructLayoutPackingField.getterReference];
+          .fieldValues[ffiStructLayoutPackingField.fieldReference];
       if (packingConstant is IntConstant) {
         return StructNativeTypeCfe(compoundClass, members,
             packing: packingConstant.value);
@@ -767,12 +767,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     node.addAnnotation(ConstantExpression(
         InstanceConstant(pragmaClass.reference, [], {
-          pragmaName.getterReference: StringConstant(vmFfiStructFields),
-          pragmaOptions.getterReference:
+          pragmaName.fieldReference: StringConstant(vmFfiStructFields),
+          pragmaOptions.fieldReference:
               InstanceConstant(ffiStructLayoutClass.reference, [], {
-            ffiStructLayoutTypesField.getterReference: ListConstant(
+            ffiStructLayoutTypesField.fieldReference: ListConstant(
                 InterfaceType(typeClass, Nullability.nonNullable), constants),
-            ffiStructLayoutPackingField.getterReference:
+            ffiStructLayoutPackingField.fieldReference:
                 packing == null ? NullConstant() : IntConstant(packing)
           })
         }),
@@ -850,8 +850,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ..isNonNullableByDefault = true
       ..addAnnotation(ConstantExpression(
           InstanceConstant(pragmaClass.reference, /*type_arguments=*/ [], {
-        pragmaName.getterReference: StringConstant("vm:prefer-inline"),
-        pragmaOptions.getterReference: NullConstant(),
+        pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
+        pragmaOptions.fieldReference: NullConstant(),
       })));
 
     compound.addProcedure(getter);
@@ -887,7 +887,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   List<int> _arraySize(InstanceConstant constant) {
     final dimensions =
-        constant.fieldValues[arraySizeDimensionsField.getterReference];
+        constant.fieldValues[arraySizeDimensionsField.fieldReference];
     if (dimensions != null) {
       if (dimensions is ListConstant) {
         final result = dimensions.entries
@@ -905,7 +905,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       arraySizeDimension5Field
     ];
     final result = dimensionFields
-        .map((f) => constant.fieldValues[f.getterReference])
+        .map((f) => constant.fieldValues[f.fieldReference])
         .whereType<IntConstant>()
         .map((c) => c.value)
         .toList();
@@ -1414,9 +1414,9 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   @override
   Constant generateConstant(FfiTransformer transformer) =>
       InstanceConstant(transformer.ffiInlineArrayClass.reference, [], {
-        transformer.ffiInlineArrayElementTypeField.getterReference:
+        transformer.ffiInlineArrayElementTypeField.fieldReference:
             singleElementType.generateConstant(transformer),
-        transformer.ffiInlineArrayLengthField.getterReference:
+        transformer.ffiInlineArrayLengthField.fieldReference:
             IntConstant(dimensionsFlattened)
       });
 

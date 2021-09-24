@@ -1642,6 +1642,9 @@ class EquivalenceStrategy {
     if (!checkField_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkField_getterReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkField_setterReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -1660,7 +1663,7 @@ class EquivalenceStrategy {
     if (!checkField_transformerFlags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkField_getterReference(visitor, node, other)) {
+    if (!checkField_fieldReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkField_fileOffset(visitor, node, other)) {
@@ -4915,6 +4918,12 @@ class EquivalenceStrategy {
         node.initializer, other.initializer, 'initializer');
   }
 
+  bool checkField_getterReference(
+      EquivalenceVisitor visitor, Field node, Field other) {
+    return visitor.checkReferences(
+        node.getterReference, other.getterReference, 'getterReference');
+  }
+
   bool checkField_setterReference(
       EquivalenceVisitor visitor, Field node, Field other) {
     return visitor.checkReferences(
@@ -4971,10 +4980,10 @@ class EquivalenceStrategy {
     return checkMember_transformerFlags(visitor, node, other);
   }
 
-  bool checkField_getterReference(
+  bool checkField_fieldReference(
       EquivalenceVisitor visitor, Field node, Field other) {
     return visitor.checkReferences(
-        node.getterReference, other.getterReference, 'getterReference');
+        node.fieldReference, other.fieldReference, 'fieldReference');
   }
 
   bool checkMember_fileOffset(

@@ -216,11 +216,7 @@ abstract class NamedNode extends TreeNode {
 
   NamedNode(Reference? reference)
       : this.reference = reference ?? new Reference() {
-    if (this is Field) {
-      (this as Field).getterReference.node = this;
-    } else {
-      this.reference.node = this;
-    }
+    this.reference.node = this;
   }
 
   /// This is an advanced feature.
@@ -493,7 +489,10 @@ class Library extends NamedNode
     }
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
-      canonicalName.getChildFromField(field).bindTo(field.getterReference);
+      canonicalName.getChildFromField(field).bindTo(field.fieldReference);
+      canonicalName
+          .getChildFromFieldGetter(field)
+          .bindTo(field.getterReference);
       if (field.hasSetter) {
         canonicalName
             .getChildFromFieldSetter(field)
@@ -1262,7 +1261,10 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
-      canonicalName.getChildFromField(member).bindTo(member.getterReference);
+      canonicalName.getChildFromField(member).bindTo(member.fieldReference);
+      canonicalName
+          .getChildFromFieldGetter(member)
+          .bindTo(member.getterReference);
       if (member.hasSetter) {
         canonicalName
             .getChildFromFieldSetter(member)
@@ -2049,13 +2051,28 @@ class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   Expression? initializer; // May be null.
+
+  /// Reference used for reading from this field.
+  ///
+  /// This should be used as the target in [StaticGet], [InstanceGet], and
+  /// [SuperPropertyGet].
+  final Reference getterReference;
+
+  /// Reference used for writing to this field.
+  ///
+  /// This should be used as the target in [StaticSet], [InstanceSet], and
+  /// [SuperPropertySet].
   final Reference? setterReference;
 
   @override
   @Deprecated("Use the specific getterReference/setterReference instead")
   Reference get reference => super.reference;
 
-  Reference get getterReference => super.reference;
+  /// Reference used for initializing this field.
+  ///
+  /// This should be used as the target in [FieldInitializer] and as the key
+  /// in the field values of [InstanceConstant].
+  Reference get fieldReference => super.reference;
 
   Field.mutable(Name name,
       {this.type: const DynamicType(),
@@ -2066,10 +2083,13 @@ class Field extends Member {
       bool isLate: false,
       int transformerFlags: 0,
       required Uri fileUri,
+      Reference? fieldReference,
       Reference? getterReference,
       Reference? setterReference})
-      : this.setterReference = setterReference ?? new Reference(),
-        super(name, fileUri, getterReference) {
+      : this.getterReference = getterReference ?? new Reference(),
+        this.setterReference = setterReference ?? new Reference(),
+        super(name, fileUri, fieldReference) {
+    this.getterReference.node = this;
     this.setterReference!.node = this;
     // ignore: unnecessary_null_comparison
     assert(type != null);
@@ -2091,9 +2111,12 @@ class Field extends Member {
       bool isLate: false,
       int transformerFlags: 0,
       required Uri fileUri,
+      Reference? fieldReference,
       Reference? getterReference})
-      : this.setterReference = null,
-        super(name, fileUri, getterReference) {
+      : this.getterReference = getterReference ?? new Reference(),
+        this.setterReference = null,
+        super(name, fileUri, fieldReference) {
+    this.getterReference.node = this;
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
@@ -2107,7 +2130,8 @@ class Field extends Member {
 
   @override
   void _relinkNode() {
-    super._relinkNode();
+    this.fieldReference.node = this;
+    this.getterReference.node = this;
     if (hasSetter) {
       this.setterReference!.node = this;
     }
@@ -2268,7 +2292,7 @@ class Field extends Member {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(getterReference);
+    printer.writeMemberName(fieldReference);
   }
 }
 
@@ -3162,10 +3186,7 @@ class FieldInitializer extends Initializer {
   Expression value;
 
   FieldInitializer(Field field, Expression value)
-      : this.byReference(
-            // getterReference is used since this refers to the field itself
-            field.getterReference,
-            value);
+      : this.byReference(field.fieldReference, value);
 
   FieldInitializer.byReference(this.fieldReference, this.value) {
     value.parent = this;
@@ -3174,7 +3195,7 @@ class FieldInitializer extends Initializer {
   Field get field => fieldReference.asField;
 
   void set field(Field field) {
-    fieldReference = field.getterReference;
+    fieldReference = field.fieldReference;
   }
 
   @override

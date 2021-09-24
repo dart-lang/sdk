@@ -200,6 +200,7 @@ class EnumBuilder extends SourceClassBuilder {
 
     Constructor? constructorReference;
     Reference? toStringReference;
+    Reference? valuesFieldReference;
     Reference? valuesGetterReference;
     Reference? valuesSetterReference;
     if (referencesFromIndexed != null) {
@@ -208,6 +209,8 @@ class EnumBuilder extends SourceClassBuilder {
       toStringReference =
           referencesFromIndexed.lookupGetterReference(new Name("toString"));
       Name valuesName = new Name("values");
+      valuesFieldReference =
+          referencesFromIndexed.lookupFieldReference(valuesName);
       valuesGetterReference =
           referencesFromIndexed.lookupGetterReference(valuesName);
       valuesSetterReference =
@@ -244,6 +247,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset,
         staticFieldNameScheme,
+        fieldReference: valuesFieldReference,
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference);
     members["values"] = valuesBuilder;
@@ -303,10 +307,12 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
+        Reference? fieldReference;
         Reference? getterReference;
         Reference? setterReference;
         if (referencesFromIndexed != null) {
           Name nameName = new Name(name, referencesFromIndexed.library);
+          fieldReference = referencesFromIndexed.lookupFieldReference(nameName);
           getterReference =
               referencesFromIndexed.lookupGetterReference(nameName);
           setterReference =
@@ -322,6 +328,7 @@ class EnumBuilder extends SourceClassBuilder {
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset,
             staticFieldNameScheme,
+            fieldReference: fieldReference,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference);
         members[name] = fieldBuilder..next = existing;

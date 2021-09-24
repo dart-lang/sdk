@@ -77,7 +77,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
     RawRequestArguments? args,
     void Function(Object?) sendResponse,
   ) async {
-    throw DebugAdapterException('Unknown command  ${request.command}');
+    throw DebugAdapterException('Unknown command ${request.command}');
   }
 
   Future<void> disconnectRequest(
@@ -164,6 +164,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   Future<void> nextRequest(
     Request request,
     NextArguments args,
+    void Function() sendResponse,
+  );
+
+  Future<void> restartRequest(
+    Request request,
+    RestartArguments? args,
     void Function() sendResponse,
   );
 
@@ -280,6 +286,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
       handle(request, _withVoidResponse(launchRequest), parseLaunchArgs);
     } else if (request.command == 'attach') {
       handle(request, _withVoidResponse(attachRequest), parseAttachArgs);
+    } else if (request.command == 'restart') {
+      handle(
+        request,
+        _withVoidResponse(restartRequest),
+        _allowNullArg(RestartArguments.fromJson),
+      );
     } else if (request.command == 'terminate') {
       handle(
         request,

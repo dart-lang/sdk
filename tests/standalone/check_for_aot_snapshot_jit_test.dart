@@ -33,8 +33,8 @@ main() {
   Expect.isTrue(File(powTest).existsSync(),
       "Can't locate dart$_execSuffix on this platform");
   final d = Directory.systemTemp.createTempSync('aot_tmp');
-  final kernelOutput = d.uri.resolve('pow_test.dill').path;
-  final aotOutput = d.uri.resolve('pow_test.aot').path;
+  final kernelOutput = File.fromUri(d.uri.resolve('pow_test.dill')).path;
+  final aotOutput = File.fromUri(d.uri.resolve('pow_test.aot')).path;
 
   final genKernelResult = runAndPrintOutput(
     genKernel,

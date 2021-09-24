@@ -558,11 +558,18 @@ class IsolateManager {
       // Set new breakpoints.
       final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
       await Future.forEach<SourceBreakpoint>(newBreakpoints, (bp) async {
-        final vmBp = await service.addBreakpointWithScriptUri(
-            isolateId, uri, bp.line,
-            column: bp.column);
-        existingBreakpointsForIsolateAndUri.add(vmBp);
-        _clientBreakpointsByVmId[vmBp.id!] = bp;
+        try {
+          final vmBp = await service.addBreakpointWithScriptUri(
+              isolateId, uri, bp.line,
+              column: bp.column);
+          existingBreakpointsForIsolateAndUri.add(vmBp);
+          _clientBreakpointsByVmId[vmBp.id!] = bp;
+        } catch (e) {
+          // Swallow errors setting breakpoints rather than failing the whole
+          // request as it's very easy for editors to send us breakpoints that
+          // aren't valid any more.
+          _adapter.logger?.call('Failed to add breakpoint $e');
+        }
       });
     }
   }

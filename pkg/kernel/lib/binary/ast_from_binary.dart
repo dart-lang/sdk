@@ -1578,11 +1578,13 @@ class BinaryBuilder {
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
+    CanonicalName fieldCanonicalName = readNonNullCanonicalNameReference();
+    Reference fieldReference = fieldCanonicalName.reference;
     CanonicalName getterCanonicalName = readNonNullCanonicalNameReference();
     Reference getterReference = getterCanonicalName.reference;
     CanonicalName? setterCanonicalName = readNullableCanonicalNameReference();
     Reference? setterReference = setterCanonicalName?.reference;
-    Field? node = getterReference.node as Field?;
+    Field? node = fieldReference.node as Field?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1594,12 +1596,15 @@ class BinaryBuilder {
     if (node == null) {
       if (setterReference != null) {
         node = new Field.mutable(name,
+            fieldReference: fieldReference,
             getterReference: getterReference,
             setterReference: setterReference,
             fileUri: fileUri);
       } else {
         node = new Field.immutable(name,
-            getterReference: getterReference, fileUri: fileUri);
+            fieldReference: fieldReference,
+            getterReference: getterReference,
+            fileUri: fileUri);
       }
     }
     List<Expression> annotations = readAnnotationList(node);

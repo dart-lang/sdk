@@ -175,7 +175,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               Reference memberReference;
               if (member is Field) {
                 libraryBuilder.library.addField(member);
-                memberReference = member.getterReference;
+                memberReference = member.fieldReference;
               } else if (member is Procedure) {
                 libraryBuilder.library.addProcedure(member);
                 memberReference = member.reference;

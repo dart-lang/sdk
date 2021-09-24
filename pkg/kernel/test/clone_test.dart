@@ -96,7 +96,7 @@ void testMemberCloning() {
   void testFields(Iterable<Field> fields) {
     testMembers<Field>(
         fields,
-        (cloner, field) => cloner.cloneField(field, null, null),
+        (cloner, field) => cloner.cloneField(field, null, null, null),
         (field) => "${field.runtimeType}(${field.name}):"
             "${field.initializer}");
   }
@@ -197,6 +197,8 @@ class MemberEquivalenceStrategy extends EquivalenceStrategy {
   @override
   bool checkField(EquivalenceVisitor visitor, Field? node, Object? other) {
     if (node is Field && other is Field) {
+      assumeClonedReferences(
+          visitor, node, node.fieldReference, other, other.fieldReference);
       assumeClonedReferences(
           visitor, node, node.getterReference, other, other.getterReference);
       assumeClonedReferences(

@@ -159,7 +159,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// Called by [terminateRequest] to request that we gracefully shut down the
   /// app being run (or in the case of an attach, disconnect).
   Future<void> terminateImpl() async {
-    terminatePids(ProcessSignal.sigint);
+    terminatePids(ProcessSignal.sigterm);
     await _process?.exitCode;
   }
 

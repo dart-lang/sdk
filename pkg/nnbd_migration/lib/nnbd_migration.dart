@@ -124,7 +124,8 @@ class NullabilityFixDescription {
   /// Informative message: there is no valid migration for `null` in a
   /// non-nullable context.
   static const noValidMigrationForNull = NullabilityFixDescription._(
-      appliedMessage: 'No valid migration for `null` in a non-nullable context',
+      appliedMessage: 'No valid migration for expression with type `Null` in '
+          'a non-nullable context',
       kind: NullabilityFixKind.noValidMigrationForNull);
 
   /// Informative message: a null-aware access won't be necessary in strong

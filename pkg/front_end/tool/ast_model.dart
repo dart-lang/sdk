@@ -115,7 +115,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'typeParameters': FieldRule(isDeclaration: true),
   },
   'Field': {
-    'reference': FieldRule(name: 'getterReference'),
+    'reference': FieldRule(name: 'fieldReference'),
   },
   'TypeParameter': {
     '_variance': FieldRule(name: 'variance'),

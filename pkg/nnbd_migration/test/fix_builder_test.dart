@@ -2307,6 +2307,22 @@ _f(bool/*?*/ x) => x && x;
         changes: {findNode.simple('x &&'): isNullCheck});
   }
 
+  Future<void> test_nullExpression_noValidMigration() async {
+    await analyze('''
+int/*!*/ f() => g();
+Null g() => null;
+''');
+    var invocation = findNode.methodInvocation('g();');
+    // Note: in spite of the fact that we leave the method invocation alone, we
+    // analyze it as though it has type `Never`, because it's in a context where
+    // `null` doesn't work.
+    visitSubexpression(invocation, 'Never', changes: {
+      invocation: isNodeChangeForExpression.havingNoValidMigrationWithInfo(
+          isInfo(NullabilityFixDescription.noValidMigrationForNull,
+              {FixReasonTarget.root: TypeMatcher<NullabilityEdge>()}))
+    });
+  }
+
   Future<void> test_nullLiteral() async {
     await analyze('''
 f() => null;

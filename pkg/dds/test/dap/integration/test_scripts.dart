@@ -20,6 +20,28 @@ const sdkStackFrameProgram = '''
   }
 ''';
 
+/// A simple Dart script that registers a simple service extension that returns
+/// its params and waits until it is called before exiting.
+const serviceExtensionProgram = '''
+  import 'dart:async';
+  import 'dart:convert';
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    // Using a completer here causes the VM to quit when the extension is called
+    // so use a flag.
+    // https://github.com/dart-lang/sdk/issues/47279
+    var wasCalled = false;
+    registerExtension('ext.service.extension', (method, params) async {
+      wasCalled = true;
+      return ServiceExtensionResponse.result(jsonEncode(params));
+    });
+    while (!wasCalled) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+''';
+
 /// A simple Dart script that prints its arguments.
 const simpleArgPrintingProgram = r'''
   void main(List<String> args) async {

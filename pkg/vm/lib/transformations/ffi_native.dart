@@ -94,9 +94,9 @@ class FfiNativeTransformer extends Transformer {
     assert(currentLibrary != null);
     final params = node.function.positionalParameters;
     final functionName = annotationConst
-        .fieldValues[ffiNativeNameField.getterReference] as StringConstant;
+        .fieldValues[ffiNativeNameField.fieldReference] as StringConstant;
     final isLeaf = annotationConst
-        .fieldValues[ffiNativeIsLeafField.getterReference] as BoolConstant;
+        .fieldValues[ffiNativeIsLeafField.fieldReference] as BoolConstant;
 
     // double Function(double)
     final DartType dartType =
