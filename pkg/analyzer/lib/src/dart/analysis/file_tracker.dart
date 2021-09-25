@@ -16,10 +16,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 ///
 /// Provides methods for updating the file system state in response to changes.
 class FileTracker {
-  /// Callback invoked whenever a change occurs that may require the client to
-  /// perform analysis.
-  final void Function() _changeHook;
-
   /// The logger to write performed operations and performance to.
   final PerformanceLog _logger;
 
@@ -49,7 +45,7 @@ class FileTracker {
   /// have any special relation with changed files.
   var _pendingFiles = <String>{};
 
-  FileTracker(this._logger, this._fsState, this._changeHook);
+  FileTracker(this._logger, this._fsState);
 
   /// Returns the path to exactly one that needs analysis.  Throws a
   /// [StateError] if no files need analysis.
@@ -100,27 +96,24 @@ class FileTracker {
 
   /// Adds the given [path] to the set of "added files".
   void addFile(String path) {
-    _fsState.markFileForReading(path);
     addedFiles.add(path);
-    _pendingFiles.add(path);
-    _changeHook();
+    changeFile(path);
   }
 
   /// Adds the given [paths] to the set of "added files".
   void addFiles(Iterable<String> paths) {
     addedFiles.addAll(paths);
     _pendingFiles.addAll(paths);
-    _changeHook();
   }
 
   /// Adds the given [path] to the set of "changed files".
   void changeFile(String path) {
+    _fsState.markFileForReading(path);
     _changedFiles.add(path);
+
     if (addedFiles.contains(path)) {
       _pendingChangedFiles.add(path);
     }
-    _fsState.markFileForReading(path);
-    _changeHook();
   }
 
   /// Removes the given [path] from the set of "pending files".
@@ -165,7 +158,6 @@ class FileTracker {
     // files seems extreme.
     _fsState.removeFile(path);
     _pendingFiles.addAll(addedFiles);
-    _changeHook();
   }
 
   /// Schedule all added files for analysis.

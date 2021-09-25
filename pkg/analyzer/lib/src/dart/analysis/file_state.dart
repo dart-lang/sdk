@@ -781,6 +781,26 @@ class FileSystemState {
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
 
+  /// Collected files that transitively reference a file with the [path].
+  /// These files are potentially affected by the change.
+  void collectAffected(String path, Set<FileState> affected) {
+    final knownFiles = this.knownFiles.toList();
+
+    collectAffected(FileState file) {
+      if (affected.add(file)) {
+        for (var other in knownFiles) {
+          if (other.directReferencedFiles.contains(file)) {
+            collectAffected(other);
+          }
+        }
+      }
+    }
+
+    for (var file in _pathToFiles[path] ?? <FileState>[]) {
+      collectAffected(file);
+    }
+  }
+
   FeatureSet contextFeatureSet(
     String path,
     Uri uri,
