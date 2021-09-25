@@ -12,7 +12,8 @@ import "dart:io";
 main() async {
   // Compile Dill
   var sdkPath = getSdkPath();
-  if (!sdkPath.contains("ReleaseX64")) sdkPath = path.join(sdkPath, "ReleaseX64", "dart-sdk");
+  if (!sdkPath.contains("ReleaseX64"))
+    sdkPath = path.join(sdkPath, "ReleaseX64", "dart-sdk");
   var scriptPath = Platform.script.path;
   var pkgPath = path.dirname(
       path.dirname(path.dirname(path.dirname(path.dirname(scriptPath)))));

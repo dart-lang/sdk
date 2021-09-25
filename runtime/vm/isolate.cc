@@ -2384,10 +2384,14 @@ void Isolate::FreeSampleBlock(SampleBlock* block) {
 
 void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
   SampleBlock* head = free_block_list_.exchange(nullptr);
+  if (head == nullptr) {
+    // No sample blocks to process.
+    return;
+  }
   // Reverse the list before processing so older blocks are streamed and reused
   // first.
   SampleBlock* reversed_head = nullptr;
-  while (head != nullptr) {
+  do {
     SampleBlock* next = head->next_free_;
     if (reversed_head == nullptr) {
       reversed_head = head;
@@ -2397,7 +2401,7 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
       reversed_head = head;
     }
     head = next;
-  }
+  } while (head != nullptr);
   head = reversed_head;
 
   if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
@@ -2405,20 +2409,20 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
     StackZone zone(thread);
     HandleScope handle_scope(thread);
     Profile profile;
-    profile.Build(thread, nullptr, head);
+    profile.Build(thread, nullptr, &buffer);
     ServiceEvent event(this, ServiceEvent::kCpuSamples);
     event.set_cpu_profile(&profile);
     Service::HandleEvent(&event);
   }
 
-  while (head != nullptr) {
+  do {
     SampleBlock* next = head->next_free_;
     head->next_free_ = nullptr;
     head->evictable_ = true;
     Profiler::sample_block_buffer()->FreeBlock(head);
     head = next;
     thread->CheckForSafepoint();
-  }
+  } while (head != nullptr);
 }
 #endif  // !defined(PRODUCT)
 

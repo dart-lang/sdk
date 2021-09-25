@@ -359,7 +359,8 @@ class OneShotInterceptorData {
     return interceptors;
   }
 
-  Map<Selector, Map<String, OneShotInterceptor>> _oneShotInterceptors = {};
+  final Map<Selector, Map<String, OneShotInterceptor>> _oneShotInterceptors =
+      {};
 
   /// A set of specialized versions of the [getInterceptorMethod].
   ///
@@ -370,7 +371,7 @@ class OneShotInterceptorData {
   Iterable<SpecializedGetInterceptor> get specializedGetInterceptors =>
       _specializedGetInterceptors.values;
 
-  Map<String, SpecializedGetInterceptor> _specializedGetInterceptors = {};
+  final Map<String, SpecializedGetInterceptor> _specializedGetInterceptors = {};
 
   jsAst.Name registerOneShotInterceptor(
       Selector selector, ModularNamer namer, JClosedWorld closedWorld) {

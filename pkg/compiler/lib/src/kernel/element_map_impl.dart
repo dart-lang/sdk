@@ -109,7 +109,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
   BehaviorBuilder _nativeBehaviorBuilder;
-  FrontendStrategy _frontendStrategy;
+  final FrontendStrategy _frontendStrategy;
 
   Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
 

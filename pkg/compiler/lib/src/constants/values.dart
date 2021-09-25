@@ -246,7 +246,7 @@ class IntConstantValue extends NumConstantValue {
 
   // Caching IntConstantValues representing -2 through 10 so that we don't have
   // to create new ones every time those values are used.
-  static Map<BigInt, IntConstantValue> _cachedValues = {};
+  static final Map<BigInt, IntConstantValue> _cachedValues = {};
 
   @override
   double get doubleValue => intValue.toDouble();

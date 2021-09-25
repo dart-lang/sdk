@@ -95,7 +95,7 @@ main() {
       /*needsSignature*/
       ({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
-  Expect.isTrue(/*needsSignature*/(
+  Expect.isTrue(/*needsSignature*/ (
       {okWithClassesFunc_1 f1,
       okWithGenericsFunc_1 f2,
       okWithDynamicFunc_1 f3}) {} is funcFunc);

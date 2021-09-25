@@ -34,7 +34,7 @@ abstract class VariableScopeModel {
 }
 
 class VariableScopeModelImpl implements VariableScopeModel {
-  Map<ir.TreeNode, VariableScope> _scopeMap = {};
+  final Map<ir.TreeNode, VariableScope> _scopeMap = {};
   Set<ir.VariableDeclaration> _assignedVariables;
 
   VariableScope createScopeFor(ir.TreeNode node) {

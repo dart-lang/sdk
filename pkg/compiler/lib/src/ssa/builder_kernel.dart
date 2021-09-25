@@ -706,7 +706,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   // Locals for function type parameters that can be forwarded, in argument
   // position order.
-  List<Local> _functionTypeParameterLocals = [];
+  final List<Local> _functionTypeParameterLocals = [];
 
   /// Builds a generative constructor.
   ///
@@ -6600,7 +6600,7 @@ class TryCatchFinallyBuilder {
 }
 
 class KernelTypeBuilder extends TypeBuilder {
-  JsToElementMap _elementMap;
+  final JsToElementMap _elementMap;
 
   KernelTypeBuilder(KernelSsaGraphBuilder builder, this._elementMap)
       : super(builder);
@@ -6885,7 +6885,7 @@ class InlineDataCache {
   InlineDataCache(
       {this.enableUserAssertions = false, this.omitImplicitCasts = false});
 
-  Map<FunctionEntity, InlineData> _cache = {};
+  final Map<FunctionEntity, InlineData> _cache = {};
 
   InlineData getInlineData(JsToElementMap elementMap, FunctionEntity function) {
     return _cache[function] ??= InlineWeeder.computeInlineData(

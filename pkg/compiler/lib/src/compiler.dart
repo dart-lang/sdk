@@ -88,7 +88,7 @@ abstract class Compiler {
 
   api.CompilerOutput get outputProvider => _outputProvider;
 
-  List<CodeLocation> _userCodeLocations = <CodeLocation>[];
+  final List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
   JClosedWorld backendClosedWorldForTesting;
   DataSourceIndices closedWorldIndicesForTesting;

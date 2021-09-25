@@ -203,7 +203,7 @@ class ClassHierarchyNode {
   }
 
   /// The nodes for the direct subclasses of [cls].
-  List<ClassHierarchyNode> _directSubclasses = [];
+  final List<ClassHierarchyNode> _directSubclasses = [];
 
   ClassHierarchyNode(this.parentNode, this.cls, this.hierarchyDepth) {
     if (parentNode != null) {

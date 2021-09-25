@@ -54,7 +54,7 @@ abstract class EntityMapBase<E extends _Indexed> {
   bool _closed = false;
 
   int _size = 0;
-  List<E> _list = <E>[];
+  final List<E> _list = <E>[];
 
   /// Returns the [index]th entity in the map.
   E getEntity(int index) => _list[index];
@@ -113,7 +113,7 @@ class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
 /// corresponding data object of type [D].
 abstract class EntityDataMapBase<E extends _Indexed, D>
     extends EntityMapBase<E> {
-  List<D> _data = <D>[];
+  final List<D> _data = <D>[];
 
   /// Returns the data object stored for the [index]th entity.
   D getData(E entity) {
@@ -184,7 +184,7 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
 /// corresponding data object of type [D] and an environment of type [V].
 abstract class EntityDataEnvMapBase<E extends _Indexed, D, V>
     extends EntityDataMapBase<E, D> {
-  List<V> _env = <V>[];
+  final List<V> _env = <V>[];
 
   /// Returns the environment object stored for the [index]th entity.
   V getEnv(E entity) {

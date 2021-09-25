@@ -737,7 +737,7 @@ class BackendImpacts {
         BackendImpact(globalClasses: [_commonElements.closureClass]);
   }
 
-  Map<int, BackendImpact> _genericInstantiation = {};
+  final Map<int, BackendImpact> _genericInstantiation = {};
 
   BackendImpact getGenericInstantiation(int typeArgumentCount) =>
       _genericInstantiation[typeArgumentCount] ??= BackendImpact(staticUses: [

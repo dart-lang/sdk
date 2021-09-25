@@ -117,7 +117,7 @@ JsClosedWorld deserializeClosedWorldFromSource(
 }
 
 class _StringInterner implements ir.StringInterner, StringInterner {
-  Map<String, String> _map = {};
+  final Map<String, String> _map = {};
 
   @override
   String internString(String string) {

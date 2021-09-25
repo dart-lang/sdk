@@ -55,11 +55,10 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
   for (int i = 0;
       i /*invoke: [subclass=JSPositiveInt]*/ != 3;
       i /*invoke: [subclass=JSPositiveInt]*/ ++) {
-    methods. /*invoke: [exact=JSExtendableArray]*/ add(
-        /*[null]*/ (int
-            /*spec.[null|subclass=Object]*/
-            /*prod.[null|subclass=JSInt]*/
-            x) {
+    methods. /*invoke: [exact=JSExtendableArray]*/ add(/*[null]*/ (int
+        /*spec.[null|subclass=Object]*/
+        /*prod.[null|subclass=JSInt]*/
+        x) {
       res = x;
       sum = x /*invoke: [null|subclass=JSInt]*/ + i;
     });

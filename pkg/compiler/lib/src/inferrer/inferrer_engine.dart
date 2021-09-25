@@ -1130,7 +1130,7 @@ class InferrerEngine {
 
   /// Indirect calls share the same dynamic call site information node. This
   /// cache holds that shared dynamic call node for a given selector.
-  Map<Selector, DynamicCallSiteTypeInformation> _sharedCalls = {};
+  final Map<Selector, DynamicCallSiteTypeInformation> _sharedCalls = {};
 
   /// For a given selector, return a shared dynamic call site that will be used
   /// to combine the results of multiple dynamic calls in the program via

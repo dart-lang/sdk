@@ -98,15 +98,16 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final RecipeEncoder _rtiRecipeEncoder;
 
   /// A map used to canonicalize the entries of metadata.
-  Map<OutputUnit, Map<String, List<BoundMetadataEntry>>> _metadataMap = {};
+  final Map<OutputUnit, Map<String, List<BoundMetadataEntry>>> _metadataMap =
+      {};
 
   /// A map with a token for a lists of JS expressions, one token for each
   /// output unit. Once finalized, the entries represent types including
   /// function types and typedefs.
-  Map<OutputUnit, _MetadataList> _typesTokens = {};
+  final Map<OutputUnit, _MetadataList> _typesTokens = {};
 
   /// A map used to canonicalize the entries of types.
-  Map<OutputUnit, Map<DartType, List<BoundMetadataEntry>>> _typesMap = {};
+  final Map<OutputUnit, Map<DartType, List<BoundMetadataEntry>>> _typesMap = {};
 
   MetadataCollector(this.reporter, this._emitter, this._rtiRecipeEncoder);
 

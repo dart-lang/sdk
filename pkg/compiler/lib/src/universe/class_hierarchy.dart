@@ -707,8 +707,8 @@ class ClassHierarchyBuilder {
     return false;
   }
 
-  Map<ClassEntity, _InheritedInThisClassCache> _inheritedInThisClassCacheMap =
-      {};
+  final Map<ClassEntity, _InheritedInThisClassCache>
+      _inheritedInThisClassCacheMap = {};
 
   /// Returns `true` if a `this` expression in [thisClass] can target a member
   /// declared in [memberHoldingClass].
@@ -720,7 +720,8 @@ class ClassHierarchyBuilder {
     return cache.isInheritedInThisClassOf(this, memberHoldingClass, thisClass);
   }
 
-  Map<ClassEntity, _InheritedInSubtypeCache> _inheritedInSubtypeCacheMap = {};
+  final Map<ClassEntity, _InheritedInSubtypeCache> _inheritedInSubtypeCacheMap =
+      {};
 
   bool isInheritedInSubtypeOf(ClassEntity x, ClassEntity y) {
     _InheritedInSubtypeCache cache =

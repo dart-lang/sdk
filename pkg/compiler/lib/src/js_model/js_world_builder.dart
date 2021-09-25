@@ -771,7 +771,8 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   final DartTypes _dartTypes;
   final bool allowFreeVariables;
 
-  Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables = {};
+  final Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables =
+      {};
 
   _TypeConverter(this._dartTypes, {this.allowFreeVariables = false});
 

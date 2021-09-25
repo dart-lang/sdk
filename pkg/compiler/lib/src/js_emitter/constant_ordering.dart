@@ -233,8 +233,8 @@ class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   final _ConstantOrdering _constantOrdering;
   DartType _root;
-  List<FunctionTypeVariable> _leftFunctionTypeVariables = [];
-  List<FunctionTypeVariable> _rightFunctionTypeVariables = [];
+  final List<FunctionTypeVariable> _leftFunctionTypeVariables = [];
+  final List<FunctionTypeVariable> _rightFunctionTypeVariables = [];
   _DartTypeOrdering(this._constantOrdering);
 
   int compare(DartType a, DartType b) {

@@ -58,9 +58,9 @@ test1() {
   anotherInt1 = otherDict1
       /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSString], [exact=JSUInt31]), map: {stringTwo: Value([exact=JSString], value: "anotherString"), intTwo: [exact=JSUInt31]})*/
       ['intTwo'];
-  dynamic1 = dictionaryA1
-      /*Map([subclass=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/ [
-      'int'];
+  dynamic1 =
+      dictionaryA1 /*Map([subclass=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/ [
+          'int'];
   nullOrInt1 = dictionaryB1
       /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt], [exact=JSString], [exact=JSUInt31]), map: {string: Value([exact=JSString], value: "aString"), int: [exact=JSUInt31], double: [exact=JSNumNotInt], list: Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null), stringTwo: Value([null|exact=JSString], value: "anotherString"), intTwo: [null|exact=JSUInt31]})*/
       ['intTwo'];

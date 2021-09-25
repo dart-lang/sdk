@@ -339,7 +339,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   final Set<Local> _genericLocalFunctions = {};
 
-  Set<MemberEntity> _processedMembers = {};
+  final Set<MemberEntity> _processedMembers = {};
 
   bool get isClosed => _closed;
 
