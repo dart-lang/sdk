@@ -6426,15 +6426,13 @@ class TryCatchFinallyBuilder {
     // The body has either the catch or the finally block as successor.
     if (endTryBlock != null) {
       assert(startCatchBlock != null || startFinallyBlock != null);
-      endTryBlock.addSuccessor(
-          startCatchBlock != null ? startCatchBlock : startFinallyBlock);
+      endTryBlock.addSuccessor(startCatchBlock ?? startFinallyBlock);
       endTryBlock.addSuccessor(exitBlock);
     }
 
     // The catch block has either the finally or the exit block as
     // successor.
-    endCatchBlock?.addSuccessor(
-        startFinallyBlock != null ? startFinallyBlock : exitBlock);
+    endCatchBlock?.addSuccessor(startFinallyBlock ?? exitBlock);
 
     // The finally block has the exit block as successor.
     endFinallyBlock?.addSuccessor(exitBlock);

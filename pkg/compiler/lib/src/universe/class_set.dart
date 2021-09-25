@@ -906,7 +906,7 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
 
   @override
   ClassEntity get current {
-    return currentNode != null ? currentNode.cls : null;
+    return currentNode?.cls;
   }
 
   @override

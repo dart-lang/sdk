@@ -101,7 +101,7 @@ class LiveEnvironment {
         liveIntervals.putIfAbsent(instruction, () => LiveInterval());
     int lastId = liveInstructions[instruction];
     // If [lastId] is null, then this instruction is not being used.
-    interval.add(LiveRange(id, lastId == null ? id : lastId));
+    interval.add(LiveRange(id, lastId ?? id));
     // The instruction is defined at [id].
     interval.start = id;
     liveInstructions.remove(instruction);

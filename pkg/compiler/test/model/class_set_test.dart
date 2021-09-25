@@ -96,7 +96,7 @@ testIterators() async {
   void checkState(ClassEntity root,
       {ClassEntity currentNode, List<ClassEntity> stack}) {
     ClassEntity classOf(ClassHierarchyNode node) {
-      return node != null ? node.cls : null;
+      return node?.cls;
     }
 
     List<ClassEntity> classesOf(Iterable<ClassHierarchyNode> list) {

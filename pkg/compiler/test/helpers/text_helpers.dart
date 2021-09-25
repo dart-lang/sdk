@@ -17,8 +17,8 @@ int checkEqualContentAndShowDiff(String text1, String text2,
       if (filter != null && filter(i, lines1, lines2)) {
         String line1 = 0 <= i && i < lines1.length ? lines1[i] : null;
         String line2 = 0 <= i && i < lines2.length ? lines2[i] : null;
-        String text = line1 == null ? '<eof>' : line1;
-        String newText = line2 == null ? '<eof>' : line2;
+        String text = line1 ?? '<eof>';
+        String newText = line2 ?? '<eof>';
         print('(skipped) - $i ${text}');
         print('(skipped) + $i ${newText}');
       } else {
@@ -41,8 +41,8 @@ int checkEqualContentAndShowDiff(String text1, String text2,
               print('  $j $line1');
             }
           } else {
-            String text = line1 == null ? '<eof>' : line1;
-            String newText = line2 == null ? '<eof>' : line2;
+            String text = line1 ?? '<eof>';
+            String newText = line2 ?? '<eof>';
 
             if (text.length > 80 && newText.length > 80) {
               flushPendingLines();

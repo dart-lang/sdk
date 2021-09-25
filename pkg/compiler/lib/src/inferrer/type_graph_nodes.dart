@@ -47,7 +47,7 @@ abstract class TypeInformation {
   final MemberTypeInformation context;
 
   /// The element this [TypeInformation] node belongs to.
-  MemberEntity get contextMember => context == null ? null : context.member;
+  MemberEntity get contextMember => context?.member;
 
   Iterable<TypeInformation> get inputs => _inputs;
 

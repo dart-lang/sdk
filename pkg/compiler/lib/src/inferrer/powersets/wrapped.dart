@@ -37,7 +37,7 @@ class WrappedAbstractValue implements AbstractValue {
 }
 
 AbstractValue unwrapOrNull(WrappedAbstractValue wrapped) {
-  return wrapped == null ? null : wrapped._abstractValue;
+  return wrapped?._abstractValue;
 }
 
 WrappedAbstractValue wrapOrNull(AbstractValue abstractValue) {

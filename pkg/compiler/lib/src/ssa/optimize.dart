@@ -565,7 +565,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitInvokeUnary(HInvokeUnary node) {
     HInstruction folded = foldUnary(node.operation(), node.operand);
-    return folded != null ? folded : node;
+    return folded ?? node;
   }
 
   HInstruction foldUnary(
@@ -1161,7 +1161,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitIdentity(HIdentity node) {
     HInstruction newInstruction = handleIdentityCheck(node);
-    return newInstruction == null ? super.visitIdentity(node) : newInstruction;
+    return newInstruction ?? super.visitIdentity(node);
   }
 
   @override

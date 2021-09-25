@@ -1109,9 +1109,7 @@ class InferrerEngine {
     } else if (selector.isGetter) {
       if (element.isFunction) {
         // [functionType] is null if the inferrer did not run.
-        return types.functionType == null
-            ? types.dynamicType
-            : types.functionType;
+        return types.functionType ?? types.dynamicType;
       } else if (element.isField) {
         return typeOfMember(element);
       } else if (element.isGetter) {

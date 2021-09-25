@@ -218,9 +218,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
-    return _typeVariableBoundsSubtypeChecks != null
-        ? _typeVariableBoundsSubtypeChecks
-        : const <Pair<DartType, DartType>>[];
+    return _typeVariableBoundsSubtypeChecks ??
+        const <Pair<DartType, DartType>>[];
   }
 
   void registerConstSymbol(String name) {
@@ -230,7 +229,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   Iterable<String> get constSymbols {
-    return _constSymbols != null ? _constSymbols : const <String>[];
+    return _constSymbols ?? const <String>[];
   }
 
   void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
@@ -240,9 +239,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   Iterable<Set<ClassEntity>> get specializedGetInterceptors {
-    return _specializedGetInterceptors != null
-        ? _specializedGetInterceptors
-        : const <Set<ClassEntity>>[];
+    return _specializedGetInterceptors ?? const <Set<ClassEntity>>[];
   }
 
   void registerUseInterceptor() {
