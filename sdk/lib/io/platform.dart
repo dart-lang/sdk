@@ -45,7 +45,7 @@ part of dart.io;
 /// [operatingSystem] getter. You can also use one of the static boolean
 /// getters: [isMacOS], [isLinux], and [isWindows].
 /// ```dart
-/// import 'dart:io' show Platform, stdout;
+/// import 'dart:io' show Platform;
 ///
 /// void main() {
 ///   // Get the operating system as a string.
