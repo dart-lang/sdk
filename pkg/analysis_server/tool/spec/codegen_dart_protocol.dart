@@ -647,14 +647,15 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           if (field.value != null) {
             return field.value.hashCode.toString();
           } else {
-            return '${field.name}.hashCode';
+            return field.name;
           }
         }).toList();
 
         if (items.isEmpty) {
           writeln('0');
         } else if (items.length == 1) {
-          writeln(items.single);
+          write(items.single);
+          write('.hashCode');
         } else {
           writeln('Object.hash(');
           for (var field in items) {
