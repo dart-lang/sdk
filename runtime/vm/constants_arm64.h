@@ -549,9 +549,7 @@ static inline Condition InvertCondition(Condition c) {
   COMPILE_ASSERT((GE ^ LT) == 1);
   COMPILE_ASSERT((GT ^ LE) == 1);
   COMPILE_ASSERT((AL ^ NV) == 1);
-  // Although the NV condition is not valid for branches, it is used internally
-  // in the assembler in the implementation of far branches, so we have to
-  // allow AL and NV here. See EmitConditionalBranch.
+  ASSERT(c != AL);
   ASSERT(c != kInvalidCondition);
   return static_cast<Condition>(c ^ 1);
 }

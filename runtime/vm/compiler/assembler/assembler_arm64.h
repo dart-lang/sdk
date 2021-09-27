@@ -1221,7 +1221,11 @@ class Assembler : public AssemblerBase {
 
   // Conditional branch.
   void b(Label* label, Condition cond = AL) {
-    EmitConditionalBranch(BCOND, cond, label);
+    if (cond == AL) {
+      EmitUnconditionalBranch(B, label);
+    } else {
+      EmitConditionalBranch(BCOND, cond, label);
+    }
   }
 
   void b(int32_t offset) { EmitUnconditionalBranchOp(B, offset); }
@@ -2369,6 +2373,7 @@ class Assembler : public AssemblerBase {
     Emit(encoding);
   }
 
+  int32_t BindImm26Branch(int64_t position, int64_t dest);
   int32_t BindImm19Branch(int64_t position, int64_t dest);
   int32_t BindImm14Branch(int64_t position, int64_t dest);
 
@@ -2404,6 +2409,11 @@ class Assembler : public AssemblerBase {
     int32_t insns = (static_cast<uint32_t>(instr) & kImm14Mask) >> kImm14Shift;
     const int32_t off = static_cast<int32_t>(insns << 18) >> 16;
     return static_cast<int64_t>(off);
+  }
+
+  bool IsUnconditionalBranch(int32_t instr) {
+    return (instr & UnconditionalBranchMask) ==
+           (UnconditionalBranchFixed & UnconditionalBranchMask);
   }
 
   bool IsConditionalBranch(int32_t instr) {
@@ -2486,6 +2496,7 @@ class Assembler : public AssemblerBase {
   void EmitConditionalBranchOp(ConditionalBranchOp op,
                                Condition cond,
                                int64_t imm) {
+    ASSERT(cond != AL);
     const int32_t off = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding =
         op | (static_cast<int32_t>(cond) << kCondShift) | off;
@@ -2505,21 +2516,16 @@ class Assembler : public AssemblerBase {
   void EmitConditionalBranch(ConditionalBranchOp op,
                              Condition cond,
                              Label* label) {
+    ASSERT(cond != AL);
     if (label->IsBound()) {
       const int64_t dest = label->Position() - buffer_.Size();
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
-        if (cond == AL) {
-          // If the condition is AL, we must always branch to dest. There is
-          // no need for a guard branch.
-          b(dest);
-        } else {
-          EmitConditionalBranchOp(op, InvertCondition(cond),
-                                  2 * Instr::kInstrSize);
-          // Make a new dest that takes the new position into account after the
-          // inverted test.
-          const int64_t dest = label->Position() - buffer_.Size();
-          b(dest);
-        }
+        EmitConditionalBranchOp(op, InvertCondition(cond),
+                                2 * Instr::kInstrSize);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
+        b(dest);
       } else {
         EmitConditionalBranchOp(op, cond, dest);
       }
@@ -2610,6 +2616,18 @@ class Assembler : public AssemblerBase {
     const int32_t off = ((offset >> 2) << kImm26Shift) & kImm26Mask;
     const int32_t encoding = op | off;
     Emit(encoding);
+  }
+
+  void EmitUnconditionalBranch(UnconditionalBranchOp op, Label* label) {
+    if (label->IsBound()) {
+      const int64_t dest = label->Position() - buffer_.Size();
+      EmitUnconditionalBranchOp(op, dest);
+      label->UpdateLRState(lr_state());
+    } else {
+      const int64_t position = buffer_.Size();
+      EmitUnconditionalBranchOp(op, label->position_);
+      label->LinkTo(position, lr_state());
+    }
   }
 
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
