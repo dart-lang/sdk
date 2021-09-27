@@ -189,7 +189,7 @@ void f(A a) {
         numPlusElement,
         isLegacy: isLegacyLibrary,
       ),
-      type: typeToStringWithNullability ? 'double' : 'num',
+      type: typeStringByNullability(nullable: 'double', legacy: 'num'),
     );
     assertParameterElement(
       assignment.rightHandSide,
