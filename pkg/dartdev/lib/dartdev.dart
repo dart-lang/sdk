@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Do not call exit() directly. Use VmInteropHandler.exit() instead.
+import 'dart:async';
 import 'dart:io' as io hide exit;
 import 'dart:isolate';
 
@@ -12,7 +13,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
 import 'package:devtools_server/devtools_server.dart';
 import 'package:meta/meta.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
 import 'package:usage/usage.dart';
 
