@@ -3096,6 +3096,40 @@ class B implements A {
 }
 {% endprettify %}
 
+### default_value_on_required_parameter
+
+_Required named parameters can't have a default value._
+
+#### Description
+
+The analyzer produces this diagnostic when a named parameter has both the
+`required` modifier and a default value. If the parameter is required, then
+a value for the parameter is always provided at the call sites, so the
+default value can never be used.
+
+#### Examples
+
+The following code generates this diagnostic:
+
+{% prettify dart tag=pre+code %}
+void log({required String [!message!] = 'no message'}) {}
+{% endprettify %}
+
+#### Common fixes
+
+If the parameter is really required, then remove the default value:
+
+{% prettify dart tag=pre+code %}
+void log({required String message}) {}
+{% endprettify %}
+
+If the parameter isn't always required, then remove the `required`
+modifier:
+
+{% prettify dart tag=pre+code %}
+void log({String message = 'no message'}) {}
+{% endprettify %}
+
 ### deferred_import_of_extension
 
 _Imports of deferred libraries must hide all extensions._
@@ -8401,6 +8435,7 @@ doesn't implement the required constraint.
 #### Example
 
 The following code produces this diagnostic because the mixin `M` requires
+that the class to which it's applied be a subclass of `A`, but `Object`
 isn't a subclass of `A`:
 
 {% prettify dart tag=pre+code %}
@@ -12169,6 +12204,60 @@ the value that would have been bound to `this` as a parameter:
 {% prettify dart tag=pre+code %}
 void sayHello(String s) {
   print('Hello $s');
+}
+{% endprettify %}
+
+### sdk_version_gt_gt_gt_operator
+
+_The operator '>>>' wasn't supported until version 2.3.2, but this code is
+required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when the operator `>>>` is used in
+code that has an SDK constraint whose lower bound is less than 2.X.0. This
+operator wasn't supported in earlier versions, so this code won't be able
+to run against earlier versions of the SDK.
+
+#### Examples
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.X.0:
+
+```yaml
+environment:
+ sdk: '>=2.0.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+int x = 3 [!>>>!] 4;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the operator to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not use the `>>>` operator:
+
+{% prettify dart tag=pre+code %}
+int x = logicalShiftRight(3, 4);
+
+int logicalShiftRight(int leftOperand, int rightOperand) {
+  int divisor = 1 << rightOperand;
+  if (divisor == 0) {
+    return 0;
+  }
+  return leftOperand ~/ divisor;
 }
 {% endprettify %}
 

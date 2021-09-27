@@ -2486,7 +2486,7 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  /* // #### Description
+  // #### Description
   //
   // The analyzer produces this diagnostic when the operator `>>>` is used in
   // code that has an SDK constraint whose lower bound is less than 2.X.0. This
@@ -2534,7 +2534,7 @@ class HintCode extends AnalyzerErrorCode {
   //   }
   //   return leftOperand ~/ divisor;
   // }
-  // ``` */
+  // ```
   static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = HintCode(
       'SDK_VERSION_GT_GT_GT_OPERATOR',
       "The operator '>>>' wasn't supported until version 2.3.2, but this code "
