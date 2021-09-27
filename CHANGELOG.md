@@ -268,6 +268,11 @@
 
 ### Core libraries
 
+#### `dart:async`
+
+- Make the `unawaited` function's argument nullable, to allow calls like
+  `unawaited(foo?.bar())` too.
+
 #### `dart:cli`
 
 - The experimental `waitFor` functionality, and the library containing only that

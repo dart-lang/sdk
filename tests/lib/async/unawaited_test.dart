@@ -14,12 +14,15 @@ void main() {
 
 void testUnawaited() {
   // Exists where expected.
-  prefix.unawaited.expectStaticType<Exactly<void Function(Future<Object?>)>>();
+  prefix.unawaited.expectStaticType<Exactly<void Function(Future<Object?>?)>>();
 
   var future = Future<int>.value(42);
   captureStaticType(unawaited(future), <T>(value) {
     Expect.equals(typeOf<void>(), T);
   });
+
+  Future<Never>? noFuture = null;
+  unawaited(noFuture); // Doesn't throw on null.
 
   asyncStart();
   // Unawaited futures still throw.
