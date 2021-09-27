@@ -7,6 +7,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+void mountedBinOpAnd(BuildContext context, bool condition) async {
+  await Future<void>.delayed(Duration());
+  if (condition && context.mounted) {
+    await Navigator.of(context).pushNamed('routeName');// OK
+  }
+}
+
+void mountedBinOpAOr(BuildContext context, bool condition) async {
+  await Future<void>.delayed(Duration());
+  if (condition || !mounted) return;
+  await Navigator.of(context).pushNamed('routeName'); // OK
+}
+
 void awaitInSwitchCase(BuildContext context) async {
   await Future<void>.delayed(Duration());
   switch (1) {

@@ -194,7 +194,7 @@ class _Visitor extends SimpleAstVisitor {
 
       Expression check;
       if (condition is PrefixExpression) {
-        if (positiveCheck && condition.operator.type == TokenType.BANG) {
+        if (positiveCheck && condition.isNot) {
           return false;
         }
         check = condition.operand;
@@ -202,29 +202,59 @@ class _Visitor extends SimpleAstVisitor {
         check = condition;
       }
 
-      // stateContext.mounted => mounted
-      if (check is PrefixedIdentifier) {
-        check = check.identifier;
-      }
-      if (check is SimpleIdentifier) {
-        if (check.name == 'mounted') {
-          // In the positive case it's sufficient to know we're in a positively
-          // guarded block.
+      bool checksMounted(Expression check) {
+        if (check is BinaryExpression) {
+          // (condition && context.mounted)
           if (positiveCheck) {
-            return true;
+            if (check.isAnd) {
+              return checksMounted(check.leftOperand) ||
+                  checksMounted(check.rightOperand);
+            }
+          } else {
+            // (condition || !mounted)
+            if (check.isOr) {
+              return checksMounted(check.leftOperand) ||
+                  checksMounted(check.rightOperand);
+            }
           }
-          var then = statement.thenStatement;
-          return terminatesControl(then);
         }
+
+        // stateContext.mounted => mounted
+        if (check is PrefixedIdentifier) {
+          // ignore: parameter_assignments
+          check = check.identifier;
+        }
+        if (check is SimpleIdentifier) {
+          return check.name == 'mounted';
+        }
+        if (check is PrefixExpression) {
+          // (condition || !mounted)
+          if (!positiveCheck && check.isNot) {
+            return checksMounted(check.operand);
+          }
+        }
+
+        return false;
+      }
+
+      if (checksMounted(check)) {
+        // In the positive case it's sufficient to know we're in a positively
+        // guarded block.
+        if (positiveCheck) {
+          return true;
+        }
+        var then = statement.thenStatement;
+        return terminatesControl(then);
       }
     } else if (statement is TryStatement) {
       var statements = statement.finallyBlock?.statements;
-      if (statements != null) {
-        for (var i = statements.length - 1; i >= 0; i--) {
-          var s = statements[i];
-          if (isMountedCheck(s)) {
-            return true;
-          }
+      if (statements == null) {
+        return false;
+      }
+      for (var i = statements.length - 1; i >= 0; i--) {
+        var s = statements[i];
+        if (isMountedCheck(s)) {
+          return true;
         }
       }
     }
@@ -261,4 +291,13 @@ class _Visitor extends SimpleAstVisitor {
       check(node);
     }
   }
+}
+
+extension on PrefixExpression {
+  bool get isNot => operator.type == TokenType.BANG;
+}
+
+extension on BinaryExpression {
+  bool get isAnd => operator.type == TokenType.AMPERSAND_AMPERSAND;
+  bool get isOr => operator.type == TokenType.BAR_BAR;
 }
