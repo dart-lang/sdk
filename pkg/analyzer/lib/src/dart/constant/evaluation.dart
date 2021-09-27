@@ -1507,6 +1507,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     );
   }
 
+  @override
+  DartObjectImpl? visitTypeLiteral(TypeLiteral node) {
+    return node.type.accept(this);
+  }
+
   /// Add the entries produced by evaluating the given collection [element] to
   /// the given [list]. Return `true` if the evaluation of one or more of the
   /// elements failed.
@@ -1716,7 +1721,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (variableElement is TypeAliasElement) {
       var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
-            .map((t) => _typeProvider.dynamicType)
+            .map((t) => t.bound ?? _typeProvider.dynamicType)
             .toList(),
         nullabilitySuffix: NullabilitySuffix.star,
       );

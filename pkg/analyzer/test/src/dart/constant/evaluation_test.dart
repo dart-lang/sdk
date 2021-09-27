@@ -177,6 +177,120 @@ const g = identical(foo, foo);
     );
   }
 
+  test_identical_typeLiteral_explicitTypeArgs_differentTypeArgs() async {
+    await resolveTestCode('''
+class C<T> {}
+const c = identical(C<int>, C<String>);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_typeLiteral_explicitTypeArgs_differentTypes() async {
+    await resolveTestCode('''
+class C<T> {}
+class D<T> {}
+const c = identical(C<int>, D<int>);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_typeLiteral_explicitTypeArgs_sameType() async {
+    await resolveTestCode('''
+class C<T> {}
+const c = identical(C<int>, C<int>);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_typeLiteral_explicitTypeArgs_simpleTypeAlias() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef TC = C<int>;
+const c = identical(C<int>, TC);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_typeLiteral_explicitTypeArgs_typeAlias() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef TC<T> = C<T>;
+const c = identical(C<int>, TC<int>);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_typeLiteral_explicitTypeArgs_typeAlias_differentTypeArgs() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef TC<T> = C<T>;
+const c = identical(C<int>, TC<String>);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_typeLiteral_explicitTypeArgs_typeAlias_implicitTypeArgs() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef TC<T> = C<T>;
+const c = identical(C<dynamic>, TC);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_typeLiteral_explicitTypeArgs_typeAlias_implicitTypeArgs_bound() async {
+    await resolveTestCode('''
+class C<T extends num> {}
+typedef TC<T extends num> = C<T>;
+const c = identical(C<num>, TC);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_typeLiteral_simple_differentTypes() async {
+    await resolveTestCode('''
+const c = identical(int, String);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_typeLiteral_simple_sameType() async {
+    await resolveTestCode('''
+const c = identical(int, int);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(true),
+    );
+  }
+
   test_visitAsExpression_potentialConstType() async {
     await assertNoErrorsInCode('''
 const num three = 3;
