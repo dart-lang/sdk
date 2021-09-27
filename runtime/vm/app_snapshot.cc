@@ -534,6 +534,12 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
         required_capacity++;
       }
     }
+    // Over-allocate capacity so a few inserts can happen at startup without
+    // causing a rehash.
+    const intptr_t kSpareCapacity = 32;
+    required_capacity = static_cast<intptr_t>(
+        static_cast<double>(required_capacity + kSpareCapacity) /
+        HashTables::kMaxLoadFactor);
 
     intptr_t num_occupied = 0;
 
@@ -5365,6 +5371,10 @@ class StringDeserializationCluster
       if (d->isolate_group() == Dart::vm_isolate_group()) {
         Symbols::InitFromSnapshot(d->isolate_group());
       }
+#if defined(DEBUG)
+      Symbols::New(Thread::Current(), ":some:new:symbol:");
+      ASSERT(object_store->symbol_table() == table_.ptr());  // Did not rehash.
+#endif
     }
   }
 };
