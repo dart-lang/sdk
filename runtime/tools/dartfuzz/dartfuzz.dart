@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.92';
+const String version = '1.93';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -549,6 +549,8 @@ class DartFuzz {
     emitLn('try ', newline: false);
     emitBraceWrapped(() => tryBody());
     emit(' on OutOfMemoryError ');
+    emitBraceWrapped(() => emitLn('exit($oomExitCode);', newline: false));
+    emit(' on StackOverflowError ');
     emitBraceWrapped(() => emitLn('exit($oomExitCode);', newline: false));
     emit(' catch (e, st) ');
     emitBraceWrapped(catchBody);
@@ -1390,6 +1392,8 @@ class DartFuzz {
     emitLn('try ', newline: false);
     emitBraceWrapped(emitStatementsClosure);
     emit(' on OutOfMemoryError ');
+    emitBraceWrapped(() => emitLn('exit($oomExitCode);', newline: false));
+    emit(' on StackOverflowError ');
     emitBraceWrapped(() => emitLn('exit($oomExitCode);', newline: false));
     emit(' catch (exception, stackTrace) ', newline: false);
     emitBraceWrapped(emitStatementsClosure);
