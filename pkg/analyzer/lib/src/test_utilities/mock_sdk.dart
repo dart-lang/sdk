@@ -365,6 +365,7 @@ abstract class int extends num {
   int operator -();
   int operator <<(int shiftAmount);
   int operator >>(int shiftAmount);
+  int operator >>>(int shiftAmount);
   int operator ^(int other);
   int operator |(int other);
   int operator ~();

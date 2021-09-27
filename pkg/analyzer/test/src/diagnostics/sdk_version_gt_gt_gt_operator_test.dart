@@ -22,23 +22,16 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
       '${ExperimentStatus.currentVersion.minor}';
 
   test_const_equals() async {
-    // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     await verifyVersion('2.5.0', '''
 const a = 42 >>> 3;
-''', expectedErrors: [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 13, 3),
-    ]);
+''');
   }
 
   test_const_lessThan() async {
-    // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     await verifyVersion('2.2.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 13, 3),
     ]);
   }
 
@@ -61,23 +54,16 @@ class A {
   }
 
   test_nonConst_equals() async {
-    // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     await verifyVersion('2.5.0', '''
 var a = 42 >>> 3;
-''', expectedErrors: [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 11, 3),
-    ]);
+''');
   }
 
   test_nonConst_lessThan() async {
-    // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     await verifyVersion('2.2.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 11, 3),
     ]);
   }
 }
