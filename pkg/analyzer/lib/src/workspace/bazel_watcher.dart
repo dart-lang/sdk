@@ -10,7 +10,6 @@ import 'dart:math';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:watcher/watcher.dart';
 
 Future<void> _isolateMain(SendPort sendPort) async {
