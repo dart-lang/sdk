@@ -31,7 +31,6 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -835,15 +834,12 @@ class _LibraryContext {
       var resolutionData = byteStore.get(resolutionKey, cycle.signature);
       var resolutionBytes = resolutionData?.bytes;
 
-      var unitsInformativeData = <Uri, InformativeUnitData>{};
+      var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
         for (var file in library.libraryFiles) {
           var informativeBytes = file.informativeBytes;
           if (informativeBytes != null) {
-            unitsInformativeData[file.uri] = InformativeUnitData(
-              content: file.getContentWithSameDigest(),
-              bytes: informativeBytes,
-            );
+            unitsInformativeBytes[file.uri] = informativeBytes;
           }
         }
       }
@@ -913,7 +909,7 @@ class _LibraryContext {
         elementFactory.addBundle(
           BundleReader(
             elementFactory: elementFactory,
-            unitsInformativeData: unitsInformativeData,
+            unitsInformativeBytes: unitsInformativeBytes,
             resolutionBytes: resolutionBytes as Uint8List,
           ),
         );

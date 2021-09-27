@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -115,13 +114,10 @@ class LibraryContext {
 
       cycle.directDependencies.forEach(loadBundle);
 
-      var unitsInformativeData = <Uri, InformativeUnitData>{};
+      var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
         for (var file in library.libraryFiles) {
-          unitsInformativeData[file.uri] = InformativeUnitData(
-            content: file.content,
-            bytes: file.getInformativeBytes(),
-          );
+          unitsInformativeBytes[file.uri] = file.getInformativeBytes();
         }
       }
 
@@ -200,7 +196,7 @@ class LibraryContext {
         elementFactory.addBundle(
           BundleReader(
             elementFactory: elementFactory,
-            unitsInformativeData: unitsInformativeData,
+            unitsInformativeBytes: unitsInformativeBytes,
             resolutionBytes: resolutionBytes,
           ),
         );
@@ -249,7 +245,7 @@ class LibraryContext {
           BundleReader(
             elementFactory: elementFactory,
             resolutionBytes: bundle.resolutionBytes,
-            unitsInformativeData: {},
+            unitsInformativeBytes: {},
           ),
         );
       }

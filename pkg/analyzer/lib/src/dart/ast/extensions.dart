@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
 Element? _readElement(AstNode node) {
@@ -89,13 +88,6 @@ extension ExpressionExtension on Expression {
       throw StateError('No type: $this');
     }
     return type;
-  }
-}
-
-extension FieldDeclarationExtension on FieldDeclaration {
-  /// Return the element of the first field.
-  FieldElementImpl get firstElement {
-    return fields.variables.first.declaredElement as FieldElementImpl;
   }
 }
 

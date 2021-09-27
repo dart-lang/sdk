@@ -59,9 +59,11 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var inputLibraries = <LinkInputLibrary>[];
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName)!;
+      var text = getFile(source.fullName).readAsStringSync();
+      var unit = parseText(text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
-      _addLibraryUnits(source, inputUnits, featureSet);
+      _addLibraryUnits(source, unit, inputUnits, featureSet);
       inputLibraries.add(
         LinkInputLibrary(
           source: source,
@@ -97,17 +99,11 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var inputLibraries = <LinkInputLibrary>[];
     _addNonDartLibraries({}, inputLibraries, source);
 
-    var unitsInformativeData = <Uri, InformativeUnitData>{};
+    var unitsInformativeBytes = <Uri, Uint8List>{};
     for (var inputLibrary in inputLibraries) {
       for (var inputUnit in inputLibrary.units) {
-        var content = inputUnit.sourceContent;
-        if (content != null) {
-          var informativeBytes = writeUnitInformative(inputUnit.unit);
-          unitsInformativeData[inputUnit.uri] = InformativeUnitData(
-            content: content,
-            bytes: informativeBytes,
-          );
-        }
+        var informativeBytes = writeUnitInformative(inputUnit.unit);
+        unitsInformativeBytes[inputUnit.uri] = informativeBytes;
       }
     }
 
@@ -127,7 +123,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     elementFactory.addBundle(
       BundleReader(
         elementFactory: elementFactory,
-        unitsInformativeData: {},
+        unitsInformativeBytes: {},
         resolutionBytes: sdkBundle.resolutionBytes,
       ),
     );
@@ -141,7 +137,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       elementFactory.addBundle(
         BundleReader(
           elementFactory: elementFactory,
-          unitsInformativeData: unitsInformativeData,
+          unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: linkResult.resolutionBytes,
         ),
       );
@@ -156,16 +152,14 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
 
   void _addLibraryUnits(
     Source definingSource,
+    CompilationUnit definingUnit,
     List<LinkInputUnit> units,
     FeatureSet featureSet,
   ) {
-    var definingContent = _readSafely(definingSource.fullName);
-    var definingUnit = parseText(definingContent, featureSet);
     units.add(
       LinkInputUnit(
         partDirectiveIndex: null,
         source: definingSource,
-        sourceContent: definingContent,
         isSynthetic: false,
         unit: definingUnit,
       ),
@@ -190,7 +184,6 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
               partDirectiveIndex: partDirectiveIndex,
               partUriStr: relativeUriStr,
               source: partSource,
-              sourceContent: text,
               isSynthetic: false,
               unit: unit,
             ),
@@ -215,7 +208,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var unit = parseText(text, featureSet);
 
     var units = <LinkInputUnit>[];
-    _addLibraryUnits(source, units, featureSet);
+    _addLibraryUnits(source, unit, units, featureSet);
     libraries.add(
       LinkInputLibrary(
         source: source,

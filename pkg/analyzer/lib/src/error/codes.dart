@@ -7831,15 +7831,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * Parameters:
-   * 0: the name of the macro
-   * 1: the message
-   */
-  static const CompileTimeErrorCode MACRO_EXECUTION_ERROR =
-      CompileTimeErrorCode(
-          'MACRO_EXECUTION_ERROR', "Exception thrown by macro {0}: {1}");
-
-  /**
    * No parameters.
    */
   // #### Description
