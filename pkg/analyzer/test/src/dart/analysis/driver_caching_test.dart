@@ -22,7 +22,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
 
   List<Set<String>> get _linkedCycles {
     var driver = driverFor(testFilePath);
-    return driver.test.libraryContext.linkedCycles;
+    return driver.test.libraryContextTestView.linkedCycles;
   }
 
   test_change_factoryConstructor_addEqNothing() async {

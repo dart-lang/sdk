@@ -3473,7 +3473,7 @@ extension on AnalysisDriver {
   }
 
   Set<String> get loadedLibraryUriSet {
-    var elementFactory = this.test.libraryContext2!.elementFactory;
+    var elementFactory = this.test.libraryContext!.elementFactory;
     var libraryReferences = elementFactory.rootReference.children;
     return libraryReferences.map((e) => e.name).toSet();
   }
