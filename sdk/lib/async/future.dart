@@ -780,7 +780,8 @@ abstract class Future<T> {
 ///
 /// Not all futures need to be awaited.
 /// The Dart linter has an optional ["unawaited futures" lint](https://dart-lang.github.io/linter/lints/unawaited_futures.html)
-/// which enforces that futures (expressions with a static type of [Future])
+/// which enforces that potential futures
+/// (expressions with a static type of [Future] or `Future?`)
 /// in asynchronous functions are handled *somehow*.
 /// If a particular future value doesn't need to be awaited,
 /// you can call `unawaited(...)` with it, which will avoid the lint,
@@ -797,8 +798,8 @@ abstract class Future<T> {
 /// are *expected* to complete with a value.
 /// You can use [FutureExtensions.ignore] if you also don't want to know
 /// about errors from this future.
-@Since("2.14")
-void unawaited(Future<void> future) {}
+@Since("2.15")
+void unawaited(Future<void>? future) {}
 
 /// Convenience methods on futures.
 ///

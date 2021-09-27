@@ -3049,7 +3049,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  /* #### Description
+  // #### Description
   //
   // The analyzer produces this diagnostic when a named parameter has both the
   // `required` modifier and a default value. If the parameter is required, then
@@ -3077,7 +3077,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // void log({String message = 'no message'}) {}
-  // ``` */
+  // ```
   static const CompileTimeErrorCode DEFAULT_VALUE_ON_REQUIRED_PARAMETER =
       CompileTimeErrorCode('DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
           "Required named parameters can't have a default value.",
@@ -8468,7 +8468,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because the mixin `M` requires
-  //that the class to which it's applied be a subclass of `A`, but `Object`
+  // that the class to which it's applied be a subclass of `A`, but `Object`
   // isn't a subclass of `A`:
   //
   // ```dart

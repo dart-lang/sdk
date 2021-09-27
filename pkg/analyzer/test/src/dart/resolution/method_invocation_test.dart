@@ -33,9 +33,9 @@ h(double x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
-        [typeToStringWithNullability ? 'double' : 'num']);
+        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
     assertTypeArgumentTypes(findNode.methodInvocation('f())'),
-        [typeToStringWithNullability ? 'double' : 'num']);
+        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
   }
 
   test_clamp_double_context_int() async {
@@ -79,7 +79,8 @@ f(double a, double b, double c) {
         elementMatcher(numElement.getMethod('clamp'),
             isLegacy: isLegacyLibrary),
         'num Function(num, num)',
-        expectedType: typeToStringWithNullability ? 'double' : 'num');
+        expectedType:
+            typeStringByNullability(nullable: 'double', legacy: 'num'));
   }
 
   test_clamp_double_double_int() async {
@@ -154,9 +155,9 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
     assertTypeArgumentTypes(findNode.methodInvocation('f())'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_clamp_int_context_none() async {
@@ -288,7 +289,7 @@ f(int a, int b, int c) {
         elementMatcher(numElement.getMethod('clamp'),
             isLegacy: isLegacyLibrary),
         'num Function(num, num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_clamp_int_int_int_from_cascade() async {
@@ -307,7 +308,7 @@ f(int a, int b, int c) {
         elementMatcher(numElement.getMethod('clamp'),
             isLegacy: isLegacyLibrary),
         'num Function(num, num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_clamp_int_int_int_via_extension_explicit() async {
@@ -377,7 +378,8 @@ f(Never a, int b, int c) {
 
     assertMethodInvocation(
         findNode.methodInvocation('clamp'), isNull, 'dynamic',
-        expectedType: typeToStringWithNullability ? 'Never' : 'dynamic');
+        expectedType:
+            typeStringByNullability(nullable: 'Never', legacy: 'dynamic'));
   }
 
   test_clamp_other_context_int() async {
@@ -2217,7 +2219,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_remainder_int_context_int_target_rewritten() async {
@@ -2230,7 +2232,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_remainder_int_context_int_via_extension_explicit() async {
@@ -2273,7 +2275,8 @@ f(int a, double b) {
         elementMatcher(numElement.getMethod('remainder'),
             isLegacy: isLegacyLibrary),
         'num Function(num)',
-        expectedType: typeToStringWithNullability ? 'double' : 'num');
+        expectedType:
+            typeStringByNullability(nullable: 'double', legacy: 'num'));
   }
 
   test_remainder_int_int() async {
@@ -2288,7 +2291,7 @@ f(int a, int b) {
         elementMatcher(numElement.getMethod('remainder'),
             isLegacy: isLegacyLibrary),
         'num Function(num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_remainder_int_int_target_rewritten() async {
@@ -2303,7 +2306,7 @@ f(int Function() a, int b) {
         elementMatcher(numElement.getMethod('remainder'),
             isLegacy: isLegacyLibrary),
         'num Function(num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_remainder_other_context_int_via_extension_explicit() async {

@@ -23,6 +23,9 @@ void testUnawaited() {
     Expect.equals(typeOf<void>(), T);
   });
 
+  Future<Never> noFuture = null;
+  unawaited(noFuture); // Doesn't throw on `null`.
+
   asyncStart();
   // Unawaited futures still throw.
   {
