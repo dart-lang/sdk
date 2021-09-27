@@ -89,6 +89,11 @@ class LibraryContext {
     return elementFactory.libraryOfUri2('$uri');
   }
 
+  /// We are about to discard this context, mark all libraries invalid.
+  void invalidAllLibraries() {
+    elementFactory.invalidateAllLibraries();
+  }
+
   /// Load data required to access elements of the given [targetLibrary].
   void load2(FileState targetLibrary) {
     timerLoad2.start();

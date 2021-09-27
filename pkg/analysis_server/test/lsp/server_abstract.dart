@@ -1467,7 +1467,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
               text: content)),
     );
     await sendNotificationToServer(notification);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 128);
   }
 
   int positionCompare(Position p1, Position p2) {

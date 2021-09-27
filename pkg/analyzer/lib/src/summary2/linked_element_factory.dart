@@ -164,6 +164,13 @@ class LinkedElementFactory {
     return libraryReaders[uriStr] != null;
   }
 
+  /// We are about to discard this factory, mark all libraries invalid.
+  void invalidateAllLibraries() {
+    for (var libraryReference in rootReference.children) {
+      _invalidateLibrary(libraryReference);
+    }
+  }
+
   LibraryElementImpl? libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference) as LibraryElementImpl?;
@@ -189,7 +196,8 @@ class LinkedElementFactory {
     for (var uriStr in uriStrSet) {
       _exportsOfLibrary.remove(uriStr);
       libraryReaders.remove(uriStr);
-      rootReference.removeChild(uriStr);
+      var libraryReference = rootReference.removeChild(uriStr);
+      _invalidateLibrary(libraryReference);
     }
 
     analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
@@ -238,5 +246,12 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
 
     libraryElement.createLoadLibraryFunction();
+  }
+
+  void _invalidateLibrary(Reference? libraryReference) {
+    var libraryElement = libraryReference?.element;
+    if (libraryElement is LibraryElementImpl) {
+      libraryElement.isValid = false;
+    }
   }
 }
