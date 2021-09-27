@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
@@ -1923,6 +1924,12 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.defaultValue, _oldNode)) {
       node.defaultValue = _newNode as Expression;
+      var parameterElement = node.declaredElement;
+      if (parameterElement is DefaultParameterElementImpl) {
+        parameterElement.constantInitializer = _newNode as Expression;
+      } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {
+        parameterElement.constantInitializer = _newNode as Expression;
+      }
       return true;
     }
     return visitNode(node);
@@ -2904,6 +2911,9 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.initializer, _oldNode)) {
       node.initializer = _newNode as Expression;
       return true;
+      // TODO(srawlins) also replace node's declared element's
+      // `constantInitializer`, if the element is [ConstFieldElementImpl],
+      // [ConstLocalVariableElementImpl], or [ConstTopLevelVariableElementImpl].
     }
     return visitAnnotatedNode(node);
   }

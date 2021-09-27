@@ -5285,6 +5285,50 @@ void f() {
 }
 {% endprettify %}
 
+### generic_method_type_instantiation_on_dynamic
+
+_A method tear-off on a receiver whose type is 'dynamic' can't have type
+arguments._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance method is being torn
+off from a receiver whose type is `dynamic`, and the tear-off includes type
+arguments. Because the analyzer can't know how many type parameters the
+method has, or whether it has any type parameters, there's no way it can
+validate that the type arguments are correct. As a result, the type
+arguments aren't allowed.
+
+#### Example
+
+The following code produces this diagnostic because the type of `p` is
+`dynamic` and the tear-off of `m` has type arguments:
+
+{% prettify dart tag=pre+code %}
+void f(dynamic list) {
+  [!list.fold!]<int>;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you can use a more specific type than `dynamic`, then change the type of
+the receiver:
+
+{% prettify dart tag=pre+code %}
+void f(List<Object> list) {
+  list.fold<int>;
+}
+{% endprettify %}
+
+If you can't use a more specific type, then remove the type arguments:
+
+{% prettify dart tag=pre+code %}
+void f(dynamic list) {
+  list.cast;
+}
+{% endprettify %}
+
 ### getter_not_subtype_setter_types
 
 _The return type of getter '{0}' is '{1}' which isn't a subtype of the type
@@ -6114,6 +6158,48 @@ var e = E.a;
 
 If you intend to use an instance of a class, then use the name of that class in place of the name of the enum.
 
+### instantiate_type_alias_expands_to_type_parameter
+
+_Type aliases that expand to a type parameter can't be instantiated._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor invocation is
+found where the type being instantiated is a type alias for one of the type
+parameters of the type alias. This isn’t allowed because the value of the
+type parameter is a type rather than a class.
+
+#### Example
+
+The following code produces this diagnostic because it creates an instance
+of `A`, even though `A` is a type alias that is defined to be equivalent to
+a type parameter:
+
+{% prettify dart tag=pre+code %}
+typedef A<T> = T;
+
+void f() {
+  const [!A!]<int>();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use either a class name or a type alias defined to be a class, rather than
+a type alias defined to be a type parameter:
+
+{% prettify dart tag=pre+code %}
+typedef A<T> = C<T>;
+
+void f() {
+  const A<int>();
+}
+
+class C<T> {
+  const C();
+}
+{% endprettify %}
+
 ### integer_literal_imprecise_as_double
 
 _The integer literal is being used as a double, but can't be represented as a
@@ -6250,6 +6336,57 @@ int v = 0;
 void f() {
 }
 {% endprettify %}
+
+### invalid_annotation_constant_value_from_deferred_library
+
+_Constant values from a deferred library can't be used in annotations._
+
+#### Description
+
+The analyzer produces this diagnostic when a constant defined in a library
+that is imported as a deferred library is referenced in the argument list
+of an annotation. Annotations are evaluated at compile time, and values
+from deferred libraries aren't available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+The following code produces this diagnostic because the constant `pi` is
+being referenced in the argument list of an annotation, even though the
+library that defines it is being imported as a deferred library:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' deferred as math;
+
+class C {
+  const C(double d);
+}
+
+@C([!math.pi!])
+void f () {}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the imported constant, then remove the `deferred`
+keyword:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' as math;
+
+class C {
+  const C(double d);
+}
+
+@C(math.pi)
+void f () {}
+{% endprettify %}
+
+If the import is required to be deferred and there's another constant that
+is appropriate, then use that constant in place of the constant from the
+deferred library.
 
 ### invalid_annotation_from_deferred_library
 
@@ -7163,6 +7300,47 @@ int f(String? x) {
 }
 {% endprettify %}
 
+### invalid_use_of_visible_for_overriding_member
+
+_The member '{0}' can only be used for overriding._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance member that is
+annotated with `visibleForOverriding` is referenced outside the library in
+which it's declared for any reason other than to override it.
+
+#### Example
+
+Given a file named `a.dart` containing the following declaration:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  @visibleForOverriding
+  void a() {}
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the method `m` is being
+invoked even though the only reason it's public is to allow it to be
+overridden:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+class B extends A {
+  void b() {
+    [!a!]();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the invalid use of the member.
+
 ### invalid_visibility_annotation
 
 _The member '{0}' is annotated with '{1}', but this annotation is only
@@ -7206,6 +7384,38 @@ import 'package:meta/meta.dart';
 void someFunction() {}
 
 void f() => someFunction();
+{% endprettify %}
+
+### invalid_visible_for_overriding_annotation
+
+_The declaration '{0}' is annotated with 'visibleForOverriding'. Because '{0}'
+isn't an interface member that could be overridden, the annotation is meaningless._
+
+#### Description
+
+The analyzer produces this diagnostic when anything other than a public
+instance member of a class is annotated with `visibleForOverriding`.
+Because only public instance members can be overridden outside the defining
+library, there's no value to annotating any other declarations.
+
+#### Example
+
+The following code produces this diagnostic because the annotation is on a
+class, and classes can't be overridden:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+[!@visibleForOverriding!]
+class C {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the annotation:
+
+{% prettify dart tag=pre+code %}
+class C {}
 {% endprettify %}
 
 ### invocation_of_extension_without_call
@@ -9828,6 +10038,32 @@ g([!f!] v) {}
 
 Replace the name with the name of a type.
 
+### not_binary_operator
+
+_'{0}' isn't a binary operator._
+
+#### Description
+
+The analyzer produces this diagnostic when an operator that can only be
+used as a unary operator is used as a binary operator.
+
+#### Example
+
+The following code produces this diagnostic because the operator `~` can
+only be used as a unary operator:
+
+{% prettify dart tag=pre+code %}
+var a = 5 [!~!] 3;
+{% endprettify %}
+
+#### Common fixes
+
+Replace the operator with the correct binary operator:
+
+{% prettify dart tag=pre+code %}
+var a = 5 - 3;
+{% endprettify %}
+
 ### not_enough_positional_arguments
 
 _{0} positional argument(s) expected, but {1} found._
@@ -10324,6 +10560,41 @@ Remove the question mark from the type:
 {% prettify dart tag=pre+code %}
 mixin M {}
 class C with M {}
+{% endprettify %}
+
+### null_argument_to_non_null_type
+
+_'{0}' shouldn't be called with a null argument for the non-nullable type
+argument '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when `null` is passed to either the
+constructor `Future.value` or the method `Completer.complete` when the type
+argument used to create the instance was non-nullable. Even though the type
+system can't express this restriction, passing in a `null` results in a
+runtime exception.
+
+#### Example
+
+The following code produces this diagnostic because `null` is being passed
+to the constructor `Future.value` even though the type argument is the
+non-nullable type `String`:
+
+{% prettify dart tag=pre+code %}
+Future<String> f() {
+  return Future.value([!null!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Pass in a non-null value:
+
+{% prettify dart tag=pre+code %}
+Future<String> f() {
+  return Future.value('');
+}
 {% endprettify %}
 
 ### on_repeated
@@ -11249,6 +11520,47 @@ class C {
 }
 {% endprettify %}
 
+### redirect_to_type_alias_expands_to_type_parameter
+
+_A redirecting constructor can't redirect to a type alias that expands to a type
+parameter._
+
+#### Description
+
+The analyzer produces this diagnostic when a redirecting factory
+constructor redirects to a type alias, and the type alias expands to one of
+the type parameters of the type alias. This isn’t allowed because the value
+of the type parameter is a type rather than a class.
+
+#### Example
+
+The following code produces this diagnostic because the redirect to `B<A>`
+is to a type alias whose value is `T`, even though it looks like the value
+should be `A`:
+
+{% prettify dart tag=pre+code %}
+class A implements C {}
+
+typedef B<T> = T;
+
+abstract class C {
+  factory C() = [!B!]<A>;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use either a class name or a type alias that is defined to be a class
+rather than a type alias defined to be a type parameter:
+
+{% prettify dart tag=pre+code %}
+class A implements C {}
+
+abstract class C {
+  factory C() = A;
+}
+{% endprettify %}
+
 ### referenced_before_declaration
 
 _Local variable '{0}' can't be referenced before it is declared._
@@ -11403,9 +11715,9 @@ _Can't return a value from a generator function that uses the 'async*' or
 #### Description
 
 The analyzer produces this diagnostic when a generator function (one whose
-body is marked with either `async*` or `sync*`) uses a `return` statement
-to return a value. In both cases, they should use `yield` instead of
-`return`.
+body is marked with either `async*` or `sync*`) uses either a `return`
+statement to return a value or implicitly returns a value because of using
+`=>`. In any of these cases, they should use `yield` instead of `return`.
 
 #### Example
 
@@ -11418,7 +11730,23 @@ Iterable<int> f() sync* {
 }
 {% endprettify %}
 
+The following code produces this diagnostic because the function `f` is a
+generator and is implicitly returning a value:
+
+{% prettify dart tag=pre+code %}
+Stream<int> f() async* [!=>!] 3;
+{% endprettify %}
+
 #### Common fixes
+
+If the function is using `=>` for the body of the function, then convert it
+to a block function body, and use `yield` to return a value:
+
+{% prettify dart tag=pre+code %}
+Stream<int> f() async* {
+  yield 3;
+}
+{% endprettify %}
 
 If the method is intended to be a generator, then use `yield` to return a
 value:
@@ -11687,6 +12015,52 @@ isn't in a [constant context][]:
 const bool a = true;
 const bool b = false;
 bool c = a & b;
+{% endprettify %}
+
+### sdk_version_constructor_tearoffs
+
+_Tearing off a constructor requires the 'constructor-tearoffs' language
+feature._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor tear-off is found
+in code that has an SDK constraint whose lower bound is less than 2.15.
+Constructor tear-offs weren't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.15:
+
+```yaml
+environment:
+  sdk: '>=2.9.0 <2.15.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+var setConstructor = [!Set.identity!];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the operator to be used:
+
+```yaml
+environment:
+  sdk: '>=2.15.0 <2.16.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not use constructor tear-offs:
+
+{% prettify dart tag=pre+code %}
+var setConstructor = () => Set.identity();
 {% endprettify %}
 
 ### sdk_version_eq_eq_operator_in_const_context
@@ -12523,6 +12897,36 @@ void f(String s) {
   }
 }
 {% endprettify %}
+
+### tearoff_of_generative_constructor_of_abstract_class
+
+_A generative constructor of an abstract class can't be torn off._
+
+#### Description
+
+The analyzer produces this diagnostic when a generative constructor from an
+abstract class is being torn off. This isn't allowed because it isn't valid
+to create an instance of an abstract class, which means that there isn't
+any valid use for the torn off constructor.
+
+#### Example
+
+The following code produces this diagnostic because the constructor `C.new`
+is being torn off and the class `C` is an abstract class:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  C();
+}
+
+void f() {
+  [!C.new!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Tear off the constructor of a concrete class.
 
 ### throw_of_invalid_type
 
@@ -13834,6 +14238,40 @@ import for the library.
 If the name is wrong, then change it to one of the names that's declared in
 the imported libraries.
 
+### undefined_referenced_parameter
+
+_The parameter '{0}' is not defined by '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an annotation of the form
+`@UnusedResult.unless(parameterDefined: parameterName)` specifies a
+parameter name that isn't defined by the annotated function.
+
+#### Example
+
+The following code produces this diagnostic because the function `f`
+doesn't have a parameter named `b`:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: [!'b'!])
+int f([int? a]) => a ?? 0;
+{% endprettify %}
+
+#### Common fixes
+
+Change the argument named `parameterDefined` to match the name of one of
+the parameters to the function:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'a')
+int f([int? a]) => a ?? 0;
+{% endprettify %}
+
 ### undefined_setter
 
 _The setter '{0}' isn't defined for the '{1}' function type._
@@ -14027,6 +14465,52 @@ dependencies:
   meta: ^1.0.2
 ```
 
+### unnecessary_import
+
+_The import of '{0}' is unnecessary because all of the used elements are also
+provided by the import of '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an import isn't needed because
+all of the names that are imported and referenced within the importing
+library are also visible through another import.
+
+#### Example
+
+Given a file named `a.dart` that contains the following:
+
+{% prettify dart tag=pre+code %}
+class A {}
+{% endprettify %}
+
+And, given a file named `b.dart` that contains the following:
+
+{% prettify dart tag=pre+code %}
+export 'a.dart';
+
+class B {}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `A`, which is
+imported from `a.dart`, is also imported from `b.dart`. Removing the import
+of `a.dart` leaves the semantics unchanged:
+
+{% prettify dart tag=pre+code %}
+import [!'a.dart'!];
+import 'b.dart';
+
+void f(A a, B b) {}
+{% endprettify %}
+
+#### Common fixes
+
+If the import isn't needed, then remove it.
+
+If some of the names imported by this import are intended to be used but
+aren't yet, and if those names aren't imported by other imports, then add
+the missing references to those names.
+
 ### unnecessary_non_null_assertion
 
 _The '!' will have no effect because the receiver can't be null._
@@ -14160,6 +14644,33 @@ If the other operand really can't be `null`, then remove the condition:
 void f(int x) {
   print(x);
 }
+{% endprettify %}
+
+### unnecessary_question_mark
+
+_The '?' is unnecessary because '{0}' is nullable without it._
+
+#### Description
+
+The analyzer produces this diagnostic when either the type `dynamic` or the
+type `Null` is followed by a question mark. Both of these types are
+inherently nullable so the question mark doesn't change the semantics.
+
+#### Example
+
+The following code produces this diagnostic because the question mark
+following `dynamic` isn't necessary:
+
+{% prettify dart tag=pre+code %}
+dynamic[!?!] x;
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unneeded question mark:
+
+{% prettify dart tag=pre+code %}
+dynamic x;
 {% endprettify %}
 
 ### unnecessary_type_check
@@ -14441,14 +14952,23 @@ never read, even if it's written in one or more places.
 
 #### Examples
 
-The following code produces this diagnostic because `_x` isn't referenced
-anywhere in the library:
+The following code produces this diagnostic because the field
+`_originalValue` isn't read anywhere in the library:
 
 {% prettify dart tag=pre+code %}
-class Point {
-  int [!_x!];
+class C {
+  final String [!_originalValue!];
+  final String _currentValue;
+
+  C(this._originalValue) : _currentValue = _originalValue;
+
+  String get value => _currentValue;
 }
 {% endprettify %}
+
+It might appear that the field `_originalValue` is being read in the
+initializer (`_currentValue = _originalValue`), but that is actually a
+reference to the parameter of the same name, not a reference to the field.
 
 #### Common fixes
 
@@ -14554,6 +15074,79 @@ void main() {
 If the variable isn't needed, then remove it.
 
 If the variable was intended to be used, then add the missing code.
+
+### unused_result
+
+_'{0}' should be used. {1}._
+
+_The value of '{0}' should be used._
+
+#### Description
+
+The analyzer produces this diagnostic when a function annotated with
+`useResult` is invoked, and the value returned by that function isn't used.
+The value is considered to be used if a member of the value is invoked, if
+the value is passed to another function, or if the value is assigned to a
+variable or field.
+
+#### Example
+
+The following code produces this diagnostic because the invocation of
+`c.a()` isn't used, even though the method `a` is annotated with
+`useResult`:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  @useResult
+  int a() => 0;
+
+  int b() => 0;
+}
+
+void f(C c) {
+  c.[!a!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you intended to invoke the annotated function, then use the value that
+was returned:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  @useResult
+  int a() => 0;
+
+  int b() => 0;
+}
+
+void f(C c) {
+  print(c.a());
+}
+{% endprettify %}
+
+If you intended to invoke a different function, then correct the name of
+the function being invoked:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  @useResult
+  int a() => 0;
+
+  int b() => 0;
+}
+
+void f(C c) {
+  c.b();
+}
+{% endprettify %}
 
 ### unused_shown_name
 
@@ -14676,6 +15269,30 @@ import 'dart:math';
 
 var zero = min(0, 0);
 {% endprettify %}
+
+### use_of_native_extension
+
+_Dart native extensions are deprecated and aren’t available in Dart 2.15._
+
+#### Description
+
+The analyzer produces this diagnostic when a library is imported using the
+`dart-ext` scheme.
+
+#### Example
+
+The following code produces this diagnostic because the native library `x`
+is being imported using a scheme of `dart-ext`:
+
+{% prettify dart tag=pre+code %}
+[!import 'dart-ext:x';!]
+int f() native 'string';
+{% endprettify %}
+
+#### Common fixes
+
+Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
+native library.
 
 ### use_of_void_result
 

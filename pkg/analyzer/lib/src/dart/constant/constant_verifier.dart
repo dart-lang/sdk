@@ -116,7 +116,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorReference(ConstructorReference node) {
     super.visitConstructorReference(node);
-    if (node.inConstantContext) {
+    if (node.inConstantContext || node.inConstantExpression) {
       _checkForConstWithTypeParameters(node.constructorName.type2,
           CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF);
     }
@@ -131,7 +131,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionReference(FunctionReference node) {
     super.visitFunctionReference(node);
-    if (node.inConstantContext) {
+    if (node.inConstantContext || node.inConstantExpression) {
       var typeArguments = node.typeArguments;
       if (typeArguments == null) {
         return;
@@ -545,13 +545,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Validates that the expressions of any field initializers in the class
-  /// declaration are all compile time constants. Since this is only required if
-  /// the class has a constant constructor, the error is reported at the
-  /// constructor site.
-  ///
-  /// @param classDeclaration the class which should be validated
-  /// @param errorSite the site at which errors should be reported.
+  /// Validates that the expressions of any field initializers in
+  /// [classDeclaration] are all compile-time constants. Since this is only
+  /// required if the class has a constant constructor, the error is reported at
+  /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
       ClassOrMixinDeclaration classDeclaration, Token constKeyword) {
     NodeList<ClassMember> members = classDeclaration.members;
@@ -1047,4 +1044,45 @@ class _SetVerifierConfig {
   _SetVerifierConfig({
     required this.elementType,
   });
+}
+
+extension on Expression {
+  /// Returns whether `this` is found in a constant expression.
+  ///
+  /// This does not check whether `this` is found in a constant context.
+  bool get inConstantExpression {
+    AstNode child = this;
+    var parent = child.parent;
+    while (parent != null) {
+      if (parent is DefaultFormalParameter && child == parent.defaultValue) {
+        // A parameter default value does not constitute a constant context, but
+        // must be a constant expression.
+        return true;
+      } else if (parent is VariableDeclaration && child == parent.initializer) {
+        var declarationList = parent.parent;
+        if (declarationList is VariableDeclarationList) {
+          var declarationListParent = declarationList.parent;
+          if (declarationListParent is FieldDeclaration &&
+              !declarationListParent.isStatic) {
+            var container = declarationListParent.parent;
+            if (container is ClassOrMixinDeclaration) {
+              var enclosingClass = container.declaredElement;
+              if (enclosingClass != null) {
+                // A field initializer of a class with at least one generative
+                // const constructor does not constitute a constant context, but
+                // must be a constant expression.
+                return enclosingClass.constructors
+                    .any((c) => c.isConst && !c.isFactory);
+              }
+            }
+          }
+        }
+        return false;
+      } else {
+        child = parent;
+        parent = child.parent;
+      }
+    }
+    return false;
+  }
 }

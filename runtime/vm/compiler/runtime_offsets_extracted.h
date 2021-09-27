@@ -426,13 +426,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 24;
 static constexpr dart::compiler::target::word Type_nullability_offset = 25;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 28;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 24;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    39;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 32;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 20;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 24;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 12;
 static constexpr dart::compiler::target::word
@@ -982,13 +984,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    71;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -1531,13 +1535,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 24;
 static constexpr dart::compiler::target::word Type_nullability_offset = 25;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 28;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 24;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    39;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 32;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 20;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 24;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 12;
 static constexpr dart::compiler::target::word
@@ -2084,13 +2090,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    71;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -2640,13 +2648,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    51;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -3195,13 +3205,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    51;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -3741,13 +3753,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 24;
 static constexpr dart::compiler::target::word Type_nullability_offset = 25;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 28;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 24;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    39;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 32;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 20;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 24;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 12;
 static constexpr dart::compiler::target::word
@@ -4291,13 +4305,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    71;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -4834,13 +4850,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 24;
 static constexpr dart::compiler::target::word Type_nullability_offset = 25;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 28;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 24;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    39;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 32;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 20;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 24;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 12;
 static constexpr dart::compiler::target::word
@@ -5381,13 +5399,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    71;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -5931,13 +5951,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    51;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -6480,13 +6502,15 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word FunctionType_nullability_offset =
+    51;
+static constexpr dart::compiler::target::word
     FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -7076,13 +7100,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 24;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 25;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 28;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 39;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 32;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 36;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 20;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 12;
 static constexpr dart::compiler::target::word
@@ -7692,13 +7718,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 71;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -8313,13 +8341,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 71;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -8931,13 +8961,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 51;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -9548,13 +9580,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 51;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -10160,13 +10194,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 24;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 25;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 28;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 39;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 32;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 36;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 20;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 12;
 static constexpr dart::compiler::target::word
@@ -10769,13 +10805,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 71;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -11383,13 +11421,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 48;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 49;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 56;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 71;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 64;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 68;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 40;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -11994,13 +12034,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 51;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
@@ -12604,13 +12646,15 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 36;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 37;
 static constexpr dart::compiler::target::word AOT_FunctionType_hash_offset = 40;
 static constexpr dart::compiler::target::word
+    AOT_FunctionType_named_parameter_names_offset = 36;
+static constexpr dart::compiler::target::word
+    AOT_FunctionType_nullability_offset = 51;
+static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_parameter_counts_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_packed_type_parameter_counts_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_parameter_types_offset = 32;
-static constexpr dart::compiler::target::word
-    AOT_FunctionType_named_parameter_names_offset = 36;
 static constexpr dart::compiler::target::word
     AOT_FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word

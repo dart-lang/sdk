@@ -81,8 +81,8 @@ class AnalysisErrorFixes implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        error.hashCode,
-        fixes.hashCode,
+        error,
+        fixes,
       );
 }
 
@@ -162,8 +162,8 @@ class AnalysisErrorsParams implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        errors.hashCode,
+        file,
+        errors,
       );
 }
 
@@ -243,8 +243,8 @@ class AnalysisFoldingParams implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        regions.hashCode,
+        file,
+        regions,
       );
 }
 
@@ -334,9 +334,9 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        offset.hashCode,
-        length.hashCode,
+        file,
+        offset,
+        length,
       );
 }
 
@@ -441,9 +441,9 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        files.hashCode,
-        targets.hashCode,
-        regions.hashCode,
+        files,
+        targets,
+        regions,
       );
 }
 
@@ -615,8 +615,8 @@ class AnalysisHighlightsParams implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        regions.hashCode,
+        file,
+        regions,
       );
 }
 
@@ -729,10 +729,10 @@ class AnalysisNavigationParams implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        regions.hashCode,
-        targets.hashCode,
-        files.hashCode,
+        file,
+        regions,
+        targets,
+        files,
       );
 }
 
@@ -813,8 +813,8 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        occurrences.hashCode,
+        file,
+        occurrences,
       );
 }
 
@@ -892,8 +892,8 @@ class AnalysisOutlineParams implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        outline.hashCode,
+        file,
+        outline,
       );
 }
 
@@ -1411,8 +1411,8 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        offset.hashCode,
+        file,
+        offset,
       );
 }
 
@@ -1522,9 +1522,9 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        replacementOffset.hashCode,
-        replacementLength.hashCode,
-        results.hashCode,
+        replacementOffset,
+        replacementLength,
+        results,
       );
 }
 
@@ -1607,9 +1607,9 @@ class ContextRoot implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        root.hashCode,
-        exclude.hashCode,
-        optionsFile.hashCode,
+        root,
+        exclude,
+        optionsFile,
       );
 }
 
@@ -1764,9 +1764,9 @@ class EditGetAssistsParams implements RequestParams {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        offset.hashCode,
-        length.hashCode,
+        file,
+        offset,
+        length,
       );
 }
 
@@ -1923,9 +1923,9 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        offset.hashCode,
-        length.hashCode,
+        file,
+        offset,
+        length,
       );
 }
 
@@ -2074,8 +2074,8 @@ class EditGetFixesParams implements RequestParams {
 
   @override
   int get hashCode => Object.hash(
-        file.hashCode,
-        offset.hashCode,
+        file,
+        offset,
       );
 }
 
@@ -2281,12 +2281,12 @@ class EditGetRefactoringParams implements RequestParams {
 
   @override
   int get hashCode => Object.hash(
-        kind.hashCode,
-        file.hashCode,
-        offset.hashCode,
-        length.hashCode,
-        validateOnly.hashCode,
-        options.hashCode,
+        kind,
+        file,
+        offset,
+        length,
+        validateOnly,
+        options,
       );
 }
 
@@ -2460,12 +2460,12 @@ class EditGetRefactoringResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        initialProblems.hashCode,
-        optionsProblems.hashCode,
-        finalProblems.hashCode,
-        feedback.hashCode,
-        change.hashCode,
-        potentialEdits.hashCode,
+        initialProblems,
+        optionsProblems,
+        finalProblems,
+        feedback,
+        change,
+        potentialEdits,
       );
 }
 
@@ -2589,11 +2589,11 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode => Object.hash(
-        coveringExpressionOffsets.hashCode,
-        coveringExpressionLengths.hashCode,
-        names.hashCode,
-        offsets.hashCode,
-        lengths.hashCode,
+        coveringExpressionOffsets,
+        coveringExpressionLengths,
+        names,
+        offsets,
+        lengths,
       );
 }
 
@@ -2668,8 +2668,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
   @override
   int get hashCode => Object.hash(
-        name.hashCode,
-        extractAll.hashCode,
+        name,
+        extractAll,
       );
 }
 
@@ -2831,14 +2831,14 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode => Object.hash(
-        offset.hashCode,
-        length.hashCode,
-        returnType.hashCode,
-        names.hashCode,
-        canCreateGetter.hashCode,
-        parameters.hashCode,
-        offsets.hashCode,
-        lengths.hashCode,
+        offset,
+        length,
+        returnType,
+        names,
+        canCreateGetter,
+        parameters,
+        offsets,
+        lengths,
       );
 }
 
@@ -2973,11 +2973,11 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   @override
   int get hashCode => Object.hash(
-        returnType.hashCode,
-        createGetter.hashCode,
-        name.hashCode,
-        parameters.hashCode,
-        extractAll.hashCode,
+        returnType,
+        createGetter,
+        name,
+        parameters,
+        extractAll,
       );
 }
 
@@ -3043,8 +3043,8 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode => Object.hash(
-        name.hashCode,
-        occurrences.hashCode,
+        name,
+        occurrences,
       );
 }
 
@@ -3145,9 +3145,9 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode => Object.hash(
-        className.hashCode,
-        methodName.hashCode,
-        isDeclaration.hashCode,
+        className,
+        methodName,
+        isDeclaration,
       );
 }
 
@@ -3221,8 +3221,8 @@ class InlineMethodOptions extends RefactoringOptions {
 
   @override
   int get hashCode => Object.hash(
-        deleteSource.hashCode,
-        inlineAll.hashCode,
+        deleteSource,
+        inlineAll,
       );
 }
 
@@ -3373,8 +3373,8 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        entries.hashCode,
-        files.hashCode,
+        entries,
+        files,
       );
 }
 
@@ -3541,9 +3541,9 @@ class PluginErrorParams implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        isFatal.hashCode,
-        message.hashCode,
-        stackTrace.hashCode,
+        isFatal,
+        message,
+        stackTrace,
       );
 }
 
@@ -3684,9 +3684,9 @@ class PluginVersionCheckParams implements RequestParams {
 
   @override
   int get hashCode => Object.hash(
-        byteStorePath.hashCode,
-        sdkPath.hashCode,
-        version.hashCode,
+        byteStorePath,
+        sdkPath,
+        version,
       );
 }
 
@@ -3819,11 +3819,11 @@ class PluginVersionCheckResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        isCompatible.hashCode,
-        name.hashCode,
-        version.hashCode,
-        contactInfo.hashCode,
-        interestingFiles.hashCode,
+        isCompatible,
+        name,
+        version,
+        contactInfo,
+        interestingFiles,
       );
 }
 
@@ -3890,8 +3890,8 @@ class PrioritizedSourceChange implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        priority.hashCode,
-        change.hashCode,
+        priority,
+        change,
       );
 }
 
@@ -4054,10 +4054,10 @@ class RenameFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode => Object.hash(
-        offset.hashCode,
-        length.hashCode,
-        elementKindName.hashCode,
-        oldName.hashCode,
+        offset,
+        length,
+        elementKindName,
+        oldName,
       );
 }
 
@@ -4197,9 +4197,9 @@ class RequestError implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        code.hashCode,
-        message.hashCode,
-        stackTrace.hashCode,
+        code,
+        message,
+        stackTrace,
       );
 }
 
@@ -4345,8 +4345,8 @@ class WatchEvent implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        type.hashCode,
-        path.hashCode,
+        type,
+        path,
       );
 }
 

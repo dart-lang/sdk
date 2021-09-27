@@ -20,16 +20,16 @@
 
 namespace dart {
 
-// FLAG_trace_type_checks is only a non-constant in DEBUG mode, so we only
-// allow tracing of type testing stub tests there.
-#if defined(DEBUG)
+// Note that flags that this affects may only mutable in some modes, e.g.,
+// tracing type checks can only be done in DEBUG mode.
 DEFINE_FLAG(bool,
             trace_type_testing_stub_tests,
             false,
-            "Trace type checks performed in type testing stub tests");
-#else
-const bool FLAG_trace_type_testing_stub_tests = false;
-#endif
+            "Trace type testing stub tests");
+DEFINE_FLAG(bool,
+            print_type_testing_stub_test_headers,
+            true,
+            "Print headers for executed type testing stub tests");
 
 class TraceStubInvocationScope : public ValueObject {
  public:
@@ -351,7 +351,9 @@ class TTSTestState : public ValueObject {
         new_tts_stub_(Code::Handle(zone())),
         last_stc_(SubtypeTestCache::Handle(zone())),
         last_result_(Object::Handle(zone())) {
-    THR_Print("Creating test state for type %s\n", type.ToCString());
+    if (FLAG_print_type_testing_stub_test_headers) {
+      THR_Print("Creating test state for type %s\n", type.ToCString());
+    }
   }
 
   Zone* zone() const { return thread_->zone(); }
@@ -379,17 +381,20 @@ class TTSTestState : public ValueObject {
     const auto& default_stub =
         Code::Handle(zone(), TypeTestingStubGenerator::DefaultCodeForType(
                                  last_tested_type_, /*lazy_specialize=*/false));
-    previous_tts_stub_ =
-        TypeTestingStubGenerator::SpecializeStubFor(thread_, last_tested_type_);
+    {
+      // To make sure we output the disassembled stub if desired.
+      TraceStubInvocationScope scope;
+      previous_tts_stub_ = TypeTestingStubGenerator::SpecializeStubFor(
+          thread_, last_tested_type_);
+    }
     EXPECT_EQ(test_case.should_specialize,
               previous_tts_stub_.ptr() != default_stub.ptr());
     last_tested_type_.SetTypeTestingStub(previous_tts_stub_);
-    PrintInvocationHeader(test_case);
+    PrintInvocationHeader("eagerly specialized", test_case);
     InvokeStubHelper(test_case);
     // Treat it as a failure if the stub respecializes, since we're attempting
     // to simulate AOT mode.
     EXPECT(previous_tts_stub_.ptr() == new_tts_stub_.ptr());
-    ReportUnexpectedSTCChanges(test_case);
   }
 
   void InvokeLazilySpecializedStub(const TTSTestCase& test_case) {
@@ -401,8 +406,8 @@ class TTSTestState : public ValueObject {
     const auto& specializing_stub =
         Code::Handle(zone(), TypeTestingStubGenerator::DefaultCodeForType(
                                  last_tested_type_, /*lazy_specialize=*/true));
-    PrintInvocationHeader(test_case);
     last_tested_type_.SetTypeTestingStub(specializing_stub);
+    PrintInvocationHeader("lazy specialized", test_case);
     InvokeStubHelper(test_case,
                      /*is_lazy_specialization=*/test_case.should_specialize);
     if (test_case.should_fail || test_case.instance.IsNull()) {
@@ -417,18 +422,15 @@ class TTSTestState : public ValueObject {
       // Non-specializing test cases should result in a default TTS.
       EXPECT(new_tts_stub_.ptr() == default_stub.ptr());
     }
-    ReportUnexpectedSTCChanges(
-        test_case, /*is_lazy_specialization=*/test_case.should_specialize);
   }
 
   void InvokeExistingStub(const TTSTestCase& test_case) {
     last_tested_type_ = TypeToTest(test_case);
-    PrintInvocationHeader(test_case);
+    PrintInvocationHeader("existing", test_case);
     InvokeStubHelper(test_case);
     // Only respecialization should result in a new stub.
     EXPECT_EQ(test_case.should_respecialize,
               previous_tts_stub_.ptr() != new_tts_stub_.ptr());
-    ReportUnexpectedSTCChanges(test_case);
   }
 
  private:
@@ -443,12 +445,14 @@ class TTSTestState : public ValueObject {
     return Smi::RawCast(modified_rest_regs_box_.At(0));
   }
 
-  void PrintInvocationHeader(const TTSTestCase& test_case) {
+  void PrintInvocationHeader(const char* stub_type,
+                             const TTSTestCase& test_case) {
+    if (!FLAG_print_type_testing_stub_test_headers) return;
     LogBlock lb;
     const auto& tts = Code::Handle(zone(), last_tested_type_.type_test_stub());
     auto* const stub_name = StubCode::NameOfStub(tts.EntryPoint());
-    THR_Print("Testing %s stub for type %s\n",
-              stub_name == nullptr ? "optimized" : stub_name,
+    THR_Print("Testing %s %s stub for type %s\n",
+              stub_name == nullptr ? "optimized" : stub_name, stub_type,
               last_tested_type_.ToCString());
     if (last_tested_type_.ptr() != type_.ptr()) {
       THR_Print("  Original type: %s\n", type_.ToCString());
@@ -523,8 +527,8 @@ class TTSTestState : public ValueObject {
     }
     new_tts_stub_ = last_tested_type_.type_test_stub();
     last_stc_ = current_stc();
-    EXPECT_EQ(test_case.should_fail, !last_result_.IsNull());
     if (test_case.should_fail) {
+      EXPECT(!last_result_.IsNull());
       EXPECT(last_result_.IsError());
       EXPECT(last_result_.IsUnhandledException());
       if (last_result_.IsUnhandledException()) {
@@ -533,16 +537,28 @@ class TTSTestState : public ValueObject {
         EXPECT(strstr(error.ToCString(), "_TypeError"));
       }
     } else {
-      EXPECT(new_tts_stub_.ptr() != StubCode::LazySpecializeTypeTest().ptr());
-      ReportModifiedRegisters(modified_abi_regs());
-      // If we shouldn't go to the runtime, report any unexpected changes in
-      // non-ABI registers.
-      if (!is_lazy_specialization && !test_case.should_respecialize &&
-          (!test_case.should_be_false_negative ||
-           test_case.HasSTCEntry(previous_stc_, type_))) {
-        ReportModifiedRegisters(modified_rest_regs());
+      EXPECT(last_result_.IsNull());
+      if (!last_result_.IsNull()) {
+        EXPECT(last_result_.IsError());
+        EXPECT(last_result_.IsUnhandledException());
+        if (last_result_.IsUnhandledException()) {
+          const auto& exception = UnhandledException::Cast(last_result_);
+          dart::Expect(__FILE__, __LINE__)
+              .Fail("%s", exception.ToErrorCString());
+        }
+      } else {
+        EXPECT(new_tts_stub_.ptr() != StubCode::LazySpecializeTypeTest().ptr());
+        ReportModifiedRegisters(modified_abi_regs());
+        // If we shouldn't go to the runtime, report any unexpected changes in
+        // non-ABI registers.
+        if (!is_lazy_specialization && !test_case.should_respecialize &&
+            (!test_case.should_be_false_negative ||
+             test_case.HasSTCEntry(previous_stc_, type_))) {
+          ReportModifiedRegisters(modified_rest_regs());
+        }
       }
     }
+    ReportUnexpectedSTCChanges(test_case, is_lazy_specialization);
   }
 
   static void ReportModifiedRegisters(SmiPtr encoded_reg_mask) {
@@ -595,6 +611,7 @@ class TTSTestState : public ValueObject {
 
   void ReportUnexpectedSTCChanges(const TTSTestCase& test_case,
                                   bool is_lazy_specialization = false) {
+    // Make sure should_be_false_negative is not set if respecialization is.
     ASSERT(!test_case.should_be_false_negative ||
            !test_case.should_respecialize);
     const bool had_stc_entry = test_case.HasSTCEntry(previous_stc_, type_);
@@ -872,20 +889,22 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   RunTTSTest(type_i_object_dynamic, Failure({obj_b1, tav_null, tav_null}));
   RunTTSTest(type_i_object_dynamic, {obj_b2, tav_null, tav_null});
 
-  // We do not generate TTS for uninstantiated types if we would need to use
-  // subtype range checks for the class of the interface type.
+  // We do generate TTSes for uninstantiated types when we need to use
+  // subtype range checks for the class of the interface type, but the TTS
+  // may be partial (returns a false negative in some cases that means going
+  // to the STC/runtime).
   //
   //   obj as I<dynamic, T>
   //
   auto& type_dynamic_t =
       AbstractType::Handle(Type::New(class_i, tav_dynamic_t));
   FinalizeAndCanonicalize(&type_dynamic_t);
-  RunTTSTest(type_dynamic_t, FalseNegative({obj_i, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, {obj_i, tav_object, tav_null});
   RunTTSTest(type_dynamic_t, Failure({obj_i2, tav_object, tav_null}));
   RunTTSTest(type_dynamic_t, Failure({obj_base_int, tav_object, tav_null}));
   RunTTSTest(type_dynamic_t, Failure({obj_a, tav_object, tav_null}));
   RunTTSTest(type_dynamic_t, Failure({obj_a1, tav_object, tav_null}));
-  RunTTSTest(type_dynamic_t, FalseNegative({obj_a2, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, {obj_a2, tav_object, tav_null});
   RunTTSTest(type_dynamic_t, Failure({obj_b, tav_object, tav_null}));
   RunTTSTest(type_dynamic_t, Failure({obj_b1, tav_object, tav_null}));
   RunTTSTest(type_dynamic_t, FalseNegative({obj_b2, tav_object, tav_null}));
@@ -1116,24 +1135,52 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
       R"(
       import "dart:async";
 
-      createFutureInt() => (() async => 3)();
+      Future<int> createFutureInt() async => 3;
+      Future<int Function()> createFutureFunction() async => () => 3;
+      Future<int Function()?> createFutureNullableFunction() async =>
+          (() => 3) as int Function()?;
 )";
 
+  const auto& class_future =
+      Class::Handle(IsolateGroup::Current()->object_store()->future_class());
+
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  const auto& class_future = Class::Handle(GetClass(root_library, "Future"));
+  const auto& class_closure =
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   const auto& obj_futureint =
       Object::Handle(Invoke(root_library, "createFutureInt"));
-
-  const auto& type_nullable_object = Type::Handle(
-      IsolateGroup::Current()->object_store()->nullable_object_type());
-  const auto& type_int = Type::Handle(Type::IntType());
-  const auto& type_string = Type::Handle(Type::StringType());
-  const auto& type_num = Type::Handle(Type::Number());
+  const auto& obj_futurefunction =
+      Object::Handle(Invoke(root_library, "createFutureFunction"));
+  const auto& obj_futurenullablefunction =
+      Object::Handle(Invoke(root_library, "createFutureNullableFunction"));
 
   const auto& tav_null = Object::null_type_arguments();
+  const auto& type_object = Type::Handle(
+      IsolateGroup::Current()->object_store()->non_nullable_object_type());
+  const auto& type_legacy_object = Type::Handle(
+      IsolateGroup::Current()->object_store()->legacy_object_type());
+  const auto& type_nullable_object = Type::Handle(
+      IsolateGroup::Current()->object_store()->nullable_object_type());
+  const auto& type_int = Type::Handle(
+      IsolateGroup::Current()->object_store()->non_nullable_int_type());
+
+  auto& type_string = Type::Handle(Type::StringType());
+  type_string =
+      type_string.ToNullability(Nullability::kNonNullable, Heap::kNew);
+  FinalizeAndCanonicalize(&type_string);
+  auto& type_num = Type::Handle(Type::Number());
+  type_num = type_num.ToNullability(Nullability::kNonNullable, Heap::kNew);
+  FinalizeAndCanonicalize(&type_num);
+
   auto& tav_dynamic = TypeArguments::Handle(TypeArguments::New(1));
   tav_dynamic.SetTypeAt(0, Object::dynamic_type());
   CanonicalizeTAV(&tav_dynamic);
+  auto& tav_object = TypeArguments::Handle(TypeArguments::New(1));
+  tav_object.SetTypeAt(0, type_object);
+  CanonicalizeTAV(&tav_object);
+  auto& tav_legacy_object = TypeArguments::Handle(TypeArguments::New(1));
+  tav_legacy_object.SetTypeAt(0, type_legacy_object);
+  CanonicalizeTAV(&tav_legacy_object);
   auto& tav_nullable_object = TypeArguments::Handle(TypeArguments::New(1));
   tav_nullable_object.SetTypeAt(0, type_nullable_object);
   CanonicalizeTAV(&tav_nullable_object);
@@ -1147,45 +1194,422 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   tav_string.SetTypeAt(0, type_string);
   CanonicalizeTAV(&tav_string);
 
-  auto& type_future = Type::Handle(Type::New(class_future, tav_null));
+  auto& type_future = Type::Handle(
+      Type::New(class_future, tav_null, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future);
-  auto& type_future_dynamic =
-      Type::Handle(Type::New(class_future, tav_dynamic));
+  auto& type_future_dynamic = Type::Handle(
+      Type::New(class_future, tav_dynamic, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_dynamic);
-  auto& type_future_nullable_object =
-      Type::Handle(Type::New(class_future, tav_nullable_object));
+  auto& type_future_object = Type::Handle(
+      Type::New(class_future, tav_object, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_object);
+  auto& type_future_legacy_object = Type::Handle(
+      Type::New(class_future, tav_legacy_object, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_legacy_object);
+  auto& type_future_nullable_object = Type::Handle(
+      Type::New(class_future, tav_nullable_object, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_nullable_object);
-  auto& type_future_int = Type::Handle(Type::New(class_future, tav_int));
+  auto& type_future_int =
+      Type::Handle(Type::New(class_future, tav_int, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_int);
-  auto& type_future_string = Type::Handle(Type::New(class_future, tav_string));
+  auto& type_future_string = Type::Handle(
+      Type::New(class_future, tav_string, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_string);
-  auto& type_future_num = Type::Handle(Type::New(class_future, tav_num));
+  auto& type_future_num =
+      Type::Handle(Type::New(class_future, tav_num, Nullability::kNonNullable));
   FinalizeAndCanonicalize(&type_future_num);
-  auto& type_future_t = Type::Handle(class_future.DeclarationType());
+  const auto& type_future_t = Type::Handle(class_future.DeclarationType());
+
+  THR_Print("********************************************************\n");
+  THR_Print("               Testing Future<int>\n");
+  THR_Print("********************************************************\n\n");
 
   // Some more tests of generic implemented classes, using Future. Here,
   // obj is an object of type Future<int>.
   //
-  //   obj as Future          : Null type args (caught by TTS)
+  // True positives from TTS:
+  //   obj as Future          : Null type args
   //   obj as Future<dynamic> : Canonicalized to same as previous case.
-  //   obj as Future<Object?> : Type arg is top type (caught by TTS)
-  //   obj as Future<int>     : Type arg is the same type (caught by TTS)
-  //   obj as Future<String>  : Type arg is not a subtype (error via runtime)
+  //   obj as Future<Object?> : Type arg is top type
+  //   obj as Future<Object*> : Type arg is top type
+  //   obj as Future<Object>  : Type arg is certain supertype
+  //   obj as Future<int>     : Type arg is the same type
   //   obj as Future<num>     : Type arg is a supertype that can be matched
-  //                            with cid range (caught by TTS)
+  //                            with cid range
   //   obj as Future<X>,      : Type arg is a type parameter instantiated with
-  //       X = int            :    ... the same type (caught by TTS)
-  //       X = String         :    ... an unrelated type (error via runtime)
-  //       X = num            :    ... a supertype (caught by STC/runtime)
+  //       X = int            :    ... the same type
+  //
   RunTTSTest(type_future, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_dynamic, {obj_futureint, tav_null, tav_null});
+  RunTTSTest(type_future_object, {obj_futureint, tav_null, tav_null});
+  RunTTSTest(type_future_legacy_object, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_nullable_object, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_int, {obj_futureint, tav_null, tav_null});
-  RunTTSTest(type_future_string, Failure({obj_futureint, tav_null, tav_null}));
   RunTTSTest(type_future_num, {obj_futureint, tav_null, tav_null});
   RunTTSTest(type_future_t, {obj_futureint, tav_int, tav_null});
-  RunTTSTest(type_future_t, Failure({obj_futureint, tav_string, tav_null}));
+
+  // False negatives from TTS (caught by STC/runtime):
+  //   obj as Future<X>,      : Type arg is a type parameter instantiated with
+  //       X = num            :    ... a supertype
   RunTTSTest(type_future_t, FalseNegative({obj_futureint, tav_num, tav_null}));
+
+  // Errors:
+  //   obj as Future<String>  : Type arg is not a supertype
+  //   obj as Future<X>,      : Type arg is a type parameter instantiated with
+  //       X = String         :    ... an unrelated type
+  //
+  RunTTSTest(type_future_string, Failure({obj_futureint, tav_null, tav_null}));
+  RunTTSTest(type_future_t, Failure({obj_futureint, tav_string, tav_null}));
+
+  auto& type_function = Type::Handle(Type::DartFunctionType());
+  type_function =
+      type_function.ToNullability(Nullability::kNonNullable, Heap::kNew);
+  FinalizeAndCanonicalize(&type_function);
+  auto& type_legacy_function = Type::Handle(
+      type_function.ToNullability(Nullability::kLegacy, Heap::kNew));
+  FinalizeAndCanonicalize(&type_legacy_function);
+  auto& type_nullable_function = Type::Handle(
+      type_function.ToNullability(Nullability::kNullable, Heap::kOld));
+  FinalizeAndCanonicalize(&type_nullable_function);
+  auto& type_closure = Type::Handle(
+      Type::New(class_closure, tav_null, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_closure);
+  auto& type_legacy_closure = Type::Handle(
+      type_closure.ToNullability(Nullability::kLegacy, Heap::kOld));
+  FinalizeAndCanonicalize(&type_legacy_closure);
+  auto& type_nullable_closure = Type::Handle(
+      type_closure.ToNullability(Nullability::kNullable, Heap::kOld));
+  FinalizeAndCanonicalize(&type_nullable_closure);
+  auto& type_function_int_nullary =
+      FunctionType::Handle(FunctionType::New(0, Nullability::kNonNullable));
+  // Testing with a closure, so it has an implicit parameter, and we want a
+  // type that is canonically equal to the type of the closure.
+  type_function_int_nullary.set_num_implicit_parameters(1);
+  type_function_int_nullary.set_num_fixed_parameters(1);
+  type_function_int_nullary.set_parameter_types(Array::Handle(Array::New(1)));
+  type_function_int_nullary.SetParameterTypeAt(0, Type::dynamic_type());
+  type_function_int_nullary.set_result_type(type_int);
+  FinalizeAndCanonicalize(&type_function_int_nullary);
+  auto& type_legacy_function_int_nullary =
+      FunctionType::Handle(type_function_int_nullary.ToNullability(
+          Nullability::kLegacy, Heap::kOld));
+  FinalizeAndCanonicalize(&type_legacy_function_int_nullary);
+  auto& type_nullable_function_int_nullary =
+      FunctionType::Handle(type_function_int_nullary.ToNullability(
+          Nullability::kNullable, Heap::kOld));
+  FinalizeAndCanonicalize(&type_nullable_function_int_nullary);
+
+  auto& tav_function = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function.SetTypeAt(0, type_function);
+  CanonicalizeTAV(&tav_function);
+  auto& tav_legacy_function = TypeArguments::Handle(TypeArguments::New(1));
+  tav_legacy_function.SetTypeAt(0, type_legacy_function);
+  CanonicalizeTAV(&tav_legacy_function);
+  auto& tav_nullable_function = TypeArguments::Handle(TypeArguments::New(1));
+  tav_nullable_function.SetTypeAt(0, type_nullable_function);
+  CanonicalizeTAV(&tav_nullable_function);
+  auto& tav_closure = TypeArguments::Handle(TypeArguments::New(1));
+  tav_closure.SetTypeAt(0, type_closure);
+  CanonicalizeTAV(&tav_closure);
+  auto& tav_legacy_closure = TypeArguments::Handle(TypeArguments::New(1));
+  tav_legacy_closure.SetTypeAt(0, type_legacy_closure);
+  CanonicalizeTAV(&tav_legacy_closure);
+  auto& tav_nullable_closure = TypeArguments::Handle(TypeArguments::New(1));
+  tav_nullable_closure.SetTypeAt(0, type_nullable_closure);
+  CanonicalizeTAV(&tav_nullable_closure);
+  auto& tav_function_int_nullary = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_int_nullary.SetTypeAt(0, type_function_int_nullary);
+  CanonicalizeTAV(&tav_function_int_nullary);
+  auto& tav_legacy_function_int_nullary =
+      TypeArguments::Handle(TypeArguments::New(1));
+  tav_legacy_function_int_nullary.SetTypeAt(0,
+                                            type_legacy_function_int_nullary);
+  CanonicalizeTAV(&tav_legacy_function_int_nullary);
+  auto& tav_nullable_function_int_nullary =
+      TypeArguments::Handle(TypeArguments::New(1));
+  tav_nullable_function_int_nullary.SetTypeAt(
+      0, type_nullable_function_int_nullary);
+  CanonicalizeTAV(&tav_nullable_function_int_nullary);
+
+  auto& type_future_function = Type::Handle(
+      Type::New(class_future, tav_function, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_function);
+  auto& type_future_legacy_function = Type::Handle(
+      Type::New(class_future, tav_legacy_function, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_legacy_function);
+  auto& type_future_nullable_function = Type::Handle(Type::New(
+      class_future, tav_nullable_function, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_nullable_function);
+  auto& type_future_closure = Type::Handle(
+      Type::New(class_future, tav_closure, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_closure);
+  auto& type_future_legacy_closure = Type::Handle(
+      Type::New(class_future, tav_legacy_closure, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_legacy_closure);
+  auto& type_future_nullable_closure = Type::Handle(
+      Type::New(class_future, tav_nullable_closure, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_future_nullable_closure);
+  auto& type_future_function_int_nullary =
+      Type::Handle(Type::New(class_future, tav_function_int_nullary));
+  FinalizeAndCanonicalize(&type_future_function_int_nullary);
+  auto& type_future_legacy_function_int_nullary =
+      Type::Handle(Type::New(class_future, tav_legacy_function_int_nullary));
+  FinalizeAndCanonicalize(&type_future_legacy_function_int_nullary);
+  auto& type_future_nullable_function_int_nullary =
+      Type::Handle(Type::New(class_future, tav_nullable_function_int_nullary));
+  FinalizeAndCanonicalize(&type_future_nullable_function_int_nullary);
+
+  THR_Print("\n********************************************************\n");
+  THR_Print("            Testing Future<int Function()>\n");
+  THR_Print("********************************************************\n\n");
+
+  // And here, obj is an object of type Future<int Function()>. Note that
+  // int Function() <: Function, but int Function() </: _Closure. That is,
+  // _Closure is a separate subtype of Function from FunctionTypes.
+  //
+  // True positive from TTS:
+  //   obj as Future            : Null type args
+  //   obj as Future<dynamic>   : Canonicalized to same as previous case.
+  //   obj as Future<Object?>   : Type arg is top type
+  //   obj as Future<Object*>   : Type arg is top typ
+  //   obj as Future<Object>    : Type arg is certain supertype
+  //   obj as Future<Function?> : Type arg is certain supertype
+  //   obj as Future<Function*> : Type arg is certain supertype
+  //   obj as Future<Function>  : Type arg is certain supertype
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = dynamic          :    ... a top type
+  //       X = Object?          :    ... a top type
+  //       X = Object*          :    ... a top type
+  //       X = Object           :    ... a certain supertype
+  //       X = int Function()   :    ... the same type.
+  //
+  RunTTSTest(type_future, {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_dynamic, {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_nullable_object,
+             {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_legacy_object,
+             {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_object, {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_nullable_object,
+             {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_legacy_object,
+             {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_object, {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_nullable_function,
+             {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_legacy_function,
+             {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_function, {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_t, {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_t,
+             {obj_futurefunction, tav_nullable_object, tav_null});
+  RunTTSTest(type_future_t, {obj_futurefunction, tav_legacy_object, tav_null});
+  RunTTSTest(type_future_t, {obj_futurefunction, tav_object, tav_null});
+  RunTTSTest(type_future_t,
+             {obj_futurefunction, tav_function_int_nullary, tav_null});
+
+  // False negative from TTS (caught by runtime or STC):
+  //   obj as Future<int Function()?> : No specialization.
+  //   obj as Future<int Function()*> : No specialization.
+  //   obj as Future<int Function()>  : No specialization.
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = Function?        :    ... a certain supertype (but not checked)
+  //       X = Function*        :    ... a certain supertype (but not checked)
+  //       X = Function         :    ... a certain supertype (but not checked)
+  //       X = int Function()?  :    ... a canonically different type.
+  //       X = int Function()*  :    ... a canonically different type.
+  //
+  RunTTSTest(type_future_nullable_function_int_nullary,
+             FalseNegative({obj_futurefunction, tav_null, tav_null,
+                            /*should_specialize=*/false}));
+  RunTTSTest(type_future_legacy_function_int_nullary,
+             FalseNegative({obj_futurefunction, tav_null, tav_null,
+                            /*should_specialize=*/false}));
+  RunTTSTest(type_future_function_int_nullary,
+             FalseNegative({obj_futurefunction, tav_null, tav_null,
+                            /*should_specialize=*/false}));
+  RunTTSTest(type_future_t, FalseNegative({obj_futurefunction,
+                                           tav_nullable_function, tav_null}));
+  RunTTSTest(type_future_t, FalseNegative({obj_futurefunction,
+                                           tav_legacy_function, tav_null}));
+  RunTTSTest(type_future_t,
+             FalseNegative({obj_futurefunction, tav_function, tav_null}));
+  RunTTSTest(type_future_t,
+             FalseNegative({obj_futurefunction,
+                            tav_nullable_function_int_nullary, tav_null}));
+  RunTTSTest(type_future_t,
+             FalseNegative({obj_futurefunction, tav_legacy_function_int_nullary,
+                            tav_null}));
+
+  // Errors:
+  //   obj as Future<_Closure?> : Type arg is not a supertype
+  //   obj as Future<_Closure*> : Type arg is not a supertype
+  //   obj as Future<_Closure>  : Type arg is not a supertype
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = _Closure?        :    ... an unrelated type.
+  //       X = _Closure*        :    ... an unrelated type.
+  //       X = _Closure         :    ... an unrelated type.
+  //
+  RunTTSTest(type_future_nullable_closure,
+             Failure({obj_futurefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_legacy_closure,
+             Failure({obj_futurefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_closure,
+             Failure({obj_futurefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_t,
+             Failure({obj_futurefunction, tav_nullable_closure, tav_null}));
+  RunTTSTest(type_future_t,
+             Failure({obj_futurefunction, tav_legacy_closure, tav_null}));
+  RunTTSTest(type_future_t,
+             Failure({obj_futurefunction, tav_closure, tav_null}));
+
+  THR_Print("\n********************************************************\n");
+  THR_Print("            Testing Future<int Function()?>\n");
+  THR_Print("********************************************************\n\n");
+
+  const bool strict_null_safety =
+      thread->isolate_group()->use_strict_null_safety_checks();
+
+  // And here, obj is an object of type Future<int Function()?>.
+  //
+  // True positive from TTS:
+  //   obj as Future            : Null type args
+  //   obj as Future<dynamic>   : Canonicalized to same as previous case.
+  //   obj as Future<Object?>   : Type arg is top type
+  //   obj as Future<Object*>   : Type arg is top typ
+  //   obj as Future<Function?> : Type arg is certain supertype
+  //   obj as Future<Function*> : Type arg is certain supertype
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = dynamic          :    ... a top type
+  //       X = Object?          :    ... a top type
+  //       X = Object*          :    ... a top type
+  //       X = int Function()?  :    ... the same type.
+  //
+  // If not null safe:
+  //   obj as Future<Object>    : Type arg is certain supertype
+  //   obj as Future<Function>  : Type arg is certain supertype
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = Object           :    ... a certain supertype
+  RunTTSTest(type_future, {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_dynamic,
+             {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_nullable_object,
+             {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_legacy_object,
+             {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_nullable_object,
+             {obj_futurefunction, tav_null, tav_null});
+  RunTTSTest(type_future_legacy_object,
+             {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_nullable_function,
+             {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_legacy_function,
+             {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_t, {obj_futurenullablefunction, tav_null, tav_null});
+  RunTTSTest(type_future_t,
+             {obj_futurenullablefunction, tav_nullable_object, tav_null});
+  RunTTSTest(type_future_t,
+             {obj_futurenullablefunction, tav_legacy_object, tav_null});
+  RunTTSTest(type_future_t, {obj_futurenullablefunction,
+                             tav_nullable_function_int_nullary, tav_null});
+
+  if (!strict_null_safety) {
+    RunTTSTest(type_future_object,
+               {obj_futurenullablefunction, tav_null, tav_null});
+    RunTTSTest(type_future_function,
+               {obj_futurenullablefunction, tav_null, tav_null});
+    RunTTSTest(type_future_t,
+               {obj_futurenullablefunction, tav_object, tav_null});
+  }
+
+  // False negative from TTS (caught by runtime or STC):
+  //   obj as Future<int Function()?> : No specialization.
+  //   obj as Future<int Function()*> : No specialization.
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = Function?        :    ... a certain supertype (but not checked)
+  //       X = Function*        :    ... a certain supertype (but not checked)
+  //       X = int Function()*  :    ... a canonically different type.
+  //
+  // If not null safe:
+  //   obj as Future<int Function()>  : No specialization.
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = Function         :    ... a certain supertype (but not checked)
+  //       X = int Function()   :    ... a canonically different type.
+
+  RunTTSTest(type_future_nullable_function_int_nullary,
+             FalseNegative({obj_futurenullablefunction, tav_null, tav_null,
+                            /*should_specialize=*/false}));
+  RunTTSTest(type_future_legacy_function_int_nullary,
+             FalseNegative({obj_futurenullablefunction, tav_null, tav_null,
+                            /*should_specialize=*/false}));
+  RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
+                                           tav_nullable_function, tav_null}));
+  RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
+                                           tav_legacy_function, tav_null}));
+  RunTTSTest(type_future_t,
+             FalseNegative({obj_futurenullablefunction,
+                            tav_legacy_function_int_nullary, tav_null}));
+
+  if (!strict_null_safety) {
+    RunTTSTest(type_future_function_int_nullary,
+               FalseNegative({obj_futurenullablefunction, tav_null, tav_null,
+                              /*should_specialize=*/false}));
+    RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
+                                             tav_function, tav_null}));
+    RunTTSTest(type_future_t,
+               FalseNegative({obj_futurenullablefunction,
+                              tav_function_int_nullary, tav_null}));
+  }
+
+  // Errors:
+  //   obj as Future<_Closure?> : Type arg is not a supertype
+  //   obj as Future<_Closure*> : Type arg is not a supertype
+  //   obj as Future<_Closure>  : Type arg is not a supertype
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = _Closure?        :    ... an unrelated type.
+  //       X = _Closure*        :    ... an unrelated type.
+  //       X = _Closure         :    ... an unrelated type.
+  //
+  // If null safe:
+  //   obj as Future<int Function()>  : Nullable type cannot be subtype of a
+  //                                    non-nullable type.
+  //   obj as Future<Object>    : Nullable type cannot be subtype of a
+  //                              non-nullable type.
+  //   obj as Future<Function>  : Nullable type cannot be subtype of a
+  //                              non-nullable type.
+  //   obj as Future<X>,        : Type arg is a type parameter instantiated with
+  //       X = Object           :    ... a non-nullable type.
+  //       X = Function         :    ... a non-nullable type.
+  //       X = int Function()   :    ... a non-nullable type.
+
+  RunTTSTest(type_future_nullable_closure,
+             Failure({obj_futurenullablefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_legacy_closure,
+             Failure({obj_futurenullablefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_closure,
+             Failure({obj_futurenullablefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_t, Failure({obj_futurenullablefunction,
+                                     tav_nullable_closure, tav_null}));
+  RunTTSTest(type_future_t, Failure({obj_futurenullablefunction,
+                                     tav_legacy_closure, tav_null}));
+  RunTTSTest(type_future_t,
+             Failure({obj_futurenullablefunction, tav_closure, tav_null}));
+
+  if (strict_null_safety) {
+    RunTTSTest(type_future_function_int_nullary,
+               Failure({obj_futurenullablefunction, tav_null, tav_null,
+                        /*should_specialize=*/false}));
+    RunTTSTest(type_future_object,
+               Failure({obj_futurenullablefunction, tav_null, tav_null}));
+    RunTTSTest(type_future_function,
+               Failure({obj_futurenullablefunction, tav_null, tav_null}));
+    RunTTSTest(type_future_t,
+               Failure({obj_futurenullablefunction, tav_object, tav_null}));
+    RunTTSTest(type_future_t,
+               Failure({obj_futurenullablefunction, tav_function, tav_null}));
+    RunTTSTest(type_future_t, Failure({obj_futurenullablefunction,
+                                       tav_function_int_nullary, tav_null}));
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
@@ -1408,25 +1832,78 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
   const char* kScript =
       R"(
       class B<T> {}
+
+      class C {}
+      class D extends C {}
+      class E extends D {}
+
       F<A>() {}
-      createB() => B<int>();
+      createBE() => B<E>();
+      createBENullable() => B<E?>();
+      createBNull() => B<Null>();
+      createBNever() => B<Never>();
 )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
   const auto& class_b = Class::Handle(GetClass(root_library, "B"));
+  const auto& class_c = Class::Handle(GetClass(root_library, "C"));
+  const auto& class_d = Class::Handle(GetClass(root_library, "D"));
+  const auto& class_e = Class::Handle(GetClass(root_library, "E"));
   const auto& fun_f = Function::Handle(GetFunction(root_library, "F"));
-  const auto& obj_b = Object::Handle(Invoke(root_library, "createB"));
+  const auto& obj_b_e = Object::Handle(Invoke(root_library, "createBE"));
+  const auto& obj_b_e_nullable =
+      Object::Handle(Invoke(root_library, "createBENullable"));
+  const auto& obj_b_null = Object::Handle(Invoke(root_library, "createBNull"));
+  const auto& obj_b_never =
+      Object::Handle(Invoke(root_library, "createBNever"));
 
   const auto& tav_null = Object::null_type_arguments();
-  auto& tav_int = TypeArguments::Handle(TypeArguments::New(1));
-  tav_int.SetTypeAt(0, Type::Handle(Type::IntType()));
-  CanonicalizeTAV(&tav_int);
+  auto& tav_nullable_object = TypeArguments::Handle(TypeArguments::New(1));
+  tav_nullable_object.SetTypeAt(
+      0, Type::Handle(
+             IsolateGroup::Current()->object_store()->nullable_object_type()));
+  CanonicalizeTAV(&tav_nullable_object);
+  auto& tav_legacy_object = TypeArguments::Handle(TypeArguments::New(1));
+  tav_legacy_object.SetTypeAt(
+      0, Type::Handle(
+             IsolateGroup::Current()->object_store()->legacy_object_type()));
+  CanonicalizeTAV(&tav_legacy_object);
   auto& tav_object = TypeArguments::Handle(TypeArguments::New(1));
-  tav_object.SetTypeAt(0, Type::Handle(Type::ObjectType()));
+  tav_object.SetTypeAt(
+      0, Type::Handle(IsolateGroup::Current()->object_store()->object_type()));
   CanonicalizeTAV(&tav_object);
-  auto& tav_num = TypeArguments::Handle(TypeArguments::New(1));
-  tav_num.SetTypeAt(0, Type::Handle(Type::Number()));
-  CanonicalizeTAV(&tav_num);
+
+  auto& type_e =
+      Type::Handle(Type::New(class_e, tav_null, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_e);
+  auto& type_d =
+      Type::Handle(Type::New(class_d, tav_null, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_d);
+  auto& type_c =
+      Type::Handle(Type::New(class_c, tav_null, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_c);
+  auto& type_c_nullable =
+      Type::Handle(Type::New(class_c, tav_null, Nullability::kNullable));
+  FinalizeAndCanonicalize(&type_c_nullable);
+  auto& type_c_legacy =
+      Type::Handle(Type::New(class_c, tav_null, Nullability::kLegacy));
+  FinalizeAndCanonicalize(&type_c_legacy);
+
+  auto& tav_e = TypeArguments::Handle(TypeArguments::New(1));
+  tav_e.SetTypeAt(0, type_e);
+  CanonicalizeTAV(&tav_e);
+  auto& tav_d = TypeArguments::Handle(TypeArguments::New(1));
+  tav_d.SetTypeAt(0, type_d);
+  CanonicalizeTAV(&tav_d);
+  auto& tav_c = TypeArguments::Handle(TypeArguments::New(1));
+  tav_c.SetTypeAt(0, type_c);
+  CanonicalizeTAV(&tav_c);
+  auto& tav_nullable_c = TypeArguments::Handle(TypeArguments::New(1));
+  tav_nullable_c.SetTypeAt(0, type_c_nullable);
+  CanonicalizeTAV(&tav_nullable_c);
+  auto& tav_legacy_c = TypeArguments::Handle(TypeArguments::New(1));
+  tav_legacy_c.SetTypeAt(0, type_c_legacy);
+  CanonicalizeTAV(&tav_legacy_c);
 
   // One case where optimized TTSes can be partial is if the type is
   // uninstantiated with a type parameter at the same position as one of the
@@ -1438,41 +1915,51 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
       TypeParameter::Handle(GetFunctionTypeParameter(fun_f, 0));
   auto& tav_a = TypeArguments::Handle(TypeArguments::New(1));
   tav_a.SetTypeAt(0, type_a);
-  auto& type_b2_a = AbstractType::Handle(Type::New(class_b, tav_a));
-  FinalizeAndCanonicalize(&type_b2_a);
-  TTSTestState state(thread, type_b2_a);
+  CanonicalizeTAV(&tav_a);
+  auto& type_b_a = AbstractType::Handle(
+      Type::New(class_b, tav_a, Nullability::kNonNullable));
+  FinalizeAndCanonicalize(&type_b_a);
+  TTSTestState state(thread, type_b_a);
 
-  TTSTestCase positive_test_case{obj_b, tav_null, tav_int};
-  TTSTestCase first_false_negative_test_case =
-      FalseNegative({obj_b, tav_null, tav_object});
-  TTSTestCase second_false_negative_test_case =
-      FalseNegative({obj_b, tav_null, tav_num});
-  // No test case should possibly hit the same STC entry as another.
-  ASSERT(!first_false_negative_test_case.HasSameSTCEntry(positive_test_case));
-  ASSERT(!second_false_negative_test_case.HasSameSTCEntry(positive_test_case));
-  ASSERT(!second_false_negative_test_case.HasSameSTCEntry(
-      first_false_negative_test_case));
-  // The type with the tested stub must be the same in all test cases.
-  ASSERT(state.TypeToTest(positive_test_case) ==
-         state.TypeToTest(first_false_negative_test_case));
-  ASSERT(state.TypeToTest(positive_test_case) ==
-         state.TypeToTest(second_false_negative_test_case));
+  TTSTestCase b_e_testcase{obj_b_e, tav_null, tav_e};
+  TTSTestCase b_d_testcase = FalseNegative({obj_b_e, tav_null, tav_d});
+  TTSTestCase b_c_testcase = FalseNegative({obj_b_e, tav_null, tav_c});
 
   // First, test that the positive test case is handled by the TTS.
-  state.InvokeLazilySpecializedStub(positive_test_case);
-  state.InvokeExistingStub(positive_test_case);
+  state.InvokeLazilySpecializedStub(b_e_testcase);
+  state.InvokeExistingStub(b_e_testcase);
 
   // Now restart, using the false negative test cases.
   state.ClearCache();
 
-  state.InvokeLazilySpecializedStub(first_false_negative_test_case);
-  state.InvokeExistingStub(first_false_negative_test_case);
-  state.InvokeEagerlySpecializedStub(first_false_negative_test_case);
+  state.InvokeLazilySpecializedStub(b_d_testcase);
+  state.InvokeExistingStub(b_d_testcase);
+  state.InvokeEagerlySpecializedStub(b_d_testcase);
 
-  state.InvokeExistingStub(positive_test_case);
-  state.InvokeExistingStub(second_false_negative_test_case);
-  state.InvokeExistingStub(first_false_negative_test_case);
-  state.InvokeExistingStub(positive_test_case);
+  state.InvokeExistingStub(b_e_testcase);
+  state.InvokeExistingStub(b_c_testcase);
+  state.InvokeExistingStub(b_d_testcase);
+  state.InvokeExistingStub(b_e_testcase);
+
+  state.InvokeExistingStub({obj_b_never, tav_null, tav_d});
+  state.InvokeExistingStub({obj_b_null, tav_null, tav_nullable_c});
+  state.InvokeExistingStub({obj_b_null, tav_null, tav_legacy_c});
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    state.InvokeExistingStub(Failure({obj_b_null, tav_null, tav_c}));
+  } else {
+    state.InvokeExistingStub({obj_b_null, tav_null, tav_c});
+  }
+
+  state.InvokeExistingStub({obj_b_e, tav_null, tav_nullable_object});
+  state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_nullable_object});
+  state.InvokeExistingStub({obj_b_e, tav_null, tav_legacy_object});
+  state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_legacy_object});
+  state.InvokeExistingStub({obj_b_e, tav_null, tav_object});
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    state.InvokeExistingStub(Failure({obj_b_e_nullable, tav_null, tav_object}));
+  } else {
+    state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_object});
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
