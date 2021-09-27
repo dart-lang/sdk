@@ -14,7 +14,6 @@
 ///
 /// It is expected that 'pkg/front_end/tool/fasta generate-messages'
 /// has already been successfully run.
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -24,6 +23,8 @@ import 'package:analyzer_utilities/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
+
+import 'error_code_info.dart';
 
 main() async {
   await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
@@ -61,22 +62,17 @@ final List<GeneratedContent> allTargets = <GeneratedContent>[
 final String analyzerPkgPath =
     normalize(join(pkg_root.packageRoot, 'analyzer'));
 
-/// Pattern used by the front end to identify placeholders in error message
-/// strings.  TODO(paulberry): share this regexp (and the code for interpreting
-/// it) between the CFE and analyzer.
-final RegExp _placeholderPattern =
-    RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
-
 /// Return an entry containing 2 strings,
 /// the name of the class containing the error and the name of the error,
 /// or throw an exception if 'analyzerCode:' field is invalid.
-List<String> nameForEntry(Map entry) {
-  final analyzerCode = entry['analyzerCode'];
-  if (analyzerCode is String) {
-    if (!analyzerCode.startsWith('ParserErrorCode.')) {
+List<String> nameForEntry(ErrorCodeInfo entry) {
+  final analyzerCode = entry.analyzerCode;
+  if (analyzerCode.length == 1) {
+    var code = analyzerCode.single;
+    if (!code.startsWith('ParserErrorCode.')) {
       throw invalidAnalyzerCode;
     }
-    List<String> name = analyzerCode.split('.');
+    List<String> name = code.split('.');
     if (name.length != 2 || name[1].isEmpty) {
       throw invalidAnalyzerCode;
     }
@@ -86,11 +82,11 @@ List<String> nameForEntry(Map entry) {
 }
 
 class _SyntacticErrorGenerator {
-  final Map messagesYaml;
+  final Map<String, ErrorCodeInfo> messages;
   final String errorConverterSource;
   final String syntacticErrorsSource;
   final String parserSource;
-  final translatedEntries = <Map>[];
+  final translatedEntries = <ErrorCodeInfo>[];
   final translatedFastaErrorCodes = <String>{};
   final out = StringBuffer('''
 //
@@ -120,18 +116,18 @@ part of 'syntactic_errors.dart';
             joinAll(posix.split('lib/src/parser/parser.dart'))))
         .readAsStringSync();
 
-    return _SyntacticErrorGenerator._(messagesYaml, errorConverterSource,
-        syntacticErrorsSource, parserSource);
+    return _SyntacticErrorGenerator._(decodeCfeMessagesYaml(messagesYaml),
+        errorConverterSource, syntacticErrorsSource, parserSource);
   }
 
-  _SyntacticErrorGenerator._(this.messagesYaml, this.errorConverterSource,
+  _SyntacticErrorGenerator._(this.messages, this.errorConverterSource,
       this.syntacticErrorsSource, this.parserSource);
 
   void checkForManualChanges() {
     // Check for ParserErrorCodes that could be removed from
     // error_converter.dart now that those ParserErrorCodes are auto generated.
     int converterCount = 0;
-    for (Map entry in translatedEntries) {
+    for (ErrorCodeInfo entry in translatedEntries) {
       final name = nameForEntry(entry);
       final errorCode = name[1];
       if (errorConverterSource.contains('"$errorCode"')) {
@@ -151,7 +147,7 @@ part of 'syntactic_errors.dart';
     // Check that the public ParserErrorCodes have been updated
     // to reference the generated codes.
     int publicCount = 0;
-    for (Map entry in translatedEntries) {
+    for (ErrorCodeInfo entry in translatedEntries) {
       final name = nameForEntry(entry);
       final errorCode = name[1];
       if (!syntacticErrorsSource.contains(' _$errorCode')) {
@@ -176,7 +172,7 @@ part of 'syntactic_errors.dart';
 
   void generateErrorCodes() {
     final sortedErrorCodes = <String>[];
-    final entryMap = <String, Map>{};
+    final entryMap = <String, ErrorCodeInfo>{};
     for (var entry in translatedEntries) {
       final name = nameForEntry(entry);
       final errorCode = name[1];
@@ -193,28 +189,14 @@ part of 'syntactic_errors.dart';
       final className = nameForEntry(entry)[0];
       out.writeln();
       out.writeln('const $className _$errorCode =');
-      out.writeln('$className(');
-      out.writeln("'$errorCode',");
-      final placeholderToIndexMap = _computePlaceholderToIndexMap(entry);
-      out.writeln(
-          'r"${_convertTemplate(placeholderToIndexMap, entry['template'])}"');
-      final tip = entry['tip'];
-      if (tip is String) {
-        out.writeln(
-            ',correction: "${_convertTemplate(placeholderToIndexMap, tip)}"');
-      }
-      final hasPublishedDocs = entry['hasPublishedDocs'];
-      if (hasPublishedDocs is bool && hasPublishedDocs) {
-        out.writeln(',hasPublishedDocs:true');
-      }
-      out.writeln(');');
+      out.writeln(entry.toAnalyzerCode(className, errorCode));
     }
   }
 
   void generateFastaAnalyzerErrorCodeList() {
-    final sorted = List<Map?>.filled(translatedEntries.length, null);
+    final sorted = List<ErrorCodeInfo?>.filled(translatedEntries.length, null);
     for (var entry in translatedEntries) {
-      var index = entry['index'];
+      var index = entry.index;
       if (index is int && index >= 1 && index <= sorted.length) {
         if (sorted[index - 1] == null) {
           sorted[index - 1] = entry;
@@ -232,15 +214,14 @@ part of 'syntactic_errors.dart';
   }
 
   void generateFormatCode() {
-    messagesYaml.forEach((name, entry) {
-      if (entry is Map) {
-        if (entry['index'] is int) {
-          if (entry['analyzerCode'] is String) {
-            translatedFastaErrorCodes.add(name);
-            translatedEntries.add(entry);
-          } else {
-            throw invalidAnalyzerCode;
-          }
+    messages.forEach((name, entry) {
+      if (entry.index != null) {
+        // TODO(paulberry): handle multiple analyzer codes
+        if (entry.analyzerCode.length == 1) {
+          translatedFastaErrorCodes.add(name);
+          translatedEntries.add(entry);
+        } else {
+          throw invalidAnalyzerCode;
         }
       }
     });
@@ -258,14 +239,14 @@ part of 'syntactic_errors.dart';
       }
     }
 
-    String messageFromEntryTemplate(Map entry) {
-      String template = entry['template'];
+    String messageFromEntryTemplate(ErrorCodeInfo entry) {
+      String template = entry.template;
       String message = template.replaceAll(RegExp(r'#\w+'), '');
       return message;
     }
 
     // Remove entries that have already been translated
-    for (Map entry in translatedEntries) {
+    for (ErrorCodeInfo entry in translatedEntries) {
       messageToName.remove(messageFromEntryTemplate(entry));
     }
 
@@ -276,14 +257,12 @@ part of 'syntactic_errors.dart';
     // List the ParserErrorCodes that could easily be auto generated
     // but have not been already.
     final analyzerToFasta = <String, List<String>>{};
-    messagesYaml.forEach((fastaName, entry) {
-      if (entry is Map) {
-        final analyzerName = messageToName[messageFromEntryTemplate(entry)];
-        if (analyzerName != null) {
-          analyzerToFasta
-              .putIfAbsent(analyzerName, () => <String>[])
-              .add(fastaName);
-        }
+    messages.forEach((fastaName, entry) {
+      final analyzerName = messageToName[messageFromEntryTemplate(entry)];
+      if (analyzerName != null) {
+        analyzerToFasta
+            .putIfAbsent(analyzerName, () => <String>[])
+            .add(fastaName);
       }
     });
     if (analyzerToFasta.isNotEmpty) {
@@ -332,45 +311,17 @@ part of 'syntactic_errors.dart';
       for (String fastaErrorCode in sorted) {
         String analyzerCode = '';
         String template = '';
-        var entry = messagesYaml[fastaErrorCode];
-        if (entry is Map) {
-          if (entry['index'] is! int && entry['analyzerCode'] is String) {
-            analyzerCode = entry['analyzerCode'];
-            template = entry['template'];
+        var entry = messages[fastaErrorCode];
+        if (entry != null) {
+          // TODO(paulberry): handle multiple analyzer codes
+          if (entry.index == null && entry.analyzerCode.length == 1) {
+            analyzerCode = entry.analyzerCode.single;
+            template = entry.template;
           }
         }
         print('  ${fastaErrorCode.padRight(30)} --> $analyzerCode'
             '\n      $template');
       }
     }
-  }
-
-  /// Given a messages.yaml entry, come up with a mapping from placeholder
-  /// patterns in its message and tip strings to their corresponding indices.
-  Map<String, int> _computePlaceholderToIndexMap(Map<Object?, Object?> entry) {
-    var mapping = <String, int>{};
-    for (var key in const ['template', 'tip']) {
-      var value = entry[key];
-      if (value is! String) continue;
-      for (Match match in _placeholderPattern.allMatches(value)) {
-        // CFE supports a bunch of formatting options that we don't; make sure
-        // none of those are used.
-        if (match.group(0) != '#${match.group(1)}') {
-          throw 'Template string ${json.encode(entry)} contains unsupported '
-              'placeholder pattern ${json.encode(match.group(0))}';
-        }
-
-        mapping[match.group(0)!] ??= mapping.length;
-      }
-    }
-    return mapping;
-  }
-
-  /// Convert a CFE template string (which uses placeholders like `#string`) to
-  /// an analyzer template string (which uses placeholders like `{0}`).
-  String _convertTemplate(
-      Map<String, int> placeholderToIndexMap, String entry) {
-    return entry.replaceAllMapped(_placeholderPattern,
-        (match) => '{${placeholderToIndexMap[match.group(0)!]}}');
   }
 }
