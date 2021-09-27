@@ -1281,10 +1281,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   /// Returns [node] after replacing condition.
   HInstruction _replaceHIfCondition(HIf node, HInstruction newCondition) {
-    HInstruction condition = node.condition;
-    node.inputs[0] = newCondition;
-    condition.usedBy.remove(node);
-    newCondition.usedBy.add(node);
+    node.replaceInput(0, newCondition);
     return node;
   }
 
@@ -2506,9 +2503,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       // Pick the 'live' branch to be the smallest subgraph.
       bool value = thenSize <= elseSize;
       HInstruction newCondition = _graph.addConstantBool(value, closedWorld);
-      instruction.inputs[0] = newCondition;
-      condition.usedBy.remove(instruction);
-      newCondition.usedBy.add(instruction);
+      instruction.replaceInput(0, newCondition);
     }
   }
 
@@ -2563,7 +2558,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       block.forEachPhi((HPhi phi) {
         for (int i = 0; i < phi.inputs.length; ++i) {
           if (!predecessors[i].isLive && phi.inputs[i] != zapInstruction) {
-            replaceInput(i, phi, zapInstruction);
+            phi.replaceInput(i, zapInstruction);
           }
         }
       });
@@ -2596,12 +2591,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         }
       });
     }
-  }
-
-  void replaceInput(int i, HInstruction from, HInstruction by) {
-    from.inputs[i].usedBy.remove(from);
-    from.inputs[i] = by;
-    by.usedBy.add(from);
   }
 
   void removeUsers(HInstruction instruction) {
