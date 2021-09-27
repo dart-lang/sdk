@@ -67,11 +67,11 @@ class ErrorCodeInfo {
     out.writeln('$className(');
     out.writeln("'$errorCode',");
     final placeholderToIndexMap = _computePlaceholderToIndexMap();
-    out.writeln('r"${_convertTemplate(placeholderToIndexMap, template)}"');
+    out.writeln(json.encode(_convertTemplate(placeholderToIndexMap, template)));
     final tip = this.tip;
     if (tip is String) {
-      out.writeln(
-          ',correction: "${_convertTemplate(placeholderToIndexMap, tip)}"');
+      out.write(',correction: ');
+      out.writeln(json.encode(_convertTemplate(placeholderToIndexMap, tip)));
     }
     if (hasPublishedDocs) {
       out.writeln(',hasPublishedDocs:true');
