@@ -28,7 +28,6 @@ dependencies:
   nnbd_migration:
     path: ../nnbd_migration
   path: any
-  pedantic: any
   pub: any
   telemetry:
     path: ../telemetry

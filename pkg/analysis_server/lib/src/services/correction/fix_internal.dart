@@ -1158,7 +1158,7 @@ class FixProcessor extends BaseProcessor {
       UpdateSdkConstraints.version_2_6_0,
     ],
     HintCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-      UpdateSdkConstraints.version_2_2_2,
+      UpdateSdkConstraints.version_2_14_0,
     ],
     HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,

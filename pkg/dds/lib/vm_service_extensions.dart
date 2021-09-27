@@ -91,7 +91,11 @@ extension DdsExtension on VmService {
       }
       unawaited(controller.sink.addStream(streamEvents.rest));
     }, onCancel: () {
-      streamEvents.cancel();
+      try {
+        streamEvents.cancel();
+      } on StateError {
+        // Underlying stream may have already been cancelled.
+      }
     });
 
     return controller.stream;

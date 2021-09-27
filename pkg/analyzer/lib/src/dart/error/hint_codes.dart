@@ -2489,19 +2489,19 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the operator `>>>` is used in
-  // code that has an SDK constraint whose lower bound is less than 2.X.0. This
+  // code that has an SDK constraint whose lower bound is less than 2.14.0. This
   // operator wasn't supported in earlier versions, so this code won't be able
   // to run against earlier versions of the SDK.
   //
   // #### Examples
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
-  // bound of less than 2.X.0:
+  // bound of less than 2.14.0:
   //
   // ```yaml
   // %uri="pubspec.yaml"
   // environment:
-  //  sdk: '>=2.0.0 <2.4.0'
+  //  sdk: '>=2.0.0 <2.15.0'
   // ```
   //
   // In the package that has that pubspec, code like the following produces this
@@ -2518,7 +2518,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // ```yaml
   // environment:
-  //   sdk: '>=2.3.2 <2.4.0'
+  //   sdk: '>=2.14.0 <2.15.0'
   // ```
   //
   // If you need to support older versions of the SDK, then rewrite the code to
@@ -2537,7 +2537,7 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = HintCode(
       'SDK_VERSION_GT_GT_GT_OPERATOR',
-      "The operator '>>>' wasn't supported until version 2.3.2, but this code "
+      "The operator '>>>' wasn't supported until version 2.14.0, but this code "
           "is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 

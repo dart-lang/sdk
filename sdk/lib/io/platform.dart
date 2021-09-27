@@ -80,6 +80,12 @@ class Platform {
   static String get operatingSystem => _operatingSystem;
 
   /// A string representing the version of the operating system or platform.
+  ///
+  /// The format of this string will vary by operating system, platform and
+  /// version and is not suitable for parsing. For example:
+  ///   "Linux 5.11.0-1018-gcp #20~20.04.2-Ubuntu SMP Fri Sep 3 01:01:37 UTC 2021"
+  ///   "Version 14.5 (Build 18E182)"
+  ///   '"Windows 10 Pro" 10.0 (Build 19043)'
   static String get operatingSystemVersion => _operatingSystemVersion;
 
   /// The local hostname for the system.

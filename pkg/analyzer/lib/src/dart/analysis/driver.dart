@@ -1501,7 +1501,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var libraryContext = _libraryContext;
     libraryContext ??= _libraryContext = LibraryContext(
-      testView: _testView.libraryContext,
+      testView: _testView.libraryContextTestView,
       session: currentSession,
       logger: _logger,
       byteStore: _byteStore,
@@ -2054,7 +2054,8 @@ class AnalysisDriverScheduler {
 @visibleForTesting
 class AnalysisDriverTestView {
   final AnalysisDriver driver;
-  final LibraryContextTestView libraryContext = LibraryContextTestView();
+  final LibraryContextTestView libraryContextTestView =
+      LibraryContextTestView();
 
   int numOfAnalyzedLibraries = 0;
 
@@ -2062,8 +2063,7 @@ class AnalysisDriverTestView {
 
   FileTracker get fileTracker => driver._fileTracker;
 
-  /// TODO(scheglov) Rename this, and [libraryContext].
-  LibraryContext? get libraryContext2 => driver._libraryContext;
+  LibraryContext? get libraryContext => driver._libraryContext;
 
   Map<String, ResolvedUnitResult> get priorityResults {
     return driver._priorityResults;

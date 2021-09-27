@@ -50,6 +50,14 @@ void Assembler::Emit64(int64_t value) {
   buffer_.Emit<int64_t>(value);
 }
 
+int32_t Assembler::BindImm26Branch(int64_t position, int64_t dest) {
+  ASSERT(CanEncodeImm26BranchOffset(dest));
+  const int32_t next = buffer_.Load<int32_t>(position);
+  const int32_t encoded = EncodeImm26BranchOffset(dest, next);
+  buffer_.Store<int32_t>(position, encoded);
+  return DecodeImm26BranchOffset(next);
+}
+
 int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
   if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
     // Far branches are enabled, and we can't encode the branch offset in
@@ -63,6 +71,7 @@ int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
     const int32_t far_branch =
         buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
     const Condition c = DecodeImm19BranchCondition(guard_branch);
+    ASSERT(c != NV);
 
     // Grab the link to the next branch.
     const int32_t next = DecodeImm26BranchOffset(far_branch);
@@ -73,12 +82,6 @@ int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
 
     // Encode the branch.
     const int32_t encoded_branch = EncodeImm26BranchOffset(offset, far_branch);
-
-    // If the guard branch is conditioned on NV, replace it with a nop.
-    if (c == NV) {
-      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-    }
 
     // Write the far branch into the buffer and link to the next branch.
     buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
@@ -131,6 +134,7 @@ int32_t Assembler::BindImm14Branch(int64_t position, int64_t dest) {
     const int32_t far_branch =
         buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
     const Condition c = DecodeImm14BranchCondition(guard_branch);
+    ASSERT(c != NV);
 
     // Grab the link to the next branch.
     const int32_t next = DecodeImm26BranchOffset(far_branch);
@@ -141,12 +145,6 @@ int32_t Assembler::BindImm14Branch(int64_t position, int64_t dest) {
 
     // Encode the branch.
     const int32_t encoded_branch = EncodeImm26BranchOffset(offset, far_branch);
-
-    // If the guard branch is conditioned on NV, replace it with a nop.
-    if (c == NV) {
-      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-    }
 
     // Write the far branch into the buffer and link to the next branch.
     buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
@@ -241,10 +239,15 @@ void Assembler::Bind(Label* label) {
   while (label->IsLinked()) {
     const int64_t position = label->Position();
     const int64_t dest = bound_pc - position;
-    if (IsTestAndBranch(buffer_.Load<int32_t>(position))) {
+    const int32_t instr = buffer_.Load<int32_t>(position);
+    if (IsTestAndBranch(instr)) {
       label->position_ = BindImm14Branch(position, dest);
-    } else {
+    } else if (IsConditionalBranch(instr) || IsCompareAndBranch(instr)) {
       label->position_ = BindImm19Branch(position, dest);
+    } else if (IsUnconditionalBranch(instr)) {
+      label->position_ = BindImm26Branch(position, dest);
+    } else {
+      UNREACHABLE();
     }
   }
   label->BindTo(bound_pc, lr_state());

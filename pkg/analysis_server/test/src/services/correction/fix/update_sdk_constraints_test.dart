@@ -70,7 +70,7 @@ const c = a == null;
 class C {
   C operator >>>(C other) => this;
 }
-''', to: '^2.2.2');
+''', to: '^2.14.0');
   }
 
   Future<void> test_isInConstContext() async {
