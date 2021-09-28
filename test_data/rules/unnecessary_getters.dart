@@ -46,7 +46,7 @@ class PublicClass extends _SuperClass {
 }
 
 class Q {
-  int _q; //OK
+  int _q = 0; //OK
   int get q => _q;
 }
 

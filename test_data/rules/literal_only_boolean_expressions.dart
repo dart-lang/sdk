@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N literal_only_boolean_expressions`
 
+// ignore_for_file: dead_code
+
 bool variable = true;
 
 void bad() {
@@ -25,6 +27,6 @@ void bad() {
 bool m() => true;
 
 void bug658() {
-  String text;
+  String? text;
   if ((text?.length ?? 0) != 0) {}
 }

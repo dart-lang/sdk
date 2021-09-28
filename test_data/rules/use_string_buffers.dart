@@ -4,8 +4,10 @@
 
 // test w/ `dart test -N use_string_buffer`
 
+// ignore_for_file: unused_local_variable
+
 class A {
-  String buffer;
+  String buffer = '';
 
   void foo(int n) {
     int aux = n;
@@ -93,7 +95,7 @@ void bar4() {
 
 void bar5() {
   for (final s in [ 'a', 'b']) {
-    String str;
+    String str = '';
     str += s; // OK
   }
 }

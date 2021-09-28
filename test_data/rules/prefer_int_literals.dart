@@ -25,7 +25,7 @@ class A {
   double y = 7.1e2; // LINT
   double z = 7.576e2; // OK
   A(this.x);
-  namedDouble(String s, {double d}) {}
+  namedDouble(String s, {double d = 0.0}) {}
   namedDynamic(String s, {d}) {}
 }
 

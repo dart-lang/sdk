@@ -19,7 +19,7 @@ typedef Maker = Object Function();
 
 class C {
   int c;
-  C([this.c = 3, int y]);
+  C([this.c = 3, int y = 0]);
 }
 
 var l = <Maker>[

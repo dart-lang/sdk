@@ -4,8 +4,10 @@
 
 // test w/ `dart test -N avoid_returning_this`
 
+// ignore_for_file: unused_element
+
 class A {
-  int x;
+  int x = 0;
   A badAddOne() { // LINT
     x++;
     return this;
@@ -26,7 +28,7 @@ class A {
 
   B doSomething() { // OK it is ok because it does not return an A type.
     x++;
-    return this;
+    return B();
   }
 
   A operator +(int n) { // OK it is ok because it is an operator.

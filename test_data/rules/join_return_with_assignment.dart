@@ -24,15 +24,15 @@ int doubleFoo() {
 }
 
 class A {
-  int _a;
-  int get myA {
+  int? _a;
+  int? get myA {
     _a ??= 0; // LINT
     return _a;
   }
 }
 
 class B {
-  int _a;
+  late int _a;
   int get myA {
     if (_a == 0) {
       _a = 10; // LINT

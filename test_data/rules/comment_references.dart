@@ -16,7 +16,7 @@ void write(int x) {}
 /// [String] is OK.
 class A {
   /// But [zap] is not. #LINT
-  int z;
+  int z = 0;
 
   /// Reads [x] and assigns to [z]. #OK
   void read(int x) {}

@@ -16,11 +16,11 @@ class Base {
 
   int max1(int a, int b) => 0;
   int max2(int a, int b) => 0;
-  int m1({int a, int b}) => 0;
-  int m2({int a, int b}) => 0;
-  int m3({int a, int b}) => 0;
+  int m1({int a = 0, int b = 0}) => 0;
+  int m2({int a = 0, int b = 0}) => 0;
+  int m3({int a = 0, int b = 0}) => 0;
   int operator +(other) => 0;
-  Base operator ~()=> null;
+  Base operator ~()=> Base();
   @override
   int get hashCode => 13;
 }
@@ -41,13 +41,13 @@ class Parent extends Base {
   int max2(int a, int b) => super.max2(b, a); // OK
 
   @override
-  int m1({int a, int b}) => super.m1(a: a, b: b); // LINT
+  int m1({int a = 0, int b = 0}) => super.m1(a: a, b: b); // LINT
 
   @override
-  int m2({int a, int b}) => super.m2(b: b, a: a); // LINT
+  int m2({int a = 0, int b = 0}) => super.m2(b: b, a: a); // LINT
 
   @override
-  int m3({int a, int b}) => super.m3(b: a, a: b); // OK
+  int m3({int a = 0, int b = 0}) => super.m3(b: a, a: b); // OK
 
   @override
   int operator +(other) => super + other; // LINT
@@ -120,12 +120,12 @@ class B extends A {
 }
 
 class C {
-  num get g => null;
-  set s(int v) => null;
-  num m(int v) => null;
-  num m1({int v = 20}) => null;
-  num m2([int v = 20]) => null;
-  num operator +(int other) => null;
+  num get g => 0;
+  set s(int v) {}
+  num m(int v) => 0;
+  num m1({int v = 20}) => 0;
+  num m2([int v = 20]) => 0;
+  num operator +(int other) => 0;
 }
 class ReturnTypeChanged extends C {
   @override

@@ -9,17 +9,17 @@ class A {
 }
 
 class B {
-  int a;
-  int b;
+  int a = 0;
+  int b = 0;
 
-  B(this.a, [this.b]); // OK because field formal parameters are being used
+  B(this.a, [this.b = 0]); // OK because field formal parameters are being used
 }
 
 class C {
   int a;
   int b;
 
-  C({this.a, this.b}); // OK because field formal parameters are being used
+  C({this.a = 0, this.b = 0}); // OK because field formal parameters are being used
 }
 
 class D {
@@ -28,7 +28,7 @@ class D {
 }
 
 class E {
-  int c;
+  int c = 0;
 
   E(int a, {int b = 10}) { // OK because all parameters are used
     c = a + b;
@@ -36,7 +36,7 @@ class E {
 }
 
 class F {
-  int n;
+  int n = 0;
 
   F(int a, [int b = 10, // LINT
     int c = 42]) { // LINT
@@ -45,10 +45,10 @@ class F {
 }
 
 class G {
-  int c;
-  int d;
+  int c = 0;
+  int d = 0;
 
-  G(int a, {int b, this.c}) { // OK because all non-field-formal parameters are used
+  G(int a, {int b = 0, this.c = 0}) { // OK because all non-field-formal parameters are used
     d = a + b;
   }
 }
@@ -64,7 +64,7 @@ class I extends H {
 }
 
 class J extends H {
-  int d;
+  int d = 0;
 
   J(int a, int b, int c) : super(a, b) { // OK because all parameters are used
     d = a * b * c;
@@ -72,10 +72,10 @@ class J extends H {
 }
 
 class K {
-  int a;
-  int b;
+  int a = 0;
+  int b = 0;
 
-  K(this.a, {this.b, int c}); // LINT
+  K(this.a, {this.b = 0, int c = 0}); // LINT
 }
 
 class L {

@@ -7,14 +7,14 @@
 // SHARED
 
 class A {
-  String toString() {}
+  String toString() => '';
 }
 
-String takesFunction(Function f) {}
+String takesFunction(Function f)  => '';
 
 class TypeChildWithOverride extends Type {
   @override
-  String toString() {}
+  String toString()  => '';
 }
 
 class TypeGrandChildWithOverride extends TypeChildWithOverride {}
@@ -24,7 +24,7 @@ class TypeChildNoOverride extends Type {}
 class TypeGrandChildNoOverride extends TypeChildNoOverride {}
 
 mixin ToStringMixin {
-  String toString() {}
+  String toString()  => '';
 }
 
 // BAD
@@ -38,7 +38,7 @@ class Bad {
 }
 
 class BadWithType extends Type {
-  Function passedFunction;
+  Function passedFunction = (){};
 
   BadWithType(Function func) : this.withFunc(func);
   BadWithType.withoutFunc() {}
@@ -114,7 +114,7 @@ class GoodWithType extends Type {
   GoodWithType.withOther(Good good) : this.withFunc(good.toString); // OK
 
   void good() {
-    String toString() => null;
+    String toString() => '';
     toString(); // OK
   }
 }
@@ -145,6 +145,7 @@ extension ExtensionOnGoodWithTypeAndMixin on GoodWithTypeAndMixin {
 }
 
 extension on int Function(int) {
+  // ignore: unused_element
   void extendedGood() {
     toString(); // OK
     this.toString(); // OK

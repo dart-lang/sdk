@@ -4,7 +4,7 @@
 
 // test w/ `dart test -N avoid_bool_literals_in_conditional_expressions`
 
-bool a, b, c;
+late bool a, b, c;
 
 var d = a ? true : b; // LINT
 var e = a ? false : b; // LINT

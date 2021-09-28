@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N avoid_catching_errors`
 
+// ignore_for_file: unused_catch_clause
+
 void bad() {
   try {} on A catch (e) { // LINT
     // ignore
@@ -28,7 +30,7 @@ class A extends B {}
 
 class B implements Error {
   @override
-  StackTrace get stackTrace => null;
+  StackTrace? get stackTrace => null;
 }
 
 class C extends D {}

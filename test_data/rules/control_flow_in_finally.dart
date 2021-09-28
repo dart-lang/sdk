@@ -6,7 +6,7 @@
 
 class Ok {
   double compliantMethod() {
-    var i = 5;
+    var i = 5.0;
     try {
       i = 1 / 0;
     } catch (e) {
@@ -31,7 +31,7 @@ class BadReturn {
 }
 
 class GoodReturn {
-  double compliantMethod() {
+  double? compliantMethod() {
     try {
       return 1 / 0;
     } catch (e) {

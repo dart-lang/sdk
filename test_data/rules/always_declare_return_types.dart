@@ -31,7 +31,7 @@ class Car {
   set speed(int ms) {} //OK
 }
 
-abstract class MyList<E> extends List<E> {
+abstract class MyList<E> implements List<E> {
   @override
   operator []=(int index, E value) //OK: #300
   {

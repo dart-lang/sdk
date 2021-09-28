@@ -6,6 +6,8 @@
 
 // @dart=2.9
 
+// ignore_for_file: unused_local_variable
+
 import 'dart:async';
 
 Never fail() { throw 'nope'; }
@@ -30,7 +32,7 @@ void m2() {
   });
 }
 
-void foo(FutureOr<void> x) {}
+void foo2(FutureOr<void> x) {}
 
 void main() {
   FutureOr<void> x;
