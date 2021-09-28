@@ -19,9 +19,6 @@ import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
-import "package:ffi/ffi.dart";
-import "package:expect/expect.dart";
-
 void main() {
   for (int i = 0; i < 100; ++i) {
     testLookupFunctionPointerNativeType();

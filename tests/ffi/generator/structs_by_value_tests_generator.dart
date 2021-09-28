@@ -268,7 +268,7 @@ final ${dartType} ${variableName} = ${variableName}Pointer.ref;
         if (structsAsPointers) {
           return "Pointer<${dartType}> ${variableName}Pointer = nullptr;\n";
         } else {
-          return "${dartType} ${variableName} = ${dartType}();\n";
+          return "${dartType} ${variableName} = Pointer<${dartType}>.fromAddress(0).ref;\n";
         }
     }
 

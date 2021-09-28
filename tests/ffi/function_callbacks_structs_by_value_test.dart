@@ -72,7 +72,8 @@ final cPassStructRecursive = ffiTestFunctions.lookupFunction<
     Struct20BytesHomogeneousInt32 Function(int recursionCounter,
         Struct20BytesHomogeneousInt32, Pointer)>("PassStructRecursive");
 
-Struct8BytesNestedInt typedDataBackedStruct = Struct8BytesNestedInt();
+Struct8BytesNestedInt typedDataBackedStruct =
+    Pointer<Struct8BytesNestedInt>.fromAddress(0).ref;
 bool typedDataBackedStructSet = false;
 void _receiveStructByValue(Struct8BytesNestedInt struct) {
   typedDataBackedStruct = struct;
