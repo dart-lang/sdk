@@ -4,7 +4,7 @@
 
 // Tests that in some positions only constant types are allowed, so not
 // type parameters. But in other positions potentially constant types are
-// allowed, so type parameters.
+// allowed, including type parameters.
 
 import "package:expect/expect.dart";
 
@@ -24,7 +24,7 @@ class T<X> {
   ;
   const T.test4()
       : value = null //
-            ?? X //# 04: compile-time error
+            ?? X //# 04: ok
   ;
 }
 
