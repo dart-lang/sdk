@@ -121,7 +121,7 @@ class NewPage {
     ASSERT(owner_ == nullptr);
     uword result = top_;
     uword new_top = result + size;
-    if (LIKELY(new_top < end_)) {
+    if (LIKELY(new_top <= end_)) {
       top_ = new_top;
       return result;
     }
