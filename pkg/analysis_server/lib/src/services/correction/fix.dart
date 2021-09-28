@@ -1009,6 +1009,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary parentheses in file',
   );
+  static const REMOVE_UNNECESSARY_RAW_STRING = FixKind(
+    'dart.fix.remove.unnecessaryRawString',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'r' in string",
+  );
+  static const REMOVE_UNNECESSARY_RAW_STRING_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryRawString.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unnecessary 'r' in strings in file",
+  );
   static const REMOVE_UNNECESSARY_STRING_ESCAPE = FixKind(
     'dart.fix.remove.unnecessaryStringEscape',
     DartFixKindPriority.DEFAULT,
@@ -1016,7 +1026,7 @@ class DartFixKind {
   );
   static const REMOVE_UNNECESSARY_STRING_ESCAPE_MULTI = FixKind(
     'dart.fix.remove.unnecessaryStringEscape.multi',
-    DartFixKindPriority.DEFAULT,
+    DartFixKindPriority.IN_FILE,
     "Remove unnecessary '\\' in strings in file",
   );
   static const REMOVE_UNNECESSARY_STRING_INTERPOLATION = FixKind(
@@ -1171,7 +1181,7 @@ class DartFixKind {
   );
   static const REPLACE_NULL_WITH_VOID_MULTI = FixKind(
     'dart.fix.replace.nullWithVoid.multi',
-    DartFixKindPriority.DEFAULT,
+    DartFixKindPriority.IN_FILE,
     "Replace 'Null' with 'void' everywhere in file",
   );
   static const REPLACE_RETURN_TYPE = FixKind(
@@ -1191,7 +1201,7 @@ class DartFixKind {
   );
   static const REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI = FixKind(
     'dart.fix.replace.containerWithSizedBox.multi',
-    DartFixKindPriority.DEFAULT,
+    DartFixKindPriority.IN_FILE,
     "Replace with 'SizedBox' everywhere in file",
   );
   static const REPLACE_VAR_WITH_DYNAMIC = FixKind(
