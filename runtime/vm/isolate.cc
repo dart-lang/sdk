@@ -2899,6 +2899,10 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
     visitor->VisitPointer(
         reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
   }
+
+  if (become() != nullptr) {
+    become()->VisitObjectPointers(visitor);
+  }
 }
 
 void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,

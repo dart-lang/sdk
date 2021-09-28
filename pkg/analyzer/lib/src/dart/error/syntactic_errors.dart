@@ -869,7 +869,7 @@ class ParserErrorCode extends ErrorCode {
    * operator.
    */
   static const ParserErrorCode TYPE_PARAMETER_ON_OPERATOR = ParserErrorCode(
-      'TYPE_PARAMETERS_ON_OPERATOR',
+      'TYPE_PARAMETER_ON_OPERATOR',
       "Types parameters aren't allowed when defining an operator.",
       correction: "Try removing the type parameters.");
 

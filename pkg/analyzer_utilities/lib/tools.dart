@@ -228,10 +228,14 @@ class DartFormat {
   }
 
   static String formatText(String text) {
-    var file = File(join(Directory.systemTemp.path, 'gen.dart'));
+    var tmpDir = Directory.systemTemp.createTempSync('format');
+    var file = File(join(tmpDir.path, 'gen.dart'));
     file.writeAsStringSync(text);
     formatFile(file);
-    return file.readAsStringSync();
+    var result = file.readAsStringSync();
+    file.deleteSync();
+    tmpDir.deleteSync();
+    return result;
   }
 
   static void _throwIfExitCode(ProcessResult result) {

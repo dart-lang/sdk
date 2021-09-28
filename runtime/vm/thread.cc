@@ -466,10 +466,7 @@ ErrorPtr Thread::HandleInterrupts() {
             "\tisolate:    %s\n",
             isolate()->name());
       }
-      NoSafepointScope no_safepoint;
-      ErrorPtr error = Thread::Current()->StealStickyError();
-      ASSERT(error->IsUnwindError());
-      return error;
+      return StealStickyError();
     }
   }
   return Error::null();

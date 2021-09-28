@@ -187,7 +187,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // processing here is idempotent, so repeated visits only hurt performance
       // but not correctness. Duplicatation is expected to be low.
       // By the absence of a special case, we are treating WeakProperties as
-      // strong references here. This guarentees a WeakProperty will only be
+      // strong references here. This guarantees a WeakProperty will only be
       // added to the delayed_weak_properties_ list of the worker that
       // encounters it during ordinary marking. This is in the same spirit as
       // the eliminated write barrier, which would have added the newly written
