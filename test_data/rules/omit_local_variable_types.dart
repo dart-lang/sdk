@@ -4,7 +4,7 @@
 
 // test w/ `dart test -N omit_local_variable_types`
 
-// ignore_for_file: prefer_foreach
+// ignore_for_file: prefer_foreach, unused_local_variable
 
 f() {
   dynamic x = 0; // OK
@@ -54,7 +54,7 @@ Map<int, List<Person>> badGroupByZip(Iterable<Person> people) {
 
   for (Person person in people) { // LINT
     peopleByZip.putIfAbsent(person.zip, () => <Person>[]);
-    peopleByZip[person.zip].add(person);
+    peopleByZip[person.zip]!.add(person);
   }
 
   return peopleByZip;
@@ -65,7 +65,7 @@ Map<int, List<Person>> goodGroupByZip(Iterable<Person> people) {
 
   for (final person in people) { // OK
     peopleByZip.putIfAbsent(person.zip, () => <Person>[]);
-    peopleByZip[person.zip].add(person);
+    peopleByZip[person.zip]!.add(person);
   }
 
   return peopleByZip;
@@ -81,10 +81,10 @@ class Person {
 }
 
 class LinkedListNode {
-  LinkedListNode next;
+  late LinkedListNode next;
 }
 void traverse(LinkedListNode head) {
-  for (LinkedListNode node = head; node != null; node = node.next) { // LINT
+  for (LinkedListNode node = head; ; node = node.next) { // LINT
     // doSomething
   }
 }

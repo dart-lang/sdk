@@ -59,6 +59,7 @@ class A {
   }
   factory A.c11({f}) {
     assert(f != null); // OK
+    return A.c1(1);
   }
   // lint for call of top level member
   A.c12() {

@@ -38,7 +38,7 @@ class A {
   }
 }
 class B {
-  bool where(bool Function(Object e) f) => null;
+  bool where(bool Function(Object e) f) => false;
 
   m() {
     final o = new B();
