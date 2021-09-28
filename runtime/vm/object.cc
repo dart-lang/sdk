@@ -10867,8 +10867,9 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 void Field::set_guarded_list_length_in_object_offset_unsafe(
     intptr_t list_length_offset) const {
   ASSERT(IsOriginal());
-  StoreNonPointer(&untag()->guarded_list_length_in_object_offset_,
-                  static_cast<int8_t>(list_length_offset - kHeapObjectTag));
+  StoreNonPointer<int8_t, int8_t, std::memory_order_relaxed>(
+      &untag()->guarded_list_length_in_object_offset_,
+      static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
 }
 
