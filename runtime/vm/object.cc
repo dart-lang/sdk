@@ -1177,7 +1177,7 @@ void Object::Init(IsolateGroup* isolate_group) {
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
   error_str = String::New("Out of memory", Heap::kOld);
   *out_of_memory_error_ =
-      LanguageError::New(error_str, Report::kBailout, Heap::kOld);
+      LanguageError::New(error_str, Report::kError, Heap::kOld);
 
   // Allocate the parameter arrays for method extractor types and names.
   *extractor_parameter_types_ = Array::New(1, Heap::kOld);
@@ -2639,9 +2639,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     } else if (thread->top_exit_frame_info() != 0) {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
-      const Instance& exception = Instance::Handle(
-          thread->isolate_group()->object_store()->out_of_memory());
-      Exceptions::Throw(thread, exception);
+      Exceptions::ThrowOOM();
       UNREACHABLE();
     } else {
       // Nowhere to propagate an exception to.
@@ -10089,6 +10087,10 @@ CodePtr Function::EnsureHasCode() const {
   const Object& result =
       Object::Handle(zone, Compiler::CompileFunction(thread, *this));
   if (result.IsError()) {
+    if (result.ptr() == Object::out_of_memory_error().ptr()) {
+      Exceptions::ThrowOOM();
+      UNREACHABLE();
+    }
     if (result.IsLanguageError()) {
       Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
       UNREACHABLE();
@@ -10097,7 +10099,7 @@ CodePtr Function::EnsureHasCode() const {
     UNREACHABLE();
   }
   // Compiling in unoptimized mode should never fail if there are no errors.
-  ASSERT(HasCode());
+  RELEASE_ASSERT(HasCode());
   ASSERT(ForceOptimize() || unoptimized_code() == result.ptr());
   return CurrentCode();
 }

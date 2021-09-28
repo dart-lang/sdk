@@ -181,6 +181,14 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
       if (!code.IsNull()) {
         return code.ptr();
       }
+      const Error& error = Error::Handle(Thread::Current()->StealStickyError());
+      if (!error.IsNull()) {
+        if (error.ptr() == Object::out_of_memory_error().ptr()) {
+          Exceptions::ThrowOOM();
+        } else {
+          UNREACHABLE();
+        }
+      }
 
       // Fall back to default.
 #else
@@ -220,6 +228,9 @@ static CodePtr RetryCompilationWithFarBranches(
       if (error.ptr() == Object::branch_offset_error().ptr()) {
         ASSERT(!use_far_branches);
         use_far_branches = true;
+      } else if (error.ptr() == Object::out_of_memory_error().ptr()) {
+        thread->set_sticky_error(error);
+        return Code::null();
       } else {
         UNREACHABLE();
       }
