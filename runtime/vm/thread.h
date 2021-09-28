@@ -521,6 +521,10 @@ class Thread : public ThreadState {
     no_callback_scope_depth_ -= 1;
   }
 
+  bool is_unwind_in_progress() const { return is_unwind_in_progress_; }
+
+  void StartUnwindError() { is_unwind_in_progress_ = true; }
+
 #if defined(DEBUG)
   void EnterCompiler() {
     ASSERT(!IsInsideCompiler());
@@ -1181,6 +1185,8 @@ class Thread : public ThreadState {
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
   bool is_mutator_thread_ = false;
+
+  bool is_unwind_in_progress_ = false;
 
 #if defined(DEBUG)
   bool inside_compiler_ = false;
