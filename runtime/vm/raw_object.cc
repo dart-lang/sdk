@@ -222,13 +222,13 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kFreeListElement: {
       uword addr = UntaggedObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      instance_size = element->HeapSize();
+      instance_size = element->HeapSize(tags);
       break;
     }
     case kForwardingCorpse: {
       uword addr = UntaggedObject::ToAddr(this);
       ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
-      instance_size = element->HeapSize();
+      instance_size = element->HeapSize(tags);
       break;
     }
     case kWeakSerializationReferenceCid: {
