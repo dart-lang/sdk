@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+function_callbacks_structs_by_value_test: Pass, Slow # https://dartbug.com/47304 https://dartbug.com/45007
+function_structs_by_value_generated_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
+
 [ $builder_tag == msan ]
 vmspecific_handle_test: Skip # https://dartbug.com/42314
 
@@ -13,9 +16,6 @@ function_callbacks_structs_by_value_generated_test: Pass, Slow
 
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
-
-[ $arch == arm && $system == linux ]
-function_callbacks_structs_by_value_test: Slow # QEMU https://dartbug.com/45007
 
 [ $compiler != dart2analyzer && $compiler != fasta && $runtime != dart_precompiled && $runtime != vm ]
 *: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
