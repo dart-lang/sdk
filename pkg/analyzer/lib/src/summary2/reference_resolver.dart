@@ -45,10 +45,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         scope = libraryElement.scope,
         isNNBD = libraryElement.isNonNullableByDefault;
 
-  void enterScopeClassElement(ClassElementImpl element) {
-    scope = TypeParameterScope(scope, element.typeParameters);
-  }
-
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 

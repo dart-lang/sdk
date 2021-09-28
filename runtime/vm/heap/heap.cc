@@ -364,6 +364,7 @@ void Heap::HintFreed(intptr_t size) {
 
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
+  TIMELINE_FUNCTION_GC_DURATION(thread, "NotifyIdle");
   GcSafepointOperationScope safepoint_operation(thread);
 
   // Check if we want to collect new-space first, because if we want to collect
@@ -371,7 +372,6 @@ void Heap::NotifyIdle(int64_t deadline) {
   // to shrink the root set (make old-space GC faster) and avoid
   // intergenerational garbage (make old-space GC free more memory).
   if (new_space_.ShouldPerformIdleScavenge(deadline)) {
-    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectNewSpaceGarbage(thread, kIdle);
   }
 
@@ -383,7 +383,6 @@ void Heap::NotifyIdle(int64_t deadline) {
     // We prefer mark-compact over other old space GCs if we have enough time,
     // since it removes old space fragmentation and frees up most memory.
     // Blocks for O(heap), roughtly twice as costly as mark-sweep.
-    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kMarkCompact, kIdle);
   } else if (old_space_.ReachedHardThreshold()) {
     // Even though the following GC may exceed our idle deadline, we need to
@@ -393,7 +392,6 @@ void Heap::NotifyIdle(int64_t deadline) {
     // the only place that checks the old space allocation limit.
     // Compare the tail end of Heap::CollectNewSpaceGarbage.
     // Blocks for O(heap).
-    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);
   } else if (old_space_.ShouldStartIdleMarkSweep(deadline) ||
              old_space_.ReachedSoftThreshold()) {
@@ -408,16 +406,15 @@ void Heap::NotifyIdle(int64_t deadline) {
       phase = old_space_.phase();
     }
     if (phase == PageSpace::kAwaitingFinalization) {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
       CollectOldSpaceGarbage(thread, Heap::kMarkSweep, Heap::kFinalize);
     } else if (phase == PageSpace::kDone) {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
       StartConcurrentMarking(thread);
     }
   }
 }
 
 void Heap::NotifyLowMemory() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "NotifyLowMemory");
   CollectMostGarbage(kLowMemory);
 }
 

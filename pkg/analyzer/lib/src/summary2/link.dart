@@ -92,7 +92,6 @@ class Linker {
     _createTypeSystem();
     _buildEnumChildren();
     _resolveTypes();
-    _runDeclarationMacros();
     _performTopLevelInference();
     _resolveConstructors();
     _resolveConstantInitializers();
@@ -211,13 +210,6 @@ class Linker {
     computeSimplyBounded(this);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder(this).build(nodesToBuildType);
-  }
-
-  void _runDeclarationMacros() {
-    for (var library in builders.values) {
-      library.runDeclarationMacros();
-      library.processClassConstructors();
-    }
   }
 
   void _writeLibraries() {

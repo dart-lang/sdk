@@ -17,13 +17,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyzerConverter {
-  /// Optional provider for [analyzer.Element] location, used for example to
-  /// override the location of macro-generated elements.
-  final ElementLocationProvider? _locationProvider;
-
-  AnalyzerConverter({ElementLocationProvider? locationProvider})
-      : _locationProvider = locationProvider;
-
   /// Convert the analysis [error] from the 'analyzer' package to an analysis
   /// error defined by the plugin API. If a [lineInfo] is provided then the
   /// error's location will have a start line and start column. If a [severity]
@@ -206,12 +199,6 @@ class AnalyzerConverter {
     if (element == null || element.source == null) {
       return null;
     }
-
-    var result = _locationProvider?.forElement(element);
-    if (result != null) {
-      return result;
-    }
-
     offset ??= element.nameOffset;
     length ??= element.nameLength;
     if (element is analyzer.CompilationUnitElement ||
@@ -424,10 +411,4 @@ class AnalyzerConverter {
         range.length, startLine, startColumn,
         endLine: endLine, endColumn: endColumn);
   }
-}
-
-abstract class ElementLocationProvider {
-  /// Return the location of [element] that this provider wants to override,
-  /// or `null` if the default location should be used.
-  plugin.Location? forElement(analyzer.Element element);
 }

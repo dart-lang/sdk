@@ -368,21 +368,10 @@ class FileState {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  ///
-  /// If [content] is provided, then it is parsed instead, for example because
-  /// it contains macro-generated declarations, and we want to resolve the
-  /// unit with these declarations.
-  CompilationUnitImpl parse({
-    String? content,
-    AnalysisErrorListener? errorListener,
-  }) {
-    content ??= this.content;
+  CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
-      return _parse(
-        content: content,
-        errorListener: errorListener,
-      );
+      return _parse(errorListener);
     } catch (exception, stackTrace) {
       throw CaughtExceptionWithFiles(
         exception,
@@ -560,10 +549,7 @@ class FileState {
     }
   }
 
-  CompilationUnitImpl _parse({
-    required String content,
-    required AnalysisErrorListener errorListener,
-  }) {
+  CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(

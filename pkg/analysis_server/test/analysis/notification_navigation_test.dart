@@ -918,63 +918,6 @@ library my.lib;
     assertHasTargetString('my.lib');
   }
 
-  Future<void> test_macro_simpleIdentifier_getter() async {
-    // TODO(scheglov) Use PubPackageResolutionTest?
-    newFile('$projectPath/pubspec.yaml', content: '');
-
-    newFile('$projectPath/bin/macro_annotations.dart', content: r'''
-library analyzer.macro.annotations;
-const observable = 0;
-''');
-
-    addTestFile(r'''
-import 'macro_annotations.dart';
-
-class A {
-  @observable
-  int _foo = 0;
-}
-
-void f(A a) {
-  a.foo;
-}
-''');
-
-    await prepareNavigation();
-    assertHasRegionString('foo;', 3);
-
-    var generatedFile = getFile(
-      '/project/.dart_tool/analyzer/macro/bin/test.dart',
-    );
-
-    var generatedContent = generatedFile.readAsStringSync();
-    expect(generatedContent, r'''
-import 'macro_annotations.dart';
-
-class A {
-  @observable
-  int _foo = 0;
-
-  int get foo => _foo;
-
-  set foo(int val) {
-    print('Setting foo to ${val}');
-    _foo = val;
-  }
-}
-
-void f(A a) {
-  a.foo;
-}
-''');
-
-    assertHasFileTarget(
-      generatedFile.path,
-      generatedContent.indexOf('foo =>'),
-      'foo'.length,
-    );
-  }
-
   Future<void> test_multiplyDefinedElement() async {
     newFile('$projectPath/bin/libA.dart', content: 'library A; int TEST = 1;');
     newFile('$projectPath/bin/libB.dart', content: 'library B; int TEST = 2;');

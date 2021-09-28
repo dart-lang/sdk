@@ -1158,6 +1158,79 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return null;
   }
 
+  FieldEntity _indexFieldOfEnumClass(ClassEntity enumClass) {
+    MemberEntity member =
+        _closedWorld.elementEnvironment.lookupClassMember(enumClass, 'index');
+    if (member is FieldEntity) return member;
+    throw StateError('$enumClass should have index field, found $member');
+  }
+
+  IntConstantValue _indexValueOfEnumConstant(
+      ConstantValue constant, ClassEntity enumClass, FieldEntity field) {
+    if (constant is ConstructedConstantValue) {
+      if (constant.type.element == enumClass) {
+        final value = constant.fields[field];
+        if (value is IntConstantValue) return value;
+      }
+    }
+    throw StateError(
+        'Enum constant ${constant.toStructuredText(_closedWorld.dartTypes)}'
+        ' should have $field');
+  }
+
+  // The `enum` class of the [node], or `null` if [node] does not have an
+  // non-nullable enum type.
+  ClassEntity _enumClass(HInstruction node) {
+    final cls = _abstractValueDomain.getExactClass(node.instructionType);
+    if (cls == null) return null;
+    if (_closedWorld.elementEnvironment.isEnumClass(cls)) return cls;
+    return null;
+  }
+
+  // Try to replace enum labels in a switch with the index values. This is
+  // usually smaller, faster, and might allow the JavaScript engine to compile
+  // the switch to a jump-table.
+  void _tryReduceEnumsInSwitch(HSwitch node) {
+    final enumClass = _enumClass(node.expression);
+    if (enumClass == null) return;
+
+    FieldEntity indexField = _indexFieldOfEnumClass(enumClass);
+    // In some cases the `index` field is elided. We can't load an elided field.
+    //
+    // TODO(sra): The ConstantValue has the index value, so we can still reduce
+    // the enum to the index value. We could handle an elided `index` field in
+    // some cases by doing this optimization more like scalar replacement or
+    // unboxing, replacing all enums in the method at once, possibly reducing
+    // phis of enums to phis of indexes.
+    if (_closedWorld.fieldAnalysis.getFieldData(indexField).isElided) return;
+
+    // All the label expressions should be of the same enum class as the switch
+    // expression.
+    for (final label in node.inputs.skip(1)) {
+      if (label is! HConstant) return;
+      if (_enumClass(label) != enumClass) return;
+    }
+
+    final loadIndex = _directFieldGet(node.expression, indexField, node);
+    node.block.addBefore(node, loadIndex);
+    node.replaceInput(0, loadIndex);
+
+    for (int i = 1; i < node.inputs.length; i++) {
+      ConstantValue labelConstant = (node.inputs[i] as HConstant).constant;
+      node.replaceInput(
+          i,
+          _graph.addConstant(
+              _indexValueOfEnumConstant(labelConstant, enumClass, indexField),
+              _closedWorld));
+    }
+  }
+
+  @override
+  HInstruction visitSwitch(HSwitch node) {
+    _tryReduceEnumsInSwitch(node);
+    return node;
+  }
+
   @override
   HInstruction visitIdentity(HIdentity node) {
     HInstruction newInstruction = handleIdentityCheck(node);
@@ -1281,10 +1354,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   /// Returns [node] after replacing condition.
   HInstruction _replaceHIfCondition(HIf node, HInstruction newCondition) {
-    HInstruction condition = node.condition;
-    node.inputs[0] = newCondition;
-    condition.usedBy.remove(node);
-    newCondition.usedBy.add(node);
+    node.replaceInput(0, newCondition);
     return node;
   }
 
@@ -2506,9 +2576,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       // Pick the 'live' branch to be the smallest subgraph.
       bool value = thenSize <= elseSize;
       HInstruction newCondition = _graph.addConstantBool(value, closedWorld);
-      instruction.inputs[0] = newCondition;
-      condition.usedBy.remove(instruction);
-      newCondition.usedBy.add(instruction);
+      instruction.replaceInput(0, newCondition);
     }
   }
 
@@ -2563,7 +2631,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       block.forEachPhi((HPhi phi) {
         for (int i = 0; i < phi.inputs.length; ++i) {
           if (!predecessors[i].isLive && phi.inputs[i] != zapInstruction) {
-            replaceInput(i, phi, zapInstruction);
+            phi.replaceInput(i, zapInstruction);
           }
         }
       });
@@ -2596,12 +2664,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         }
       });
     }
-  }
-
-  void replaceInput(int i, HInstruction from, HInstruction by) {
-    from.inputs[i].usedBy.remove(from);
-    from.inputs[i] = by;
-    by.usedBy.add(from);
   }
 
   void removeUsers(HInstruction instruction) {

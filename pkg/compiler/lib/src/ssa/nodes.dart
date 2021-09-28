@@ -1313,8 +1313,8 @@ abstract class HInstruction implements Spannable {
     removeFromList(usedBy, user);
   }
 
-  // Change all uses of [oldInput] by [this] to [newInput]. Also
-  // updates the [usedBy] of [oldInput] and [newInput].
+  // Change all uses of [oldInput] by [this] to [newInput]. Also updates the
+  // [usedBy] of [oldInput] and [newInput].
   void changeUse(HInstruction oldInput, HInstruction newInput) {
     assert(newInput != null && !identical(oldInput, newInput));
     for (int i = 0; i < inputs.length; i++) {
@@ -1324,6 +1324,16 @@ abstract class HInstruction implements Spannable {
       }
     }
     removeFromList(oldInput.usedBy, this);
+  }
+
+  /// Replace a single input.
+  ///
+  /// Use [changeUse] to change all inputs that are the same value.
+  void replaceInput(int index, HInstruction replacement) {
+    assert(replacement.isInBasicBlock());
+    inputs[index].usedBy.remove(this);
+    inputs[index] = replacement;
+    replacement.usedBy.add(this);
   }
 
   void replaceAllUsersDominatedBy(
@@ -1439,9 +1449,7 @@ class DominatedUses {
           identical(oldInstruction, _source),
           'Input ${index} of ${user} changed.'
           '\n  Found: ${oldInstruction}\n  Expected: ${_source}');
-      user.inputs[index] = newInstruction;
-      oldInstruction.usedBy.remove(user);
-      newInstruction.usedBy.add(user);
+      user.replaceInput(index, newInstruction);
     }
   }
 

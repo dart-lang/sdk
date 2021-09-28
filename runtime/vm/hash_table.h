@@ -553,6 +553,8 @@ class HashTables : public AllStatic {
     }
   }
 
+  static constexpr double kMaxLoadFactor = 0.71;
+
   template <typename Table>
   static void EnsureLoadFactor(double high, const Table& table) {
     // We count deleted elements because they take up space just
@@ -707,8 +709,7 @@ class HashMap : public BaseIterTable {
 
  protected:
   void EnsureCapacity() const {
-    static const double kMaxLoadFactor = 0.71;
-    HashTables::EnsureLoadFactor(kMaxLoadFactor, *this);
+    HashTables::EnsureLoadFactor(HashTables::kMaxLoadFactor, *this);
   }
 };
 
@@ -793,8 +794,7 @@ class HashSet : public BaseIterTable {
 
  protected:
   void EnsureCapacity() const {
-    static const double kMaxLoadFactor = 0.71;
-    HashTables::EnsureLoadFactor(kMaxLoadFactor, *this);
+    HashTables::EnsureLoadFactor(HashTables::kMaxLoadFactor, *this);
   }
 };
 
