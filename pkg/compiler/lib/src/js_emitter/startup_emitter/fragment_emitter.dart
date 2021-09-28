@@ -52,14 +52,24 @@ function copyProperties(from, to) {
     to[key] = from[key];
   }
 }
+
 // Copies the own properties from [from] to [to] if not already present in [to].
-function mixinProperties(from, to) {
+function mixinPropertiesHard(from, to) {
   var keys = Object.keys(from);
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
     if (!to.hasOwnProperty(key)) {
       to[key] = from[key];
     }
+  }
+}
+// Copies the own properties from [from] to [to] (specialized version of
+// `mixinPropertiesHard` when it is known the properties are disjoint).
+function mixinPropertiesEasy(from, to) {
+  if (#legacyJavaScript) {
+    copyProperties(from, to);
+  } else {
+    Object.assign(to, from);
   }
 }
 
@@ -117,8 +127,12 @@ function inheritMany(sup, classes) {
 }
 
 // Mixes in the properties of [mixin] into [cls].
-function mixin(cls, mixin) {
-  mixinProperties(mixin.prototype, cls.prototype);
+function mixinEasy(cls, mixin) {
+  mixinPropertiesEasy(mixin.prototype, cls.prototype);
+  cls.prototype.constructor = cls;
+}
+function mixinHard(cls, mixin) {
+  mixinPropertiesHard(mixin.prototype, cls.prototype);
   cls.prototype.constructor = cls;
 }
 
@@ -374,7 +388,8 @@ var #hunkHelpers = (function(){
   return {
     inherit: inherit,
     inheritMany: inheritMany,
-    mixin: mixin,
+    mixin: mixinEasy,
+    mixinHard: mixinHard,
     installStaticTearOff: installStaticTearOff,
     installInstanceTearOff: installInstanceTearOff,
 
@@ -777,7 +792,9 @@ class FragmentEmitter {
 
       'call0selector': js.quoteName(call0Name),
       'call1selector': js.quoteName(call1Name),
-      'call2selector': js.quoteName(call2Name)
+      'call2selector': js.quoteName(call2Name),
+
+      'legacyJavaScript': _options.features.legacyJavaScript.isEnabled,
     });
     // We assume emitMainFragment will be the last piece of code we emit.
     finalizeCode(mainResourceName, mainCode, holderCode, finalizeHolders: true);
@@ -1211,7 +1228,9 @@ class FragmentEmitter {
         collect(cls);
         if (cls.mixinClass != null) {
           js.Statement statement = js.js.statement('#(#, #)', [
-            locals.find('_mixin', 'hunkHelpers.mixin'),
+            _hasSimpleMixin(cls)
+                ? locals.find('_mixin', 'hunkHelpers.mixin')
+                : locals.find('_mixinHard', 'hunkHelpers.mixinHard'),
             classReference(cls),
             classReference(cls.mixinClass),
           ]);
@@ -1262,6 +1281,30 @@ class FragmentEmitter {
     statements.addAll(inheritCalls);
     statements.addAll(mixinCalls);
     return wrapPhase('inheritance', statements);
+  }
+
+  /// Determines if the mixin methods can be applied to a mixin application
+  /// class by a simple copy, or whether the class defines properties that would
+  /// be clobbered by block-copying the mixin's properties, so a slower checking
+  /// copy is needed.
+  bool _hasSimpleMixin(Class cls) {
+    List<Method> allMethods(Class cls) {
+      return [
+        ...cls.methods,
+        ...cls.checkedSetters,
+        ...cls.isChecks,
+        ...cls.callStubs,
+        ...cls.noSuchMethodStubs,
+        ...cls.gettersSetters
+      ];
+    }
+
+    final clsMethods = allMethods(cls);
+    if (clsMethods.isEmpty) return true;
+    // TODO(sra): Compare methods with those of `cls.mixinClass` to see if the
+    // methods (and hence properties) will actually clash. If they are
+    // non-overlapping, a simple copy might still be possible.
+    return false;
   }
 
   /// Emits the setup of method aliases.
