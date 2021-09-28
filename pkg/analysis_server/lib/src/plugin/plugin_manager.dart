@@ -330,8 +330,10 @@ class PluginManager {
       try {
         var session = await plugin.start(byteStorePath, sdkPath);
         session?.onDone.then((_) {
-          _pluginMap.remove(path);
-          _notifyPluginsChanged();
+          if (_pluginMap[path] == plugin) {
+            _pluginMap.remove(path);
+            _notifyPluginsChanged();
+          }
         });
       } catch (exception, stackTrace) {
         // Record the exception (for debugging purposes) and record the fact
