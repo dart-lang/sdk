@@ -2936,7 +2936,7 @@
             "create_sdk"
           ],
           "environment": {
-            "DART_GN_ARGS": "mac_use_goma_rbe=true dart_snapshot_kind=\"app-jit\""
+            "DART_GN_ARGS": "mac_use_goma_rbe=true"
           }
         },
         {
