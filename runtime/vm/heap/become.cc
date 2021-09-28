@@ -217,6 +217,27 @@ class WritableCodeLiteralsScope : public ValueObject {
 };
 #endif
 
+Become::Become() {
+  IsolateGroup* group = Thread::Current()->isolate_group();
+  ASSERT(group->become() == nullptr);  // Only one outstanding become at a time.
+  group->set_become(this);
+}
+
+Become::~Become() {
+  Thread::Current()->isolate_group()->set_become(nullptr);
+}
+
+void Become::Add(const Object& before, const Object& after) {
+  pointers_.Add(before.ptr());
+  pointers_.Add(after.ptr());
+}
+
+void Become::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  if (pointers_.length() != 0) {
+    visitor->VisitPointers(&pointers_[0], pointers_.length());
+  }
+}
+
 void Become::MakeDummyObject(const Instance& instance) {
   // Make the forward pointer point to itself.
   // This is needed to distinguish it from a real forward object.
@@ -228,7 +249,7 @@ static bool IsDummyObject(ObjectPtr object) {
   return GetForwardedObject(object) == object;
 }
 
-void Become::CrashDump(ObjectPtr before_obj, ObjectPtr after_obj) {
+static void CrashDump(ObjectPtr before_obj, ObjectPtr after_obj) {
   OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
 
   OS::PrintErr("BEFORE ADDRESS: %#" Px "\n", static_cast<uword>(before_obj));
@@ -256,7 +277,7 @@ void Become::CrashDump(ObjectPtr before_obj, ObjectPtr after_obj) {
   }
 }
 
-void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
+void Become::Forward() {
   Thread* thread = Thread::Current();
   auto heap = thread->isolate_group()->heap();
 
@@ -264,10 +285,9 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   HeapIterationScope his(thread);
 
   // Setup forwarding pointers.
-  ASSERT(before.Length() == after.Length());
-  for (intptr_t i = 0; i < before.Length(); i++) {
-    ObjectPtr before_obj = before.At(i);
-    ObjectPtr after_obj = after.At(i);
+  for (intptr_t i = 0; i < pointers_.length(); i += 2) {
+    ObjectPtr before_obj = pointers_[i];
+    ObjectPtr after_obj = pointers_[i + 1];
 
     if (before_obj == after_obj) {
       FATAL("become: Cannot self-forward");
@@ -304,10 +324,11 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   FollowForwardingPointers(thread);
 
 #if defined(DEBUG)
-  for (intptr_t i = 0; i < before.Length(); i++) {
-    ASSERT(before.At(i) == after.At(i));
+  for (intptr_t i = 0; i < pointers_.length(); i += 2) {
+    ASSERT(pointers_[i] == pointers_[i + 1]);
   }
 #endif
+  pointers_.Clear();
 }
 
 void Become::FollowForwardingPointers(Thread* thread) {

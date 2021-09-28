@@ -92,7 +92,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // No addressing mode will ignore the upper bits. Cannot use the shorter `orl`
   // to clear the upper bits as this instructions uses negative indices as part
   // of FP-relative loads.
-  // TODO(compressed-pointers): Can we guarentee the index is already
+  // TODO(compressed-pointers): Can we guarantee the index is already
   // sign-extended if always comes for an args-descriptor load?
   __ movsxd(index, index);
 #endif
@@ -123,7 +123,7 @@ DEFINE_BACKEND(StoreIndexedUnsafe,
   // No addressing mode will ignore the upper bits. Cannot use the shorter `orl`
   // to clear the upper bits as this instructions uses negative indices as part
   // of FP-relative stores.
-  // TODO(compressed-pointers): Can we guarentee the index is already
+  // TODO(compressed-pointers): Can we guarantee the index is already
   // sign-extended if always comes for an args-descriptor load?
   __ movsxd(index, index);
 #endif
