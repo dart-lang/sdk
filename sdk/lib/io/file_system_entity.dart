@@ -642,7 +642,7 @@ abstract class FileSystemEntity {
       _toNullTerminatedUtf8Array(utf8.encoder.convert(s));
 
   static Uint8List _toNullTerminatedUtf8Array(Uint8List l) {
-    if (l.isNotEmpty && l.last != 0) {
+    if (l.isEmpty || (l.isNotEmpty && l.last != 0)) {
       final tmp = new Uint8List(l.length + 1);
       tmp.setRange(0, l.length, l);
       return tmp;
