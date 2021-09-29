@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,10 +18,10 @@ final temporaryConstConstructorElements = Expando<bool>();
 /// Return the list of nodes that are not potentially constant.
 List<AstNode> getNotPotentiallyConstants(
   AstNode node, {
-  required bool isNonNullableByDefault,
+  required FeatureSet featureSet,
 }) {
   var collector = _Collector(
-    isNonNullableByDefault: isNonNullableByDefault,
+    featureSet: featureSet,
   );
   collector.collect(node);
   return collector.nodes;
@@ -50,10 +51,10 @@ bool _isConstantTypeName(Identifier name) {
 }
 
 class _Collector {
-  final bool isNonNullableByDefault;
+  final FeatureSet featureSet;
   final List<AstNode> nodes = [];
 
-  _Collector({required this.isNonNullableByDefault});
+  _Collector({required this.featureSet});
 
   void collect(AstNode node) {
     if (node is BooleanLiteral ||
@@ -139,7 +140,7 @@ class _Collector {
     }
 
     if (node is AsExpression) {
-      if (isNonNullableByDefault) {
+      if (featureSet.isEnabled(Feature.non_nullable)) {
         if (!isPotentiallyConstantTypeExpression(node.type)) {
           nodes.add(node.type);
         }
@@ -153,7 +154,7 @@ class _Collector {
     }
 
     if (node is IsExpression) {
-      if (isNonNullableByDefault) {
+      if (featureSet.isEnabled(Feature.non_nullable)) {
         if (!isPotentiallyConstantTypeExpression(node.type)) {
           nodes.add(node.type);
         }

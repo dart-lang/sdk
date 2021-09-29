@@ -1140,7 +1140,7 @@ var x = 'a';
     var node = getNode();
     var notConstList = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+      featureSet: featureSet,
     );
     expect(notConstList, isEmpty);
   }
@@ -1151,7 +1151,7 @@ var x = 'a';
     var node = getNode();
     var notConstList = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+      featureSet: featureSet,
     );
 
     var expectedNotConst = getNotConstList();
@@ -1194,7 +1194,7 @@ class A<T> {
     var node = getNode();
     var notConstList = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+      featureSet: featureSet,
     );
 
     var expectedNotConst = getNotConstList();

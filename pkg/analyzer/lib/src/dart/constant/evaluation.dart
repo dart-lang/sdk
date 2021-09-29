@@ -1760,7 +1760,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   void _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: _isNonNullableByDefault,
+      featureSet: _library.featureSet,
     );
     if (notPotentiallyConstants.isEmpty) return;
 
