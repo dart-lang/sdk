@@ -1112,21 +1112,25 @@ intptr_t PassAsValueAndPointer(intptr_t value, void* ptr) {
   return reinterpret_cast<intptr_t>(value);
 }
 
-// We're using this to keep track of whether the finalizer has been called.
-static intptr_t shared_resource = 0;
+intptr_t* AllocateResource(intptr_t value) {
+  return new intptr_t(value);
+}
+
+void DeleteResource(intptr_t* resource) {
+  delete resource;
+}
+
+intptr_t GetResourceValue(intptr_t* resource) {
+  return *resource;
+}
 
 void DummyResourceFinalizer(void* isolate_peer, void* peer) {
-  shared_resource = 0;
+  *reinterpret_cast<intptr_t*>(peer) = 0;
 }
 
-void SetSharedResource(Dart_Handle handle, intptr_t value) {
-  Dart_NewFinalizableHandle(handle, nullptr, sizeof(Dart_FinalizableHandle),
+void SetResourceFinalizer(Dart_Handle handle, intptr_t* resource) {
+  Dart_NewFinalizableHandle(handle, resource, sizeof(Dart_FinalizableHandle),
                             DummyResourceFinalizer);
-  shared_resource = value;
-}
-
-intptr_t GetSharedResource() {
-  return shared_resource;
 }
 
 static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
@@ -1151,11 +1155,17 @@ static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   if (strcmp(name, "PassAsValueAndPointer") == 0 && args_n == 2) {
     return reinterpret_cast<void*>(PassAsValueAndPointer);
   }
-  if (strcmp(name, "SetSharedResource") == 0 && args_n == 2) {
-    return reinterpret_cast<void*>(SetSharedResource);
+  if (strcmp(name, "AllocateResource") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(AllocateResource);
   }
-  if (strcmp(name, "GetSharedResource") == 0 && args_n == 0) {
-    return reinterpret_cast<void*>(GetSharedResource);
+  if (strcmp(name, "DeleteResource") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(DeleteResource);
+  }
+  if (strcmp(name, "GetResourceValue") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(GetResourceValue);
+  }
+  if (strcmp(name, "SetResourceFinalizer") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(SetResourceFinalizer);
   }
   // This should be unreachable in tests.
   ENSURE(false);
