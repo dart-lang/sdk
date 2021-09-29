@@ -772,10 +772,19 @@ class FileSystemState {
   void collectAffected(String path, Set<FileState> affected) {
     final knownFiles = this.knownFiles.toList();
 
+    final fileToReferences = <FileState, List<FileState>>{};
+    for (var file in knownFiles) {
+      for (var referenced in file.directReferencedFiles) {
+        var references = fileToReferences[referenced] ??= [];
+        references.add(file);
+      }
+    }
+
     collectAffected(FileState file) {
       if (affected.add(file)) {
-        for (var other in knownFiles) {
-          if (other.directReferencedFiles.contains(file)) {
+        var references = fileToReferences[file];
+        if (references != null) {
+          for (var other in references) {
             collectAffected(other);
           }
         }
