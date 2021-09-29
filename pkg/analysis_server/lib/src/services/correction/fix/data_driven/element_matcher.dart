@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, ExtensionElement;
+    show ClassElement, ExtensionElement, PrefixElement;
 import 'package:analyzer/dart/element/type.dart';
 
 /// An object that can be used to determine whether an element is appropriate
@@ -131,9 +131,15 @@ class ElementMatcher {
         return ['', node.name];
       } else if (parent is MethodDeclaration && node == parent.name) {
         return [node.name];
-      } else if ((parent is MethodInvocation && node == parent.methodName) ||
-          (parent is PrefixedIdentifier && node == parent.identifier) ||
-          (parent is PropertyAccess && node == parent.propertyName)) {
+      } else if ((parent is MethodInvocation &&
+              node == parent.methodName &&
+              !_isPrefix(parent.target)) ||
+          (parent is PrefixedIdentifier &&
+              node == parent.identifier &&
+              !_isPrefix(parent.prefix)) ||
+          (parent is PropertyAccess &&
+              node == parent.propertyName &&
+              !_isPrefix(parent.target))) {
         return _componentsFromParent(node);
       }
       return _componentsFromIdentifier(node);
@@ -262,6 +268,11 @@ class ElementMatcher {
     return importedUris;
   }
 
+  /// Return `true` if the [node] is a prefix
+  static bool _isPrefix(AstNode? node) {
+    return node is SimpleIdentifier && node.staticElement is PrefixElement;
+  }
+
   /// Return the kinds of elements that could reasonably be referenced at the
   /// location of the [node]. If [child] is not `null` then the [node] is a
   /// parent of the [child].
@@ -283,7 +294,9 @@ class ElementMatcher {
           ElementKind.enumKind,
           ElementKind.mixinKind
         ];
-      } else if (node.realTarget != null) {
+      }
+      var realTarget = node.realTarget;
+      if (realTarget != null && !_isPrefix(realTarget)) {
         return const [ElementKind.constructorKind, ElementKind.methodKind];
       }
       return const [
@@ -304,13 +317,34 @@ class ElementMatcher {
         ElementKind.typedefKind
       ];
     } else if (node is PrefixedIdentifier) {
-      if (node.prefix == child) {
+      var prefix = node.prefix;
+      if (prefix == child) {
         return const [
           ElementKind.classKind,
           ElementKind.enumKind,
           ElementKind.extensionKind,
           ElementKind.mixinKind,
           ElementKind.typedefKind
+        ];
+      } else if (prefix.staticElement is PrefixElement) {
+        var parent = node.parent;
+        if ((parent is NamedType && parent.parent is! ConstructorName) ||
+            (parent is PropertyAccess && parent.target == node)) {
+          return const [
+            ElementKind.classKind,
+            ElementKind.enumKind,
+            ElementKind.extensionKind,
+            ElementKind.mixinKind,
+            ElementKind.typedefKind
+          ];
+        }
+        return const [
+          // If the old class has been removed then this might have been a
+          // constructor invocation.
+          ElementKind.constructorKind,
+          ElementKind.getterKind,
+          ElementKind.setterKind,
+          ElementKind.variableKind
         ];
       }
       return const [

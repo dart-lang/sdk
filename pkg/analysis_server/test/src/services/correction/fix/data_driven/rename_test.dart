@@ -21,6 +21,7 @@ void main() {
     defineReflectiveTests(RenameMethodTest);
     defineReflectiveTests(RenameMixinTest);
     defineReflectiveTests(RenameTopLevelFunctionTest);
+    defineReflectiveTests(RenameTopLevelVariableTest);
     defineReflectiveTests(RenameTypedefTest);
   });
 }
@@ -128,6 +129,29 @@ void f() {
   New();
 }
 ''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_constructor_unnamed_removed_prefixed() async {
+    setPackageContent('''
+class New {
+  New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.Old();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.New();
+}
+''');
   }
 
   Future<void> test_inExtends_deprecated() async {
@@ -501,6 +525,29 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_unnamed_named_removed_prefixed() async {
+    setPackageContent('''
+class C {
+  C.a();
+}
+''');
+    setPackageData(_rename(['', 'C'], 'a'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.C();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.C.a();
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -590,6 +637,25 @@ import '$importUri';
 
 var s = New.empty;
 ''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_staticField_removed_prefixed() async {
+    setPackageContent('''
+extension New on String {
+  static String empty = '';
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+var s = p.Old.empty;
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+var s = p.New.empty;
+''');
   }
 }
 
@@ -769,6 +835,29 @@ import '$importUri';
 
 void f() {
   C.b;
+}
+''');
+  }
+
+  Future<void> test_static_reference_removed_prefixed() async {
+    setPackageContent('''
+class C {
+  static int b;
+}
+''');
+    setPackageData(_rename(['a', 'C'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.C.a;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.C.b;
 }
 ''');
   }
@@ -967,6 +1056,27 @@ void f() {
 }
 ''', errorFilter: ignoreUnusedImport);
   }
+
+  Future<void> test_topLevel_reference_removed_prefixed() async {
+    setPackageContent('''
+int get b => 1;
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.a;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.b;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -1122,6 +1232,29 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_static_reference_removed_prefixed() async {
+    setPackageContent('''
+class C {
+  static int b() {}
+}
+''');
+    setPackageData(_rename(['a', 'C'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.C.a();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.C.b();
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -1163,6 +1296,23 @@ import '$importUri';
 
 class C with New {}
 ''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_inWith_removed_prefixed() async {
+    setPackageContent('''
+mixin New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+class C with p.Old {}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+class C with p.New {}
+''');
   }
 }
 
@@ -1214,6 +1364,110 @@ void f() {
 }
 ''', errorFilter: ignoreUnusedImport);
   }
+
+  Future<void> test_removed_prefixed() async {
+    setPackageContent('''
+int b() {}
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.a();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.b();
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RenameTopLevelVariableTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'variable';
+
+  Future<void> test_toStaticField_noPrefix_deprecated() async {
+    setPackageContent('''
+@deprecated
+int Old = 0;
+class C {
+  int New = 1;
+}
+''');
+    setPackageData(_rename(['Old'], 'C.New'));
+    await resolveTestCode('''
+import '$importUri';
+
+int f() => Old;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+int f() => C.New;
+''');
+  }
+
+  Future<void> test_toTopLevel_withoutPrefix_deprecated() async {
+    setPackageContent('''
+@deprecated
+int Old = 0;
+int New = 1;
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+int f() => Old;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+int f() => New;
+''');
+  }
+
+  Future<void> test_toTopLevel_withoutPrefix_removed() async {
+    setPackageContent('''
+C New = C();
+class C {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+C f() => Old;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+C f() => New;
+''');
+  }
+
+  Future<void> test_toTopLevel_withPrefix_deprecated() async {
+    setPackageContent('''
+@deprecated
+int Old = 0;
+int New = 1;
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+int f() => p.Old;
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+int f() => p.New;
+''');
+  }
 }
 
 @reflectiveTest
@@ -1255,6 +1509,23 @@ import '$importUri';
 
 void f(New o) {}
 ''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_removed_prefixed() async {
+    setPackageContent('''
+typedef New = int Function(int);
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f(p.Old o) {}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f(p.New o) {}
+''');
   }
 }
 
