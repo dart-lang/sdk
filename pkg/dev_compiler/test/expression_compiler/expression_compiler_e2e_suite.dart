@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-library dev_compiler.test.expression_compiler;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
@@ -59,10 +57,8 @@ class SetupCompilerOptions {
       p.join(sdkRoot.toFilePath(), 'ddc_outline_sound.dill');
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
-  static final String dartUnsoundComment = '// @dart = 2.9';
-  static final String dartSoundComment = '//';
 
-  final String dartLangComment;
+  final bool legacyCode;
   final List<String> errors = [];
   final List<String> diagnosticMessages = [];
   final ModuleFormat moduleFormat;
@@ -84,10 +80,10 @@ class SetupCompilerOptions {
   }
 
   SetupCompilerOptions(
-      {this.soundNullSafety = true, this.moduleFormat = ModuleFormat.amd})
-      : options = _getOptions(soundNullSafety),
-        dartLangComment =
-            soundNullSafety ? dartSoundComment : dartUnsoundComment {
+      {this.soundNullSafety = true,
+      this.legacyCode = false,
+      this.moduleFormat = ModuleFormat.amd})
+      : options = _getOptions(soundNullSafety) {
     options.onDiagnostic = (fe.DiagnosticMessage m) {
       diagnosticMessages.addAll(m.plainTextFormatted);
       if (m.severity == fe.Severity.error) {
@@ -280,8 +276,8 @@ class TestDriver {
       throw StateError('Unable to find SDK summary at path: $summaryPath.');
     }
 
-    // Prepend Dart nullability comment.
-    source = '${setup.dartLangComment}\n\n$source';
+    // Prepend legacy Dart version comment.
+    if (setup.legacyCode) source = '// @dart = 2.11\n\n$source';
     this.setup = setup;
     this.source = source;
     testDir = chromeDir.createTempSync('ddc_eval_test');
@@ -524,7 +520,7 @@ class TestDriver {
     expect(
         result,
         const TypeMatcher<TestCompilationResult>()
-            .having((_) => '$value', 'result', _matches(expectedResult)));
+            .having((_) => value, 'result', _matches(expectedResult)));
   }
 
   /// Generate simple string representation of a RemoteObject that closely

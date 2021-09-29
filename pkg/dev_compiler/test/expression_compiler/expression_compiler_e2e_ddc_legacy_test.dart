@@ -12,18 +12,17 @@ import 'expression_compiler_e2e_suite.dart';
 void main() async {
   var driver = await TestDriver.init();
 
-  group('(Sound null safety)', () {
+  group('(Legacy code)', () {
     tearDownAll(() async {
       await driver.finish();
     });
 
-    group('(AMD module system)', () {
+    group('(DDC module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: true,
-          legacyCode: false,
-          moduleFormat: ModuleFormat.amd);
+          soundNullSafety: false,
+          legacyCode: true,
+          moduleFormat: ModuleFormat.ddc);
       runAgnosticSharedTests(setup, driver);
-      runNullSafeSharedTests(setup, driver);
     });
   });
 }
