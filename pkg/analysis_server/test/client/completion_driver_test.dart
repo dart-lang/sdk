@@ -71,7 +71,6 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   void assertSuggestion({
-    bool allowMultiple = false,
     required String completion,
     ElementKind? element,
     CompletionSuggestionKind? kind,
@@ -79,7 +78,6 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }) {
     expect(
         suggestionWith(
-          allowMultiple: allowMultiple,
           completion: completion,
           element: element,
           kind: kind,
@@ -184,7 +182,6 @@ project:${toUri('$projectPath/lib')}
           completion: completion, element: element, kind: kind, file: file));
 
   CompletionSuggestion suggestionWith({
-    bool allowMultiple = false,
     required String completion,
     ElementKind? element,
     CompletionSuggestionKind? kind,
@@ -192,9 +189,7 @@ project:${toUri('$projectPath/lib')}
   }) {
     final matches = suggestionsWith(
         completion: completion, element: element, kind: kind, file: file);
-    if (!allowMultiple) {
-      expect(matches, hasLength(1));
-    }
+    expect(matches, hasLength(1));
     return matches.first;
   }
 
@@ -269,10 +264,7 @@ void f() {
 }
 ''');
 
-    // TODO(brianwilkerson) There should be a single suggestion here after we
-    //  figure out how to stop the duplication.
     assertSuggestion(
-        allowMultiple: true,
         completion: 'A',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -296,11 +288,7 @@ void f() {
   ^
 }
 ''');
-
-    // TODO(brianwilkerson) There should be a single suggestion here after we
-    //  figure out how to stop the duplication.
     assertSuggestion(
-        allowMultiple: true,
         completion: 'E.e',
         element: ElementKind.ENUM_CONSTANT,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -325,10 +313,7 @@ void f() {
 }
 ''');
 
-    // TODO(brianwilkerson) There should be a single suggestion here after we
-    //  figure out how to stop the duplication.
     assertSuggestion(
-        allowMultiple: true,
         completion: 'A.a',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -656,15 +641,13 @@ void f() {
 }
 ''');
 
-    // TODO(brianwilkerson) There should be a single suggestion here after we
-    //  figure out how to stop the duplication.
     expect(
         suggestionsWith(
             completion: 'Future.value',
             file: '/sdk/lib/async/async.dart',
             element: ElementKind.CONSTRUCTOR,
             kind: CompletionSuggestionKind.INVOCATION),
-        hasLength(2));
+        hasLength(1));
   }
 
   Future<void> test_sdk_lib_suggestions() async {

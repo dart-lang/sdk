@@ -38,9 +38,8 @@ void computeIncludedSetList(
   ) {
     int relevance;
     if (importedUriSet.contains(library.uri)) {
-      return;
-    }
-    if (library.isDeprecated) {
+      relevance = importedRelevance;
+    } else if (library.isDeprecated) {
       relevance = deprecatedRelevance;
     } else {
       relevance = otherwiseRelevance;
