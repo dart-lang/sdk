@@ -10,6 +10,7 @@ import 'formatter_test.dart' as formatter_test;
 import 'integration_test.dart' as integration_test;
 import 'mocks.dart';
 import 'rule_test.dart' as rule_test;
+import 'rules/all.dart' as reflective_rule_tests;
 import 'utils_test.dart' as utils_test;
 import 'validate_format_test.dart' as validate_format;
 import 'validate_headers_test.dart' as validate_headers;
@@ -25,6 +26,7 @@ void main() {
   formatter_test.main();
   integration_test.main();
   rule_test.main();
+  reflective_rule_tests.main();
   utils_test.main();
   validate_format.main();
   validate_headers.main();

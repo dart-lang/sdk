@@ -4,7 +4,6 @@
 
 // test w/ `dart test -N avoid_init_to_null`
 
-int i = null; //OK (compilation error)
 int? ii = null; //LINT
 dynamic iii = null; //LINT
 
@@ -23,21 +22,12 @@ class X {
   final nil2 = null; //OK
 
   // TODO(pq): ints are not nullable so we'll want to update the lint here
-  // since it will produce a compilation error.
-  int x = null; //OK (compilation error)
   int? xx = null; //LINT
   int y; //OK
   int z; //OK
 
-  X({int a: null}) //OK (compilation error)
-    : y = 1, z = 1;
-
-  X.b({this.z: null}) //OK (compilation error)
-    : y = 1;
-
   X.c({this.xx: null}) //LINT
       : y = 1, z = 1;
-
 
   fooNamed({
     p: null, //LINT
