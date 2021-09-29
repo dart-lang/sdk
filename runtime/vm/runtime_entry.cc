@@ -3635,6 +3635,9 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
   if (thread->no_callback_scope_depth() != 0) {
     FATAL("Cannot invoke native callback when API callbacks are prohibited.");
   }
+  if (thread->is_unwind_in_progress()) {
+    FATAL("Cannot invoke native callback while unwind error propagates.");
+  }
   if (!thread->IsMutatorThread()) {
     FATAL("Native callbacks must be invoked on the mutator thread.");
   }

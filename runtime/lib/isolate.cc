@@ -302,8 +302,6 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
       isolate->group()->api_state()->AllocatePersistentHandle();
   handle->set_ptr(msg_array);
   isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
-  // TODO(aam): Ensure there are no dart api calls after this point as we want
-  // to ensure that validated message won't get tampered with.
   Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.

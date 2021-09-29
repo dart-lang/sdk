@@ -725,6 +725,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_OPERATOR: [
       ImportLibrary.forExtensionMember,
     ],
+    CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
       // TODO(brianwilkerson) Support ImportLibrary for non-extension members.

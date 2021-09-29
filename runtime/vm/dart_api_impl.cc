@@ -485,6 +485,16 @@ Dart_Handle Api::AcquiredError(IsolateGroup* isolate_group) {
   return reinterpret_cast<Dart_Handle>(acquired_error_handle);
 }
 
+Dart_Handle Api::UnwindInProgressError() {
+  Thread* T = Thread::Current();
+  CHECK_API_SCOPE(T);
+  TransitionToVM transition(T);
+  HANDLESCOPE(T);
+  const String& message = String::Handle(
+      Z, String::New("No api calls are allowed while unwind is in progress"));
+  return Api::NewHandle(T, UnwindError::New(message));
+}
+
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   Thread* thread = Thread::Current();

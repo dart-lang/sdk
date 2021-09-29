@@ -1126,6 +1126,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
+        Thread::Current()->StartUnwindError();
         obj = message.At(2);
         if (I->VerifyTerminateCapability(obj)) {
           // We will kill the current isolate by returning an UnwindError.

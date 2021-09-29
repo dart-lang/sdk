@@ -194,6 +194,9 @@ class Api : AllStatic {
   // Gets the handle which holds the pre-created acquired error object.
   static Dart_Handle AcquiredError(IsolateGroup* isolate_group);
 
+  // Gets the handle for unwind-is-in-progress error.
+  static Dart_Handle UnwindInProgressError();
+
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
     // Important: we do not require current thread to be in VM state because
@@ -335,6 +338,9 @@ class Api : AllStatic {
   if (thread->no_callback_scope_depth() != 0) {                                \
     return reinterpret_cast<Dart_Handle>(                                      \
         Api::AcquiredError(thread->isolate_group()));                          \
+  }                                                                            \
+  if (thread->is_unwind_in_progress()) {                                       \
+    return reinterpret_cast<Dart_Handle>(Api::UnwindInProgressError());        \
   }
 
 #define ASSERT_CALLBACK_STATE(thread)                                          \
