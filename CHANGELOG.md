@@ -388,6 +388,17 @@ Updated the Linter to `1.12.0`, which includes changes that
   `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
   folder dependencies to be updated after operating in the current directory.
 
+## 2.14.3 - 2021-09-30
+
+This is a patch release that fixes:
+
+- a code completion performance regression [flutter/flutter-intellij#5761][].
+- debug information emitted by the Dart VM [#47289][].
+
+[flutter/flutter-intellij#5761]:
+  https://github.com/flutter/flutter-intellij/issues/5761
+[#47289]: https://github.com/dart-lang/sdk/issues/47289
+
 ## 2.14.2 - 2021-09-16
 
 This is a patch release that fixes:
