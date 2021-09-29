@@ -69,10 +69,19 @@ class FunctionReferenceResolver {
       // TODO(srawlins): Handle `function` being a [SuperExpression].
 
       function.accept(_resolver);
-      if (function.staticType is FunctionType) {
-        _resolve(node: node, rawType: function.staticType);
+      var functionType = function.staticType;
+      if (functionType == null) {
+        _resolveDisallowedExpression(node, functionType);
+      } else if (functionType is FunctionType) {
+        _resolve(node: node, rawType: functionType);
       } else {
-        _resolveDisallowedExpression(node, function.staticType);
+        var callMethodType =
+            _resolver.typeSystem.getCallMethodType(functionType);
+        if (callMethodType != null) {
+          _resolve(node: node, rawType: callMethodType);
+        } else {
+          _resolveDisallowedExpression(node, functionType);
+        }
       }
     }
   }

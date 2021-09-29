@@ -434,6 +434,75 @@ extension on Function {
         findElement.method('m'), 'void Function(int)');
   }
 
+  test_implicitCallTearoff() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+foo() {
+  C()<int>;
+}
+''');
+
+    // TODO(srawlins): An arbitrary expression with a static type which is
+    // callable does not necessarily have an element. However, if we implement
+    // some "implicit call tearoff" node, it would have an element referring to
+    // the `call` method.
+    var functionReference = findNode.functionReference('C()<int>;');
+    assertType(functionReference, 'int Function(int)');
+  }
+
+  test_implicitCallTearoff_tooFewTypeArguments() async {
+    await assertErrorsInCode('''
+class C {
+  void call<T, U>(T t, U u) {}
+}
+
+foo() {
+  C()<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+          57,
+          5),
+    ]);
+
+    // TODO(srawlins): An arbitrary expression with a static type which is
+    // callable does not necessarily have an element. However, if we implement
+    // some "implicit call tearoff" node, it would have an element referring to
+    // the `call` method.
+    var functionReference = findNode.functionReference('C()<int>;');
+    assertType(functionReference, 'void Function(dynamic, dynamic)');
+  }
+
+  test_implicitCallTearoff_tooManyTypeArguments() async {
+    await assertErrorsInCode('''
+class C {
+  int call(int t) => t;
+}
+
+foo() {
+  C()<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+          50,
+          5),
+    ]);
+
+    // TODO(srawlins): An arbitrary expression with a static type which is
+    // callable does not necessarily have an element. However, if we implement
+    // some "implicit call tearoff" node, it would have an element referring to
+    // the `call` method.
+    var functionReference = findNode.functionReference('C()<int>;');
+    assertType(functionReference, 'int Function(int)');
+  }
+
   test_instanceGetter_explicitReceiver() async {
     await assertNoErrorsInCode('''
 class A {
