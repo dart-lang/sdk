@@ -21,8 +21,6 @@ bool le = list.indexOf(1) > -1; //LINT
 
 bool le2 = [].indexOf(1) > -1; //LINT
 
-bool le3 = ([].indexOf(1) as int) > -1; //LINT
-
 bool le4 = -1 < list.indexOf(1); //LINT
 
 bool le5 = [].indexOf(1) < MINUS_ONE; //LINT
@@ -38,13 +36,6 @@ bool se = "aaa".indexOf('a') == -1; //LINT
 int ser = "aaa".indexOf('a', 2); //OK
 
 bool mixed = list.indexOf(1) + "a".indexOf("ab") > 0; //OK
-
-condition() {
-  final int a = list.indexOf(1) > -1 ? 2 : 3; //LINT
-  list..indexOf(1);
-  var next;
-  while ((next = list.indexOf('{')) != -1) {} //OK
-}
 
 bool le7 = [].indexOf(1) > 1; //OK
 

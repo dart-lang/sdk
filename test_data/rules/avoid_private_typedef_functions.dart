@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N avoid_private_typedef_functions`
 
+// ignore_for_file: unused_element
+
 typedef void _F1(); // LINT
 typedef void F1(); // OK
 
@@ -18,12 +20,12 @@ m4a(_F4 f) => null;
 m4b(_F4 f) => null;
 
 typedef void _F5(); // OK
-_F5 v5a;
-_F5 v5b;
+_F5 v5a = () {};
+_F5 v5b = () {};
 
 typedef void _F6(); // OK
-_F6 f6a() => null;
-_F6 f6b() => null;
+_F6 f6a() => () {};
+_F6 f6b() => () {};
 
 typedef _F7 = void Function(); // OK
 m7(_F7 f) => null;

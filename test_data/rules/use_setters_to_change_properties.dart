@@ -4,9 +4,11 @@
 
 // test w/ `dart test -N use_setters_to_change_properties`
 
+// ignore_for_file: unused_field
+
 abstract class A {
-  int _w;
-  int _x;
+  int _w = 0;
+  int _x = 0;
 
   void setW(int w) => _w = w; // LINT
 
@@ -26,7 +28,7 @@ abstract class A {
 }
 
 class B extends A {
-  int _y;
+  int _y = 0;
 
   void setY(int y) { // OK because it is an inherited method.
     this._y = y;
@@ -38,8 +40,8 @@ abstract class C {
 }
 
 class D implements C {
-  int _y;
-  int dd;
+  int _y = 0;
+  int dd = 0;
 
   void setY(int y) { // OK because it is an implementation method.
     this._y = y;
