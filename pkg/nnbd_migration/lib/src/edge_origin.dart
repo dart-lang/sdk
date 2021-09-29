@@ -194,6 +194,18 @@ class EnumValueOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.enumValue;
 }
 
+/// Edge origin resulting from an explicit or implicit `dynamic` type annotation
+/// appearing in an external declaration.
+class ExternalDynamicOrigin extends EdgeOrigin {
+  ExternalDynamicOrigin(Source? source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'dynamic type in external declaration';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.externalDynamic;
+}
+
 /// Edge origin resulting from the relationship between a field formal parameter
 /// and the corresponding field.
 class FieldFormalParameterOrigin extends EdgeOrigin {
