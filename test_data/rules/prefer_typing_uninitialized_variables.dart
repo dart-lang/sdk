@@ -10,7 +10,7 @@ class BadClass {
   final baz; // LINT
   var a = 5,
       b; // LINT
-  String d;
+  String? d;
 
   BadClass(this.baz);
 

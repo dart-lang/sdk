@@ -60,6 +60,6 @@ class A {
 // https://github.com/dart-lang/linter/issues/1518
 class B {
   Future<num> foo() async => 1;
-  Future<int> bar() async => await foo(); // OK
+  Future<int> bar() async => await foo() as int; // OK
   Future<num> buzz() async => await bar(); // LINT
 }

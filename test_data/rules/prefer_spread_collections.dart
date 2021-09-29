@@ -31,5 +31,3 @@ g() {
   A()..addAll(['a']); // OK
 }
 
-const thangs = [];
-const cc = []..addAll(thangs); // OK -- don't show on invalid code
