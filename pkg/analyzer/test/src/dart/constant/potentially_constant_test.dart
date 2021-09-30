@@ -13,7 +13,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
-    defineReflectiveTests(PotentiallyConstantWithoutNullSafetyTest);
   });
 }
 
@@ -214,6 +213,18 @@ class A<T> {
   }
 }
 ''', () => _xInitializer());
+  }
+
+  test_asExpression_typeParameter_29() async {
+    await _assertNotConst(r'''
+// @dart = 2.9
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as T;
+  }
+}
+''', () => _xInitializer(), () => [findNode.namedType('T;')]);
   }
 
   test_asExpression_typeParameter_nested() async {
@@ -516,6 +527,18 @@ class A<T> {
   }
 }
 ''', () => _xInitializer());
+  }
+
+  test_isExpression_typeParameter_29() async {
+    await _assertNotConst(r'''
+// @dart = 2.9
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is T;
+  }
+}
+''', () => _xInitializer(), () => [findNode.namedType('T;')]);
   }
 
   test_isExpression_typeParameter_nested() async {
@@ -1097,6 +1120,25 @@ var x = A;
 ''', () => _xInitializer());
   }
 
+  test_simpleIdentifier_typeParameter_class() async {
+    await _assertConst(r'''
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''', () => findNode.simple('T;'));
+  }
+
+  test_simpleIdentifier_typeParameter_class_214() async {
+    await _assertNotConst(r'''
+// @dart = 2.14
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''', () => findNode.simple('T;'), () => [findNode.simple('T;')]);
+  }
+
   test_spreadElement() async {
     await _assertConst(r'''
 const a = [0, 1, 2];
@@ -1143,49 +1185,6 @@ var x = 'a';
       featureSet: featureSet,
     );
     expect(notConstList, isEmpty);
-  }
-
-  _assertNotConst(String code, AstNode Function() getNode,
-      List<AstNode> Function() getNotConstList) async {
-    await resolveTestCode(code);
-    var node = getNode();
-    var notConstList = getNotPotentiallyConstants(
-      node,
-      featureSet: featureSet,
-    );
-
-    var expectedNotConst = getNotConstList();
-    expect(notConstList, unorderedEquals(expectedNotConst));
-  }
-
-  Expression _xInitializer() {
-    return findNode.variableDeclaration('x = ').initializer!;
-  }
-}
-
-@reflectiveTest
-class PotentiallyConstantWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_asExpression_typeParameter() async {
-    await _assertNotConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a as T;
-  }
-}
-''', () => _xInitializer(), () => [findNode.namedType('T;')]);
-  }
-
-  test_isExpression_typeParameter() async {
-    await _assertNotConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a is T;
-  }
-}
-''', () => _xInitializer(), () => [findNode.namedType('T;')]);
   }
 
   _assertNotConst(String code, AstNode Function() getNode,

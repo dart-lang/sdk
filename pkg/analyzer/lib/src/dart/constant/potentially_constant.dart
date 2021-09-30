@@ -244,6 +244,10 @@ class _Collector {
     if (element is MethodElement && element.isStatic) {
       return;
     }
+    if (element is TypeParameterElement &&
+        featureSet.isEnabled(Feature.constructor_tearoffs)) {
+      return;
+    }
     nodes.add(node);
   }
 
