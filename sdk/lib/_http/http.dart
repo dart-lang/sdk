@@ -2063,7 +2063,7 @@ abstract class HttpClientRequest implements IOSink {
   /// Using the [IOSink] methods (e.g., [write] and [add]) has no effect after
   /// the request has been aborted
   ///
-  /// ```dart
+  /// ```dart import:async
   /// HttpClientRequst request = ...
   /// request.write();
   /// Timer(Duration(seconds: 1), () {

@@ -28,8 +28,10 @@ void main(List<String> args) async {
   print('Validating the dartdoc code samples from the dart: libraries.');
   print('');
   print('To run this tool, run `dart tools/verify_docs/bin/verify_docs.dart`.');
+  print('');
   print('For documentation about how to author dart: code samples,'
       ' see tools/verify_docs/README.md');
+  print('');
 
   final coreLibraries = args.isEmpty
       ? libDir.listSync().whereType<Directory>().toList()
@@ -90,7 +92,6 @@ Future<bool> verifyFile(String coreLibName, File file, Directory parent) async {
     return error.errorCode.type == ErrorType.SYNTACTIC_ERROR;
   }).toList();
   if (syntacticErrors.isNotEmpty) {
-    // todo: have a better failure mode
     throw Exception(syntacticErrors);
   }
 
@@ -108,20 +109,21 @@ Future<bool> verifyFile(String coreLibName, File file, Directory parent) async {
   return visitor.errors.isEmpty;
 }
 
-/// todo: doc
+/// Visit a compilation unit and collect the list of code samples found in
+/// dartdoc comments.
 class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   final String coreLibName;
   final String filePath;
   final LineInfo lineInfo;
+
+  final List<CodeSample> samples = [];
+  final StringBuffer errors = StringBuffer();
 
   ValidateCommentCodeSamplesVisitor(
     this.coreLibName,
     this.filePath,
     this.lineInfo,
   );
-
-  final List<CodeSample> samples = [];
-  final StringBuffer errors = StringBuffer();
 
   Future process(ParseStringResult parseResult) async {
     // collect code samples
@@ -135,7 +137,6 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitAnnotatedNode(AnnotatedNode node) {
-    // todo: ignore (or fail?) doc comments on non-public symbols
     _handleDocumentableNode(node);
     super.visitAnnotatedNode(node);
   }
@@ -158,6 +159,11 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
 
     var offset = text.indexOf(sampleStart);
     while (offset != -1) {
+      // Collect template directives, like "```dart import:async".
+      final codeFenceSuffix = text.substring(
+          offset + sampleStart.length, text.indexOf('\n', offset));
+      final directives = Set.unmodifiable(codeFenceSuffix.trim().split(' '));
+
       offset = text.indexOf('\n', offset) + 1;
       final end = text.indexOf(sampleEnd, offset);
 
@@ -166,13 +172,12 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
 
       List<String> lines = snippet.split('\n');
 
-      // TODO(devoncarew): Also look for template directives.
-
       samples.add(
         CodeSample(
-          coreLibName,
           lines.map((e) => '  ${cleanDocLine(e)}').join('\n'),
-          commentLineStart +
+          coreLibName: coreLibName,
+          directives: directives,
+          lineStartOffset: commentLineStart +
               text.substring(0, offset - 1).split('\n').length -
               1,
         ),
@@ -183,9 +188,6 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   }
 
   Future validateCodeSample(CodeSample sample) async {
-    // TODO(devoncarew): Support <!-- template: none --> ?
-    // TODO(devoncarew): Support <!-- template: main --> ?
-
     final resourceProvider =
         OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
 
@@ -212,6 +214,12 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         text = "main() async {\n${text.trimRight()}\n}\n";
       }
 
+      for (final directive
+          in sample.directives.where((str) => str.startsWith('import:'))) {
+        final libName = directive.substring('import:'.length);
+        text = "import 'dart:$libName';\n$text";
+      }
+
       if (sample.coreLibName != 'internal') {
         text = "import 'dart:${sample.coreLibName}';\n$text";
       }
@@ -227,7 +235,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       modificationStamp: 0,
     );
 
-    // TODO(devoncarew): refactor to use AnalysisContextCollection to avoid
+    // TODO(devoncarew): Refactor to use AnalysisContextCollection to avoid
     // re-creating analysis contexts.
     final result = await resolveFile2(
       path: sampleFilePath,
@@ -239,8 +247,9 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     if (result is ResolvedUnitResult) {
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
-      var errors =
-          result.errors.where((e) => e.errorCode != HintCode.UNUSED_IMPORT);
+      var errors = result.errors.where(
+        (e) => e.errorCode != HintCode.UNUSED_IMPORT,
+      );
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
@@ -250,8 +259,16 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
             e.errorCode != HintCode.UNUSED_ELEMENT,
       );
 
+      // Remove warnings about deprecated member use from the same library.
+      errors = errors.where(
+        (e) =>
+            e.errorCode != HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE &&
+            e.errorCode !=
+                HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
+      );
+
       if (errors.isNotEmpty) {
-        print('$filePath:${sample.lineStart}: ${errors.length} errors');
+        print('$filePath:${sample.lineStartOffset}: ${errors.length} errors');
 
         for (final error in errors) {
           final location = result.lineInfo.getLocation(error.offset);
@@ -290,10 +307,16 @@ String cleanDocLine(String line) {
 
 class CodeSample {
   final String coreLibName;
+  final Set<String> directives;
   final String text;
-  final int lineStart;
+  final int lineStartOffset;
 
-  CodeSample(this.coreLibName, this.text, this.lineStart);
+  CodeSample(
+    this.text, {
+    required this.coreLibName,
+    this.directives = const {},
+    required this.lineStartOffset,
+  });
 }
 
 String _severity(Severity severity) {
