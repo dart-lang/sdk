@@ -85,10 +85,4 @@ class _Lowering extends Transformer {
     node.transformChildren(this);
     return _lateLowering.transformField(node, _currentMember!);
   }
-
-  @override
-  TreeNode visitFieldInitializer(FieldInitializer node) {
-    node.transformChildren(this);
-    return _lateLowering.transformFieldInitializer(node, _currentMember!);
-  }
 }
