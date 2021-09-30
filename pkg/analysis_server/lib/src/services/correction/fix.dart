@@ -671,6 +671,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Make field '{0}' not final",
   );
+  static const MAKE_FIELD_PUBLIC = FixKind(
+    'dart.fix.makeFieldPublic',
+    DartFixKindPriority.DEFAULT,
+    "Make field '{0}' public",
+  );
   static const MAKE_FINAL = FixKind(
     'dart.fix.makeFinal',
     DartFixKindPriority.DEFAULT,

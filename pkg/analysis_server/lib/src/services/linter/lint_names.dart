@@ -115,6 +115,8 @@ class LintNames {
   static const String unnecessary_constructor_name =
       'unnecessary_constructor_name';
   static const String unnecessary_final = 'unnecessary_final';
+  static const String unnecessary_getters_setters =
+      'unnecessary_getters_setters';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_in_if_null_operators =

@@ -106,6 +106,7 @@ import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_conditional_on_debug_mode_test.dart'
     as make_conditional_on_debug_mode;
 import 'make_field_not_final_test.dart' as make_field_not_final;
+import 'make_field_public_test.dart' as make_field_public;
 import 'make_final_test.dart' as make_final;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
@@ -294,6 +295,7 @@ void main() {
     make_class_abstract.main();
     make_conditional_on_debug_mode.main();
     make_field_not_final.main();
+    make_field_public.main();
     make_final.main();
     make_return_type_nullable.main();
     make_variable_not_final.main();
