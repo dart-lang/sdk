@@ -18,20 +18,24 @@ class PreferContainsTest extends LintRuleTest {
   String get lintRule => 'prefer_contains';
 
   test_argumentTypeNotAssignable() async {
-    // Produces an argument_type_not_assignable diagnostic.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 List<int> list = [];
 condition() {
   var next;
   while ((next = list.indexOf('{')) != -1) {}
 }
-''');
+''', [
+      // No lint
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 4),
+    ]);
   }
 
   test_unnecessaryCast() async {
-    // Produces an unnecessary_cast diagnostic.
-    await assertLint(r'''
+    await assertDiagnostics(r'''
 bool le3 = ([].indexOf(1) as int) > -1;
-''');
+''', [
+      lint('prefer_contains', 11, 27),
+      error(HintCode.UNNECESSARY_CAST, 12, 20),
+    ]);
   }
 }

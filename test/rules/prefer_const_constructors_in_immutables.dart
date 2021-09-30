@@ -18,11 +18,14 @@ class PreferConstConstructorsInImmutablesTest extends LintRuleTest {
   String get lintRule => 'prefer_const_constructors_in_immutables';
 
   test_returnOfInvalidType() async {
-    // Produces an return_of_invalid_type diagnostic.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 class F {
   factory F.fc() => null;
 }
-''');
+''', [
+      // No lint
+      error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 30, 4),
+    ]);
   }
 }

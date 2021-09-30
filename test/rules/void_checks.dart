@@ -18,21 +18,25 @@ class VoidChecksTest extends LintRuleTest {
   String get lintRule => 'void_checks';
 
   test_extraPositionalArgument() async {
-    // Produces an extra_positional_arguments diagnostic.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 missing_parameter_for_argument() {
   void foo() {}
   foo(0);
 }
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 57, 1),
+    ]);
   }
 
   test_returnOfInvalidType() async {
-    // Produces a return_of_invalid_type diagnostic.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 void bug2813() {
   return 1;
 }
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+    ]);
   }
 }

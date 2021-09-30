@@ -18,6 +18,7 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
@@ -212,32 +213,6 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
         buffer.writeln('),');
       }
       fail(buffer.toString());
-    }
-  }
-
-  /// todo(pq): consider migrating all calls to assertDiagnostics
-  Future<void> assertLint(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-
-    for (var error in errors) {
-      if (error.errorCode.name == lintRule) {
-        return;
-      }
-    }
-
-    fail('Expected: $lintRule, found none');
-  }
-
-  /// todo(pq): consider migrating all calls to assertDiagnostics
-  Future<void> assertNoLint(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-
-    for (var error in errors) {
-      if (error.errorCode.name == lintRule) {
-        fail(error.message);
-      }
     }
   }
 }

@@ -18,43 +18,53 @@ class AvoidInitToNullTest extends LintRuleTest {
   String get lintRule => 'avoid_init_to_null';
 
   test_invalidAssignment_field() async {
-    // Produces an invalid_assignment compilation error.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 class X {
   int x = null;
 }
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 20, 4),
+    ]);
   }
 
   test_invalidAssignment_namedParameter() async {
-    // Produces an invalid_assignment compilation error.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 class X {
   X({int a: null});
 }
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4),
+    ]);
   }
 
   test_invalidAssignment_namedParameter_fieldFormal() async {
-    // Produces an invalid_assignment compilation error.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 class X {
   int x;
   X({this.x: null});
 }
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 32, 4),
+    ]);
   }
 
   test_invalidAssignment_topLevelVariable() async {
-    // Produces an invalid_assignment compilation error.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 int i = null;
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 4),
+    ]);
   }
 
   test_nullable_topLevelVariable() async {
-    await assertLint(r'''
+    await assertDiagnostics(r'''
 int? ii = null;
-''');
+''', [
+      lint('avoid_init_to_null', 5, 9),
+    ]);
   }
 }

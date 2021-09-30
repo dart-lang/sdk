@@ -18,8 +18,7 @@ class PreferAssertsInInitializerListsTest extends LintRuleTest {
   String get lintRule => 'prefer_asserts_in_initializer_lists';
 
   test_nonBoolExpression() async {
-    // Produces an non_bool_expression diagnostic.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 class A {
   bool? f;
   A() {
@@ -30,6 +29,9 @@ class A {
     });
   }
 }
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 40, 50),
+    ]);
   }
 }

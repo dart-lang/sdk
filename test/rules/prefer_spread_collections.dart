@@ -18,10 +18,13 @@ class PreferSpreadCollectionsTest extends LintRuleTest {
   String get lintRule => 'prefer_spread_collections';
 
   test_constInitializedWithNonConstantValue() async {
-    // Produces a const_initialized_with_non_constant_value diagnostic.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 const thangs = [];
 const cc = []..addAll(thangs);
-''');
+''', [
+      // No lint
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 30,
+          18),
+    ]);
   }
 }

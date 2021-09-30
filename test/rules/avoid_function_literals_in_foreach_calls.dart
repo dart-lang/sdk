@@ -18,9 +18,11 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRuleTest {
   String get lintRule => 'avoid_function_literals_in_foreach_calls';
 
   test_expectedIdentifier() async {
-    // Produces an expected identifier diagnostic.
-    await assertNoLint(r'''
+    await assertDiagnostics(r'''
 void f(dynamic iter) => iter?.forEach(...);
-''');
+''', [
+      // No lint
+      error(ParserErrorCode.MISSING_IDENTIFIER, 38, 3),
+    ]);
   }
 }
