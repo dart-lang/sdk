@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -46,6 +47,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   bool get enableUnusedElement => false;
 
   bool get enableUnusedLocalVariable => false;
+
+  FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
 

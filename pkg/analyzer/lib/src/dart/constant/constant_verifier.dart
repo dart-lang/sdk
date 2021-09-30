@@ -73,8 +73,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
         );
 
-  bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
-
   @override
   void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
@@ -259,7 +257,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (_isNonNullableByDefault) {
+    if (_currentLibrary.isNonNullableByDefault) {
       _validateSwitchStatement_nullSafety(node);
     } else {
       _validateSwitchStatement_legacy(node);
@@ -424,7 +422,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: _isNonNullableByDefault,
+      featureSet: _currentLibrary.featureSet,
     );
     if (notPotentiallyConstants.isEmpty) return;
 
@@ -773,7 +771,7 @@ class _ConstLiteralVerifier {
   bool _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: verifier._isNonNullableByDefault,
+      featureSet: verifier._currentLibrary.featureSet,
     );
     if (notPotentiallyConstants.isEmpty) return true;
 
