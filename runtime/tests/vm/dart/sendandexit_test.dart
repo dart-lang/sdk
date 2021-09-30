@@ -4,9 +4,8 @@
 //
 // VMOptions=--enable-isolate-groups
 //
-// Validates functionality of sendAndExit.
+// Validates functionality of Isolate.exit().
 
-import 'dart:_internal' show sendAndExit;
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:nativewrappers';
@@ -27,7 +26,7 @@ spawnWorker(worker, data) async {
 verifyCantSendAnonymousClosure() async {
   final receivePort = ReceivePort();
   Expect.throws(
-      () => sendAndExit(receivePort.sendPort, () {}),
+      () => Isolate.exit(receivePort.sendPort, () {}),
       (e) =>
           e.toString() ==
           'Invalid argument: "Illegal argument in isolate message : '
@@ -40,7 +39,7 @@ class NativeWrapperClass extends NativeFieldWrapperClass1 {}
 verifyCantSendNative() async {
   final receivePort = ReceivePort();
   Expect.throws(
-      () => sendAndExit(receivePort.sendPort, NativeWrapperClass()),
+      () => Isolate.exit(receivePort.sendPort, NativeWrapperClass()),
       (e) => e.toString().startsWith('Invalid argument: '
           '"Illegal argument in isolate message : '
           '(object extends NativeWrapper'));
@@ -50,7 +49,7 @@ verifyCantSendNative() async {
 verifyCantSendReceivePort() async {
   final receivePort = ReceivePort();
   Expect.throws(
-      () => sendAndExit(receivePort.sendPort, receivePort),
+      () => Isolate.exit(receivePort.sendPort, receivePort),
       // closure is encountered first before we reach ReceivePort instance
       (e) => e.toString().startsWith(
           'Invalid argument: "Illegal argument in isolate message : '
@@ -62,7 +61,7 @@ verifyCantSendRegexp() async {
   final receivePort = ReceivePort();
   final regexp = RegExp("");
   Expect.throws(
-      () => sendAndExit(receivePort.sendPort, regexp),
+      () => Isolate.exit(receivePort.sendPort, regexp),
       (e) =>
           e.toString() ==
           'Invalid argument: '
@@ -73,7 +72,7 @@ verifyCantSendRegexp() async {
 add(a, b) => a + b;
 
 worker(SendPort sendPort) async {
-  sendAndExit(sendPort, add);
+  Isolate.exit(sendPort, add);
 }
 
 verifyCanSendStaticMethod() async {

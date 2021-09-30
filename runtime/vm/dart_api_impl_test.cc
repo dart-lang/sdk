@@ -756,11 +756,10 @@ void Func1() {
 TEST_CASE(DartAPI_EnsureUnwindErrorHandled_WhenSendAndExit) {
   const char* kScriptChars = R"(
 import 'dart:isolate';
-import 'dart:_internal' show sendAndExit;
 
 sendAndExitNow() {
   final receivePort = ReceivePort();
-  sendAndExit(receivePort.sendPort, true);
+  Isolate.exit(receivePort.sendPort, true);
 }
 
 @pragma("vm:external-name", "Test_nativeFunc")

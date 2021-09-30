@@ -645,6 +645,13 @@ class Isolate {
 
   @pragma("vm:external-name", "Isolate_getCurrentRootUriStr")
   external static String _getCurrentRootUriStr();
+
+  @pragma("vm:external-name", "Isolate_exit_")
+  external static Never _exit(SendPort? finalMessagePort, Object? message);
+
+  static Never exit([SendPort? finalMessagePort, Object? message]) {
+    _exit(finalMessagePort, message);
+  }
 }
 
 @patch
