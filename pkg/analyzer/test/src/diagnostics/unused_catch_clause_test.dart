@@ -15,9 +15,6 @@ main() {
 
 @reflectiveTest
 class UnusedCatchClauseTest extends PubPackageResolutionTest {
-  @override
-  bool get enableUnusedLocalVariable => true;
-
   test_on_unusedException() async {
     await assertErrorsInCode(r'''
 main() {
