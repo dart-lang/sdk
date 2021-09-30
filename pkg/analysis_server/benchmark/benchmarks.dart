@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer_utilities/package_root.dart';
 import 'package:args/command_runner.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
@@ -24,17 +25,17 @@ Future main(List<String> args) async {
     FlutterAnalyzeBenchmark(),
   ];
 
-  var runner =
-      CommandRunner('benchmark', 'A benchmark runner for the analysis server.');
+  var runner = CommandRunner(
+    'benchmark',
+    'A benchmark runner for the analysis server.',
+  );
   runner.addCommand(ListCommand(benchmarks));
   runner.addCommand(RunCommand(benchmarks));
   runner.run(args);
 }
 
 String get analysisServerSrcPath {
-  var script = Platform.script.toFilePath(windows: Platform.isWindows);
-  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return path.join(pkgPath, 'analysis_server');
+  return path.join(packageRoot, 'analysis_server');
 }
 
 void deleteServerCache() {
@@ -42,18 +43,14 @@ void deleteServerCache() {
   ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
   var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
   try {
-    if (stateLocation != null && stateLocation.exists) {
-      stateLocation.delete();
-    }
+    stateLocation?.delete();
   } catch (e) {
     // ignore any exception
   }
 }
 
 List<String> getProjectRoots({bool quick = false}) {
-  var script = Platform.script.toFilePath(windows: Platform.isWindows);
-  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return <String>[path.join(pkgPath, quick ? 'meta' : 'analysis_server')];
+  return [path.join(packageRoot, quick ? 'meta' : 'analysis_server')];
 }
 
 abstract class Benchmark {
@@ -65,7 +62,7 @@ abstract class Benchmark {
   final String kind;
 
   Benchmark(this.id, this.description,
-      {this.enabled = true, this.kind = 'cpu'});
+      {this.enabled = true, required this.kind});
 
   int get maxIterations => 0;
 
