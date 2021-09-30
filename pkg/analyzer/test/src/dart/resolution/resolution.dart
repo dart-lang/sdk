@@ -44,10 +44,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Element get dynamicElement => typeProvider.dynamicType.element!;
 
-  bool get enableUnusedElement => false;
-
-  bool get enableUnusedLocalVariable => false;
-
   FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;

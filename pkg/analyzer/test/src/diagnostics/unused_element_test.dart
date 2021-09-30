@@ -17,9 +17,6 @@ main() {
 @reflectiveTest
 class UnusedElementTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  @override
-  bool get enableUnusedElement => true;
-
   test_class_isUsed_extends() async {
     await assertNoErrorsInCode(r'''
 class _A {}
