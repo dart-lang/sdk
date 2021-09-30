@@ -4,16 +4,6 @@
 
 // test w/ `dart test -N overridden_fields`
 
-class A {
-  static final String f = 'value';
-  String f2 = '';
-}
-class B extends A {
-  /// https://github.com/dart-lang/linter/issues/2874
-  String f = 'otherValue'; //OK
-  static String f2 = ''; //OK
-}
-
 class Base {
   Object field = 'lorem';
 
@@ -21,7 +11,6 @@ class Base {
 }
 
 class Bad1 extends Base {
-  @override
   final x = 1, field = 'ipsum'; // LINT
 }
 
@@ -36,7 +25,7 @@ class Bad3 extends Object with Base {
 }
 
 class Ok extends Base {
-  Object newField; // OK
+  Object newField = 0; // OK
 
   final Object newFinal = 'ignore'; // OK
 }
@@ -46,7 +35,7 @@ class OK2 implements Base {
   Object something = 'done'; // OK
 
   @override
-  Object field;
+  Object field = 0;
 }
 
 abstract class OK3 implements Base {
@@ -66,89 +55,36 @@ abstract class GC12 implements Bad1 {
   Object something = 'done'; // OK
 }
 
-class GC13 extends Object with Bad1 {
-  @override
-  Object something = 'done'; // OK
-
-  @override
-  Object field = 'lint'; // LINT
-}
-
-abstract class GC21 extends GC11 {
-  @override
-  Object something = 'done'; // LINT
-}
-
 abstract class GC22 implements GC11 {
   @override
   Object something = 'done'; // OK
 }
 
-class GC23 extends Object with GC13 {
-  @override
-  Object something = 'done'; // LINT
-
-  @override
-  Object field = 'lint'; // LINT
-}
-
-class GC23_2 extends GC13 {
-  @override
-  var x = 7; // LINT
-}
-
-abstract class GC31 extends GC13 {
-  @override
-  Object something = 'done'; // LINT
-}
-
-abstract class GC32 implements GC13 {
-  @override
-  Object something = 'done'; // OK
-}
-
-class GC33 extends GC21 with GC13 {
-  @override
-  Object something = 'done'; // LINT
-
-  @override
-  Object gc33 = 'yada'; // LINT
-}
-
-class GC33_2 extends GC33 {
-  @override
-  var x = 3; // LINT
-
-  @override
-  Object gc33 = 'yada'; // LINT
-}
-
 class Super1 {}
 
 class Sub1 extends Super1 {
-  @override
-  int y;
+  int y = 0;
 }
 
 class Super2 {
-  int x, y;
+  int x = 0, y = 0;
 }
 
 class Sub2 extends Super2 {
   @override
-  int y; // LINT
+  int y = 0; // LINT
 }
 
 class Super3 {
-  int x;
+  int x = 0;
 }
 
 class Sub3 extends Super3 {
-  int x; // LINT
+  int x = 0; // LINT
 }
 
 class A1 {
-  int f;
+  int f = 0;
 }
 
 class B1 extends A1 {}
@@ -157,25 +93,20 @@ abstract class C1 implements A1 {}
 
 class D1 extends B1 implements C1 {
   @override
-  int f; // LINT
-}
-
-class A extends B {}
-class B extends A {
-  int field;
+  int f = 0; // LINT
 }
 
 class StaticsNo {
-  static int a;
+  static int a = 0;
 }
 
 class VerifyStatic extends StaticsNo {
-  static int a;
+  static int a = 0;
 }
 
 mixin M on A1 {
   @override
-  int f; // LINT
+  int f = 0; // LINT
 
-  int g; // OK
+  int g = 0; // OK
 }

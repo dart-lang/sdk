@@ -13,11 +13,23 @@ import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+
+ExpectedError error(ErrorCode code, int offset, int length,
+        {Pattern? messageContains}) =>
+    ExpectedError(code, offset, length, messageContains: messageContains);
+
+ExpectedLint lint(String lintName, int offset, int length,
+        {Pattern? messageContains}) =>
+    ExpectedLint(lintName, offset, length, messageContains: messageContains);
+
+typedef DiagnosticMatcher = bool Function(AnalysisError error);
 
 class AnalysisOptionsFileConfig {
   final List<String> experiments;
@@ -49,12 +61,161 @@ class AnalysisOptionsFileConfig {
   }
 }
 
+/// A description of a diagnostic that is expected to be reported.
+class ExpectedDiagnostic {
+  final DiagnosticMatcher diagnosticMatcher;
+
+  /// The offset of the beginning of the diagnostic's region.
+  final int offset;
+
+  /// The offset of the beginning of the diagnostic's region.
+  final int length;
+
+  /// A pattern that should be contained in the diagnostic message or `null` if
+  /// the message contents should not be checked.
+  final Pattern? messageContains;
+
+  /// Initialize a newly created diagnostic description.
+  ExpectedDiagnostic(this.diagnosticMatcher, this.offset, this.length,
+      {this.messageContains});
+
+  /// Return `true` if the [error] matches this description of what it's
+  /// expected to be.
+  bool matches(AnalysisError error) {
+    if (!diagnosticMatcher(error)) return false;
+    if (error.offset != offset) return false;
+    if (error.length != length) return false;
+    if (messageContains != null && error.message.contains(messageContains!)) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+class ExpectedError extends ExpectedDiagnostic {
+  final ErrorCode code;
+
+  /// Initialize a newly created error description.
+  ExpectedError(this.code, int offset, int length, {Pattern? messageContains})
+      : super((AnalysisError error) => error.errorCode == code, offset, length,
+            messageContains: messageContains);
+}
+
+class ExpectedLint extends ExpectedDiagnostic {
+  final String lintName;
+
+  /// Initialize a newly created lint description.
+  ExpectedLint(this.lintName, int offset, int length,
+      {Pattern? messageContains})
+      : super((AnalysisError error) => error.errorCode.name == lintName, offset,
+            length,
+            messageContains: messageContains);
+}
+
 abstract class LintRuleTest extends PubPackageResolutionTest {
   String? get lintRule;
 
   @override
   List<String> get _lintRules => [if (lintRule != null) lintRule!];
 
+  /// Assert that the number of diagnostics that have been gathered matches the
+  /// number of [expectedDiagnostics] and that they have the expected error
+  /// descriptions and locations. The order in which the diagnostics were
+  /// gathered is ignored.
+  Future<void> assertDiagnostics(
+      String code, List<ExpectedDiagnostic> expectedDiagnostics) async {
+    addTestFile(code);
+    await resolveTestFile();
+
+    //
+    // Match actual diagnostics to expected diagnostics.
+    //
+    var unmatchedActual = errors.toList();
+    var unmatchedExpected = expectedDiagnostics.toList();
+    var actualIndex = 0;
+    while (actualIndex < unmatchedActual.length) {
+      var matchFound = false;
+      var expectedIndex = 0;
+      while (expectedIndex < unmatchedExpected.length) {
+        if (unmatchedExpected[expectedIndex]
+            .matches(unmatchedActual[actualIndex])) {
+          matchFound = true;
+          unmatchedActual.removeAt(actualIndex);
+          unmatchedExpected.removeAt(expectedIndex);
+          break;
+        }
+        expectedIndex++;
+      }
+      if (!matchFound) {
+        actualIndex++;
+      }
+    }
+    //
+    // Write the results.
+    //
+    var buffer = StringBuffer();
+    if (unmatchedExpected.isNotEmpty) {
+      buffer.writeln('Expected but did not find:');
+      for (var expected in unmatchedExpected) {
+        buffer.write('  ');
+        if (expected is ExpectedError) {
+          buffer.write(expected.code);
+        }
+        if (expected is ExpectedLint) {
+          buffer.write(expected.lintName);
+        }
+        buffer.write(' [');
+        buffer.write(expected.offset);
+        buffer.write(', ');
+        buffer.write(expected.length);
+        buffer.writeln(']');
+      }
+    }
+    if (unmatchedActual.isNotEmpty) {
+      if (buffer.isNotEmpty) {
+        buffer.writeln();
+      }
+      buffer.writeln('Found but did not expect:');
+      for (var actual in unmatchedActual) {
+        buffer.write('  ');
+        buffer.write(actual.errorCode);
+        buffer.write(' [');
+        buffer.write(actual.offset);
+        buffer.write(', ');
+        buffer.write(actual.length);
+        buffer.write(', ');
+        buffer.write(actual.message);
+        buffer.writeln(']');
+      }
+    }
+    if (buffer.isNotEmpty) {
+      errors.sort((first, second) => first.offset.compareTo(second.offset));
+      buffer.writeln();
+      buffer.writeln('To accept the current state, expect:');
+      for (var actual in errors) {
+        late String diagnosticKind;
+        late Object description;
+        if (actual.errorCode is LintCode) {
+          diagnosticKind = 'lint';
+          description = "'${actual.errorCode.name}'";
+        } else {
+          diagnosticKind = 'error';
+          description = actual.errorCode;
+        }
+        buffer.write('  $diagnosticKind(');
+        buffer.write(description);
+        buffer.write(', ');
+        buffer.write(actual.offset);
+        buffer.write(', ');
+        buffer.write(actual.length);
+        buffer.writeln('),');
+      }
+      fail(buffer.toString());
+    }
+  }
+
+  /// todo(pq): consider migrating all calls to assertDiagnostics
   Future<void> assertLint(String code) async {
     addTestFile(code);
     await resolveTestFile();
@@ -68,6 +229,7 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     fail('Expected: $lintRule, found none');
   }
 
+  /// todo(pq): consider migrating all calls to assertDiagnostics
   Future<void> assertNoLint(String code) async {
     addTestFile(code);
     await resolveTestFile();
