@@ -53,7 +53,7 @@ num sin(num theta) {
 }
 
 class SimpleBadCase {
-  num x, y;
+  num x = 0, y = 0;
   SimpleBadCase(num x, num y) {
     this.x = x; // LINT
     this.y = y; // LINT
@@ -66,7 +66,7 @@ class SimpleGoodCase {
 }
 
 class SimpleBadCaseWithOnlyOneLint {
-  num x, y;
+  num x, y = 0;
   SimpleBadCaseWithOnlyOneLint(this.x, num y) {
     this.y = y; // LINT
   }
@@ -74,7 +74,7 @@ class SimpleBadCaseWithOnlyOneLint {
 
 /// https://github.com/dart-lang/linter/issues/2605
 class RenamedFieldsForReadability {
-  num x, y;
+  num x = 0, y = 0;
   RenamedFieldsForReadability(num a, num b) {
     x = a; // OK
     y = b; // OK
@@ -83,8 +83,8 @@ class RenamedFieldsForReadability {
 
 /// https://github.com/dart-lang/linter/issues/2605
 class RenamedFieldsForReadability2 {
-  num x;
-  num y;
+  num x = 0;
+  num y = 0;
   RenamedFieldsForReadability2(num a, num b) {
     x = a; // OK
     y = b; // OK
@@ -92,7 +92,7 @@ class RenamedFieldsForReadability2 {
 }
 
 class NoFieldsJustSetters {
-  String name;
+  String name = '';
   NoFieldsJustSetters(num x, num y) {
     this.x = x; // OK
     this.y = y; // OK
@@ -107,12 +107,12 @@ class NoFieldsJustSetters {
 }
 
 class NoFieldsJustSettersWithoutThisAndWithOneGetter {
-  String name;
+  String name = '';
   NoFieldsJustSettersWithoutThisAndWithOneGetter(num a, num b) {
     x = a; // OK
     y = b; // OK
   }
-  get x {
+  num get x {
     return 0;
   }
 
@@ -126,7 +126,7 @@ class NoFieldsJustSettersWithoutThisAndWithOneGetter {
 }
 
 class SuperCallWithConstructorParameters extends SimpleGoodCase {
-  num r, theta;
+  num r = 0, theta = 0;
   SuperCallWithConstructorParameters(num r, num theta)
       : super(r * cos(theta), r * sin(theta)) {
     this.r = r; // LINT
@@ -154,7 +154,7 @@ class BadCaseWithNamedConstructorAndSuperCall extends SimpleGoodCase {
 
 class GoodCaseWithPrivateFields {
   // ignore: unused_field
-  num _x, _y;
+  num? _x, _y;
   GoodCaseWithPrivateFields(num x, num y) {
     this._x = x; // OK // This should be lint for other rule
     this._y = y; // OK // This should be lint for other rule
@@ -163,7 +163,7 @@ class GoodCaseWithPrivateFields {
 
 class GoodCaseWithPrivateFieldsWithoutThis {
   // ignore: unused_field
-  num _x, _y;
+  num _x = 0, _y = 0;
   GoodCaseWithPrivateFieldsWithoutThis(num x, num y) {
     _x = x; // OK // This should be lint for other rule
     _y = y; // OK // This should be lint for other rule
@@ -187,7 +187,7 @@ class GoodCaseWithPrivateFieldsInInitializersWithoutThis {
 }
 
 class BadCaseWithTwoFieldsOneArgument {
-  num x, y;
+  num x = 0, y = 0;
   BadCaseWithTwoFieldsOneArgument(num x) {
     this.x = x; // LINT
     this.y = x; // OK
@@ -195,14 +195,14 @@ class BadCaseWithTwoFieldsOneArgument {
 }
 
 class GoodCaseWithTwoFieldsOneArgument {
-  num x, y;
+  num x = 0, y = 0;
   GoodCaseWithTwoFieldsOneArgument(this.x) {
     y = this.x; // OK
   }
 }
 
 class GoodCaseWithTwoFieldsOneArgumentWithoutThis {
-  num x, y;
+  num x = 0, y = 0;
   GoodCaseWithTwoFieldsOneArgumentWithoutThis(this.x) {
     y = x; // OK
   }
@@ -231,31 +231,31 @@ class GoodCaseWithOneParameterToTwoFieldsBecauseTheyHaveDifferentNames {
 }
 
 class BadCaseWithNamedArgs {
-  num x, y;
-  BadCaseWithNamedArgs({num x, num y = 1}) {
+  num? x, y;
+  BadCaseWithNamedArgs({num? x, num y = 1}) {
     this.x = x; // LINT
     this.y = y; // LINT
   }
 }
 
 class GoodCaseWithDifferentNamedArgs {
-  num x, y;
-  GoodCaseWithDifferentNamedArgs({num a, num b = 1}) {
+  num? x, y;
+  GoodCaseWithDifferentNamedArgs({num? a, num b = 1}) {
     this.x = a; // OK
     this.y = b; // OK
   }
 }
 
 class BadCaseWithNamedArgsInitializer {
-  num x, y;
-  BadCaseWithNamedArgsInitializer({num x, num y = 1})
+  num? x, y;
+  BadCaseWithNamedArgsInitializer({num? x, num y = 1})
       : this.x = x, // LINT
         this.y = y; // LINT
 }
 
 class GoodCaseWithDifferentNamedArgsInitializer {
-  num x, y;
-  GoodCaseWithDifferentNamedArgsInitializer({num a, num b = 1})
+  num? x, y;
+  GoodCaseWithDifferentNamedArgsInitializer({num? a, num b = 1})
       : this.x = a, // OK
         this.y = b; // OK
 }

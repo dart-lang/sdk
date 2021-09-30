@@ -62,8 +62,8 @@ void main() {
 
   printUnresolved(LinkedHashSet<int>()); // OK
 
-  Set<int> ss7 = LinkedHashSet.from([1, 2, 3]); // LINT
-  LinkedHashSet<int> ss8 =  LinkedHashSet.from([1, 2, 3]); // OK
+  Set<int> ss8 = LinkedHashSet.from([1, 2, 3]); // LINT
+  LinkedHashSet<int> ss9 =  LinkedHashSet.from([1, 2, 3]); // OK
 
   Iterable iter = Iterable.empty(); // OK
   var sss = Set.from(iter); // OK
