@@ -725,7 +725,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         tempDir, arguments, environmentOverrides));
 
     commands.add(
-        computeDartBootstrapCommand(tempDir, arguments, environmentOverrides));
+        computeGenSnapshotCommand(tempDir, arguments, environmentOverrides));
+
+    if (arguments.contains('--print-flow-graph-optimized')) {
+      commands.add(
+          computeILCompareCommand(tempDir, arguments, environmentOverrides));
+    }
 
     if (!_configuration.keepGeneratedFiles) {
       commands.add(computeRemoveKernelFileCommand(
@@ -777,7 +782,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         alwaysCompile: !_useSdk);
   }
 
-  Command computeDartBootstrapCommand(String tempDir, List<String> arguments,
+  Command computeGenSnapshotCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var buildDir = _configuration.buildDirectory;
     var exec = _configuration.genSnapshotPath;
@@ -821,11 +826,28 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       // The SIMARM precompiler assumes support for integer division, but the
       // Qemu arm cpus do not support integer division.
       if (_configuration.useQemu) '--no-use-integer-division',
+      if (arguments.contains('--print-flow-graph-optimized'))
+        '--redirect-isolate-log-to=$tempDir/out.il',
       ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
     return CompilationCommand('precompiler', tempDir, bootstrapDependencies(),
         exec, args, environmentOverrides,
+        alwaysCompile: !_useSdk);
+  }
+
+  Command computeILCompareCommand(String tempDir, List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
+    var compareIl = '$pkgVmDir/tool/compare_il$shellScriptExtension';
+
+    var args = [
+      arguments.firstWhere((arg) => arg.endsWith('_il_test.dart')),
+      '$tempDir/out.il',
+    ];
+
+    return CompilationCommand('compare_il', tempDir, bootstrapDependencies(),
+        compareIl, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -943,6 +965,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
+      if (testFile.ilMatches.isNotEmpty) ...[
+        '--print-flow-graph-optimized',
+        '--print-flow-graph-filter=${testFile.ilMatches.join(',')}'
+      ],
       if (_enableAsserts) '--enable_asserts',
       ...filterVmOptions(vmOptions),
       ...testFile.sharedOptions,
