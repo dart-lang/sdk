@@ -172,6 +172,13 @@ void Log::DisableManualFlush(const intptr_t cursor) {
 }
 
 bool Log::ShouldFlush() const {
+#ifdef DART_TARGET_OS_ANDROID
+  // Android truncates on 1023 characters, flush more eagerly.
+  // Flush on newlines, because otherwise Android inserts newlines everywhere.
+  if (*(buffer_.end() - 1) == '\n') {
+    return true;
+  }
+#endif  // DART_TARGET_OS_ANDROID
   return ((manual_flush_ == 0) || FLAG_force_log_flush ||
           ((FLAG_force_log_flush_at_size > 0) &&
            (cursor() > FLAG_force_log_flush_at_size)));
