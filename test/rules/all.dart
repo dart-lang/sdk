@@ -10,6 +10,7 @@ import 'missing_whitespace_between_adjacent_strings.dart'
 import 'overridden_fields.dart' as overridden_fields;
 import 'prefer_asserts_in_initializer_lists.dart'
     as prefer_asserts_in_initializer_lists;
+import 'prefer_collection_literals.dart' as prefer_collection_literals;
 import 'prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
 import 'prefer_contains.dart' as prefer_contains;
@@ -23,6 +24,7 @@ void main() {
   missing_whitespace_between_adjacent_strings.main();
   overridden_fields.main();
   prefer_asserts_in_initializer_lists.main();
+  prefer_collection_literals.main();
   prefer_const_constructors_in_immutables.main();
   prefer_contains.main();
   prefer_spread_collections.main();
