@@ -13,7 +13,7 @@ class Baz<T> {}
 class Foobar<T> implements Foo<T> {}
 
 class Bar<
-          T // A comment to prevent dartfmt from joining the lines.
+          T // A comment to prevent dart format from joining the lines.
           extends Foo<T>      //# 00: ok
           extends Baz<Foo<T>> //# 01: compile-time error
           extends Foobar<T>   //# 02: compile-time error
@@ -23,7 +23,7 @@ class Bar<
 }
 
 class Qux<
-          T // A comment to prevent dartfmt from joining the lines.
+          T // A comment to prevent dart format from joining the lines.
           extends Foo<T> //# 00: continued
           extends Foo<T> //# 01: continued
           extends Foo<T> //# 02: continued
@@ -35,7 +35,7 @@ class Qux<
 
 class A<T extends int> {
   factory A() = B<
-                  T // A comment to prevent dartfmt from joining the lines.
+                  T // A comment to prevent dart format from joining the lines.
                   , int //# 03: compile-time error
                   , String //# 04: ok
                  >;
