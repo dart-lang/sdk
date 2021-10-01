@@ -8,7 +8,7 @@
 //   dart gen_type_table.dart > dartfuzz_type_table.dart
 //
 // Reformat:
-//   tools/sdks/dart-sdk/bin/dartfmt -w \
+//   tools/sdks/dart-sdk/bin/dart format \
 //   runtime/tools/dartfuzz/dartfuzz_type_table.dart
 //
 // Then send out modified dartfuzz_type_table.dart for review together
