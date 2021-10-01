@@ -93,8 +93,9 @@ pkg/front_end/tool/fasta generate-messages
   }
 }
 
-/// In-memory representation of error code information obtained from a
-/// `messages.yaml` file.
+/// In-memory representation of error code information obtained from either a
+/// `messages.yaml` file.  Supports both the analyzer and front_end message file
+/// formats.
 class ErrorCodeInfo {
   /// Pattern used by the front end to identify placeholders in error message
   /// strings.  TODO(paulberry): share this regexp (and the code for interpreting
@@ -106,6 +107,20 @@ class ErrorCodeInfo {
   /// error codes that corresponds to this error code, if any.
   final List<String> analyzerCode;
 
+  /// If present, a documentation comment that should be associated with the
+  /// error in code generated output.
+  final String? comment;
+
+  /// `true` if this error should be copied from an error in the CFE.  The
+  /// purpose of this field is so that the documentation for the error can exist
+  /// in the analyzer's messages.yaml file but the error text can come from the
+  /// CFE's messages.yaml file.  TODO(paulberry): add support for documentation
+  /// to the CFE's messages.yaml file so that this isn't necessary.
+  final bool copyFromCfe;
+
+  /// If present, user-facing documentation for the error.
+  final String? documentation;
+
   /// `true` if diagnostics with this code have documentation for them that has
   /// been published.
   final bool hasPublishedDocs;
@@ -114,8 +129,16 @@ class ErrorCodeInfo {
   /// in the analyzer's `fastaAnalyzerErrorCodes` table.
   final int? index;
 
-  /// The template for the error message.
-  final String template;
+  /// Indicates whether this error is caused by an unresolved identifier.
+  final bool isUnresolvedIdentifier;
+
+  /// If present, indicates that this error code has a special name for
+  /// presentation to the user, that is potentially shared with other error
+  /// codes.
+  final String? sharedName;
+
+  /// The template for the error message, or `null` if [copyFromCfe] is `true`.
+  final String? template;
 
   /// If the error code has an associated tip/correction message, the template
   /// for it.
@@ -123,18 +146,40 @@ class ErrorCodeInfo {
 
   ErrorCodeInfo(
       {this.analyzerCode = const [],
+      this.comment,
+      this.copyFromCfe = false,
+      this.documentation,
       this.hasPublishedDocs = false,
       this.index,
-      required this.template,
-      this.tip});
+      this.isUnresolvedIdentifier = false,
+      this.sharedName,
+      this.template,
+      this.tip}) {
+    if (copyFromCfe) {
+      if (template != null) {
+        throw "Error codes marked `copyFromCfe: true` can't have a template.";
+      }
+    } else {
+      if (template == null) {
+        throw 'Error codes must have a template unless they are marked '
+            '`copyFromCfe: true`.';
+      }
+    }
+  }
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
       : this(
             analyzerCode: _decodeAnalyzerCode(yaml['analyzerCode']),
+            comment: yaml['comment'] as String?,
+            copyFromCfe: yaml['copyFromCfe'] as bool? ?? false,
+            documentation: yaml['documentation'] as String?,
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
             index: yaml['index'] as int?,
-            template: yaml['template'] as String,
+            isUnresolvedIdentifier:
+                yaml['isUnresolvedIdentifier'] as bool? ?? false,
+            sharedName: yaml['sharedName'] as String?,
+            template: yaml['template'] as String?,
             tip: yaml['tip'] as String?);
 
   /// Generates a dart declaration for this error code, suitable for inclusion
@@ -145,7 +190,8 @@ class ErrorCodeInfo {
     out.writeln('$className(');
     out.writeln("'$errorCode',");
     final placeholderToIndexMap = _computePlaceholderToIndexMap();
-    out.writeln(json.encode(_convertTemplate(placeholderToIndexMap, template)));
+    out.writeln(
+        json.encode(_convertTemplate(placeholderToIndexMap, template!)));
     final tip = this.tip;
     if (tip is String) {
       out.write(',correction: ');
@@ -157,6 +203,20 @@ class ErrorCodeInfo {
     out.write(');');
     return out.toString();
   }
+
+  /// Encodes this object into a YAML representation.
+  Map<Object?, Object?> toYaml() => {
+        if (copyFromCfe) 'copyFromCfe': true,
+        if (sharedName != null) 'sharedName': sharedName,
+        if (analyzerCode.isNotEmpty)
+          'analyzerCode': _encodeAnalyzerCode(analyzerCode),
+        if (template != null) 'template': template,
+        if (tip != null) 'tip': tip,
+        if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
+        if (hasPublishedDocs) 'hasPublishedDocs': true,
+        if (comment != null) 'comment': comment,
+        if (documentation != null) 'documentation': documentation,
+      };
 
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message and tip strings to their corresponding indices.
@@ -195,6 +255,14 @@ class ErrorCodeInfo {
       return [for (var s in value) s as String];
     } else {
       throw 'Unrecognized analyzer code: $value';
+    }
+  }
+
+  static Object _encodeAnalyzerCode(List<String> analyzerCode) {
+    if (analyzerCode.length == 1) {
+      return analyzerCode.single;
+    } else {
+      return analyzerCode;
     }
   }
 }

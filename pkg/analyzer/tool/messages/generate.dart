@@ -171,7 +171,7 @@ part of 'syntactic_errors.dart';
     }
 
     String messageFromEntryTemplate(ErrorCodeInfo entry) {
-      String template = entry.template;
+      String template = entry.template!;
       String message = template.replaceAll(RegExp(r'#\w+'), '');
       return message;
     }
@@ -247,7 +247,7 @@ part of 'syntactic_errors.dart';
           // TODO(paulberry): handle multiple analyzer codes
           if (entry.index == null && entry.analyzerCode.length == 1) {
             analyzerCode = entry.analyzerCode.single;
-            template = entry.template;
+            template = entry.template!;
           }
         }
         print('  ${fastaErrorCode.padRight(30)} --> $analyzerCode'
