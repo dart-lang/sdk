@@ -39,8 +39,8 @@ either a function literal implemented using curly braces, a literal map, a
 literal set or a literal array. This exception only applies if the final
 parameter does not fit entirely on one line.
 
-**Note:** This lint rule assumes `dartfmt` has been run over the code and may
-produce false positives until that has happened.
+**Note:** This lint rule assumes `dart format` has been run over the code and
+may produce false positives until that has happened.
 
 ''';
 
@@ -136,8 +136,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // No trailing comma is needed if the function call or declaration, up to
     // the closing parenthesis, fits on a single line. Ensuring the left and
-    // right parenthesis are on the same line is sufficient since dartfmt places
-    // the left parenthesis right after the identifier (on the same line).
+    // right parenthesis are on the same line is sufficient since `dart format`
+    // places the left parenthesis right after the identifier (on the same
+    // line).
     if (_isSameLine(leftParenthesis, rightParenthesis)) return;
 
     // Check the last parameter to determine if there are any exceptions.
