@@ -78,7 +78,7 @@ class AlwaysSpecifyTypes extends LintRule {
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
     registry.addSimpleFormalParameter(this, visitor);
-    registry.addTypeName(this, visitor);
+    registry.addNamedType(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
   }
 }
@@ -106,6 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     checkLiteral(literal);
   }
 
+  @override
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
@@ -136,11 +137,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportLint(param);
       }
     }
-  }
-
-  @override
-  void visitTypeName(NamedType typeName) {
-    visitNamedType(typeName);
   }
 
   @override

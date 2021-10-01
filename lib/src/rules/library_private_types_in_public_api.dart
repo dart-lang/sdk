@@ -75,7 +75,7 @@ class Validator extends SimpleAstVisitor<void> {
     if (Identifier.isPrivateName(node.name.name)) {
       return;
     }
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.typeParameters?.accept(this);
   }
 
@@ -186,9 +186,18 @@ class Validator extends SimpleAstVisitor<void> {
     if (Identifier.isPrivateName(node.name.name)) {
       return;
     }
-    node.onClause?.superclassConstraints.accept(this);
+    node.onClause?.superclassConstraints2.accept(this);
     node.typeParameters?.accept(this);
     node.members.accept(this);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    var element = node.name.staticElement;
+    if (element != null && isPrivate(element)) {
+      rule.reportLint(node.name);
+    }
+    node.typeArguments?.accept(this);
   }
 
   @override
@@ -211,15 +220,6 @@ class Validator extends SimpleAstVisitor<void> {
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     node.arguments.accept(this);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    var element = node.name.staticElement;
-    if (element != null && isPrivate(element)) {
-      rule.reportLint(node.name);
-    }
-    node.typeArguments?.accept(this);
   }
 
   @override

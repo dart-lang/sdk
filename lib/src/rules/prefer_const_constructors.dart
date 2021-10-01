@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.constructorName.type.isDeferred) {
+    if (node.constructorName.type2.isDeferred) {
       return;
     }
 

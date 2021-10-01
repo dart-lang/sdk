@@ -47,6 +47,9 @@ class TestResourceProvider extends file_system.ResourceProvider {
   TestResourceProvider(this.memoryResourceProvider);
 
   @override
+  path.Context get pathContext => physicalResourceProvider.pathContext;
+
+  @override
   file_system.File getFile(String path) {
     var file = memoryResourceProvider.getFile(path);
     return file.exists ? file : physicalResourceProvider.getFile(path);
@@ -58,6 +61,11 @@ class TestResourceProvider extends file_system.ResourceProvider {
     return folder.exists ? folder : physicalResourceProvider.getFolder(path);
   }
 
+  /// TODO(scheglov) Remove it once it is removed in analyzer 3.0.0
+  /// ignore: annotate_overrides
+  Future<List<int?>> getModificationTimes(List<Source> sources) =>
+      throw UnimplementedError('Should not be called');
+
   @override
   file_system.Resource getResource(String path) {
     var resource = memoryResourceProvider.getResource(path);
@@ -67,13 +75,6 @@ class TestResourceProvider extends file_system.ResourceProvider {
   }
 
   @override
-  Future<List<int?>> getModificationTimes(List<Source> sources) =>
-      physicalResourceProvider.getModificationTimes(sources);
-
-  @override
   file_system.Folder? getStateLocation(String pluginId) =>
       physicalResourceProvider.getStateLocation(pluginId);
-
-  @override
-  path.Context get pathContext => physicalResourceProvider.pathContext;
 }

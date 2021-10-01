@@ -59,7 +59,7 @@ class PreferVoidToNull extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addTypeName(this, visitor);
+    registry.addNamedType(this, visitor);
   }
 }
 
@@ -111,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     var nodeType = node.type;
     if (nodeType == null || !nodeType.isDartCoreNull) {
       return;

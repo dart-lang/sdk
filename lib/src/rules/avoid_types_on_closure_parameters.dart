@@ -79,7 +79,7 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
-    if (type is TypeName && type.name.name != 'dynamic') {
+    if (type is NamedType && type.name.name != 'dynamic') {
       rule.reportLint(node.type);
     }
   }
