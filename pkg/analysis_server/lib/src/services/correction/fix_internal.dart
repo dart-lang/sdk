@@ -345,6 +345,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_empty_else: [
       RemoveEmptyElse.newInstance,
     ],
+    LintNames.avoid_escaping_inner_quotes: [
+      ConvertQuotes.newInstance,
+    ],
     LintNames.avoid_function_literals_in_foreach_calls: [
       ConvertForEachToForLoop.newInstance,
     ],

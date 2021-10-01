@@ -13,6 +13,8 @@ class LintNames {
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
+  static const String avoid_escaping_inner_quotes =
+      'avoid_escaping_inner_quotes';
   static const String avoid_function_literals_in_foreach_calls =
       'avoid_function_literals_in_foreach_calls';
   static const String avoid_init_to_null = 'avoid_init_to_null';
