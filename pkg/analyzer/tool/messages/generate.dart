@@ -371,13 +371,14 @@ part of 'syntactic_errors.analyzer.g.dart';
     final messageToName = <String, String>{};
     for (var entry in analyzerMessages['ParserErrorCode']!.entries) {
       if (entry.value.copyFromCfe) continue;
-      String message = entry.value.template!.replaceAll(RegExp(r'\{\d+\}'), '');
+      String message =
+          entry.value.problemMessage!.replaceAll(RegExp(r'\{\d+\}'), '');
       messageToName[message] = entry.key;
     }
 
     String messageFromEntryTemplate(ErrorCodeInfo entry) {
-      String template = entry.template!;
-      String message = template.replaceAll(RegExp(r'#\w+'), '');
+      String problemMessage = entry.problemMessage!;
+      String message = problemMessage.replaceAll(RegExp(r'#\w+'), '');
       return message;
     }
 
@@ -446,17 +447,17 @@ part of 'syntactic_errors.analyzer.g.dart';
       final sorted = untranslatedFastaErrorCodes.toList()..sort();
       for (String fastaErrorCode in sorted) {
         String analyzerCode = '';
-        String template = '';
+        String problemMessage = '';
         var entry = cfeMessages[fastaErrorCode];
         if (entry != null) {
           // TODO(paulberry): handle multiple analyzer codes
           if (entry.index == null && entry.analyzerCode.length == 1) {
             analyzerCode = entry.analyzerCode.single;
-            template = entry.template!;
+            problemMessage = entry.problemMessage!;
           }
         }
         print('  ${fastaErrorCode.padRight(30)} --> $analyzerCode'
-            '\n      $template');
+            '\n      $problemMessage');
       }
     }
   }

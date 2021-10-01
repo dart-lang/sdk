@@ -252,8 +252,8 @@ void _generateYaml(
       } else {
         errorCodeInfo = ErrorCodeInfo(
             sharedName: uniqueNameSuffix == name ? null : name,
-            template: code.message,
-            tip: code.correction,
+            problemMessage: code.message,
+            correctionMessage: code.correction,
             isUnresolvedIdentifier: code.isUnresolvedIdentifier,
             hasPublishedDocs: code.hasPublishedDocs,
             comment: documentationComment,

@@ -218,7 +218,7 @@ class MessageTestSuite extends ChainContext {
         // characters with two characters without actually having the string
         // "backslash n".
         switch (key) {
-          case "template":
+          case "problemMessage":
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -230,14 +230,14 @@ class MessageTestSuite extends ChainContext {
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Template has the following word that is "
+                  "problemMessage has the following word that is "
                       "not in our dictionary",
-                  "Template has the following word that is "
+                  "problemMessage has the following word that is "
                       "on our deny-list"));
             }
             break;
 
-          case "tip":
+          case "correctionMessage":
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -249,9 +249,9 @@ class MessageTestSuite extends ChainContext {
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Tip has the following word that is "
+                  "correctionMessage has the following word that is "
                       "not in our dictionary",
-                  "Tip has the following word that is "
+                  "correctionMessage has the following word that is "
                       "on our deny-list"));
             }
             break;

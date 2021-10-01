@@ -135,6 +135,10 @@ class ErrorCodeInfo {
   /// to the CFE's messages.yaml file so that this isn't necessary.
   final bool copyFromCfe;
 
+  /// If the error code has an associated correctionMessage, the template for
+  /// it.
+  final String? correctionMessage;
+
   /// If present, user-facing documentation for the error.
   final String? documentation;
 
@@ -149,17 +153,14 @@ class ErrorCodeInfo {
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
+  /// The problemMessage for the error code, or `null` if [copyFromCfe] is
+  /// `true`.
+  final String? problemMessage;
+
   /// If present, indicates that this error code has a special name for
   /// presentation to the user, that is potentially shared with other error
   /// codes.
   final String? sharedName;
-
-  /// The template for the error message, or `null` if [copyFromCfe] is `true`.
-  final String? template;
-
-  /// If the error code has an associated tip/correction message, the template
-  /// for it.
-  final String? tip;
 
   ErrorCodeInfo(
       {this.analyzerCode = const [],
@@ -170,15 +171,16 @@ class ErrorCodeInfo {
       this.index,
       this.isUnresolvedIdentifier = false,
       this.sharedName,
-      this.template,
-      this.tip}) {
+      this.problemMessage,
+      this.correctionMessage}) {
     if (copyFromCfe) {
-      if (template != null) {
-        throw "Error codes marked `copyFromCfe: true` can't have a template.";
+      if (problemMessage != null) {
+        throw "Error codes marked `copyFromCfe: true` can't have a "
+            "problemMessage.";
       }
     } else {
-      if (template == null) {
-        throw 'Error codes must have a template unless they are marked '
+      if (problemMessage == null) {
+        throw 'Error codes must have a problemMessage unless they are marked '
             '`copyFromCfe: true`.';
       }
     }
@@ -190,14 +192,14 @@ class ErrorCodeInfo {
             analyzerCode: _decodeAnalyzerCode(yaml['analyzerCode']),
             comment: yaml['comment'] as String?,
             copyFromCfe: yaml['copyFromCfe'] as bool? ?? false,
+            correctionMessage: yaml['correctionMessage'] as String?,
             documentation: yaml['documentation'] as String?,
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
             index: yaml['index'] as int?,
             isUnresolvedIdentifier:
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
-            sharedName: yaml['sharedName'] as String?,
-            template: yaml['template'] as String?,
-            tip: yaml['tip'] as String?);
+            problemMessage: yaml['problemMessage'] as String?,
+            sharedName: yaml['sharedName'] as String?);
 
   /// Generates a dart declaration for this error code, suitable for inclusion
   /// in the error class [className].  [errorCode] is the name of the error code
@@ -208,12 +210,14 @@ class ErrorCodeInfo {
     out.writeln("'${sharedName ?? errorCode}',");
     final placeholderToIndexMap = _computePlaceholderToIndexMap();
     out.writeln(
-        '${json.encode(_convertTemplate(placeholderToIndexMap, template!))},');
-    final tip = this.tip;
-    if (tip is String) {
+        json.encode(_convertTemplate(placeholderToIndexMap, problemMessage!)) +
+            ',');
+    final correctionMessage = this.correctionMessage;
+    if (correctionMessage is String) {
       out.write('correction: ');
-      out.writeln(
-          '${json.encode(_convertTemplate(placeholderToIndexMap, tip))},');
+      out.writeln(json.encode(
+              _convertTemplate(placeholderToIndexMap, correctionMessage)) +
+          ',');
     }
     if (hasPublishedDocs) {
       out.writeln('hasPublishedDocs:true,');
@@ -254,8 +258,8 @@ class ErrorCodeInfo {
         if (sharedName != null) 'sharedName': sharedName,
         if (analyzerCode.isNotEmpty)
           'analyzerCode': _encodeAnalyzerCode(analyzerCode),
-        if (template != null) 'template': template,
-        if (tip != null) 'tip': tip,
+        if (problemMessage != null) 'problemMessage': problemMessage,
+        if (correctionMessage != null) 'correctionMessage': correctionMessage,
         if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
         if (hasPublishedDocs) 'hasPublishedDocs': true,
         if (comment != null) 'comment': comment,
@@ -263,10 +267,10 @@ class ErrorCodeInfo {
       };
 
   /// Given a messages.yaml entry, come up with a mapping from placeholder
-  /// patterns in its message and tip strings to their corresponding indices.
+  /// patterns in its message strings to their corresponding indices.
   Map<String, int> _computePlaceholderToIndexMap() {
     var mapping = <String, int>{};
-    for (var value in [template, tip]) {
+    for (var value in [problemMessage, correctionMessage]) {
       if (value is! String) continue;
       for (Match match in _placeholderPattern.allMatches(value)) {
         // CFE supports a bunch of formatting options that we don't; make sure
