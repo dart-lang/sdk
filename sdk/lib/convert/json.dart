@@ -76,6 +76,22 @@ const JsonCodec json = JsonCodec();
 ///
 /// Shorthand for `json.encode`. Useful if a local variable shadows the global
 /// [json] constant.
+///
+/// Example:
+/// ```dart
+///  var data = {};
+///  data["text"] = "foo";
+///  data["value"] = 2;
+///  data['status'] = false;
+///  data['extra'] = null;
+///
+///  var jsonObject = {};
+///  jsonObject["content"] = data;
+///
+///  final String jsonString = jsonEncode(data);
+///  print(jsonString); // {"text":"foo","value":2,"status":false,"extra":null}
+/// ```
+///
 String jsonEncode(Object? object,
         {Object? toEncodable(Object? nonEncodable)?}) =>
     json.encode(object, toEncodable: toEncodable);
@@ -91,6 +107,31 @@ String jsonEncode(Object? object,
 ///
 /// Shorthand for `json.decode`. Useful if a local variable shadows the global
 /// [json] constant.
+///
+/// Example:
+/// ```dart
+/// final sampleJsonString =
+///     '{"text":"foo", "value":1, "status": false, "extra":null}';
+///
+/// final data = jsonDecode(sampleJsonString);
+/// print(data['text']); // foo
+/// print(data['value']); // 1
+/// print(data['status']); // false
+/// print(data['extra']); // null
+///
+/// const jsonArray = '[{"text": "foo", "value": 1, "status": true},'
+///    '{"text": "bar", "value": 2, "status":false}]';
+///
+/// final List<dynamic> dataList = jsonDecode(jsonArray);
+/// print(dataList[0]); // {text: foo, value: 1, status: true}
+/// print(dataList[1]); // {text: bar, value: 2, status: false}
+///
+/// final item = dataList[0];
+/// print(item["text"]); //  foo
+/// print(item['value']); // 1
+/// print(item['status']); //false
+/// ```
+///
 dynamic jsonDecode(String source,
         {Object? reviver(Object? key, Object? value)?}) =>
     json.decode(source, reviver: reviver);
@@ -185,6 +226,43 @@ class JsonCodec extends Codec<Object?, String> {
 }
 
 /// This class converts JSON objects to strings.
+///
+/// Example:
+///
+/// ```dart
+/// const JsonEncoder encoder = JsonEncoder();
+/// var values = {};
+/// values["text"] = "foo";
+/// values["value"] = 2;
+///
+/// var jsonData = {};
+/// jsonData["content"] = values;
+///
+/// final String jsonString = encoder.convert(jsonData);
+/// print(jsonString); // {"content":{"text":"foo","value":2}}
+///  ```
+///
+/// Multiline example:
+///
+/// ```dart
+/// const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+///
+/// var values = {};
+/// values["text"] = "foo";
+/// values["value"] = 1;
+///
+/// var jsonData = {};
+/// jsonData["content"] = values;
+/// final String jsonString = encoder.convert(jsonData);
+/// print(jsonString);
+/// // {
+/// //   "content": {
+/// //     "text": "foo",
+/// //     "value": 1
+/// //   }
+/// // }
+/// ```
+///
 class JsonEncoder extends Converter<Object?, String> {
   /// The string used for indention.
   ///
@@ -472,11 +550,28 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
     }
   }
 }
-
 /// This class parses JSON strings and builds the corresponding objects.
 ///
 /// A JSON input must be the JSON encoding of a single JSON value,
 /// which can be a list or map containing other values.
+///
+
+/// Example:
+/// ```dart
+/// const JsonDecoder decoder = JsonDecoder();
+///
+/// const String strRawJson =
+///     '{"data": [{"text": "foo", "value": 1}, {"text": "bar", "value": 2}],'
+///     '"text":"Dart"}';
+///
+/// final Map<String, dynamic> object = decoder.convert(strRawJson);
+///
+/// final item0 = object['data'][0];
+/// print(item0['text']); // foo
+/// print(item0['value']); // value: 1
+///
+/// print(object['text']); // Dart
+/// ```
 ///
 /// When used as a [StreamTransformer], the input stream may emit
 /// multiple strings. The concatenation of all of these strings must
