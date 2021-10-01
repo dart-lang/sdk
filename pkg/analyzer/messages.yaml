@@ -1,3 +1,39 @@
+# Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file is organized as a two level map, where the outer key corresponds to
+# the name of an analyzer error class (e.g. CompileTimeErrorCode), and the inner
+# key corresponds to the name of a static variable in that class, describing a
+# single diagnostic message. Ideally, each entry contains three parts:
+#
+# 1. A message template (problemMessage).
+#
+# 2. A suggestion for how to correct the problem (correctionMessage).
+#
+# 3. User-facing documentation for the problem (documentation).
+#
+# A message shouldn't indicate which kind of diagnostic it is, for example,
+# warning or error. This is implied by the analyzer error class. For example,
+# all entries in `StaticWarningCode` are warnings.
+#
+# See the file [lib/src/fasta/diagnostics.md] for more details on how to write
+# good diagnostic messages.
+#
+# A message used for internal errors should have key that starts with
+# "InternalProblem". This way, UX review can prioritize it accordingly.
+#
+# Eventually, we'd like to have all diagnostics in one shared location. However,
+# for now, we have analyzer error codes and CFE error codes in separate files.
+# See `pkg/front_end/messages.yaml` for the CFE error codes.
+#
+# ## Parameter Substitution in problemMessage and correctionMessage
+#
+# The fields `problemMessage` and `correctionMessage` are subject to parameter
+# substitution. When the compiler reports a problem, it may also specify a list
+# of values to be substituted into the message. Parameters are declared using
+# placeholders of the form `{INTEGER}`, e.g. `{0}` is the zeroth parameter.
+
 AnalysisOptionsErrorCode:
   INCLUDED_FILE_PARSE_ERROR:
     problemMessage: "{3} in {0}({1}..{2})"
