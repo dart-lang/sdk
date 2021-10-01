@@ -166,6 +166,32 @@ const g = identical(foo<int>, foo<int>);
     );
   }
 
+  test_identical_functionReference_implicitTypeArgs_differentTypes() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const void Function(int) f = foo;
+const void Function(String) g = foo;
+const c = identical(f, g);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_functionReference_implicitTypeArgs_sameTypes() async {
+    await resolveTestCode('''
+void foo<T>(T a) {}
+const void Function(int) f = foo;
+const void Function(int) g = foo;
+const c = identical(f, g);
+''');
+    expect(
+      _evaluateConstant('c'),
+      _boolValue(true),
+    );
+  }
+
   test_identical_functionReference_uninstantiated_sameElement() async {
     await resolveTestCode('''
 void foo<T>(T a) {}
@@ -394,6 +420,21 @@ const c = 0xFF >>> 0;
     expect(result.toIntValue(), 0xFF);
   }
 
+  test_visitConditionalExpression_instantiatedFunctionType_variable() async {
+    await resolveTestCode('''
+void f<T>(T p, {T? q}) {}
+
+const void Function<T>(T p) g = f;
+
+const bool b = false;
+const void Function(int p) h = b ? g : g;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function(int, {int? q})');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
     await resolveTestCode('''
 const b = true;
@@ -516,6 +557,18 @@ const g = f;
     _assertTypeArguments(result, null);
   }
 
+  test_visitPrefixedIdentifier_genericFunction_instantiated() async {
+    await resolveTestCode('''
+import '' as self;
+void f<T>(T a) {}
+const void Function(int) g = self.f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, null);
+  }
+
   test_visitSimpleIdentifier_className() async {
     await resolveTestCode('''
 const a = C;
@@ -524,6 +577,76 @@ class C {}
     DartObjectImpl result = _evaluateConstant('a');
     expect(result.type, typeProvider.typeType);
     assertType(result.toTypeValue(), 'C*');
+  }
+
+  test_visitSimpleIdentifier_genericFunction_instantiated() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+const void Function(int) g = f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, null);
+  }
+
+  test_visitSimpleIdentifier_genericVariable_instantiated() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+const g = f;
+const void Function(int) h = g;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitSimpleIdentifier_instantiatedFunctionType_field() async {
+    await resolveTestCode('''
+void f<T>(T a, {T? b}) {}
+
+class C {
+  static const void Function<T>(T a) g = f;
+  static const void Function(int a) h = g;
+}
+''');
+    var result = _evaluateConstantLocal('h')!;
+    assertType(result.type, 'void Function(int, {int? b})');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitSimpleIdentifier_instantiatedFunctionType_parameter() async {
+    await resolveTestCode('''
+void f<T>(T a, {T? b}) {}
+
+class C {
+  const C(void Function<T>(T a) g) : h = g;
+  final void Function(int a) h;
+}
+
+const c = C(f);
+''');
+    var result = _evaluateConstant('c');
+    var field = result.fields!['h']!;
+    assertType(field.type, 'void Function(int, {int? b})');
+    assertElement(field.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(field, ['int']);
+  }
+
+  test_visitSimpleIdentifier_instantiatedFunctionType_variable() async {
+    await resolveTestCode('''
+void f<T>(T a, {T? b}) {}
+
+const void Function<T>(T a) g = f;
+
+const void Function(int a) h = g;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function(int, {int? b})');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
   }
 }
 
@@ -1515,6 +1638,31 @@ class A {}
     expect(result.toBoolValue(), true);
   }
 
+  test_visitPrefixedIdentifier_function() async {
+    await resolveTestCode('''
+import '' as self;
+void f(int a) {}
+const g = self.f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, null);
+  }
+
+  test_visitPrefixedIdentifier_genericVariable_uninstantiated() async {
+    await resolveTestCode('''
+import '' as self;
+void f<T>(T a) {}
+const g = f;
+const h = self.g;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function<T>(T)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, null);
+  }
+
   test_visitPropertyAccess_fromExtension() async {
     await resolveTestCode('''
 extension ExtObject on Object {
@@ -1541,6 +1689,29 @@ const a = dynamic;
     DartObjectImpl result = _evaluateConstant('a');
     expect(result.type, typeProvider.typeType);
     expect(result.toTypeValue(), typeProvider.dynamicType);
+  }
+
+  test_visitSimpleIdentifier_function() async {
+    await resolveTestCode('''
+void f(int a) {}
+const g = f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, null);
+  }
+
+  test_visitSimpleIdentifier_genericVariable_uninstantiated() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+const g = f;
+const h = g;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function<T>(T)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, null);
   }
 
   test_visitSimpleIdentifier_inEnvironment() async {
@@ -1620,8 +1791,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       return;
     }
     expect(
-      typeArguments.map(
-          (arg) => arg.toTypeValue()!.getDisplayString(withNullability: true)),
+      typeArguments.map((arg) => arg.getDisplayString(withNullability: true)),
       equals(typeArgumentNames),
     );
   }
