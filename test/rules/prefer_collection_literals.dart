@@ -19,7 +19,7 @@ class PreferCollectionLiteralsTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/2985
   test_linkedHashSetParameter_named_type_required() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 import 'dart:collection';
     
 class Foo {}
@@ -29,9 +29,7 @@ void a({required LinkedHashSet<Foo> some}) {}
 void c() {
   a(some: LinkedHashSet<Foo>());
 }
-''', [
-      // No lints
-    ]);
+''');
   }
 
   test_linkedHashSetParameter_named_type_unrequired() async {
@@ -51,7 +49,7 @@ void c() {
   }
 
   test_linkedHashSetParameter_type_required() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 import 'dart:collection';
     
 class Foo {}
@@ -61,9 +59,7 @@ void b(LinkedHashSet<Foo> some) {}
 void c() {
   b(LinkedHashSet());
 }
-''', [
-      // No lints
-    ]);
+''');
   }
 
   test_linkedHashSetParameter_type_unrequired() async {

@@ -19,7 +19,7 @@ class OverriddenFieldsTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/2874
   test_conflictingStaticAndInstance() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 class A {
   static final String field = 'value';
 }
@@ -27,9 +27,7 @@ class A {
 class B extends A {
   String field = 'otherValue';
 }
-''', [
-      // No lint
-    ]);
+''');
   }
 
   test_recursiveInterfaceInheritance() async {

@@ -215,6 +215,10 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
       fail(buffer.toString());
     }
   }
+
+  /// Assert that there are no diagnostics in the given [code].
+  Future<void> assertNoDiagnostics(String code) async =>
+      assertDiagnostics(code, const []);
 }
 
 class PubPackageResolutionTest extends _ContextResolutionTest {
