@@ -4,6 +4,23 @@
 
 import 'dart:convert';
 
+/// Decodes a YAML object (obtained from `pkg/analyzer/messages.yaml`) into a
+/// two-level map of [ErrorCodeInfo], indexed first by class name and then by
+/// error name.
+Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
+    Map<Object?, Object?> yaml) {
+  var result = <String, Map<String, ErrorCodeInfo>>{};
+  for (var classEntry in yaml.entries) {
+    var className = classEntry.key as String;
+    for (var errorEntry
+        in (classEntry.value as Map<Object?, Object?>).entries) {
+      (result[className] ??= {})[errorEntry.key as String] =
+          ErrorCodeInfo.fromYaml(errorEntry.value as Map<Object?, Object?>);
+    }
+  }
+  return result;
+}
+
 /// Decodes a YAML object (obtained from `pkg/front_end/messages.yaml`) into a
 /// map from error name to [ErrorCodeInfo].
 Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Map<Object?, Object?> yaml) {
@@ -188,19 +205,46 @@ class ErrorCodeInfo {
   String toAnalyzerCode(String className, String errorCode) {
     var out = StringBuffer();
     out.writeln('$className(');
-    out.writeln("'$errorCode',");
+    out.writeln("'${sharedName ?? errorCode}',");
     final placeholderToIndexMap = _computePlaceholderToIndexMap();
     out.writeln(
-        json.encode(_convertTemplate(placeholderToIndexMap, template!)));
+        '${json.encode(_convertTemplate(placeholderToIndexMap, template!))},');
     final tip = this.tip;
     if (tip is String) {
-      out.write(',correction: ');
-      out.writeln(json.encode(_convertTemplate(placeholderToIndexMap, tip)));
+      out.write('correction: ');
+      out.writeln(
+          '${json.encode(_convertTemplate(placeholderToIndexMap, tip))},');
     }
     if (hasPublishedDocs) {
-      out.writeln(',hasPublishedDocs:true');
+      out.writeln('hasPublishedDocs:true,');
+    }
+    if (isUnresolvedIdentifier) {
+      out.writeln('isUnresolvedIdentifier:true,');
+    }
+    if (sharedName != null) {
+      out.writeln("uniqueName: '$errorCode',");
     }
     out.write(');');
+    return out.toString();
+  }
+
+  /// Generates dart comments for this error code.
+  String toAnalyzerComments({String indent = ''}) {
+    var out = StringBuffer();
+    var comment = this.comment;
+    if (comment != null) {
+      out.writeln('$indent/**');
+      for (var line in comment.split('\n')) {
+        out.writeln('$indent *${line.isEmpty ? '' : ' '}$line');
+      }
+      out.writeln('$indent */');
+    }
+    var documentation = this.documentation;
+    if (documentation != null) {
+      for (var line in documentation.split('\n')) {
+        out.writeln('$indent//${line.isEmpty ? '' : ' '}$line');
+      }
+    }
     return out.toString();
   }
 
