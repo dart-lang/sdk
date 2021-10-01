@@ -108,9 +108,10 @@ m({p}) => null;
 bool Function(dynamic) get fn => (x) => x is bool ? x : false;
 
 class ClassWithFunction {
-  Function f;
-  int number;
+  Function? f;
+  int? number;
 
+  ClassWithFunction();
   ClassWithFunction.named(int a) : this.number = (a + 2); // LINT
   // https://github.com/dart-lang/linter/issues/1473
   ClassWithFunction.named2(Function value) : this.f = (value ?? (_) => 42); // OK

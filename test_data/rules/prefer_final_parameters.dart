@@ -149,7 +149,7 @@ class C {
 class InitializingFormals {
   final String initialize;
 
-  C.okInitializingFormal(this.test); // OK
+  InitializingFormals.okInitializingFormal(this.initialize); // OK
 
-  C.okInitializingFormalNamed({required this.test}); // OK
+  InitializingFormals.okInitializingFormalNamed({required this.initialize}); // OK
 }

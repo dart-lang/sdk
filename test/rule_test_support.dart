@@ -224,6 +224,10 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
 class PubPackageResolutionTest extends _ContextResolutionTest {
   final List<String> _lintRules = const [];
 
+  bool get addJsPackageDep => false;
+
+  bool get addMetaPackageDep => false;
+
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -256,7 +260,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         lints: _lintRules,
       ),
     );
-    writeTestPackageConfig(
+    _writeTestPackageConfig(
       PackageConfigFileBuilder(),
     );
   }
@@ -277,21 +281,20 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     );
   }
 
-  void writeTestPackageConfig(
-    PackageConfigFileBuilder config, {
-    String? languageVersion,
-    bool js = false,
-    bool meta = false,
-  }) {
+  void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
+    newPubspecYamlFile(testPackageRootPath, config.toContent());
+  }
+
+  void _writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
     configCopy.add(
       name: 'test',
       rootPath: testPackageRootPath,
-      languageVersion: languageVersion ?? testPackageLanguageVersion,
+      languageVersion: testPackageLanguageVersion,
     );
 
-    if (js) {
+    if (addJsPackageDep) {
       var jsPath = '/packages/js';
       MockPackages.addJsPackageFiles(
         getFolder(jsPath),
@@ -299,7 +302,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       configCopy.add(name: 'js', rootPath: jsPath);
     }
 
-    if (meta) {
+    if (addMetaPackageDep) {
       var metaPath = '/packages/meta';
       MockPackages.addMetaPackageFiles(
         getFolder(metaPath),
@@ -309,14 +312,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, configCopy);
-  }
-
-  void writeTestPackageConfigWithMeta() {
-    writeTestPackageConfig(PackageConfigFileBuilder(), meta: true);
-  }
-
-  void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
-    newPubspecYamlFile(testPackageRootPath, config.toContent());
   }
 }
 

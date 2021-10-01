@@ -25,6 +25,7 @@ int doubleFoo() {
 
 class A {
   int? _a;
+  int b = 1;
   int? get myA {
     _a ??= 0; // LINT
     return _a;
@@ -52,13 +53,13 @@ int unJoinablePropertyAccessReturn() {
   final C c1 = C();
   final C c2 = C();
 
-  c2.a._a = 1; // OK
-  return c1.a._a;
+  c2.a.b = 1; // OK
+  return c1.a.b;
 }
 
 int joinablePropertyAccessReturn() {
   final C c1 = C();
 
-  c1.a._a = 1; // LINT
-  return c1.a._a;
+  c1.a.b = 1; // LINT
+  return c1.a.b;
 }

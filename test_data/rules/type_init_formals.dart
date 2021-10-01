@@ -25,6 +25,3 @@ class Good3 {
   Good3(int this.a); // OK
 }
 
-class Invalid {
-  Invalid(int this.x); // OK
-}

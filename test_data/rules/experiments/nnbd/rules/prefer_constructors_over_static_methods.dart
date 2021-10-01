@@ -37,7 +37,7 @@ class A {
 
   static Object ok() => Object(); // OK
 
-  static A? ok() => 1==1 ? null : A(); // OK
+  static A? ok2() => 1==1 ? null : A.internal(); // OK
 }
 
 class B<T> {

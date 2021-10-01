@@ -30,4 +30,16 @@ class A {
           24),
     ]);
   }
+
+  test_initializingFormalForNonExistentField() async {
+    await assertDiagnostics(r'''
+class Invalid {
+  Invalid(int this.x); // OK
+}
+''', [
+      // No lint
+      error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 26,
+          10),
+    ]);
+  }
 }
