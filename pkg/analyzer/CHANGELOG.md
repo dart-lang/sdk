@@ -1,4 +1,4 @@
-## 2.4.0-dev
+## 2.4.0
 * Deprecated `ResourceProvider.getModificationTimes()`.
 * Deprecated `MemoryResourceProvider.newDummyLink()`.
 * Deprecated `MemoryResourceProvider.updateFile()`.

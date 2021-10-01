@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 
 import '../logging.dart';
+import '../protocol_common.dart';
 
 /// A mixin providing some utility functions for locating/working with
 /// package_config.json files.
@@ -63,6 +64,90 @@ mixin PidTracker {
     pidsToTerminate.forEach(
       (pid) => Process.killPid(pid, signal),
     );
+  }
+}
+
+/// A mixin providing some utility functions for adapters that run tests and
+/// provides some basic test reporting since otherwise nothing is printed when
+/// using the JSON test reporter.
+mixin TestAdapter {
+  static const _tick = "✓";
+  static const _cross = "✖";
+
+  /// Test names by testID.
+  ///
+  /// Stored in testStart so that they can be looked up in testDone.
+  Map<int, String> _testNames = {};
+
+  void sendEvent(EventBody body, {String? eventType});
+  void sendOutput(String category, String message);
+
+  void sendTestEvents(Object testNotification) {
+    // Send the JSON package as a raw notification so the client can interpret
+    // the results (for example to populate a test tree).
+    sendEvent(RawEventBody(testNotification),
+        eventType: 'dart.testNotification');
+
+    // Additionally, send a textual output so that the user also has visible
+    // output in the Debug Console.
+    if (testNotification is Map<String, Object?>) {
+      sendTestTextOutput(testNotification);
+    }
+  }
+
+  /// Sends textual output for tests, including pass/fail and test output.
+  ///
+  /// This is sent so that clients that do not handle the package:test JSON
+  /// events still get some useful textual output in their Debug Consoles.
+  void sendTestTextOutput(Map<String, Object?> testNotification) {
+    switch (testNotification['type']) {
+      case 'testStart':
+        // When a test starts, capture its name by ID so we can get it back when
+        // testDone comes.
+        final test = testNotification['test'] as Map<String, Object?>?;
+        if (test != null) {
+          final testID = test['id'] as int?;
+          final testName = test['name'] as String?;
+          if (testID != null && testName != null) {
+            _testNames[testID] = testName;
+          }
+        }
+        break;
+
+      case 'testDone':
+        // Print the status of completed tests with a tick/cross.
+        if (testNotification['hidden'] == true) {
+          break;
+        }
+        final testID = testNotification['testID'] as int?;
+        if (testID != null) {
+          final testName = _testNames[testID];
+          if (testName != null) {
+            final symbol =
+                testNotification['result'] == "success" ? _tick : _cross;
+            sendOutput('console', '$symbol $testName\n');
+          }
+        }
+        break;
+
+      case 'print':
+        final message = testNotification['message'] as String?;
+        if (message != null) {
+          sendOutput('stdout', '${message.trimRight()}\n');
+        }
+        break;
+
+      case 'error':
+        final error = testNotification['error'] as String?;
+        final stack = testNotification['stackTrace'] as String?;
+        if (error != null) {
+          sendOutput('stderr', '${error.trimRight()}\n');
+        }
+        if (stack != null) {
+          sendOutput('stderr', '${stack.trimRight()}\n');
+        }
+        break;
+    }
   }
 }
 
