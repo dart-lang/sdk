@@ -86,6 +86,7 @@ import 'package:analysis_server/src/services/correction/dart/insert_semicolon.da
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/make_conditional_on_debug_mode.dart';
 import 'package:analysis_server/src/services/correction/dart/make_field_not_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_field_public.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
@@ -570,6 +571,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_final: [
       ReplaceFinalWithVar.newInstance,
+    ],
+    LintNames.unnecessary_getters_setters: [
+      MakeFieldPublic.newInstance,
     ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,

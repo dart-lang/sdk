@@ -77,6 +77,10 @@ class Isolate {
 
   @patch
   void removeErrorListener(SendPort port) => _unsupported();
+
+  @patch
+  static Never exit([SendPort? finalMessagePort, Object? message]) =>
+      _unsupported();
 }
 
 /** Default factory for receive ports. */

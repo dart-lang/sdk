@@ -65,7 +65,6 @@ namespace dart {
   V(SendPortImpl_get_id, 1)                                                    \
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
-  V(SendPortImpl_sendAndExitInternal_, 2)                                      \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
@@ -316,12 +315,13 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
+  V(Isolate_exit_, 2)                                                          \
+  V(Isolate_getCurrentRootUriStr, 0)                                           \
+  V(Isolate_getDebugName, 1)                                                   \
+  V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_sendOOB, 2)                                                        \
   V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
-  V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
-  V(Isolate_getCurrentRootUriStr, 0)                                           \
-  V(Isolate_sendOOB, 2)                                                        \
-  V(Isolate_getDebugName, 1)                                                   \
   V(GrowableList_allocate, 2)                                                  \
   V(GrowableList_getIndexed, 2)                                                \
   V(GrowableList_setIndexed, 3)                                                \

@@ -43,7 +43,7 @@ part of dart.io;
 ///
 /// You can get the name of the operating system as a string with the
 /// [operatingSystem] getter. You can also use one of the static boolean
-/// getters: [isMacOS], [isLinux], and [isWindows].
+/// getters: [isMacOS], [isLinux], [isWindows], etc.
 /// ```dart
 /// import 'dart:io' show Platform;
 ///
@@ -77,6 +77,17 @@ class Platform {
   static String get localeName => _Platform.localeName();
 
   /// A string representing the operating system or platform.
+  ///
+  /// Possible values include:
+  ///   "android"
+  ///   "fuchsia"
+  ///   "ios"
+  ///   "linux"
+  ///   "macos"
+  ///   "windows"
+  ///
+  /// Note that this list may change over time so platform-specific logic
+  /// should be guarded by the appropriate boolean getter e.g. [isMacOS].
   static String get operatingSystem => _operatingSystem;
 
   /// A string representing the version of the operating system or platform.

@@ -738,7 +738,7 @@ abstract class Future<T> {
   ///
   /// This method is equivalent to:
   /// ```dart
-  /// Future<T> whenComplete(action()) {
+  /// Future<T> whenComplete(action() {
   ///   return this.then((v) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) => v);

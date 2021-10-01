@@ -7,6 +7,6 @@ We use the x64 build as the default on Linux, Mac and Windows. Builds for Linux
 on ARM and ARM64 are also provided.
 
 To upload new versions of these CIPD packages, run "./update.sh" in this
-directory. Because these SDKs are used for the presubmit dartfmt check on
-changed files, they may need to be updated often when dartfmt is changing
+directory. Because these SDKs are used for the presubmit dart format check on
+changed files, they may need to be updated often when dart format is changing
 rapidly. Access to the project-dart-admins Luci auth group is required to do so.

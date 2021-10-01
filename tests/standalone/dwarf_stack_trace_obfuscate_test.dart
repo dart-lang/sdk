@@ -14,7 +14,7 @@ import 'dwarf_stack_trace_test.dart' as base;
 @pragma("vm:prefer-inline")
 bar() {
   // Keep the 'throw' and its argument on separate lines.
-  throw // force linebreak with dartfmt
+  throw // force linebreak with dart format
       "Hello, Dwarf!";
 }
 

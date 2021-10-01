@@ -132,4 +132,7 @@ main() {
   //                                        ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] Member not found: 'hashCode'.
+
+  // (C.staticInt?.floor())! can be assigned to int.
+  int y = (C.staticInt?.floor())!;
 }

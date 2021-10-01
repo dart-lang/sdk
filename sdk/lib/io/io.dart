@@ -111,7 +111,7 @@
 /// and listens for the data on the returned web socket.
 /// For example, here's a mini server that listens for 'ws' data
 /// on a WebSocket:
-/// ```dart
+/// ```dart import:async
 /// runZoned(() async {
 ///   var server = await HttpServer.bind('127.0.0.1', 4040);
 ///   server.listen((HttpRequest req) async {
@@ -140,7 +140,7 @@
 /// Use [ServerSocket] on the server side and [Socket] on the client.
 /// The server creates a listening socket using the `bind()` method and
 /// then listens for incoming connections on the socket. For example:
-/// ```dart
+/// ```dart import:convert
 /// ServerSocket.bind('127.0.0.1', 4041)
 ///   .then((serverSocket) {
 ///     serverSocket.listen((socket) {

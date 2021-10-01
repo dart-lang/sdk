@@ -1523,11 +1523,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     CollectionElement thenElement = node.thenElement;
     flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
     thenElement.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(thenElement);
 
     var elseElement = node.elseElement;
     if (elseElement != null) {
       flowAnalysis.flow?.ifStatement_elseBegin();
       elseElement.accept(this);
+      nullSafetyDeadCodeVerifier.flowEnd(elseElement);
     }
 
     flowAnalysis.flow?.ifStatement_end(elseElement != null);

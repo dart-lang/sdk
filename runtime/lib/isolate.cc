@@ -272,36 +272,37 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   return obj.ptr();
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
-    const auto& error =
-        String::Handle(String::New("sendAndExit is only supported across "
-                                   "isolates spawned via spawnFunction."));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
-  }
+DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
+  GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  if (!port.IsNull()) {
+    GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
+    if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
+      const auto& error =
+          String::Handle(String::New("exit with final message is only allowed "
+                                     "for isolates in one isolate group."));
+      Exceptions::ThrowArgumentError(error);
+      UNREACHABLE();
+    }
 
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
-
-  Object& validated_result = Object::Handle(zone);
-  const Object& msg_obj = Object::Handle(zone, obj.ptr());
-  validated_result = ValidateMessageObject(zone, isolate, msg_obj);
-  // msg_array = [
-  //     <message>,
-  //     <collection-lib-objects-to-rehash>,
-  //     <core-lib-objects-to-rehash>,
-  // ]
-  const Array& msg_array = Array::Handle(zone, Array::New(3));
-  msg_array.SetAt(0, msg_obj);
-  if (validated_result.IsUnhandledException()) {
-    Exceptions::PropagateError(Error::Cast(validated_result));
-    UNREACHABLE();
+    Object& validated_result = Object::Handle(zone);
+    const Object& msg_obj = Object::Handle(zone, obj.ptr());
+    validated_result = ValidateMessageObject(zone, isolate, msg_obj);
+    // msg_array = [
+    //     <message>,
+    //     <collection-lib-objects-to-rehash>,
+    //     <core-lib-objects-to-rehash>,
+    // ]
+    const Array& msg_array = Array::Handle(zone, Array::New(3));
+    msg_array.SetAt(0, msg_obj);
+    if (validated_result.IsUnhandledException()) {
+      Exceptions::PropagateError(Error::Cast(validated_result));
+      UNREACHABLE();
+    }
+    PersistentHandle* handle =
+        isolate->group()->api_state()->AllocatePersistentHandle();
+    handle->set_ptr(msg_array);
+    isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   }
-  PersistentHandle* handle =
-      isolate->group()->api_state()->AllocatePersistentHandle();
-  handle->set_ptr(msg_array);
-  isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.
