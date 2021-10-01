@@ -361,6 +361,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     this.enableAuthCodes = true,
     this.logger,
   }) : super(channel) {
+    channel.closed.then((_) => shutdown());
+
     _isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
   }

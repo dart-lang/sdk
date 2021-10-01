@@ -484,6 +484,7 @@ extension DapTestClientExtension on DapTestClient {
     int line, {
     String? condition,
     String? cwd,
+    List<String>? args,
     Future<Response> Function()? launch,
   }) async {
     final stop = expectStop('breakpoint', file: file, line: line);
@@ -496,7 +497,7 @@ extension DapTestClientExtension on DapTestClient {
           breakpoints: [SourceBreakpoint(line: line, condition: condition)],
         ),
       ),
-      launch?.call() ?? this.launch(file.path, cwd: cwd),
+      launch?.call() ?? this.launch(file.path, cwd: cwd, args: args),
     ], eagerError: true);
 
     return stop;

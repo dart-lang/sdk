@@ -43,12 +43,12 @@ final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
 /// by the VM when not using --write-service-info.
 final vmServiceBannerPattern = RegExp(r'Observatory listening on ([^\s]+)\s');
 
-/// Expects [actual] to equal the lines [expected], ignoring differences in line
-/// endings and trailing whitespace.
-void expectLines(String actual, List<String> expected) {
+/// Expects the lines in [actual] to match the relevant matcher in [expected],
+/// ignoring differences in line endings and trailing whitespace.
+void expectLines(String actual, List<Object> expected) {
   expect(
-    actual.replaceAll('\r\n', '\n').trim(),
-    equals(expected.join('\n').trim()),
+    actual.replaceAll('\r\n', '\n').trim().split('\n'),
+    equals(expected),
   );
 }
 
