@@ -94,7 +94,6 @@ class Flags {
   static const String trustTypeAnnotations = '--trust-type-annotations';
   static const String trustJSInteropTypeAnnotations =
       '--experimental-trust-js-interop-type-annotations';
-  static const String useContentSecurityPolicy = '--csp';
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
