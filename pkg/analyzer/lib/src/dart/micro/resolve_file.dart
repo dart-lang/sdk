@@ -526,7 +526,7 @@ class FileResolver {
 
         try {
           results = performance!.run('analyze', (performance) {
-            return libraryAnalyzer.analyzeSync(
+            return libraryAnalyzer.analyze(
               completionPath: completionOffset != null ? completionPath : null,
               completionOffset: completionOffset,
               performance: performance,
