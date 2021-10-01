@@ -210,8 +210,7 @@ class DartObjectImpl implements DartObject {
   bool get isUserDefinedObject => _state is GenericState;
 
   @visibleForTesting
-  List<DartObjectImpl>? get typeArguments =>
-      (_state as FunctionState)._typeArguments;
+  List<DartType>? get typeArguments => (_state as FunctionState)._typeArguments;
 
   @override
   bool operator ==(Object object) {
@@ -921,10 +920,13 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
+  /// Return the result of type-instantiating this object as [type].
+  ///
+  /// [typeArguments] are the type arguments used in the instantiation.
   DartObjectImpl? typeInstantiate(
     TypeSystemImpl typeSystem,
     FunctionType type,
-    List<DartObjectImpl> typeArguments,
+    List<DartType> typeArguments,
   ) {
     var functionState = _state as FunctionState;
     var element = functionState._element;
@@ -1250,11 +1252,11 @@ class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
   final ExecutableElement? _element;
 
-  final List<DartObjectImpl>? _typeArguments;
+  final List<DartType>? _typeArguments;
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
-  FunctionState(this._element, {List<DartObjectImpl>? typeArguments})
+  FunctionState(this._element, {List<DartType>? typeArguments})
       : _typeArguments = typeArguments;
 
   @override

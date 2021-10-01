@@ -247,7 +247,7 @@ class InvocationInferenceHelper {
   /// generic function type from the surrounding context.
   DartType inferTearOff(
     Expression expression,
-    SimpleIdentifier identifier,
+    SimpleIdentifierImpl identifier,
     DartType tearOffType,
   ) {
     var context = InferenceContext.getContext(expression);
@@ -255,12 +255,11 @@ class InvocationInferenceHelper {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         context,
         tearOffType,
-        errorReporter: _resolver.errorReporter,
+        errorReporter: _errorReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
       )!;
-      (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
-          typeArguments;
+      identifier.tearOffTypeArgumentTypes = typeArguments;
       if (typeArguments.isNotEmpty) {
         return tearOffType.instantiate(typeArguments);
       }

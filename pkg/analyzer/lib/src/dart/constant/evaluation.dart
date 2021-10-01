@@ -514,8 +514,8 @@ class ConstantEvaluationEngine {
         var fieldValue = field.evaluationResult?.value;
 
         // It is possible that the evaluation result is null.
-        // This happens for example when we have duplicate fields.
-        // class Test {final x = 1; final x = 2; const Test();}
+        // This happens for example when we have duplicate fields; for example:
+        // `class Test {final x = 1; final x = 2; const Test();}`.
         if (fieldValue == null) {
           continue;
         }
@@ -1103,7 +1103,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return constructorTearoffResult;
     } else {
       var typeArguments = <DartType>[];
-      var typeArgumentObjects = <DartObjectImpl>[];
       for (var typeArgument in typeArgumentList.arguments) {
         var object = typeArgument.accept(this);
         if (object == null) {
@@ -1117,7 +1116,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         // type arguments. Possibly change implementation based on
         // canonicalization rules.
         typeArguments.add(typeArgumentType);
-        typeArgumentObjects.add(object);
       }
       // The result is already instantiated during resolution;
       // [_dartObjectComputer.typeInstantiate] is unnecessary.
@@ -1125,7 +1123,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         typeSystem,
         node.typeOrThrow,
         FunctionState(node.constructorName.staticElement,
-            typeArguments: typeArgumentObjects),
+            typeArguments: typeArguments),
       );
     }
   }
@@ -1150,7 +1148,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return functionResult;
     } else {
       var typeArguments = <DartType>[];
-      var typeArgumentObjects = <DartObjectImpl>[];
       for (var typeArgument in typeArgumentList.arguments) {
         var object = typeArgument.accept(this);
         if (object == null) {
@@ -1164,10 +1161,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         // type arguments. Possibly change implementation based on
         // canonicalization rules.
         typeArguments.add(typeArgumentType);
-        typeArgumentObjects.add(object);
       }
-      return _dartObjectComputer.typeInstantiate(
-          functionResult, typeArguments, typeArgumentObjects);
+      return _dartObjectComputer.typeInstantiate(functionResult, typeArguments);
     }
   }
 
@@ -1459,7 +1454,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl? visitSimpleIdentifier(SimpleIdentifier node) {
     var value = _lexicalEnvironment?[node.name];
     if (value != null) {
-      return value;
+      return _instantiateFunctionType(node, value);
     }
 
     return _getConstantValue(node, node.staticElement);
@@ -1681,9 +1676,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       // and errors for other constant expressions. In either case we have
       // already computed values of all dependencies first (or detect a cycle),
       // so the value has already been computed and we can just return it.
-      var value = variableElement.evaluationResult;
-      if (variableElement.isConst && value != null) {
-        return value.value;
+      var result = variableElement.evaluationResult;
+      if (variableElement.isConst && result != null) {
+        var value = result.value;
+        if (value == null) {
+          return value;
+        }
+        return _instantiateFunctionType(node, value);
       }
     } else if (variableElement is ConstructorElement) {
       return DartObjectImpl(
@@ -1744,6 +1743,33 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // error code.
     _error(node, null);
     return null;
+  }
+
+  /// If the type of [value] is a generic [FunctionType], and [node] is a
+  /// [SimpleIdentifier] with tear-off type argument types, returns [value]
+  /// type-instantiated with those [node]'s tear-off type argument types,
+  /// otherwise returns [value].
+  DartObjectImpl? _instantiateFunctionType(
+      Expression node, DartObjectImpl value) {
+    if (node is! SimpleIdentifier) {
+      return value;
+    }
+    var functionElement = value.toFunctionValue();
+    if (functionElement is! ExecutableElement) {
+      return value;
+    }
+    var valueType = functionElement.type;
+    if (valueType.typeFormals.isNotEmpty) {
+      var tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
+      if (tearOffTypeArgumentTypes != null &&
+          tearOffTypeArgumentTypes.isNotEmpty) {
+        var instantiatedType =
+            functionElement.type.instantiate(tearOffTypeArgumentTypes);
+        return value.typeInstantiate(
+            typeSystem, instantiatedType, tearOffTypeArgumentTypes);
+      }
+    }
+    return value;
   }
 
   /// Return `true` if the given [targetResult] represents a string and the
@@ -2186,7 +2212,6 @@ class DartObjectComputer {
   DartObjectImpl? typeInstantiate(
     DartObjectImpl function,
     List<DartType> typeArguments,
-    List<DartObjectImpl> typeArgumentObjects,
   ) {
     var rawType = function.type;
     if (rawType is FunctionType) {
@@ -2194,7 +2219,7 @@ class DartObjectComputer {
         return null;
       }
       var type = rawType.instantiate(typeArguments);
-      return function.typeInstantiate(_typeSystem, type, typeArgumentObjects);
+      return function.typeInstantiate(_typeSystem, type, typeArguments);
     } else {
       return null;
     }

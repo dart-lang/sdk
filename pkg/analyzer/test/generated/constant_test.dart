@@ -27,8 +27,7 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
       return;
     }
     expect(
-      typeArguments.map(
-          (arg) => arg.toTypeValue()!.getDisplayString(withNullability: true)),
+      typeArguments.map((arg) => arg.getDisplayString(withNullability: true)),
       equals(typeArgumentNames),
     );
   }
