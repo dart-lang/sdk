@@ -87,6 +87,7 @@ main() {
       'pkg/compiler/test/deferred/data/deferred_helper.dart',
       '--out=custom.js',
       '--deferred-map=def/deferred.json',
+      '--no-csp',
       Flags.dumpInfo,
     ], [
       'custom.js', 'custom.js.map',
@@ -100,20 +101,19 @@ main() {
 
     PRINT_GRAPH = false;
     TRACE_FILTER_PATTERN_FOR_TEST = null;
-    List<String> additionOptionals = <String>[];
-    List<String> expectedOutput = <String>[
+    List<String> additionOptionals = [];
+    List<String> expectedOutput = [
       'out.js',
       'out.js.map',
       'out.js_1.part.js',
       'out.js_1.part.js.map',
     ];
 
-    await test(
-        [
-          'pkg/compiler/test/deferred/data/deferred_helper.dart',
-          Flags.useContentSecurityPolicy,
-        ]..addAll(additionOptionals),
-        expectedOutput);
+    await test([
+      'pkg/compiler/test/deferred/data/deferred_helper.dart',
+      '--csp',
+      ...additionOptionals,
+    ], expectedOutput);
   }
 
   asyncTest(() async {

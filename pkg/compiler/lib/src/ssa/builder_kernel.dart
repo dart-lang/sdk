@@ -363,7 +363,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       case 'MUST_RETAIN_METADATA':
         return false;
       case 'USE_CONTENT_SECURITY_POLICY':
-        return options.useContentSecurityPolicy;
+        return options.features.useContentSecurityPolicy.isEnabled;
       case 'VARIANCE':
         return options.enableVariance;
       case 'LEGACY':

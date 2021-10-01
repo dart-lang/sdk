@@ -68,11 +68,14 @@ class FeatureOptions {
   /// Whether to use optimized holders.
   FeatureOption newHolders = FeatureOption('new-holders');
 
+  /// Whether to generate code compliant with Content Security Policy.
+  FeatureOption useContentSecurityPolicy = FeatureOption('csp');
+
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [legacyJavaScript, newHolders];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [];
+  late final List<FeatureOption> canary = [useContentSecurityPolicy];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
@@ -436,9 +439,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an internal configuration option derived from other flags.
   late CheckPolicy defaultIndexBoundsCheckPolicy;
 
-  /// Whether to generate code compliant with content security policy (CSP).
-  bool useContentSecurityPolicy = false;
-
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
   bool useFrequencyNamer = true;
@@ -626,8 +626,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
-      ..useContentSecurityPolicy =
-          _hasOption(options, Flags.useContentSecurityPolicy)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
@@ -709,7 +707,6 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
       // TODO(sra): Use this for some null safety variant.
-      useContentSecurityPolicy = true;
       features.forceCanary();
     }
 

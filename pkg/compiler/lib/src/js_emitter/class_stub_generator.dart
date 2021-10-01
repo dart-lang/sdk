@@ -291,7 +291,7 @@ List<jsAst.Statement> buildTearOffCode(
   }
 
   jsAst.Statement instanceTearOffGetter;
-  if (options.useContentSecurityPolicy) {
+  if (options.features.useContentSecurityPolicy.isEnabled) {
     instanceTearOffGetter = js.statement(
       '''
       function instanceTearOffGetter(isIntercepted, parameters) {
