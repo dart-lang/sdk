@@ -1046,8 +1046,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (name != '' || hasUnnamedSuper)
             _emitSuperConstructorCall(className, name, jsParams),
         ];
-        body.add(_addConstructorToClass(
-            c, className, name, js_ast.Fun(jsParams, js_ast.Block(ctorBody))));
+        // TODO(nshahan) Record the name for this constructor in memberNames.
+        body.add(_addConstructorToClass(c, className, _constructorName(name),
+            js_ast.Fun(jsParams, js_ast.Block(ctorBody))));
       }
     }
 
@@ -1197,14 +1198,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return body;
     }
 
-    void addConstructor(String name, js_ast.Expression jsCtor) {
+    void addConstructor(js_ast.LiteralString name, js_ast.Expression jsCtor) {
       body.add(_addConstructorToClass(c, className, name, jsCtor));
     }
 
     var fields = c.fields;
     for (var ctor in c.constructors) {
       if (ctor.isExternal) continue;
-      addConstructor(ctor.name.text, _emitConstructor(ctor, fields, className));
+      var constructorName = _constructorName(ctor.name.text);
+      memberNames[ctor] = constructorName.valueWithoutQuotes;
+      addConstructor(
+          constructorName, _emitConstructor(ctor, fields, className));
     }
 
     // If classElement has only factory constructors, and it can be mixed in,
@@ -1617,7 +1621,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  js_ast.Expression _constructorName(String name) {
+  js_ast.LiteralString _constructorName(String name) {
     if (name == '') {
       // Default constructors (factory or not) use `new` as their name.
       return propertyName('new');
@@ -1773,8 +1777,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Statement _addConstructorToClass(Class c, js_ast.Expression className,
-      String name, js_ast.Expression jsCtor) {
-    jsCtor = defineValueOnClass(c, className, _constructorName(name), jsCtor);
+      js_ast.LiteralString name, js_ast.Expression jsCtor) {
+    jsCtor = defineValueOnClass(c, className, name, jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
   }
 
@@ -2084,9 +2088,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// [_emitFunction] instead.
     var name = node.name.text;
     var jsBody = _emitSyncFunctionBody(function, name);
+    var jsName = _constructorName(name);
+    memberNames[node] = jsName.valueWithoutQuotes;
 
-    return js_ast.Method(
-        _constructorName(name), js_ast.Fun(_emitParameters(function), jsBody),
+    return js_ast.Method(jsName, js_ast.Fun(_emitParameters(function), jsBody),
         isStatic: true)
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
   }
