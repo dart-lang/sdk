@@ -909,7 +909,7 @@ void writeDartCallTest() {
 
     final path = callTestPath(nnbd);
     File(path).writeAsStringSync(buffer.toString());
-    Process.runSync("dartfmt", ["-w", path]);
+    Process.runSync("dart", ["format", path]);
   }
 }
 
@@ -975,7 +975,7 @@ void writeDartCallbackTest() {
 
     final path = callbackTestPath(nnbd);
     File(path).writeAsStringSync(buffer.toString());
-    Process.runSync("dartfmt", ["-w", path]);
+    Process.runSync("dart", ["format", path]);
   }
 }
 
