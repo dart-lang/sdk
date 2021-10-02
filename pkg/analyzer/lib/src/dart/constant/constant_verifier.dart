@@ -445,7 +445,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Check if the object [obj] matches the type [type] according to runtime
   /// type checking rules.
   bool _runtimeTypeMatch(DartObjectImpl obj, DartType type) {
-    return _evaluationEngine.runtimeTypeMatch(_currentLibrary, obj, type);
+    return _currentLibrary.typeSystem.runtimeTypeMatch(obj, type);
   }
 
   /// Validate that the given expression is a compile time constant. Return the
