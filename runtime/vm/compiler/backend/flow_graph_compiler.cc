@@ -1621,8 +1621,15 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       blocked_registers[loc.reg()] = true;
     } else if (loc.IsFpuRegister()) {
       // Check that a register is not specified twice in the summary.
-      ASSERT(!blocked_fpu_registers[loc.fpu_reg()]);
-      blocked_fpu_registers[loc.fpu_reg()] = true;
+      const FpuRegister fpu_reg = loc.fpu_reg();
+      if ((fpu_reg < 0) || (fpu_reg >= kNumberOfFpuRegisters)) {
+        // Debug prints for https://github.com/dart-lang/sdk/issues/47314.
+        OS::PrintErr("input(%" Pd ") fpu_reg = %d\n", i, fpu_reg);
+        OS::PrintErr("instr = %s\n", instr->ToCString());
+        UNREACHABLE();
+      }
+      ASSERT(!blocked_fpu_registers[fpu_reg]);
+      blocked_fpu_registers[fpu_reg] = true;
     }
   }
 
@@ -1634,8 +1641,15 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       blocked_registers[loc.reg()] = true;
     } else if (loc.IsFpuRegister()) {
       // Check that a register is not specified twice in the summary.
-      ASSERT(!blocked_fpu_registers[loc.fpu_reg()]);
-      blocked_fpu_registers[loc.fpu_reg()] = true;
+      const FpuRegister fpu_reg = loc.fpu_reg();
+      if ((fpu_reg < 0) || (fpu_reg >= kNumberOfFpuRegisters)) {
+        // Debug prints for https://github.com/dart-lang/sdk/issues/47314.
+        OS::PrintErr("temp(%" Pd ") fpu_reg = %d\n", i, fpu_reg);
+        OS::PrintErr("instr = %s\n", instr->ToCString());
+        UNREACHABLE();
+      }
+      ASSERT(!blocked_fpu_registers[fpu_reg]);
+      blocked_fpu_registers[fpu_reg] = true;
     }
   }
 

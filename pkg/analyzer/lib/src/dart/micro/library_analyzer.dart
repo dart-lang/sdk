@@ -100,7 +100,7 @@ class LibraryAnalyzer {
   TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
   /// Compute analysis results for all units of the library.
-  Map<FileState, UnitAnalysisResult> analyzeSync({
+  Map<FileState, UnitAnalysisResult> analyze({
     required String? completionPath,
     required int? completionOffset,
     required OperationPerformanceImpl performance,

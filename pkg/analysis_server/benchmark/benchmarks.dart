@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
 import 'perf/flutter_analyze_benchmark.dart';
+import 'perf/flutter_completion_benchmark.dart';
 
 Future main(List<String> args) async {
   var benchmarks = <Benchmark>[
@@ -23,6 +24,8 @@ Future main(List<String> args) async {
     AnalysisBenchmark(ServerBenchmark.das),
     AnalysisBenchmark(ServerBenchmark.lsp),
     FlutterAnalyzeBenchmark(),
+    FlutterCompletionBenchmark.das,
+    FlutterCompletionBenchmark.lsp,
   ];
 
   var runner = CommandRunner(

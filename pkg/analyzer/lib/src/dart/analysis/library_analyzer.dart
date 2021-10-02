@@ -100,11 +100,6 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyze() {
-    return analyzeSync();
-  }
-
-  /// Compute analysis results for all units of the library.
-  Map<FileState, UnitAnalysisResult> analyzeSync() {
     timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnitImpl> units = {};
 
