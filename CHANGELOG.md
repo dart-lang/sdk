@@ -944,6 +944,9 @@ This is a patch release that fixes:
 - Add `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
   constructors, a name which can be associated with the port and displayed in
   tooling.
+- Introduce `Isolate.exit([port, message])` which terminates current isolate
+  and, if `port` is specified, as a last action sends out the `message` out to
+  that `port`.
 
 #### `dart:html`
 

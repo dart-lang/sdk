@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-09-23T11:31:05.389095",
+  "generated": "2021-10-01T13:54:59.751334",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -351,7 +351,7 @@
       "name": "http",
       "rootUri": "../third_party/pkg/http",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "http_io",

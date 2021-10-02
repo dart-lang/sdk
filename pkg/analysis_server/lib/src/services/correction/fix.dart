@@ -309,6 +309,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Convert to expression bodies everywhere in file',
   );
+  static const CONVERT_QUOTES = FixKind(
+    'dart.fix.convert.quotes',
+    DartFixKindPriority.DEFAULT,
+    'Convert the quotes and remove escapes',
+  );
+  static const CONVERT_QUOTES_MULTI = FixKind(
+    'dart.fix.convert.quotes.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert the quotes and remove escapes everywhere in file',
+  );
   static const CONVERT_TO_CONTAINS = FixKind(
     'dart.fix.convert.toContains',
     DartFixKindPriority.DEFAULT,

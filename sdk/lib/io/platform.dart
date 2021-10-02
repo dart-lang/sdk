@@ -74,6 +74,21 @@ class Platform {
   static String get pathSeparator => _pathSeparator;
 
   /// Get the name of the current locale.
+  ///
+  /// The result should include a language and country code
+  /// (e.g. "en_US", "de_AT") and may include a character set
+  /// (e.g. "en_US.UTF-8").
+  ///
+  /// On Linux and Fushia, the locale is taken from the "LANG" environment
+  /// variable, which may be set to any value. For example:
+  /// ```shell
+  /// LANG=kitten dart myfile.dart  # localeName is "kitten"
+  /// ```
+  ///
+  /// On Android, the value will not change while the application is running,
+  /// even if the user adjusts their language settings.
+  ///
+  /// See https://en.wikipedia.org/wiki/Locale_(computer_software)
   static String get localeName => _Platform.localeName();
 
   /// A string representing the operating system or platform.
