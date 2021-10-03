@@ -126,7 +126,7 @@ class C {
 
     var tester = LintFixTester(
       resourceProvider: resourceProvider,
-      sdkPath: sdkRoot,
+      sdkPath: convertPath(sdkRoot),
       packageConfigPath: null,
     );
 
@@ -157,7 +157,7 @@ class C {
 
     var tester = LintFixTester(
       resourceProvider: resourceProvider,
-      sdkPath: sdkRoot,
+      sdkPath: convertPath(sdkRoot),
       packageConfigPath: null,
     );
 
