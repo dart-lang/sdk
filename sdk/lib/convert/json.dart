@@ -567,7 +567,7 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 ///
 /// final item0 = object['data'][0];
 /// print(item0['text']); // foo
-/// print(item0['value']); // value: 1
+/// print(item0['value']); // 1
 ///
 /// print(object['text']); // Dart
 /// ```
