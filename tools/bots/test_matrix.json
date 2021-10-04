@@ -3912,9 +3912,11 @@
         },
         {
           "name": "Run Isolate Stress Tests",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
-            "runtime/tests/concurrency/run_stress_test_shards.dart"
+            "out/ReleaseX64/dart",
+            "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "--copy-coredumps"
           ],
           "shards": 10,
           "fileset": "vm-kernel"
