@@ -81,8 +81,7 @@ const List<_ErrorClassInfo> _errorClasses = [
       type: 'HINT',
       extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
   _ErrorClassInfo(
-      // TODO(paulberry): rename to `syntactic_errors.g.dart`.
-      filePath: 'lib/src/dart/error/syntactic_errors.analyzer.g.dart',
+      filePath: 'lib/src/dart/error/syntactic_errors.g.dart',
       name: 'ParserErrorCode',
       type: 'SYNTACTIC_ERROR',
       severity: 'ERROR',
