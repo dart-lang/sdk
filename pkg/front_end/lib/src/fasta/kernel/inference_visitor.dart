@@ -364,8 +364,50 @@ class InferenceVisitor
     ExpressionInferenceResult operandResult = inferrer.inferExpression(
         node.expression, const UnknownType(), true,
         isVoidAllowed: true);
-    node.expression = operandResult.expression..parent = node;
+    Expression operand = operandResult.expression;
     DartType operandType = operandResult.inferredType;
+    if (operandType is! FunctionType) {
+      ObjectAccessTarget callMember = inferrer.findInterfaceMember(
+          operandType, callName, operand.fileOffset,
+          callSiteAccessKind: CallSiteAccessKind.getterInvocation,
+          includeExtensionMethods: true);
+      switch (callMember.kind) {
+        case ObjectAccessTargetKind.instanceMember:
+          Member? target = callMember.member;
+          if (target is Procedure && target.kind == ProcedureKind.Method) {
+            operandType = inferrer.getGetterType(callMember, operandType);
+            operand = new InstanceTearOff(
+                InstanceAccessKind.Instance, operand, callName,
+                interfaceTarget: target, resultType: operandType)
+              ..fileOffset = operand.fileOffset;
+          }
+          break;
+        case ObjectAccessTargetKind.extensionMember:
+          if (callMember.tearoffTarget != null &&
+              callMember.extensionMethodKind == ProcedureKind.Method) {
+            operandType = inferrer.getGetterType(callMember, operandType);
+            operand = new StaticInvocation(
+                callMember.tearoffTarget as Procedure,
+                new Arguments(<Expression>[operand],
+                    types: callMember.inferredExtensionTypeArguments)
+                  ..fileOffset = operand.fileOffset)
+              ..fileOffset = operand.fileOffset;
+          }
+          break;
+        case ObjectAccessTargetKind.nullableInstanceMember:
+        case ObjectAccessTargetKind.objectMember:
+        case ObjectAccessTargetKind.nullableCallFunction:
+        case ObjectAccessTargetKind.nullableExtensionMember:
+        case ObjectAccessTargetKind.dynamic:
+        case ObjectAccessTargetKind.never:
+        case ObjectAccessTargetKind.invalid:
+        case ObjectAccessTargetKind.missing:
+        case ObjectAccessTargetKind.ambiguous:
+        case ObjectAccessTargetKind.callFunction:
+          break;
+      }
+    }
+    node.expression = operand..parent = node;
     Expression result = node;
     DartType resultType = const InvalidType();
     if (operandType is FunctionType) {
