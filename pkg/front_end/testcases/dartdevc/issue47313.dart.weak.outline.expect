@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    ;
+  static method _#new#tearOff<X extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::X%>
+    return new self::A::•<self::A::_#new#tearOff::X%>();
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+class C<X extends core::Object? = dynamic> = self::A<self::C::X%> with self::M {
+  synthetic constructor •() → self::C<self::C::X%>
+    : super self::A::•()
+    ;
+  static method _#new#tearOff<X extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::X%>
+    return new self::C::•<self::C::_#new#tearOff::X%>();
+}
+static method main() → dynamic
+  ;

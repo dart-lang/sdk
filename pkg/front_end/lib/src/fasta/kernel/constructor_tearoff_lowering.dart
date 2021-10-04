@@ -362,7 +362,9 @@ void _createParameters(Procedure tearOff, Member constructor,
       substitution.substituteType(function.returnType);
   tearOff.function.requiredParameterCount = function.requiredParameterCount;
   libraryBuilder.loader.registerTypeDependency(
-      tearOff, new TypeDependency(tearOff, constructor, substitution));
+      tearOff,
+      new TypeDependency(tearOff, constructor, substitution,
+          copyReturnType: true));
 }
 
 /// Creates the [Arguments] for passing the parameters from [tearOff] to its
