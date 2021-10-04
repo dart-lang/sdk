@@ -550,11 +550,12 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
     }
   }
 }
+
 /// This class parses JSON strings and builds the corresponding objects.
 ///
 /// A JSON input must be the JSON encoding of a single JSON value,
 /// which can be a list or map containing other values.
-
+/// 
 /// Example:
 /// ```dart
 /// const JsonDecoder decoder = JsonDecoder();
