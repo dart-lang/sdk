@@ -80,13 +80,13 @@ const JsonCodec json = JsonCodec();
 /// Example:
 /// ```dart
 ///  var data = {};
-///  data["text"] = "foo";
+///  data['text'] = 'foo';
 ///  data["value"] = 2;
 ///  data['status'] = false;
 ///  data['extra'] = null;
 ///
 ///  var jsonObject = {};
-///  jsonObject["content"] = data;
+///  jsonObject['content'] = data;
 ///
 ///  final String jsonString = jsonEncode(data);
 ///  print(jsonString); // {"text":"foo","value":2,"status":false,"extra":null}
@@ -127,7 +127,7 @@ String jsonEncode(Object? object,
 /// print(dataList[1]); // {text: bar, value: 2, status: false}
 ///
 /// final item = dataList[0];
-/// print(item["text"]); //  foo
+/// print(item['text']); //  foo
 /// print(item['value']); // 1
 /// print(item['status']); //false
 /// ```
@@ -232,11 +232,11 @@ class JsonCodec extends Codec<Object?, String> {
 /// ```dart
 /// const JsonEncoder encoder = JsonEncoder();
 /// var values = {};
-/// values["text"] = "foo";
-/// values["value"] = 2;
+/// values['text'] = 'foo';
+/// values['value'] = 2;
 ///
 /// var jsonData = {};
-/// jsonData["content"] = values;
+/// jsonData['content'] = values;
 ///
 /// final String jsonString = encoder.convert(jsonData);
 /// print(jsonString); // {"content":{"text":"foo","value":2}}
@@ -248,11 +248,11 @@ class JsonCodec extends Codec<Object?, String> {
 /// const JsonEncoder encoder = JsonEncoder.withIndent('  ');
 ///
 /// var values = {};
-/// values["text"] = "foo";
-/// values["value"] = 1;
+/// values['text'] = 'foo';
+/// values['value'] = 1;
 ///
 /// var jsonData = {};
-/// jsonData["content"] = values;
+/// jsonData['content'] = values;
 /// final String jsonString = encoder.convert(jsonData);
 /// print(jsonString);
 /// // {
@@ -554,7 +554,6 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 ///
 /// A JSON input must be the JSON encoding of a single JSON value,
 /// which can be a list or map containing other values.
-///
 
 /// Example:
 /// ```dart
