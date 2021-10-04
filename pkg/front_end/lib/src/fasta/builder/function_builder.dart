@@ -15,7 +15,7 @@ import '../scope.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show
@@ -129,7 +129,7 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// members.
   List<TypeParameter>? get extensionTypeParameters;
 
-  void becomeNative(Loader loader);
+  void becomeNative(SourceLoader loader);
 
   bool checkPatch(FunctionBuilder patch);
 
@@ -526,7 +526,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   Member build(SourceLibraryBuilder library);
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);

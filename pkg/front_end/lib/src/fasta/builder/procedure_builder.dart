@@ -8,9 +8,8 @@ import 'package:kernel/type_algebra.dart';
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/member_covariance.dart';
 
-import '../loader.dart' show Loader;
-
 import '../source/name_scheme.dart';
+import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
@@ -477,7 +476,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
           : const <ClassMember>[];
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _procedure.isExternal = true;
     super.becomeNative(loader);
   }

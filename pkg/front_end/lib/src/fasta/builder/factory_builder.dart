@@ -16,7 +16,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
@@ -199,7 +199,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       throw new UnsupportedError('${runtimeType}.localSetters');
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _procedureInternal.isExternal = true;
     super.becomeNative(loader);
   }

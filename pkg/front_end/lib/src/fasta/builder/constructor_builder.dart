@@ -22,7 +22,7 @@ import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show
@@ -90,7 +90,7 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   Set<FieldBuilder>? takeInitializedFields();
 }
 
-class ConstructorBuilderImpl extends FunctionBuilderImpl
+class SourceConstructorBuilder extends FunctionBuilderImpl
     implements ConstructorBuilder {
   final Constructor _constructor;
   final Procedure? _constructorTearOff;
@@ -114,7 +114,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   @override
   Constructor get actualConstructor => _constructor;
 
-  ConstructorBuilderImpl(
+  SourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       TypeBuilder? returnType,
@@ -145,6 +145,10 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
   @override
   SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+
+  @override
+  SourceClassBuilder get classBuilder =>
+      super.classBuilder as SourceClassBuilder;
 
   @override
   Member? get readTarget => _constructorTearOff ?? _constructor;
@@ -213,7 +217,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(_constructorTearOff!, _constructor,
-            classBuilder!.cls, libraryBuilder);
+            classBuilder.cls, libraryBuilder);
       }
 
       _hasBeenBuilt = true;
@@ -243,7 +247,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.type == null && formal.isInitializingFormal) {
-          formal.finalizeInitializingFormal(classBuilder!);
+          formal.finalizeInitializingFormal(classBuilder);
         }
       }
     }
@@ -270,7 +274,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     if (isConst && beginInitializers != null) {
       BodyBuilder bodyBuilder = library.loader
           .createBodyBuilderForOutlineExpression(
-              library, classBuilder!, this, classBuilder!.scope, fileUri);
+              library, classBuilder, this, classBuilder.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
       bodyBuilder.parseInitializers(beginInitializers!);
       bodyBuilder.performBacklogComputations(delayedActionPerformers);
@@ -287,7 +291,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     super.buildFunction(library);
-    Class enclosingClass = classBuilder!.cls;
+    Class enclosingClass = classBuilder.cls;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
@@ -426,14 +430,14 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _constructor.isExternal = true;
     super.becomeNative(loader);
   }
 
   @override
   void applyPatch(Builder patch) {
-    if (patch is ConstructorBuilderImpl) {
+    if (patch is SourceConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
         dataForTesting?.patchForTesting = patch;

@@ -2353,7 +2353,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           new Name(
               constructorName, _currentClassReferencesFromIndexed!.library));
     }
-    ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
+    ConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
         metadata,
         modifiers & ~abstractMask,
         returnType,

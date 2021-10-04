@@ -288,7 +288,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // For modular compilation we can be asked to load components and track
       // which libraries we actually use for the compilation. Set that up now.
-      await loadEnsureLoadedComponents(reusedLibraries);
+      loadEnsureLoadedComponents(reusedLibraries);
       resetTrackingOfUsedLibraries(hierarchy);
 
       // For each computeDelta call we create a new userCode object which needs
@@ -373,7 +373,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         dillLoadedData!.loader.currentSourceLoader = userCode!.loader;
       } else {
         previousSourceBuilders =
-            await convertSourceLibraryBuildersToDill(experimentalInvalidation);
+            convertSourceLibraryBuildersToDill(experimentalInvalidation);
       }
 
       experimentalInvalidation = null;
@@ -409,8 +409,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// source builders and they will thus be patched up here too.
   ///
   /// Returns the set of Libraries that now has new (dill) builders.
-  Future<Set<Library>> convertSourceLibraryBuildersToDill(
-      ExperimentalInvalidation? experimentalInvalidation) async {
+  Set<Library> convertSourceLibraryBuildersToDill(
+      ExperimentalInvalidation? experimentalInvalidation) {
     bool changed = false;
     Set<Library> newDillLibraryBuilders = new Set<Library>();
     userBuilders ??= <Uri, LibraryBuilder>{};
@@ -438,7 +438,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (changed) {
       // We suppress finalization errors because they have already been
       // reported.
-      await dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
+      dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
       assert(_checkEquivalentScopes(
           userCode!.loader.builders, dillLoadedData!.loader.builders));
 
@@ -1284,7 +1284,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // We suppress finalization errors because they will reported via
       // problemsAsJson fields (with better precision).
-      await dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
+      dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
       userBuilders = <Uri, LibraryBuilder>{};
       platformBuilders = <LibraryBuilder>[];
       dillLoadedData!.loader.builders.forEach((uri, builder) {
@@ -1420,8 +1420,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  Future<void> loadEnsureLoadedComponents(
-      List<LibraryBuilder> reusedLibraries) async {
+  void loadEnsureLoadedComponents(List<LibraryBuilder> reusedLibraries) {
     if (modulesToLoad != null) {
       bool loadedAnything = false;
       for (Component module in modulesToLoad!) {
@@ -1429,7 +1428,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         for (Library lib in module.libraries) {
           if (!dillLoadedData!.loader.builders.containsKey(lib.importUri)) {
             dillLoadedData!.loader.libraries.add(lib);
-            dillLoadedData!.addLibrary(lib);
+            dillLoadedData!.registerLibrary(lib);
             reusedLibraries.add(dillLoadedData!.loader.read(lib.importUri, -1));
             usedComponent = true;
           }
@@ -1442,7 +1441,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (loadedAnything) {
         // We suppress finalization errors because they will reported via
         // problemsAsJson fields (with better precision).
-        await dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
+        dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
         dillLoadedData!.loader.builders.forEach((uri, builder) {
