@@ -106,7 +106,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "14d9b6fd58cc4744676c12be3cc5eee2a779db82",
 
-  "dartdoc_rev" : "e5ebb7a6e88427db25c21811dc91190475934b17",
+  "dartdoc_rev" : "c2f284f09bcc49025fe26e86b2d45e1b546f81a3",
   "devtools_rev" : "2b47d9ed486479153ca2fd038000950674ed1beb",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
