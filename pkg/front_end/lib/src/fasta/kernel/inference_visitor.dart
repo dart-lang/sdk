@@ -640,8 +640,8 @@ class InferenceVisitor
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
     FunctionType functionType = node.target.function
         .computeThisFunctionType(inferrer.library.nonNullable);
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, functionType, node.arguments,
+    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
+        node.fileOffset, functionType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
@@ -670,8 +670,8 @@ class InferenceVisitor
         : new FunctionType(
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments,
+    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
+        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         staticTarget: node.target);
     StaticInvocation replacement =
         new StaticInvocation(node.target, node.arguments);
@@ -932,8 +932,8 @@ class InferenceVisitor
     FunctionType functionType = node.target.function
         .computeThisFunctionType(inferrer.library.nonNullable);
 
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, functionType, node.arguments,
+    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
+        node.fileOffset, functionType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
@@ -963,8 +963,8 @@ class InferenceVisitor
         .computeAliasedConstructorFunctionType(
             typedef, inferrer.library.library);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments,
+    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
+        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
@@ -987,8 +987,8 @@ class InferenceVisitor
     FunctionType calleeType = node.target.function
         .computeAliasedFactoryFunctionType(typedef, inferrer.library.library);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments,
+    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
+        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
@@ -2827,9 +2827,16 @@ class InferenceVisitor
     Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
     Expression receiver = result.nullAwareAction;
     DartType receiverType = result.nullAwareActionType;
-    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
-        receiver, receiverType, node.name, node.arguments, typeContext,
-        isExpressionInvocation: false, isImplicitCall: false);
+    return inferrer.inferMethodInvocation(
+        node.fileOffset,
+        nullAwareGuards,
+        receiver,
+        receiverType,
+        node.name,
+        node.arguments as ArgumentsImpl,
+        typeContext,
+        isExpressionInvocation: false,
+        isImplicitCall: false);
   }
 
   ExpressionInferenceResult visitExpressionInvocation(
@@ -2839,9 +2846,16 @@ class InferenceVisitor
     Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
     Expression receiver = result.nullAwareAction;
     DartType receiverType = result.nullAwareActionType;
-    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
-        receiver, receiverType, callName, node.arguments, typeContext,
-        isExpressionInvocation: true, isImplicitCall: true);
+    return inferrer.inferMethodInvocation(
+        node.fileOffset,
+        nullAwareGuards,
+        receiver,
+        receiverType,
+        callName,
+        node.arguments as ArgumentsImpl,
+        typeContext,
+        isExpressionInvocation: true,
+        isImplicitCall: true);
   }
 
   ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
@@ -5798,8 +5812,8 @@ class InferenceVisitor
             .computeThisFunctionType(inferrer.library.nonNullable),
         inferrer.coreTypes.thisInterfaceType(
             node.target.enclosingClass, inferrer.library.nonNullable));
-    inferrer.inferInvocation(
-        const UnknownType(), node.fileOffset, functionType, node.arguments,
+    inferrer.inferInvocation(const UnknownType(), node.fileOffset, functionType,
+        node.arguments as ArgumentsImpl,
         skipTypeArgumentInference: true, staticTarget: node.target);
     ArgumentsImpl.removeNonInferrableArgumentTypes(
         node.arguments as ArgumentsImpl);
@@ -5974,8 +5988,8 @@ class InferenceVisitor
         : new FunctionType(
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments,
+    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
+        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         staticTarget: node.target);
     // ignore: unnecessary_null_comparison
     if (!inferrer.isTopLevel && node.target != null) {
@@ -6022,8 +6036,8 @@ class InferenceVisitor
             .computeThisFunctionType(inferrer.library.nonNullable)
             .withoutTypeParameters) as FunctionType,
         inferrer.thisType!);
-    inferrer.inferInvocation(
-        const UnknownType(), node.fileOffset, functionType, node.arguments,
+    inferrer.inferInvocation(const UnknownType(), node.fileOffset, functionType,
+        node.arguments as ArgumentsImpl,
         skipTypeArgumentInference: true, staticTarget: node.target);
   }
 
@@ -6770,8 +6784,8 @@ class InferenceVisitor
     if (node.arguments != null) {
       FunctionType calleeType =
           new FunctionType([], inferredType, inferrer.library.nonNullable);
-      inferrer.inferInvocation(
-          typeContext, node.fileOffset, calleeType, node.arguments!);
+      inferrer.inferInvocation(typeContext, node.fileOffset, calleeType,
+          node.arguments! as ArgumentsImpl);
     }
     return new ExpressionInferenceResult(inferredType, node);
   }

@@ -53,7 +53,7 @@ class SynthesizedFunctionNode {
             new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
         clonedParameter.initializer = cloner!
             .clone(originalParameter.initializer!)
-              ..parent = clonedParameter;
+          ..parent = clonedParameter;
       }
     }
 
@@ -116,8 +116,10 @@ class TypeDependency {
   final Member synthesized;
   final Member original;
   final Substitution substitution;
+  final bool copyReturnType;
 
-  TypeDependency(this.synthesized, this.original, this.substitution);
+  TypeDependency(this.synthesized, this.original, this.substitution,
+      {required this.copyReturnType});
 
   void copyInferred() {
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
@@ -136,7 +138,9 @@ class TypeDependency {
       synthesizedParameter.type =
           substitution.substituteType(originalParameter.type);
     }
-    synthesized.function!.returnType =
-        substitution.substituteType(original.function!.returnType);
+    if (copyReturnType) {
+      synthesized.function!.returnType =
+          substitution.substituteType(original.function!.returnType);
+    }
   }
 }

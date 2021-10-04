@@ -60,6 +60,7 @@ const List<Option> optionSpecification = [
   Options.compileSdk,
   Options.dumpIr,
   Options.enableExperiment,
+  Options.enableUnscheduledExperiments,
   Options.excludeSource,
   Options.omitPlatform,
   Options.fatal,
@@ -106,7 +107,7 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool verbose = Options.verbose.read(parsedOptions);
 
   if (help) {
-    print(computeUsage(programName, verbose).message);
+    print(computeUsage(programName, verbose).problemMessage);
     exit(0);
   }
 
@@ -188,6 +189,9 @@ ProcessedOptions analyzeCommandLine(String programName,
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
+  final bool enableUnscheduledExperiments =
+      Options.enableUnscheduledExperiments.read(parsedOptions);
+
   final bool warnOnReachabilityCheck =
       Options.warnOnReachabilityCheck.read(parsedOptions);
 
@@ -247,6 +251,7 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedOptions.defines
     ..nnbdMode = nnbdMode
+    ..enableUnscheduledExperiments = enableUnscheduledExperiments
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
     ..warnOnReachabilityCheck = warnOnReachabilityCheck
@@ -330,7 +335,7 @@ Future<T> withGlobalOptions<T>(
 
   return CompilerContext.runWithOptions<T>(options, (CompilerContext c) {
     if (problem != null) {
-      print(computeUsage(programName, options.verbose).message);
+      print(computeUsage(programName, options.verbose).problemMessage);
       PlainAndColorizedString formatted =
           c.format(problem.message.withoutLocation(), Severity.error);
       String formattedText;
@@ -350,9 +355,10 @@ Future<T> withGlobalOptions<T>(
 Message computeUsage(String programName, bool verbose) {
   String basicUsage = "Usage: $programName [options] dartfile\n";
   String? summary;
-  String options =
-      (verbose ? messageFastaUsageLong.message : messageFastaUsageShort.message)
-          .trim();
+  String options = (verbose
+          ? messageFastaUsageLong.problemMessage
+          : messageFastaUsageShort.problemMessage)
+      .trim();
   switch (programName) {
     case "outline":
       summary =
@@ -393,7 +399,7 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
   try {
     return await action();
   } on DebugAbort catch (e) {
-    print(e.message.message);
+    print(e.message.problemMessage);
 
     // DebugAbort should never happen in production code, so we want test.py to
     // treat this as a crash which is signalled by exiting with 255.

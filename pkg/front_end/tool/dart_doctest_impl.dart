@@ -653,7 +653,7 @@ String _createParseErrorMessage(kernel.Source source, int position,
       location,
       endToken.charEnd - startToken.charOffset,
       source.importUri!.toString(),
-      message.message);
+      message.problemMessage);
 }
 
 CommentString extractComments(CommentToken comment, String rawString) {

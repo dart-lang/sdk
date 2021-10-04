@@ -18,7 +18,7 @@ void main() {
   String expected =
       "  ${Flags.target}=${(targets.keys.toList()..sort()).join('|')}";
   MessageCode code = messageFastaUsageLong;
-  if (!code.message.contains(expected)) {
+  if (!code.problemMessage.contains(expected)) {
     throw "Error: ${code.name} in pkg/front_end/messages.yaml doesn't contain"
         " '$expected'.";
   }

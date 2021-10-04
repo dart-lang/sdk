@@ -50,6 +50,12 @@
 # which will be used when generating code in Analyzer for translating
 # fasta error codes to Analyzer error codes.
 #
+# Errors with an `index` can also optionally contain user-facing documentation
+# for the problem (documentation), which will be extracted to
+# `pkg/analyzer/tool/diagnostics/diagnostics.md`, as well as internal
+# documentation (comment), which will be included in the code generated for the
+# analyzer.
+#
 # In some cases a message is internal to the frontend, and no meaningful
 # analyzer code can be provided. In such cases set `frontendInternal: true`.
 #
@@ -829,6 +835,9 @@ DuplicatedModifier:
   problemMessage: "The modifier '#lexeme' was already specified."
   correctionMessage: "Try removing all but one occurrence of the modifier."
   analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
+  comment: |-
+    Parameters:
+    0: the modifier that was duplicated
   script:
     - "class C { const const m; }"
     - "class C { external external f(); }"
@@ -972,6 +981,35 @@ ExtraneousModifierInExtension:
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
   hasPublishedDocs: true
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a member declared inside an
+    extension uses the keyword `covariant` in the declaration of a parameter.
+    Extensions aren't classes and don't have subclasses, so the keyword serves
+    no purpose.
+
+    #### Examples
+
+    The following code produces this diagnostic because `i` is marked as being
+    covariant:
+
+    ```dart
+    extension E on String {
+      void a([!covariant!] int i) {}
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the `covariant` keyword:
+
+    ```dart
+    extension E on String {
+      void a(int i) {}
+    }
+    ```
   script:
     - "extension on String { foo(covariant String child) {} }"
 
@@ -1119,6 +1157,9 @@ DuplicateLabelInSwitchStatement:
   problemMessage: "The label '#name' was already used in this switch statement."
   correctionMessage: "Try choosing a different name for this label."
   analyzerCode: ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT
+  comment: |-
+    Parameters:
+    0: the label that was duplicated
   statement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
 
@@ -2191,6 +2232,27 @@ ExtensionDeclaresAbstractMember:
   problemMessage: "Extensions can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when an abstract declaration is
+    declared in an extension. Extensions can declare only concrete members.
+
+    #### Examples
+
+    The following code produces this diagnostic because the method `a` doesn't
+    have a body:
+
+    ```dart
+    extension E on String {
+      int [!a!]();
+    }
+    ```
+
+    #### Common fixes
+
+    Either provide an implementation for the member or remove it.
   hasPublishedDocs: true
 
 ExtensionDeclaresConstructor:
@@ -2198,6 +2260,29 @@ ExtensionDeclaresConstructor:
   problemMessage: "Extensions can't declare constructors."
   correctionMessage: "Try removing the constructor declaration."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a constructor declaration is
+    found in an extension. It isn't valid to define a constructor because
+    extensions aren't classes, and it isn't possible to create an instance of
+    an extension.
+
+    #### Examples
+
+    The following code produces this diagnostic because there is a constructor
+    declaration in `E`:
+
+    ```dart
+    extension E on String {
+      [!E!]() : super();
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the constructor or replace it with a static method.
   hasPublishedDocs: true
 
 ExtensionDeclaresInstanceField:
@@ -2205,6 +2290,30 @@ ExtensionDeclaresInstanceField:
   problemMessage: "Extensions can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when an instance field declaration is
+    found in an extension. It isn't valid to define an instance field because
+    extensions can only add behavior, not state.
+
+    #### Examples
+
+    The following code produces this diagnostic because `s` is an instance
+    field:
+
+    ```dart
+    %language=2.9
+    extension E on String {
+      String [!s!];
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the field, make it a static field, or convert it to be a getter,
+    setter, or method.
   hasPublishedDocs: true
 
 ConflictsWithConstructor:
@@ -3019,6 +3128,9 @@ InvalidOperator:
   index: 39
   problemMessage: "The string '#lexeme' isn't a user-definable operator."
   analyzerCode: ParserErrorCode.INVALID_OPERATOR
+  comment: |-
+    Parameters:
+    0: the operator that is invalid
   script:
     - "class C { void operator %=(x) {} }"
 

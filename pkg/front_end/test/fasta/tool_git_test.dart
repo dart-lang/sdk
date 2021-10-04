@@ -54,7 +54,7 @@ void main() {
   }
   Set<String> testedSubtools = new Set<String>.from(subtools)
       .difference(new Set<String>.from(unsafeTools));
-  String usage = messageFastaUsageShort.message;
+  String usage = messageFastaUsageShort.problemMessage;
   Map expectations = {
     "abcompile": {
       "exitCode": 1,

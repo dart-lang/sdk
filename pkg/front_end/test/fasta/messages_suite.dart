@@ -386,6 +386,19 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
+          case "documentation":
+            if (value is! String) {
+              throw new ArgumentError(
+                  'documentation should be a string: $value.');
+            }
+            break;
+
+          case "comment":
+            if (value is! String) {
+              throw new ArgumentError('comment should be a string: $value.');
+            }
+            break;
+
           default:
             unknownKeys.add(key);
         }

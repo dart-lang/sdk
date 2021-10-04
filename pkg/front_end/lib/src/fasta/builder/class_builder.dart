@@ -604,7 +604,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
-              .message,
+              .problemMessage,
           "buildTypeArguments",
           -1,
           null);

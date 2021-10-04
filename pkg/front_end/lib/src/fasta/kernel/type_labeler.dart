@@ -525,6 +525,6 @@ class LabeledNode {
         ? templateTypeOrigin.withArguments(toString(), importUri)
         : templateTypeOriginWithFileUri.withArguments(
             toString(), importUri, fileUri);
-    return "\n - " + message.message;
+    return "\n - " + message.problemMessage;
   }
 }

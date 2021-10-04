@@ -17335,17 +17335,9 @@ ManifestWarningCode:
       A code indicating that a specified hardware feature is not supported on
       Chrome OS.
 ParserErrorCode:
-  ABSTRACT_CLASS_MEMBER:
-    copyFromCfe: true
   ABSTRACT_ENUM:
     problemMessage: "Enums can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_EXTERNAL_FIELD:
-    copyFromCfe: true
-  ABSTRACT_LATE_FIELD:
-    copyFromCfe: true
-  ABSTRACT_STATIC_FIELD:
-    copyFromCfe: true
   ABSTRACT_STATIC_METHOD:
     problemMessage: "Static methods can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
@@ -17358,64 +17350,24 @@ ParserErrorCode:
   ABSTRACT_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
-  ANNOTATION_ON_TYPE_ARGUMENT:
-    copyFromCfe: true
-  ANNOTATION_WITH_TYPE_ARGUMENTS:
-    copyFromCfe: true
-  ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
-    copyFromCfe: true
   ASYNC_KEYWORD_USED_AS_IDENTIFIER:
     problemMessage: "The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function."
     comment: |-
       16.32 Identifier Reference: It is a compile-time error if any of the
       identifiers async, await, or yield is used as an identifier in a function
       body marked with either async, async, or sync.
-  BINARY_OPERATOR_WRITTEN_OUT:
-    copyFromCfe: true
-  BREAK_OUTSIDE_OF_LOOP:
-    copyFromCfe: true
-  CATCH_SYNTAX:
-    copyFromCfe: true
-  CATCH_SYNTAX_EXTRA_PARAMETERS:
-    copyFromCfe: true
-  CLASS_IN_CLASS:
-    copyFromCfe: true
-  COLON_IN_PLACE_OF_IN:
-    copyFromCfe: true
-  CONFLICTING_MODIFIERS:
-    copyFromCfe: true
-  CONSTRUCTOR_WITH_RETURN_TYPE:
-    copyFromCfe: true
-  CONSTRUCTOR_WITH_TYPE_ARGUMENTS:
-    copyFromCfe: true
-  CONST_AND_FINAL:
-    copyFromCfe: true
-  CONST_CLASS:
-    copyFromCfe: true
   CONST_CONSTRUCTOR_WITH_BODY:
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
   CONST_ENUM:
     problemMessage: "Enums can't be declared to be 'const'."
     correctionMessage: "Try removing the 'const' keyword."
-  CONST_FACTORY:
-    copyFromCfe: true
-  CONST_METHOD:
-    copyFromCfe: true
   CONST_TYPEDEF:
     problemMessage: "Type aliases can't be declared to be 'const'."
     correctionMessage: "Try removing the 'const' keyword."
-  CONTINUE_OUTSIDE_OF_LOOP:
-    copyFromCfe: true
-  CONTINUE_WITHOUT_LABEL_IN_CASE:
-    copyFromCfe: true
-  COVARIANT_AND_STATIC:
-    copyFromCfe: true
   COVARIANT_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'covariant'."
     correctionMessage: "Try removing the keyword 'covariant'."
-  COVARIANT_MEMBER:
-    copyFromCfe: true
   COVARIANT_TOP_LEVEL_DECLARATION:
     problemMessage: "Top-level declarations can't be declared to be covariant."
     correctionMessage: "Try removing the keyword 'covariant'."
@@ -17450,48 +17402,18 @@ ParserErrorCode:
       void f(void Function([int p]) g) {
       }
       ```
-  DEFERRED_AFTER_PREFIX:
-    copyFromCfe: true
-  DIRECTIVE_AFTER_DECLARATION:
-    copyFromCfe: true
-  DUPLICATED_MODIFIER:
-    copyFromCfe: true
-    comment: |-
-      Parameters:
-      0: the modifier that was duplicated
-  DUPLICATE_DEFERRED:
-    copyFromCfe: true
-  DUPLICATE_LABEL_IN_SWITCH_STATEMENT:
-    copyFromCfe: true
-    comment: |-
-      Parameters:
-      0: the label that was duplicated
-  DUPLICATE_PREFIX:
-    copyFromCfe: true
   EMPTY_ENUM_BODY:
     problemMessage: An enum must declare at least one constant name.
     correctionMessage: Try declaring a constant.
-  ENUM_IN_CLASS:
-    copyFromCfe: true
-  EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
-    copyFromCfe: true
-  EXPECTED_BODY:
-    copyFromCfe: true
   EXPECTED_CASE_OR_DEFAULT:
     problemMessage: "Expected 'case' or 'default'."
     correctionMessage: Try placing this code inside a case clause.
   EXPECTED_CLASS_MEMBER:
     problemMessage: Expected a class member.
     correctionMessage: Try placing this code inside a class member.
-  EXPECTED_ELSE_OR_COMMA:
-    copyFromCfe: true
   EXPECTED_EXECUTABLE:
     problemMessage: Expected a method, getter, setter or operator declaration.
     correctionMessage: This appears to be incomplete code. Try removing it or completing it.
-  EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
-    copyFromCfe: true
-  EXPECTED_INSTEAD:
-    copyFromCfe: true
   EXPECTED_LIST_OR_MAP_LITERAL:
     problemMessage: Expected a list or map literal.
     correctionMessage: Try inserting a list or map literal, or remove the type arguments.
@@ -17504,133 +17426,21 @@ ParserErrorCode:
       0: the token that was expected but not found
   EXPECTED_TYPE_NAME:
     problemMessage: Expected a type name.
-  EXPERIMENT_NOT_ENABLED:
-    copyFromCfe: true
-  EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
-    copyFromCfe: true
-  EXTENSION_DECLARES_ABSTRACT_MEMBER:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an abstract declaration is
-      declared in an extension. Extensions can declare only concrete members.
-
-      #### Examples
-
-      The following code produces this diagnostic because the method `a` doesn't
-      have a body:
-
-      ```dart
-      extension E on String {
-        int [!a!]();
-      }
-      ```
-
-      #### Common fixes
-
-      Either provide an implementation for the member or remove it.
-  EXTENSION_DECLARES_CONSTRUCTOR:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a constructor declaration is
-      found in an extension. It isn't valid to define a constructor because
-      extensions aren't classes, and it isn't possible to create an instance of
-      an extension.
-
-      #### Examples
-
-      The following code produces this diagnostic because there is a constructor
-      declaration in `E`:
-
-      ```dart
-      extension E on String {
-        [!E!]() : super();
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the constructor or replace it with a static method.
-  EXTENSION_DECLARES_INSTANCE_FIELD:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an instance field declaration is
-      found in an extension. It isn't valid to define an instance field because
-      extensions can only add behavior, not state.
-
-      #### Examples
-
-      The following code produces this diagnostic because `s` is an instance
-      field:
-
-      ```dart
-      %language=2.9
-      extension E on String {
-        String [!s!];
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the field, make it a static field, or convert it to be a getter,
-      setter, or method.
-  EXTERNAL_CLASS:
-    copyFromCfe: true
-  EXTERNAL_CONSTRUCTOR_WITH_BODY:
-    copyFromCfe: true
-  EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
-    copyFromCfe: true
-  EXTERNAL_ENUM:
-    copyFromCfe: true
-  EXTERNAL_FACTORY_REDIRECTION:
-    copyFromCfe: true
-  EXTERNAL_FACTORY_WITH_BODY:
-    copyFromCfe: true
-  EXTERNAL_FIELD:
-    copyFromCfe: true
   EXTERNAL_GETTER_WITH_BODY:
     problemMessage: "External getters can't have a body."
     correctionMessage: "Try removing the body of the getter, or removing the keyword 'external'."
-  EXTERNAL_LATE_FIELD:
-    copyFromCfe: true
-  EXTERNAL_METHOD_WITH_BODY:
-    copyFromCfe: true
   EXTERNAL_OPERATOR_WITH_BODY:
     problemMessage: "External operators can't have a body."
     correctionMessage: "Try removing the body of the operator, or removing the keyword 'external'."
   EXTERNAL_SETTER_WITH_BODY:
     problemMessage: "External setters can't have a body."
     correctionMessage: "Try removing the body of the setter, or removing the keyword 'external'."
-  EXTERNAL_TYPEDEF:
-    copyFromCfe: true
-  EXTRANEOUS_MODIFIER:
-    copyFromCfe: true
-  FACTORY_TOP_LEVEL_DECLARATION:
-    copyFromCfe: true
   FACTORY_WITHOUT_BODY:
     problemMessage: "A non-redirecting 'factory' constructor must have a body."
     correctionMessage: Try adding a body to the constructor.
   FACTORY_WITH_INITIALIZERS:
     problemMessage: "A 'factory' constructor can't have initializers."
     correctionMessage: "Try removing the 'factory' keyword to make this a generative constructor, or removing the initializers."
-  FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
-    copyFromCfe: true
-  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-    copyFromCfe: true
-  FINAL_AND_COVARIANT:
-    copyFromCfe: true
-  FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER:
-    copyFromCfe: true
-  FINAL_AND_VAR:
-    copyFromCfe: true
   FINAL_CLASS:
     problemMessage: "Classes can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
@@ -17649,28 +17459,12 @@ ParserErrorCode:
   FUNCTION_TYPED_PARAMETER_VAR:
     problemMessage: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
     correctionMessage: Try replacing the keyword with a return type.
-  GETTER_CONSTRUCTOR:
-    copyFromCfe: true
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
     correctionMessage: Try moving the getter outside the method or function, or converting the getter to a function.
   GETTER_WITH_PARAMETERS:
     problemMessage: Getters must be declared without a parameter list.
     correctionMessage: "Try removing the parameter list, or removing the keyword 'get' to define a method rather than a getter."
-  ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
-    copyFromCfe: true
-  IMPLEMENTS_BEFORE_EXTENDS:
-    copyFromCfe: true
-  IMPLEMENTS_BEFORE_ON:
-    copyFromCfe: true
-  IMPLEMENTS_BEFORE_WITH:
-    copyFromCfe: true
-  IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
-    copyFromCfe: true
-  INITIALIZED_VARIABLE_IN_FOR_EACH:
-    copyFromCfe: true
-  INVALID_AWAIT_IN_FOR:
-    copyFromCfe: true
   INVALID_CODE_POINT:
     problemMessage: "The escape sequence '{0}' isn't a valid code point."
     comment: |-
@@ -17678,23 +17472,12 @@ ParserErrorCode:
       0: the invalid escape sequence
   INVALID_COMMENT_REFERENCE:
     problemMessage: "Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else."
-  INVALID_CONSTRUCTOR_NAME:
-    copyFromCfe: true
   INVALID_GENERIC_FUNCTION_TYPE:
     problemMessage: Invalid generic function type.
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
-  INVALID_HEX_ESCAPE:
-    copyFromCfe: true
-  INVALID_INITIALIZER:
-    copyFromCfe: true
   INVALID_LITERAL_IN_CONFIGURATION:
     problemMessage: "The literal in a configuration can't contain interpolation."
     correctionMessage: Try removing the interpolation expressions.
-  INVALID_OPERATOR:
-    copyFromCfe: true
-    comment: |-
-      Parameters:
-      0: the operator that is invalid
   INVALID_OPERATOR_FOR_SUPER:
     problemMessage: "The operator '{0}' can't be used with 'super'."
     comment: |-
@@ -17703,83 +17486,24 @@ ParserErrorCode:
 
       Only generated by the old parser.
       Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
-  INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER:
-    copyFromCfe: true
   INVALID_STAR_AFTER_ASYNC:
     problemMessage: "The modifier 'async*' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
-  INVALID_SUPER_IN_INITIALIZER:
-    copyFromCfe: true
   INVALID_SYNC:
     problemMessage: "The modifier 'sync' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
-  INVALID_THIS_IN_INITIALIZER:
-    copyFromCfe: true
-  INVALID_UNICODE_ESCAPE:
-    copyFromCfe: true
-  INVALID_USE_OF_COVARIANT_IN_EXTENSION:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a member declared inside an
-      extension uses the keyword `covariant` in the declaration of a parameter.
-      Extensions aren't classes and don't have subclasses, so the keyword serves
-      no purpose.
-
-      #### Examples
-
-      The following code produces this diagnostic because `i` is marked as being
-      covariant:
-
-      ```dart
-      extension E on String {
-        void a([!covariant!] int i) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the `covariant` keyword:
-
-      ```dart
-      extension E on String {
-        void a(int i) {}
-      }
-      ```
-  LIBRARY_DIRECTIVE_NOT_FIRST:
-    copyFromCfe: true
-  LITERAL_WITH_CLASS:
-    copyFromCfe: true
-  LITERAL_WITH_CLASS_AND_NEW:
-    copyFromCfe: true
-  LITERAL_WITH_NEW:
-    copyFromCfe: true
   LOCAL_FUNCTION_DECLARATION_MODIFIER:
     problemMessage: "Local function declarations can't specify any modifiers."
     correctionMessage: Try removing the modifier.
-  MEMBER_WITH_CLASS_NAME:
-    copyFromCfe: true
-  MISSING_ASSIGNABLE_SELECTOR:
-    copyFromCfe: true
-  MISSING_ASSIGNMENT_IN_INITIALIZER:
-    copyFromCfe: true
-  MISSING_CATCH_OR_FINALLY:
-    copyFromCfe: true
   MISSING_CLOSING_PARENTHESIS:
     problemMessage: The closing parenthesis is missing.
     correctionMessage: Try adding the closing parenthesis.
-  MISSING_CONST_FINAL_VAR_OR_TYPE:
-    copyFromCfe: true
   MISSING_ENUM_BODY:
     problemMessage: An enum definition must have a body with at least one constant name.
     correctionMessage: Try adding a body and defining at least one constant.
   MISSING_EXPRESSION_IN_INITIALIZER:
     problemMessage: Expected an expression after the assignment operator.
     correctionMessage: Try adding the value to be assigned, or remove the assignment operator.
-  MISSING_EXPRESSION_IN_THROW:
-    copyFromCfe: true
   MISSING_FUNCTION_BODY:
     problemMessage: A function body must be provided.
     correctionMessage: Try adding a function body.
@@ -17794,10 +17518,6 @@ ParserErrorCode:
     correctionMessage: "Try adding the keyword 'get'."
   MISSING_IDENTIFIER:
     problemMessage: Expected an identifier.
-  MISSING_INITIALIZER:
-    copyFromCfe: true
-  MISSING_KEYWORD_OPERATOR:
-    copyFromCfe: true
   MISSING_METHOD_PARAMETERS:
     problemMessage: Methods must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
@@ -17810,13 +17530,9 @@ ParserErrorCode:
   MISSING_NAME_IN_PART_OF_DIRECTIVE:
     problemMessage: Part-of directives must include a library name.
     correctionMessage: "Try adding a library name after the 'of'."
-  MISSING_PREFIX_IN_DEFERRED_IMPORT:
-    copyFromCfe: true
   MISSING_STAR_AFTER_SYNC:
     problemMessage: "The modifier 'sync' must be followed by a star ('*')."
     correctionMessage: Try removing the modifier, or add a star.
-  MISSING_STATEMENT:
-    copyFromCfe: true
   MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to close the parameter group."
     correctionMessage: "Try inserting a '{0}' at the end of the group."
@@ -17832,24 +17548,12 @@ ParserErrorCode:
   MIXED_PARAMETER_GROUPS:
     problemMessage: "Can't have both positional and named parameters in a single parameter list."
     correctionMessage: Try choosing a single style of optional parameters.
-  MIXIN_DECLARES_CONSTRUCTOR:
-    copyFromCfe: true
-  MODIFIER_OUT_OF_ORDER:
-    copyFromCfe: true
-  MULTIPLE_EXTENDS_CLAUSES:
-    copyFromCfe: true
   MULTIPLE_IMPLEMENTS_CLAUSES:
     problemMessage: Each class or mixin definition can have at most one implements clause.
     correctionMessage: Try combining all of the implements clauses into a single clause.
-  MULTIPLE_LIBRARY_DIRECTIVES:
-    copyFromCfe: true
   MULTIPLE_NAMED_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of named parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
-  MULTIPLE_ON_CLAUSES:
-    copyFromCfe: true
-  MULTIPLE_PART_OF_DIRECTIVES:
-    copyFromCfe: true
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
@@ -17859,10 +17563,6 @@ ParserErrorCode:
     comment: |-
       Parameters:
       0: the number of variables being declared
-  MULTIPLE_VARIANCE_MODIFIERS:
-    copyFromCfe: true
-  MULTIPLE_WITH_CLAUSES:
-    copyFromCfe: true
   NAMED_FUNCTION_EXPRESSION:
     problemMessage: "Function expressions can't be named."
     correctionMessage: Try removing the name, or moving the function expression to a function declaration statement.
@@ -17875,8 +17575,6 @@ ParserErrorCode:
   NATIVE_CLAUSE_IN_NON_SDK_CODE:
     problemMessage: Native clause can only be used in the SDK and code that is loaded through native extensions.
     correctionMessage: Try removing the native clause.
-  NATIVE_CLAUSE_SHOULD_BE_ANNOTATION:
-    copyFromCfe: true
   NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
     problemMessage: Native functions can only be declared in the SDK and code that is loaded through native extensions.
     correctionMessage: "Try removing the word 'native'."
@@ -17900,54 +17598,24 @@ ParserErrorCode:
   NORMAL_BEFORE_OPTIONAL_PARAMETERS:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
-  NULL_AWARE_CASCADE_OUT_OF_ORDER:
-    copyFromCfe: true
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
-  PREFIX_AFTER_COMBINATOR:
-    copyFromCfe: true
-  REDIRECTING_CONSTRUCTOR_WITH_BODY:
-    copyFromCfe: true
-  REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
-    copyFromCfe: true
-  SETTER_CONSTRUCTOR:
-    copyFromCfe: true
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
-  STACK_OVERFLOW:
-    copyFromCfe: true
-  STATIC_CONSTRUCTOR:
-    copyFromCfe: true
   STATIC_GETTER_WITHOUT_BODY:
     problemMessage: "A 'static' getter must have a body."
     correctionMessage: "Try adding a body to the getter, or removing the keyword 'static'."
-  STATIC_OPERATOR:
-    copyFromCfe: true
   STATIC_SETTER_WITHOUT_BODY:
     problemMessage: "A 'static' setter must have a body."
     correctionMessage: "Try adding a body to the setter, or removing the keyword 'static'."
   STATIC_TOP_LEVEL_DECLARATION:
     problemMessage: "Top-level declarations can't be declared to be static."
     correctionMessage: "Try removing the keyword 'static'."
-  SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
-    copyFromCfe: true
-  SWITCH_HAS_MULTIPLE_DEFAULT_CASES:
-    copyFromCfe: true
-  TOP_LEVEL_OPERATOR:
-    copyFromCfe: true
-  TYPEDEF_IN_CLASS:
-    copyFromCfe: true
-  TYPE_ARGUMENTS_ON_TYPE_VARIABLE:
-    copyFromCfe: true
-  TYPE_BEFORE_FACTORY:
-    copyFromCfe: true
-  TYPE_PARAMETER_ON_CONSTRUCTOR:
-    copyFromCfe: true
   TYPE_PARAMETER_ON_OPERATOR:
     problemMessage: "Types parameters aren't allowed when defining an operator."
     correctionMessage: Try removing the type parameters.
@@ -17966,25 +17634,15 @@ ParserErrorCode:
     comment: |-
       Parameters:
       0: the unexpected text that was found
-  VAR_AND_TYPE:
-    copyFromCfe: true
-  VAR_AS_TYPE_NAME:
-    copyFromCfe: true
   VAR_CLASS:
     problemMessage: "Classes can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
   VAR_ENUM:
     problemMessage: "Enums can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
-  VAR_RETURN_TYPE:
-    copyFromCfe: true
   VAR_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
-  VOID_WITH_TYPE_ARGUMENTS:
-    copyFromCfe: true
-  WITH_BEFORE_EXTENDS:
-    copyFromCfe: true
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
     problemMessage: "The default value of a positional parameter should be preceded by '='."
     correctionMessage: "Try replacing the ':' with '='."

@@ -582,7 +582,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   internalProblem(Message message, int charOffset, Uri? uri) {
-    throw UnsupportedError(message.message);
+    throw UnsupportedError(message.problemMessage);
   }
 
   List? popList(int n, List list) {

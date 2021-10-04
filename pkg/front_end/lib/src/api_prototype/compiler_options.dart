@@ -126,6 +126,8 @@ class CompilerOptions {
   Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
   Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
 
+  bool enableUnscheduledExperiments = false;
+
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
   /// evaluation. If the map is `null`, all environment constants will be left
@@ -357,6 +359,9 @@ class CompilerOptions {
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
     if (!equalSets(invocationModes, other.invocationModes)) return false;
+    if (enableUnscheduledExperiments != other.enableUnscheduledExperiments) {
+      return false;
+    }
 
     return true;
   }

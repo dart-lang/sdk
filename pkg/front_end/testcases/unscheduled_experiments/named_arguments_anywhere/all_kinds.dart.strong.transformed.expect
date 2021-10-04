@@ -1,0 +1,294 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:17:21: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//     method2(foo: 1, 2); // This call.
+//                     ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:27:16: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   foo(1, z: 2, 3);
+//                ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:28:13: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   foo(z: 1, 2, 3);
+//             ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:28:16: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   foo(z: 1, 2, 3);
+//                ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:32:22: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new A.foo(1, z: 2, 3);
+//                      ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:33:19: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new A.foo(z: 1, 2, 3);
+//                   ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:33:22: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new A.foo(z: 1, 2, 3);
+//                      ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:35:22: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new B.foo(1, z: 2, 3);
+//                      ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:36:19: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new B.foo(z: 1, 2, 3);
+//                   ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:36:22: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new B.foo(z: 1, 2, 3);
+//                      ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:40:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new A(1, z: 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:41:15: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new A(z: 1, 2, 3);
+//               ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:41:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new A(z: 1, 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:43:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new B(1, z: 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:44:15: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new B(z: 1, 2, 3);
+//               ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:44:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   new B(z: 1, 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:48:14: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   d(1, z: 2, 3);
+//              ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:49:11: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   d(z: 1, 2, 3);
+//           ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:49:14: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   d(z: 1, 2, 3);
+//              ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:53:14: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   f(1, z: 2, 3);
+//              ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:54:11: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   f(z: 1, 2, 3);
+//           ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:54:14: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   f(z: 1, 2, 3);
+//              ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:58:23: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   a.property(1, z: 2, 3);
+//                       ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:59:20: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   a.property(z: 1, 2, 3);
+//                    ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:59:23: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   a.property(z: 1, 2, 3);
+//                       ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:63:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   a.bar(1, z: 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:64:15: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   a.bar(z: 1, 2, 3);
+//               ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:64:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   a.bar(z: 1, 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:68:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   local(1, z: 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:69:15: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   local(z: 1, 2, 3);
+//               ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:69:18: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//   local(z: 1, 2, 3);
+//                  ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:77:24: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//     super.bar(1, z: 2, 3);
+//                        ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:78:21: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//     super.bar(z: 1, 2, 3);
+//                     ^
+//
+// pkg/front_end/testcases/unscheduled_experiments/named_arguments_anywhere/all_kinds.dart:78:24: Error: Place positional arguments before named arguments.
+// Try moving the positional argument before the named arguments, or add a name to the argument.
+//     super.bar(z: 1, 2, 3);
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef B = self::A;
+class A extends core::Object {
+  constructor •(core::int x, core::int y, {required core::int z = #C1}) → self::A
+    : super core::Object::•()
+    ;
+  static factory foo(core::int x, core::int y, {required core::int z = #C1}) → self::A
+    return new self::A::•(x, y, z: z);
+  get property() → (core::int, core::int, {required z: core::int}) → void
+    return throw 42;
+  method bar(core::int x, core::int y, {required core::int z = #C1}) → void {}
+}
+class Test extends self::A {
+  constructor •() → self::Test
+    : super self::A::•(1, 2, z: 3)
+    ;
+  method test() → dynamic {
+    super.{self::A::bar}(1, 2, z: 3);
+    let final core::int #t1 = 1 in let final core::int #t2 = 2 in super.{self::A::bar}(#t1, 3, z: #t2);
+    let final core::int #t3 = 1 in super.{self::A::bar}(2, 3, z: #t3);
+  }
+}
+extension E on self::A {
+  method method1 = self::E|method1;
+  tearoff method1 = self::E|get#method1;
+  method method2 = self::E|method2;
+  tearoff method2 = self::E|get#method2;
+}
+static method foo(core::int x, core::int y, {required core::int z = #C1}) → dynamic {}
+static method E|method1(lowered final self::A #this) → dynamic {
+  let final self::A #t4 = #this in let final core::int #t5 = 1 in self::E|method2(#t4, 2, foo: #t5);
+}
+static method E|get#method1(lowered final self::A #this) → () → dynamic
+  return () → dynamic => self::E|method1(#this);
+static method E|method2(lowered final self::A #this, core::int bar, {core::int? foo = #C1}) → dynamic {}
+static method E|get#method2(lowered final self::A #this) → (core::int, {foo: core::int?}) → dynamic
+  return (core::int bar, {core::int? foo = #C1}) → dynamic => self::E|method2(#this, bar, foo: foo);
+static method test(dynamic d, core::Function f, self::A a) → dynamic {
+  function local(core::int x, core::int y, {required core::int z = #C1}) → void {}
+  self::foo(1, 2, z: 3);
+  let final core::int #t6 = 1 in let final core::int #t7 = 2 in self::foo(#t6, 3, z: #t7);
+  let final core::int #t8 = 1 in self::foo(2, 3, z: #t8);
+  self::A::foo(1, 2, z: 3);
+  let final core::int #t9 = 1 in let final core::int #t10 = 2 in self::A::foo(#t9, 3, z: #t10);
+  let final core::int #t11 = 1 in self::A::foo(2, 3, z: #t11);
+  self::A::foo(1, 2, z: 3);
+  let final core::int #t12 = 1 in let final core::int #t13 = 2 in self::A::foo(#t12, 3, z: #t13);
+  let final core::int #t14 = 1 in self::A::foo(2, 3, z: #t14);
+  new self::A::•(1, 2, z: 3);
+  let final core::int #t15 = 1 in let final core::int #t16 = 2 in new self::A::•(#t15, 3, z: #t16);
+  let final core::int #t17 = 1 in new self::A::•(2, 3, z: #t17);
+  new self::A::•(1, 2, z: 3);
+  let final core::int #t18 = 1 in let final core::int #t19 = 2 in new self::A::•(#t18, 3, z: #t19);
+  let final core::int #t20 = 1 in new self::A::•(2, 3, z: #t20);
+  d{dynamic}.call(1, 2, z: 3);
+  let final core::int #t21 = 1 in let final core::int #t22 = 2 in d{dynamic}.call(#t21, 3, z: #t22);
+  let final core::int #t23 = 1 in d{dynamic}.call(2, 3, z: #t23);
+  f(1, 2, z: 3);
+  let final core::int #t24 = 1 in let final core::int #t25 = 2 in f(#t24, 3, z: #t25);
+  let final core::int #t26 = 1 in f(2, 3, z: #t26);
+  let final self::A #t27 = a in let final core::int #t28 = 1 in let final core::int #t29 = 2 in let final core::int #t30 = 3 in #t27.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t28, #t29, z: #t30){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t31 = a in let final core::int #t32 = 1 in let final core::int #t33 = 2 in let final core::int #t34 = 3 in #t31.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t32, #t34, z: #t33){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t35 = a in let final core::int #t36 = 1 in let final core::int #t37 = 2 in let final core::int #t38 = 3 in #t35.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t37, #t38, z: #t36){(core::int, core::int, {required z: core::int}) → void};
+  a.{self::A::bar}(1, 2, z: 3){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t39 = a in let final core::int #t40 = 1 in let final core::int #t41 = 2 in #t39.{self::A::bar}(#t40, 3, z: #t41){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t42 = a in let final core::int #t43 = 1 in #t42.{self::A::bar}(2, 3, z: #t43){(core::int, core::int, {required z: core::int}) → void};
+  local(1, 2, z: 3){(core::int, core::int, {required z: core::int}) → void};
+  let final core::int #t44 = 1 in let final core::int #t45 = 2 in local(#t44, 3, z: #t45){(core::int, core::int, {required z: core::int}) → void};
+  let final core::int #t46 = 1 in local(2, 3, z: #t46){(core::int, core::int, {required z: core::int}) → void};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:77:15 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:77:21 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:78:18 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:17:18 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:27:7 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:27:13 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:28:10 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:32:13 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:32:19 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:33:16 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:35:13 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:35:19 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:36:16 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:40:9 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:40:15 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:41:12 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:43:9 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:43:15 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:44:12 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:48:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:48:11 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:49:8 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:53:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:53:11 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:54:8 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:57:14 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:57:17 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:57:23 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:58:14 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:58:23 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:58:20 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:59:20 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:59:23 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:59:17 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:63:9 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:63:15 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:64:12 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:68:9 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:68:15 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///all_kinds.dart:69:12 -> IntConstant(1)
+Extra constant evaluation: evaluated: 155, effectively constant: 40

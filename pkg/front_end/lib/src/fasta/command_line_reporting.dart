@@ -53,10 +53,11 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
       length = 1;
     }
     String? prefix = severityPrefixes[severity];
-    String messageTextTmp =
-        prefix == null ? message.message : "$prefix: ${message.message}";
-    if (message.tip != null) {
-      messageTextTmp += "\n${message.tip}";
+    String messageTextTmp = prefix == null
+        ? message.problemMessage
+        : "$prefix: ${message.problemMessage}";
+    if (message.correctionMessage != null) {
+      messageTextTmp += "\n${message.correctionMessage}";
     }
     final String messageTextPlain = messageTextTmp;
     String messageTextColorized;
@@ -106,7 +107,7 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
     }
   } catch (error, trace) {
     print("Crash when formatting: "
-        "[${message.code.name}] ${safeToString(message.message)}\n"
+        "[${message.code.name}] ${safeToString(message.problemMessage)}\n"
         "${safeToString(error)}\n"
         "$trace");
     throw new Crash(message.uri, message.charOffset, error, trace);

@@ -217,7 +217,7 @@ abstract class Generator {
   /// If the invocation has explicit type arguments
   /// [buildTypeWithResolvedArguments] called instead.
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<UnresolvedType>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false});
 
   Expression_Generator buildSelectorAccess(
@@ -1774,7 +1774,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<UnresolvedType>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (invokeTarget != null) {
       return _helper.buildExtensionMethodInvocation(
@@ -1789,7 +1789,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
-              namedArguments: arguments.named),
+              namedArguments: arguments.named,
+              argumentsOriginalOrder: arguments.argumentsOriginalOrder),
           isTearOff: false);
     } else {
       return _helper.forest.createExpressionInvocation(
@@ -2649,8 +2650,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Generator generator =
         _createInstanceAccess(send.token, send.name, isNullAware: isNullAware);
     if (send.arguments != null) {
-      return generator.doInvocation(
-          offsetForToken(send.token), send.typeArguments, send.arguments!,
+      return generator.doInvocation(offsetForToken(send.token),
+          send.typeArguments, send.arguments! as ArgumentsImpl,
           isTypeArgumentsInForest: send.isTypeArgumentsInForest);
     } else {
       return generator;
@@ -2676,7 +2677,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<UnresolvedType>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     Generator generator = _createInstanceAccess(token, callName);
     return generator.doInvocation(offset, typeArguments, arguments,
@@ -2935,7 +2936,7 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<UnresolvedType>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     Object suffix = suffixGenerator.doInvocation(
         offset, typeArguments, arguments,
@@ -3126,7 +3127,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       Selector send, int operatorOffset, bool isNullAware) {
     int nameOffset = offsetForToken(send.token);
     Name name = send.name;
-    Arguments? arguments = send.arguments;
+    ArgumentsImpl? arguments = send.arguments as ArgumentsImpl?;
 
     TypeDeclarationBuilder? declarationBuilder = declaration;
     TypeAliasBuilder? aliasBuilder;
@@ -4067,8 +4068,8 @@ class PrefixUseGenerator extends Generator {
         "'${send.name.text}' != ${send.token.lexeme}");
     Object result = qualifiedLookup(send.token);
     if (send is InvocationSelector) {
-      result = _helper.finishSend(
-          result, send.typeArguments, send.arguments, send.fileOffset,
+      result = _helper.finishSend(result, send.typeArguments,
+          send.arguments as ArgumentsImpl, send.fileOffset,
           isTypeArgumentsInForest: send.isTypeArgumentsInForest);
     }
     if (isNullAware) {

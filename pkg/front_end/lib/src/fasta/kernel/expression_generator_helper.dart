@@ -54,12 +54,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool get enableConstructorTearOffsInLibrary;
 
+  bool get enableNamedArgumentsAnywhereInLibrary;
+
   Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder? prefix});
 
   Expression_Generator_Initializer finishSend(Object receiver,
-      List<UnresolvedType>? typeArguments, Arguments arguments, int offset,
+      List<UnresolvedType>? typeArguments, ArgumentsImpl arguments, int offset,
       {bool isTypeArgumentsInForest = false});
 
   Initializer buildInvalidInitializer(Expression expression,

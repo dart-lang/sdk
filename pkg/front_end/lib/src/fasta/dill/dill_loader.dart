@@ -172,7 +172,7 @@ class DillLoader extends Loader {
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
           libraryCount, byteCount, ms, byteCount / ms, ms / libraryCount);
-      print("$sinceStart: ${message.message}");
+      print("$sinceStart: ${message.problemMessage}");
     });
   }
 
@@ -218,7 +218,7 @@ class DillLoader extends Loader {
     severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """
-message: ${message.message}
+message: ${message.problemMessage}
 charOffset: $charOffset
 fileUri: $fileUri
 severity: $severity

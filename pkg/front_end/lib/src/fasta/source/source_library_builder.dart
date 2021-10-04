@@ -318,6 +318,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool? _enableGenericMetadataInLibrary;
   bool? _enableExtensionTypesInLibrary;
   bool? _enableConstructorTearOffsInLibrary;
+  bool? _enableNamedArgumentsAnywhereInLibrary;
 
   bool get enableConstFunctionsInLibrary => _enableConstFunctionsInLibrary ??=
       loader.target.isExperimentEnabledInLibraryByVersion(
@@ -391,6 +392,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _enableExtensionTypesVersionInLibrary ??= loader.target
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.extensionTypes, _packageUri ?? importUri);
+
+  bool get enableNamedArgumentsAnywhereInLibrary =>
+      _enableNamedArgumentsAnywhereInLibrary ??=
+          loader.enableUnscheduledExperiments;
 
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
@@ -1329,7 +1334,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           default:
             if (member is InvalidTypeDeclarationBuilder) {
               unserializableExports ??= <String, String>{};
-              unserializableExports![name] = member.message.message;
+              unserializableExports![name] = member.message.problemMessage;
             } else {
               // Eventually (in #buildBuilder) members aren't added to the
               // library if the have 'next' pointers, so don't add them as

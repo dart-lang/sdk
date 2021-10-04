@@ -237,7 +237,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
-              .message,
+              .problemMessage,
           "buildTypeArguments",
           -1,
           null);

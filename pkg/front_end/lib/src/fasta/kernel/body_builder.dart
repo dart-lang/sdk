@@ -451,6 +451,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return libraryBuilder.enableConstructorTearOffsInLibrary;
   }
 
+  @override
+  bool get enableNamedArgumentsAnywhereInLibrary {
+    return libraryBuilder.enableNamedArgumentsAnywhereInLibrary;
+  }
+
   void _enterLocalState({bool inLateLocalInitializer: false}) {
     _localInitializerState =
         _localInitializerState.prepend(inLateLocalInitializer);
@@ -1700,35 +1705,72 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(new ParserRecovery(beginToken.charOffset));
       return;
     }
+    List<Object?>? argumentsOriginalOrder;
+    if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
+      argumentsOriginalOrder = new List<Object?>.from(arguments);
+    }
     int firstNamedArgumentIndex = arguments.length;
+    int positionalCount = 0;
+    bool hasNamedBeforePositional = false;
     for (int i = 0; i < arguments.length; i++) {
       Object? node = arguments[i];
       if (node is NamedExpression) {
         firstNamedArgumentIndex =
             i < firstNamedArgumentIndex ? i : firstNamedArgumentIndex;
       } else {
+        positionalCount++;
         Expression argument = toValue(node);
         arguments[i] = argument;
+        argumentsOriginalOrder?[i] = argument;
         if (i > firstNamedArgumentIndex) {
-          arguments[i] = new NamedExpression(
-              "#$i",
-              buildProblem(fasta.messageExpectedNamedArgument,
-                  argument.fileOffset, noLength))
-            ..fileOffset = beginToken.charOffset;
+          hasNamedBeforePositional = true;
+          if (!libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
+            arguments[i] = new NamedExpression(
+                "#$i",
+                buildProblem(fasta.messageExpectedNamedArgument,
+                    argument.fileOffset, noLength))
+              ..fileOffset = beginToken.charOffset;
+          }
         }
       }
     }
+    if (!hasNamedBeforePositional) {
+      argumentsOriginalOrder = null;
+    }
     if (firstNamedArgumentIndex < arguments.length) {
-      List<Expression> positional = new List<Expression>.from(
-          arguments.getRange(0, firstNamedArgumentIndex));
-      List<NamedExpression> named = new List<NamedExpression>.from(
-          arguments.getRange(firstNamedArgumentIndex, arguments.length));
-      push(forest.createArguments(beginToken.offset, positional, named: named));
+      List<Expression> positional;
+      List<NamedExpression> named;
+      if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
+        positional =
+            new List<Expression>.filled(positionalCount, dummyExpression);
+        named = new List<NamedExpression>.filled(
+            arguments.length - positionalCount, dummyNamedExpression);
+        int positionalIndex = 0;
+        int namedIndex = 0;
+        for (int i = 0; i < arguments.length; i++) {
+          if (arguments[i] is NamedExpression) {
+            named[namedIndex++] = arguments[i] as NamedExpression;
+          } else {
+            positional[positionalIndex++] = arguments[i] as Expression;
+          }
+        }
+        assert(
+            positionalIndex == positional.length && namedIndex == named.length);
+      } else {
+        positional = new List<Expression>.from(
+            arguments.getRange(0, firstNamedArgumentIndex));
+        named = new List<NamedExpression>.from(
+            arguments.getRange(firstNamedArgumentIndex, arguments.length));
+      }
+
+      push(forest.createArguments(beginToken.offset, positional,
+          named: named, argumentsOriginalOrder: argumentsOriginalOrder));
     } else {
       // TODO(kmillikin): Find a way to avoid allocating a second list in the
       // case where there were no named arguments, which is a common one.
       push(forest.createArguments(
-          beginToken.offset, new List<Expression>.from(arguments)));
+          beginToken.offset, new List<Expression>.from(arguments),
+          argumentsOriginalOrder: argumentsOriginalOrder));
     }
     assert(checkState(beginToken, [ValueKinds.Arguments]));
   }
@@ -1831,7 +1873,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (arguments == null) {
       push(receiver);
     } else {
-      push(finishSend(receiver, typeArguments, arguments as Arguments,
+      push(finishSend(receiver, typeArguments, arguments as ArgumentsImpl,
           beginToken.charOffset,
           isTypeArgumentsInForest: isInForest));
     }
@@ -1847,8 +1889,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Expression_Generator_Initializer finishSend(Object receiver,
-      List<UnresolvedType>? typeArguments, Arguments arguments, int charOffset,
+  Expression_Generator_Initializer finishSend(
+      Object receiver,
+      List<UnresolvedType>? typeArguments,
+      ArgumentsImpl arguments,
+      int charOffset,
       {bool isTypeArgumentsInForest = false}) {
     if (receiver is Generator) {
       return receiver.doInvocation(charOffset, typeArguments, arguments,

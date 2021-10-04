@@ -43,7 +43,7 @@ List<CodePath> computeCodePaths() {
     [analyzerPath, 'lib', 'src', 'pubspec', 'pubspec_warning_code.g.dart'],
   ], [
     null,
-    [analyzerPath, 'lib', 'src', 'dart', 'error', 'syntactic_errors.g.dart'],
+    null,
     null,
     null,
   ]);

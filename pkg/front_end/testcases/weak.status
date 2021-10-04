@@ -9,8 +9,6 @@ general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
-dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
-dart2js/late_from_dill/main: SemiFuzzFailure # dartbug.com/45854, see also https://dart-review.googlesource.com/c/sdk/+/213768
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError

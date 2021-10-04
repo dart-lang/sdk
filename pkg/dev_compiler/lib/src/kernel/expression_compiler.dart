@@ -38,7 +38,7 @@ import 'package:kernel/ast.dart'
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(Code<String>('Expression Compiler Internal error'),
-          message: msg)
+          problemMessage: msg)
       .withLocation(uri, 0, 0)
       .withFormatting(PlainAndColorizedString.plainOnly('Internal error: $msg'),
           line, col, Severity.internalProblem, []);

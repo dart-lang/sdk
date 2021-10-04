@@ -526,9 +526,9 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
           location,
           length,
           shortName,
-          message.message));
+          message.problemMessage));
     } else {
-      errors.add(message.message);
+      errors.add(message.problemMessage);
     }
 
     super.handleRecoverableError(message, startToken, endToken);

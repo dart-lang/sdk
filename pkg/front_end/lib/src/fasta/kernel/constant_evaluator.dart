@@ -1066,7 +1066,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           errorReporter.report(locatedMessageActualError);
         }
         return new UnevaluatedConstant(
-            new InvalidExpression(result.message.message));
+            new InvalidExpression(result.message.problemMessage));
       }
       if (result is _AbortDueToThrowConstant) {
         final Object value = result.throwValue;
@@ -1090,7 +1090,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               createLocatedMessage(node, messageConstEvalStartingPoint);
           errorReporter.report(locatedMessage, contextMessages);
         }
-        return new UnevaluatedConstant(new InvalidExpression(message.message));
+        return new UnevaluatedConstant(
+            new InvalidExpression(message.problemMessage));
       }
       if (result is _AbortDueToInvalidExpressionConstant) {
         return new UnevaluatedConstant(
@@ -4534,7 +4535,7 @@ class SimpleErrorReporter implements ErrorReporter {
   }
 
   void _report(LocatedMessage message) {
-    reportMessage(message.uri, message.charOffset, message.message);
+    reportMessage(message.uri, message.charOffset, message.problemMessage);
   }
 
   void reportMessage(Uri? uri, int offset, String message) {

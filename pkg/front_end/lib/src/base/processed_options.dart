@@ -186,6 +186,8 @@ class ProcessedOptions {
 
   bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
 
+  bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
+
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 
@@ -249,7 +251,7 @@ class ProcessedOptions {
       if (_raw.skipForDebugging < 0) {
         print(templateDebugTrace
             .withArguments("$severity", "${StackTrace.current}")
-            .message);
+            .problemMessage);
       } else {
         throw new DebugAbort(
             message.uri, message.charOffset, severity, StackTrace.current);
@@ -604,7 +606,7 @@ class ProcessedOptions {
       // We throw a new exception to ensure that the message include the uri
       // that led to the exception. Exceptions in Uri don't include the
       // offending uri in the exception message.
-      throw new ArgumentError(message.message);
+      throw new ArgumentError(message.problemMessage);
     }
     return null;
   }
@@ -727,7 +729,7 @@ class ProcessedOptions {
         // We throw a new exception to ensure that the message include the uri
         // that led to the exception. Exceptions in Uri don't include the
         // offending uri in the exception message.
-        throw new ArgumentError(message.message);
+        throw new ArgumentError(message.problemMessage);
       }
     }
 

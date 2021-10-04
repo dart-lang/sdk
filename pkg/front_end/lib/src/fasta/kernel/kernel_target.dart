@@ -13,7 +13,7 @@ import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
 import 'package:kernel/transformations/value_class.dart' as valueClass;
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
@@ -522,7 +522,6 @@ class KernelTarget extends TargetImplementation {
       loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
       loader.checkMainMethods();
-      _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
       return component;
@@ -758,17 +757,6 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed synthetic constructors");
   }
 
-  List<DelayedParameterType> _delayedParameterTypes = <DelayedParameterType>[];
-
-  /// Update the type of parameters cloned from parameters with inferred
-  /// parameter types.
-  void _updateDelayedParameterTypes() {
-    for (DelayedParameterType delayedParameterType in _delayedParameterTypes) {
-      delayedParameterType.updateType();
-    }
-    _delayedParameterTypes.clear();
-  }
-
   ClassBuilder get objectClassBuilder => objectType.declaration as ClassBuilder;
 
   Class get objectClass => objectClassBuilder.cls;
@@ -889,26 +877,29 @@ class KernelTarget extends TargetImplementation {
   SyntheticConstructorBuilder _makeMixinApplicationConstructor(
       SourceClassBuilder classBuilder,
       Class mixin,
-      MemberBuilderImpl memberBuilder,
+      MemberBuilderImpl superConstructorBuilder,
       Map<TypeParameter, DartType> substitutionMap,
       Constructor? referenceFrom) {
+    bool hasTypeDependency = false;
+    Substitution substitution = Substitution.fromMap(substitutionMap);
+
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal,
           isConst: formal.isConst,
           type: const UnknownType());
-      if (formal.type is! UnknownType) {
-        copy.type = substitute(formal.type, substitutionMap);
+      if (!hasTypeDependency && formal.type is! UnknownType) {
+        copy.type = substitution.substituteType(formal.type);
       } else {
-        _delayedParameterTypes
-            .add(new DelayedParameterType(formal, copy, substitutionMap));
+        hasTypeDependency = true;
       }
       return copy;
     }
 
     Class cls = classBuilder.cls;
-    Constructor constructor = memberBuilder.member as Constructor;
-    bool isConst = constructor.isConst;
+    Constructor superConstructor =
+        superConstructorBuilder.member as Constructor;
+    bool isConst = superConstructor.isConst;
     if (isConst && mixin.fields.isNotEmpty) {
       for (Field field in mixin.fields) {
         if (!field.isStatic) {
@@ -923,11 +914,12 @@ class KernelTarget extends TargetImplementation {
     List<NamedExpression> named = <NamedExpression>[];
 
     for (VariableDeclaration formal
-        in constructor.function.positionalParameters) {
+        in superConstructor.function.positionalParameters) {
       positionalParameters.add(copyFormal(formal));
       positional.add(new VariableGet(positionalParameters.last));
     }
-    for (VariableDeclaration formal in constructor.function.namedParameters) {
+    for (VariableDeclaration formal
+        in superConstructor.function.namedParameters) {
       VariableDeclaration clone = copyFormal(formal);
       namedParameters.add(clone);
       named.add(new NamedExpression(
@@ -936,13 +928,14 @@ class KernelTarget extends TargetImplementation {
     FunctionNode function = new FunctionNode(new EmptyStatement(),
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
-        requiredParameterCount: constructor.function.requiredParameterCount,
+        requiredParameterCount:
+            superConstructor.function.requiredParameterCount,
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
-        constructor, new Arguments(positional, named: named));
+        superConstructor, new Arguments(positional, named: named));
     SynthesizedFunctionNode synthesizedFunctionNode =
         new SynthesizedFunctionNode(
-            substitutionMap, constructor.function, function);
+            substitutionMap, superConstructor.function, function);
     if (!isConst) {
       // For constant constructors default values are computed and cloned part
       // of the outline expression and therefore passed to the
@@ -952,23 +945,44 @@ class KernelTarget extends TargetImplementation {
       // full compilation using [synthesizedFunctionNodes].
       synthesizedFunctionNodes.add(synthesizedFunctionNode);
     }
+    Constructor constructor = new Constructor(function,
+        name: superConstructor.name,
+        initializers: <Initializer>[initializer],
+        isSynthetic: true,
+        isConst: isConst,
+        reference: referenceFrom?.reference,
+        fileUri: cls.fileUri)
+      // TODO(johnniwinther): Should we add file offsets to synthesized
+      //  constructors?
+      //..fileOffset = cls.fileOffset
+      //..fileEndOffset = cls.fileOffset
+      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+
+    if (hasTypeDependency) {
+      loader.registerTypeDependency(
+          constructor,
+          new TypeDependency(constructor, superConstructor, substitution,
+              copyReturnType: false));
+    }
+
+    Procedure? constructorTearOff = createConstructorTearOffProcedure(
+        superConstructor.name.text,
+        classBuilder.library,
+        cls.fileUri,
+        cls.fileOffset,
+        forAbstractClassOrEnum: classBuilder.isAbstract);
+
+    if (constructorTearOff != null) {
+      buildConstructorTearOffProcedure(constructorTearOff, constructor,
+          classBuilder.cls, classBuilder.library);
+    }
     return new SyntheticConstructorBuilder(
-        classBuilder,
-        new Constructor(function,
-            name: constructor.name,
-            initializers: <Initializer>[initializer],
-            isSynthetic: true,
-            isConst: isConst,
-            reference: referenceFrom?.reference,
-            fileUri: cls.fileUri)
-          ..isNonNullableByDefault =
-              cls.enclosingLibrary.isNonNullableByDefault,
-        null,
+        classBuilder, constructor, constructorTearOff,
         // If the constructor is constant, the default values must be part of
         // the outline expressions. We pass on the original constructor and
         // cloned function nodes to ensure that the default values are computed
         // and cloned for the outline.
-        origin: isConst ? memberBuilder : null,
+        origin: isConst ? superConstructorBuilder : null,
         synthesizedFunctionNode: isConst ? synthesizedFunctionNode : null);
   }
 
@@ -992,10 +1006,13 @@ class KernelTarget extends TargetImplementation {
         reference: referenceFrom?.reference,
         fileUri: enclosingClass.fileUri)
       ..fileOffset = enclosingClass.fileOffset
+      // TODO(johnniwinther): Should we add file end offsets to synthesized
+      //  constructors?
+      //..fileEndOffset = enclosingClass.fileOffset
       ..isNonNullableByDefault =
           enclosingClass.enclosingLibrary.isNonNullableByDefault;
-    Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        '', classBuilder.library, classBuilder.fileUri, constructor.fileOffset,
+    Procedure? constructorTearOff = createConstructorTearOffProcedure('',
+        classBuilder.library, enclosingClass.fileUri, enclosingClass.fileOffset,
         forAbstractClassOrEnum:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
@@ -1597,24 +1614,5 @@ class KernelDiagnosticReporter
   void report(Message message, int charOffset, int length, Uri? fileUri,
       {List<LocatedMessage>? context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);
-  }
-}
-
-/// Data for updating cloned parameters of parameters with inferred parameter
-/// types.
-///
-/// The type of [source] is not declared so the type of [target] needs to be
-/// updated when the type of [source] has been inferred.
-class DelayedParameterType {
-  final VariableDeclaration source;
-  final VariableDeclaration target;
-  final Map<TypeParameter, DartType> substitutionMap;
-
-  DelayedParameterType(this.source, this.target, this.substitutionMap);
-
-  void updateType() {
-    // ignore: unnecessary_null_comparison
-    assert(source.type is! UnknownType, "No type computed for $source.");
-    target.type = substitute(source.type, substitutionMap);
   }
 }
