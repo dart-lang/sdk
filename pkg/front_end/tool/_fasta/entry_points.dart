@@ -289,7 +289,7 @@ class CompileTask {
       CompilerContext.recordDependency(platform);
     }
     kernelTarget.setEntryPoints(c.options.inputs);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
 
     Uri? dFile;
@@ -328,7 +328,7 @@ class CompileTask {
     }
 
     kernelTarget.setEntryPoints(c.options.inputs);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
       printComponentText(outline,

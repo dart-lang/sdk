@@ -217,7 +217,7 @@ class EnumBuilder extends SourceClassBuilder {
           referencesFromIndexed.lookupSetterReference(valuesName);
     }
 
-    ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
+    ConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
         /* metadata = */ null,
         constMask,
         /* returnType = */ null,
@@ -410,8 +410,8 @@ class EnumBuilder extends SourceClassBuilder {
     SourceFieldBuilder valuesBuilder =
         firstMemberNamed("values") as SourceFieldBuilder;
     valuesBuilder.build(libraryBuilder);
-    ConstructorBuilderImpl constructorBuilder =
-        constructorScopeBuilder[""] as ConstructorBuilderImpl;
+    SourceConstructorBuilder constructorBuilder =
+        constructorScopeBuilder[""] as SourceConstructorBuilder;
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     ClassBuilder objectClass = objectType.declaration as ClassBuilder;
     ClassBuilder enumClass = supertypeBuilder.declaration as ClassBuilder;
@@ -459,8 +459,8 @@ class EnumBuilder extends SourceClassBuilder {
         coreTypes,
         new ListLiteral(values,
             typeArgument: rawType(library.nonNullable), isConst: true));
-    ConstructorBuilderImpl constructorBuilder =
-        constructorScopeBuilder[""] as ConstructorBuilderImpl;
+    SourceConstructorBuilder constructorBuilder =
+        constructorScopeBuilder[""] as SourceConstructorBuilder;
     Constructor constructor = constructorBuilder.constructor;
     int index = 0;
     if (enumConstantInfos != null) {

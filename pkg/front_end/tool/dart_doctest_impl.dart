@@ -883,7 +883,7 @@ class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
       Uri fileUri,
       Uri? packageUri,
       LanguageVersion packageLanguageVersion,
-      SourceLibraryBuilder origin,
+      SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
       bool? referenceIsPartOwner) {
     if (uri == DocTestIncrementalCompiler.dartDocTestUri) {

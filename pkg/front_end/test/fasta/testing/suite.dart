@@ -1895,7 +1895,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
     sourceTarget.setEntryPoints(entryPoints);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     return sourceTarget;
   }
 }

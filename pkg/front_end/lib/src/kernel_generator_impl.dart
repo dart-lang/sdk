@@ -29,7 +29,7 @@ import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'fasta/loader.dart' show Loader;
+import 'fasta/source/source_loader.dart' show SourceLoader;
 
 import 'fasta/uri_translator.dart' show UriTranslator;
 
@@ -67,7 +67,7 @@ Future<CompilerResult> generateKernelInternal(
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
-  Loader? sourceLoader;
+  SourceLoader? sourceLoader;
   return withCrashReporting<CompilerResult>(() async {
     UriTranslator uriTranslator = await options.getUriTranslator();
 
@@ -90,7 +90,7 @@ Future<CompilerResult> generateKernelInternal(
       dillTarget.loader.appendLibraries(additionalDill);
     }
 
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
 
     KernelTarget kernelTarget =
         new KernelTarget(fs, false, dillTarget, uriTranslator);
