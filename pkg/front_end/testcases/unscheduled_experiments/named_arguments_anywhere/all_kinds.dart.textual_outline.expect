@@ -1,0 +1,23 @@
+class A {
+  A(int x, int y, {required int z});
+  factory A.foo(int x, int y, {required int z}) => new A(x, y, z: z);
+  void Function(int x, int y, {required int z}) get property => throw 42;
+  void bar(int x, int y, {required int z}) {}
+}
+
+typedef B = A;
+foo(int x, int y, {required int z}) {}
+
+extension E on A {
+  method1() {}
+  method2(int bar, {int? foo}) {}
+}
+
+test(dynamic d, Function f, A a) {}
+
+class Test extends A {
+  Test() : super(1, 2, z: 3);
+  test() {}
+}
+
+main() {}

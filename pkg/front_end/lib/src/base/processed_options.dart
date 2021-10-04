@@ -186,6 +186,8 @@ class ProcessedOptions {
 
   bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
 
+  bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
+
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 

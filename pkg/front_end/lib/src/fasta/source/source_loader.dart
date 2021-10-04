@@ -503,6 +503,9 @@ severity: $severity
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
 
+  bool get enableUnscheduledExperiments =>
+      target.context.options.enableUnscheduledExperiments;
+
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
     return _coreTypes!;

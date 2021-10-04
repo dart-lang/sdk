@@ -27,19 +27,25 @@ import 'internal_ast.dart';
 class Forest {
   const Forest();
 
-  Arguments createArguments(int fileOffset, List<Expression> positional,
+  ArgumentsImpl createArguments(int fileOffset, List<Expression> positional,
       {List<DartType>? types,
       List<NamedExpression>? named,
-      bool hasExplicitTypeArguments = true}) {
+      bool hasExplicitTypeArguments = true,
+      List<Object?>? argumentsOriginalOrder}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     if (!hasExplicitTypeArguments) {
-      ArgumentsImpl arguments =
-          new ArgumentsImpl(positional, types: <DartType>[], named: named);
+      ArgumentsImpl arguments = new ArgumentsImpl(positional,
+          types: <DartType>[],
+          named: named,
+          argumentsOriginalOrder: argumentsOriginalOrder);
       arguments.types.addAll(types!);
       return arguments;
     } else {
-      return new ArgumentsImpl(positional, types: types, named: named)
+      return new ArgumentsImpl(positional,
+          types: types,
+          named: named,
+          argumentsOriginalOrder: argumentsOriginalOrder)
         ..fileOffset = fileOffset;
     }
   }
@@ -53,7 +59,8 @@ class Forest {
       int? extensionTypeArgumentOffset,
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
-      List<NamedExpression> namedArguments = const <NamedExpression>[]}) {
+      List<NamedExpression> namedArguments = const <NamedExpression>[],
+      List<Object?>? argumentsOriginalOrder}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new ArgumentsImpl.forExtensionMethod(
@@ -62,11 +69,12 @@ class Forest {
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
         typeArguments: typeArguments,
         positionalArguments: positionalArguments,
-        namedArguments: namedArguments)
+        namedArguments: namedArguments,
+        argumentsOriginalOrder: argumentsOriginalOrder)
       ..fileOffset = fileOffset;
   }
 
-  Arguments createArgumentsEmpty(int fileOffset) {
+  ArgumentsImpl createArgumentsEmpty(int fileOffset) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return createArguments(fileOffset, <Expression>[]);

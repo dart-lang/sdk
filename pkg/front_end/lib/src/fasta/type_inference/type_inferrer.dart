@@ -2085,7 +2085,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
-      FunctionType calleeType, Arguments arguments,
+      FunctionType calleeType, ArgumentsImpl arguments,
       {List<VariableDeclaration>? hoistedExpressions,
       bool isSpecialCasedBinaryOperator: false,
       bool isSpecialCasedTernaryOperator: false,
@@ -2143,7 +2143,7 @@ class TypeInferrerImpl implements TypeInferrer {
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
             .toList());
-    Arguments extensionArguments = engine.forest.createArguments(
+    ArgumentsImpl extensionArguments = engine.forest.createArguments(
         arguments.fileOffset, [arguments.positional.first],
         types: getExplicitExtensionTypeArguments(arguments));
     _inferInvocation(const UnknownType(), offset, extensionFunctionType,
@@ -2171,7 +2171,7 @@ class TypeInferrerImpl implements TypeInferrer {
         typeParameters: targetTypeParameters);
     targetFunctionType = extensionSubstitution
         .substituteType(targetFunctionType) as FunctionType;
-    Arguments targetArguments = engine.forest.createArguments(
+    ArgumentsImpl targetArguments = engine.forest.createArguments(
         arguments.fileOffset, arguments.positional.skip(1).toList(),
         named: arguments.named, types: getExplicitTypeArguments(arguments));
     InvocationInferenceResult result = _inferInvocation(typeContext, offset,
@@ -2201,7 +2201,7 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType typeContext,
       int offset,
       FunctionType calleeType,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       List<VariableDeclaration>? hoistedExpressions,
       {bool isSpecialCasedBinaryOperator: false,
       bool isSpecialCasedTernaryOperator: false,
@@ -2215,6 +2215,7 @@ class TypeInferrerImpl implements TypeInferrer {
     // [receiverType] must be provided for special-cased operators.
     assert(!isSpecialCasedBinaryOperator && !isSpecialCasedTernaryOperator ||
         receiverType != null);
+
     List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
     if (calleeTypeParameters.isNotEmpty) {
       // It's possible that one of the callee type parameters might match a type
@@ -2230,11 +2231,14 @@ class TypeInferrerImpl implements TypeInferrer {
       calleeType = fresh.applyToFunctionType(calleeType);
       calleeTypeParameters = fresh.freshTypeParameters;
     }
+
     List<DartType>? explicitTypeArguments = getExplicitTypeArguments(arguments);
+
     bool inferenceNeeded = !skipTypeArgumentInference &&
         explicitTypeArguments == null &&
         calleeTypeParameters.isNotEmpty;
     bool typeChecksNeeded = !isTopLevel;
+
     List<DartType>? inferredTypes;
     Substitution? substitution;
     List<DartType>? formalTypes;
@@ -2243,6 +2247,15 @@ class TypeInferrerImpl implements TypeInferrer {
       formalTypes = [];
       actualTypes = [];
     }
+
+    List<VariableDeclaration>? localHoistedExpressions;
+    if (library.enableNamedArgumentsAnywhereInLibrary &&
+        arguments.argumentsOriginalOrder != null &&
+        hoistedExpressions == null &&
+        !isTopLevel) {
+      hoistedExpressions = localHoistedExpressions = <VariableDeclaration>[];
+    }
+
     if (inferenceNeeded) {
       // ignore: unnecessary_null_comparison
       if (isConst && typeContext != null) {
@@ -2281,60 +2294,166 @@ class TypeInferrerImpl implements TypeInferrer {
         staticTarget == typeSchemaEnvironment.coreTypes.identicalProcedure;
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
-    for (int position = 0; position < arguments.positional.length; position++) {
-      DartType formalType = getPositionalParameterType(calleeType, position);
-      DartType inferredFormalType = substitution != null
-          ? substitution.substituteType(formalType)
-          : formalType;
-      DartType inferredType;
-      if (isImplicitExtensionMember && position == 0) {
-        assert(
-            receiverType != null,
-            "No receiver type provided for implicit extension member "
-            "invocation.");
-        continue;
+    List<Object?> argumentsEvaluationOrder;
+    if (library.enableNamedArgumentsAnywhereInLibrary &&
+        arguments.argumentsOriginalOrder != null) {
+      if (staticTarget?.isExtensionMember ?? false) {
+        // Add the receiver.
+        argumentsEvaluationOrder = <Object?>[
+          arguments.positional[0],
+          ...arguments.argumentsOriginalOrder!
+        ];
       } else {
-        if (isSpecialCasedBinaryOperator) {
-          inferredFormalType =
-              typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
-                  typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: isNonNullableByDefault);
-        } else if (isSpecialCasedTernaryOperator) {
-          inferredFormalType =
-              typeSchemaEnvironment.getContextTypeOfSpecialCasedTernaryOperator(
-                  typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: isNonNullableByDefault);
+        argumentsEvaluationOrder = arguments.argumentsOriginalOrder!;
+      }
+    } else {
+      argumentsEvaluationOrder = <Object?>[
+        ...arguments.positional,
+        ...arguments.named
+      ];
+    }
+    arguments.argumentsOriginalOrder = null;
+
+    // The following loop determines how many argument expressions should be
+    // hoisted to preserve the evaluation order. The computation is based on the
+    // following observation: the largest suffix of the argument vector, such
+    // that every positional argument in that suffix comes before any named
+    // argument, retains the evaluation order after the rest of the arguments
+    // are hoisted, and therefore doesn't need to be hoisted itself. The loop
+    // below finds the starting position of such suffix and stores it in the
+    // [hoistingEndIndex] variable. In case all positional arguments come
+    // before all named arguments, the suffix coincides with the entire argument
+    // vector, and none of the arguments is hoisted. That way the legacy
+    // behavior is preserved.
+    int hoistingEndIndex;
+    if (library.enableNamedArgumentsAnywhereInLibrary) {
+      hoistingEndIndex = argumentsEvaluationOrder.length - 1;
+      for (int i = argumentsEvaluationOrder.length - 2;
+          i >= 0 && hoistingEndIndex == i + 1;
+          i--) {
+        int previousWeight =
+            argumentsEvaluationOrder[i + 1] is NamedExpression ? 1 : 0;
+        int currentWeight =
+            argumentsEvaluationOrder[i] is NamedExpression ? 1 : 0;
+        if (currentWeight <= previousWeight) {
+          --hoistingEndIndex;
         }
+      }
+    } else {
+      hoistingEndIndex = 0;
+    }
+
+    int positionalIndex = 0;
+    int namedIndex = 0;
+    for (int evaluationOrderIndex = 0;
+        evaluationOrderIndex < argumentsEvaluationOrder.length;
+        evaluationOrderIndex++) {
+      Object? argument = argumentsEvaluationOrder[evaluationOrderIndex];
+      assert(
+          argument is Expression || argument is NamedExpression,
+          "Expected the argument to be either an Expression "
+          "or a NamedExpression, got '${argument.runtimeType}'.");
+      if (argument is Expression) {
+        int index = positionalIndex++;
+        DartType formalType = getPositionalParameterType(calleeType, index);
+        DartType inferredFormalType = substitution != null
+            ? substitution.substituteType(formalType)
+            : formalType;
+        DartType inferredType;
+        if (isImplicitExtensionMember && index == 0) {
+          assert(
+              receiverType != null,
+              "No receiver type provided for implicit extension member "
+              "invocation.");
+          continue;
+        } else {
+          if (isSpecialCasedBinaryOperator) {
+            inferredFormalType = typeSchemaEnvironment
+                .getContextTypeOfSpecialCasedBinaryOperator(
+                    typeContext, receiverType!, inferredFormalType,
+                    isNonNullableByDefault: isNonNullableByDefault);
+          } else if (isSpecialCasedTernaryOperator) {
+            inferredFormalType = typeSchemaEnvironment
+                .getContextTypeOfSpecialCasedTernaryOperator(
+                    typeContext, receiverType!, inferredFormalType,
+                    isNonNullableByDefault: isNonNullableByDefault);
+          }
+          ExpressionInferenceResult result = inferExpression(
+              arguments.positional[index],
+              isNonNullableByDefault
+                  ? inferredFormalType
+                  : legacyErasure(inferredFormalType),
+              inferenceNeeded ||
+                  isSpecialCasedBinaryOperator ||
+                  isSpecialCasedTernaryOperator ||
+                  typeChecksNeeded);
+          inferredType = identical(result.inferredType, noInferredType) ||
+                  isNonNullableByDefault
+              ? result.inferredType
+              : legacyErasure(result.inferredType);
+          if (localHoistedExpressions != null &&
+              evaluationOrderIndex >= hoistingEndIndex) {
+            hoistedExpressions = null;
+          }
+          Expression expression =
+              _hoist(result.expression, inferredType, hoistedExpressions);
+          if (isIdentical && arguments.positional.length == 2) {
+            if (index == 0) {
+              flowAnalysis.equalityOp_rightBegin(expression, inferredType);
+            } else {
+              flowAnalysis.equalityOp_end(
+                  arguments.parent as Expression, expression, inferredType);
+            }
+          }
+          arguments.positional[index] = expression..parent = arguments;
+        }
+        if (inferenceNeeded || typeChecksNeeded) {
+          formalTypes!.add(formalType);
+          actualTypes!.add(inferredType);
+        }
+      } else {
+        assert(argument is NamedExpression);
+        int index = namedIndex++;
+        NamedExpression namedArgument = arguments.named[index];
+        DartType formalType =
+            getNamedParameterType(calleeType, namedArgument.name);
+        DartType inferredFormalType = substitution != null
+            ? substitution.substituteType(formalType)
+            : formalType;
         ExpressionInferenceResult result = inferExpression(
-            arguments.positional[position],
+            namedArgument.value,
             isNonNullableByDefault
                 ? inferredFormalType
                 : legacyErasure(inferredFormalType),
             inferenceNeeded ||
                 isSpecialCasedBinaryOperator ||
-                isSpecialCasedTernaryOperator ||
                 typeChecksNeeded);
-        inferredType = identical(result.inferredType, noInferredType) ||
-                isNonNullableByDefault
-            ? result.inferredType
-            : legacyErasure(result.inferredType);
+        DartType inferredType =
+            identical(result.inferredType, noInferredType) ||
+                    isNonNullableByDefault
+                ? result.inferredType
+                : legacyErasure(result.inferredType);
+        if (localHoistedExpressions != null &&
+            evaluationOrderIndex >= hoistingEndIndex) {
+          hoistedExpressions = null;
+        }
         Expression expression =
             _hoist(result.expression, inferredType, hoistedExpressions);
-        if (isIdentical && arguments.positional.length == 2) {
-          if (position == 0) {
-            flowAnalysis.equalityOp_rightBegin(expression, inferredType);
-          } else {
-            flowAnalysis.equalityOp_end(
-                arguments.parent as Expression, expression, inferredType);
-          }
+        namedArgument.value = expression..parent = namedArgument;
+        if (inferenceNeeded || typeChecksNeeded) {
+          formalTypes!.add(formalType);
+          actualTypes!.add(inferredType);
         }
-        arguments.positional[position] = expression..parent = arguments;
-      }
-      if (inferenceNeeded || typeChecksNeeded) {
-        formalTypes!.add(formalType);
-        actualTypes!.add(inferredType);
       }
     }
+    assert(
+        positionalIndex == arguments.positional.length,
+        "Expected 'positionalIndex' to be ${arguments.positional.length}, "
+        "got ${positionalIndex}.");
+    assert(
+        namedIndex == arguments.named.length,
+        "Expected 'namedIndex' to be ${arguments.named.length}, "
+        "got ${namedIndex}.");
     if (isSpecialCasedBinaryOperator) {
       calleeType = replaceReturnType(
           calleeType,
@@ -2346,30 +2465,6 @@ class TypeInferrerImpl implements TypeInferrer {
           calleeType,
           typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
               receiverType!, actualTypes![0], actualTypes[1], library.library));
-    }
-    for (NamedExpression namedArgument in arguments.named) {
-      DartType formalType =
-          getNamedParameterType(calleeType, namedArgument.name);
-      DartType inferredFormalType = substitution != null
-          ? substitution.substituteType(formalType)
-          : formalType;
-      ExpressionInferenceResult result = inferExpression(
-          namedArgument.value,
-          isNonNullableByDefault
-              ? inferredFormalType
-              : legacyErasure(inferredFormalType),
-          inferenceNeeded || isSpecialCasedBinaryOperator || typeChecksNeeded);
-      DartType inferredType = identical(result.inferredType, noInferredType) ||
-              isNonNullableByDefault
-          ? result.inferredType
-          : legacyErasure(result.inferredType);
-      Expression expression =
-          _hoist(result.expression, inferredType, hoistedExpressions);
-      namedArgument.value = expression..parent = namedArgument;
-      if (inferenceNeeded || typeChecksNeeded) {
-        formalTypes!.add(formalType);
-        actualTypes!.add(inferredType);
-      }
     }
 
     // Check for and remove duplicated named arguments.
@@ -2516,7 +2611,9 @@ class TypeInferrerImpl implements TypeInferrer {
       calleeType = legacyErasure(calleeType) as FunctionType;
     }
 
-    return new SuccessfulInferenceResult(inferredType, calleeType);
+    return new SuccessfulInferenceResult(inferredType, calleeType,
+        hoistedArguments: localHoistedExpressions,
+        inferredReceiverType: receiverType);
   }
 
   FunctionType inferLocalFunction(FunctionNode function, DartType? typeContext,
@@ -2767,7 +2864,7 @@ class TypeInferrerImpl implements TypeInferrer {
       Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       Name name,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
@@ -2792,7 +2889,7 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression receiver,
       NeverType receiverType,
       Name name,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
@@ -2820,7 +2917,7 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType receiverType,
       ObjectAccessTarget target,
       Name name,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isExpressionInvocation,
@@ -2854,7 +2951,7 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType receiverType,
       ObjectAccessTarget target,
       Name name,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
@@ -2905,8 +3002,8 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
           fileOffset, target, receiver, arguments);
-      InvocationInferenceResult result = inferInvocation(
-          typeContext, fileOffset, functionType, staticInvocation.arguments,
+      InvocationInferenceResult result = inferInvocation(typeContext,
+          fileOffset, functionType, staticInvocation.arguments as ArgumentsImpl,
           hoistedExpressions: hoistedExpressions,
           receiverType: receiverType,
           isImplicitExtensionMember: true,
@@ -2969,7 +3066,7 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isImplicitCall}) {
@@ -3122,8 +3219,8 @@ class TypeInferrerImpl implements TypeInferrer {
             method.enclosingClass!, method.function.returnType)) {
       contravariantCheck = true;
     }
-    InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, declaredFunctionType, arguments,
+    InvocationInferenceResult result = inferInvocation(typeContext, fileOffset,
+        declaredFunctionType, arguments as ArgumentsImpl,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall,
@@ -3238,7 +3335,7 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isExpressionInvocation}) {
@@ -3445,7 +3542,7 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       List<VariableDeclaration>? hoistedExpressions,
       {required bool isExpressionInvocation}) {
@@ -3619,7 +3716,7 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression receiver,
       DartType receiverType,
       Name name,
-      Arguments arguments,
+      ArgumentsImpl arguments,
       DartType typeContext,
       {required bool isExpressionInvocation,
       required bool isImplicitCall,
@@ -3842,7 +3939,7 @@ class TypeInferrerImpl implements TypeInferrer {
         : const ObjectAccessTarget.missing();
     int fileOffset = expression.fileOffset;
     Name methodName = expression.name;
-    Arguments arguments = expression.arguments;
+    ArgumentsImpl arguments = expression.arguments as ArgumentsImpl;
     DartType receiverType = thisType!;
     bool isSpecialCasedBinaryOperator =
         isSpecialCasedBinaryOperatorForReceiverType(target, receiverType);
@@ -4772,10 +4869,65 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final FunctionType functionType;
 
-  SuccessfulInferenceResult(this.inferredType, this.functionType);
+  final List<VariableDeclaration>? hoistedArguments;
+
+  final DartType? inferredReceiverType;
+
+  SuccessfulInferenceResult(this.inferredType, this.functionType,
+      {this.hoistedArguments, this.inferredReceiverType});
 
   @override
-  Expression applyResult(Expression expression) => expression;
+  Expression applyResult(Expression expression) {
+    List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
+    if (hoistedArguments == null || hoistedArguments.isEmpty) {
+      return expression;
+    } else {
+      assert(expression is InvocationExpression);
+      if (expression is FactoryConstructorInvocation) {
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else if (expression is TypeAliasedConstructorInvocation) {
+        // Should be unaliased at this point, the code is for completeness.
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else if (expression is TypeAliasedFactoryInvocation) {
+        // Should be unaliased at this point, the code is for completeness.
+        return expression;
+      } else if (expression is ConstructorInvocation) {
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else if (expression is DynamicInvocation) {
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else if (expression is FunctionInvocation) {
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else if (expression is InstanceGetterInvocation) {
+        // The hoisting of InstanceGetterInvocation is performed elsewhere.
+        return expression;
+      } else if (expression is InstanceInvocation) {
+        VariableDeclaration receiver = createVariable(
+            expression.receiver, inferredReceiverType ?? const DynamicType());
+        expression.receiver = createVariableGet(receiver)..parent = expression;
+        return createLet(
+            receiver, _insertHoistedExpressions(expression, hoistedArguments));
+      } else if (expression is LocalFunctionInvocation) {
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else if (expression is StaticInvocation) {
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else if (expression is SuperMethodInvocation) {
+        return _insertHoistedExpressions(expression, hoistedArguments);
+      } else {
+        throw new StateError(
+            "Unhandled invocation kind '${expression.runtimeType}'.");
+      }
+    }
+  }
+
+  static Expression _insertHoistedExpressions(
+      Expression expression, List<VariableDeclaration> hoistedExpressions) {
+    if (hoistedExpressions.isNotEmpty) {
+      for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
+        expression = createLet(hoistedExpressions[index], expression);
+      }
+    }
+    return expression;
+  }
 
   @override
   bool get isInapplicable => false;

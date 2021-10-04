@@ -227,6 +227,7 @@ const Option<bool> noVerifyCmd =
 
 const List<Option> folderOptionsSpecification = [
   Options.enableExperiment,
+  Options.enableUnscheduledExperiments,
   Options.forceLateLoweringSentinel,
   overwriteCurrentSdkVersion,
   Options.forceLateLowering,
@@ -261,6 +262,7 @@ final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
 /// test folders.
 class FolderOptions {
   final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
+  final bool? enableUnscheduledExperiments;
   final int? forceLateLowerings;
   final bool? forceLateLoweringSentinel;
   final bool? forceStaticFieldLowering;
@@ -273,7 +275,8 @@ class FolderOptions {
   final String? overwriteCurrentSdkVersion;
 
   FolderOptions(this._explicitExperimentalFlags,
-      {this.forceLateLowerings,
+      {this.enableUnscheduledExperiments,
+      this.forceLateLowerings,
       this.forceLateLoweringSentinel,
       this.forceStaticFieldLowering,
       this.forceNoExplicitGetterCalls,
@@ -441,6 +444,7 @@ class FastaContext extends ChainContext with MatchContext {
   FolderOptions _computeFolderOptions(Directory directory) {
     FolderOptions? folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
+      bool? enableUnscheduledExperiments;
       int? forceLateLowering;
       bool? forceLateLoweringSentinel;
       bool? forceStaticFieldLowering;
@@ -452,6 +456,7 @@ class FastaContext extends ChainContext with MatchContext {
       String target = "vm";
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
+            enableUnscheduledExperiments: enableUnscheduledExperiments,
             forceLateLowerings: forceLateLowering,
             forceLateLoweringSentinel: forceLateLoweringSentinel,
             forceStaticFieldLowering: forceStaticFieldLowering,
@@ -473,6 +478,8 @@ class FastaContext extends ChainContext with MatchContext {
               Options.enableExperiment.read(parsedOptions) ?? <String>[];
           String overwriteCurrentSdkVersionArgument =
               overwriteCurrentSdkVersion.read(parsedOptions);
+          enableUnscheduledExperiments =
+              Options.enableUnscheduledExperiments.read(parsedOptions);
           forceLateLoweringSentinel =
               Options.forceLateLoweringSentinel.read(parsedOptions);
           forceLateLowering = Options.forceLateLowering.read(parsedOptions);
@@ -499,6 +506,7 @@ class FastaContext extends ChainContext with MatchContext {
                   onError: (String message) => throw new ArgumentError(message),
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
+              enableUnscheduledExperiments: enableUnscheduledExperiments,
               forceLateLowerings: forceLateLowering,
               forceLateLoweringSentinel: forceLateLoweringSentinel,
               forceStaticFieldLowering: forceStaticFieldLowering,
@@ -541,6 +549,8 @@ class FastaContext extends ChainContext with MatchContext {
         }
         ..sdkRoot = sdk
         ..packagesFileUri = uriConfiguration.packageConfigUri ?? packages
+        ..enableUnscheduledExperiments =
+            folderOptions.enableUnscheduledExperiments ?? false
         ..environmentDefines = folderOptions.defines
         ..explicitExperimentalFlags = folderOptions
             .computeExplicitExperimentalFlags(explicitExperimentalFlags)
@@ -1094,6 +1104,8 @@ CompilationSetup createCompilationSetup(
       ..onDiagnostic = (DiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
       }
+      ..enableUnscheduledExperiments =
+          folderOptions.enableUnscheduledExperiments ?? false
       ..environmentDefines = folderOptions.defines
       ..explicitExperimentalFlags = experimentalFlags
       ..nnbdMode = nnbdMode

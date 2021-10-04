@@ -60,6 +60,7 @@ const List<Option> optionSpecification = [
   Options.compileSdk,
   Options.dumpIr,
   Options.enableExperiment,
+  Options.enableUnscheduledExperiments,
   Options.excludeSource,
   Options.omitPlatform,
   Options.fatal,
@@ -188,6 +189,9 @@ ProcessedOptions analyzeCommandLine(String programName,
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
+  final bool enableUnscheduledExperiments =
+      Options.enableUnscheduledExperiments.read(parsedOptions);
+
   final bool warnOnReachabilityCheck =
       Options.warnOnReachabilityCheck.read(parsedOptions);
 
@@ -247,6 +251,7 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedOptions.defines
     ..nnbdMode = nnbdMode
+    ..enableUnscheduledExperiments = enableUnscheduledExperiments
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
     ..warnOnReachabilityCheck = warnOnReachabilityCheck

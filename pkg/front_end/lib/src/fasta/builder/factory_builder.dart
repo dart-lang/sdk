@@ -401,7 +401,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
             charOffset, fileUri);
       }
-      Arguments targetInvocationArguments;
+      ArgumentsImpl targetInvocationArguments;
       {
         List<Expression> positionalArguments = <Expression>[];
         for (VariableDeclaration parameter
