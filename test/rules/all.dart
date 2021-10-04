@@ -18,9 +18,13 @@ import 'prefer_const_constructors_in_immutables.dart'
 import 'prefer_const_literals_to_create_immutables.dart'
     as prefer_const_literals_to_create_immutables;
 import 'prefer_contains.dart' as prefer_contains;
+import 'prefer_generic_function_type_aliases.dart'
+    as prefer_generic_function_type_aliases;
 import 'prefer_spread_collections.dart' as prefer_spread_collections;
+import 'super_goes_last.dart' as super_goes_last;
 import 'type_init_formals.dart' as type_init_formals;
 import 'unawaited_futures.dart' as unawaited_futures;
+import 'unnecessary_null_checks.dart' as unnecessary_null_checks;
 import 'void_checks.dart' as void_checks;
 
 void main() {
@@ -35,8 +39,11 @@ void main() {
   prefer_const_constructors_in_immutables.main();
   prefer_const_literals_to_create_immutables.main();
   prefer_contains.main();
+  prefer_generic_function_type_aliases.main();
   prefer_spread_collections.main();
+  super_goes_last.main();
   type_init_formals.main();
   unawaited_futures.main();
+  unnecessary_null_checks.main();
   void_checks.main();
 }

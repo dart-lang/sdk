@@ -189,7 +189,7 @@ abstract class BBB {
   abstract final String s;
 }
 
-class AAA extends BBB {
+class AAAA extends BBB {
   @override
   String s = ''; // OK
 }

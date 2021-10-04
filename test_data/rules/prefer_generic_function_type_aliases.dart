@@ -4,9 +4,5 @@
 
 // test w/ `dart test -N prefer_generic_function_type_aliases`
 
-
-//https://github.com/dart-lang/linter/issues/2777
-typedef Cb2 // OK
-
 typedef void F1(); // LINT
 typedef F2 = void Function(); // OK

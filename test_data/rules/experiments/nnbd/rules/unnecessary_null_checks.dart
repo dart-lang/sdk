@@ -60,7 +60,3 @@ f5(int? p) {
   v1 ??= p!; // OK
 }
 
-f6(int? p) {
-  return B() + p!; // OK
-}
-
