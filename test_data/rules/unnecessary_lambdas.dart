@@ -96,8 +96,8 @@ void main() {
   final array = <MyClass>[];
   final x = MyClass();
 
-  final notRelevantQuestionPeriod = (p) => array[x?.m1].m2(p); // OK
-  final correctNotRelevantQuestionPeriod = array[x?.m1].m2; // OK
+  final notRelevantQuestionPeriod = (p) => array[x?.m1 ?? 0].m2(p); // OK
+  final correctNotRelevantQuestionPeriod = array[x?.m1 ?? 0].m2; // OK
 
   finalList.forEach((name) { // LINT
     print(name);
@@ -107,7 +107,7 @@ void main() {
   // Lambdas as parameters.
   finalList.where((e) => finalList.contains(e)); // LINT
   finalList.where((e) => nonFinalList.contains(e)); // OK
-  finalList.where((e) => finalList?.contains(e)); // OK
+  finalList.where((e) => finalList?.contains(e) ?? false); // OK
   finalList.where(finalList.contains); // OK
 
   // Lambdas assigned to variables.
@@ -132,7 +132,7 @@ void main() {
       ((a) => e.contains(a))(e)); // OK
 
   finalList.where((e) => // OK
-      ((a) => e?.contains(a))(e)); // OK
+      ((a) => e?.contains(a) ?? false)(e)); // OK
 
   var noStatementLambda = () { // OK
     // Empty lambda
@@ -157,7 +157,7 @@ void method() {
   var a = names.where((e) => ((e) => e.contains(e))(e)); // LINT
   var b = names.where((e) => // LINT
       ((e) => e?.contains(e))(e));
-  names.where((e) => e?.contains(e)); // OK
+  names.where((e) => e?.contains(e) ?? false); // OK
 
   var c = names.where((e) { // LINT
     return ((e) {

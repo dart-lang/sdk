@@ -81,12 +81,12 @@ main() async {
   // OK because unary operators mixed with space-separated tokens may have
   // unexpected ordering.
   !(const [7].contains(42)); // OK
-  !(new List(3).contains(42)); // OK
+  !(new List.empty().contains(42)); // OK
   !(await Future.value(false)); // OK
-  -(new List(3).length); // OK
-  !(new List(3).length.isEven); // OK
-  -(new List(3).length.abs().abs().abs()); // OK
-  -(new List(3).length.sign.sign.sign); // OK
+  -(new List.empty().length); // OK
+  !(new List.empty().length.isEven); // OK
+  -(new List.empty().length.abs().abs().abs()); // OK
+  -(new List.empty().length.sign.sign.sign); // OK
   !(const [7]).contains(42); // OK
 
   // OK because some methods are defined on Type, but removing the parentheses

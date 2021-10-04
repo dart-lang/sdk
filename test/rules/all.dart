@@ -5,6 +5,8 @@
 import 'avoid_function_literals_in_foreach_calls.dart'
     as avoid_function_literals_in_foreach_calls;
 import 'avoid_init_to_null.dart' as avoid_init_to_null;
+import 'avoid_shadowing_type_parameters.dart'
+    as avoid_shadowing_type_parameters;
 import 'missing_whitespace_between_adjacent_strings.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'null_closures.dart' as null_closures;
@@ -25,11 +27,13 @@ import 'super_goes_last.dart' as super_goes_last;
 import 'type_init_formals.dart' as type_init_formals;
 import 'unawaited_futures.dart' as unawaited_futures;
 import 'unnecessary_null_checks.dart' as unnecessary_null_checks;
+import 'use_is_even_rather_than_modulo.dart' as use_is_even_rather_than_modulo;
 import 'void_checks.dart' as void_checks;
 
 void main() {
   avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();
+  avoid_shadowing_type_parameters.main();
   missing_whitespace_between_adjacent_strings.main();
   null_closures.main();
   overridden_fields.main();
@@ -45,5 +49,6 @@ void main() {
   type_init_formals.main();
   unawaited_futures.main();
   unnecessary_null_checks.main();
+  use_is_even_rather_than_modulo.main();
   void_checks.main();
 }

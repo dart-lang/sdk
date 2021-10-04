@@ -69,5 +69,7 @@ extension on A { }
 /** O */ //LINT
 typedef O = Object;
 
+mixin M {}
+
 /** OM */ //LINT
 class OM = Object with M;

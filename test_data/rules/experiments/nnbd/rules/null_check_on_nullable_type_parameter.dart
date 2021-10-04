@@ -15,16 +15,17 @@ T m7<T>(T? p) => p!.m(); // OK
 T m8<T>(T? p) => p!..m(); // OK
 
 T m10<T>(T? p) { return p!; } // LINT
-T m20<T>(T? p) { T t = p!; } // LINT
+T? m20<T>(T? p) { T t = p!; } // LINT
 T m30<T>(T? p) {
   T t;
   t = p!; // LINT
+  return t;
 }
 class C<T> {
-  T t;
+  late T t;
   m(T? p) {
     t = p!; // LINT
   }
 }
 
-R m<P, R>(P? p) => p!; // OK
+R m<P, R>(P? p) => p! as R; // OK

@@ -37,10 +37,7 @@ class RequireTrailingCommasExample {
       : assert(true,
             'A very very very very very very very very long string'); // LINT
 
-  void operator [](Object param1, Object param2, Object param3, Object param4,
-      Object param5) {} // LINT
-
-  void method1(Object param1, Object param2, {Object param3, Object param4}) {}
+  void method1(Object param1, Object param2, {Object? param3, Object? param4}) {}
 
   void method2(
     Object param1,
@@ -53,29 +50,29 @@ class RequireTrailingCommasExample {
   void method3(
     Object param1,
     Object param2, {
-    Object param3,
-    Object param4,
-    Object param5,
+    Object? param3,
+    Object? param4,
+    Object? param5,
   }) {}
 
   void method4(Object param1, Object param2, Object param3, Object param4,
       Object param5) {} // LINT
 
   void method5(Object param1, Object param2,
-      {Object param3, Object param4, Object param5}) {} // LINT
+      {Object? param3, Object? param4, Object? param5}) {} // LINT
 
   void method6(Object param1, Object param2,
-      {Object param3,
-      Object param4,
-      Object param5,
-      Object param6,
-      Object param7}) {} // LINT
+      {Object? param3,
+      Object? param4,
+      Object? param5,
+      Object? param6,
+      Object? param7}) {} // LINT
 
   void method7(Object param1, Object param2, Object param3,
       {Object namedParam = true}) {} // LINT
 
   void run() {
-    void test(Object param1, Object param2, {Object param3}) {}
+    void test(Object param1, Object param2, {Object? param3}) {}
 
     test('fits on one line, no need trailing comma', 'test');
 

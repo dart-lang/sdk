@@ -116,8 +116,7 @@ class GC33_2 extends GC33 {
 class Super1 {}
 
 class Sub1 extends Super1 {
-  @override
-  int y;
+  int y = 0;
 }
 
 class Super2 {
@@ -126,7 +125,7 @@ class Super2 {
 
 class Sub2 extends Super2 {
   @override
-  int y; // LINT
+  int y = 0; // LINT
 }
 
 class Super3 {
@@ -148,11 +147,6 @@ abstract class C1 implements A1 {}
 class D1 extends B1 implements C1 {
   @override
   int f = 0; // LINT
-}
-
-class A extends B {}
-class B extends A {
-  int field = 0;
 }
 
 class StaticsNo {

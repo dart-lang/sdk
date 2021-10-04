@@ -159,7 +159,7 @@ class E {
 }
 
 class F {
-  var _array = new List<int>(5); // LINT
+  var _array = []; // LINT
 
   void foo() {
     _array[0] = 3;

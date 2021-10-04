@@ -36,4 +36,5 @@ typedef F = Foo; //OK
 
 typedef f = void Function(); //LINT
 
+mixin M {}
 class c = Object with M; //LINT

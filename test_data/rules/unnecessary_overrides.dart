@@ -129,31 +129,31 @@ class C {
 }
 class ReturnTypeChanged extends C {
   @override
-  int get g => super.g; // OK
+  int get g => super.g as int; // OK
   @override
-  int m(int v) => super.m(v); // OK
+  int m(int v) => super.m(v) as int; // OK
   @override
-  int m1({int v = 20}) => super.m1(v: v); // OK
+  int m1({int v = 20}) => super.m1(v: v) as int; // OK
   @override
-  int m2([int v = 20]) => super.m2(v); // OK
+  int m2([int v = 20]) => super.m2(v) as int; // OK
   @override
-  int operator +(int other) => super + other; // OK
+  int operator +(int other) => super + other as int; // OK
 }
 class ParameterTypeChanged extends C {
   @override
-  set s(num v) => super.s = v; // OK
+  set s(num v) => super.s = v as int; // OK
   @override
-  num m(num v) => super.m(v); // OK
+  num m(num v) => super.m(v as int); // OK
   @override
-  num m1({num v = 20}) => super.m1(v: v); // OK
+  num m1({num v = 20}) => super.m1(v: v as int); // OK
   @override
-  num m2([num v = 20]) => super.m2(v); // OK
+  num m2([num v = 20]) => super.m2(v as int); // OK
   @override
-  num operator +(num other) => super + other; // OK
+  num operator +(num other) => super.g + other; // OK
 }
 class ParameterNameChanged extends C {
   @override
-  set s(num v2) => super.s = v2; // OK
+  set s(num v2) => super.s = v2 as int; // OK
   @override
   num m(int v2) => super.m(v2); // OK
   @override

@@ -60,8 +60,6 @@ void main() {
   printHashSet(LinkedHashSet<int>()); // OK
   printIndentedHashSet(0, LinkedHashSet<int>()); // OK
 
-  printUnresolved(LinkedHashSet<int>()); // OK
-
   Set<int> ss8 = LinkedHashSet.from([1, 2, 3]); // LINT
   LinkedHashSet<int> ss9 =  LinkedHashSet.from([1, 2, 3]); // OK
 

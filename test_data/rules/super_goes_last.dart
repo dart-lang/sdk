@@ -15,10 +15,3 @@ class B extends A {
       : _b = a + 1,
         super(a); // OK
 }
-
-class C extends A {
-  int _c;
-  C(int a)
-      : super(a), // LINT [9:8]
-        _c = a + 1;
-}

@@ -55,7 +55,7 @@ void main() {
   ff(val: false, valWithDefault: v); //OK
   ff(val: false, valWithDefault: q()); //OK
 
-  void fff({bool valWithDefault = true, bool val}) {}
+  void fff({bool valWithDefault = true, bool? val}) {}
 
   fff(valWithDefault: true); //LINT
   fff(val: false); //OK
