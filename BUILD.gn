@@ -100,10 +100,6 @@ group("dartdevc") {
   deps = [ "utils/dartdevc" ]
 }
 
-group("dartfmt") {
-  deps = [ "utils/dartfmt" ]
-}
-
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
 }

@@ -297,6 +297,12 @@
   `dart compile exe` and `dart compile aot-snapshot` commands, which offer the
   same functionality.
 
+- **Breaking Change**: The standalone `dartfmt` tool has been removed as
+  previously announced. Its replacement is the `dart format` command.
+
+  Note that `dart format` has [a different set of options and
+  defaults][dartfmt cli] than `dartfmt`.
+
 #### Dart VM
 
 - **Breaking Change** [#45451](https://github.com/dart-lang/sdk/issues/45451):

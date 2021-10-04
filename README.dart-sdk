@@ -5,13 +5,12 @@ You can find information about Dart online at dartlang.org.
 Here's a brief guide to what's in here:
 
 bin/             Binaries/scripts to compile, run, and manage Dart applications.
-  dart           Dart virtual machine
+  dart           Main Dart command-line executable
   dart2js        Dart-to-JavaScript compiler
   dart2native    Dart-to-native AOT compiler
   dartanalyzer   Dart static analyzer
   dartdoc        Dart documentation generator
   pub            Pub, the Dart package manager
-  dartfmt        Dart code formatter
 
 lib/             Libraries that are shipped with the Dart runtime. More
                  information is available at api.dartlang.org.
