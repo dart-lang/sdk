@@ -31,14 +31,7 @@ List<CodePath> computeCodePaths() {
   String analyzerPath = pathContext.join(packageRoot, 'analyzer');
   return CodePath.from([
     [analyzerPath, 'lib', 'src', 'dart', 'error', 'hint_codes.g.dart'],
-    [
-      analyzerPath,
-      'lib',
-      'src',
-      'dart',
-      'error',
-      'syntactic_errors.analyzer.g.dart'
-    ],
+    [analyzerPath, 'lib', 'src', 'dart', 'error', 'syntactic_errors.g.dart'],
     [analyzerPath, 'lib', 'src', 'error', 'codes.g.dart'],
     [analyzerPath, 'lib', 'src', 'pubspec', 'pubspec_warning_code.g.dart'],
   ], [

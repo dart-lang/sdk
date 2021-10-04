@@ -547,15 +547,13 @@ class ContextManagerImpl implements ContextManager {
     for (var driver in driverMap.values) {
       var needsUriReset = false;
       for (var event in fileEvents) {
-        if (event.type == ChangeType.ADD) {
-          driver.addFile(event.path);
+        driver.changeFile(event.path);
+        if (event.type == ChangeType.ADD || event.type == ChangeType.REMOVE) {
           needsUriReset = true;
         }
-        if (event.type == ChangeType.MODIFY) driver.changeFile(event.path);
-        if (event.type == ChangeType.REMOVE) driver.removeFile(event.path);
       }
-      // Since the file has been created after we've searched for it, the
-      // URI resolution is likely wrong, so we need to reset it.
+      // If a file was created or removed, the URI resolution is likely wrong,
+      // so we need to reset it.
       if (needsUriReset) driver.resetUriResolution();
     }
   }

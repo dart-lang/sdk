@@ -307,9 +307,7 @@ void main() {
   // Valid only if parenthesized.
   expect1((Z < X, X >) < 4);
 
-  // Still can't instantiate something non-generic.
-  /**/ v<int>;
-  //    ^^^^^
-  // [cfe] The static type of the explicit instantiation operand must be a generic function type but is 'Object?'.
-  // [analyzer] unspecified
+  // Since `v` has type `Object?`, this is an extension invocation of the
+  // implicit `call` tear off.
+  /**/ v<int, String>;
 }

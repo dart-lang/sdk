@@ -4,4 +4,4 @@
 
 export 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show ScannerErrorCode;
-export 'package:analyzer/src/dart/error/syntactic_errors.analyzer.g.dart';
+export 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
