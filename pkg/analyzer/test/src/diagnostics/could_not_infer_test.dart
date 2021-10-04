@@ -33,10 +33,12 @@ main() {
   P._();
 }
 ''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 154, 1)]),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 154, 1)]),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1),
     ]);
   }
 
@@ -58,8 +60,9 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 120, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 124, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 124, 1)]),
     ]);
   }
 

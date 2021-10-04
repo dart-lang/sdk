@@ -562,7 +562,8 @@ A<String> Function() bar() {
   return A.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 39, 9)]),
     ]);
 
     var classElement = findElement.class_('A');
