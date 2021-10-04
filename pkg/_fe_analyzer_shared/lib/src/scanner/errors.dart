@@ -155,7 +155,7 @@ class ScannerErrorCode extends ErrorCode {
           'UNEXPECTED_DOLLAR_IN_STRING',
           "A '\$' has special meaning inside a string, and must be followed by "
               "an identifier or an expression in curly braces ({}).",
-          correction: "Try adding a backslash (\\) to escape the '\$'.");
+          correctionMessage: "Try adding a backslash (\\) to escape the '\$'.");
 
   /**
    * Parameters:
@@ -167,7 +167,7 @@ class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
           'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
-          correction: "Try terminating the comment with '*/', or "
+          correctionMessage: "Try terminating the comment with '*/', or "
               "removing any unbalanced occurrences of '/*'"
               " (because comments nest in Dart).");
 
@@ -177,14 +177,15 @@ class ScannerErrorCode extends ErrorCode {
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
+   * associated with the error will be created from the given [problemMessage]
    * template. The correction associated with the error will be created from the
-   * given [correction] template.
+   * given [correctionMessage] template.
    */
-  const ScannerErrorCode(String name, String message, {String? correction})
+  const ScannerErrorCode(String name, String problemMessage,
+      {String? correctionMessage})
       : super(
-          correction: correction,
-          message: message,
+          correctionMessage: correctionMessage,
+          problemMessage: problemMessage,
           name: name,
           uniqueName: 'ScannerErrorCode.$name',
         );

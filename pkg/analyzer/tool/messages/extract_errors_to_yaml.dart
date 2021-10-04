@@ -223,8 +223,8 @@ void _generateYaml(Map<String, List<ErrorCode>> errorCodesByClass,
       var otherComment = commentInfo.otherComment;
       yamlCodes[uniqueNameSuffix] = ErrorCodeInfo(
               sharedName: uniqueNameSuffix == name ? null : name,
-              problemMessage: code.message,
-              correctionMessage: code.correction,
+              problemMessage: code.problemMessage,
+              correctionMessage: code.correctionMessage,
               isUnresolvedIdentifier: code.isUnresolvedIdentifier,
               hasPublishedDocs: code.hasPublishedDocs,
               comment: documentationComment,

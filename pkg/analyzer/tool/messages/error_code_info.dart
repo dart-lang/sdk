@@ -192,7 +192,7 @@ class ErrorCodeInfo {
             ',');
     final correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
-      out.write('correction: ');
+      out.write('correctionMessage: ');
       out.writeln(json.encode(
               _convertTemplate(placeholderToIndexMap, correctionMessage)) +
           ',');

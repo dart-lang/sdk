@@ -44,17 +44,17 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsErrorCode(
     String name,
-    String message, {
-    String? correction,
+    String problemMessage, {
+    String? correctionMessage,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correction: correction,
+          correctionMessage: correctionMessage,
           hasPublishedDocs: hasPublishedDocs,
           isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
           name: name,
+          problemMessage: problemMessage,
           uniqueName: 'AnalysisOptionsErrorCode.${uniqueName ?? name}',
         );
 
@@ -74,7 +74,7 @@ class AnalysisOptionsHintCode extends ErrorCode {
       AnalysisOptionsHintCode(
     'PREVIEW_DART_2_SETTING_DEPRECATED',
     "The 'enablePreviewDart2' setting is deprecated.",
-    correction: "It is no longer necessary to explicitly enable Dart 2.",
+    correctionMessage: "It is no longer necessary to explicitly enable Dart 2.",
   );
 
   /**
@@ -84,7 +84,8 @@ class AnalysisOptionsHintCode extends ErrorCode {
       AnalysisOptionsHintCode(
     'STRONG_MODE_SETTING_DEPRECATED',
     "The 'strong-mode: true' setting is deprecated.",
-    correction: "It is no longer necessary to explicitly enable strong mode.",
+    correctionMessage:
+        "It is no longer necessary to explicitly enable strong mode.",
   );
 
   /**
@@ -95,24 +96,24 @@ class AnalysisOptionsHintCode extends ErrorCode {
       AnalysisOptionsHintCode(
     'SUPER_MIXINS_SETTING_DEPRECATED',
     "The 'enableSuperMixins' setting is deprecated.",
-    correction:
+    correctionMessage:
         "Support has been added to the language for 'mixin' based mixins.",
   );
 
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsHintCode(
     String name,
-    String message, {
-    String? correction,
+    String problemMessage, {
+    String? correctionMessage,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correction: correction,
+          correctionMessage: correctionMessage,
           hasPublishedDocs: hasPublishedDocs,
           isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
           name: name,
+          problemMessage: problemMessage,
           uniqueName: 'AnalysisOptionsHintCode.${uniqueName ?? name}',
         );
 
@@ -191,7 +192,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
       AnalysisOptionsWarningCode(
     'SPEC_MODE_REMOVED',
     "The option 'strong-mode: false' is no longer supported.",
-    correction:
+    correctionMessage:
         "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant).",
   );
 
@@ -250,7 +251,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
       AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
     "The option '{1}' isn't supported by '{0}'.",
-    correction: "Try using one of the supported options: {2}.",
+    correctionMessage: "Try using one of the supported options: {2}.",
   );
 
   /**
@@ -266,23 +267,23 @@ class AnalysisOptionsWarningCode extends ErrorCode {
       AnalysisOptionsWarningCode(
     'UNSUPPORTED_VALUE',
     "The value '{1}' isn't supported by '{0}'.",
-    correction: "Try using one of the supported options: {2}.",
+    correctionMessage: "Try using one of the supported options: {2}.",
   );
 
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsWarningCode(
     String name,
-    String message, {
-    String? correction,
+    String problemMessage, {
+    String? correctionMessage,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correction: correction,
+          correctionMessage: correctionMessage,
           hasPublishedDocs: hasPublishedDocs,
           isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
           name: name,
+          problemMessage: problemMessage,
           uniqueName: 'AnalysisOptionsWarningCode.${uniqueName ?? name}',
         );
 

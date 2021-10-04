@@ -8,18 +8,18 @@ import 'package:analyzer/error/error.dart';
 abstract class AnalyzerErrorCode extends ErrorCode {
   /// Initialize a newly created error code.
   const AnalyzerErrorCode({
-    String? correction,
+    String? correctionMessage,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
-    required String message,
     required String name,
+    required String problemMessage,
     required String uniqueName,
   }) : super(
-          correction: correction,
+          correctionMessage: correctionMessage,
           hasPublishedDocs: hasPublishedDocs,
           isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
           name: name,
+          problemMessage: problemMessage,
           uniqueName: uniqueName,
         );
 }
