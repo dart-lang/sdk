@@ -23,7 +23,7 @@ void main() {
   for (int i = 0; i < Severity.values.length; i++) {
     Severity severity = Severity.values[i];
     Code code = new Code("MyCodeName");
-    Message message = new Message(code, message: '');
+    Message message = new Message(code, problemMessage: '');
     LocatedMessage locatedMessage1 =
         new LocatedMessage(Uri.parse("what:ever/fun_1.dart"), 117, 2, message);
     FormattedMessage formattedMessage2 = new FormattedMessage(

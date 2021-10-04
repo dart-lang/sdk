@@ -66,7 +66,7 @@ Code? getMessageCodeObject(DiagnosticMessage message) {
 
 /// This method is subject to change.
 String? getMessageHeaderText(DiagnosticMessage message) {
-  return message is FormattedMessage ? message.message : null;
+  return message is FormattedMessage ? message.problemMessage : null;
 }
 
 /// This method is subject to change.

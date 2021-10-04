@@ -39,14 +39,16 @@ class Code<T> {
 class Message {
   final Code<dynamic> code;
 
-  final String message;
+  final String problemMessage;
 
-  final String? tip;
+  final String? correctionMessage;
 
   final Map<String, dynamic> arguments;
 
   const Message(this.code,
-      {required this.message, this.tip, this.arguments = const {}});
+      {this.correctionMessage,
+      required this.problemMessage,
+      this.arguments = const {}});
 
   LocatedMessage withLocation(Uri uri, int charOffset, int length) {
     return new LocatedMessage(uri, charOffset, length, this);
@@ -57,21 +59,21 @@ class Message {
   }
 
   String toString() {
-    return "Message[$code, $message, $tip, $arguments]";
+    return "Message[$code, $problemMessage, $correctionMessage, $arguments]";
   }
 }
 
 class MessageCode extends Code<Null> implements Message {
-  final String message;
+  final String problemMessage;
 
-  final String? tip;
+  final String? correctionMessage;
 
   const MessageCode(String name,
       {int index: -1,
       List<String>? analyzerCodes,
       Severity severity: Severity.error,
-      required this.message,
-      this.tip})
+      required this.problemMessage,
+      this.correctionMessage})
       : super(name,
             index: index, analyzerCodes: analyzerCodes, severity: severity);
 
@@ -90,15 +92,15 @@ class MessageCode extends Code<Null> implements Message {
 }
 
 class Template<T> {
-  final String messageTemplate;
+  final String problemMessageTemplate;
 
-  final String? tipTemplate;
+  final String? correctionMessageTemplate;
 
   final T withArguments;
 
   const Template(
-      {required this.messageTemplate,
-      this.tipTemplate,
+      {this.correctionMessageTemplate,
+      required this.problemMessageTemplate,
       required this.withArguments});
 }
 
@@ -116,9 +118,9 @@ class LocatedMessage implements Comparable<LocatedMessage> {
 
   Code<dynamic> get code => messageObject.code;
 
-  String get message => messageObject.message;
+  String get problemMessage => messageObject.problemMessage;
 
-  String? get tip => messageObject.tip;
+  String? get correctionMessage => messageObject.correctionMessage;
 
   Map<String, dynamic> get arguments => messageObject.arguments;
 
@@ -128,7 +130,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     if (result != 0) return result;
     result = charOffset.compareTo(other.charOffset);
     if (result != 0) return result;
-    return message.compareTo(message);
+    return problemMessage.compareTo(problemMessage);
   }
 
   FormattedMessage withFormatting(PlainAndColorizedString formatted, int line,
@@ -209,9 +211,9 @@ class FormattedMessage implements DiagnosticMessage {
 
   String get codeName => code.name;
 
-  String get message => locatedMessage.message;
+  String get problemMessage => locatedMessage.problemMessage;
 
-  String? get tip => locatedMessage.tip;
+  String? get correctionMessage => locatedMessage.correctionMessage;
 
   Map<String, dynamic> get arguments => locatedMessage.arguments;
 

@@ -430,10 +430,10 @@ Template compileTemplate(String name, int? index, String? problemMessage,
   if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
     // ignore: unnecessary_null_comparison
     if (problemMessage != null) {
-      codeArguments.add('message: r"""$problemMessage"""');
+      codeArguments.add('problemMessage: r"""$problemMessage"""');
     }
     if (correctionMessage != null) {
-      codeArguments.add('tip: r"""$correctionMessage"""');
+      codeArguments.add('correctionMessage: r"""$correctionMessage"""');
     }
 
     return new Template("""
@@ -449,10 +449,11 @@ const MessageCode message$name =
   List<String> templateArguments = <String>[];
   // ignore: unnecessary_null_comparison
   if (problemMessage != null) {
-    templateArguments.add('messageTemplate: r"""$problemMessage"""');
+    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
   }
   if (correctionMessage != null) {
-    templateArguments.add('tipTemplate: r"""$correctionMessage"""');
+    templateArguments
+        .add('correctionMessageTemplate: r"""$correctionMessage"""');
   }
 
   templateArguments.add("withArguments: _withArguments$name");
@@ -462,9 +463,10 @@ const MessageCode message$name =
   if (hasLabeler) {
     message += " + labeler.originMessages";
   }
-  messageArguments.add("message: ${message}");
+  messageArguments.add("problemMessage: ${message}");
   if (correctionMessage != null) {
-    messageArguments.add("tip: ${interpolate(correctionMessage)}");
+    messageArguments
+        .add("correctionMessage: ${interpolate(correctionMessage)}");
   }
   messageArguments.add("arguments: { ${arguments.join(', ')} }");
 

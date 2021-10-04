@@ -272,8 +272,9 @@ class TypeInferrerImpl implements TypeInferrer {
     Arguments arguments;
     // ignore: unnecessary_null_comparison
     if (errorMessage != null) {
-      arguments = new Arguments(
-          [new StringLiteral(errorMessage.message)..fileOffset = fileOffset])
+      arguments = new Arguments([
+        new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset
+      ])
         ..fileOffset = fileOffset;
     } else {
       arguments = new Arguments([])..fileOffset = fileOffset;

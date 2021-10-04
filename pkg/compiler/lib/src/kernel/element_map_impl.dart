@@ -2168,7 +2168,7 @@ DiagnosticMessage _createDiagnosticMessage(
   SourceSpan sourceSpan = SourceSpan(
       message.uri, message.charOffset, message.charOffset + message.length);
   return reporter.createMessage(
-      sourceSpan, MessageKind.GENERIC, {'text': message.message});
+      sourceSpan, MessageKind.GENERIC, {'text': message.problemMessage});
 }
 
 void reportLocatedMessage(DiagnosticReporter reporter,

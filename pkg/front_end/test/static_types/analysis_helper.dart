@@ -210,7 +210,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
             // add ' (allowed)' to an existing message!
             LocatedMessage locatedMessage = message.locatedMessage;
             String newMessageText =
-                '${locatedMessage.messageObject.message} (allowed)';
+                '${locatedMessage.messageObject.problemMessage} (allowed)';
             message = locatedMessage.withFormatting(
                 format(
                     new LocatedMessage(
@@ -218,8 +218,9 @@ class DynamicVisitor extends StaticTypeVisitorBase {
                         locatedMessage.charOffset,
                         locatedMessage.length,
                         new Message(locatedMessage.messageObject.code,
-                            message: newMessageText,
-                            tip: locatedMessage.messageObject.tip,
+                            problemMessage: newMessageText,
+                            correctionMessage:
+                                locatedMessage.messageObject.correctionMessage,
                             arguments: locatedMessage.messageObject.arguments)),
                     Severity.warning,
                     location:

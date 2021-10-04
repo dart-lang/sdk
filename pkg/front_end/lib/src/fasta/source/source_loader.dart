@@ -401,7 +401,7 @@ class SourceLoader extends Loader {
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
           libraryCount, byteCount, ms, byteCount / ms, ms / libraryCount);
-      print("$sinceStart: ${message.message}");
+      print("$sinceStart: ${message.problemMessage}");
     });
   }
 
@@ -442,7 +442,7 @@ class SourceLoader extends Loader {
     severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """
-message: ${message.message}
+message: ${message.problemMessage}
 charOffset: $charOffset
 fileUri: $fileUri
 severity: $severity
@@ -661,7 +661,8 @@ severity: $severity
         return utf8.encode(defaultDartTypedDataSource);
 
       default:
-        return utf8.encode(message == null ? "" : "/* ${message.message} */");
+        return utf8
+            .encode(message == null ? "" : "/* ${message.problemMessage} */");
     }
   }
 

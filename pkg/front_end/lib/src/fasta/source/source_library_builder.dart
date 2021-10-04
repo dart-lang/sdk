@@ -1334,7 +1334,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           default:
             if (member is InvalidTypeDeclarationBuilder) {
               unserializableExports ??= <String, String>{};
-              unserializableExports![name] = member.message.message;
+              unserializableExports![name] = member.message.problemMessage;
             } else {
               // Eventually (in #buildBuilder) members aren't added to the
               // library if the have 'next' pointers, so don't add them as

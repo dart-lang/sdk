@@ -20,9 +20,10 @@ import 'package:test/test.dart'
         test;
 
 import 'package:front_end/src/api_prototype/front_end.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show messageMissingMain;
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show FormattedMessage, messageMissingMain;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
@@ -84,10 +85,11 @@ void main() {
     });
 
     test('compiler requires a main method', () async {
-      var errors = [];
+      var errors = <DiagnosticMessage>[];
       var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileScript('a() => print("hi");', options: options);
-      expect(errors.first.message, messageMissingMain.message);
+      expect((errors.first as FormattedMessage).problemMessage,
+          messageMissingMain.problemMessage);
     });
 
     test('generated program contains source-info', () async {

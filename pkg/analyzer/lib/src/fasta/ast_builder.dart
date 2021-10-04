@@ -3416,7 +3416,7 @@ class AstBuilder extends StackListener {
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
     }
-    debugEvent("Error: ${message.message}");
+    debugEvent("Error: ${message.problemMessage}");
     if (message.code.analyzerCodes == null && startToken is ErrorToken) {
       translateErrorToken(startToken, errorReporter.reportScannerError);
     } else {
@@ -3728,7 +3728,7 @@ class AstBuilder extends StackListener {
 
   @override
   Never internalProblem(Message message, int charOffset, Uri uri) {
-    throw UnsupportedError(message.message);
+    throw UnsupportedError(message.problemMessage);
   }
 
   /// Return `true` if [token] is either `null` or is the symbol or keyword

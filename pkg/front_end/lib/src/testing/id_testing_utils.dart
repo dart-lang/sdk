@@ -734,7 +734,7 @@ String errorsToText(List<FormattedMessage> errors, {bool useCodes: false}) {
   if (useCodes) {
     return errors.map((m) => m.code).join(',');
   } else {
-    return errors.map((m) => m.message).join(',');
+    return errors.map((m) => m.problemMessage).join(',');
   }
 }
 
