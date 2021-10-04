@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-10-03T09:32:39.517171",
+  "generated": "2021-10-04T10:29:25.433041",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -564,12 +564,6 @@
       "rootUri": "../third_party/pkg/pub_semver",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "resource",
-      "rootUri": "../third_party/pkg/resource",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "scrape",
