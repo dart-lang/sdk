@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+extension _extension#0 on self::Foo {
+  static field bar = self::_extension#0|bar;
+  static field doubleBar = self::_extension#0|doubleBar;
+}
+static const field core::int _extension#0|bar = #C1;
+static const field core::int _extension#0|doubleBar = #C2;
+static method main() → void {}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}
