@@ -79,14 +79,7 @@ const JsonCodec json = JsonCodec();
 ///
 /// Example:
 /// ```dart
-///  var data = {};
-///  data['text'] = 'foo';
-///  data["value"] = 2;
-///  data['status'] = false;
-///  data['extra'] = null;
-///
-///  var jsonObject = {};
-///  jsonObject['content'] = data;
+///  const data = {'text': 'foo', 'value': 2, 'status': false, 'extra': null};
 ///
 ///  final String jsonString = jsonEncode(data);
 ///  print(jsonString); // {"text":"foo","value":2,"status":false,"extra":null}
@@ -110,7 +103,7 @@ String jsonEncode(Object? object,
 ///
 /// Example:
 /// ```dart
-/// final sampleJsonString =
+/// const sampleJsonString =
 ///     '{"text":"foo", "value":1, "status": false, "extra":null}';
 ///
 /// final data = jsonDecode(sampleJsonString);
@@ -127,9 +120,9 @@ String jsonEncode(Object? object,
 /// print(dataList[1]); // {text: bar, value: 2, status: false}
 ///
 /// final item = dataList[0];
-/// print(item['text']); //  foo
+/// print(item['text']); // foo
 /// print(item['value']); // 1
-/// print(item['status']); //false
+/// print(item['status']); // false
 /// ```
 ///
 dynamic jsonDecode(String source,
@@ -231,14 +224,9 @@ class JsonCodec extends Codec<Object?, String> {
 ///
 /// ```dart
 /// const JsonEncoder encoder = JsonEncoder();
-/// var values = {};
-/// values['text'] = 'foo';
-/// values['value'] = 2;
+/// const data = {'text': 'foo', 'value': '2'};
 ///
-/// var jsonData = {};
-/// jsonData['content'] = values;
-///
-/// final String jsonString = encoder.convert(jsonData);
+/// final String jsonString = encoder.convert(data);
 /// print(jsonString); // {"content":{"text":"foo","value":2}}
 ///  ```
 ///
@@ -247,19 +235,12 @@ class JsonCodec extends Codec<Object?, String> {
 /// ```dart
 /// const JsonEncoder encoder = JsonEncoder.withIndent('  ');
 ///
-/// var values = {};
-/// values['text'] = 'foo';
-/// values['value'] = 1;
-///
-/// var jsonData = {};
-/// jsonData['content'] = values;
-/// final String jsonString = encoder.convert(jsonData);
+/// const data = {'text': 'foo', 'value': '2'};
+/// final String jsonString = encoder.convert(data);
 /// print(jsonString);
 /// // {
-/// //   "content": {
-/// //     "text": "foo",
-/// //     "value": 1
-/// //   }
+/// //   "text": "foo",
+/// //   "value": "2"
 /// // }
 /// ```
 ///
@@ -560,11 +541,11 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 /// ```dart
 /// const JsonDecoder decoder = JsonDecoder();
 ///
-/// const String strRawJson =
+/// const String strJson =
 ///     '{"data": [{"text": "foo", "value": 1}, {"text": "bar", "value": 2}],'
 ///     '"text":"Dart"}';
 ///
-/// final Map<String, dynamic> object = decoder.convert(strRawJson);
+/// final Map<String, dynamic> object = decoder.convert(strJson);
 ///
 /// final item0 = object['data'][0];
 /// print(item0['text']); // foo
