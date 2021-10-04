@@ -436,7 +436,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
                                     ? VMTag::kGCIdleTagId
                                     : VMTag::kGCNewSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
-    new_space_.Evacuate();
+    new_space_.Evacuate(reason);
     RecordAfterGC(GCType::kScavenge);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
@@ -464,7 +464,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
                                       ? VMTag::kGCIdleTagId
                                       : VMTag::kGCNewSpaceTagId);
       TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectNewGeneration");
-      new_space_.Scavenge();
+      new_space_.Scavenge(reason);
       RecordAfterGC(GCType::kScavenge);
       PrintStats();
       NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));

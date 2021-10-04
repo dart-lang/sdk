@@ -89,7 +89,7 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
 
   // Ensure we've done new/old GCs to ensure max metrics are initialized.
   String::New("<land-in-new-space>", Heap::kNew);
-  IsolateGroup::Current()->heap()->new_space()->Scavenge();
+  IsolateGroup::Current()->heap()->new_space()->Scavenge(GCReason::kLowMemory);
   IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kLowMemory);
 
   // Ensure we've something live in new space.

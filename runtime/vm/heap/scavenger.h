@@ -276,10 +276,10 @@ class Scavenger {
   void AbandonRemainingTLABForDebugging(Thread* thread);
 
   // Collect the garbage in this scavenger.
-  void Scavenge();
+  void Scavenge(GCReason reason);
 
   // Promote all live objects.
-  void Evacuate();
+  void Evacuate(GCReason reason);
 
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
@@ -389,7 +389,7 @@ class Scavenger {
   }
   void TryAllocateNewTLAB(Thread* thread, intptr_t size);
 
-  SemiSpace* Prologue();
+  SemiSpace* Prologue(GCReason reason);
   intptr_t ParallelScavenge(SemiSpace* from);
   intptr_t SerialScavenge(SemiSpace* from);
   void ReverseScavenge(SemiSpace** from);
@@ -413,7 +413,7 @@ class Scavenger {
 
   void MournWeakTables();
 
-  intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
+  intptr_t NewSizeInWords(intptr_t old_size_in_words, GCReason reason) const;
 
   Heap* heap_;
 

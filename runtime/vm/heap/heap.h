@@ -484,7 +484,7 @@ class GCTestHelper : public AllStatic {
   static void CollectNewSpace() {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->new_space()->Scavenge();
+    thread->heap()->new_space()->Scavenge(GCReason::kDebugging);
   }
 
   // Fully collect old gen and wait for the sweeper to finish. The normal call
