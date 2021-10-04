@@ -39,7 +39,7 @@ main(List<String> args) async {
         String name = "async_nested_${maxSize}_${i}_test.dart";
         asyncFile.renameSync(name);
         print(" -> Created $name");
-        print("    (you might want to run dartfmt -w $name).");
+        print("    (you might want to run 'dart format $name').");
       }
     }
   }
