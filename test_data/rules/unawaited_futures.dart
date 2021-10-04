@@ -6,7 +6,7 @@
 
 import 'dart:async';
 
-Future fut() => null;
+Future fut() => Future.value(0);
 
 foo1() {
   fut();
@@ -25,16 +25,17 @@ foo3() async {
 
 foo4() async {
   var x = fut();
+  return x;
 }
 
 foo5() async {
+  Duration d = Duration();
   new Future.delayed(d); //LINT
-  new Future.delayed(d, bar);
 }
 
 foo6() async {
   var map = <String, Future>{};
-  map.putIfAbsent('foo', fut());
+  map.putIfAbsent('foo', () => fut());
 }
 
 foo7() async {
@@ -57,12 +58,12 @@ foo9() async {
 
 foo10() async {
   _Foo()
-    ..futureListField[0] = fut();
+    ..futureListField?[0] = fut();
 }
 
 foo11() async {
   _Foo()
-    ..bar.futureField = fut();
+    ..bar?.futureField = fut();
 }
 
 foo12() async {
@@ -71,13 +72,13 @@ foo12() async {
 }
 
 class _Bar {
-  Future<void> futureField;
+  Future<void>? futureField;
 }
 
 class _Foo {
-  Future<void> futureField;
-  List<Future<void>> futureListField;
-  _Bar bar;
+  Future<void>? futureField;
+  List<Future<void>>? futureListField = [];
+  _Bar? bar;
   Future<void> doAsync() async {}
   void doSync() => null;
   Future<void> get asyncProperty => doAsync();
@@ -85,9 +86,12 @@ class _Foo {
 }
 
 /// https://github.com/dart-lang/linter/issues/2211
-class Future2 extends Future {}
+class Future2 implements Future {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
-Future2 fut2() => null;
+Future2 fut2() => Future2();
 
 f2() async {
   fut2(); //LINT

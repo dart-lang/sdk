@@ -170,16 +170,16 @@ int bar = 1;
 int baz = 2;
 
 int foo = 0;
-bool setting;
+bool setting = false;
 
 class A {
-  bool foo;
-  int fooNumber;
+  bool foo = false;
+  int fooNumber = 0;
 }
 
 class B {
-  bool bar;
-  int barNumber;
+  bool bar = false;
+  int barNumber = 0;
 }
 
 A a = new A();
@@ -358,7 +358,7 @@ someFunction() {
 }
 
 class Foo {
-  bool bar;
+  bool bar = false;
   void sayHello() {
     if (bar ?? false) print('hello');
   }
@@ -453,7 +453,7 @@ void test337_5() {
 }
 
 void bug658() {
-  String text;
+  String? text;
   if ((text?.length ?? 0) != 0) {}
 }
 

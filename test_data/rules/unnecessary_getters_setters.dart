@@ -38,7 +38,7 @@ class Box3 {
 
 class Box4 {
   var _contents;
-  get contents {
+  int get contents {
     return _contents;
   }
   set contents(int value) // OK -- notice the type

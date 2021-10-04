@@ -26,7 +26,7 @@ class Bad3 extends Object with Base {
 }
 
 class Ok extends Base {
-  Object newField; // OK
+  Object newField = 0; // OK
 
   final Object newFinal = 'ignore'; // OK
 }
@@ -36,7 +36,7 @@ class OK2 implements Base {
   Object something = 'done'; // OK
 
   @override
-  Object field;
+  Object field = 0;
 }
 
 abstract class OK3 implements Base {
@@ -121,7 +121,7 @@ class Sub1 extends Super1 {
 }
 
 class Super2 {
-  int x, y;
+  int x = 0, y = 0;
 }
 
 class Sub2 extends Super2 {
@@ -130,15 +130,15 @@ class Sub2 extends Super2 {
 }
 
 class Super3 {
-  int x;
+  int x = 0;
 }
 
 class Sub3 extends Super3 {
-  int x; // LINT
+  int x  = 0; // LINT
 }
 
 class A1 {
-  int f;
+  int f = 0;
 }
 
 class B1 extends A1 {}
@@ -147,27 +147,27 @@ abstract class C1 implements A1 {}
 
 class D1 extends B1 implements C1 {
   @override
-  int f; // LINT
+  int f = 0; // LINT
 }
 
 class A extends B {}
 class B extends A {
-  int field;
+  int field = 0;
 }
 
 class StaticsNo {
-  static int a;
+  static int a = 0;
 }
 
 class VerifyStatic extends StaticsNo {
-  static int a;
+  static int a = 0;
 }
 
 mixin M on A1 {
   @override
-  int f; // LINT
+  int f = 0; // LINT
 
-  int g; // OK
+  int g = 0; // OK
 }
 
 abstract class BB {
@@ -177,12 +177,12 @@ abstract class BB {
 class AA extends BB {
   /// Overriding abstracts in NNBD is OK.
   @override
-  String s; // OK
+  String s = ''; // OK
 }
 
 class AAA with BB {
   @override
-  String s; // OK
+  String s = ''; // OK
 }
 
 abstract class BBB {
@@ -191,5 +191,5 @@ abstract class BBB {
 
 class AAA extends BBB {
   @override
-  String s; // OK
+  String s = ''; // OK
 }

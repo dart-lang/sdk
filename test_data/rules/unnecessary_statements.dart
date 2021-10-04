@@ -16,7 +16,7 @@ void constructorTearOffs() {
 String f(Object o) {
   // See: https://github.com/dart-lang/linter/issues/2163
   o as int; // OK
-  return null;
+  return '';
 }
 
 notReturned() {
@@ -178,7 +178,7 @@ inOtherStatements() {
 bool someBool = true;
 bool foo() => true;
 get getter => true;
-int field;
+int field = 0;
 
 class MyClass {
   int field = 0;

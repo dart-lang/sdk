@@ -7,16 +7,6 @@
 import 'dart:async';
 import 'dart:core';
 
-class A extends B {
-  A(int x);
-}
-class B extends A {}
-
-//https://github.com/dart-lang/linter/issues/1414
-void test_cycle() {
-  new A(null);
-}
-
 void list_firstWhere() {
   // firstWhere has a _named_ closure argument.
   <int>[2, 4, 6].firstWhere((e) => e.isEven, orElse: null); // LINT
