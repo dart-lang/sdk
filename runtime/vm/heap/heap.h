@@ -51,25 +51,6 @@ class Heap {
     kNumWeakSelectors
   };
 
-  enum GCType {
-    kScavenge,
-    kMarkSweep,
-    kMarkCompact,
-  };
-
-  enum GCReason {
-    kNewSpace,     // New space is full.
-    kPromotion,    // Old space limit crossed after a scavenge.
-    kOldSpace,     // Old space limit crossed.
-    kFinalize,     // Concurrent marking finished.
-    kFull,         // Heap::CollectAllGarbage
-    kExternal,     // Dart_NewFinalizableHandle Dart_NewWeakPersistentHandle
-    kIdle,         // Dart_NotifyIdle
-    kLowMemory,    // Dart_NotifyLowMemory
-    kDebugging,    // service request, etc.
-    kSendAndExit,  // SendPort.sendAndExit
-  };
-
   // Pattern for unused new space and swept old space.
   static const uint8_t kZapByte = 0xf3;
 
@@ -136,13 +117,13 @@ class Heap {
   // mark-sweep treats new space as roots, a cycle between unreachable old and
   // new objects will not be collected until the new objects are promoted.
   // Verification based on heap iteration should instead use CollectAllGarbage.
-  void CollectMostGarbage(GCReason reason = kFull);
+  void CollectMostGarbage(GCReason reason = GCReason::kFull);
 
   // Collect both generations by performing an evacuation followed by a
   // mark-sweep. If incremental marking was in progress, perform another
   // mark-sweep. This function will collect all unreachable objects, including
   // those in inter-generational cycles or stored during incremental marking.
-  void CollectAllGarbage(GCReason reason = kFull);
+  void CollectAllGarbage(GCReason reason = GCReason::kFull);
 
   void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
   void StartConcurrentMarking(Thread* thread);
@@ -331,8 +312,8 @@ class Heap {
    public:
     GCStats() {}
     intptr_t num_;
-    Heap::GCType type_;
-    Heap::GCReason reason_;
+    GCType type_;
+    GCReason reason_;
 
     class Data : public ValueObject {
      public:
@@ -514,16 +495,16 @@ class GCTestHelper : public AllStatic {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
     if (thread->is_marking()) {
-      thread->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
+      thread->heap()->CollectGarbage(GCType::kMarkSweep, GCReason::kDebugging);
     }
-    thread->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
+    thread->heap()->CollectGarbage(GCType::kMarkSweep, GCReason::kDebugging);
     WaitForGCTasks();
   }
 
   static void CollectAllGarbage() {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->CollectAllGarbage(Heap::kDebugging);
+    thread->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   static void WaitForGCTasks() {

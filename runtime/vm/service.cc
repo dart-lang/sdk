@@ -4228,7 +4228,7 @@ static const MethodParameter* const collect_all_garbage_params[] = {
 
 static void CollectAllGarbage(Thread* thread, JSONStream* js) {
   auto heap = thread->isolate_group()->heap();
-  heap->CollectAllGarbage(Heap::kDebugging);
+  heap->CollectAllGarbage(GCReason::kDebugging);
   PrintSuccess(js);
 }
 
@@ -4241,12 +4241,14 @@ static void GetHeapMap(Thread* thread, JSONStream* js) {
   auto isolate_group = thread->isolate_group();
   if (js->HasParam("gc")) {
     if (js->ParamIs("gc", "scavenge")) {
-      isolate_group->heap()->CollectGarbage(Heap::kScavenge, Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(GCType::kScavenge,
+                                            GCReason::kDebugging);
     } else if (js->ParamIs("gc", "mark-sweep")) {
-      isolate_group->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(GCType::kMarkSweep,
+                                            GCReason::kDebugging);
     } else if (js->ParamIs("gc", "mark-compact")) {
-      isolate_group->heap()->CollectGarbage(Heap::kMarkCompact,
-                                            Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(GCType::kMarkCompact,
+                                            GCReason::kDebugging);
     } else {
       PrintInvalidParamError(js, "gc");
       return;

@@ -2797,7 +2797,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
   }
   if (do_gc) {
-    isolate->group()->heap()->CollectAllGarbage(Heap::kDebugging);
+    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
