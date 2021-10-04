@@ -140,7 +140,6 @@ class FileState {
   Set<FileState>? _directReferencedLibraries;
 
   LibraryCycle? _libraryCycle;
-  String? _transitiveSignature;
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
@@ -320,10 +319,12 @@ class FileState {
 
   /// Return the signature of the file, based on API signatures of the
   /// transitive closure of imported / exported files.
+  /// TODO(scheglov) Remove it.
   String get transitiveSignature {
-    libraryCycle; // sets _transitiveSignature
-    _transitiveSignature ??= _invalidTransitiveSignature;
-    return _transitiveSignature!;
+    var librarySignatureBuilder = ApiSignature()
+      ..addString(uriStr)
+      ..addString(libraryCycle.transitiveSignature);
+    return librarySignatureBuilder.toHex();
   }
 
   /// The [UnlinkedUnit2] of the file.
@@ -334,13 +335,6 @@ class FileState {
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
-
-  String get _invalidTransitiveSignature {
-    return (ApiSignature()
-          ..addString(path)
-          ..addBytes(unlinkedSignature))
-        .toHex();
-  }
 
   @override
   bool operator ==(Object other) {
@@ -357,14 +351,8 @@ class FileState {
     return bytes;
   }
 
-  void internal_setLibraryCycle(LibraryCycle? cycle, String? signature) {
-    if (cycle == null) {
-      _libraryCycle = null;
-      _transitiveSignature = null;
-    } else {
-      _libraryCycle = cycle;
-      _transitiveSignature = signature;
-    }
+  void internal_setLibraryCycle(LibraryCycle? cycle) {
+    _libraryCycle = cycle;
   }
 
   /// Return a new parsed unresolved [CompilationUnit].

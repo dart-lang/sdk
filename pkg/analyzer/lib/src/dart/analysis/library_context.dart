@@ -121,7 +121,7 @@ class LibraryContext {
         }
       }
 
-      var resolutionKey = cycle.transitiveSignature! + '.linked_bundle';
+      var resolutionKey = cycle.transitiveSignature + '.linked_bundle';
       var resolutionBytes = byteStore.get(resolutionKey) as Uint8List?;
 
       if (resolutionBytes == null) {
