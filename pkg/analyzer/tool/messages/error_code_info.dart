@@ -128,13 +128,6 @@ class ErrorCodeInfo {
   /// error in code generated output.
   final String? comment;
 
-  /// `true` if this error should be copied from an error in the CFE.  The
-  /// purpose of this field is so that the documentation for the error can exist
-  /// in the analyzer's messages.yaml file but the error text can come from the
-  /// CFE's messages.yaml file.  TODO(paulberry): add support for documentation
-  /// to the CFE's messages.yaml file so that this isn't necessary.
-  final bool copyFromCfe;
-
   /// If the error code has an associated correctionMessage, the template for
   /// it.
   final String? correctionMessage;
@@ -153,9 +146,8 @@ class ErrorCodeInfo {
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
-  /// The problemMessage for the error code, or `null` if [copyFromCfe] is
-  /// `true`.
-  final String? problemMessage;
+  /// The problemMessage for the error code.
+  final String problemMessage;
 
   /// If present, indicates that this error code has a special name for
   /// presentation to the user, that is potentially shared with other error
@@ -165,40 +157,26 @@ class ErrorCodeInfo {
   ErrorCodeInfo(
       {this.analyzerCode = const [],
       this.comment,
-      this.copyFromCfe = false,
       this.documentation,
       this.hasPublishedDocs = false,
       this.index,
       this.isUnresolvedIdentifier = false,
       this.sharedName,
-      this.problemMessage,
-      this.correctionMessage}) {
-    if (copyFromCfe) {
-      if (problemMessage != null) {
-        throw "Error codes marked `copyFromCfe: true` can't have a "
-            "problemMessage.";
-      }
-    } else {
-      if (problemMessage == null) {
-        throw 'Error codes must have a problemMessage unless they are marked '
-            '`copyFromCfe: true`.';
-      }
-    }
-  }
+      required this.problemMessage,
+      this.correctionMessage});
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
       : this(
             analyzerCode: _decodeAnalyzerCode(yaml['analyzerCode']),
             comment: yaml['comment'] as String?,
-            copyFromCfe: yaml['copyFromCfe'] as bool? ?? false,
             correctionMessage: yaml['correctionMessage'] as String?,
             documentation: yaml['documentation'] as String?,
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
             index: yaml['index'] as int?,
             isUnresolvedIdentifier:
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
-            problemMessage: yaml['problemMessage'] as String?,
+            problemMessage: yaml['problemMessage'] as String,
             sharedName: yaml['sharedName'] as String?);
 
   /// Generates a dart declaration for this error code, suitable for inclusion
@@ -210,7 +188,7 @@ class ErrorCodeInfo {
     out.writeln("'${sharedName ?? errorCode}',");
     final placeholderToIndexMap = _computePlaceholderToIndexMap();
     out.writeln(
-        json.encode(_convertTemplate(placeholderToIndexMap, problemMessage!)) +
+        json.encode(_convertTemplate(placeholderToIndexMap, problemMessage)) +
             ',');
     final correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
@@ -254,11 +232,10 @@ class ErrorCodeInfo {
 
   /// Encodes this object into a YAML representation.
   Map<Object?, Object?> toYaml() => {
-        if (copyFromCfe) 'copyFromCfe': true,
         if (sharedName != null) 'sharedName': sharedName,
         if (analyzerCode.isNotEmpty)
           'analyzerCode': _encodeAnalyzerCode(analyzerCode),
-        if (problemMessage != null) 'problemMessage': problemMessage,
+        'problemMessage': problemMessage,
         if (correctionMessage != null) 'correctionMessage': correctionMessage,
         if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
         if (hasPublishedDocs) 'hasPublishedDocs': true,
