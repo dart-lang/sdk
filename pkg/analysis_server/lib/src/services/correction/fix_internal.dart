@@ -41,6 +41,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_conditional
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
@@ -800,7 +801,7 @@ class FixProcessor extends BaseProcessor {
       CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      CreateMissingOverrides.newInstance,
+      ConvertIntoBlockBody.newInstance,
       CreateNoSuchMethod.newInstance,
       MakeClassAbstract.newInstance,
     ],
@@ -1251,6 +1252,9 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.newInstance,
+    ],
+    ParserErrorCode.MISSING_FUNCTION_BODY: [
+      ConvertIntoBlockBody.newInstance,
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.newInstance,

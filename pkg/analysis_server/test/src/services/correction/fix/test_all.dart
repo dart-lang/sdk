@@ -50,6 +50,7 @@ import 'convert_documentation_into_line_test.dart'
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
+import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
@@ -246,6 +247,7 @@ void main() {
     convert_flutter_child.main();
     convert_flutter_children.main();
     convert_for_each_to_for_loop.main();
+    convert_into_block_body.main();
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();

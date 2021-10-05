@@ -299,6 +299,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Convert to child:',
   );
+  static const CONVERT_INTO_BLOCK_BODY = FixKind(
+    'dart.fix.convert.bodyToBlock',
+    DartFixKindPriority.DEFAULT,
+    'Convert to block body',
+  );
   static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
     'dart.fix.convert.toForLoop',
     DartFixKindPriority.DEFAULT,
