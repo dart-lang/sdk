@@ -2923,6 +2923,7 @@ CompileTimeErrorCode:
   DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
     problemMessage: "Required named parameters can't have a default value."
     correctionMessage: "Try removing either the default value or the 'required' modifier."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -4797,6 +4798,7 @@ CompileTimeErrorCode:
   GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
     problemMessage: "A method tear-off on a receiver whose type is 'dynamic' can't have type arguments."
     correctionMessage: Specify the type of the receiver, or remove the type arguments from the method tear-off.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5706,6 +5708,7 @@ CompileTimeErrorCode:
   INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
     problemMessage: "Type aliases that expand to a type parameter can't be instantiated."
     correctionMessage: Try replacing it with a class.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5887,6 +5890,7 @@ CompileTimeErrorCode:
   INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
     problemMessage: "Constant values from a deferred library can't be used in annotations."
     correctionMessage: "Try moving the constant from the deferred library, or removing 'deferred' from the import."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -9129,6 +9133,7 @@ CompileTimeErrorCode:
       Replace the name with the name of a type.
   NOT_BINARY_OPERATOR:
     problemMessage: "'{0}' isn't a binary operator."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the operator that is not a binary operator.
@@ -10609,6 +10614,7 @@ CompileTimeErrorCode:
   REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
     problemMessage: "A redirecting constructor can't redirect to a type alias that expands to a type parameter."
     correctionMessage: Try replacing it with a class.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -11473,6 +11479,7 @@ CompileTimeErrorCode:
   TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
     problemMessage: "A generative constructor of an abstract class can't be torn off."
     correctionMessage: Try tearing off a constructor of a concrete class, or a non-generative constructor.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15047,6 +15054,7 @@ HintCode:
       1: the name of the defining class
   INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
     problemMessage: "The member '{0}' can only be used for overriding."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
@@ -15158,6 +15166,7 @@ HintCode:
       ```
   INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
     problemMessage: "The declaration '{0}' is annotated with 'visibleForOverriding'. Because '{0}' isn't an interface member that could be overridden, the annotation is meaningless."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15534,6 +15543,7 @@ HintCode:
   NULL_ARGUMENT_TO_NON_NULL_TYPE:
     problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
     correctionMessage: Try adding a non-null argument.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the method being invoked
@@ -15847,6 +15857,7 @@ HintCode:
   SDK_VERSION_CONSTRUCTOR_TEAROFFS:
     problemMessage: "Tearing off a constructor requires the 'constructor-tearoffs' language feature."
     correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
 
@@ -16014,6 +16025,7 @@ HintCode:
   SDK_VERSION_GT_GT_GT_OPERATOR:
     problemMessage: "The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -16483,6 +16495,7 @@ HintCode:
       ```
   UNDEFINED_REFERENCED_PARAMETER:
     problemMessage: "The parameter '{0}' is not defined by '{1}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the undefined parameter
@@ -16602,6 +16615,7 @@ HintCode:
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the uri that is not necessary
@@ -16764,6 +16778,7 @@ HintCode:
     comment: No parameters.
   UNNECESSARY_QUESTION_MARK:
     problemMessage: "The '?' is unnecessary because '{0}' is nullable without it."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the type
@@ -17126,6 +17141,7 @@ HintCode:
   UNUSED_RESULT:
     problemMessage: "The value of '{0}' should be used."
     correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the annotated method, property or function
@@ -17200,6 +17216,7 @@ HintCode:
     sharedName: UNUSED_RESULT
     problemMessage: "'{0}' should be used. {1}."
     correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
     comment: |-
       The result of invoking a method, property, or function annotated with
       `@useResult` must be used (assigned, passed to a function as an argument,
@@ -17245,6 +17262,7 @@ HintCode:
   USE_OF_NATIVE_EXTENSION:
     problemMessage: Dart native extensions are deprecated and aren’t available in Dart 2.15.
     correctionMessage: "Try using dart:ffi for C interop."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
