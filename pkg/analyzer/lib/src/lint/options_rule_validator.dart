@@ -29,7 +29,7 @@ const AnalysisOptionsHintCode DEPRECATED_LINT_HINT = AnalysisOptionsHintCode(
 const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = AnalysisOptionsHintCode(
     'DUPLICATE_RULE',
     "The rule {0} is already specified and doesn't need to be specified again.",
-    correction: "Try removing all but one specification of the rule.");
+    correctionMessage: "Try removing all but one specification of the rule.");
 
 /// An error code indicating an incompatible rule.
 ///
@@ -39,7 +39,7 @@ const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = AnalysisOptionsHintCode(
 const AnalysisOptionsWarningCode INCOMPATIBLE_LINT_WARNING =
     AnalysisOptionsWarningCode('INCOMPATIBLE_LINT_WARNING',
         "The rule '{0}' is incompatible with the rule '{1}'",
-        correction: "Try removing one of the incompatible rules.");
+        correctionMessage: "Try removing one of the incompatible rules.");
 
 /// An error code indicating an undefined lint rule.
 ///

@@ -207,17 +207,18 @@ class _AnalyzerErrorGenerator {
       out.writeln();
       out.writeln('/// Initialize a newly created error code to have the given '
           '[name].');
-      out.writeln('const ${errorClass.name}(String name, String message, {');
-      out.writeln('String? correction,');
+      out.writeln(
+          'const ${errorClass.name}(String name, String problemMessage, {');
+      out.writeln('String? correctionMessage,');
       out.writeln('bool hasPublishedDocs = false,');
       out.writeln('bool isUnresolvedIdentifier = false,');
       out.writeln('String? uniqueName,');
       out.writeln('}) : super(');
-      out.writeln('correction: correction,');
+      out.writeln('correctionMessage: correctionMessage,');
       out.writeln('hasPublishedDocs: hasPublishedDocs,');
       out.writeln('isUnresolvedIdentifier: isUnresolvedIdentifier,');
-      out.writeln('message: message,');
       out.writeln('name: name,');
+      out.writeln('problemMessage: problemMessage,');
       out.writeln("uniqueName: '${errorClass.name}.\${uniqueName ?? name}',");
       out.writeln(');');
       out.writeln();

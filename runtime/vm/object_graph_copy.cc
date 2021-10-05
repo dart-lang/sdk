@@ -1741,7 +1741,7 @@ class ObjectGraphCopier {
         // We use kLowMemory to force the GC to compact, which is more likely to
         // discover untracked pointers (and other issues, like incorrect class
         // table).
-        thread_->heap()->CollectAllGarbage(Heap::kLowMemory);
+        thread_->heap()->CollectAllGarbage(GCReason::kLowMemory);
       }
 
       // Fast copy failed due to

@@ -65,7 +65,7 @@ main() {
 
 const LintCode customCode = LintCode(
     'hash_and_equals', 'Override `==` if overriding `hashCode`.',
-    correction: 'Implement `==`.');
+    correctionMessage: 'Implement `==`.');
 
 class CollectingReporter extends ErrorReporter {
   ErrorCode? code;

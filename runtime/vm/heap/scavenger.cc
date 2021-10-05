@@ -805,17 +805,26 @@ Scavenger::~Scavenger() {
   ASSERT(blocks_ == nullptr);
 }
 
-intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
-  if (stats_history_.Size() == 0) {
+intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
+                                   GCReason reason) const {
+  if (reason != GCReason::kNewSpace) {
+    // If we GC for a reason other than new-space being full, that's not an
+    // indication that new-space is too small.
     return old_size_in_words;
   }
-  double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
-  if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
-    return Utils::Minimum(max_semi_capacity_in_words_,
-                          old_size_in_words * FLAG_new_gen_growth_factor);
-  } else {
-    return old_size_in_words;
+
+  if (stats_history_.Size() != 0) {
+    double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
+    if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
+      // Too much survived last time; grow new-space in the hope that a greater
+      // fraction of objects will become unreachable before new-space becomes
+      // full.
+      return Utils::Minimum(max_semi_capacity_in_words_,
+                            old_size_in_words * FLAG_new_gen_growth_factor);
+    }
   }
+
+  return old_size_in_words;
 }
 
 class CollectStoreBufferVisitor : public ObjectPointerVisitor {
@@ -962,7 +971,7 @@ void Scavenger::VerifyStoreBuffers() {
   }
 }
 
-SemiSpace* Scavenger::Prologue() {
+SemiSpace* Scavenger::Prologue(GCReason reason) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Prologue");
 
   heap_->isolate_group()->ReleaseStoreBuffers();
@@ -984,7 +993,7 @@ SemiSpace* Scavenger::Prologue() {
   {
     MutexLocker ml(&space_lock_);
     from = to_;
-    to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words()));
+    to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words(), reason));
   }
   UpdateMaxHeapCapacity();
 
@@ -1562,7 +1571,7 @@ uword ScavengerVisitorBase<parallel>::TryAllocateCopySlow(intptr_t size) {
   return tail_->TryAllocateGC(size);
 }
 
-void Scavenger::Scavenge() {
+void Scavenger::Scavenge(GCReason reason) {
   int64_t start = OS::GetCurrentMonotonicMicros();
 
   // Ensure that all threads for this isolate are at a safepoint (either stopped
@@ -1601,7 +1610,7 @@ void Scavenger::Scavenge() {
     }
     promo_candidate_words += page->promo_candidate_words();
   }
-  SemiSpace* from = Prologue();
+  SemiSpace* from = Prologue(reason);
 
   intptr_t bytes_promoted;
   if (FLAG_scavenger_tasks == 0) {
@@ -1805,7 +1814,7 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 }
 #endif  // !PRODUCT
 
-void Scavenger::Evacuate() {
+void Scavenger::Evacuate(GCReason reason) {
   // We need a safepoint here to prevent allocation right before or right after
   // the scavenge.
   // The former can introduce an object that we might fail to collect.
@@ -1817,7 +1826,7 @@ void Scavenger::Evacuate() {
   // Forces the next scavenge to promote all the objects in the new space.
   early_tenure_ = true;
 
-  Scavenge();
+  Scavenge(reason);
 
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.

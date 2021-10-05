@@ -512,11 +512,11 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
 class HeapTestHelper {
  public:
   static void Scavenge(Thread* thread) {
-    thread->heap()->CollectNewSpaceGarbage(thread, Heap::kDebugging);
+    thread->heap()->CollectNewSpaceGarbage(thread, GCReason::kDebugging);
   }
   static void MarkSweep(Thread* thread) {
-    thread->heap()->CollectOldSpaceGarbage(thread, Heap::kMarkSweep,
-                                           Heap::kDebugging);
+    thread->heap()->CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
+                                           GCReason::kDebugging);
     thread->heap()->WaitForMarkerTasks(thread);
     thread->heap()->WaitForSweeperTasks(thread);
   }

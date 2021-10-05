@@ -129,7 +129,8 @@ class C {
   C(G<B> this.f) {}
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 69, 4)]),
     ]);
   }
 
@@ -140,7 +141,8 @@ class B {}
 class G<E extends A> {}
 G<B> f() => throw 0;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
     ]);
   }
 
@@ -151,7 +153,8 @@ class B {}
 class G<E extends A> {}
 typedef G<B> f();
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 54, 4)]),
     ]);
   }
 
@@ -162,7 +165,8 @@ class B {}
 class G<E extends A> {}
 f(G<B> h()) {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
     ]);
   }
 
@@ -184,7 +188,8 @@ class B {}
 class G<E extends A> {}
 var b = 1 is G<B>;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 61, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 61, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 59, 4)]),
     ]);
   }
 
@@ -252,7 +257,8 @@ class C {
   G<B> m() => throw 0;
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 58, 4)]),
     ]);
   }
 
@@ -297,7 +303,8 @@ class Bar<T extends Foo<T>> {}
 class Baz extends Bar {}
 void main() {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 65, 3)]),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
     assertType(result.unit.declaredElement!.getType('Baz')!.supertype,
@@ -311,7 +318,8 @@ class B {}
 typedef F<T extends A>();
 F<B> fff = (throw 42);
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
     ]);
   }
 
@@ -350,7 +358,8 @@ class B {}
 class G<E extends A> {}
 f(G<B> g) {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
     ]);
   }
 
@@ -376,7 +385,8 @@ class C<E> {}
 class D<E extends A> {}
 C<D<B>> c = (throw 0);
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 62, 4)]),
     ]);
   }
 
@@ -388,7 +398,8 @@ class C {}
 class G<E extends A> {}
 class D<F extends G<B>> {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 77, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 77, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 75, 4)]),
     ]);
   }
 
@@ -399,7 +410,8 @@ class B {}
 class G<E extends A> {}
 G<B> g = (throw 0);
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
     ]);
   }
 
@@ -487,7 +499,8 @@ typedef FB<T extends F> = S Function<S extends T>(S);
 class CB<T extends F> {}
 void f(CB<FB<F>> a) {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 119, 5),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 119, 5,
+          contextMessages: [message('/home/test/lib/test.dart', 116, 9)]),
     ]);
   }
 
@@ -613,7 +626,8 @@ typedef X<T> = A;
 class A<T extends A<T>> {}
 typedef X<T> = A;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
     ]);
   }
 
@@ -623,7 +637,8 @@ class A {}
 typedef X<T extends A> = Map<int, T>;
 void f(X<String> a) {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 9)]),
     ]);
   }
 
@@ -642,7 +657,11 @@ typedef A<X> = X Function(X);
 typedef G<X extends A<X>> = void Function<Y extends X>();
 foo(G g) {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 92, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 92, 1,
+          contextMessages: [
+            message('/home/test/lib/test.dart', 92, 1),
+            message('/home/test/lib/test.dart', 92, 1)
+          ]),
     ]);
   }
 
@@ -698,7 +717,8 @@ A get foo => throw 0;
 class C<T extends int> {}
 var t = C<String>;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 34, 9)]),
     ]);
   }
 
@@ -707,7 +727,8 @@ var t = C<String>;
 typedef Cb<T extends int> = void Function();
 var t = Cb<String>;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 53, 10)]),
     ]);
   }
 
@@ -717,7 +738,8 @@ class C {}
 typedef D<T extends int> = C;
 var t = D<String>;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 49, 9)]),
     ]);
   }
 }

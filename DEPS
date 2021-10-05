@@ -93,7 +93,7 @@ vars = {
   "csslib_rev": "6338de25a09d098a62c9a1992c175e9ceb5b994a",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
-  # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
+  # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here.
   #
   # Please follow this process to make updates:
@@ -106,7 +106,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "14d9b6fd58cc4744676c12be3cc5eee2a779db82",
 
-  "dartdoc_rev" : "e5ebb7a6e88427db25c21811dc91190475934b17",
+  "dartdoc_rev" : "c2f284f09bcc49025fe26e86b2d45e1b546f81a3",
   "devtools_rev" : "2b47d9ed486479153ca2fd038000950674ed1beb",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
@@ -141,7 +141,6 @@ vars = {
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
   "pub_rev": "37d05928939b3100e7e55c3dff922651db1de1e1",
   "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
-  "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
@@ -404,8 +403,6 @@ deps = {
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/pub":
       Var("dart_git") + "pub.git" + "@" + Var("pub_rev"),
-  Var("dart_root") + "/third_party/pkg/resource":
-      Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":

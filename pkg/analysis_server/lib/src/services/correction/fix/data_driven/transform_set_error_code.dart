@@ -157,14 +157,14 @@ class TransformSetErrorCode extends ErrorCode {
   /// Initialize a newly created error code.
   const TransformSetErrorCode(
     String name,
-    String message, {
-    String? correction,
+    String problemMessage, {
+    String? correctionMessage,
     bool hasPublishedDocs = false,
   }) : super(
-          correction: correction,
+          correctionMessage: correctionMessage,
           hasPublishedDocs: hasPublishedDocs,
-          message: message,
           name: name,
+          problemMessage: problemMessage,
           uniqueName: 'TransformSetErrorCode.$name',
         );
 

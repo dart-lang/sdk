@@ -56,7 +56,7 @@ class Parser {
 
   set enableSetLiterals(bool value) {
     // TODO(danrubel): Remove this method once the reference to this flag
-    // has been removed from dartfmt.
+    // has been removed from dart format.
   }
 
   set parseFunctionBodies(bool parseFunctionBodies) {

@@ -471,7 +471,7 @@ void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
       Thread* thread = Thread::Current();
       if (thread->CanCollectGarbage()) {
         heap_->CheckFinishConcurrentMarking(thread);
-        heap_->CheckStartConcurrentMarking(thread, Heap::kOldSpace);
+        heap_->CheckStartConcurrentMarking(thread, GCReason::kOldSpace);
       }
     }
   }

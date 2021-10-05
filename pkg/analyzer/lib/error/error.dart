@@ -968,7 +968,7 @@ class AnalysisError implements Diagnostic {
 
   /// The correction to be displayed for this error, or `null` if there is no
   /// correction information for this error.
-  String? _correction;
+  String? _correctionMessage;
 
   /// The source in which the error occurred, or `null` if unknown.
   final Source source;
@@ -982,22 +982,22 @@ class AnalysisError implements Diagnostic {
       [List<Object?>? arguments,
       List<DiagnosticMessage> contextMessages = const []])
       : _contextMessages = contextMessages {
-    String message = formatList(errorCode.message, arguments);
-    String? correctionTemplate = errorCode.correction;
+    String problemMessage = formatList(errorCode.problemMessage, arguments);
+    String? correctionTemplate = errorCode.correctionMessage;
     if (correctionTemplate != null) {
-      _correction = formatList(correctionTemplate, arguments);
+      _correctionMessage = formatList(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
         filePath: source.fullName,
         length: length,
-        message: message,
+        message: problemMessage,
         offset: offset,
         url: null);
   }
 
   /// Initialize a newly created analysis error with given values.
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
-      String message, this._correction,
+      String message, this._correctionMessage,
       {List<DiagnosticMessage> contextMessages = const []})
       : _contextMessages = contextMessages {
     _problemMessage = DiagnosticMessageImpl(
@@ -1029,10 +1029,10 @@ class AnalysisError implements Diagnostic {
   /// Return the template used to create the correction to be displayed for this
   /// error, or `null` if there is no correction information for this error. The
   /// correction should indicate how the user can fix the error.
-  String? get correction => _correction;
+  String? get correction => _correctionMessage;
 
   @override
-  String? get correctionMessage => _correction;
+  String? get correctionMessage => _correctionMessage;
 
   @override
   int get hashCode {

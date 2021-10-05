@@ -35,14 +35,14 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest {
     expect(pluginError, isNotNull);
     var location = pluginError.location;
     expect(pluginError.code, errorCode.name.toLowerCase());
-    expect(pluginError.correction, errorCode.correction);
+    expect(pluginError.correction, errorCode.correctionMessage);
     expect(location, isNotNull);
     expect(location.file, analyzerError.source.fullName);
     expect(location.length, analyzerError.length);
     expect(location.offset, analyzerError.offset);
     expect(location.startColumn, startColumn);
     expect(location.startLine, startLine);
-    expect(pluginError.message, errorCode.message);
+    expect(pluginError.message, errorCode.problemMessage);
     expect(pluginError.severity,
         converter.convertErrorSeverity(severity ?? errorCode.errorSeverity));
     expect(pluginError.type, converter.convertErrorType(errorCode.type));
