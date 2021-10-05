@@ -3995,7 +3995,6 @@ M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
     case 'NativeEntryData':
       return M.ObjectPoolEntryKind.nativeEntryData;
     case 'NativeFunction':
-    case 'NativeFunctionWrapper':
       return M.ObjectPoolEntryKind.nativeEntry;
   }
   throw new Exception('Unknown ObjectPoolEntryKind ($kind)');

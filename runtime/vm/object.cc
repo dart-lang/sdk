@@ -14704,8 +14704,7 @@ void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
         break;
       }
       case compiler::ObjectPoolBuilderEntry::kImmediate:
-      case compiler::ObjectPoolBuilderEntry::kNativeFunction:
-      case compiler::ObjectPoolBuilderEntry::kNativeFunctionWrapper: {
+      case compiler::ObjectPoolBuilderEntry::kNativeFunction: {
         compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable);
         builder->AddObject(entry);
         break;
@@ -14741,8 +14740,6 @@ void ObjectPool::DebugPrint() const {
       } else {
         THR_Print("0x%" Px " (native function)\n", pc);
       }
-    } else if (TypeAt(i) == EntryType::kNativeFunctionWrapper) {
-      THR_Print("0x%" Px " (native function wrapper)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }

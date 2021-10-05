@@ -2340,8 +2340,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             s->Write<intptr_t>(entry.raw_value_);
             break;
           }
-          case ObjectPool::EntryType::kNativeFunction:
-          case ObjectPool::EntryType::kNativeFunctionWrapper: {
+          case ObjectPool::EntryType::kNativeFunction: {
             // Write nothing. Will initialize with the lazy link entry.
             break;
           }
