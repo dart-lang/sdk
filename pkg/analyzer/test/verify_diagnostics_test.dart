@@ -8,12 +8,12 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/diagnostics/generate.dart';
+import '../tool/messages/error_code_documentation_info.dart';
 import 'src/dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -111,18 +111,6 @@ class DocumentationValidator {
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
   ];
 
-  /// The prefix used on directive lines to specify the experiments that should
-  /// be enabled for a snippet.
-  static const String experimentsPrefix = '%experiments=';
-
-  /// The prefix used on directive lines to specify the language version for
-  /// the snippet.
-  static const String languagePrefix = '%language=';
-
-  /// The prefix used on directive lines to indicate the uri of an auxiliary
-  /// file that is needed for testing purposes.
-  static const String uriDirectivePrefix = '%uri="';
-
   /// The absolute paths of the files containing the declarations of the error
   /// codes.
   final List<CodePath> codePaths;
@@ -174,30 +162,6 @@ class DocumentationValidator {
     return variable.name.name;
   }
 
-  /// Extract documentation from the given [field] declaration.
-  List<String>? _extractDoc(FieldDeclaration field) {
-    var comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
-    if (comments == null) {
-      return null;
-    }
-    List<String> docs = [];
-    while (comments != null) {
-      String lexeme = comments.lexeme;
-      if (lexeme.startsWith('// TODO')) {
-        break;
-      } else if (lexeme.startsWith('// ')) {
-        docs.add(lexeme.substring(3));
-      } else if (lexeme == '//') {
-        docs.add('');
-      }
-      comments = comments.next as CommentToken?;
-    }
-    if (docs.isEmpty) {
-      return null;
-    }
-    return docs;
-  }
-
   _SnippetData _extractSnippetData(
     String snippet,
     bool errorRequired,
@@ -232,52 +196,32 @@ class DocumentationValidator {
         languageVersion);
   }
 
-  /// Extract the snippets of Dart code between the start (inclusive) and end
-  /// (exclusive) indexes.
+  /// Extract the snippets of Dart code from [documentationParts] that are
+  /// tagged as belonging to the given [blockSection].
   List<_SnippetData> _extractSnippets(
-      List<String> lines, int start, int end, bool errorRequired) {
+      List<ErrorCodeDocumentationPart> documentationParts,
+      BlockSection blockSection) {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
-    List<String>? experiments;
-    String? languageVersion;
-    var currentStart = -1;
-    for (var i = start; i < end; i++) {
-      var line = lines[i];
-      if (line == '```') {
-        if (currentStart < 0) {
-          _reportProblem('Snippet without file type on line $i.');
-          return snippets;
+    for (var documentationPart in documentationParts) {
+      if (documentationPart is ErrorCodeDocumentationBlock) {
+        if (documentationPart.containingSection != blockSection) {
+          continue;
         }
-        var secondLine = lines[currentStart + 1];
-        if (secondLine.startsWith(uriDirectivePrefix)) {
-          var name = secondLine.substring(
-              uriDirectivePrefix.length, secondLine.length - 1);
-          var content = lines.sublist(currentStart + 2, i).join('\n');
-          auxiliaryFiles[name] = content;
-        } else if (lines[currentStart] == '```dart') {
-          if (secondLine.startsWith(experimentsPrefix)) {
-            experiments = secondLine
-                .substring(experimentsPrefix.length)
-                .split(',')
-                .map((e) => e.trim())
-                .toList();
-            currentStart++;
-          } else if (secondLine.startsWith(languagePrefix)) {
-            languageVersion = secondLine.substring(languagePrefix.length);
-            currentStart++;
+        var uri = documentationPart.uri;
+        if (uri != null) {
+          auxiliaryFiles[uri] = documentationPart.text;
+        } else {
+          if (documentationPart.fileType == 'dart') {
+            snippets.add(_extractSnippetData(
+                documentationPart.text,
+                blockSection == BlockSection.examples,
+                auxiliaryFiles,
+                documentationPart.experiments,
+                documentationPart.languageVersion));
           }
-          var content = lines.sublist(currentStart + 1, i).join('\n');
-          snippets.add(_extractSnippetData(content, errorRequired,
-              auxiliaryFiles, experiments ?? [], languageVersion));
           auxiliaryFiles = <String, String>{};
         }
-        currentStart = -1;
-      } else if (line.startsWith('```')) {
-        if (currentStart >= 0) {
-          _reportProblem('Snippet before line $i was not closed.');
-          return snippets;
-        }
-        currentStart = i;
       }
     }
     return snippets;
@@ -329,7 +273,7 @@ class DocumentationValidator {
         String className = declaration.name.name;
         for (ClassMember member in declaration.members) {
           if (member is FieldDeclaration) {
-            var docs = _extractDoc(member);
+            var docs = parseErrorCodeDocumentation(member);
             if (docs != null) {
               VariableDeclaration variable = member.fields.variables[0];
               codeName = _extractCodeName(variable);
@@ -342,11 +286,8 @@ class DocumentationValidator {
               }
               hasWrittenVariableName = false;
 
-              int exampleStart = docs.indexOf('#### Examples');
-              int fixesStart = docs.indexOf('#### Common fixes');
-
               List<_SnippetData> exampleSnippets =
-                  _extractSnippets(docs, exampleStart + 1, fixesStart, true);
+                  _extractSnippets(docs, BlockSection.examples);
               _SnippetData? firstExample;
               if (exampleSnippets.isEmpty) {
                 _reportProblem('No example.');
@@ -358,7 +299,7 @@ class DocumentationValidator {
               }
 
               List<_SnippetData> fixesSnippets =
-                  _extractSnippets(docs, fixesStart + 1, docs.length, false);
+                  _extractSnippets(docs, BlockSection.commonFixes);
               for (int i = 0; i < fixesSnippets.length; i++) {
                 _SnippetData snippet = fixesSnippets[i];
                 if (firstExample != null) {
