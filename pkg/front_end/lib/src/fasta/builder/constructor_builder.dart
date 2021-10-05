@@ -126,19 +126,24 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Member? referenceFrom,
+      Reference? constructorReference,
+      Reference? tearOffReference,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnum})
       : _constructor = new Constructor(new FunctionNode(null),
             name: new Name(name, compilationUnit.library),
             fileUri: compilationUnit.fileUri,
-            reference: referenceFrom?.reference)
+            reference: constructorReference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         _constructorTearOff = createConstructorTearOffProcedure(
-            name, compilationUnit, compilationUnit.fileUri, charOffset,
+            name,
+            compilationUnit,
+            compilationUnit.fileUri,
+            charOffset,
+            tearOffReference,
             forAbstractClassOrEnum: forAbstractClassOrEnum),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);

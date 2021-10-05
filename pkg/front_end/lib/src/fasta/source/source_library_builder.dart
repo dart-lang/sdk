@@ -82,6 +82,7 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
 
 import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/load_library_builder.dart';
@@ -2352,10 +2353,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String? nativeMethodName,
       {Token? beginInitializers,
       required bool forAbstractClass}) {
-    Member? referenceFrom;
+    Reference? constructorReference;
+    Reference? tearOffReference;
     if (_currentClassReferencesFromIndexed != null) {
-      referenceFrom = _currentClassReferencesFromIndexed!.lookupConstructor(
-          new Name(
+      constructorReference = _currentClassReferencesFromIndexed!
+          .lookupConstructorReference(new Name(
+              constructorName, _currentClassReferencesFromIndexed!.library));
+      tearOffReference = _currentClassReferencesFromIndexed!
+          .lookupGetterReference(constructorTearOffName(
               constructorName, _currentClassReferencesFromIndexed!.library));
     }
     ConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
@@ -2370,12 +2375,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOffset,
         charOpenParenOffset,
         charEndOffset,
-        referenceFrom,
+        constructorReference,
+        tearOffReference,
         nativeMethodName: nativeMethodName,
         forAbstractClassOrEnum: forAbstractClass);
     checkTypeVariables(typeVariables, constructorBuilder);
+    // TODO(johnniwinther): There is no way to pass the tear off reference here.
     addBuilder(constructorName, constructorBuilder, charOffset,
-        getterReference: referenceFrom?.reference);
+        getterReference: constructorReference);
     if (nativeMethodName != null) {
       addNativeMethod(constructorBuilder);
     }
@@ -2538,10 +2545,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 .reference
             : library.reference);
 
-    Reference? reference = _currentClassReferencesFromIndexed
-        ?.lookupConstructor(new Name(
-            procedureName, _currentClassReferencesFromIndexed!.library))
-        ?.reference;
+    Reference? constructorReference;
+    Reference? tearOffReference;
+    if (_currentClassReferencesFromIndexed != null) {
+      constructorReference = _currentClassReferencesFromIndexed!
+          .lookupConstructorReference(new Name(
+              procedureName, _currentClassReferencesFromIndexed!.library));
+      tearOffReference = _currentClassReferencesFromIndexed!
+          .lookupGetterReference(constructorTearOffName(
+              procedureName, _currentClassReferencesFromIndexed!.library));
+    }
 
     SourceFactoryBuilder procedureBuilder;
     if (redirectionTarget != null) {
@@ -2560,7 +2573,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
-          reference,
+          constructorReference,
+          tearOffReference,
           procedureNameScheme,
           nativeMethodName,
           redirectionTarget);
@@ -2580,7 +2594,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
-          reference,
+          constructorReference,
+          tearOffReference,
           asyncModifier,
           procedureNameScheme,
           nativeMethodName: nativeMethodName);
@@ -2598,7 +2613,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     factoryDeclaration.resolveTypes(procedureBuilder.typeVariables, this);
     addBuilder(procedureName, procedureBuilder, charOffset,
-        getterReference: reference);
+        getterReference: constructorReference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }

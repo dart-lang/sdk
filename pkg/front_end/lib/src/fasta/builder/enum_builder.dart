@@ -40,6 +40,7 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/kernel_helper.dart';
 
 import '../util/helpers.dart';
@@ -198,14 +199,17 @@ class EnumBuilder extends SourceClassBuilder {
             ? referencesFromIndexed.library.reference
             : parent.library.reference);
 
-    Constructor? constructorReference;
+    Reference? constructorReference;
+    Reference? tearOffReference;
     Reference? toStringReference;
     Reference? valuesFieldReference;
     Reference? valuesGetterReference;
     Reference? valuesSetterReference;
     if (referencesFromIndexed != null) {
       constructorReference =
-          referencesFromIndexed.lookupConstructor(new Name("")) as Constructor;
+          referencesFromIndexed.lookupConstructorReference(new Name(""));
+      tearOffReference = referencesFromIndexed.lookupGetterReference(
+          constructorTearOffName("", referencesFromIndexed.library));
       toStringReference =
           referencesFromIndexed.lookupGetterReference(new Name("toString"));
       Name valuesName = new Name("values");
@@ -235,6 +239,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset,
         constructorReference,
+        tearOffReference,
         forAbstractClassOrEnum: true);
     constructors[""] = constructorBuilder;
     FieldBuilder valuesBuilder = new SourceFieldBuilder(

@@ -459,6 +459,7 @@ func
 futu
 futures
 fuzz
+fuzzed
 fuzzing
 fx
 g1a

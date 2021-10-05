@@ -1,0 +1,51 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → lib1::Foo
+      : super dart.core::Object::•()
+      ;
+    method fooMethod() → void {}
+    static method _#new#tearOff() → lib1::Foo
+      return new lib1::Foo::•();
+  }
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  import "org-dartlang-test:///lib1.dart";
+
+  class Bar extends lib1::Foo {
+    synthetic constructor •() → lib2::Bar
+      : super lib1::Foo::•()
+      ;
+    method barMethod() → void {}
+    static method _#new#tearOff() → lib2::Bar
+      return new lib2::Bar::•();
+  }
+}
+library from "org-dartlang-test:///lib3.dart" as lib3 {
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart";
+
+  static method lib3Method(lib1::Foo foo) → void {
+    () → lib2::Bar f = #C1;
+    lib1::Foo bar = f(){() → lib2::Bar};
+    dart.core::bool equal = foo =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} bar;
+    dart.core::print("foo == bar = ${equal}");
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart";
+  import "org-dartlang-test:///lib3.dart";
+
+  static method main() → dynamic {
+    lib1::Foo foo = new lib2::Bar::•();
+    lib3::lib3Method(foo);
+  }
+}
+constants  {
+  #C1 = static-tearoff lib2::Bar::_#new#tearOff
+}

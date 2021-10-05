@@ -73,6 +73,8 @@ import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
+import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+
 import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
@@ -107,6 +109,8 @@ import 'package:kernel/ast.dart'
         Version,
         Visitor,
         VisitorVoidMixin;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -1114,6 +1118,7 @@ CompilationSetup createCompilationSetup(
       ..experimentEnabledVersionForTesting = experimentEnabledVersion
       ..experimentReleasedVersionForTesting = experimentReleasedVersion
       ..skipPlatformVerification = true
+      ..omitPlatform = true
       ..target = createTarget(folderOptions, context);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
@@ -1204,6 +1209,10 @@ class FuzzCompiles
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
     final Component component = await incrementalCompiler.computeDelta();
+    if (!canSerialize(component)) {
+      return new Result<ComponentResult>(result, semiFuzzFailure,
+          "Couldn't serialize initial component for fuzzing");
+    }
 
     final Set<Uri> userLibraries =
         createUserLibrariesImportUriSet(component, uriTranslator);
@@ -1231,6 +1240,10 @@ class FuzzCompiles
       incrementalCompiler.invalidate(importUri);
       final Component newComponent =
           await incrementalCompiler.computeDelta(fullComponent: true);
+      if (!canSerialize(newComponent)) {
+        return new Result<ComponentResult>(
+            result, semiFuzzFailure, "Couldn't serialize fuzzed component");
+      }
 
       final Set<Uri> newUserLibraries =
           createUserLibrariesImportUriSet(newComponent, uriTranslator);
@@ -1285,6 +1298,17 @@ class FuzzCompiles
     return null;
   }
 
+  bool canSerialize(Component component) {
+    ByteSink byteSink = new ByteSink();
+    try {
+      new BinaryPrinter(byteSink).writeComponentFile(component);
+      return true;
+    } catch (e, st) {
+      print("Can't serialize, got '$e' from $st");
+      return false;
+    }
+  }
+
   /// Perform a number of compilations where each user-file is in turn sorted
   /// in both ascending and descending order (i.e. the procedures and classes
   /// etc are sorted).
@@ -1306,7 +1330,11 @@ class FuzzCompiles
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
-    await incrementalCompiler.computeDelta();
+    Component initialComponent = await incrementalCompiler.computeDelta();
+    if (!canSerialize(initialComponent)) {
+      return new Result<ComponentResult>(result, semiFuzzFailure,
+          "Couldn't serialize initial component for fuzzing");
+    }
 
     final bool expectErrors = compilationSetup.errors.isNotEmpty;
     List<Iterable<String>> originalErrors =
@@ -1365,7 +1393,11 @@ class FuzzCompiles
         incrementalCompiler = new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
         try {
-          await incrementalCompiler.computeDelta();
+          Component component = await incrementalCompiler.computeDelta();
+          if (!canSerialize(component)) {
+            return new Result<ComponentResult>(
+                result, semiFuzzFailure, "Couldn't serialize fuzzed component");
+          }
         } catch (e, st) {
           return new Result<ComponentResult>(
               result,
