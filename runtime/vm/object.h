@@ -5254,10 +5254,13 @@ class ObjectPool : public Object {
     return PatchableBit::decode(untag()->entry_bits()[index]);
   }
 
+  static uint8_t EncodeBits(EntryType type, Patchability patchable) {
+    return PatchableBit::encode(patchable) | TypeBits::encode(type);
+  }
+
   void SetTypeAt(intptr_t index, EntryType type, Patchability patchable) const {
     ASSERT(index >= 0 && index <= Length());
-    const uint8_t bits =
-        PatchableBit::encode(patchable) | TypeBits::encode(type);
+    const uint8_t bits = EncodeBits(type, patchable);
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 
