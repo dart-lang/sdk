@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 extension ElementExtension on Element {
-  /// Return `true` if this element is an instance member.
+  /// Return `true` if this element is an instance member of a class or mixin.
   ///
   /// Only [MethodElement]s and [PropertyAccessorElement]s are supported.
   /// We intentionally exclude [ConstructorElement]s - they can only be
@@ -18,7 +18,7 @@ extension ElementExtension on Element {
   bool get isInstanceMember {
     var this_ = this;
     var enclosing = this_.enclosingElement;
-    if (enclosing is ClassElement || enclosing is ExtensionElement) {
+    if (enclosing is ClassElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
     }
