@@ -526,7 +526,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         "#typedDataBase",
         type: coreTypes.objectNonNullableRawType);
     final name = Name("#fromTypedDataBase");
-    final referenceFrom = indexedClass?.lookupConstructor(name);
+    final reference = indexedClass?.lookupConstructorReference(name);
     final Constructor ctor = Constructor(
         FunctionNode(EmptyStatement(),
             positionalParameters: [typedDataBase],
@@ -540,7 +540,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               Arguments([VariableGet(typedDataBase)]))
         ],
         fileUri: node.fileUri,
-        reference: referenceFrom?.reference)
+        reference: reference)
       ..fileOffset = node.fileOffset
       ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
 

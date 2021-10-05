@@ -773,10 +773,13 @@ class KernelTarget extends TargetImplementation {
     }
 
     IndexedClass? indexedClass = builder.referencesFromIndexed;
-    Constructor? referenceFrom;
+    Reference? constructorReference;
+    Reference? tearOffReference;
     if (indexedClass != null) {
-      referenceFrom =
-          indexedClass.lookupConstructor(new Name("")) as Constructor?;
+      constructorReference =
+          indexedClass.lookupConstructorReference(new Name(""));
+      tearOffReference = indexedClass.lookupGetterReference(
+          constructorTearOffName("", indexedClass.library));
     }
 
     /// From [Dart Programming Language Specification, 4th Edition](
@@ -784,8 +787,8 @@ class KernelTarget extends TargetImplementation {
     /// >Iff no constructor is specified for a class C, it implicitly has a
     /// >default constructor C() : super() {}, unless C is class Object.
     // The superinitializer is installed below in [finishConstructors].
-    builder.addSyntheticConstructor(
-        _makeDefaultConstructor(builder, referenceFrom));
+    builder.addSyntheticConstructor(_makeDefaultConstructor(
+        builder, constructorReference, tearOffReference));
   }
 
   void installForwardingConstructors(SourceClassBuilder builder) {
@@ -828,10 +831,13 @@ class KernelTarget extends TargetImplementation {
     }
 
     IndexedClass? indexedClass = builder.referencesFromIndexed;
-    Constructor? referenceFrom;
+    Reference? constructorReference;
+    Reference? tearOffReference;
     if (indexedClass != null) {
-      referenceFrom =
-          indexedClass.lookupConstructor(new Name("")) as Constructor?;
+      constructorReference =
+          indexedClass.lookupConstructorReference(new Name(""));
+      tearOffReference = indexedClass.lookupGetterReference(
+          constructorTearOffName("", indexedClass.library));
     }
 
     if (supertype is ClassBuilder) {
@@ -842,14 +848,21 @@ class KernelTarget extends TargetImplementation {
       void addSyntheticConstructor(String name, MemberBuilder memberBuilder) {
         if (memberBuilder.member is Constructor) {
           substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
-          Constructor? referenceFrom = indexedClass?.lookupConstructor(
-              new Name(name, indexedClass.library)) as Constructor?;
+          Reference? constructorReference;
+          Reference? tearOffReference;
+          if (indexedClass != null) {
+            constructorReference = indexedClass.lookupConstructorReference(
+                new Name(name, indexedClass.library));
+            tearOffReference = indexedClass.lookupGetterReference(
+                constructorTearOffName(name, indexedClass.library));
+          }
           builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
               builder,
               builder.cls.mixin,
               memberBuilder as MemberBuilderImpl,
               substitutionMap!,
-              referenceFrom));
+              constructorReference,
+              tearOffReference));
           isConstructorAdded = true;
         }
       }
@@ -858,16 +871,16 @@ class KernelTarget extends TargetImplementation {
           includeInjectedConstructors: true);
 
       if (!isConstructorAdded) {
-        builder.addSyntheticConstructor(
-            _makeDefaultConstructor(builder, referenceFrom));
+        builder.addSyntheticConstructor(_makeDefaultConstructor(
+            builder, constructorReference, tearOffReference));
       }
     } else if (supertype is InvalidTypeDeclarationBuilder ||
         supertype is TypeVariableBuilder ||
         supertype is DynamicTypeDeclarationBuilder ||
         supertype is VoidTypeDeclarationBuilder ||
         supertype is NeverTypeDeclarationBuilder) {
-      builder.addSyntheticConstructor(
-          _makeDefaultConstructor(builder, referenceFrom));
+      builder.addSyntheticConstructor(_makeDefaultConstructor(
+          builder, constructorReference, tearOffReference));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
@@ -879,7 +892,8 @@ class KernelTarget extends TargetImplementation {
       Class mixin,
       MemberBuilderImpl superConstructorBuilder,
       Map<TypeParameter, DartType> substitutionMap,
-      Constructor? referenceFrom) {
+      Reference? constructorReference,
+      Reference? tearOffReference) {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
@@ -950,7 +964,7 @@ class KernelTarget extends TargetImplementation {
         initializers: <Initializer>[initializer],
         isSynthetic: true,
         isConst: isConst,
-        reference: referenceFrom?.reference,
+        reference: constructorReference,
         fileUri: cls.fileUri)
       // TODO(johnniwinther): Should we add file offsets to synthesized
       //  constructors?
@@ -970,6 +984,7 @@ class KernelTarget extends TargetImplementation {
         classBuilder.library,
         cls.fileUri,
         cls.fileOffset,
+        tearOffReference,
         forAbstractClassOrEnum: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
@@ -996,14 +1011,16 @@ class KernelTarget extends TargetImplementation {
   }
 
   SyntheticConstructorBuilder _makeDefaultConstructor(
-      SourceClassBuilder classBuilder, Constructor? referenceFrom) {
+      SourceClassBuilder classBuilder,
+      Reference? constructorReference,
+      Reference? tearOffReference) {
     Class enclosingClass = classBuilder.cls;
     Constructor constructor = new Constructor(
         new FunctionNode(new EmptyStatement(),
             returnType: makeConstructorReturnType(enclosingClass)),
         name: new Name(""),
         isSynthetic: true,
-        reference: referenceFrom?.reference,
+        reference: constructorReference,
         fileUri: enclosingClass.fileUri)
       ..fileOffset = enclosingClass.fileOffset
       // TODO(johnniwinther): Should we add file end offsets to synthesized
@@ -1011,8 +1028,12 @@ class KernelTarget extends TargetImplementation {
       //..fileEndOffset = enclosingClass.fileOffset
       ..isNonNullableByDefault =
           enclosingClass.enclosingLibrary.isNonNullableByDefault;
-    Procedure? constructorTearOff = createConstructorTearOffProcedure('',
-        classBuilder.library, enclosingClass.fileUri, enclosingClass.fileOffset,
+    Procedure? constructorTearOff = createConstructorTearOffProcedure(
+        '',
+        classBuilder.library,
+        enclosingClass.fileUri,
+        enclosingClass.fileOffset,
+        tearOffReference,
         forAbstractClassOrEnum:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {

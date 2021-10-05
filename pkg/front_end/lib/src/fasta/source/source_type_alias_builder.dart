@@ -320,9 +320,16 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           }
           Name targetName =
               new Name(constructorName, declaration.library.library);
+          Reference? tearOffReference;
+          if (library.referencesFromIndexed != null) {
+            tearOffReference = library.referencesFromIndexed!
+                .lookupGetterReference(typedefTearOffName(name, constructorName,
+                    library.referencesFromIndexed!.library));
+          }
+
           Procedure tearOff = tearOffs![targetName] =
               createTypedefTearOffProcedure(name, constructorName, library,
-                  target.fileUri, target.fileOffset);
+                  target.fileUri, target.fileOffset, tearOffReference);
           _tearOffDependencies![tearOff] = target;
 
           buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
