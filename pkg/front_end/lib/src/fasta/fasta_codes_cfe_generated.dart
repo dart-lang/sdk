@@ -2101,6 +2101,37 @@ Message _withArgumentsInstantiationNonGenericFunctionType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInstantiationNullableGenericFunctionType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'.""",
+        correctionMessageTemplate:
+            r"""Try changing the operand or remove the type arguments.""",
+        withArguments: _withArgumentsInstantiationNullableGenericFunctionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInstantiationNullableGenericFunctionType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InstantiationNullableGenericFunctionType",
+        analyzerCodes: <String>["DISALLOWED_TYPE_INSTANTIATION_EXPRESSION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstantiationNullableGenericFunctionType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInstantiationNullableGenericFunctionType,
+      problemMessage:
+          """The static type of the explicit instantiation operand must be a non-null generic function type but is '${type}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try changing the operand or remove the type arguments.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
             String string, DartType _type, bool isNonNullableByDefault)>
