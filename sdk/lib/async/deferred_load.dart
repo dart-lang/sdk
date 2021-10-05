@@ -6,9 +6,8 @@ part of dart.async;
 
 /// Indicates that loading of [libraryName] is deferred.
 ///
-/// This class is obsolete. Instead use the syntax:
-/// ```dart
-/// import "library.dart" deferred as prefix;
+/// This class is obsolete. Instead prefer the `deferred as` import directive
+/// syntax.
 /// ```
 @Deprecated("Dart sdk v. 1.8")
 class DeferredLibrary {
