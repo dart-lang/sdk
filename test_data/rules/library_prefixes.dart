@@ -13,6 +13,6 @@ import 'dart:math' as dartMath; //LINT [23:8]
 main() {
   _i1.print(dartMath.pi);
   _i1.print(_async.Timer);
-  _i1.print(new $collection.HashSet<_i1.String>());
-  _i1.print(_1.unicodeBomCharacterRune);
+  _i1.print(new $collection.LinkedHashSet<_i1.String>());
+  _i1.print(_1.json);
 }

@@ -8,7 +8,7 @@ void main() {
   var pm;
   try {
     (pm as Person).firstName = 'Seth'; //LINT [12:6]
-  } on CastError {} // ignore: avoid_catching_errors, empty_catches
+  } on Error {} // ignore: avoid_catching_errors, empty_catches
 
   Person person = pm;
   person.firstName = 'Seth';

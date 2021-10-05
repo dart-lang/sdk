@@ -15,8 +15,8 @@ class _PrivateWidget extends StatefulWidget { // OK
 
 class MyWidget extends StatelessWidget {
   MyWidget(); // LINT
-  MyWidget.withKey({Key key}) : super(key: key); // OK
-  MyWidget.withUnusedKey({Key key}); // LINT
+  MyWidget.withKey({Key? key}) : super(key: key ?? Key('')); // OK
+  MyWidget.withUnusedKey({Key? key}); // LINT
   factory MyWidget.fact() => MyWidget(); // OK
   MyWidget._private(); // OK
   MyWidget.redirect() : this.withKey(key: Key('')); // OK

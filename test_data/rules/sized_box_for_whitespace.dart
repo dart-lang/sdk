@@ -4,6 +4,7 @@
 
 // test w/ `dart test -N sized_box_for_whitespace`
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 Widget containerWithChild() {
@@ -60,7 +61,7 @@ Widget emptyContainerWithWidthAndHeight() {
 
 Widget emptyContainerWithKeyAndWidthAndHeight() {
   return Container( // LINT
-    key: null,
+    key: Key(''),
     width: 10,
     height: 10,
   );

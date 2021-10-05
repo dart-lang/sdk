@@ -7,3 +7,4 @@ export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
 export 'src/widgets/navigator.dart';
 export 'src/widgets/placeholder.dart';
+export 'src/widgets/text.dart';

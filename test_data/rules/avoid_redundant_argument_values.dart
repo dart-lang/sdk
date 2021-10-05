@@ -14,9 +14,9 @@ class A {
 }
 
 
-f(void g([bool b = false])) {
+f(void g([bool? b])) {
   // Function Expression Invocation.
-  g(false); // LINT
+  g(null); // LINT
 }
 
 bool q() => true;

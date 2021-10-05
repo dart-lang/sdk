@@ -185,16 +185,6 @@ void defineRuleUnitTests() {
 
 /// Test framework sanity.
 void defineSanityTests() {
-  group('reporting', () {
-    // https://github.com/dart-lang/linter/issues/193
-    group('ignore synthetic nodes', () {
-      var path =
-          p.join('test_data', 'integration', 'synthetic', 'synthetic.dart');
-      var file = File(path);
-      testRule('non_constant_identifier_names', file);
-    });
-  });
-
   test('linter version caching', () {
     expect(lint_service.linterVersion, version);
   });
@@ -212,7 +202,7 @@ void defineSoloRuleTest(String ruleToTest) {
 }
 
 void testRule(String ruleName, File file,
-    {bool debug = true, String? analysisOptions}) {
+    {bool debug = true, bool failOnErrors = false, String? analysisOptions}) {
   test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
@@ -241,13 +231,24 @@ void testRule(String ruleName, File file,
     var lints = await driver.lintFiles([file]);
 
     var actual = <Annotation>[];
+    var errors = <String>[];
     for (var info in lints) {
       for (var error in info.errors) {
-        if (error.errorCode.type == ErrorType.LINT) {
+        var errorType = error.errorCode.type;
+        if (errorType == ErrorType.LINT) {
           actual.add(Annotation.forError(error, info.lineInfo));
+        } else if (failOnErrors && errorType.severity == ErrorSeverity.ERROR) {
+          var location = info.lineInfo.getLocation(error.offset);
+          errors.add(
+              '${file.path} ${location.lineNumber}:${location.columnNumber} ${error.message}');
         }
       }
     }
+
+    if (errors.isNotEmpty) {
+      fail(['Unexpected diagnostics:\n', ...errors].join('\n'));
+    }
+
     actual.sort();
     try {
       expect(actual, unorderedMatches(expected));

@@ -7,10 +7,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class MyWidget with Diagnosticable {
-  Widget p0; //Skipped
-  List<Widget> p00; //Skipped
-  Widget get p000 => null; //Skipped
+class MyWidget extends Diagnosticable {
+  Widget? p0; //Skipped
+  List<Widget> p00 = []; //Skipped
+  Widget? get p000 => null; //Skipped
   String p1 = ''; //OK
   String p2 = ''; //LINT
   String get p3 => ''; //LINT
@@ -25,11 +25,11 @@ class MyWidget with Diagnosticable {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     properties
-        .add(StringProperty('property', p1, defaultValue: null, quoted: false));
+        .add(StringProperty('property', p1, defaultValue: '', quoted: false));
     properties.add(StringProperty('debugFoo', debugFoo,
-        defaultValue: null, quoted: false));
+        defaultValue: '', quoted: false));
     properties
-        .add(StringProperty('bar', bar, defaultValue: null, quoted: false));
+        .add(StringProperty('bar', bar, defaultValue: '', quoted: false));
   }
 
   @override
@@ -41,6 +41,6 @@ class MyWidget with Diagnosticable {
   }
 }
 
-class MyWidget2 with Diagnosticable {
+class MyWidget2 extends Diagnosticable {
   bool property = false; //LINT
 }

@@ -25,7 +25,7 @@ void someFunction4() {
 }
 
 void someFunction4_1() {
-  List list = [];
+  List<dynamic> list = [];
   if (list.contains(null)) print('someFunction4_1');
 }
 

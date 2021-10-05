@@ -8,8 +8,40 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(PreferCollectionLiteralsPreNNBDTest);
     defineReflectiveTests(PreferCollectionLiteralsTest);
   });
+}
+
+@reflectiveTest
+class PreferCollectionLiteralsPreNNBDTest extends LintRuleTest {
+  @override
+  String get lintRule => 'prefer_collection_literals';
+
+  test_list_empty() async {
+    await assertDiagnostics(r'''
+// @dart=2.9    
+var list = List(); 
+''', [
+      lint('prefer_collection_literals', 28, 6),
+    ]);
+  }
+
+  test_list_inList() async {
+    await assertDiagnostics(r'''
+// @dart=2.9    
+var list = [[], List()];
+''', [
+      lint('prefer_collection_literals', 33, 6),
+    ]);
+  }
+
+  test_list_sized() async {
+    await assertNoDiagnostics(r'''
+// @dart=2.9    
+var list = List(5);
+''');
+  }
 }
 
 @reflectiveTest

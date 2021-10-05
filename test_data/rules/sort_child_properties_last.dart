@@ -6,7 +6,8 @@
 
 // ignore_for_file: prefer_expression_function_bodies
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class W0 extends Widget {
   @override
@@ -99,15 +100,15 @@ class WithClosure extends Widget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        key: 0,
+      body: RawMaterialButton(
+        key: Key(''),
         child: Center( // OK
           child: Column(
             key: 0,
             children: [],
           ),
         ),
-        onPress: () {
+        onPressed: () {
           // some code
         },
       ),

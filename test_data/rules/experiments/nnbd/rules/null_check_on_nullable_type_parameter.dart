@@ -10,9 +10,9 @@ dynamic m2b<T>(T? p) => p!; // OK
 T m3<T extends Object>(T? p) => p!; // OK
 T m4<T extends Object?>(T? p) => p!; // LINT
 T m5<T extends dynamic>(T? p) => p!; // LINT
-T m6<T>(T? p) => p!.a; // OK
-T m7<T>(T? p) => p!.m(); // OK
-T m8<T>(T? p) => p!..m(); // OK
+int m6<T>(T? p) => p!.hashCode; // OK
+String m7<T>(T? p) => p!.toString(); // OK
+T m8<T>(T? p) => p!..toString(); // OK
 
 T m10<T>(T? p) { return p!; } // LINT
 T? m20<T>(T? p) { T t = p!; } // LINT

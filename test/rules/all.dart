@@ -9,6 +9,7 @@ import 'avoid_shadowing_type_parameters.dart'
     as avoid_shadowing_type_parameters;
 import 'missing_whitespace_between_adjacent_strings.dart'
     as missing_whitespace_between_adjacent_strings;
+import 'non_constant_identifier_names.dart' as non_constant_identifier_names;
 import 'null_closures.dart' as null_closures;
 import 'overridden_fields.dart' as overridden_fields;
 import 'prefer_asserts_in_initializer_lists.dart'
@@ -35,6 +36,7 @@ void main() {
   avoid_init_to_null.main();
   avoid_shadowing_type_parameters.main();
   missing_whitespace_between_adjacent_strings.main();
+  non_constant_identifier_names.main();
   null_closures.main();
   overridden_fields.main();
   prefer_asserts_in_initializer_lists.main();
