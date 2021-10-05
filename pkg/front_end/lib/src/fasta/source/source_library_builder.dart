@@ -102,6 +102,7 @@ import '../modifier.dart'
     show
         abstractMask,
         constMask,
+        externalMask,
         finalMask,
         declaresConstConstructorMask,
         hasInitializerMask,
@@ -2243,11 +2244,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
+    bool isLate = (modifiers & lateMask) != 0;
+    bool isFinal = (modifiers & finalMask) != 0;
+    bool isStatic = (modifiers & staticMask) != 0;
+    bool isExternal = (modifiers & externalMask) != 0;
+    final bool fieldIsLateWithLowering = isLate &&
         loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,
-            isFinal: (modifiers & finalMask) != 0,
-            isStatic: isTopLevel || (modifiers & staticMask) != 0);
+            isFinal: isFinal,
+            isStatic: isTopLevel || isStatic);
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
             TypeParameterScopeKind.library &&
         (modifiers & staticMask) == 0;
@@ -2280,13 +2285,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (referencesFrom != null) {
       IndexedContainer indexedContainer =
           (_currentClassReferencesFromIndexed ?? referencesFromIndexed)!;
-      Name nameToLookupName = nameScheme.getFieldName(FieldNameType.Field, name,
-          isSynthesized: fieldIsLateWithLowering);
-      fieldReference = indexedContainer.lookupFieldReference(nameToLookupName);
-      fieldGetterReference =
-          indexedContainer.lookupGetterReference(nameToLookupName);
-      fieldSetterReference =
-          indexedContainer.lookupSetterReference(nameToLookupName);
+      if (isExtensionMember && isInstanceMember && isExternal) {
+        /// An external extension instance field is special. It is treated
+        /// as an external getter/setter pair and is therefore encoded as a pair
+        /// of top level methods using the extension instance member naming
+        /// convention.
+        fieldGetterReference = indexedContainer.lookupGetterReference(
+            nameScheme.getProcedureName(ProcedureKind.Getter, name));
+        fieldSetterReference = indexedContainer.lookupGetterReference(
+            nameScheme.getProcedureName(ProcedureKind.Setter, name));
+      } else {
+        Name nameToLookup = nameScheme.getFieldName(FieldNameType.Field, name,
+            isSynthesized: fieldIsLateWithLowering);
+        fieldReference = indexedContainer.lookupFieldReference(nameToLookup);
+        fieldGetterReference =
+            indexedContainer.lookupGetterReference(nameToLookup);
+        fieldSetterReference =
+            indexedContainer.lookupSetterReference(nameToLookup);
+      }
+
       if (fieldIsLateWithLowering) {
         Name lateIsSetName = nameScheme.getFieldName(
             FieldNameType.IsSetField, name,
