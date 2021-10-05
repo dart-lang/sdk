@@ -38,6 +38,23 @@ const HtmlEscape htmlEscape = HtmlEscape();
 ///
 /// Custom escape modes can be created using the [HtmlEscapeMode.HtmlEscapeMode]
 /// constructor.
+///
+/// Example:
+/// ```dart
+/// const sample = 'Text & subject, <, >, "quoted", \'single-quoted\', /';
+///
+/// const htmlEscapeMode = HtmlEscapeMode(
+///     name: 'custom',
+///     escapeLtGt: true,
+///     escapeQuot: false,
+///     escapeApos: false,
+///     escapeSlash: false);
+///
+/// const HtmlEscape htmlEscape = HtmlEscape(htmlEscapeMode);
+/// final htmlEscaped = htmlEscape.convert(sample);
+/// print(htmlEscaped);
+/// // Text &amp; subject, &lt;, &gt;, "quoted", 'single-quoted', /
+/// ```
 class HtmlEscapeMode {
   final String _name;
 
@@ -137,6 +154,16 @@ class HtmlEscapeMode {
 /// Escaping `>` (greater than) isn't necessary, but the result is often
 /// found to be easier to read if greater-than is also escaped whenever
 /// less-than is.
+///
+/// Example:
+/// ```dart
+/// const sample = 'Text & subject, <, >, "quoted", \'single-quoted\', /';
+///
+/// final htmlEscaped = const HtmlEscape().convert(sample);
+/// print(htmlEscaped);
+/// // Text &amp; subject, &lt;, &gt;, &quot;quoted&quot;,
+/// // &#39;single-quoted&#39;, &#47;
+/// ```
 class HtmlEscape extends Converter<String, String> {
   /// The [HtmlEscapeMode] used by the converter.
   final HtmlEscapeMode mode;
