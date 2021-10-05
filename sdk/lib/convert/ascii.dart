@@ -215,7 +215,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// print(string); // Dart
 /// ```
 ///
-/// Example allow invalid ASCII characters:
+/// Allow invalid ASCII characters example:
 /// ```dart
 ///
 /// const AsciiDecoder asciiDecoder = AsciiDecoder(allowInvalid: true);
