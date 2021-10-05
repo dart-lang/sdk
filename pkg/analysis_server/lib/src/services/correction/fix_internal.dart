@@ -29,6 +29,7 @@ import 'package:analysis_server/src/services/correction/dart/add_return_type.dar
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
+import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
@@ -94,6 +95,7 @@ import 'package:analysis_server/src/services/correction/dart/make_variable_nulla
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
@@ -180,8 +182,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
-
-import 'dart/remove_abstract.dart';
 
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
@@ -552,6 +552,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.sort_child_properties_last: [
       SortChildPropertyLast.newInstance,
+    ],
+    LintNames.require_trailing_commas: [
+      AddTrailingComma.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
       // TODO(brianwilkerson) Consider applying in bulk.

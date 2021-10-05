@@ -244,6 +244,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Add 'break' everywhere in file",
   );
+  static const ADD_TRAILING_COMMA = FixKind(
+    'dart.fix.add.trailingComma',
+    DartFixKindPriority.DEFAULT,
+    'Add trailing comma',
+  );
+  static const ADD_TRAILING_COMMA_MULTI = FixKind(
+    'dart.fix.add.trailingComma.multi',
+    DartFixKindPriority.IN_FILE,
+    'Add trailing commas everywhere in file',
+  );
   static const ADD_TYPE_ANNOTATION = FixKind(
     'dart.fix.add.typeAnnotation',
     DartFixKindPriority.DEFAULT,
