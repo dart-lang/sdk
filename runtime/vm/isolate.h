@@ -1334,13 +1334,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     UpdateIsolateFlagsBit<IsKernelIsolateBit>(value);
   }
 
-  // Whether it's possible for unoptimized code to optimize immediately on entry
-  // (can happen with random or very low optimization counter thresholds)
-  bool CanOptimizeImmediately() const {
-    return FLAG_optimization_counter_threshold < 2 ||
-           FLAG_randomize_optimization_counter;
-  }
-
   const DispatchTable* dispatch_table() const {
     return group()->dispatch_table();
   }

@@ -280,7 +280,8 @@ abstract class Generator {
         nullabilityBuilder,
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState);
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
@@ -2927,7 +2928,8 @@ class DeferredAccessGenerator extends Generator {
     }
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
     NamedTypeBuilder result = new NamedTypeBuilder(name, nullabilityBuilder,
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null);
+        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(message));
@@ -3063,7 +3065,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       }, growable: false);
     }
     return new NamedTypeBuilder(
-        targetName, nullabilityBuilder, argumentBuilders, _uri, fileOffset)
+        targetName, nullabilityBuilder, argumentBuilders, _uri, fileOffset,
+        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState)
       ..bind(declaration);
   }
 
@@ -3180,7 +3183,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             for (TypeVariableBuilder typeVariable
                 in aliasBuilder.typeVariables!) {
               aliasedTypeArguments.add(new NamedTypeBuilder(typeVariable.name,
-                  const NullabilityBuilder.omitted(), null, _uri, fileOffset)
+                  const NullabilityBuilder.omitted(), null, _uri, fileOffset,
+                  instanceTypeVariableAccess:
+                      _helper.instanceTypeVariableAccessState)
                 ..bind(typeVariable));
             }
           }
@@ -4175,7 +4180,8 @@ class UnexpectedQualifiedUseGenerator extends Generator {
         nullabilityBuilder,
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Message message =
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
     _helper.libraryBuilder.addProblem(
@@ -4297,7 +4303,8 @@ class ParserErrorGenerator extends Generator {
         nullabilityBuilder,
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(
         message.withLocation(_uri, fileOffset, noLength)));

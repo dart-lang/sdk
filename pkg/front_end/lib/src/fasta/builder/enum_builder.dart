@@ -132,25 +132,39 @@ class EnumBuilder extends SourceClassBuilder {
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess:
+            // If "int" resolves to an instance type variable then that we would
+            // allowed (the types that we are adding are in instance context
+            // after all) but it would be unexpected and we would like an
+            // assertion failure, since "int" was meant to be `int` from
+            // `dart:core`.
+            // TODO(johnniwinther): Add a more robust way of creating named
+            // typed builders for dart:core types. This might be needed for the
+            // enhanced enums feature where enums can actually declare type
+            // variables.
+            InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder stringType = new NamedTypeBuilder(
         "String",
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder objectType = new NamedTypeBuilder(
         "Object",
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder enumType = new NamedTypeBuilder(
         "_Enum",
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Class cls = new Class(
         name: name,
         reference: referencesFromIndexed?.cls.reference,
@@ -162,13 +176,15 @@ class EnumBuilder extends SourceClassBuilder {
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder listType = new NamedTypeBuilder(
         "List",
         const NullabilityBuilder.omitted(),
         <TypeBuilder>[selfType],
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
     // metadata class E extends _Enum {
     //   const E(int index, String name) : super(index, name);
@@ -381,8 +397,7 @@ class EnumBuilder extends SourceClassBuilder {
 
   @override
   InterfaceType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     return rawType(nullabilityBuilder.build(library));
   }
 

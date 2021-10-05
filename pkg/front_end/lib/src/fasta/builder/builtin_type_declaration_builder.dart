@@ -26,13 +26,12 @@ abstract class BuiltinTypeDeclarationBuilder
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
   @override
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     return type.withDeclaredNullability(nullability);
   }

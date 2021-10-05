@@ -412,12 +412,24 @@ class InferenceVisitor
     DartType resultType = const InvalidType();
     if (operandType is FunctionType) {
       if (operandType.typeParameters.length == node.typeArguments.length) {
-        inferrer.checkBoundsInInstantiation(
-            operandType, node.typeArguments, node.fileOffset,
-            inferred: false);
-        resultType = Substitution.fromPairs(
-                operandType.typeParameters, node.typeArguments)
-            .substituteType(operandType.withoutTypeParameters);
+        if (!inferrer.isTopLevel) {
+          inferrer.checkBoundsInInstantiation(
+              operandType, node.typeArguments, node.fileOffset,
+              inferred: false);
+        }
+        if (operandType.isPotentiallyNullable) {
+          if (!inferrer.isTopLevel) {
+            result = inferrer.helper!.buildProblem(
+                templateInstantiationNullableGenericFunctionType.withArguments(
+                    operandType, inferrer.isNonNullableByDefault),
+                node.fileOffset,
+                noLength);
+          }
+        } else {
+          resultType = Substitution.fromPairs(
+                  operandType.typeParameters, node.typeArguments)
+              .substituteType(operandType.withoutTypeParameters);
+        }
       } else {
         if (!inferrer.isTopLevel) {
           if (operandType.typeParameters.isEmpty) {

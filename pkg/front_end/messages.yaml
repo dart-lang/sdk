@@ -1726,10 +1726,6 @@ TypeNotFound:
   problemMessage: "Type '#name' not found."
   analyzerCode: UNDEFINED_CLASS
 
-NonInstanceTypeVariableUse:
-  problemMessage: "Can only use type variables in instance methods."
-  analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
-
 NameNotFound:
   problemMessage: "Undefined name '#name'."
   analyzerCode: UNDEFINED_NAME
@@ -5358,6 +5354,14 @@ InstantiationNonGenericFunctionType:
   script: |
     f() {}
     main() => f<int>;
+
+InstantiationNullableGenericFunctionType:
+  problemMessage: "The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'."
+  correctionMessage: "Try changing the operand or remove the type arguments."
+  analyzerCode: DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
+  experiments: constructor-tearoffs
+  script: |
+    test(void Function<T>()? f) => f<int>;
 
 InstantiationTooFewArguments:
   problemMessage: "Too few type arguments: #count required, #count2 given."

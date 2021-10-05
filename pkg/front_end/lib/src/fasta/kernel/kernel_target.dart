@@ -112,14 +112,16 @@ class KernelTarget extends TargetImplementation {
       const NullabilityBuilder.nullable(),
       /* arguments = */ null,
       /* fileUri = */ null,
-      /* charOffset = */ null);
+      /* charOffset = */ null,
+      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilder(
       "Object",
       const NullabilityBuilder.omitted(),
       /* arguments = */ null,
       /* fileUri = */ null,
-      /* charOffset = */ null);
+      /* charOffset = */ null,
+      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
@@ -129,7 +131,8 @@ class KernelTarget extends TargetImplementation {
       const NullabilityBuilder.nullable(),
       /* arguments = */ null,
       /* fileUri = */ null,
-      /* charOffset = */ null);
+      /* charOffset = */ null,
+      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final TypeBuilder bottomType = new NamedTypeBuilder(
@@ -137,7 +140,8 @@ class KernelTarget extends TargetImplementation {
       const NullabilityBuilder.omitted(),
       /* arguments = */ null,
       /* fileUri = */ null,
-      /* charOffset = */ null);
+      /* charOffset = */ null,
+      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
@@ -478,7 +482,8 @@ class KernelTarget extends TargetImplementation {
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null)
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(objectClassBuilder);
     builder.interfaceBuilders = null;
     builder.mixedInTypeBuilder = null;
@@ -723,7 +728,9 @@ class KernelTarget extends TargetImplementation {
                   const NullabilityBuilder.omitted(),
                   /* arguments = */ null,
                   /* fileUri = */ null,
-                  /* charOffset = */ null)
+                  /* charOffset = */ null,
+                  instanceTypeVariableAccess:
+                      InstanceTypeVariableAccessState.Unexpected)
                 ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {

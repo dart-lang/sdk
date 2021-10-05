@@ -7539,16 +7539,6 @@ const MessageCode messageNonConstFactory = const MessageCode("NonConstFactory",
         r"""Try using a constructor or factory that is 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonInstanceTypeVariableUse =
-    messageNonInstanceTypeVariableUse;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
-    "NonInstanceTypeVariableUse",
-    analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
-    problemMessage: r"""Can only use type variables in instance methods.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String

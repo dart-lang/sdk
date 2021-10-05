@@ -168,8 +168,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   InterfaceType rawType(Nullability nullability);
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext});
+      LibraryBuilder library, List<TypeBuilder>? arguments);
 
   Supertype buildSupertype(
       LibraryBuilder library, List<TypeBuilder>? arguments);
@@ -559,7 +558,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
     if (isNullClass) {
@@ -583,8 +582,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -619,13 +617,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
-    return buildTypesWithBuiltArguments(
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+    return buildTypeWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
-        buildTypeArguments(library, arguments,
-            nonInstanceContext: nonInstanceContext));
+        buildTypeArguments(library, arguments));
   }
 
   @override

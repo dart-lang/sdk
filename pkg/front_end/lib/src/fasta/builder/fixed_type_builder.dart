@@ -47,8 +47,7 @@ class FixedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext}) {
+  DartType build(LibraryBuilder library, {TypedefType? origin}) {
     return type;
   }
 

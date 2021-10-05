@@ -280,13 +280,19 @@
 - When a script is `dart run` it will always be precompiled, but with
   incremental precompilation for following runs.
 
-### `dart:core`
+#### `dart:core`
 
 - Add extension `name` getter on enum values.
 - Add `Enum.compareByIndex` helper function for comparing enum values by index.
 - Add `Enum.compareByName` helper function for comparing enum values by name.
 - Add extension methods on `Iterable<T extends Enum>`, intended for
   `SomeEnumType.values` lists, to look up values by name.
+
+#### `dart:io`
+
+- **Breaking Change** [#46875](https://github.com/dart-lang/sdk/issues/46875):
+  The `SecurityContext` class in `dart:io` has been updated to set the minimum
+  TLS protocol version to TLS1_2_VERSION (1.2) instead of TLS1_VERSION.
 
 ### Tools
 

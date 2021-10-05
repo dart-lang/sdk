@@ -17817,7 +17817,7 @@ PubspecWarningCode:
       Use a map as the value of the `dependencies` key:
 
       ```yaml
-      %uri='pubspec.yaml'
+      %uri="pubspec.yaml"
       name: example
       dependencies:
         meta: ^1.0.2
@@ -18129,7 +18129,7 @@ PubspecWarningCode:
       listed under both `dependencies` and `dev_dependencies`:
 
       ```yaml
-      %uri='pubspec.yaml'
+      %uri="pubspec.yaml"
       name: example
       dependencies:
         meta: ^1.0.2
@@ -18143,7 +18143,7 @@ PubspecWarningCode:
       if that's the only package listed there):
 
       ```yaml
-      %uri='pubspec.yaml'
+      %uri="pubspec.yaml"
       name: example
       dependencies:
         meta: ^1.0.2

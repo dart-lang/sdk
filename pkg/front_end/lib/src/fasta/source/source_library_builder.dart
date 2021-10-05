@@ -102,6 +102,7 @@ import '../modifier.dart'
     show
         abstractMask,
         constMask,
+        externalMask,
         finalMask,
         declaresConstConstructorMask,
         hasInitializerMask,
@@ -184,7 +185,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final List<FunctionBuilder> nativeMethods = <FunctionBuilder>[];
 
-  final List<TypeVariableBuilder> boundlessTypeVariables =
+  final List<TypeVariableBuilder> unboundTypeVariables =
       <TypeVariableBuilder>[];
 
   final List<UncheckedTypedefType> uncheckedTypedefTypes =
@@ -1249,7 +1250,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       exporters.addAll(part.exporters);
 
       nativeMethods.addAll(part.nativeMethods);
-      boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+      unboundTypeVariables.addAll(part.unboundTypeVariables);
       // Check that the targets are different. This is not normally a problem
       // but is for patch files.
       if (library != part.library && part.library.problemsAsJson != null) {
@@ -1483,10 +1484,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments, int charOffset) {
+      List<TypeBuilder>? arguments, int charOffset,
+      {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
     return addType(
         new NamedTypeBuilder(
-            name, nullabilityBuilder, arguments, fileUri, charOffset),
+            name, nullabilityBuilder, arguments, fileUri, charOffset,
+            instanceTypeVariableAccess: instanceTypeVariableAccess),
         charOffset);
   }
 
@@ -1500,7 +1503,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   TypeBuilder addVoidType(int charOffset) {
     // 'void' is always nullable.
     return addNamedType(
-        "void", const NullabilityBuilder.nullable(), null, charOffset)
+        "void", const NullabilityBuilder.nullable(), null, charOffset,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(
           new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
   }
@@ -2134,7 +2138,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             applicationTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
               applicationTypeArguments.add(addNamedType(typeVariable.name,
-                  const NullabilityBuilder.omitted(), null, charOffset)
+                  const NullabilityBuilder.omitted(), null, charOffset,
+                  instanceTypeVariableAccess:
+                      InstanceTypeVariableAccessState.Allowed)
                 ..bind(
                     // The type variable types passed as arguments to the
                     // generic class representing the anonymous mixin
@@ -2191,7 +2197,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         addBuilder(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
         supertype = addNamedType(fullname, const NullabilityBuilder.omitted(),
-            applicationTypeArguments, charOffset);
+            applicationTypeArguments, charOffset,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Allowed);
       }
       return supertype;
     } else {
@@ -2236,11 +2244,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
+    bool isLate = (modifiers & lateMask) != 0;
+    bool isFinal = (modifiers & finalMask) != 0;
+    bool isStatic = (modifiers & staticMask) != 0;
+    bool isExternal = (modifiers & externalMask) != 0;
+    final bool fieldIsLateWithLowering = isLate &&
         loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,
-            isFinal: (modifiers & finalMask) != 0,
-            isStatic: isTopLevel || (modifiers & staticMask) != 0);
+            isFinal: isFinal,
+            isStatic: isTopLevel || isStatic);
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
             TypeParameterScopeKind.library &&
         (modifiers & staticMask) == 0;
@@ -2273,13 +2285,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (referencesFrom != null) {
       IndexedContainer indexedContainer =
           (_currentClassReferencesFromIndexed ?? referencesFromIndexed)!;
-      Name nameToLookupName = nameScheme.getFieldName(FieldNameType.Field, name,
-          isSynthesized: fieldIsLateWithLowering);
-      fieldReference = indexedContainer.lookupFieldReference(nameToLookupName);
-      fieldGetterReference =
-          indexedContainer.lookupGetterReference(nameToLookupName);
-      fieldSetterReference =
-          indexedContainer.lookupSetterReference(nameToLookupName);
+      if (isExtensionMember && isInstanceMember && isExternal) {
+        /// An external extension instance field is special. It is treated
+        /// as an external getter/setter pair and is therefore encoded as a pair
+        /// of top level methods using the extension instance member naming
+        /// convention.
+        fieldGetterReference = indexedContainer.lookupGetterReference(
+            nameScheme.getProcedureName(ProcedureKind.Getter, name));
+        fieldSetterReference = indexedContainer.lookupGetterReference(
+            nameScheme.getProcedureName(ProcedureKind.Setter, name));
+      } else {
+        Name nameToLookup = nameScheme.getFieldName(FieldNameType.Field, name,
+            isSynthesized: fieldIsLateWithLowering);
+        fieldReference = indexedContainer.lookupFieldReference(nameToLookup);
+        fieldGetterReference =
+            indexedContainer.lookupGetterReference(nameToLookup);
+        fieldSetterReference =
+            indexedContainer.lookupSetterReference(nameToLookup);
+      }
+
       if (fieldIsLateWithLowering) {
         Name lateIsSetName = nameScheme.getFieldName(
             FieldNameType.IsSetField, name,
@@ -2510,7 +2534,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         currentTypeParameterScopeBuilder.parent!.name,
         const NullabilityBuilder.omitted(),
         <TypeBuilder>[],
-        charOffset);
+        charOffset,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     if (currentTypeParameterScopeBuilder.parent?.kind ==
         TypeParameterScopeKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
@@ -2607,7 +2632,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (TypeVariableBuilder tv in procedureBuilder.typeVariables!) {
       NamedTypeBuilder t = procedureBuilder.returnType as NamedTypeBuilder;
       t.arguments!.add(addNamedType(tv.name, const NullabilityBuilder.omitted(),
-          null, procedureBuilder.charOffset));
+          null, procedureBuilder.charOffset,
+          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed));
     }
     currentTypeParameterScopeBuilder = savedDeclaration;
 
@@ -2718,7 +2744,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeVariableBuilder builder = new TypeVariableBuilder(
         name, this, charOffset, fileUri,
         bound: bound, metadata: metadata);
-    boundlessTypeVariables.add(builder);
+
+    unboundTypeVariables.add(builder);
     return builder;
   }
 
@@ -3037,7 +3064,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           variableVariance:
               variable.parameter.isLegacyCovariant ? null : variable.variance);
       copy.add(newVariable);
-      boundlessTypeVariables.add(newVariable);
+      unboundTypeVariables.add(newVariable);
     }
     for (TypeBuilder newType in newTypes) {
       declaration.addType(
@@ -3048,14 +3075,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
-    int count = boundlessTypeVariables.length;
+    int count = unboundTypeVariables.length;
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
     for (TypeVariableBuilder builder
-        in _sortTypeVariablesTopologically(boundlessTypeVariables)) {
+        in _sortTypeVariablesTopologically(unboundTypeVariables)) {
       builder.finish(this, object, dynamicType);
     }
-    boundlessTypeVariables.clear();
+    unboundTypeVariables.clear();
 
     processPendingNullabilities();
 
@@ -3292,7 +3319,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             currentTypeParameterScopeBuilder.addType(new UnresolvedType(
                 unboundType, unboundType.charOffset!, unboundType.fileUri!));
           }
-          boundlessTypeVariables.addAll(unboundTypeVariables);
+          this.unboundTypeVariables.addAll(unboundTypeVariables);
           for (int i = 0; i < variables.length; ++i) {
             variables[i].defaultType = calculatedBounds[i];
           }
@@ -4531,7 +4558,9 @@ enum TypeParameterScopeKind {
   namedMixinApplication,
   extensionDeclaration,
   typedef,
-  staticOrInstanceMethodOrConstructor,
+  staticMethod,
+  instanceMethod,
+  constructor,
   topLevelMethod,
   factoryMethod,
   functionType,
@@ -4919,7 +4948,7 @@ class ImplicitLanguageVersion implements LanguageVersion {
 }
 
 List<TypeVariableBuilder> _sortTypeVariablesTopologically(
-    List<TypeVariableBuilder> typeVariables) {
+    Iterable<TypeVariableBuilder> typeVariables) {
   Set<TypeVariableBuilder> unhandled = new Set<TypeVariableBuilder>.identity()
     ..addAll(typeVariables);
   List<TypeVariableBuilder> result = <TypeVariableBuilder>[];

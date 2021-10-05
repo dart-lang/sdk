@@ -1670,8 +1670,8 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitTypedef(DirectParserASTContentFunctionTypeAliasEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTypedef(DirectParserASTContentTypedefEnd node, Token startInclusive,
+      Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 }

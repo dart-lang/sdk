@@ -25,16 +25,26 @@ abstract class TypeDeclarationBuilder implements ModifierBuilder {
 
   int get typeVariablesCount => 0;
 
+  @override
+  TypeDeclarationBuilder get origin;
+
+  /// Creates the [DartType] corresponding to this declaration applied with
+  /// [arguments] in [library] with the syntactical nullability defined by
+  /// [nullabilityBuilder].
+  ///
+  /// For instance, if this declaration is a class declaration `C`, then
+  /// an occurrence of `C<int>?` in a null safe library `lib1` would call
+  /// `buildType(<lib1>, <?>, [<int>])` to create `C<int>?`, or `C<int>` in a
+  /// legacy library `lib2` call `buildType(<lib2>, <> [<int>]` to create
+  /// `C<int*>*`.
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext});
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments);
 
   DartType buildTypeLiteralType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext});
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments);
 
   /// [arguments] have already been built.
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments);
 }
 
@@ -56,6 +66,9 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
         super(parent, charOffset);
 
   @override
+  TypeDeclarationBuilder get origin => this;
+
+  @override
   bool get isNamedMixinApplication => false;
 
   @override
@@ -69,9 +82,7 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
 
   @override
   DartType buildTypeLiteralType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
-    return buildType(library, nullabilityBuilder, arguments,
-        nonInstanceContext: nonInstanceContext);
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+    return buildType(library, nullabilityBuilder, arguments);
   }
 }

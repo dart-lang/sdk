@@ -42,6 +42,34 @@ test<T extends Class?, S extends int>(
   f3<int>; // error
 }
 
+Class c1 = Class();
+Class? c2;
+GetterCall c3 = GetterCall();
+int i1 = 0;
+int? i2 = null;
+void Function<T>()? f1 = null;
+Never n = throw '';
+dynamic d = null;
+String a = '';
+double b = 0.5;
+bool c = true;
+FutureOr<Class> f2 = Class();
+Function f3 = () {};
+
+var topLevel1 = c1<int>; // ok
+var topLevel2 = i1<int>; // ok
+var topLevel3 = c2<int>; // error
+var topLevel4 = c3<int>; // error
+var topLevel5 = i2<int>; // error
+var topLevel6 = f1<int>; // error
+var topLevel7 = n<int>; // error
+var topLevel8 = d<int>; // error
+var topLevel9 = a<int>; // error
+var topLevel10 = b<int>; // error
+var topLevel11 = c<int>; // error
+var topLevel12 = f2<int>; // error
+var topLevel13 = f3<int>; // error
+
 class Class {
   call<T>() {}
 }

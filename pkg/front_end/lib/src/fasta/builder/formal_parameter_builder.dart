@@ -128,11 +128,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   String get fullNameForErrors => name;
 
   VariableDeclaration build(
-      SourceLibraryBuilder library, int functionNestingLevel,
-      {bool? nonInstanceContext}) {
+      SourceLibraryBuilder library, int functionNestingLevel) {
     if (variable == null) {
-      DartType? builtType =
-          type?.build(library, nonInstanceContext: nonInstanceContext);
+      DartType? builtType = type?.build(library);
       if (!library.isNonNullableByDefault && builtType != null) {
         builtType = legacyErasure(builtType);
       }

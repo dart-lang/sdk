@@ -243,7 +243,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     // immediately, causing an infinite compilation loop. The compiler raises
     // the threshold for functions with breakpoints, so we drop the unoptimized
     // to force it to be recompiled.
-    if (thread->isolate()->CanOptimizeImmediately()) {
+    if (CanOptimizeImmediately()) {
       function.ClearCode();
     }
     return false;

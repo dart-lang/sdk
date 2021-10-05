@@ -1,23 +1,20 @@
 The Dart SDK is a set of tools and libraries for the Dart programming language.
 
-You can find information about Dart online at dartlang.org.
+You can find information about Dart online at https://dart.dev/.
 
 Here's a brief guide to what's in here:
 
-bin/             Binaries/scripts to compile, run, and manage Dart applications.
-  dart           Main Dart command-line executable
-  dart2js        Dart-to-JavaScript compiler
-  dart2native    Dart-to-native AOT compiler
-  dartanalyzer   Dart static analyzer
-  dartdoc        Dart documentation generator
-  pub            Pub, the Dart package manager
+bin/               Binaries/scripts to compile, run, and manage Dart apps.
+  dart             Dart virtual machine
+  dartaotruntime   Minimal Dart runtime for running AOT modules
+  dart2js          Dart-to-JavaScript compiler
+  dartanalyzer     Dart static analyzer
+  dartdoc          Dart documentation generator
 
-lib/             Libraries that are shipped with the Dart runtime. More
-                 information is available at api.dartlang.org.
+lib/               Libraries that are shipped with the Dart runtime. More
+                   information is available at https://api.dart.dev.
 
-packages/        Additional packages that are shipped outside of the Dart
-                 runtime. More information is available at api.dartlang.org.
+version            The version number of the SDK (for example, 2.12.1).
 
-version          The version number of the SDK (ex. 1.5.1).
-
-revision         The Subversion revision of the SDK build (ex. 37107).
+revision           The git commit ID of the SDK build
+                   (for example, 020b3efd3f0023c5db2097787f7cf778db837a8f).

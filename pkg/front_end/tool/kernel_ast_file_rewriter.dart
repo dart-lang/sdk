@@ -57,8 +57,8 @@ void main(List<String> args) {
 
     DirectParserASTContentClassDeclarationEnd classDeclaration =
         cls.getClassDeclaration();
-    DirectParserASTContentClassOrMixinBodyEnd classOrMixinBody =
-        classDeclaration.getClassOrMixinBody();
+    DirectParserASTContentClassOrMixinOrExtensionBodyEnd classOrMixinBody =
+        classDeclaration.getClassOrMixinOrExtensionBody();
 
     Set<String> namedClassConstructors = {};
     Set<String> namedFields = {};
