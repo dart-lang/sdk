@@ -39,10 +39,14 @@ Future<bool> run(
   forwardStream(process.stderr, stderr);
   final int exitCode = await process.exitCode;
   if (exitCode != 0) {
-    final crashNr = crashCounter++;
-    print('=> Running "$executable ${args.join(' ')}" failed with $exitCode');
-    print('=> Possible crash $crashNr (pid: ${process.pid})');
-    crashes.add(PotentialCrash('crash-$crashNr', process.pid, [executable]));
+    // Ignore normal exceptions and compile-time errors for the purpose of
+    // crashdump reporting.
+    if (exitCode != 255 && exitCode != 254) {
+      final crashNr = crashCounter++;
+      print('=> Running "$executable ${args.join(' ')}" failed with $exitCode');
+      print('=> Possible crash $crashNr (pid: ${process.pid})');
+      crashes.add(PotentialCrash('crash-$crashNr', process.pid, [executable]));
+    }
     io.exitCode = 255; // Make this shard fail.
     return false;
   }
