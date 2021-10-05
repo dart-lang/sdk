@@ -104,6 +104,15 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 }
 
 /// This class converts strings of only ASCII characters to bytes.
+///
+/// Example:
+/// ```dart
+///
+/// const String sample = 'Dart';
+/// const AsciiEncoder asciiEncoder = AsciiEncoder();
+/// final Uint8List asciiValues = asciiEncoder.convert(sample);
+/// print(asciiValues); // [[68, 97, 114, 116]
+/// ```
 class AsciiEncoder extends _UnicodeSubsetEncoder {
   const AsciiEncoder() : super(_asciiMask);
 }
@@ -195,6 +204,25 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 }
 
+/// This class converts ASCII bytes to strings
+///
+/// Example:
+/// ```dart
+///
+/// const AsciiDecoder asciiDecoder = AsciiDecoder();
+/// final List<int> asciiValues = [68, 97, 114, 116];
+/// final string = asciiDecoder.convert(asciiValues);
+/// print(string); // Dart
+/// ```
+///
+/// Example allow invalid ASCII characters:
+/// ```dart
+///
+/// const AsciiDecoder asciiDecoder = AsciiDecoder(allowInvalid: true);
+///   final List<int> asciiValues = [68, 97, 114, 116, 20, 0xFF];
+/// final string = asciiDecoder.convert(asciiValues);
+/// print(string); // Dart �
+/// ```
 class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid = false})
       : super(allowInvalid, _asciiMask);
