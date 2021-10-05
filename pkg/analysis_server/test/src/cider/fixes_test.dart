@@ -72,6 +72,128 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_importLibrary_withClass() async {
+    var a_path = '/workspace/dart/test/lib/a.dart';
+    newFile(a_path, content: r'''
+class Test {}
+''');
+    fileResolver.resolve(path: a_path);
+
+    await _compute(r'''
+void f(Test a) {}^
+''');
+
+    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+import 'a.dart';
+
+void f(Test a) {}
+''');
+  }
+
+  Future<void> test_importLibrary_withEnum() async {
+    var a_path = '/workspace/dart/test/lib/a.dart';
+    newFile(a_path, content: r'''
+enum Test {a, b, c}
+''');
+    fileResolver.resolve(path: a_path);
+
+    await _compute(r'''
+void f(Test a) {}^
+''');
+
+    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+import 'a.dart';
+
+void f(Test a) {}
+''');
+  }
+
+  Future<void> test_importLibrary_withExtension() async {
+    var a_path = '/workspace/dart/test/lib/a.dart';
+    newFile(a_path, content: r'''
+extension E on int {
+  void foo() {}
+}
+''');
+    fileResolver.resolve(path: a_path);
+
+    await _compute(r'''
+void f() {
+  E(0).foo();^
+}
+''');
+
+    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+import 'a.dart';
+
+void f() {
+  E(0).foo();
+}
+''');
+  }
+
+  Future<void> test_importLibrary_withFunction() async {
+    var a_path = '/workspace/dart/test/lib/a.dart';
+    newFile(a_path, content: r'''
+void foo() {}
+''');
+    fileResolver.resolve(path: a_path);
+
+    await _compute(r'''
+void f() {
+  foo();^
+}
+''');
+
+    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+import 'a.dart';
+
+void f() {
+  foo();
+}
+''');
+  }
+
+  Future<void> test_importLibrary_withMixin() async {
+    var a_path = '/workspace/dart/test/lib/a.dart';
+    newFile(a_path, content: r'''
+mixin Test {}
+''');
+    fileResolver.resolve(path: a_path);
+
+    await _compute(r'''
+void f(Test a) {}^
+''');
+
+    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+import 'a.dart';
+
+void f(Test a) {}
+''');
+  }
+
+  Future<void> test_importLibrary_withTopLevelVariable() async {
+    var a_path = '/workspace/dart/test/lib/a.dart';
+    newFile(a_path, content: r'''
+var a = 0;
+''');
+    fileResolver.resolve(path: a_path);
+
+    await _compute(r'''
+void f() {
+  a;^
+}
+''');
+
+    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+import 'a.dart';
+
+void f() {
+  a;
+}
+''');
+  }
+
   Future<void> test_insertSemicolon() async {
     await _compute(r'''
 var v = 0^

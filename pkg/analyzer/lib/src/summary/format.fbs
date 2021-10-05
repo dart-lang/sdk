@@ -422,14 +422,28 @@ table CiderUnitErrors {
   signature:[uint] (id: 0);
 }
 
+/// Top-level declarations in a compilation unit.
+table CiderUnitTopLevelDeclarations {
+  extensionNames:[string] (id: 0);
+
+  functionNames:[string] (id: 1);
+
+  typeNames:[string] (id: 2);
+
+  variableNames:[string] (id: 3);
+}
+
 /// Information about a compilation unit, contains the content hash
 /// and unlinked summary.
 table CiderUnlinkedUnit {
   /// The hash signature of the contents of the file.
   contentDigest:[uint] (id: 0);
 
+  /// Top-level declarations of the unit.
+  topLevelDeclarations:CiderUnitTopLevelDeclarations (id: 1);
+
   /// Unlinked summary of the compilation unit.
-  unlinkedUnit:UnlinkedUnit2 (id: 1);
+  unlinkedUnit:UnlinkedUnit2 (id: 2);
 }
 
 table DiagnosticMessage {

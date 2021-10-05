@@ -3633,10 +3633,226 @@ abstract class _CiderUnitErrorsMixin implements idl.CiderUnitErrors {
   String toString() => convert.json.encode(toJson());
 }
 
+class CiderUnitTopLevelDeclarationsBuilder extends Object
+    with _CiderUnitTopLevelDeclarationsMixin
+    implements idl.CiderUnitTopLevelDeclarations {
+  List<String>? _extensionNames;
+  List<String>? _functionNames;
+  List<String>? _typeNames;
+  List<String>? _variableNames;
+
+  @override
+  List<String> get extensionNames => _extensionNames ??= <String>[];
+
+  set extensionNames(List<String> value) {
+    this._extensionNames = value;
+  }
+
+  @override
+  List<String> get functionNames => _functionNames ??= <String>[];
+
+  set functionNames(List<String> value) {
+    this._functionNames = value;
+  }
+
+  @override
+  List<String> get typeNames => _typeNames ??= <String>[];
+
+  set typeNames(List<String> value) {
+    this._typeNames = value;
+  }
+
+  @override
+  List<String> get variableNames => _variableNames ??= <String>[];
+
+  set variableNames(List<String> value) {
+    this._variableNames = value;
+  }
+
+  CiderUnitTopLevelDeclarationsBuilder(
+      {List<String>? extensionNames,
+      List<String>? functionNames,
+      List<String>? typeNames,
+      List<String>? variableNames})
+      : _extensionNames = extensionNames,
+        _functionNames = functionNames,
+        _typeNames = typeNames,
+        _variableNames = variableNames;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {}
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var extensionNames = this._extensionNames;
+    if (extensionNames == null) {
+      signatureSink.addInt(0);
+    } else {
+      signatureSink.addInt(extensionNames.length);
+      for (var x in extensionNames) {
+        signatureSink.addString(x);
+      }
+    }
+    var functionNames = this._functionNames;
+    if (functionNames == null) {
+      signatureSink.addInt(0);
+    } else {
+      signatureSink.addInt(functionNames.length);
+      for (var x in functionNames) {
+        signatureSink.addString(x);
+      }
+    }
+    var typeNames = this._typeNames;
+    if (typeNames == null) {
+      signatureSink.addInt(0);
+    } else {
+      signatureSink.addInt(typeNames.length);
+      for (var x in typeNames) {
+        signatureSink.addString(x);
+      }
+    }
+    var variableNames = this._variableNames;
+    if (variableNames == null) {
+      signatureSink.addInt(0);
+    } else {
+      signatureSink.addInt(variableNames.length);
+      for (var x in variableNames) {
+        signatureSink.addString(x);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset? offset_extensionNames;
+    fb.Offset? offset_functionNames;
+    fb.Offset? offset_typeNames;
+    fb.Offset? offset_variableNames;
+    var extensionNames = _extensionNames;
+    if (!(extensionNames == null || extensionNames.isEmpty)) {
+      offset_extensionNames = fbBuilder.writeList(
+          extensionNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    var functionNames = _functionNames;
+    if (!(functionNames == null || functionNames.isEmpty)) {
+      offset_functionNames = fbBuilder.writeList(
+          functionNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    var typeNames = _typeNames;
+    if (!(typeNames == null || typeNames.isEmpty)) {
+      offset_typeNames = fbBuilder
+          .writeList(typeNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    var variableNames = _variableNames;
+    if (!(variableNames == null || variableNames.isEmpty)) {
+      offset_variableNames = fbBuilder.writeList(
+          variableNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_extensionNames != null) {
+      fbBuilder.addOffset(0, offset_extensionNames);
+    }
+    if (offset_functionNames != null) {
+      fbBuilder.addOffset(1, offset_functionNames);
+    }
+    if (offset_typeNames != null) {
+      fbBuilder.addOffset(2, offset_typeNames);
+    }
+    if (offset_variableNames != null) {
+      fbBuilder.addOffset(3, offset_variableNames);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _CiderUnitTopLevelDeclarationsReader
+    extends fb.TableReader<_CiderUnitTopLevelDeclarationsImpl> {
+  const _CiderUnitTopLevelDeclarationsReader();
+
+  @override
+  _CiderUnitTopLevelDeclarationsImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      _CiderUnitTopLevelDeclarationsImpl(bc, offset);
+}
+
+class _CiderUnitTopLevelDeclarationsImpl extends Object
+    with _CiderUnitTopLevelDeclarationsMixin
+    implements idl.CiderUnitTopLevelDeclarations {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CiderUnitTopLevelDeclarationsImpl(this._bc, this._bcOffset);
+
+  List<String>? _extensionNames;
+  List<String>? _functionNames;
+  List<String>? _typeNames;
+  List<String>? _variableNames;
+
+  @override
+  List<String> get extensionNames {
+    return _extensionNames ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
+  }
+
+  @override
+  List<String> get functionNames {
+    return _functionNames ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+  }
+
+  @override
+  List<String> get typeNames {
+    return _typeNames ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+  }
+
+  @override
+  List<String> get variableNames {
+    return _variableNames ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 3, const <String>[]);
+  }
+}
+
+abstract class _CiderUnitTopLevelDeclarationsMixin
+    implements idl.CiderUnitTopLevelDeclarations {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    var local_extensionNames = extensionNames;
+    if (local_extensionNames.isNotEmpty) {
+      _result["extensionNames"] = local_extensionNames;
+    }
+    var local_functionNames = functionNames;
+    if (local_functionNames.isNotEmpty) {
+      _result["functionNames"] = local_functionNames;
+    }
+    var local_typeNames = typeNames;
+    if (local_typeNames.isNotEmpty) {
+      _result["typeNames"] = local_typeNames;
+    }
+    var local_variableNames = variableNames;
+    if (local_variableNames.isNotEmpty) {
+      _result["variableNames"] = local_variableNames;
+    }
+    return _result;
+  }
+
+  @override
+  Map<String, Object?> toMap() => {
+        "extensionNames": extensionNames,
+        "functionNames": functionNames,
+        "typeNames": typeNames,
+        "variableNames": variableNames,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
 class CiderUnlinkedUnitBuilder extends Object
     with _CiderUnlinkedUnitMixin
     implements idl.CiderUnlinkedUnit {
   List<int>? _contentDigest;
+  CiderUnitTopLevelDeclarationsBuilder? _topLevelDeclarations;
   UnlinkedUnit2Builder? _unlinkedUnit;
 
   @override
@@ -3649,6 +3865,15 @@ class CiderUnlinkedUnitBuilder extends Object
   }
 
   @override
+  CiderUnitTopLevelDeclarationsBuilder? get topLevelDeclarations =>
+      _topLevelDeclarations;
+
+  /// Top-level declarations of the unit.
+  set topLevelDeclarations(CiderUnitTopLevelDeclarationsBuilder? value) {
+    this._topLevelDeclarations = value;
+  }
+
+  @override
   UnlinkedUnit2Builder? get unlinkedUnit => _unlinkedUnit;
 
   /// Unlinked summary of the compilation unit.
@@ -3657,12 +3882,16 @@ class CiderUnlinkedUnitBuilder extends Object
   }
 
   CiderUnlinkedUnitBuilder(
-      {List<int>? contentDigest, UnlinkedUnit2Builder? unlinkedUnit})
+      {List<int>? contentDigest,
+      CiderUnitTopLevelDeclarationsBuilder? topLevelDeclarations,
+      UnlinkedUnit2Builder? unlinkedUnit})
       : _contentDigest = contentDigest,
+        _topLevelDeclarations = topLevelDeclarations,
         _unlinkedUnit = unlinkedUnit;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
+    _topLevelDeclarations?.flushInformative();
     _unlinkedUnit?.flushInformative();
   }
 
@@ -3677,6 +3906,8 @@ class CiderUnlinkedUnitBuilder extends Object
         signatureSink.addInt(x);
       }
     }
+    signatureSink.addBool(this._topLevelDeclarations != null);
+    this._topLevelDeclarations?.collectApiSignature(signatureSink);
     signatureSink.addBool(this._unlinkedUnit != null);
     this._unlinkedUnit?.collectApiSignature(signatureSink);
   }
@@ -3688,10 +3919,15 @@ class CiderUnlinkedUnitBuilder extends Object
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_contentDigest;
+    fb.Offset? offset_topLevelDeclarations;
     fb.Offset? offset_unlinkedUnit;
     var contentDigest = _contentDigest;
     if (!(contentDigest == null || contentDigest.isEmpty)) {
       offset_contentDigest = fbBuilder.writeListUint32(contentDigest);
+    }
+    var topLevelDeclarations = _topLevelDeclarations;
+    if (topLevelDeclarations != null) {
+      offset_topLevelDeclarations = topLevelDeclarations.finish(fbBuilder);
     }
     var unlinkedUnit = _unlinkedUnit;
     if (unlinkedUnit != null) {
@@ -3701,8 +3937,11 @@ class CiderUnlinkedUnitBuilder extends Object
     if (offset_contentDigest != null) {
       fbBuilder.addOffset(0, offset_contentDigest);
     }
+    if (offset_topLevelDeclarations != null) {
+      fbBuilder.addOffset(1, offset_topLevelDeclarations);
+    }
     if (offset_unlinkedUnit != null) {
-      fbBuilder.addOffset(1, offset_unlinkedUnit);
+      fbBuilder.addOffset(2, offset_unlinkedUnit);
     }
     return fbBuilder.endTable();
   }
@@ -3730,6 +3969,7 @@ class _CiderUnlinkedUnitImpl extends Object
   _CiderUnlinkedUnitImpl(this._bc, this._bcOffset);
 
   List<int>? _contentDigest;
+  idl.CiderUnitTopLevelDeclarations? _topLevelDeclarations;
   idl.UnlinkedUnit2? _unlinkedUnit;
 
   @override
@@ -3739,9 +3979,16 @@ class _CiderUnlinkedUnitImpl extends Object
   }
 
   @override
+  idl.CiderUnitTopLevelDeclarations? get topLevelDeclarations {
+    return _topLevelDeclarations ??=
+        const _CiderUnitTopLevelDeclarationsReader()
+            .vTableGetOrNull(_bc, _bcOffset, 1);
+  }
+
+  @override
   idl.UnlinkedUnit2? get unlinkedUnit {
     return _unlinkedUnit ??=
-        const _UnlinkedUnit2Reader().vTableGetOrNull(_bc, _bcOffset, 1);
+        const _UnlinkedUnit2Reader().vTableGetOrNull(_bc, _bcOffset, 2);
   }
 }
 
@@ -3753,6 +4000,10 @@ abstract class _CiderUnlinkedUnitMixin implements idl.CiderUnlinkedUnit {
     if (local_contentDigest.isNotEmpty) {
       _result["contentDigest"] = local_contentDigest;
     }
+    var local_topLevelDeclarations = topLevelDeclarations;
+    if (local_topLevelDeclarations != null) {
+      _result["topLevelDeclarations"] = local_topLevelDeclarations.toJson();
+    }
     var local_unlinkedUnit = unlinkedUnit;
     if (local_unlinkedUnit != null) {
       _result["unlinkedUnit"] = local_unlinkedUnit.toJson();
@@ -3763,6 +4014,7 @@ abstract class _CiderUnlinkedUnitMixin implements idl.CiderUnlinkedUnit {
   @override
   Map<String, Object?> toMap() => {
         "contentDigest": contentDigest,
+        "topLevelDeclarations": topLevelDeclarations,
         "unlinkedUnit": unlinkedUnit,
       };
 
