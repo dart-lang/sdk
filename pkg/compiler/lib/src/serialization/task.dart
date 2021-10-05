@@ -353,8 +353,8 @@ class SerializationTask extends CompilerTask {
 
   // TODO(joshualitt): Investigate whether closed world indices can be shared
   // with codegen.
-  void serializeCodegen(
-      BackendStrategy backendStrategy, CodegenResults codegenResults) {
+  void serializeCodegen(BackendStrategy backendStrategy,
+      CodegenResults codegenResults, DataSourceIndices indices) {
     GlobalTypeInferenceResults globalTypeInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
@@ -373,7 +373,8 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize codegen', () {
       Uri uri = Uri.parse('${_options.writeCodegenUri}$shard');
       api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
-      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput),
+          importedIndices: indices);
       _reporter.log('Writing data to ${uri}');
       sink.registerEntityWriter(entityWriter);
       sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
@@ -388,7 +389,8 @@ class SerializationTask extends CompilerTask {
   Future<CodegenResults> deserializeCodegen(
       BackendStrategy backendStrategy,
       GlobalTypeInferenceResults globalTypeInferenceResults,
-      CodegenInputs codegenInputs) async {
+      CodegenInputs codegenInputs,
+      DataSourceIndices indices) async {
     int shards = _options.codegenShards;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     Map<MemberEntity, CodegenResult> results = {};
@@ -401,7 +403,7 @@ class SerializationTask extends CompilerTask {
         // TODO(36983): This code is extracted because there appeared to be a
         // memory leak for large buffer held by `source`.
         _deserializeCodegenInput(
-            backendStrategy, closedWorld, uri, dataInput, results);
+            backendStrategy, closedWorld, uri, dataInput, indices, results);
         dataInput.release();
       });
     }
@@ -414,9 +416,10 @@ class SerializationTask extends CompilerTask {
       JClosedWorld closedWorld,
       Uri uri,
       api.Input<List<int>> dataInput,
+      DataSourceIndices importedIndices,
       Map<MemberEntity, CodegenResult> results) {
-    DataSource source =
-        BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
+    DataSource source = BinarySourceImpl(dataInput.data,
+        stringInterner: _stringInterner, importedIndices: importedIndices);
     backendStrategy.prepareCodegenReader(source);
     Map<MemberEntity, CodegenResult> codegenResults =
         source.readMemberMap((MemberEntity member) {

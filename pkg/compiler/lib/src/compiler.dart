@@ -267,17 +267,19 @@ abstract class Compiler {
       }
       GlobalTypeInferenceResults globalTypeInferenceResults =
           performGlobalTypeInference(closedWorldAndIndices.closedWorld);
+      var indices = closedWorldAndIndices.indices;
       if (options.writeDataUri != null) {
         if (options.noClosedWorldInData) {
           serializationTask.serializeGlobalTypeInference(
-              globalTypeInferenceResults, closedWorldAndIndices.indices);
+              globalTypeInferenceResults, indices);
         } else {
           serializationTask
               .serializeGlobalTypeInferenceLegacy(globalTypeInferenceResults);
         }
         return;
       }
-      await generateJavaScriptCode(globalTypeInferenceResults);
+      await generateJavaScriptCode(globalTypeInferenceResults,
+          indices: indices);
     } else if (onlyPerformCodegen) {
       GlobalTypeInferenceResults globalTypeInferenceResults;
       ir.Component component =
@@ -291,7 +293,8 @@ abstract class Compiler {
               abstractValueStrategy,
               component,
               closedWorldAndIndices);
-      await generateJavaScriptCode(globalTypeInferenceResults);
+      await generateJavaScriptCode(globalTypeInferenceResults,
+          indices: closedWorldAndIndices.indices);
     } else if (options.readDataUri != null) {
       // TODO(joshualitt) delete and clean up after google3 roll
       var globalTypeInferenceResults =
@@ -324,7 +327,8 @@ abstract class Compiler {
   }
 
   void generateJavaScriptCode(
-      GlobalTypeInferenceResults globalTypeInferenceResults) async {
+      GlobalTypeInferenceResults globalTypeInferenceResults,
+      {DataSourceIndices indices}) async {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     backendStrategy.registerJClosedWorld(closedWorld);
     phase = PHASE_COMPILING;
@@ -333,8 +337,8 @@ abstract class Compiler {
 
     if (options.readCodegenUri != null) {
       CodegenResults codegenResults =
-          await serializationTask.deserializeCodegen(
-              backendStrategy, globalTypeInferenceResults, codegenInputs);
+          await serializationTask.deserializeCodegen(backendStrategy,
+              globalTypeInferenceResults, codegenInputs, indices);
       reporter.log('Compiling methods');
       runCodegenEnqueuer(codegenResults);
     } else {
@@ -344,7 +348,8 @@ abstract class Compiler {
           codegenInputs,
           backendStrategy.functionCompiler);
       if (options.writeCodegenUri != null) {
-        serializationTask.serializeCodegen(backendStrategy, codegenResults);
+        serializationTask.serializeCodegen(
+            backendStrategy, codegenResults, indices);
       } else {
         runCodegenEnqueuer(codegenResults);
       }

@@ -48,7 +48,8 @@ abstract class Future<T> {
 
   Future<T> whenComplete(action());
 
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => throw 0;
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures, 
+    {void cleanUp(T successValue)?}) => throw 0;
 }
 
 abstract class FutureOr<T> {}
@@ -162,6 +163,8 @@ abstract class HashMap<K, V> implements Map<K, V> {
   }
 }
 
+abstract class IterableMixin<E> implements Iterable<E> { }
+
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   external factory LinkedHashMap(
       {bool Function(K, K)? equals,
@@ -208,6 +211,12 @@ abstract class LinkedHashSet<E> implements Set<E> {
     throw 0;
   }
 }
+
+abstract class ListMixin<E> implements List<E> { }
+
+abstract class MapMixin<K, V> implements Map<K, V> { }
+
+abstract class SetMixin<E> implements Set<E> { }
 ''',
   )
 ]);
@@ -234,6 +243,10 @@ class JsonCodec {
   const JsonCodec();
   String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
 }
+
+abstract class StringConversionSink { }
+
+abstract class StringConversionSinkMixin implements StringConversionSink { }
 ''',
     )
   ],
@@ -290,7 +303,12 @@ abstract class Comparable<T> {
 
 typedef Comparator<T> = int Function(T a, T b);
 
-class DateTime extends Object {}
+class DateTime extends Object {
+  external DateTime._now();
+  DateTime.now() : this._now();
+  external bool isBefore(DateTime other);
+  external int get millisecondsSinceEpoch;
+}
 
 class Deprecated extends Object {
   final String expires;
@@ -360,6 +378,8 @@ abstract class int extends num {
 
   bool get isEven => false;
   bool get isNegative;
+  bool get isOdd;
+  int get sign;
 
   int operator &(int other);
   int operator -();
@@ -371,8 +391,10 @@ abstract class int extends num {
   int operator ~();
 
   int abs();
+  int ceil();
   int gcd(int other);
   String toString();
+  int truncate();
 
   external static int parse(String source,
       {int? radix, @deprecated int onError(String source)?});
@@ -389,7 +411,11 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
   int get length;
 
-  bool contains(Object element);
+  const Iterable();
+
+  const factory Iterable.empty() => EmptyIterable<E>();
+
+  bool contains(Object? element);
 
   Iterable<T> expand<T>(Iterable<T> f(E element));
 
@@ -410,6 +436,7 @@ abstract class Iterable<E> {
   Set<E> toSet();
 
   Iterable<E> where(bool test(E element));
+  Iterable<T> whereType<T>();
 }
 
 abstract class Iterator<E> {
@@ -436,6 +463,7 @@ class List<E> implements Iterable<E> {
   Map<int, E> asMap() {}
   void clear() {}
   int indexOf(Object element);
+  bool remove(Object? value);
   E removeLast() {}
 
   noSuchMethod(Invocation invocation) => null;
@@ -463,8 +491,11 @@ abstract class Map<K, V> {
   V? operator [](Object? key);
   void operator []=(K key, V value);
 
+  void addAll(Map<K, V> other);
   Map<RK, RV> cast<RK, RV>();
   bool containsKey(Object? key);
+  void forEach(void action(K key, V value));
+  V putIfAbsent(K key, V ifAbsent());
 }
 
 class Null extends Object {
@@ -541,7 +572,7 @@ abstract class Pattern {
 }
 
 abstract class RegExp implements Pattern {
-  external factory RegExp(String source);
+  external factory RegExp(String source, {bool unicode = false});
 }
 
 abstract class Set<E> implements Iterable<E> {
@@ -895,6 +926,7 @@ class IFrameElement extends HtmlElement {
       "iframe");
 
   String src;
+  set srcdoc(String? value) native;
 }
 
 class OptionElement extends HtmlElement {
@@ -996,6 +1028,10 @@ final MockSdkLibrary _LIB_INTERNAL = MockSdkLibrary(
 library dart._internal;
 
 class Symbol {}
+
+class EmptyIterable<E> implements Iterable<E> {
+  const EmptyIterable();
+}
 
 class ExternalName {
   final String name;

@@ -30,6 +30,14 @@ struct ObjectPoolBuilderEntry {
     kImmediate,
     kNativeFunction,
     kNativeFunctionWrapper,
+
+    // Used only during AOT snapshot serialization/deserialization.
+    // Denotes kImmediate entry with
+    //  - StubCode::SwitchableCallMiss().MonomorphicEntryPoint()
+    //  - StubCode::MegamorphicCall().MonomorphicEntryPoint()
+    // values which become known only at run time.
+    kSwitchableCallMissEntryPoint,
+    kMegamorphicCallEntryPoint,
   };
 
   using TypeBits = BitField<uint8_t, EntryType, 0, 7>;

@@ -9,9 +9,10 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:path/src/context.dart';
+
+import '../messages/error_code_documentation_info.dart';
 
 /// Generate the file `diagnostics.md` based on the documentation associated
 /// with the declarations of the error codes.
@@ -95,8 +96,8 @@ class DiagnosticInformation {
   /// The messages associated with the diagnostic.
   List<String> messages;
 
-  /// The lines of documentation associated with the diagnostic.
-  List<String>? documentation;
+  /// The documentation text associated with the diagnostic.
+  String? documentation;
 
   /// Initialize a newly created information holder with the given [name] and
   /// [message].
@@ -123,9 +124,7 @@ class DiagnosticInformation {
       }
     }
     sink.writeln();
-    for (String line in documentation!) {
-      sink.writeln(line);
-    }
+    sink.writeln(documentation!);
   }
 
   /// Return a version of the [text] in which characters that have special
@@ -244,43 +243,15 @@ class DocumentationGenerator {
   }
 
   /// Extract documentation from the given [field] declaration.
-  List<String>? _extractDoc(FieldDeclaration field) {
-    var comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
-    if (comments == null) {
-      return null;
+  String _extractDoc(FieldDeclaration field) {
+    var parsedComment = parseErrorCodeDocumentation(field);
+    if (parsedComment == null) {
+      return '';
     }
-    List<String> docs = [];
-    bool inDartCodeBlock = false;
-    while (comments != null) {
-      String lexeme = comments.lexeme;
-      if (lexeme.startsWith('// TODO')) {
-        break;
-      } else if (lexeme.startsWith('// %')) {
-        // Ignore lines containing directives for testing support.
-      } else if (lexeme.startsWith('// ')) {
-        String trimmedLine = lexeme.substring(3);
-        if (trimmedLine == '```dart') {
-          inDartCodeBlock = true;
-          docs.add('{% prettify dart tag=pre+code %}');
-        } else if (trimmedLine == '```') {
-          if (inDartCodeBlock) {
-            docs.add('{% endprettify %}');
-            inDartCodeBlock = false;
-          } else {
-            docs.add(trimmedLine);
-          }
-        } else {
-          docs.add(trimmedLine);
-        }
-      } else if (lexeme == '//') {
-        docs.add('');
-      }
-      comments = comments.next as CommentToken?;
-    }
-    if (docs.isEmpty) {
-      return null;
-    }
-    return docs;
+    return [
+      for (var documentationPart in parsedComment)
+        documentationPart.formatForDocumentation()
+    ].join('\n');
   }
 
   /// Extract documentation from the file that was parsed to produce the given
@@ -301,7 +272,7 @@ class DocumentationGenerator {
                 variable.initializer!, generatedResult);
             if (info != null) {
               var docs = _extractDoc(member);
-              if (docs != null) {
+              if (docs.isNotEmpty) {
                 if (info.documentation != null) {
                   throw StateError(
                       'Documentation defined multiple times for ${info.name}');
