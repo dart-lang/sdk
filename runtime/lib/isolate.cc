@@ -180,7 +180,6 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   ClassTable* class_table = isolate->group()->class_table();
 
   Class& klass = Class::Handle(zone);
-  Closure& closure = Closure::Handle(zone);
 
   bool error_found = false;
   Function& erroneous_closure_function = Function::Handle(zone);
@@ -205,8 +204,12 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       ObjectPtr raw = working_set.RemoveLast();
 
       const intptr_t cid = raw->GetClassId();
+      // Keep the list in sync with the one in message_snapshot.cc
       switch (cid) {
-        // List below matches the one in raw_object_snapshot.cc
+        case kRegExpCid:
+          // Can be shared, need to be explicitly listed to prevent inspection.
+          continue;
+
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
     error_message =                                                            \
@@ -214,27 +217,15 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     error_found = true;                                                        \
     break;
 
-        MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
-        MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-        MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
-        MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-        MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
-        MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
-        MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+          MESSAGE_SNAPSHOT_ILLEGAL(FunctionType);
+          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+          MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
+          MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
 
-        case kClosureCid: {
-          closure = Closure::RawCast(raw);
-          FunctionPtr func = closure.function();
-          // We only allow closure of top level methods or static functions in a
-          // class to be sent in isolate messages.
-          if (!Function::IsImplicitStaticClosureFunction(func)) {
-            // All other closures are errors.
-            erroneous_closure_function = func;
-            error_found = true;
-            break;
-          }
-          break;
-        }
+          MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+          MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+
         default:
           if (cid >= kNumPredefinedCids) {
             klass = class_table->At(cid);
