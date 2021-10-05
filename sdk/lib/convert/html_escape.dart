@@ -126,7 +126,7 @@ class HtmlEscapeMode {
 /// The characters that need escaping in HTML are:
 ///
 /// * `&` (ampersand) always need to be escaped.
-/// * `<` (less than) and '>' (greater than) when inside an element.
+/// * `<` (less than) and `>` (greater than) when inside an element.
 /// * `"` (quote) when inside a double-quoted attribute value.
 /// * `'` (apostrophe) when inside a single-quoted attribute value.
 ///       Apostrophe is escaped as `&#39;` instead of `&apos;` since
