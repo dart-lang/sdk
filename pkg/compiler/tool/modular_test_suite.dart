@@ -336,6 +336,7 @@ class ComputeClosedWorldStep implements IOModularStep {
       if (useModularAnalysis)
         '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
+      Flags.noClosedWorldInData,
       '--out=${toUri(module, globalUpdatedDillId)}',
     ];
     var result =
