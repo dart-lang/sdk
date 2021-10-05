@@ -191,7 +191,7 @@ class PubspecWarningCode extends ErrorCode {
   // Use a map as the value of the `dependencies` key:
   //
   // ```yaml
-  // %uri='pubspec.yaml'
+  // %uri="pubspec.yaml"
   // name: example
   // dependencies:
   //   meta: ^1.0.2
@@ -539,7 +539,7 @@ class PubspecWarningCode extends ErrorCode {
   // listed under both `dependencies` and `dev_dependencies`:
   //
   // ```yaml
-  // %uri='pubspec.yaml'
+  // %uri="pubspec.yaml"
   // name: example
   // dependencies:
   //   meta: ^1.0.2
@@ -553,7 +553,7 @@ class PubspecWarningCode extends ErrorCode {
   // if that's the only package listed there):
   //
   // ```yaml
-  // %uri='pubspec.yaml'
+  // %uri="pubspec.yaml"
   // name: example
   // dependencies:
   //   meta: ^1.0.2
