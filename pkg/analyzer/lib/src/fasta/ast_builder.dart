@@ -268,8 +268,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
     push(_Modifiers()
       ..externalKeyword = externalToken
       ..finalConstOrVarKeyword = constToken);
@@ -310,6 +310,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -995,7 +996,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(DeclarationKind kind, int memberCount,
+  void endClassOrMixinOrExtensionBody(DeclarationKind kind, int memberCount,
       Token leftBracket, Token rightBracket) {
     // TODO(danrubel): consider renaming endClassOrMixinBody
     // to endClassOrMixinOrExtensionBody
@@ -1571,45 +1572,6 @@ class AstBuilder extends StackListener {
     push(ast.genericFunctionType(
         returnType, functionToken, typeParameters, parameters,
         question: questionMark));
-  }
-
-  @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token semicolon) {
-    assert(optional('typedef', typedefKeyword));
-    assert(optionalOrNull('=', equals));
-    assert(optional(';', semicolon));
-    debugEvent("FunctionTypeAlias");
-
-    if (equals == null) {
-      var parameters = pop() as FormalParameterList;
-      var typeParameters = pop() as TypeParameterList?;
-      var name = pop() as SimpleIdentifier;
-      var returnType = pop() as TypeAnnotation?;
-      var metadata = pop() as List<Annotation>?;
-      var comment = _findComment(metadata, typedefKeyword);
-      declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
-          returnType, name, typeParameters, parameters, semicolon));
-    } else {
-      var type = pop() as TypeAnnotation;
-      var templateParameters = pop() as TypeParameterList?;
-      var name = pop() as SimpleIdentifier;
-      var metadata = pop() as List<Annotation>?;
-      var comment = _findComment(metadata, typedefKeyword);
-      if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
-        var feature = Feature.nonfunction_type_aliases;
-        handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          equals,
-          equals,
-        );
-      }
-      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
-          name, templateParameters, equals, type, semicolon));
-    }
   }
 
   @override
@@ -2313,6 +2275,44 @@ class AstBuilder extends StackListener {
 
     var arguments = popTypedList2<TypeAnnotation>(count);
     push(ast.typeArgumentList(leftBracket, arguments, rightBracket));
+  }
+
+  @override
+  void endTypedef(Token typedefKeyword, Token? equals, Token semicolon) {
+    assert(optional('typedef', typedefKeyword));
+    assert(optionalOrNull('=', equals));
+    assert(optional(';', semicolon));
+    debugEvent("FunctionTypeAlias");
+
+    if (equals == null) {
+      var parameters = pop() as FormalParameterList;
+      var typeParameters = pop() as TypeParameterList?;
+      var name = pop() as SimpleIdentifier;
+      var returnType = pop() as TypeAnnotation?;
+      var metadata = pop() as List<Annotation>?;
+      var comment = _findComment(metadata, typedefKeyword);
+      declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
+          returnType, name, typeParameters, parameters, semicolon));
+    } else {
+      var type = pop() as TypeAnnotation;
+      var templateParameters = pop() as TypeParameterList?;
+      var name = pop() as SimpleIdentifier;
+      var metadata = pop() as List<Annotation>?;
+      var comment = _findComment(metadata, typedefKeyword);
+      if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
+        var feature = Feature.nonfunction_type_aliases;
+        handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          equals,
+          equals,
+        );
+      }
+      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
+          name, templateParameters, equals, type, semicolon));
+    }
   }
 
   @override

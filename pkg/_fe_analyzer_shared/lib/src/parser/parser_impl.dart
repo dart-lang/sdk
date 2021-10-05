@@ -1162,7 +1162,7 @@ class Parser {
   Token parseTypedef(Token typedefKeyword) {
     assert(optional('typedef', typedefKeyword));
     listener.beginUncategorizedTopLevelDeclaration(typedefKeyword);
-    listener.beginFunctionTypeAlias(typedefKeyword);
+    listener.beginTypedef(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, /* required = */ false);
     Token token = typeInfo.skipType(typedefKeyword);
     Token next = token.next!;
@@ -1264,7 +1264,7 @@ class Parser {
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
     token = ensureSemicolon(token);
-    listener.endFunctionTypeAlias(typedefKeyword, equals, token);
+    listener.endTypedef(typedefKeyword, equals, token);
     return token;
   }
 
@@ -1986,7 +1986,7 @@ class Parser {
       Token? abstractToken, Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
-    listener.beginClassOrNamedMixinApplicationPrelude(begin);
+    listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
     Token name = ensureIdentifier(
         classKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token token = computeTypeParamOrArg(
@@ -2216,7 +2216,7 @@ class Parser {
   /// ```
   Token parseMixin(Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
-    listener.beginClassOrNamedMixinApplicationPrelude(mixinKeyword);
+    listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token headerStart = computeTypeParamOrArg(
@@ -2866,7 +2866,8 @@ class Parser {
       DeclarationKind kind,
       String? enclosingDeclarationName,
       bool nameIsRecovered) {
-    listener.beginFields(beforeStart);
+    listener.beginFields(kind, abstractToken, externalToken, staticToken,
+        covariantToken, lateToken, varFinalOrConst, beforeStart);
 
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
@@ -3533,7 +3534,7 @@ class Parser {
       Token token, DeclarationKind kind, String? enclosingDeclarationName) {
     Token begin = token = token.next!;
     assert(optional('{', token));
-    listener.beginClassOrMixinBody(kind, token);
+    listener.beginClassOrMixinOrExtensionBody(kind, token);
     int count = 0;
     while (notEofOrValue('}', token.next!)) {
       token = parseClassOrMixinOrExtensionMemberImpl(
@@ -3542,7 +3543,7 @@ class Parser {
     }
     token = token.next!;
     assert(token.isEof || optional('}', token));
-    listener.endClassOrMixinBody(kind, count, begin, token);
+    listener.endClassOrMixinOrExtensionBody(kind, count, begin, token);
     return token;
   }
 
@@ -3994,7 +3995,7 @@ class Parser {
 
     // TODO(danrubel): Consider parsing the name before calling beginMethod
     // rather than passing the name token into beginMethod.
-    listener.beginMethod(externalToken, staticToken, covariantToken,
+    listener.beginMethod(kind, externalToken, staticToken, covariantToken,
         varFinalOrConst, getOrSet, name);
 
     Token token = typeInfo.parseType(beforeType, this);
@@ -4209,7 +4210,8 @@ class Parser {
       varFinalOrConst = null;
     }
 
-    listener.beginFactoryMethod(beforeStart, externalToken, varFinalOrConst);
+    listener.beginFactoryMethod(
+        kind, beforeStart, externalToken, varFinalOrConst);
     token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
     token = parseQualifiedRestOpt(
         token, IdentifierContext.methodDeclarationContinuation);

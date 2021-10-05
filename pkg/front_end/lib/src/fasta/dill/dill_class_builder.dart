@@ -121,8 +121,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
@@ -134,9 +133,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
     // [arguments] != null
     return new List<DartType>.generate(
-        arguments.length,
-        (int i) =>
-            arguments[i].build(library, nonInstanceContext: nonInstanceContext),
+        arguments.length, (int i) => arguments[i].build(library),
         growable: true);
   }
 

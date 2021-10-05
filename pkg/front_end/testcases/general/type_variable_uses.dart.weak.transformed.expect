@@ -2,9 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/type_variable_uses.dart:7:15: Error: Can only use type variables in instance methods.
+// pkg/front_end/testcases/general/type_variable_uses.dart:7:12: Error: Type variables can't be used in static members.
 //   static C<T> staticMethod() {
-//               ^
+//            ^
 //
 // pkg/front_end/testcases/general/type_variable_uses.dart:8:11: Error: Type variables can't be used in static members.
 //     print(T);
@@ -69,7 +69,7 @@ class C<T extends core::Object* = dynamic> extends core::Object /*hasConstConstr
   const constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
-  static method staticMethod() → self::C<dynamic>* {
+  static method staticMethod() → self::C<invalid-type>* {
     core::print(#C1);
     invalid-type t;
     self::C<invalid-type>* l;

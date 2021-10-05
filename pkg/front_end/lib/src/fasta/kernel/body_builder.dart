@@ -427,8 +427,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return functionNestingLevel == 0 && member is ConstructorBuilder;
   }
 
+  @override
   bool get isDeclarationInstanceContext {
     return isDeclarationInstanceMember || member is ConstructorBuilder;
+  }
+
+  @override
+  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
+    if (member.isExtensionMember && member.isField && !member.isExternal) {
+      return InstanceTypeVariableAccessState.Invalid;
+    } else if (isDeclarationInstanceContext || member is DeclarationBuilder) {
+      return InstanceTypeVariableAccessState.Allowed;
+    } else {
+      return InstanceTypeVariableAccessState.Disallowed;
+    }
   }
 
   @override
@@ -3744,16 +3756,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType(
-            new NamedTypeBuilder(
-                name,
+            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                new InvalidTypeDeclarationBuilder(
+                    name,
+                    message.withLocation(
+                        uri, offset, lengthOfSpan(beginToken, suffix))),
                 libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
-                null,
-                uri,
-                offset)
-              ..bind(new InvalidTypeDeclarationBuilder(
-                  name,
-                  message.withLocation(
-                      uri, offset, lengthOfSpan(beginToken, suffix)))),
+                fileUri: uri,
+                charOffset: offset,
+                instanceTypeVariableAccess:
+                    InstanceTypeVariableAccessState.Unexpected),
             offset,
             uri));
         return;
@@ -3782,16 +3794,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
-      result = new NamedTypeBuilder(
-          name.name,
+      result = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+          new InvalidTypeDeclarationBuilder(
+              name.name,
+              name.message.withLocation(
+                  name.fileUri, name.charOffset, name.name.length)),
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
-          /* arguments = */ null,
-          name.fileUri,
-          name.charOffset)
-        ..bind(new InvalidTypeDeclarationBuilder(
-            name.name,
-            name.message.withLocation(
-                name.fileUri, name.charOffset, name.name.length)));
+          fileUri: name.fileUri,
+          charOffset: name.charOffset,
+          instanceTypeVariableAccess:
+              InstanceTypeVariableAccessState.Unexpected);
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
@@ -3860,10 +3872,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     int offset = offsetForToken(token);
     // "void" is always nullable.
     push(new UnresolvedType(
-        new NamedTypeBuilder(
-            "void", const NullabilityBuilder.nullable(), null, uri, offset)
-          ..bind(new VoidTypeDeclarationBuilder(
-              const VoidType(), libraryBuilder, offset)),
+        new NamedTypeBuilder.fromTypeDeclarationBuilder(
+            new VoidTypeDeclarationBuilder(
+                const VoidType(), libraryBuilder, offset),
+            const NullabilityBuilder.nullable(),
+            fileUri: uri,
+            charOffset: offset,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Unexpected),
         offset,
         uri));
   }
@@ -4048,9 +4064,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           fileUri: uri)
         ..hasDeclaredInitializer = (initializerStart != null);
     }
-    VariableDeclaration variable = parameter.build(
-        libraryBuilder, functionNestingLevel,
-        nonInstanceContext: !isDeclarationInstanceContext);
+    VariableDeclaration variable =
+        parameter.build(libraryBuilder, functionNestingLevel);
     Expression? initializer = name?.initializer;
     if (initializer != null) {
       if (member is RedirectingFactoryBuilder) {
@@ -5557,8 +5572,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       annotations = pop() as List<Expression>?; // Metadata.
     }
     FunctionNode function = formals.buildFunctionNode(libraryBuilder,
-        returnType, typeParameters, asyncModifier, body, token.charOffset,
-        nonInstanceContext: !isDeclarationInstanceContext);
+        returnType, typeParameters, asyncModifier, body, token.charOffset);
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
@@ -5660,8 +5674,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<TypeVariableBuilder>? typeParameters =
         pop() as List<TypeVariableBuilder>?;
     FunctionNode function = formals.buildFunctionNode(libraryBuilder, null,
-        typeParameters, asyncModifier, body, token.charOffset,
-        nonInstanceContext: !isDeclarationInstanceContext)
+        typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
 
     Expression result;
@@ -6884,29 +6897,46 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         TypeVariableBuilder typeParameterBuilder =
             builder.declaration as TypeVariableBuilder;
         TypeParameter typeParameter = typeParameterBuilder.parameter;
-        bool extensionField =
-            member.isExtensionMember && member.isField && !member.isExternal;
-        if ((extensionField || !isDeclarationInstanceContext) &&
-            (typeParameter.parent is Class ||
-                typeParameter.parent is Extension)) {
-          // TODO(johnniwinther): Can we unify this check with the similar check
-          // in NamedTypeBuilder.buildTypeInternal. If we skip it here, the
-          // error below (type variable in constant context) will be emitted
-          // _instead_ of this (type variable in static context), which seems
-          // like an odd prioritization.
-          LocatedMessage message = fasta.messageTypeVariableInStaticContext
-              .withLocation(builder.fileUri ?? fileUri,
-                  builder.charOffset ?? charOffset, typeParameter.name!.length);
-          builder.bind(
-              new InvalidTypeDeclarationBuilder(typeParameter.name!, message));
-          addProblem(message.messageObject, message.charOffset, message.length);
-        } else if (constantContext != ConstantContext.none &&
-            (!inConstructorInitializer || !allowPotentiallyConstantType)) {
-          LocatedMessage message = fasta.messageTypeVariableInConstantContext
-              .withLocation(fileUri, charOffset, typeParameter.name!.length);
-          builder.bind(
-              new InvalidTypeDeclarationBuilder(typeParameter.name!, message));
-          addProblem(message.messageObject, message.charOffset, message.length);
+        if (typeParameter.parent is Class ||
+            typeParameter.parent is Extension) {
+          switch (builder.instanceTypeVariableAccess) {
+            case InstanceTypeVariableAccessState.Allowed:
+              if (constantContext != ConstantContext.none &&
+                  (!inConstructorInitializer ||
+                      !allowPotentiallyConstantType)) {
+                LocatedMessage message =
+                    fasta.messageTypeVariableInConstantContext.withLocation(
+                        fileUri, charOffset, typeParameter.name!.length);
+                builder.bind(new InvalidTypeDeclarationBuilder(
+                    typeParameter.name!, message));
+                addProblem(
+                    message.messageObject, message.charOffset, message.length);
+              }
+              break;
+            case InstanceTypeVariableAccessState.Disallowed:
+              // TODO(johnniwinther): Can we unify this check with the similar
+              // check in NamedTypeBuilder.buildTypeInternal. If we skip it
+              // here, the error below (type variable in constant context) will
+              // be emitted _instead_ of this (type variable in static context),
+              // which seems like an odd prioritization.
+              // TODO: Handle this case.
+              LocatedMessage message = fasta.messageTypeVariableInStaticContext
+                  .withLocation(
+                      builder.fileUri ?? fileUri,
+                      builder.charOffset ?? charOffset,
+                      typeParameter.name!.length);
+              builder.bind(new InvalidTypeDeclarationBuilder(
+                  typeParameter.name!, message));
+              addProblem(
+                  message.messageObject, message.charOffset, message.length);
+              break;
+            case InstanceTypeVariableAccessState.Invalid:
+              break;
+            case InstanceTypeVariableAccessState.Unexpected:
+              assert(false,
+                  "Unexpected instance type variable $typeParameterBuilder");
+              break;
+          }
         }
       }
       if (builder.arguments != null) {
@@ -7337,12 +7367,11 @@ class FormalParameters {
       List<TypeVariableBuilder>? typeParameters,
       AsyncMarker asyncModifier,
       Statement body,
-      int fileEndOffset,
-      {required bool nonInstanceContext}) {
+      int fileEndOffset) {
     FunctionType type = toFunctionType(
             returnType, const NullabilityBuilder.omitted(), typeParameters)
         .builder
-        .build(library, nonInstanceContext: nonInstanceContext) as FunctionType;
+        .build(library) as FunctionType;
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {

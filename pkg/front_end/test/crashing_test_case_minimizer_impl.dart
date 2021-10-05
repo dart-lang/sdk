@@ -1309,7 +1309,7 @@ worlds:
         shouldCompile = true;
         what = "enum";
       } else if (child.isTypedef()) {
-        DirectParserASTContentFunctionTypeAliasEnd decl = child.asTypedef();
+        DirectParserASTContentTypedefEnd decl = child.asTypedef();
         helper.replacements.add(new _Replacement(
             decl.typedefKeyword.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
@@ -1371,8 +1371,8 @@ worlds:
           if (child.isClass()) {
             // Also try to remove all content of the class.
             DirectParserASTContentClassDeclarationEnd decl = child.asClass();
-            DirectParserASTContentClassOrMixinBodyEnd body =
-                decl.getClassOrMixinBody();
+            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
                   body.beginToken.offset, body.endToken.offset));
@@ -1500,8 +1500,8 @@ worlds:
             // Also try to remove all content of the mixin.
             DirectParserASTContentMixinDeclarationEnd decl =
                 child.asMixinDeclaration();
-            DirectParserASTContentClassOrMixinBodyEnd body =
-                decl.getClassOrMixinBody();
+            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
                   body.beginToken.offset, body.endToken.offset));

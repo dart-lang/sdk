@@ -261,7 +261,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     push(popList(memberCount,

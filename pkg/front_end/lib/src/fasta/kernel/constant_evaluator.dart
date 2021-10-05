@@ -3598,10 +3598,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     final DartType result = env.substituteType(type);
 
     if (!isInstantiated(result)) {
-      _gotError = createEvaluationErrorConstant(
-          node,
-          templateConstEvalFreeTypeParameter.withArguments(
-              type, isNonNullableByDefault));
+      // TODO(johnniwinther): Maybe we should always report this in the body
+      // builder. Currently we report some, because we need to handle
+      // potentially constant types, but we should be able to handle all (or
+      // none) in the body builder.
+      _gotError = createExpressionErrorConstant(
+          node, messageTypeVariableInConstantContext);
       return null;
     }
 

@@ -267,7 +267,8 @@ TypeBuilder? substituteRange(
     }
     if (arguments != null) {
       NamedTypeBuilder newTypeBuilder = new NamedTypeBuilder(type.name,
-          type.nullabilityBuilder, arguments, type.fileUri, type.charOffset);
+          type.nullabilityBuilder, arguments, type.fileUri, type.charOffset,
+          instanceTypeVariableAccess: type.instanceTypeVariableAccess);
       if (declaration != null) {
         newTypeBuilder.bind(declaration);
       } else {
@@ -312,7 +313,9 @@ TypeBuilder? substituteRange(
               functionTypeLowerSubstitution![variable] =
                   new NamedTypeBuilder.fromTypeDeclarationBuilder(
                       newTypeVariableBuilder,
-                      const NullabilityBuilder.omitted());
+                      const NullabilityBuilder.omitted(),
+                      instanceTypeVariableAccess:
+                          InstanceTypeVariableAccessState.Unexpected);
           changed = true;
         } else {
           variables[i] = variable;

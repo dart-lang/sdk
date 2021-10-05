@@ -2,15 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Error: Type variables can't be used as constants.
 //   C({a: 0, b: T}) : trace = "a: $a, b: $b";
 //               ^
-// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Context: The type 'T' is not a constant because it depends on a type parameter, only instantiated types are allowed.
-//   C({a: 0, b: T}) : trace = "a: $a, b: $b";
-//               ^
-// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:12: Context: While analyzing:
-//   C({a: 0, b: T}) : trace = "a: $a, b: $b";
-//            ^
 //
 import self as self;
 import "dart:core" as core;
@@ -20,7 +14,7 @@ import "package:expect/expect.dart";
 
 class C<T extends core::Object* = dynamic> extends core::Object {
   field core::String* trace;
-  constructor •({dynamic a = #C1, dynamic b = invalid-expression "The type 'T' is not a constant because it depends on a type parameter, only instantiated types are allowed."}) → self::C<self::C::T*>*
+  constructor •({dynamic a = #C1, dynamic b = invalid-expression "Type variables can't be used as constants."}) → self::C<self::C::T*>*
     : self::C::trace = "a: ${a}, b: ${b}", super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

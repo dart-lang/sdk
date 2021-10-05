@@ -11,9 +11,8 @@ class Foo<T> implements I<T> {
   Foo<T>
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [cfe] Type variables can't be used in static members.
       m(
-//    ^
-// [cfe] Can only use type variables in instance methods.
     Foo<T>
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
@@ -41,26 +40,19 @@ class Foo<T> implements I<T> {
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
-  //                 ^
-  // [cfe] Verification of the generated program failed:
-  //                 ^
-  // [cfe] Verification of the generated program failed:
 
   static
   Foo<T>
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [cfe] Type variables can't be used in static members.
       get f {
-      //  ^
-      // [cfe] Can only use type variables in instance methods.
     return new Foo<String>();
     //     ^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   }
 
   static void set f(
-  //              ^
-  // [cfe] Can only use type variables in instance methods.
                     Foo<T>
                     //  ^
                     // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
@@ -80,8 +72,6 @@ main() {
   Foo.f1 = new Foo<String>();
   //       ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //           ^
-  // [cfe] A value of type 'Foo<String>' can't be assigned to a variable of type 'Foo<T>'.
   var x = Foo.f;
   Foo.f = x;
 }

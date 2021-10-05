@@ -56,8 +56,7 @@ class MixinApplicationBuilder extends TypeBuilder {
   }
 
   @override
-  InterfaceType build(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext}) {
+  InterfaceType build(LibraryBuilder library, {TypedefType? origin}) {
     int charOffset = -1; // TODO(ahe): Provide these.
     Uri? fileUri = null; // TODO(ahe): Provide these.
     return unsupported("build", charOffset, fileUri);

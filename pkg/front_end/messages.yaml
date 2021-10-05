@@ -1726,10 +1726,6 @@ TypeNotFound:
   problemMessage: "Type '#name' not found."
   analyzerCode: UNDEFINED_CLASS
 
-NonInstanceTypeVariableUse:
-  problemMessage: "Can only use type variables in instance methods."
-  analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
-
 NameNotFound:
   problemMessage: "Undefined name '#name'."
   analyzerCode: UNDEFINED_NAME

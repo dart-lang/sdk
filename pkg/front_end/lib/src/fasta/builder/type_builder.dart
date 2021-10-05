@@ -68,13 +68,10 @@ abstract class TypeBuilder {
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
-  DartType build(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext});
+  DartType build(LibraryBuilder library, {TypedefType? origin});
 
-  DartType buildTypeLiteralType(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext}) {
-    return build(library,
-        origin: origin, nonInstanceContext: nonInstanceContext);
+  DartType buildTypeLiteralType(LibraryBuilder library, {TypedefType? origin}) {
+    return build(library, origin: origin);
   }
 
   Supertype? buildSupertype(

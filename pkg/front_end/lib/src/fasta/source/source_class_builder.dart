@@ -334,7 +334,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           const NullabilityBuilder.omitted(),
           /* arguments = */ null,
           fileUri,
-          charOffset)
+          charOffset,
+          instanceTypeVariableAccess:
+              InstanceTypeVariableAccessState.Unexpected)
         ..bind(new InvalidTypeDeclarationBuilder(supertype.name as String,
             message.withLocation(fileUri, charOffset, noLength)));
     }

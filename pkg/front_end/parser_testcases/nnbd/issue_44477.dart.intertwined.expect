@@ -14,7 +14,7 @@ parseUnit(Future)
           listener: // WARNING: Reporting at eof for .
         rewriter()
       parseFields(, null, null, null, null, null, null, , Instance of 'ComplexTypeInfo', , DeclarationKind.TopLevel, null, false)
-        listener: beginFields()
+        listener: beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, )
         ensureIdentifier(, typeReference)
           listener: handleIdentifier(Future, typeReference)
         listener: beginTypeArguments(<)

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/type_variable_prefix.dart:8:3: Error: 'T.String' can't be used as a type because 'T' doesn't refer to an import prefix.
+// pkg/front_end/testcases/general/type_variable_prefix.dart:10:3: Error: 'T.String' can't be used as a type because 'T' doesn't refer to an import prefix.
 //   T.String method() => "Hello, World!";
 //   ^^^^^^^^
 //

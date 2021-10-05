@@ -138,8 +138,14 @@ class ParserCreatorListener extends Listener {
   }
 
   @override
-  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token getOrSet, Token name) {
+  void beginMethod(
+      DeclarationKind declarationKind,
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token varFinalOrConst,
+      Token getOrSet,
+      Token name) {
     currentMethodName = name.lexeme;
   }
 
