@@ -67,13 +67,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   static const LintCode functionCode = LintCode(
       "always_declare_return_types", // ignore: prefer_single_quotes
       "The function '{0}' should have a return type but doesn't.",
-      correction:
+      correctionMessage:
           "Try adding a return type to the function."); // ignore: prefer_single_quotes
 
   static const LintCode methodCode = LintCode(
       "always_declare_return_types", // ignore: prefer_single_quotes
       "The method '{0}' should have a return type but doesn't.",
-      correction:
+      correctionMessage:
           "Try adding a return type to the method."); // ignore: prefer_single_quotes
 
   final LintRule rule;

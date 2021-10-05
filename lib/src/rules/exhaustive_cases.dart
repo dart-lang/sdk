@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor {
   static const LintCode lintCode = LintCode(
     'exhaustive_cases',
     "Missing case clause for '{0}'.",
-    correction: 'Try adding a case clause for the missing constant.',
+    correctionMessage: 'Try adding a case clause for the missing constant.',
   );
 
   final LintRule rule;

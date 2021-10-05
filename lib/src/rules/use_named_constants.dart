@@ -76,7 +76,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                 arguments: ['${element.name}.${field.name}'],
                 errorCode: const LintCode(lintName,
                     "The constant '{0}' should be referenced instead of duplicating its value.",
-                    correction: "Try using the predefined constant '{0}'."));
+                    correctionMessage:
+                        "Try using the predefined constant '{0}'."));
             return;
           }
         }

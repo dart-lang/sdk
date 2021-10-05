@@ -202,7 +202,7 @@ void defineSoloRuleTest(String ruleToTest) {
 }
 
 void testRule(String ruleName, File file,
-    {bool debug = true, bool failOnErrors = false, String? analysisOptions}) {
+    {bool debug = true, bool failOnErrors = true, String? analysisOptions}) {
   test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');

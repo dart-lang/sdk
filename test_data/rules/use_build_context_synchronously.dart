@@ -7,6 +7,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+extension on BuildContext {
+  bool get mounted => false;
+}
+
 void mountedBinOpAnd(BuildContext context, bool condition) async {
   await Future<void>.delayed(Duration());
   if (condition && context.mounted) {
@@ -303,7 +307,7 @@ class _MyState extends State<MyWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => const Placeholder();
+  Widget build(BuildContext context) => Placeholder();
 }
 
 void topLevel(BuildContext context) async {

@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static const LintCode parameterCode = LintCode(
       "avoid_renaming_method_parameters", // ignore: prefer_single_quotes
       "The parameter '{0}' should have the name '{1}' to match the name used in the overridden method.",
-      correction:
+      correctionMessage:
           "Try renaming the parameter."); // ignore: prefer_single_quotes
 
   final LintRule rule;

@@ -8,8 +8,57 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NullClosuresPreNNBDTest);
     defineReflectiveTests(NullClosuresTest);
   });
+}
+
+@reflectiveTest
+class NullClosuresPreNNBDTest extends LintRuleTest {
+  @override
+  String get lintRule => 'null_closures';
+
+  test_list_firstWhere() async {
+    await assertNoDiagnostics(r'''
+// @dart=2.9
+
+f() => <int>[2, 4, 6].firstWhere((e) => e.isEven, orElse: () => null);
+''');
+  }
+
+  test_list_generate() async {
+    await assertDiagnostics(r'''
+// @dart=2.9
+
+f() => List.generate(3, null);
+''', [
+      lint('null_closures', 38, 4),
+    ]);
+  }
+
+  test_list_where() async {
+    await assertDiagnostics(r'''
+// @dart=2.9
+
+f() => <int>[2, 4, 6].where(null);
+''', [
+      lint('null_closures', 42, 4),
+    ]);
+  }
+
+  test_map_putIfAbsent() async {
+    await assertDiagnostics(r'''
+// @dart=2.9
+
+f() {
+  var map = <int, int>{};
+  map.putIfAbsent(7, null);
+  return map;
+}
+''', [
+      lint('null_closures', 67, 4),
+    ]);
+  }
 }
 
 @reflectiveTest

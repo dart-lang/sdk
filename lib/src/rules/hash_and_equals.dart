@@ -69,10 +69,10 @@ class HashAndEquals extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   static const LintCode hashMemberCode = LintCode(
       'hash_and_equals', 'Override `==` if overriding `hashCode`.',
-      correction: 'Implement `==`.');
+      correctionMessage: 'Implement `==`.');
   static const LintCode equalsMemberCode = LintCode(
       'hash_and_equals', 'Override `hashCode` if overriding `==`.',
-      correction: 'Implement `hashCode`.');
+      correctionMessage: 'Implement `hashCode`.');
 
   final LintRule rule;
 

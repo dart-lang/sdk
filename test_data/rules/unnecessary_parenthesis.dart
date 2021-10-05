@@ -93,7 +93,7 @@ main() async {
   // would attempt to call a _static_ method on the target.
   (String).hashCode;
   (int).runtimeType;
-  (bool).noSuchMethod();
+  (bool).noSuchMethod(invocation()!);
   (double).toString();
 
   ({false: 'false', true: 'true'}).forEach((k, v) => print('$k: $v'));
@@ -102,6 +102,8 @@ main() async {
   print(({1, 2, 3}).length); // LINT
   ([false, true]).forEach(print); // LINT
 }
+
+Invocation? invocation() => null;
 
 m({p}) => null;
 
@@ -129,5 +131,5 @@ class UnnecessaryParenthesis {
 
   UnnecessaryParenthesis()
       : c = (ClassWithClassWithFunction()
-          ..c = ClassWithFunction().f = () => 42); // OK
+          ..c = (ClassWithFunction()..f = () => 42)); // OK
 }

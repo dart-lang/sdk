@@ -130,7 +130,7 @@ class TestErrorCode extends ErrorCode {
 
   TestErrorCode(String name, String message)
       : super(
-          message: message,
+          problemMessage: message,
           name: name,
           uniqueName: 'TestErrorCode.$name',
         );
