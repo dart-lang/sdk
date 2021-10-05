@@ -76,6 +76,15 @@ class Compiler : public AllStatic {
   // The result for a function may change if debugging gets turned on/off.
   static bool CanOptimizeFunction(Thread* thread, const Function& function);
 
+#if !defined(PRODUCT)
+  // Whether it's possible for unoptimized code to optimize immediately on entry
+  // (can happen with random or very low optimization counter thresholds)
+  static bool CanOptimizeImmediately() {
+    return FLAG_optimization_counter_threshold < 2 ||
+           FLAG_randomize_optimization_counter;
+  }
+#endif
+
   // Generates code for given function without optimization and sets its code
   // field.
   //
