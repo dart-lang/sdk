@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -14,8 +13,6 @@ import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 
 class CiderServiceTest with ResourceProviderMixin {
-  final ByteStore byteStore = MemoryByteStore();
-
   final StringBuffer logBuffer = StringBuffer();
   late PerformanceLog logger;
   late MockSdk sdk;
@@ -25,8 +22,6 @@ class CiderServiceTest with ResourceProviderMixin {
   String testPath = '/workspace/dart/test/lib/test.dart';
 
   /// Create a new [FileResolver] into [fileResolver].
-  ///
-  /// We do this the first time, and to test reusing results from [byteStore].
   void createFileResolver() {
     var workspace = BazelWorkspace.find(
       resourceProvider,
@@ -36,7 +31,6 @@ class CiderServiceTest with ResourceProviderMixin {
     fileResolver = FileResolver(
       logger,
       resourceProvider,
-      byteStore,
       workspace.createSourceFactory(sdk, null),
       (String path) => _getDigest(path),
       null,

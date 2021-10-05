@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -603,8 +602,6 @@ class FileSystemState {
     this._byteStore,
     this._sourceFactory,
     this._workspace,
-    @Deprecated('No longer used; will be removed')
-        AnalysisOptions analysisOptions,
     this._linkedSalt,
     this.featureSetProvider,
     this.getFileDigest,
