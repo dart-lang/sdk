@@ -63,12 +63,39 @@ class Latin1Codec extends Encoding {
 }
 
 /// This class converts strings of only ISO Latin-1 characters to bytes.
+///
+/// Example:
+/// ```dart
+/// const String sample = 'à á â ã ä å';
+///
+/// const Latin1Encoder latin1encoder = Latin1Encoder();
+/// final List<int> encoded = latin1encoder.convert(sample);
+/// print(encoded); // [224, 32, 225, 32, 226, 32, 227, 32, 228, 32, 229]
+/// ```
 class Latin1Encoder extends _UnicodeSubsetEncoder {
   const Latin1Encoder() : super(_latin1Mask);
 }
 
 /// This class converts Latin-1 bytes (lists of unsigned 8-bit integers)
 /// to a string.
+///
+/// Example:
+/// ```dart
+/// const Latin1Decoder latin1decoder = Latin1Decoder();
+/// const List<int> latin1bytes = [
+///  224, 32, 225, 32, 226, 32, 227, 32, 228, 32, 229 ];
+/// final String string = latin1decoder.convert(latin1bytes);
+/// print(string); // à á â ã ä å
+/// ```
+///
+/// Allow invalid byte value example:
+/// ```dart
+/// const Latin1Decoder latin1decoder = Latin1Decoder(allowInvalid: true);
+/// const List<int> encoded = [224, 32, 225, 32, 226, 32, 227, 32, 228, 32, 229, 20, 900];
+///
+/// final String decoded = latin1decoder.convert(encoded);
+/// print(decoded); // à á â ã ä å �
+/// ```
 class Latin1Decoder extends _UnicodeSubsetDecoder {
   /// Instantiates a new [Latin1Decoder].
   ///
