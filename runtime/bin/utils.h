@@ -67,8 +67,8 @@ class StringUtils {
   // character. If result_len is not NUL, it is used to set the number
   // of characters in the result.
   //
-  // These conversion functions are only implemented on Windows as the
-  // Dart code only hit this path on Windows.
+  // A return value of `nullptr` indicates that the conversion is not supported,
+  // which is true on all platforms other than Windows.
   static const char* ConsoleStringToUtf8(const char* str,
                                          intptr_t len = -1,
                                          intptr_t* result_len = NULL);
