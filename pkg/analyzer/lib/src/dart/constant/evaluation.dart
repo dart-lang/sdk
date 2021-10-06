@@ -867,8 +867,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return null;
       }
     }
-    // validate prefixed identifier
-    return _getConstantValue(node, node.staticElement);
+    // Validate prefixed identifier.
+    return _getConstantValue(node, node.identifier);
   }
 
   @override
@@ -902,7 +902,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return prefixResult.stringLength(typeSystem);
       }
     }
-    return _getConstantValue(node, node.propertyName.staticElement);
+    return _getConstantValue(node, node.propertyName);
   }
 
   @override
@@ -971,7 +971,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return _instantiateFunctionType(node, value);
     }
 
-    return _getConstantValue(node, node.staticElement);
+    return _getConstantValue(node, node);
   }
 
   @override
@@ -1171,9 +1171,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   /// Return the constant value of the static constant represented by the given
-  /// [element]. The [node] is the node to be used if an error needs to be
+  /// [identifier]. The [node] is the node to be used if an error needs to be
   /// reported.
-  DartObjectImpl? _getConstantValue(Expression node, Element? element) {
+  DartObjectImpl? _getConstantValue(
+      Expression node, SimpleIdentifier identifier) {
+    var element = identifier.staticElement;
     element = element?.declaration;
     var variableElement =
         element is PropertyAccessorElement ? element.variable : element;
@@ -1196,7 +1198,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         if (value == null) {
           return value;
         }
-        return _instantiateFunctionType(node, value);
+        return _instantiateFunctionType(identifier, value);
       }
     } else if (variableElement is ConstructorElement) {
       return DartObjectImpl(
@@ -1207,11 +1209,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (variableElement is ExecutableElement) {
       var function = element as ExecutableElement;
       if (function.isStatic) {
-        return DartObjectImpl(
+        var rawType = DartObjectImpl(
           typeSystem,
-          node.typeOrThrow,
+          function.type,
           FunctionState(function),
         );
+        return _instantiateFunctionType(identifier, rawType);
       }
     } else if (variableElement is ClassElement) {
       var type = variableElement.instantiate(
@@ -1264,10 +1267,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// type-instantiated with those [node]'s tear-off type argument types,
   /// otherwise returns [value].
   DartObjectImpl? _instantiateFunctionType(
-      Expression node, DartObjectImpl value) {
-    if (node is! SimpleIdentifier) {
-      return value;
-    }
+      SimpleIdentifier node, DartObjectImpl value) {
     var functionElement = value.toFunctionValue();
     if (functionElement is! ExecutableElement) {
       return value;

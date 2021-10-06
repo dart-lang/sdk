@@ -13,29 +13,29 @@ import 'package:js/js.dart';
 @JS()
 class HTMLDocument {}
 //    ^
-// [web] JS interop class 'HTMLDocument' conflicts with natively supported class 'HtmlDocument' in 'dart:html'.
+// [web] Non-static JS interop class 'HTMLDocument' conflicts with natively supported class 'HtmlDocument' in 'dart:html'.
 
 // Test same annotation name as a native class.
 @JS('HTMLDocument')
 class HtmlDocument {}
 //    ^
-// [web] JS interop class 'HtmlDocument' conflicts with natively supported class 'HtmlDocument' in 'dart:html'.
+// [web] Non-static JS interop class 'HtmlDocument' conflicts with natively supported class 'HtmlDocument' in 'dart:html'.
 
 // Test annotation name with 'self' and 'window' prefixes.
 @JS('self.Window')
 class WindowWithSelf {}
 //    ^
-// [web] JS interop class 'WindowWithSelf' conflicts with natively supported class 'Window' in 'dart:html'.
+// [web] Non-static JS interop class 'WindowWithSelf' conflicts with natively supported class 'Window' in 'dart:html'.
 
 @JS('window.Window')
 class WindowWithWindow {}
 //    ^
-// [web] JS interop class 'WindowWithWindow' conflicts with natively supported class 'Window' in 'dart:html'.
+// [web] Non-static JS interop class 'WindowWithWindow' conflicts with natively supported class 'Window' in 'dart:html'.
 
 @JS('self.window.self.window.self.Window')
 class WindowWithMultipleSelfsAndWindows {}
 //    ^
-// [web] JS interop class 'WindowWithMultipleSelfsAndWindows' conflicts with natively supported class 'Window' in 'dart:html'.
+// [web] Non-static JS interop class 'WindowWithMultipleSelfsAndWindows' conflicts with natively supported class 'Window' in 'dart:html'.
 
 // Test annotation with native class name but with a prefix that isn't 'self' or
 // 'window'.
@@ -47,14 +47,14 @@ class WindowWithDifferentPrefix {}
 @JS()
 class DOMWindow {}
 //    ^
-// [web] JS interop class 'DOMWindow' conflicts with natively supported class 'Window' in 'dart:html'.
+// [web] Non-static JS interop class 'DOMWindow' conflicts with natively supported class 'Window' in 'dart:html'.
 
 // Test same annotation name as a native class with multiple annotation names
 // dart:html.Window uses both "Window" and "DOMWindow".
 @JS('DOMWindow')
 class DomWindow {}
 //    ^
-// [web] JS interop class 'DomWindow' conflicts with natively supported class 'Window' in 'dart:html'.
+// [web] Non-static JS interop class 'DomWindow' conflicts with natively supported class 'Window' in 'dart:html'.
 
 // Test different annotation name but with same class name as a @Native class.
 @JS('Foo')

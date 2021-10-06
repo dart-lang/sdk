@@ -87,7 +87,6 @@ export 'package:observatory/src/elements/stack_trace_tree_config.dart';
 export 'package:observatory/src/elements/strongly_reachable_instances.dart';
 export 'package:observatory/src/elements/subtypetestcache_ref.dart';
 export 'package:observatory/src/elements/subtypetestcache_view.dart';
-export 'package:observatory/src/elements/timeline/dashboard.dart';
 export 'package:observatory/src/elements/timeline_page.dart';
 export 'package:observatory/src/elements/type_arguments_ref.dart';
 export 'package:observatory/src/elements/unknown_ref.dart';

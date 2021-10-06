@@ -73,11 +73,10 @@ void f(A a) {
   }
 
   Future<void> test_importLibrary_withClass() async {
-    var a_path = '/workspace/dart/test/lib/a.dart';
-    newFile(a_path, content: r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
 class Test {}
 ''');
-    fileResolver.resolve(path: a_path);
+    fileResolver.resolve(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -91,11 +90,10 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withEnum() async {
-    var a_path = '/workspace/dart/test/lib/a.dart';
-    newFile(a_path, content: r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
 enum Test {a, b, c}
 ''');
-    fileResolver.resolve(path: a_path);
+    fileResolver.resolve(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -109,13 +107,12 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withExtension() async {
-    var a_path = '/workspace/dart/test/lib/a.dart';
-    newFile(a_path, content: r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
 extension E on int {
   void foo() {}
 }
 ''');
-    fileResolver.resolve(path: a_path);
+    fileResolver.resolve(path: a.path);
 
     await _compute(r'''
 void f() {
@@ -133,11 +130,10 @@ void f() {
   }
 
   Future<void> test_importLibrary_withFunction() async {
-    var a_path = '/workspace/dart/test/lib/a.dart';
-    newFile(a_path, content: r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
 void foo() {}
 ''');
-    fileResolver.resolve(path: a_path);
+    fileResolver.resolve(path: a.path);
 
     await _compute(r'''
 void f() {
@@ -155,11 +151,10 @@ void f() {
   }
 
   Future<void> test_importLibrary_withMixin() async {
-    var a_path = '/workspace/dart/test/lib/a.dart';
-    newFile(a_path, content: r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
 mixin Test {}
 ''');
-    fileResolver.resolve(path: a_path);
+    fileResolver.resolve(path: a.path);
 
     await _compute(r'''
 void f(Test a) {}^
@@ -173,11 +168,10 @@ void f(Test a) {}
   }
 
   Future<void> test_importLibrary_withTopLevelVariable() async {
-    var a_path = '/workspace/dart/test/lib/a.dart';
-    newFile(a_path, content: r'''
+    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
 var a = 0;
 ''');
-    fileResolver.resolve(path: a_path);
+    fileResolver.resolve(path: a.path);
 
     await _compute(r'''
 void f() {

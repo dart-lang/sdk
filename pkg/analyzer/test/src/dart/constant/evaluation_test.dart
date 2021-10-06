@@ -566,7 +566,48 @@ const void Function(int) g = self.f;
     var result = _evaluateConstant('g');
     assertType(result.type, 'void Function(int)');
     assertElement(result.toFunctionValue(), findElement.topFunction('f'));
-    _assertTypeArguments(result, null);
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitPrefixedIdentifier_genericFunction_instantiatedNonIdentifier() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+const b = false;
+const g1 = f;
+const g2 = f;
+const void Function(int) h = b ? g1 : g2;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitPrefixedIdentifier_genericFunction_instantiatedPrefixed() async {
+    await resolveTestCode('''
+import '' as self;
+void f<T>(T a) {}
+const g = f;
+const void Function(int) h = self.g;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitPropertyAccess_genericFunction_instantiated() async {
+    await resolveTestCode('''
+import '' as self;
+class C {
+  static void f<T>(T a) {}
+}
+const void Function(int) g = self.C.f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.method('f'));
+    _assertTypeArguments(result, ['int']);
   }
 
   test_visitSimpleIdentifier_className() async {
@@ -582,6 +623,17 @@ class C {}
   test_visitSimpleIdentifier_genericFunction_instantiated() async {
     await resolveTestCode('''
 void f<T>(T a) {}
+const void Function(int) g = f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitSimpleIdentifier_genericFunction_nonGeneric() async {
+    await resolveTestCode('''
+void f(int a) {}
 const void Function(int) g = f;
 ''');
     var result = _evaluateConstant('g');

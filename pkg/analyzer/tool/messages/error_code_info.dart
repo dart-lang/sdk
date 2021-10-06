@@ -3,6 +3,96 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:path/path.dart';
+import 'package:yaml/yaml.dart' show loadYaml;
+
+/// Information about all the classes derived from `ErrorCode` that are code
+/// generated based on the contents of the analyzer and front end
+/// `messages.yaml` files.
+const List<ErrorClassInfo> errorClasses = [
+  ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      severity: 'ERROR'),
+  ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsHintCode',
+      type: 'HINT',
+      severity: 'INFO'),
+  ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+  ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'CompileTimeErrorCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'LanguageCode',
+      type: 'COMPILE_TIME_ERROR'),
+  ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'StaticWarningCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/dart/error/ffi_code.g.dart',
+      name: 'FfiCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/dart/error/hint_codes.g.dart',
+      name: 'HintCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'HINT',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/dart/error/syntactic_errors.g.dart',
+      name: 'ParserErrorCode',
+      type: 'SYNTACTIC_ERROR',
+      severity: 'ERROR',
+      includeCfeMessages: true),
+  ErrorClassInfo(
+      filePath: 'lib/src/manifest/manifest_warning_code.g.dart',
+      name: 'ManifestWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+  ErrorClassInfo(
+      filePath: 'lib/src/pubspec/pubspec_warning_code.g.dart',
+      name: 'PubspecWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+];
+
+/// Decoded messages from the analyzer's `messages.yaml` file.
+final Map<String, Map<String, ErrorCodeInfo>> analyzerMessages =
+    _loadAnalyzerMessages();
+
+/// The path to the `analyzer` package.
+final String analyzerPkgPath =
+    normalize(join(pkg_root.packageRoot, 'analyzer'));
+
+/// A set of tables mapping between front end and analyzer error codes.
+final CfeToAnalyzerErrorCodeTables cfeToAnalyzerErrorCodeTables =
+    CfeToAnalyzerErrorCodeTables._(frontEndMessages);
+
+/// Decoded messages from the front end's `messages.yaml` file.
+final Map<String, ErrorCodeInfo> frontEndMessages = _loadFrontEndMessages();
+
+/// The path to the `front_end` package.
+final String frontEndPkgPath =
+    normalize(join(pkg_root.packageRoot, 'front_end'));
 
 /// Decodes a YAML object (obtained from `pkg/analyzer/messages.yaml`) into a
 /// two-level map of [ErrorCodeInfo], indexed first by class name and then by
@@ -32,6 +122,20 @@ Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Map<Object?, Object?> yaml) {
   return result;
 }
 
+/// Loads analyzer messages from the analyzer's `messages.yaml` file.
+Map<String, Map<String, ErrorCodeInfo>> _loadAnalyzerMessages() {
+  Map<dynamic, dynamic> messagesYaml =
+      loadYaml(File(join(analyzerPkgPath, 'messages.yaml')).readAsStringSync());
+  return decodeAnalyzerMessagesYaml(messagesYaml);
+}
+
+/// Loads front end messages from the front end's `messages.yaml` file.
+Map<String, ErrorCodeInfo> _loadFrontEndMessages() {
+  Map<dynamic, dynamic> messagesYaml =
+      loadYaml(File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
+  return decodeCfeMessagesYaml(messagesYaml);
+}
+
 /// Data tables mapping between CFE errors and their corresponding automatically
 /// generated analyzer errors.
 class CfeToAnalyzerErrorCodeTables {
@@ -59,7 +163,7 @@ class CfeToAnalyzerErrorCodeTables {
   /// automatically generated, and whose values are the front end error name.
   final Map<ErrorCodeInfo, String> infoToFrontEndCode = {};
 
-  CfeToAnalyzerErrorCodeTables(Map<String, ErrorCodeInfo> messages) {
+  CfeToAnalyzerErrorCodeTables._(Map<String, ErrorCodeInfo> messages) {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
       var index = errorCodeInfo.index;
@@ -108,6 +212,59 @@ pkg/front_end/tool/fasta generate-messages
       }
     }
   }
+}
+
+/// Information about a code generated class derived from `ErrorCode`.
+class ErrorClassInfo {
+  /// A list of additional import URIs that are needed by the code generated
+  /// for this class.
+  final List<String> extraImports;
+
+  /// The file path (relative to the root of `pkg/analyzer`) of the generated
+  /// file containing this class.
+  final String filePath;
+
+  /// True if this class should contain error messages extracted from the front
+  /// end's `messages.yaml` file.
+  ///
+  /// Note: at the moment we only support extracting front end error messages to
+  /// a single error class.
+  final bool includeCfeMessages;
+
+  /// The name of this class.
+  final String name;
+
+  /// The severity of errors in this class, or `null` if the severity should be
+  /// based on the [type] of the error.
+  final String? severity;
+
+  /// The superclass of this class.
+  final String superclass;
+
+  /// The type of errors in this class.
+  final String type;
+
+  const ErrorClassInfo(
+      {this.extraImports = const [],
+      required this.filePath,
+      this.includeCfeMessages = false,
+      required this.name,
+      this.severity,
+      this.superclass = 'ErrorCode',
+      required this.type});
+
+  /// Generates the code to compute the severity of errors of this class.
+  String get severityCode {
+    var severity = this.severity;
+    if (severity == null) {
+      return '$typeCode.severity';
+    } else {
+      return 'ErrorSeverity.$severity';
+    }
+  }
+
+  /// Generates the code to compute the type of errors of this class.
+  String get typeCode => 'ErrorType.$type';
 }
 
 /// In-memory representation of error code information obtained from either a

@@ -6148,6 +6148,24 @@ void f() { C<C^> c; }''');
     assertSuggestClass('C2');
   }
 
+  Future<void> test_TypeArgumentList_functionReference() async {
+    addTestSource('''
+class A {}
+
+void foo<T>() {}
+
+void f() {
+  foo<^>;
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('A');
+    assertNotSuggested('Object');
+  }
+
   Future<void> test_TypeParameter_classDeclaration() async {
     addTestSource('''
 class A<T> {

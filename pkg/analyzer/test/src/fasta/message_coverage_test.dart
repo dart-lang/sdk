@@ -10,8 +10,8 @@ import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:yaml/yaml.dart';
 
+import '../../../tool/messages/error_code_info.dart';
 import '../../generated/parser_test_base.dart';
 
 main() {
@@ -35,45 +35,25 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     return visitor.generatedNames;
   }
 
-  /// Given the path to the file 'messages.yaml', return a list of the top-level
-  /// keys defined in that file that define an 'analyzerCode'.
-  List<String> getMappedCodes(String messagesPath) {
-    String content = io.File(messagesPath).readAsStringSync();
-    YamlDocument document = loadYamlDocument(content);
-    expect(document, isNotNull);
+  /// Return a list of the front end messages that define an 'analyzerCode'.
+  List<String> getMappedCodes() {
     Set<String> codes = <String>{};
-    YamlNode contents = document.contents;
-    if (contents is YamlMap) {
-      for (String name in contents.keys) {
-        Object value = contents[name];
-        if (value is YamlMap) {
-          if (value['analyzerCode'] != null) {
-            codes.add(name);
-          }
-        }
+    for (var entry in frontEndMessages.entries) {
+      var name = entry.key;
+      var errorCodeInfo = entry.value;
+      if (errorCodeInfo.analyzerCode.isNotEmpty) {
+        codes.add(name);
       }
     }
     return codes.toList();
   }
 
-  /// Given the path to the file 'messages.yaml', return a list of the analyzer
-  /// codes defined in that file.
-  List<String> getReferencedCodes(String messagesPath) {
-    String content = io.File(messagesPath).readAsStringSync();
-    YamlDocument document = loadYamlDocument(content);
-    expect(document, isNotNull);
+  /// Return a list of the analyzer codes defined in the front end's
+  /// `messages.yaml` file.
+  List<String> getReferencedCodes() {
     Set<String> codes = <String>{};
-    YamlNode contents = document.contents;
-    if (contents is YamlMap) {
-      for (String name in contents.keys) {
-        Object value = contents[name];
-        if (value is YamlMap) {
-          var code = value['analyzerCode']?.toString();
-          if (code != null) {
-            codes.add(code);
-          }
-        }
-      }
+    for (var errorCodeInfo in frontEndMessages.values) {
+      codes.addAll(errorCodeInfo.analyzerCode);
     }
     return codes.toList();
   }
@@ -109,8 +89,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         path.join(frontEndPath, 'lib', 'src', 'fasta', 'parser', 'parser.dart');
     Set<String> generatedNames = getGeneratedNames(parserPath);
 
-    String messagesPath = path.join(frontEndPath, 'messages.yaml');
-    List<String> mappedCodes = getMappedCodes(messagesPath);
+    List<String> mappedCodes = getMappedCodes();
 
     generatedNames.removeAll(mappedCodes);
     if (generatedNames.isEmpty) {
@@ -133,9 +112,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         path.join(analyzerPath, 'lib', 'src', 'fasta', 'error_converter.dart');
     List<String> translatedCodes = getTranslatedCodes(astBuilderPath);
 
-    String messagesPath =
-        path.join(path.dirname(analyzerPath), 'front_end', 'messages.yaml');
-    List<String> referencedCodes = getReferencedCodes(messagesPath);
+    List<String> referencedCodes = getReferencedCodes();
 
     List<String> untranslated = <String>[];
     for (String referencedCode in referencedCodes) {

@@ -118,27 +118,17 @@ const char* CanonicalFunction(const char* func);
 #ifdef SUPPORT_TIMELINE
 #define API_TIMELINE_DURATION(thread)                                          \
   TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
-#define API_TIMELINE_DURATION_BASIC(thread)                                    \
-  API_TIMELINE_DURATION(thread);                                               \
-  api_tbes.SetNumArguments(1);                                                 \
-  api_tbes.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 
-#define API_TIMELINE_BEGIN_END_BASIC(thread)                                   \
-  API_TIMELINE_BEGIN_END(thread);                                              \
-  api_tbes.SetNumArguments(1);                                                 \
-  api_tbes.CopyArgument(0, "mode", "basic");
 #else
 #define API_TIMELINE_DURATION(thread)                                          \
   do {                                                                         \
   } while (false)
-#define API_TIMELINE_DURATION_BASIC(thread) API_TIMELINE_DURATION(thread)
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   do {                                                                         \
   } while (false)
-#define API_TIMELINE_BEGIN_END_BASIC(thread) API_TIMELINE_BEGIN_END(thread)
 #endif  // !PRODUCT
 
 class Api : AllStatic {

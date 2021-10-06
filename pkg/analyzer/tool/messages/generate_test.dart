@@ -8,6 +8,7 @@
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 
+import 'error_code_info.dart';
 import 'generate.dart';
 
 main() async {

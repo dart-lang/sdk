@@ -5050,6 +5050,14 @@ JsInteropIndexNotSupported:
   problemMessage: "JS interop classes do not support [] and []= operator methods."
   correctionMessage: "Try replacing with a normal method."
 
+JsInteropStaticInteropWithInstanceMembers:
+  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+  correctionMessage: "Try moving the instance member to a static extension."
+
+JsInteropStaticInteropWithNonStaticSupertype:
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
+  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
@@ -5059,8 +5067,8 @@ JsInteropNamedParameters:
   correctionMessage: "Try replacing them with normal or optional parameters."
 
 JsInteropNativeClassInAnnotation:
-  problemMessage: "JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
-  correctionMessage: "Try making the @JS class into an @anonymous class or use js_util on the JS object."
+  problemMessage: "Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
+  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#name2'."
 
 JsInteropNonExternalConstructor:
   problemMessage: "JS interop classes do not support non-external constructors."

@@ -18,4 +18,10 @@ class _Anonymous {
   const _Anonymous();
 }
 
-const _Anonymous anonymous = const _Anonymous();
+// class _StaticInterop {
+//   const _StaticInterop();
+// }
+
+const _Anonymous anonymous = _Anonymous();
+
+// const _StaticInterop staticInterop = _StaticInterop();

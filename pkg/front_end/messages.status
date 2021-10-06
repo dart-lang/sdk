@@ -523,6 +523,10 @@ JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
