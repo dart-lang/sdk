@@ -3009,7 +3009,6 @@ void Precompiler::FinalizeAllClasses() {
   // otherwise unreachable constants of dropped classes, which would
   // cause assertion failures during GC after classes are dropped.
   StackZone stack_zone(thread());
-  HANDLESCOPE(thread());
 
   error_ = Library::FinalizeAllClasses();
   if (!error_.IsNull()) {

@@ -120,7 +120,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
       Isolate* isolate = thread->isolate();                                    \
       TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
-      HANDLESCOPE(thread);                                                     \
       CHECK_SIMULATOR_STACK_OVERFLOW();                                        \
       if (FLAG_deoptimize_on_runtime_call_every > 0) {                         \
         OnEveryRuntimeEntryCall(thread, "" #name, can_lazy_deopt);             \

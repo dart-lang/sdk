@@ -1301,7 +1301,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   bool success = false;
   {
     StackZone zone(T);
-    HANDLESCOPE(T);
     // We enter an API scope here as InitializeIsolate could compile some
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
@@ -2053,7 +2052,6 @@ DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
     auto thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
 
     if (on_error_port != ILLEGAL_PORT) {
       const auto& port =

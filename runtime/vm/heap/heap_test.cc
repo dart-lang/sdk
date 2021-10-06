@@ -592,7 +592,6 @@ VM_UNIT_TEST_CASE(CleanupBequestNeverReceived) {
       Thread* thread = Thread::Current();
       TransitionNativeToVM transition(thread);
       StackZone zone(thread);
-      HANDLESCOPE(thread);
 
       String& string = String::Handle(String::New(TEST_MESSAGE));
       PersistentHandle* handle =
@@ -626,7 +625,6 @@ VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
 
     String& string = String::Handle(String::New(TEST_MESSAGE));
 
@@ -644,7 +642,6 @@ VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
 
     EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   }

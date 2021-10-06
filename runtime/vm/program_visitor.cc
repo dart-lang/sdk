@@ -1504,7 +1504,6 @@ class ProgramHashVisitor : public CodeVisitor {
 
 uint32_t ProgramVisitor::Hash(Thread* thread) {
   StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
   Zone* zone = thread->zone();
 
   ProgramHashVisitor visitor(zone);

@@ -165,21 +165,6 @@ TEST_CASE(PrintToString) {
   EXPECT_STREQ("Hello World!", result);
 }
 
-VM_UNIT_TEST_CASE(NativeScopeZoneAllocation) {
-  ASSERT(ApiNativeScope::Current() == NULL);
-  ASSERT(Thread::Current() == NULL);
-  EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
-  {
-    ApiNativeScope scope;
-    EXPECT_EQ(scope.zone()->CapacityInBytes(),
-              ApiNativeScope::current_memory_usage());
-    (void)Dart_ScopeAllocate(2048);
-    EXPECT_EQ(scope.zone()->CapacityInBytes(),
-              ApiNativeScope::current_memory_usage());
-  }
-  EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
-}
-
 #if !defined(PRODUCT)
 // Allow for pooling in the malloc implementation.
 static const int64_t kRssSlack = 20 * MB;

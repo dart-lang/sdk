@@ -40,17 +40,6 @@ class ThreadState : public BaseThread {
 
   bool ZoneIsOwnedByThread(Zone* zone) const;
 
-  void IncrementMemoryCapacity(uintptr_t value) {
-    current_zone_capacity_ += value;
-  }
-
-  void DecrementMemoryCapacity(uintptr_t value) {
-    ASSERT(current_zone_capacity_ >= value);
-    current_zone_capacity_ -= value;
-  }
-
-  uintptr_t current_zone_capacity() const { return current_zone_capacity_; }
-
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }
   static intptr_t top_resource_offset() {
@@ -86,7 +75,6 @@ class ThreadState : public BaseThread {
 
   OSThread* os_thread_ = nullptr;
   Zone* zone_ = nullptr;
-  uintptr_t current_zone_capacity_ = 0;
   StackResource* top_resource_ = nullptr;
   LongJumpScope* long_jump_base_ = nullptr;
 

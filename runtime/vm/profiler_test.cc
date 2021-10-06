@@ -501,7 +501,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     // Filter for the class in the time range.
     AllocationFilter filter(isolate->main_port(), class_a.id(),
@@ -531,7 +530,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             Dart_TimelineGetMicros(), 16000);
@@ -578,7 +576,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
 
     // Filter for the class in the time range.
@@ -617,7 +614,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
 
     // Filter for the class in the time range.
@@ -632,7 +628,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     NativeAllocationSampleFilter filter(Dart_TimelineGetMicros(), 16000);
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -678,7 +673,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -695,7 +689,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -725,7 +718,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -763,7 +755,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -783,7 +774,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -838,7 +828,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -858,7 +847,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -908,7 +896,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), double_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -921,7 +908,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), double_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -943,7 +929,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), double_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -970,7 +955,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), array_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -983,7 +967,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), array_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1005,7 +988,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), array_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1027,7 +1009,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), array_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1057,7 +1038,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), context_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1070,7 +1050,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), context_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1090,7 +1069,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), context_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1130,7 +1108,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
@@ -1154,7 +1131,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
@@ -1185,7 +1161,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1198,7 +1173,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1220,7 +1194,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1233,7 +1206,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1265,7 +1237,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1278,7 +1249,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1298,7 +1268,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1311,7 +1280,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1343,7 +1311,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1356,7 +1323,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1382,7 +1348,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1395,7 +1360,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
 
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1451,7 +1415,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1469,7 +1432,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1598,7 +1560,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1615,7 +1576,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1691,7 +1651,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1786,7 +1745,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1868,7 +1826,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -1946,7 +1903,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -2056,7 +2012,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -2151,7 +2106,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
@@ -2269,7 +2223,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Profile profile;
     AllocationFilter filter(isolate->main_port(), class_a.id());
     profile.Build(thread, &filter, Profiler::sample_block_buffer());

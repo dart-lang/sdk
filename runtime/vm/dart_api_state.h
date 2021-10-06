@@ -110,7 +110,7 @@ class ApiZone {
     if ((thread != NULL) && (thread->zone() == &zone_)) {
       thread->set_zone(zone_.previous_);
     }
-    zone_.DeleteAll();
+    zone_.Reset();
   }
 
  private:
@@ -656,33 +656,16 @@ class ApiNativeScope {
     ASSERT(Current() == NULL);
     OSThread::SetThreadLocal(Api::api_native_key_,
                              reinterpret_cast<uword>(this));
-    // We manually increment the memory usage counter since there is memory
-    // initially allocated within the zone on creation.
-    IncrementNativeScopeMemoryCapacity(zone_.GetZone()->CapacityInBytes());
   }
 
   ~ApiNativeScope() {
     ASSERT(Current() == this);
     OSThread::SetThreadLocal(Api::api_native_key_, 0);
-    // We must also manually decrement the memory usage counter since the native
-    // is still holding it's initial memory and ~Zone() won't be able to
-    // determine which memory usage counter to decrement.
-    DecrementNativeScopeMemoryCapacity(zone_.GetZone()->CapacityInBytes());
   }
 
   static inline ApiNativeScope* Current() {
     return reinterpret_cast<ApiNativeScope*>(
         OSThread::GetThreadLocal(Api::api_native_key_));
-  }
-
-  static uintptr_t current_memory_usage() { return current_memory_usage_; }
-
-  static void IncrementNativeScopeMemoryCapacity(intptr_t size) {
-    current_memory_usage_.fetch_add(size);
-  }
-
-  static void DecrementNativeScopeMemoryCapacity(intptr_t size) {
-    current_memory_usage_.fetch_sub(size);
   }
 
   Zone* zone() {
@@ -693,9 +676,6 @@ class ApiNativeScope {
   }
 
  private:
-  // The current total memory usage within ApiNativeScopes.
-  static RelaxedAtomic<intptr_t> current_memory_usage_;
-
   ApiZone zone_;
 };
 
