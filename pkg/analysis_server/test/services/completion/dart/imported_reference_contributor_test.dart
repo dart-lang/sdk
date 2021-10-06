@@ -4771,6 +4771,24 @@ typedef void F(^);
     assertNotSuggested('C2');
   }
 
+  Future<void> test_TypeArgumentList_functionReference() async {
+    addTestSource('''
+class A {}
+
+void foo<T>() {}
+
+void f() {
+  foo<^>;
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('Object');
+    assertNotSuggested('A');
+  }
+
   Future<void> test_TypeArgumentList_recursive() async {
     resolveSource('/home/test/lib/a.dart', '''
 class A {}
