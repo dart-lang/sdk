@@ -144,10 +144,6 @@ class CiderCompletionComputer {
       var result = CiderCompletionResult._(
         suggestions: suggestions,
         performance: CiderCompletionPerformance._(
-          file: Duration.zero,
-          imports: performance.getChild('imports')!.elapsed,
-          resolution: performance.getChild('resolution')!.elapsed,
-          suggestions: performance.getChild('suggestions')!.elapsed,
           operations: _performanceRoot.children.first,
         ),
         prefixStart: CiderPosition(line, column - filter._pattern.length),
@@ -155,15 +151,6 @@ class CiderCompletionComputer {
 
       return result;
     });
-  }
-
-  @Deprecated('Use compute')
-  Future<CiderCompletionResult> compute2({
-    required String path,
-    required int line,
-    required int column,
-  }) async {
-    return compute(path: path, line: line, column: column);
   }
 
   /// Prepare for computing completions in files from the [pathList].
@@ -240,30 +227,10 @@ class CiderCompletionComputer {
 }
 
 class CiderCompletionPerformance {
-  /// The elapsed time for file access.
-  @Deprecated('This operation is not performed anymore')
-  final Duration file;
-
-  /// The elapsed time to compute import suggestions.
-  @Deprecated("Use 'operations' instead")
-  final Duration imports;
-
-  /// The elapsed time for resolution.
-  @Deprecated("Use 'operations' instead")
-  final Duration resolution;
-
-  /// The elapsed time to compute suggestions.
-  @Deprecated("Use 'operations' instead")
-  final Duration suggestions;
-
   /// The tree of operation performances.
   final OperationPerformance operations;
 
   CiderCompletionPerformance._({
-    required this.file,
-    required this.imports,
-    required this.resolution,
-    required this.suggestions,
     required this.operations,
   });
 }

@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -116,13 +115,11 @@ class FileResolver {
   FileResolver(
     PerformanceLog logger,
     ResourceProvider resourceProvider,
-    @deprecated ByteStore byteStore,
     SourceFactory sourceFactory,
     String Function(String path) getFileDigest,
     void Function(List<String> paths)? prefetchFiles, {
     required Workspace workspace,
     bool Function(String path)? isGenerated,
-    @deprecated Duration? libraryContextResetTimeout,
   }) : this.from(
           logger: logger,
           resourceProvider: resourceProvider,
@@ -131,9 +128,6 @@ class FileResolver {
           prefetchFiles: prefetchFiles,
           workspace: workspace,
           isGenerated: isGenerated,
-
-          // ignore: deprecated_member_use_from_same_package
-          libraryContextResetTimeout: libraryContextResetTimeout,
         );
 
   FileResolver.from({
@@ -145,7 +139,6 @@ class FileResolver {
     required Workspace workspace,
     bool Function(String path)? isGenerated,
     CiderByteStore? byteStore,
-    @deprecated Duration? libraryContextResetTimeout,
   })  : logger = logger,
         sourceFactory = sourceFactory,
         resourceProvider = resourceProvider,
@@ -191,9 +184,6 @@ class FileResolver {
     removedCacheIds.addAll(fsState!.collectSharedDataIdentifiers());
     removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
   }
-
-  @deprecated
-  void dispose() {}
 
   /// Looks for references to the Element at the given offset and path. All the
   /// files currently cached by the resolver are searched, generated files are
@@ -273,17 +263,6 @@ class FileResolver {
         errors,
       );
     });
-  }
-
-  @deprecated
-  ErrorsResult getErrors2({
-    required String path,
-    OperationPerformanceImpl? performance,
-  }) {
-    return getErrors(
-      path: path,
-      performance: performance,
-    );
   }
 
   FileContext getFileContext({
@@ -621,9 +600,7 @@ class FileResolver {
         byteStore,
         sourceFactory,
         workspace,
-        analysisOptions,
-        Uint32List(0),
-        // linkedSalt
+        Uint32List(0), // linkedSalt
         featureSetProvider,
         getFileDigest,
         prefetchFiles,
