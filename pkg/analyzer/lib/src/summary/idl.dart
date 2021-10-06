@@ -463,6 +463,21 @@ abstract class CiderUnitErrors extends base.SummaryClass {
   List<int> get signature;
 }
 
+/// Top-level declarations in a compilation unit.
+abstract class CiderUnitTopLevelDeclarations extends base.SummaryClass {
+  @Id(0)
+  List<String> get extensionNames;
+
+  @Id(1)
+  List<String> get functionNames;
+
+  @Id(2)
+  List<String> get typeNames;
+
+  @Id(3)
+  List<String> get variableNames;
+}
+
 /// Information about a compilation unit, contains the content hash
 /// and unlinked summary.
 @TopLevel('CUUN')
@@ -474,8 +489,12 @@ abstract class CiderUnlinkedUnit extends base.SummaryClass {
   @Id(0)
   List<int> get contentDigest;
 
-  /// Unlinked summary of the compilation unit.
+  /// Top-level declarations of the unit.
   @Id(1)
+  CiderUnitTopLevelDeclarations? get topLevelDeclarations;
+
+  /// Unlinked summary of the compilation unit.
+  @Id(2)
   UnlinkedUnit2? get unlinkedUnit;
 }
 

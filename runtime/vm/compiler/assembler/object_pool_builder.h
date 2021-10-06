@@ -29,7 +29,6 @@ struct ObjectPoolBuilderEntry {
     kTaggedObject,
     kImmediate,
     kNativeFunction,
-    kNativeFunctionWrapper,
 
     // Used only during AOT snapshot serialization/deserialization.
     // Denotes kImmediate entry with
@@ -166,9 +165,6 @@ class ObjectPoolBuilder : public ValueObject {
   intptr_t FindImmediate(uword imm);
   intptr_t FindNativeFunction(const ExternalLabel* label,
                               ObjectPoolBuilderEntry::Patchability patchable);
-  intptr_t FindNativeFunctionWrapper(
-      const ExternalLabel* label,
-      ObjectPoolBuilderEntry::Patchability patchable);
 
   intptr_t CurrentLength() const {
     return object_pool_.length() + used_from_parent_.length();

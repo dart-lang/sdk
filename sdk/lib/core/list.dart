@@ -690,7 +690,6 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// var words = ['fee', 'fi', 'fo', 'fum'];
   /// var map = words.asMap();  // {0: fee, 1: fi, 2: fo, 3: fum}
-  /// map[0] + map[1];   // 'feefi';
   /// map.keys.toList(); // [0, 1, 2, 3]
   /// ```
   Map<int, E> asMap();

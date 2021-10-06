@@ -184,7 +184,7 @@
 /// To read text synchronously from the command line
 /// (the program blocks waiting for user to type information):
 /// ```dart
-/// String inputText = stdin.readLineSync();
+/// String? inputText = stdin.readLineSync();
 /// ```
 /// {@category VM}
 library dart.io;

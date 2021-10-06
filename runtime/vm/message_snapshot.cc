@@ -3110,6 +3110,8 @@ void MessageSerializer::Trace(Object* object) {
         IllegalObject(*object, chars);
       }
     }
+
+    // Keep the list in sync with the one in lib/isolate.cc
 #define ILLEGAL(type)                                                          \
   if (cid == k##type##Cid) {                                                   \
     IllegalObject(*object,                                                     \

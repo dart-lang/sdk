@@ -5,11 +5,13 @@
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/micro/library_graph.dart' as cider;
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 
 class CiderErrorFixes {
@@ -50,7 +52,7 @@ class CiderFixesComputer {
             workspace,
             resolvedUnit,
             error,
-            (name) => const [],
+            _topLevelDeclarations,
           );
 
           var fixes = await DartFixContributor().computeFixes(context);
@@ -63,6 +65,35 @@ class CiderFixesComputer {
       }
     });
 
+    return result;
+  }
+
+  List<TopLevelDeclaration> _topLevelDeclarations(String name) {
+    var result = <TopLevelDeclaration>[];
+    var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
+    for (var fileWithKind in files) {
+      void addDeclaration(TopLevelDeclarationKind kind) {
+        var file = fileWithKind.file;
+        result.add(
+          TopLevelDeclaration(file.path, file.uri, kind, name, false),
+        );
+      }
+
+      switch (fileWithKind.kind) {
+        case cider.FileTopLevelDeclarationKind.extension:
+          addDeclaration(TopLevelDeclarationKind.extension);
+          break;
+        case cider.FileTopLevelDeclarationKind.function:
+          addDeclaration(TopLevelDeclarationKind.function);
+          break;
+        case cider.FileTopLevelDeclarationKind.type:
+          addDeclaration(TopLevelDeclarationKind.type);
+          break;
+        case cider.FileTopLevelDeclarationKind.variable:
+          addDeclaration(TopLevelDeclarationKind.variable);
+          break;
+      }
+    }
     return result;
   }
 }

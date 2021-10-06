@@ -1,3 +1,6 @@
+## 2.5.0
+* Updated `MockSdk` to include more declarations.
+
 ## 2.4.0
 * Deprecated `ResourceProvider.getModificationTimes()`.
 * Deprecated `MemoryResourceProvider.newDummyLink()`.

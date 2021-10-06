@@ -35,6 +35,7 @@ import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
+import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
@@ -49,6 +50,7 @@ import 'convert_documentation_into_line_test.dart'
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
+import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
@@ -232,6 +234,7 @@ void main() {
     add_static.main();
     add_super_constructor_invocation.main();
     add_switch_case_break.main();
+    add_trailing_comma.main();
     add_type_annotation.main();
     analysis_options.main();
     bulk_fix_processor.main();
@@ -244,6 +247,7 @@ void main() {
     convert_flutter_child.main();
     convert_flutter_children.main();
     convert_for_each_to_for_loop.main();
+    convert_into_block_body.main();
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();

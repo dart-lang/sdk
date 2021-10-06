@@ -88,6 +88,7 @@ class FileState {
   late bool _exists;
   late List<int> _apiSignature;
   late UnlinkedUnit2 unlinked2;
+  late TopLevelDeclarations topLevelDeclarations;
   Uint8List? informativeBytes;
   LibraryCycle? _libraryCycle;
 
@@ -274,9 +275,18 @@ class FileState {
           informativeBytes = informativeData!.bytes;
         });
 
+        var decoded = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!);
+        unlinked2 = decoded.unlinkedUnit!;
+
+        var unitDeclarations = decoded.topLevelDeclarations!;
+        topLevelDeclarations = TopLevelDeclarations(
+          extensionNames: unitDeclarations.extensionNames.toList(),
+          functionNames: unitDeclarations.functionNames.toList(),
+          typeNames: unitDeclarations.typeNames.toList(),
+          variableNames: unitDeclarations.variableNames.toList(),
+        );
+
         performance.run('prefetch', (_) {
-          var decoded = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!);
-          unlinked2 = decoded.unlinkedUnit!;
           _prefetchDirectReferences(unlinked2);
         });
       }
@@ -493,6 +503,32 @@ class FileState {
         ),
       );
     }
+
+    var declaredExtensions = <String>[];
+    var declaredFunctions = <String>[];
+    var declaredTypes = <String>[];
+    var declaredVariables = <String>[];
+    for (var declaration in unit.declarations) {
+      if (declaration is ClassDeclaration) {
+        declaredTypes.add(declaration.name.name);
+      } else if (declaration is EnumDeclaration) {
+        declaredTypes.add(declaration.name.name);
+      } else if (declaration is ExtensionDeclaration) {
+        var name = declaration.name;
+        if (name != null) {
+          declaredExtensions.add(name.name);
+        }
+      } else if (declaration is FunctionDeclaration) {
+        declaredFunctions.add(declaration.name.name);
+      } else if (declaration is MixinDeclaration) {
+        declaredTypes.add(declaration.name.name);
+      } else if (declaration is TopLevelVariableDeclaration) {
+        for (var variable in declaration.variables.variables) {
+          declaredVariables.add(variable.name.name);
+        }
+      }
+    }
+
     var unlinkedBuilder = UnlinkedUnit2Builder(
       apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
@@ -505,7 +541,15 @@ class FileState {
       lineStarts: unit.lineInfo!.lineStarts,
     );
     return CiderUnlinkedUnitBuilder(
-        contentDigest: digest, unlinkedUnit: unlinkedBuilder);
+      contentDigest: digest,
+      unlinkedUnit: unlinkedBuilder,
+      topLevelDeclarations: CiderUnitTopLevelDeclarationsBuilder(
+        extensionNames: declaredExtensions,
+        functionNames: declaredFunctions,
+        typeNames: declaredTypes,
+        variableNames: declaredVariables,
+      ),
+    );
   }
 
   static UnlinkedNamespaceDirectiveBuilder _serializeNamespaceDirective(
@@ -712,6 +756,44 @@ class FileSystemState {
     return result;
   }
 
+  /// Return files that have a top-level declaration with the [name].
+  List<FileWithTopLevelDeclaration> getFilesWithTopLevelDeclarations(
+    String name,
+  ) {
+    var result = <FileWithTopLevelDeclaration>[];
+
+    for (var file in _pathToFile.values) {
+      void addDeclaration(
+        List<String> names,
+        FileTopLevelDeclarationKind kind,
+      ) {
+        if (names.contains(name)) {
+          result.add(
+            FileWithTopLevelDeclaration(file: file, kind: kind),
+          );
+        }
+      }
+
+      addDeclaration(
+        file.topLevelDeclarations.extensionNames,
+        FileTopLevelDeclarationKind.extension,
+      );
+      addDeclaration(
+        file.topLevelDeclarations.functionNames,
+        FileTopLevelDeclarationKind.function,
+      );
+      addDeclaration(
+        file.topLevelDeclarations.typeNames,
+        FileTopLevelDeclarationKind.type,
+      );
+      addDeclaration(
+        file.topLevelDeclarations.variableNames,
+        FileTopLevelDeclarationKind.variable,
+      );
+    }
+    return result;
+  }
+
   String? getPathForUri(Uri uri) {
     var source = _sourceFactory.forUri2(uri);
     if (source == null) {
@@ -789,6 +871,20 @@ class FileSystemStateTimers {
   }
 }
 
+/// The kind in [FileWithTopLevelDeclaration].
+enum FileTopLevelDeclarationKind { extension, function, type, variable }
+
+/// The data structure for top-level declarations response.
+class FileWithTopLevelDeclaration {
+  final FileState file;
+  final FileTopLevelDeclarationKind kind;
+
+  FileWithTopLevelDeclaration({
+    required this.file,
+    required this.kind,
+  });
+}
+
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
   /// The libraries that belong to this cycle.
@@ -822,6 +918,26 @@ class LibraryCycle {
   String toString() {
     return '[' + libraries.join(', ') + ']';
   }
+}
+
+/// Kind of a top-level declaration.
+///
+/// We don't need it to be precise, just enough to support quick fixes.
+enum TopLevelDeclarationKind { type, extension, function, variable }
+
+/// Information about a single top-level declaration.
+class TopLevelDeclarations {
+  final List<String> extensionNames;
+  final List<String> functionNames;
+  final List<String> typeNames;
+  final List<String> variableNames;
+
+  TopLevelDeclarations({
+    required this.extensionNames,
+    required this.functionNames,
+    required this.typeNames,
+    required this.variableNames,
+  });
 }
 
 class _FakeSource implements Source {

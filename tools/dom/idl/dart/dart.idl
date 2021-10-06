@@ -521,10 +521,16 @@ interface AudioScheduledSourceNode {
     [DartName=start2] void start(optional double when);
 };
 
-// Remove operation requestFullscreen only use webKitRequestFullscreen.
 [DartSupplemental]
 interface Element : Node {
+    // Remove operation requestFullscreen only use webKitRequestFullscreen.
     [DartSuppress] void requestFullscreen();
+    // setAttribute and setAttributeNS can take in non-string values that are
+    // then converted to strings.
+    [DartSuppress] void setAttribute(DOMString name, DOMString value);
+    [DartSuppress] void setAttributeNS(DOMString? namespaceURI, DOMString name, DOMString value);
+    void setAttribute(DOMString name, object value);
+    void setAttributeNS(DOMString? namespaceURI, DOMString name, object value);
 };
 
 [DartSupplemental]

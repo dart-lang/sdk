@@ -722,11 +722,6 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
           jsentry.AddProperty("kind", "NativeFunction");
           jsentry.AddProperty64("value", imm);
           break;
-        case ObjectPool::EntryType::kNativeFunctionWrapper:
-          imm = RawValueAt(i);
-          jsentry.AddProperty("kind", "NativeFunctionWrapper");
-          jsentry.AddProperty64("value", imm);
-          break;
         default:
           UNREACHABLE();
       }

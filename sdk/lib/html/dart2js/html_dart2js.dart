@@ -12997,7 +12997,7 @@ class Element extends Node
   }
 
   @pragma('dart2js:tryInline')
-  void setAttribute(String name, String value) {
+  void setAttribute(String name, Object value) {
     // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
@@ -13006,7 +13006,7 @@ class Element extends Node
   }
 
   @pragma('dart2js:tryInline')
-  void setAttributeNS(String? namespaceURI, String name, String value) {
+  void setAttributeNS(String? namespaceURI, String name, Object value) {
     // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
@@ -14860,10 +14860,10 @@ class Element extends Node
   void _scrollTo_3(num? x, y) native;
 
   @JSName('setAttribute')
-  void _setAttribute(String name, String value) native;
+  void _setAttribute(String name, Object value) native;
 
   @JSName('setAttributeNS')
-  void _setAttributeNS(String? namespaceURI, String name, String value) native;
+  void _setAttributeNS(String? namespaceURI, String name, Object value) native;
 
   void setPointerCapture(int pointerId) native;
 
