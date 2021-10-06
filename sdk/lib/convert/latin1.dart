@@ -90,7 +90,7 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 ///
 /// // hex values as source
 /// const List<int> hexBytes = [
-///   0xe0, 0x20, 0xe1, 0x20, 0xe2, 0x20, 0xe3, 0x20, 0xe4, 0x20, 0xe5, 0x20];
+///   0xe0, 0x20, 0xe1, 0x20, 0xe2, 0x20, 0xe3, 0x20, 0xe4, 0x20, 0xe5];
 /// final decoded2 = latin1Decoder.convert(hexBytes);
 /// print(decoded2); // à á â ã ä å
 /// ```
@@ -100,12 +100,13 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 ///
 ///
 /// If `allowInvalid` is set to true on constructor,
-/// the decoder replaces invalid bytes with the character `U+FFFD` �.
+/// the decoder replaces the invalid bytes using a character `U+FFFD` �.
 ///
 /// Example:
 /// ```dart
 /// const Latin1Decoder latin1Decoder = Latin1Decoder(allowInvalid: true);
-/// const List<int> encoded = [224, 32, 225, 32, 226, 32, 227, 32, 228, 32, 229, 20, 300];
+/// const List<int> encoded = [224, 32, 225, 32, 226, 32, 227, 32, 228, 32,
+///   229, 20, 300];
 ///
 /// final String decoded = latin1Decoder.convert(encoded);
 /// print(decoded); // à á â ã ä å �
