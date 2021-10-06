@@ -81,6 +81,7 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     AllocateHandle(Zone* zone) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
+  ASSERT(thread->top_handle_scope() != NULL);
   ASSERT(thread->MayAllocateHandles());
 #endif  // DEBUG
   Handles* handles = zone->handles();

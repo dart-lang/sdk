@@ -107,24 +107,6 @@ class Handles {
     return true;
   }
 
-  intptr_t ZoneHandlesCapacityInBytes() const {
-    intptr_t capacity = 0;
-    for (HandlesBlock* block = zone_blocks_; block != nullptr;
-         block = block->next_block()) {
-      capacity += sizeof(*block);
-    }
-    return capacity;
-  }
-
-  intptr_t ScopedHandlesCapacityInBytes() const {
-    intptr_t capacity = 0;
-    for (HandlesBlock* block = scoped_blocks_; block != nullptr;
-         block = block->next_block()) {
-      capacity += sizeof(*block);
-    }
-    return capacity;
-  }
-
  protected:
   // Returns a count of active handles (used for testing purposes).
   int CountScopedHandles() const;
@@ -144,7 +126,7 @@ class Handles {
   class HandlesBlock : public MallocAllocated {
    public:
     explicit HandlesBlock(HandlesBlock* next)
-        : next_block_(next), next_handle_slot_(0) {}
+        : next_handle_slot_(0), next_block_(next) {}
     ~HandlesBlock();
 
     // Reinitializes handle block for reuse.
@@ -193,9 +175,9 @@ class Handles {
     void set_next_block(HandlesBlock* next) { next_block_ = next; }
 
    private:
-    HandlesBlock* next_block_;   // Link to next block of handles.
-    intptr_t next_handle_slot_;  // Next slot for allocation in current block.
     uword data_[kHandleSizeInWords * kHandlesPerChunk];  // Handles area.
+    intptr_t next_handle_slot_;  // Next slot for allocation in current block.
+    HandlesBlock* next_block_;   // Link to next block of handles.
 
     DISALLOW_COPY_AND_ASSIGN(HandlesBlock);
   };
@@ -240,7 +222,7 @@ class Handles {
 };
 
 static const int kVMHandleSizeInWords = 2;
-static const int kVMHandlesPerChunk = 63;
+static const int kVMHandlesPerChunk = 64;
 static const int kOffsetOfRawPtr = kWordSize;
 class VMHandles : public Handles<kVMHandleSizeInWords,
                                  kVMHandlesPerChunk,
@@ -250,25 +232,12 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 
   VMHandles()
       : Handles<kVMHandleSizeInWords, kVMHandlesPerChunk, kOffsetOfRawPtr>() {
-#if defined(DEBUG)
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new VM handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
-  ~VMHandles() {
-#if defined(DEBUG)
-    if (FLAG_trace_handles) {
-      OS::PrintErr("***   Handle Counts for 0x(%" Px
-                   "):Zone = %d,Scoped = %d\n",
-                   reinterpret_cast<intptr_t>(this), CountZoneHandles(),
-                   CountScopedHandles());
-      OS::PrintErr("*** Deleting VM handle block 0x%" Px "\n",
-                   reinterpret_cast<intptr_t>(this));
-    }
-#endif
-  }
+  ~VMHandles();
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);

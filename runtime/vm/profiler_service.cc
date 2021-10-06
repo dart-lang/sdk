@@ -1777,6 +1777,7 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
   ASSERT(buffer != nullptr);
 
   StackZone zone(thread);
+  HANDLESCOPE(thread);
   Profile profile;
   profile.Build(thread, filter, buffer);
   profile.PrintProfileJSON(stream, include_code_samples);

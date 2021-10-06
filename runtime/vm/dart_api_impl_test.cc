@@ -3128,6 +3128,7 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
+    HANDLESCOPE(thread);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= PersistentHandle::Cast(handles[i])->ptr();
@@ -4550,6 +4551,7 @@ VM_UNIT_TEST_CASE(DartAPI_LocalHandles) {
   {
     TransitionNativeToVM transition1(thread);
     StackZone zone(thread);
+    HANDLESCOPE(thread);
     Smi& val = Smi::Handle();
     TransitionVMToNative transition2(thread);
 

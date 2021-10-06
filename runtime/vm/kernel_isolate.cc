@@ -174,6 +174,7 @@ class RunKernelTask : public ThreadPool::Task {
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());
     StackZone zone(T);
+    HANDLESCOPE(T);
     // Invoke main which will return the port to which load requests are sent.
     const Library& root_library =
         Library::Handle(Z, I->group()->object_store()->root_library());

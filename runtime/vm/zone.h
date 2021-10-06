@@ -67,9 +67,6 @@ class Zone {
   // Computes the amount of space used in the zone.
   uintptr_t CapacityInBytes() const;
 
-  // Dump the current allocated sizes in the zone object.
-  void Print() const;
-
   // Structure for managing handles allocation.
   VMHandles* handles() { return &handles_; }
 
@@ -98,7 +95,7 @@ class Zone {
   ~Zone();  // Delete all memory associated with the zone.
 
   // Default initial chunk size.
-  static const intptr_t kInitialChunkSize = 128;
+  static const intptr_t kInitialChunkSize = 1 * KB;
 
   // Default segment size.
   static const intptr_t kSegmentSize = 64 * KB;
@@ -122,7 +119,7 @@ class Zone {
   void Link(Zone* current_zone) { previous_ = current_zone; }
 
   // Delete all objects and free all memory allocated in the zone.
-  void Reset();
+  void DeleteAll();
 
   // Does not actually free any memory. Enables templated containers like
   // BaseGrowableArray to use different allocators.
@@ -136,6 +133,9 @@ class Zone {
     }
 #endif
   }
+
+  // Dump the current allocated sizes in the zone object.
+  void DumpZoneSizes();
 
   // Overflow check (FATAL) for array length.
   template <class ElementType>
@@ -155,8 +155,11 @@ class Zone {
   // Total size of all segments in [head_].
   intptr_t small_segment_capacity_ = 0;
 
-  // List of all segments allocated in this zone; may be NULL.
-  Segment* segments_;
+  // The current head segment; may be NULL.
+  Segment* head_;
+
+  // List of large segments allocated in this zone; may be NULL.
+  Segment* large_segments_;
 
   // Used for chaining zones in order to allow unwinding of stacks.
   Zone* previous_;
