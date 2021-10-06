@@ -28,7 +28,7 @@
 #ifdef __cplusplus
 #define DART_EXTERN_C extern "C"
 #else
-#define DART_EXTERN_C
+#define DART_EXTERN_C extern
 #endif
 
 #if defined(__CYGWIN__)
