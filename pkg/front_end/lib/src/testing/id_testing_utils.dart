@@ -137,7 +137,7 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
   SourceLibraryBuilder builder =
       lookupLibraryBuilder(compilerResult, library, required: required)
           as SourceLibraryBuilder;
-  return builder.libraryDeclaration;
+  return builder.libraryTypeParameterScopeBuilderForTesting;
 }
 
 ClassBuilder? lookupClassBuilder(

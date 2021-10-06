@@ -507,7 +507,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
   @override
   NamedTypeBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeBuilder>? clonedArguments;

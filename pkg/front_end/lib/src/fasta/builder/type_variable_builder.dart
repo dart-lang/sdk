@@ -23,6 +23,7 @@ import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
@@ -185,7 +186,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   }
 
   TypeVariableBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.

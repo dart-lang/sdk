@@ -13,8 +13,8 @@ import '../builder/builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
-import '../builder/unresolved_type.dart';
 
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show LocatedMessage;
@@ -70,7 +70,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       {bool isQualified: false, PrefixBuilder? prefix});
 
   Expression_Generator_Initializer finishSend(Object receiver,
-      List<UnresolvedType>? typeArguments, ArgumentsImpl arguments, int offset,
+      List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,
       {bool isTypeArgumentsInForest = false});
 
   Initializer buildInvalidInitializer(Expression expression,
@@ -126,14 +126,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Token nameLastToken,
       Arguments? arguments,
       String name,
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
       TypeDeclarationBuilder? typeAliasBuilder,
       required UnresolvedKind unresolvedKind});
 
-  UnresolvedType validateTypeVariableUse(UnresolvedType unresolved,
+  TypeBuilder validateTypeVariableUse(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
@@ -156,13 +156,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
 
-  DartType buildDartType(UnresolvedType unresolvedType,
+  DartType buildDartType(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
-  DartType buildTypeLiteralDartType(UnresolvedType unresolvedType,
+  DartType buildTypeLiteralDartType(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
-  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes,
+  List<DartType> buildDartTypeArguments(List<TypeBuilder>? typeArguments,
       {required bool allowPotentiallyConstantType});
 
   void reportDuplicatedDeclaration(
@@ -205,7 +205,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// creating the instantiation and invocation.
   Expression createInstantiationAndInvocation(
       Expression Function() receiverFunction,
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       String className,
       String constructorName,
       Arguments arguments,

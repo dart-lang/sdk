@@ -20,6 +20,7 @@ import '../source/source_library_builder.dart';
 
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -137,7 +138,7 @@ class FunctionTypeBuilder extends TypeBuilder {
 
   @override
   FunctionTypeBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeVariableBuilder>? clonedTypeVariables;
@@ -153,15 +154,13 @@ class FunctionTypeBuilder extends TypeBuilder {
         return formal.clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }
-    FunctionTypeBuilder newType = new FunctionTypeBuilder(
+    return new FunctionTypeBuilder(
         returnType?.clone(newTypes, contextLibrary, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
         nullabilityBuilder,
         fileUri,
         charOffset);
-    newTypes.add(newType);
-    return newType;
   }
 
   @override
