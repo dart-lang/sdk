@@ -536,7 +536,9 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 ///
 /// A JSON input must be the JSON encoding of a single JSON value,
 /// which can be a list or map containing other values.
-/// 
+///
+/// Throws [FormatException] if the input is not valid JSON text.
+///
 /// Example:
 /// ```dart
 /// const JsonDecoder decoder = JsonDecoder();
