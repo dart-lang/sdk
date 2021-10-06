@@ -817,7 +817,7 @@ abstract class Zone {
   /// Equivalent to:
   /// ```dart
   /// ZoneCallback registered = this.registerUnaryCallback(callback);
-  /// return (arg) => thin.runUnary(registered, arg);
+  /// return (arg) => this.runUnary(registered, arg);
   /// ```
   ZoneUnaryCallback<R, T> bindUnaryCallback<R, T>(R callback(T argument));
 
@@ -827,7 +827,7 @@ abstract class Zone {
   /// Equivalent to:
   /// ```dart
   /// ZoneCallback registered = registerBinaryCallback(callback);
-  /// return (arg1, arg2) => thin.runBinary(registered, arg1, arg2);
+  /// return (arg1, arg2) => this.runBinary(registered, arg1, arg2);
   /// ```
   ZoneBinaryCallback<R, T1, T2> bindBinaryCallback<R, T1, T2>(
       R callback(T1 argument1, T2 argument2));
