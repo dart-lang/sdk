@@ -1,0 +1,55 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+import "dart:nativewrappers";
+
+class Classy extends core::Object {
+  static final field (core::int) → core::int _@FfiNative_returnIntPtrStatic = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  synthetic constructor •() → self::Classy
+    : super core::Object::•()
+    ;
+  @#C5
+  static method returnIntPtrStatic(core::int x) → core::int
+    return self::Classy::_@FfiNative_returnIntPtrStatic(x){(core::int) → core::int};
+}
+static final field (core::int) → core::int _@FfiNative_returnIntPtr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+static final field (core::int) → core::int _@FfiNative_returnIntPtrLeaf = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
+@#C5
+static method returnIntPtr(core::int x) → core::int
+  return self::_@FfiNative_returnIntPtr(x){(core::int) → core::int};
+@#C7
+static method returnIntPtrLeaf(core::int x) → core::int
+  return self::_@FfiNative_returnIntPtrLeaf(x){(core::int) → core::int};
+static method main() → void {
+  block {
+    core::int #t1;
+    final dynamic #t2 = 13;
+    #t1 = self::returnIntPtr(#t2);
+    _in::reachabilityFence(#t2);
+  } =>#t1;
+  block {
+    core::int #t3;
+    final dynamic #t4 = 37;
+    #t3 = self::returnIntPtrLeaf(#t4);
+    _in::reachabilityFence(#t4);
+  } =>#t3;
+  block {
+    core::int #t5;
+    final dynamic #t6 = 222;
+    #t5 = self::Classy::returnIntPtrStatic(#t6);
+    _in::reachabilityFence(#t6);
+  } =>#t5;
+}
+constants  {
+  #C1 = "#lib"
+  #C2 = "ReturnIntPtr"
+  #C3 = 1
+  #C4 = false
+  #C5 = ffi::FfiNative<(ffi::IntPtr*) →* ffi::IntPtr*> {nativeName:#C2, isLeaf:#C4}
+  #C6 = true
+  #C7 = ffi::FfiNative<(ffi::IntPtr*) →* ffi::IntPtr*> {nativeName:#C2, isLeaf:#C6}
+}

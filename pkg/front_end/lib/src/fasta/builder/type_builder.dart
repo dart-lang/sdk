@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
@@ -62,7 +63,7 @@ abstract class TypeBuilder {
   /// are added to [newTypes], so that they can be added to a proper scope and
   /// resolved later.
   TypeBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration);
 

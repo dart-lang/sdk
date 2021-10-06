@@ -10,6 +10,7 @@ import '../problems.dart' show unsupported;
 import '../source/source_library_builder.dart';
 
 import 'library_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -82,7 +83,7 @@ class MixinApplicationBuilder extends TypeBuilder {
 
   @override
   MixinApplicationBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     int charOffset = -1; // TODO(dmitryas): Provide these.

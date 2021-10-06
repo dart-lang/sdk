@@ -20,7 +20,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/unresolved_type.dart';
 import '../combinator.dart';
 import '../configuration.dart';
 import '../identifiers.dart';
@@ -213,5 +212,3 @@ final TypeVariableBuilder dummyTypeVariableBuilder =
 final Label dummyLabel = new Label('', -1);
 final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
-final UnresolvedType dummyUnresolvedType =
-    new UnresolvedType(dummyTypeBuilder, -1, dummyUri);

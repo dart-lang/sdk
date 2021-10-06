@@ -398,7 +398,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                   env.isSubtypeOf(ffiParams[i], pointerType,
                       SubtypeCheckMode.ignoringNullabilities)) {
                 // final NativeFieldWrapperClass1 #t1 = MyNFWC1();.
-                final tmpPtr = VariableDeclaration('',
+                final tmpPtr = VariableDeclaration(null,
                     initializer: origArgs[i],
                     type: nativeFieldWrapperClassType,
                     isFinal: true);
@@ -419,7 +419,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               }
               // Note: We also evaluate, and assign temporaries for, non-wrapped
               // arguments as we need to preserve the original evaluation order.
-              final tmpArg = VariableDeclaration('',
+              final tmpArg = VariableDeclaration(null,
                   initializer: origArgs[i], isFinal: true);
               tmpsArgs.add(tmpArg);
               callArgs.add(VariableGet(tmpArg));
@@ -434,7 +434,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             //   reachabilityFence(#t1);
             // } => #t0
             final tmpResult =
-                VariableDeclaration('', type: target.function.returnType);
+                VariableDeclaration(null, type: target.function.returnType);
             return BlockExpression(
               Block([
                 tmpResult,

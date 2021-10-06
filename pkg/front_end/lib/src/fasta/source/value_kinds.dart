@@ -18,7 +18,6 @@ import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
 import '../builder/type_variable_builder.dart' as type;
-import '../builder/unresolved_type.dart' as type;
 
 import '../identifiers.dart' as type;
 
@@ -108,15 +107,15 @@ class ValueKinds {
   static const ValueKind TokenOrNull =
       const SingleValueKind<type.Token>(NullValue.Token);
   static const ValueKind TypeOrNull =
-      const SingleValueKind<type.UnresolvedType>(NullValue.UnresolvedType);
+      const SingleValueKind<type.TypeBuilder>(NullValue.TypeBuilder);
   static const ValueKind TypeArguments =
-      const SingleValueKind<List<type.UnresolvedType>>();
+      const SingleValueKind<List<type.TypeBuilder>>();
   static const ValueKind TypeArgumentsOrNull =
-      const SingleValueKind<List<type.UnresolvedType>>(NullValue.TypeArguments);
+      const SingleValueKind<List<type.TypeBuilder>>(NullValue.TypeArguments);
   static const ValueKind TypeBuilder =
       const SingleValueKind<type.TypeBuilder>();
   static const ValueKind TypeBuilderOrNull =
-      const SingleValueKind<type.TypeBuilder>(NullValue.UnresolvedType);
+      const SingleValueKind<type.TypeBuilder>(NullValue.TypeBuilder);
   static const ValueKind TypeBuilderListOrNull =
       const SingleValueKind<List<type.TypeBuilder>>(NullValue.TypeBuilderList);
   static const ValueKind TypeVariableListOrNull =

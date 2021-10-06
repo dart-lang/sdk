@@ -22,13 +22,7 @@
  * `Dart_InitializeApiDL` with `NativeApi.initializeApiDLData`.
  */
 
-#ifdef __cplusplus
-#define DART_EXTERN extern "C"
-#else
-#define DART_EXTERN extern
-#endif
-
-DART_EXTERN intptr_t Dart_InitializeApiDL(void* data);
+DART_EXPORT intptr_t Dart_InitializeApiDL(void* data);
 
 // ============================================================================
 // IMPORTANT! Never update these signatures without properly updating
@@ -114,14 +108,43 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
 // End of verbatim copy.
 // ============================================================================
 
+// Copy of definition of DART_EXPORT without 'used' attribute.
+//
+// The 'used' attribute cannot be used with DART_API_ALL_DL_SYMBOLS because
+// they are not function declarations, but variable declarations with a
+// function pointer type.
+//
+// The function pointer variables are initialized with the addresses of the
+// functions in the VM. If we were to use function declarations instead, we
+// would need to forward the call to the VM adding indirection.
+#if defined(__CYGWIN__)
+#error Tool chain and platform not supported.
+#elif defined(_WIN32)
+#if defined(DART_SHARED_LIB)
+#define DART_EXPORT_DL DART_EXTERN_C __declspec(dllexport)
+#else
+#define DART_EXPORT_DL DART_EXTERN_C
+#endif
+#else
+#if __GNUC__ >= 4
+#if defined(DART_SHARED_LIB)
+#define DART_EXPORT_DL DART_EXTERN_C __attribute__((visibility("default")))
+#else
+#define DART_EXPORT_DL DART_EXTERN_C
+#endif
+#else
+#error Tool chain not supported.
+#endif
+#endif
+
 #define DART_API_DL_DECLARATIONS(name, R, A)                                   \
   typedef R(*name##_Type) A;                                                   \
-  DART_EXTERN name##_Type name##_DL;
+  DART_EXPORT_DL name##_Type name##_DL;
 
 DART_API_ALL_DL_SYMBOLS(DART_API_DL_DECLARATIONS)
 
-#undef DART_API_DL_DEFINITIONS
+#undef DART_API_DL_DECLARATIONS
 
-#undef DART_EXTERN
+#undef DART_EXPORT_DL
 
 #endif /* RUNTIME_INCLUDE_DART_API_DL_H_ */ /* NOLINT */

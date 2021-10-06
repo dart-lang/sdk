@@ -103,9 +103,9 @@ class FfiNativeTransformer extends Transformer {
         node.function.computeThisFunctionType(Nullability.nonNullable);
     // Double Function(Double)
     final nativeType = annotationConst.typeArguments[0] as FunctionType;
-    // InterfaceType(NativeFunction<Double Function(Double)>*)
-    final DartType nativeInterfaceType =
-        InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeType]);
+    // InterfaceType(NativeFunction<Double Function(Double)>)
+    final DartType nativeInterfaceType = InterfaceType(
+        nativeFunctionClass, Nullability.nonNullable, [nativeType]);
 
     // Derive number of arguments from the native function signature.
     final args_n = nativeType.positionalParameters.length;
