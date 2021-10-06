@@ -458,6 +458,50 @@ var x = a ? b : c;
             ]);
   }
 
+  test_constructorReference_explicitTypeArguments() async {
+    await _assertConst('''
+class A {
+  final B Function() x;
+  const A(): x = B<int>.new;
+}
+
+class B<T> {}
+''', () => findNode.constructorReference('B<int>.new'));
+  }
+
+  test_constructorReference_noTypeArguments() async {
+    await _assertConst('''
+class A {
+  final B Function() x;
+  const A(): x = B.new;
+}
+
+class B {}
+''', () => findNode.constructorReference('B.new'));
+  }
+
+  test_functionReference_explicitTypeArguments() async {
+    await _assertConst('''
+class A {
+  final int Function(int) x;
+  const A(): x = id<int>;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.functionReference('id<int>'));
+  }
+
+  test_functionReference_noTypeArguments() async {
+    await _assertConst('''
+class A {
+  final int Function(int) x;
+  const A(): x = id;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.simple('id;'));
+  }
+
   test_ifElement_then() async {
     await _assertConst(r'''
 const a = 0;
@@ -1175,6 +1219,15 @@ var x = 'a $a b';
     await _assertConst(r'''
 var x = 'a';
 ''', () => _xInitializer());
+  }
+
+  test_typeLiteral() async {
+    await _assertConst('''
+class A {
+  Type x;
+  const A(): x = List<int>;
+}
+''', () => findNode.typeLiteral('List<int>'));
   }
 
   _assertConst(String code, AstNode Function() getNode) async {
