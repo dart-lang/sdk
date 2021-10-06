@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      bool isTrue(Expression e) => e is BooleanLiteral && e.value == true;
+      bool isTrue(Expression e) => e is BooleanLiteral && e.value;
 
       var unicode = args.any((arg) =>
           arg is NamedExpression &&

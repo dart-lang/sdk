@@ -422,7 +422,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
   @override
   void visitElement(Element element) {
     var visitChildren = processor(element);
-    if (visitChildren == true) {
+    if (visitChildren) {
       element.visitChildren(this);
     }
   }

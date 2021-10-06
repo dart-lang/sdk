@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement != null && !declaredElement.isPrivate) {
       var parametersToLint =
           node.parameters.parameters.where(_isFormalParameterToLint);
-      if (parametersToLint.isNotEmpty == true) {
+      if (parametersToLint.isNotEmpty) {
         rule.reportLint(parametersToLint.first);
       }
     }
