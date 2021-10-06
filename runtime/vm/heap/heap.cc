@@ -463,7 +463,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       VMTagScope tagScope(thread, reason == GCReason::kIdle
                                       ? VMTag::kGCIdleTagId
                                       : VMTag::kGCNewSpaceTagId);
-      TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectNewGeneration");
+      TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
       new_space_.Scavenge(reason);
       RecordAfterGC(GCType::kScavenge);
       PrintStats();
@@ -512,7 +512,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     VMTagScope tagScope(thread, reason == GCReason::kIdle
                                     ? VMTag::kGCIdleTagId
                                     : VMTag::kGCOldSpaceTagId);
-    TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
+    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
     old_space_.CollectGarbage(type == GCType::kMarkCompact, true /* finish */);
     RecordAfterGC(type);
     PrintStats();
@@ -610,7 +610,7 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
 }
 
 void Heap::StartConcurrentMarking(Thread* thread) {
-  TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
+  TIMELINE_FUNCTION_GC_DURATION(thread, "StartConcurrentMarking");
   old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
 }
 

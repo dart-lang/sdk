@@ -2077,7 +2077,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END_BASIC(T);
+  API_TIMELINE_BEGIN_END(T);
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     return Api::NewHandle(T, T->StealStickyError());
@@ -2090,7 +2090,7 @@ DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END_BASIC(T);
+  API_TIMELINE_BEGIN_END(T);
   TransitionNativeToVM transition(T);
   if (I->message_notify_callback() != NULL) {
     return Api::NewError("waitForEventSync is not supported by this embedder");
