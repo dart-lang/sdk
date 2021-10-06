@@ -215,7 +215,13 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// print(string); // Dart
 /// ```
 ///
-/// Allow invalid ASCII characters example:
+/// If `bytes` contains values that are not in the range 0 .. 127, the decoder
+/// throws [FormatException].
+///
+/// If `allowInvalid` is set to true on constructor,
+/// the decoder replaces the invalid bytes using a character `U+FFFD` �.
+///
+/// Example:
 /// ```dart
 ///
 /// const AsciiDecoder asciiDecoder = AsciiDecoder(allowInvalid: true);
