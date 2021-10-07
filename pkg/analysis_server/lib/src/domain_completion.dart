@@ -20,7 +20,6 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -328,19 +327,20 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         server.sendResponse(Response.fileNotAnalyzed(request, 'params.offset'));
         return;
       }
-      server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-      if (resolvedUnit.state == ResultState.VALID) {
-        if (offset < 0 || offset > resolvedUnit.content.length) {
-          server.sendResponse(Response.invalidParameter(
-              request,
-              'params.offset',
-              'Expected offset between 0 and source length inclusive,'
-                  ' but found $offset'));
-          return;
-        }
 
-        recordRequest(performance, file, resolvedUnit.content, offset);
+      server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+
+      if (offset < 0 || offset > resolvedUnit.content.length) {
+        server.sendResponse(Response.invalidParameter(
+            request,
+            'params.offset',
+            'Expected offset between 0 and source length inclusive,'
+                ' but found $offset'));
+        return;
       }
+
+      recordRequest(performance, file, resolvedUnit.content, offset);
+
       var declarationsTracker = server.declarationsTracker;
       if (declarationsTracker == null) {
         server.sendResponse(Response.unsupportedFeature(

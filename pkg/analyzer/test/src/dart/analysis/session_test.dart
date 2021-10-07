@@ -45,7 +45,6 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
     var session = contextFor(file.path).currentSession;
     var result = await session.getErrorsValid(file.path);
-    expect(result.state, ResultState.VALID);
     expect(result.path, file.path);
     expect(result.errors, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
@@ -89,7 +88,6 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
     var session = contextFor(file.path).currentSession;
     var result = await session.getResolvedUnit(file.path) as ResolvedUnitResult;
-    expect(result.state, ResultState.VALID);
     expect(result.path, file.path);
     expect(result.errors, isEmpty);
     expect(result.uri.toString(), 'package:dart.my/a.dart');
@@ -124,7 +122,6 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
     var session = contextFor(file.path).currentSession;
     var result = await session.getUnitElementValid(file.path);
-    expect(result.state, ResultState.VALID);
     expect(result.path, file.path);
     expect(result.element.classes, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');

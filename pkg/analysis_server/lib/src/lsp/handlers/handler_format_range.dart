@@ -9,7 +9,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 
 class FormatRangeHandler
     extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
@@ -28,7 +27,7 @@ class FormatRangeHandler
     }
 
     final result = server.getParsedUnit(path);
-    if (result?.state != ResultState.VALID || result!.errors.isNotEmpty) {
+    if (result == null || result.errors.isNotEmpty) {
       return success(null);
     }
 

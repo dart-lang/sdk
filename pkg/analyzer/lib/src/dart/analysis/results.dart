@@ -62,6 +62,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
       AnalysisSession session, String path, Uri uri, this.lineInfo, this.isPart)
       : super(session, path, uri);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state => ResultState.VALID;
 }
@@ -82,6 +83,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       AnalysisSession session, String path, Uri uri, this.units)
       : super(session, path, uri);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state {
     return ResultState.VALID;
@@ -89,10 +91,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
-    if (state != ResultState.VALID) {
-      throw StateError('The result is not valid: $state');
-    }
-
     if (element is CompilationUnitElement ||
         element is LibraryElement ||
         element.isSynthetic ||
@@ -136,6 +134,7 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
       this.content, LineInfo lineInfo, bool isPart, this.unit, this.errors)
       : super(session, path, uri, lineInfo, isPart);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state => ResultState.VALID;
 }
@@ -168,6 +167,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       AnalysisSession session, String path, Uri uri, this.element, this.units)
       : super(session, path, uri);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state {
     return ResultState.VALID;
@@ -178,10 +178,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
-    if (state != ResultState.VALID) {
-      throw StateError('The result is not valid: $state');
-    }
-
     if (element is CompilationUnitElement ||
         element is LibraryElement ||
         element.isSynthetic ||
@@ -242,6 +238,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
     return unit.declaredElement!.library;
   }
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state => ResultState.VALID;
 
@@ -264,6 +261,7 @@ class UnitElementResultImpl extends AnalysisResultImpl
       this.signature, this.element)
       : super(session, path, uri);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state => ResultState.VALID;
 }

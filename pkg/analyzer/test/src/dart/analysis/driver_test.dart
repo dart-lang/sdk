@@ -1646,7 +1646,6 @@ class B {}
     ResolvedUnitResult result = await driver.getResultValid(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.state, ResultState.VALID);
     expect(result.content, content);
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
@@ -1697,7 +1696,6 @@ main() {
     ResolvedUnitResult result = await driver.getResultValid(a);
     expect(result.path, a);
     expect(result.uri.toString(), 'package:test/a.dart');
-    expect(result.state, ResultState.VALID);
     expect(result.exists, isFalse);
     expect(result.content, '');
   }
