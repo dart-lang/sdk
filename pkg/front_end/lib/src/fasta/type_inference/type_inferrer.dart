@@ -586,7 +586,6 @@ class TypeInferrerImpl implements TypeInferrer {
             contextType,
             errorTemplate.withArguments(expressionType,
                 declaredContextType ?? contextType, isNonNullableByDefault));
-
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.

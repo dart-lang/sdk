@@ -4740,11 +4740,11 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
   String get targetName => '';
 
   @override
-  Expression buildSimpleRead() => expression;
+  Expression buildSimpleRead() => _createRead();
 
   @override
   Expression _createRead() =>
-      _helper.forest.createParenthesized(fileOffset, expression);
+      _helper.forest.createParenthesized(expression.fileOffset, expression);
 
   @override
   String get _debugName => "ParenthesizedExpressionGenerator";

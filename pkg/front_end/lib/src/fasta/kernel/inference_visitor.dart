@@ -1433,7 +1433,7 @@ class InferenceVisitor
         node.left, inferrer.computeNullable(typeContext), true,
         isVoidAllowed: false);
     reportNonNullableInNullAwareWarningIfNeeded(
-        lhsResult.inferredType, "??", node.left.fileOffset);
+        lhsResult.inferredType, "??", lhsResult.expression.fileOffset);
 
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
