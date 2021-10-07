@@ -330,9 +330,7 @@ class _Collector {
       var typeArguments = node.typeArguments?.arguments;
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0];
-        // TODO(srawlins): Change to "potentially" constant type expression as
-        // per https://github.com/dart-lang/sdk/issues/47302?
-        if (!isConstantTypeExpression(elementType)) {
+        if (!isPotentiallyConstantTypeExpression(elementType)) {
           nodes.add(elementType);
         }
       }
@@ -347,9 +345,7 @@ class _Collector {
       var typeArguments = node.typeArguments?.arguments;
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0];
-        // TODO(srawlins): Change to "potentially" constant type expression as
-        // per https://github.com/dart-lang/sdk/issues/47302?
-        if (!isConstantTypeExpression(elementType)) {
+        if (!isPotentiallyConstantTypeExpression(elementType)) {
           nodes.add(elementType);
         }
       }
@@ -406,10 +402,8 @@ class _ConstantTypeChecker {
         }
         return true;
       }
-      if (node.type is DynamicTypeImpl) {
-        return true;
-      }
-      if (node.type is VoidType) {
+      var type = node.type;
+      if (type is DynamicTypeImpl || type is NeverType || type is VoidType) {
         return true;
       }
       return false;

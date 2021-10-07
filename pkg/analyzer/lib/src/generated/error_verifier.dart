@@ -332,7 +332,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitAnnotation(Annotation node) {
     _checkForInvalidAnnotationFromDeferredLibrary(node);
-    _checkForMissingJSLibAnnotation(node);
     super.visitAnnotation(node);
   }
 
@@ -3018,15 +3017,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             ['null'],
           );
         }
-      }
-    }
-  }
-
-  void _checkForMissingJSLibAnnotation(Annotation node) {
-    if (node.elementAnnotation?.isJS ?? false) {
-      if (_currentLibrary.hasJS != true) {
-        errorReporter.reportErrorForNode(
-            HintCode.MISSING_JS_LIB_ANNOTATION, node);
       }
     }
   }

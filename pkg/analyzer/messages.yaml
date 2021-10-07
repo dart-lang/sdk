@@ -15195,12 +15195,6 @@ HintCode:
       ```dart
       class C {}
       ```
-  MISSING_JS_LIB_ANNOTATION:
-    problemMessage: The @JS() annotation can only be used if it is also declared on the library directive.
-    correctionMessage: Try adding the annotation to the library directive.
-    comment: |-
-      Generate a hint for an element that is annotated with `@JS(...)` whose
-      library declaration is not similarly annotated.
   MISSING_REQUIRED_PARAM:
     problemMessage: "The parameter '{0}' is required."
     hasPublishedDocs: true
