@@ -66,11 +66,11 @@ class Latin1Codec extends Encoding {
 ///
 /// Example:
 /// ```dart
-/// const String sample = 'à á â ã ä å';
+/// const String sample = 'àáâãäå';
 ///
 /// const Latin1Encoder latin1Encoder = Latin1Encoder();
 /// final List<int> encoded = latin1Encoder.convert(sample);
-/// print(encoded); // [224, 32, 225, 32, 226, 32, 227, 32, 228, 32, 229]
+/// print(encoded); // [224, 225, 226, 227, 228, 229]
 /// ```
 class Latin1Encoder extends _UnicodeSubsetEncoder {
   const Latin1Encoder() : super(_latin1Mask);
@@ -82,17 +82,14 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 /// Example:
 /// ```dart
 /// const Latin1Decoder latin1Decoder = Latin1Decoder();
-/// // dec values as source
-/// const List<int> latin1bytes = [
-///   224, 32, 225, 32, 226, 32, 227, 32, 228, 32, 229];
-/// final String string = latin1Decoder.convert(latin1bytes);
-/// print(string); // à á â ã ä å
+/// const List<int> encodedBytes = [224, 225, 226, 227, 228, 229];
+/// final String decoded = latin1Decoder.convert(encodedBytes);
+/// print(decoded); // àáâãäå
 ///
-/// // hex values as source
-/// const List<int> hexBytes = [
-///   0xe0, 0x20, 0xe1, 0x20, 0xe2, 0x20, 0xe3, 0x20, 0xe4, 0x20, 0xe5];
-/// final decoded2 = latin1Decoder.convert(hexBytes);
-/// print(decoded2); // à á â ã ä å
+/// // Hexadecimal values as source
+/// const List<int> hexBytes = [0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5];
+/// final String decodedHexBytes = latin1Decoder.convert(hexBytes);
+/// print(decodedHexBytes); // àáâãäå
 /// ```
 ///
 /// If `bytes` contains values that are not in the range 0 .. 255, the decoder
@@ -102,14 +99,13 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 /// If `allowInvalid` is set to true on constructor,
 /// the decoder replaces the invalid bytes using a character `U+FFFD` �.
 ///
-/// Example:
+///
+/// Allow invalid byte value example:
 /// ```dart
 /// const Latin1Decoder latin1Decoder = Latin1Decoder(allowInvalid: true);
-/// const List<int> encoded = [224, 32, 225, 32, 226, 32, 227, 32, 228, 32,
-///   229, 20, 300];
-///
-/// final String decoded = latin1Decoder.convert(encoded);
-/// print(decoded); // à á â ã ä å �
+/// const List<int> encodedBytes = [224, 225, 226, 227, 228, 229, 300];
+/// final String decoded = latin1Decoder.convert(encodedBytes);
+/// print(decoded); // àáâãäå�
 /// ```
 class Latin1Decoder extends _UnicodeSubsetDecoder {
   /// Instantiates a new [Latin1Decoder].
