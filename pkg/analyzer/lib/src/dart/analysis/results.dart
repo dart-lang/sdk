@@ -194,13 +194,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
-        var buffer = StringBuffer();
-        buffer.write('Element (${element.runtimeType}) $elementStr');
-        buffer.writeln(' is not defined in this library.');
-        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45430
-        buffer.writeln('elementPath: $elementPath');
-        buffer.writeln('unitPaths: ${units.map((e) => e.path).toList()}');
-        throw ArgumentError('$buffer');
+        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
+            'not defined in this library.');
       },
     );
 
