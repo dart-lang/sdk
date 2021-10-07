@@ -253,7 +253,6 @@ abstract class AbstractAnalysisServer {
     extensionForContext.clear();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
-      driver.resetUriResolution();
     }
   }
 
@@ -461,9 +460,7 @@ abstract class AbstractAnalysisServer {
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   void reanalyze() {
-    for (var driver in driverMap.values) {
-      driver.resetUriResolution();
-    }
+    contextManager.refresh();
   }
 
   /// Sends an error notification to the user.

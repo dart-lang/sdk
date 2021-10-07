@@ -421,6 +421,7 @@ class ContextManagerImpl implements ContextManager {
 
   void _createAnalysisContexts() {
     _destroyAnalysisContexts();
+    _fileContentCache.invalidateAll();
 
     var collection = _collection = AnalysisContextCollectionImpl(
       includedPaths: includedPaths,
@@ -530,31 +531,32 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Notifies the drivers that a generated Bazel file has changed.
-  void _handleBazelWatchEvents(List<WatchEvent> allEvents) {
+  void _handleBazelWatchEvents(List<WatchEvent> events) {
     // First check if we have any changes to the bazel-*/blaze-* paths.  If
     // we do, we'll simply recreate all contexts to make sure that we follow the
     // correct paths.
     var bazelSymlinkPaths = bazelWatchedPathsPerFolder.values
         .expand((watched) => _getPossibleBazelBinPaths(watched))
         .toSet();
-    if (allEvents.any((event) => bazelSymlinkPaths.contains(event.path))) {
+    if (events.any((event) => bazelSymlinkPaths.contains(event.path))) {
       refresh();
       return;
     }
 
-    var fileEvents =
-        allEvents.where((event) => !bazelSymlinkPaths.contains(event.path));
+    // If a file was created or removed, the URI resolution is likely wrong.
+    // Do as for `package_config.json` changes - recreate all contexts.
+    if (events
+        .map((event) => event.type)
+        .any((type) => type == ChangeType.ADD || type == ChangeType.REMOVE)) {
+      refresh();
+      return;
+    }
+
+    // If we have only changes to generated files, notify drivers.
     for (var driver in driverMap.values) {
-      var needsUriReset = false;
-      for (var event in fileEvents) {
+      for (var event in events) {
         driver.changeFile(event.path);
-        if (event.type == ChangeType.ADD || event.type == ChangeType.REMOVE) {
-          needsUriReset = true;
-        }
       }
-      // If a file was created or removed, the URI resolution is likely wrong,
-      // so we need to reset it.
-      if (needsUriReset) driver.resetUriResolution();
     }
   }
 
