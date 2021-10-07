@@ -159,7 +159,11 @@ template("msvc_toolchain") {
       # TODO(brettw) support manifests
       #manifest_command = "$python_path gyp-win-tool manifest-wrapper $env mt.exe -nologo -manifest $manifests -out:${dllname}.manifest"
       #command = "cmd /c $link_command && $manifest_command"
-      command = link_command
+      # Force rebuild of the .lib-file(if it is being produced) because msvc
+      # linker seems to keep it untouched sometimes even when .obj-files are
+      # being updated.
+      cleanup_lib_command = "$python_path $tool_wrapper_path delete-file $libname"
+      command = "cmd /c $cleanup_lib_command && cmd /c $link_command"
 
       default_output_extension = ".dll"
       description = "LINK(DLL) {{output}}"
