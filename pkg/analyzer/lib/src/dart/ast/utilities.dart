@@ -2534,7 +2534,7 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
-  bool? visitNamedType(covariant TypeNameImpl node) {
+  bool? visitNamedType(covariant NamedTypeImpl node) {
     if (identical(node.name, _oldNode)) {
       node.name = _newNode as Identifier;
       return true;
@@ -2864,14 +2864,14 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitTypeLiteral(covariant TypeLiteralImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.typeName = _newNode as TypeNameImpl;
+      node.typeName = _newNode as NamedTypeImpl;
       return true;
     }
     return visitNode(node);
   }
 
   @override
-  bool visitTypeName(covariant TypeNameImpl node) {
+  bool visitTypeName(covariant NamedTypeImpl node) {
     throw StateError('Should not be invoked');
   }
 

@@ -197,7 +197,7 @@ class AstFactoryImpl extends AstFactory {
           typeParameters as TypeParameterListImpl?,
           equals,
           abstractKeyword,
-          superclass as TypeNameImpl,
+          superclass as NamedTypeImpl,
           withClause as WithClauseImpl,
           implementsClause as ImplementsClauseImpl?,
           semicolon);
@@ -298,7 +298,7 @@ class AstFactoryImpl extends AstFactory {
   ConstructorNameImpl constructorName(
           NamedType type, Token? period, SimpleIdentifier? name) =>
       ConstructorNameImpl(
-          type as TypeNameImpl, period, name as SimpleIdentifierImpl?);
+          type as NamedTypeImpl, period, name as SimpleIdentifierImpl?);
 
   @override
   ConstructorReferenceImpl constructorReference(
@@ -434,7 +434,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ExtendsClauseImpl extendsClause(Token extendsKeyword, NamedType superclass) =>
-      ExtendsClauseImpl(extendsKeyword, superclass as TypeNameImpl);
+      ExtendsClauseImpl(extendsKeyword, superclass as NamedTypeImpl);
 
   @override
   ExtensionDeclarationImpl extensionDeclaration(
@@ -980,12 +980,12 @@ class AstFactoryImpl extends AstFactory {
       NamedExpressionImpl(name as LabelImpl, expression as ExpressionImpl);
 
   @override
-  TypeNameImpl namedType({
+  NamedTypeImpl namedType({
     required Identifier name,
     TypeArgumentList? typeArguments,
     Token? question,
   }) =>
-      TypeNameImpl(
+      NamedTypeImpl(
           name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
           question: question);
 
@@ -1242,13 +1242,13 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
-      TypeLiteralImpl(typeName as TypeNameImpl);
+      TypeLiteralImpl(typeName as NamedTypeImpl);
 
   @Deprecated('Use namedType() instead')
   @override
-  TypeNameImpl typeName(Identifier name, TypeArgumentList? typeArguments,
+  NamedTypeImpl typeName(Identifier name, TypeArgumentList? typeArguments,
           {Token? question}) =>
-      TypeNameImpl(
+      NamedTypeImpl(
           name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
           question: question);
 

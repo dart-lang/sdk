@@ -646,7 +646,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
   class NormalizeAndDedupCompressedStackMapsVisitor
       : public CodeVisitor,
         public Dedupper<CompressedStackMaps,
-                        PointerKeyValueTrait<const CompressedStackMaps>> {
+                        PointerSetKeyValueTrait<const CompressedStackMaps>> {
    public:
     NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone,
                                                 IsolateGroup* isolate_group)

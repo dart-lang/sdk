@@ -311,7 +311,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitNamedType(covariant TypeNameImpl node) {
+  void visitNamedType(covariant NamedTypeImpl node) {
     var typeIdentifier = node.name;
 
     Element? element;

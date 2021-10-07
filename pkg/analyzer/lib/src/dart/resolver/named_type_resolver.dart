@@ -74,7 +74,7 @@ class NamedTypeResolver {
   /// given [node] is resolved, all its children must be already resolved.
   ///
   /// The client must set [nameScope] before calling [resolve].
-  void resolve(TypeNameImpl node) {
+  void resolve(NamedTypeImpl node) {
     rewriteResult = null;
     hasErrorReported = false;
 
@@ -283,7 +283,7 @@ class NamedTypeResolver {
     }
   }
 
-  void _resolveToElement(TypeNameImpl node, Element? element) {
+  void _resolveToElement(NamedTypeImpl node, Element? element) {
     if (element == null) {
       node.type = dynamicType;
       if (!_libraryElement.shouldIgnoreUndefinedIdentifier(node.name)) {
@@ -306,7 +306,7 @@ class NamedTypeResolver {
   /// will be a [PrefixElement]. But when we resolved the `prefix` it turned
   /// out to be a [ClassElement], so it is probably a `Class.constructor`.
   void _rewriteToConstructorName(
-    TypeNameImpl node,
+    NamedTypeImpl node,
     PrefixedIdentifier typeIdentifier,
   ) {
     var constructorName = node.parent;

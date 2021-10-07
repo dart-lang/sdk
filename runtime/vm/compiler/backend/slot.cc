@@ -43,7 +43,7 @@ class SlotCache : public ZoneAllocated {
       : zone_(thread->zone()), fields_(thread->zone()) {}
 
   Zone* const zone_;
-  DirectChainedHashMap<PointerKeyValueTrait<const Slot> > fields_;
+  PointerSet<const Slot> fields_;
 };
 
 #define NATIVE_SLOT_NAME(C, F) Kind::k##C##_##F
