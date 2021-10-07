@@ -1697,7 +1697,8 @@ main() {
     ResolvedUnitResult result = await driver.getResultValid(a);
     expect(result.path, a);
     expect(result.uri.toString(), 'package:test/a.dart');
-    expect(result.state, ResultState.NOT_A_FILE);
+    expect(result.state, ResultState.VALID);
+    expect(result.exists, isFalse);
     expect(result.content, '');
   }
 

@@ -258,6 +258,7 @@ enum ResultState {
   /// An indication that analysis could not be performed because the path does
   /// not represent a file. It might represent something else, such as a
   /// directory, or it might not represent anything.
+  @Deprecated("Check 'get exists' flag instead")
   NOT_A_FILE,
 
   /// An indication that analysis could not be performed because the path does

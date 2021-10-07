@@ -229,7 +229,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // Prepare the resolved units.
     var result = await server.getResolvedUnit(file);
 
-    if (result == null || result.state != ResultState.VALID) {
+    if (result == null || !result.exists) {
       server.sendResponse(Response.getSignatureInvalidFile(request));
       return;
     }

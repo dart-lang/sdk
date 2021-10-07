@@ -243,7 +243,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   }
 
   @override
-  ResultState get state => exists ? ResultState.VALID : ResultState.NOT_A_FILE;
+  ResultState get state => ResultState.VALID;
 
   @override
   TypeProvider get typeProvider => libraryElement.typeProvider;
