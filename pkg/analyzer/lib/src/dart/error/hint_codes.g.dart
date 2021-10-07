@@ -1493,16 +1493,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * Generate a hint for an element that is annotated with `@JS(...)` whose
-   * library declaration is not similarly annotated.
-   */
-  static const HintCode MISSING_JS_LIB_ANNOTATION = HintCode(
-    'MISSING_JS_LIB_ANNOTATION',
-    "The @JS() annotation can only be used if it is also declared on the library directive.",
-    correctionMessage: "Try adding the annotation to the library directive.",
-  );
-
-  /**
    * Generate a hint for a constructor, function or method invocation where a
    * required parameter is missing.
    *
