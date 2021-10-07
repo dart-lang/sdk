@@ -88,6 +88,13 @@ class _InfoDiffer extends InfoVisitor<Null> {
   }
 
   @override
+  visitClassType(ClassTypeInfo info) {
+    var other = _other as ClassTypeInfo;
+    _checkSize(info, other);
+    _checkDeferredStatus(info, other);
+  }
+
+  @override
   visitClosure(ClosureInfo info) {
     var other = _other as ClosureInfo;
     _checkSize(info, other);

@@ -45,6 +45,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     // TODO(sigmund): synthesize the following lists instead of serializing the
     // values again.
     sink.writeList(info.classes, visitClass);
+    sink.writeList(info.classTypes, visitClassType);
     sink.writeList(info.functions, visitFunction);
     sink.writeList(info.typedefs, visitTypedef);
     sink.writeList(info.fields, visitField);
@@ -100,6 +101,7 @@ class BinaryPrinter implements InfoVisitor<void> {
       sink.writeList(info.topLevelFunctions, visitFunction);
       sink.writeList(info.topLevelVariables, visitField);
       sink.writeList(info.classes, visitClass);
+      sink.writeList(info.classTypes, visitClassType);
       sink.writeList(info.typedefs, visitTypedef);
     });
   }
@@ -110,6 +112,12 @@ class BinaryPrinter implements InfoVisitor<void> {
       sink.writeBool(info.isAbstract);
       sink.writeList(info.fields, visitField);
       sink.writeList(info.functions, visitFunction);
+    });
+  }
+
+  void visitClassType(ClassTypeInfo cls) {
+    sink.writeCached(cls, (ClassTypeInfo info) {
+      _visitBasicInfo(info);
     });
   }
 
@@ -231,6 +239,8 @@ class BinaryReader {
         return readLibrary();
       case InfoKind.clazz:
         return readClass();
+      case InfoKind.classType:
+        return readClassType();
       case InfoKind.function:
         return readFunction();
       case InfoKind.field:
@@ -258,6 +268,7 @@ class BinaryReader {
     }
     info.libraries = source.readList(readLibrary);
     info.classes = source.readList(readClass);
+    info.classTypes = source.readList(readClassType);
     info.functions = source.readList(readFunction);
     info.typedefs = source.readList(readTypedef);
     info.fields = source.readList(readField);
@@ -332,12 +343,14 @@ class BinaryReader {
         info.topLevelFunctions = source.readList(readFunction);
         info.topLevelVariables = source.readList(readField);
         info.classes = source.readList(readClass);
+        info.classTypes = source.readList(readClassType);
         info.typedefs = source.readList(readTypedef);
 
         setParent(BasicInfo child) => child.parent = info;
         info.topLevelFunctions.forEach(setParent);
         info.topLevelVariables.forEach(setParent);
         info.classes.forEach(setParent);
+        info.classTypes.forEach(setParent);
         info.typedefs.forEach(setParent);
         return info;
       });
@@ -352,6 +365,12 @@ class BinaryReader {
         setParent(BasicInfo child) => child.parent = info;
         info.fields.forEach(setParent);
         info.functions.forEach(setParent);
+        return info;
+      });
+
+  ClassTypeInfo readClassType() => source.readCached<ClassTypeInfo>(() {
+        var info = ClassTypeInfo.internal();
+        _readBasicInfo(info);
         return info;
       });
 

@@ -21,11 +21,11 @@ main() {
       final proto = AllInfoProtoCodec().encode(decoded);
 
       expect(proto.program.entrypointId, isNotNull);
-      expect(proto.program.size, 10324);
+      expect(proto.program.size, 94182);
       expect(proto.program.compilationMoment.toInt(),
-          DateTime.parse("2017-04-17 09:46:41.661617").microsecondsSinceEpoch);
+          DateTime.parse("2021-09-27 15:32:00.380236").microsecondsSinceEpoch);
       expect(proto.program.toProtoDuration.toInt(),
-          Duration(milliseconds: 4).inMicroseconds);
+          Duration(milliseconds: 3).inMicroseconds);
       expect(proto.program.dumpInfoDuration.toInt(),
           Duration(milliseconds: 0).inMicroseconds);
       expect(proto.program.noSuchMethodEnabled, isFalse);
@@ -53,6 +53,9 @@ main() {
         } else if (value.hasClassInfo()) {
           expect(
               value.serializedId, startsWith(expectedPrefixes[InfoKind.clazz]));
+        } else if (value.hasClassTypeInfo()) {
+          expect(
+              value.serializedId, startsWith(expectedPrefixes[InfoKind.classType]));
         } else if (value.hasFunctionInfo()) {
           expect(value.serializedId,
               startsWith(expectedPrefixes[InfoKind.function]));

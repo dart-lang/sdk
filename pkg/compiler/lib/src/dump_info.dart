@@ -99,6 +99,12 @@ class ElementInfoCollector {
     });
 
     environment.forEachClass(lib, (ClassEntity clazz) {
+      ClassTypeInfo classTypeInfo = visitClassType(clazz);
+      if (classTypeInfo != null) {
+        info.classTypes.add(classTypeInfo);
+        classTypeInfo.parent = info;
+      }
+
       ClassInfo classInfo = visitClass(clazz);
       if (classInfo != null) {
         info.classes.add(classInfo);
@@ -157,6 +163,24 @@ class ElementInfoCollector {
 
     result.fields.add(info);
     return info;
+  }
+
+  ClassTypeInfo visitClassType(ClassEntity clazz) {
+    // Omit class type if it is not needed.
+    ClassTypeInfo classTypeInfo = ClassTypeInfo(
+        name: clazz.name, outputUnit: _unitInfoForClassType(clazz));
+
+    // TODO(joshualitt): Get accurate size information for class types.
+    classTypeInfo.size = 0;
+
+    bool isNeeded =
+        compiler.backendStrategy.emitterTask.neededClassTypes.contains(clazz);
+    if (!isNeeded) {
+      return null;
+    }
+
+    result.classTypes.add(classTypeInfo);
+    return classTypeInfo;
   }
 
   ClassInfo visitClass(ClassEntity clazz) {
@@ -368,6 +392,11 @@ class ElementInfoCollector {
   OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
     return _infoFromOutputUnit(
         closedWorld.outputUnitData.outputUnitForClass(entity, allowNull: true));
+  }
+
+  OutputUnitInfo _unitInfoForClassType(ClassEntity entity) {
+    return _infoFromOutputUnit(closedWorld.outputUnitData
+        .outputUnitForClassType(entity, allowNull: true));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {

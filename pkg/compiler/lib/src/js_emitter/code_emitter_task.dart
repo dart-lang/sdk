@@ -44,12 +44,13 @@ class CodeEmitterTask extends CompilerTask {
 
   CompilerOptions get options => _compiler.options;
 
-  @deprecated
-  // This field should be removed. It's currently only needed for dump-info and
-  // tests.
-  // The field is set after the program has been emitted.
+  /// The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
+  /// Currently used for testing and dump-info.
   Set<ClassEntity> neededClasses;
+
+  /// See [neededClasses] but for class types.
+  Set<ClassEntity> neededClassTypes;
 
   @override
   final _EmitterMetrics metrics = _EmitterMetrics();
@@ -140,8 +141,8 @@ class CodeEmitterTask extends CompilerTask {
           _rtiChecks.requiredClasses,
           closedWorld.elementEnvironment.mainFunction);
       int size = emitter.emitProgram(programBuilder, codegenWorld);
-      // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
+      neededClassTypes = programBuilder.collector.neededClassTypes;
       return size;
     });
   }

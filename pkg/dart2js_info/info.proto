@@ -82,6 +82,9 @@ message InfoPB {
 
     /** Information about a closure element. */
     ClosureInfoPB closure_info = 107;
+
+    /** Information about a class type element. */
+    ClassTypeInfoPB class_type_info = 108;
   }
 }
 
@@ -154,6 +157,9 @@ message ClassInfoPB {
   /** The serialized_ids of all FunctionInfo and FieldInfo elements defined in the class. */
   repeated string children_ids = 2;
 }
+
+/** Information about a class type element. */
+message ClassTypeInfoPB {}
 
 /** Information about a constant value. */
 message ConstantInfoPB {
