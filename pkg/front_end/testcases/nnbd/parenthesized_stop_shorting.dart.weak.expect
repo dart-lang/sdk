@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get foo() → core::int
+    return throw 42;
+}
+static method bar(core::int x) → dynamic {}
+static method test(self::A? a) → dynamic {
+  self::bar((let final self::A? #t1 = a in #t1 == null ?{core::int?} null : #t1{self::A}.{self::A::foo}{core::int})!);
+}
+static method main() → dynamic {}
