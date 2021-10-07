@@ -44,12 +44,12 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:6:8 -> SymbolConstant(#_foo)
-Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:6:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:6:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:6:8 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:11:8 -> SymbolConstant(#foo)
-Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:11:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:11:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:11:8 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:8:8 -> SymbolConstant(#_foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:8:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:8:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:8:8 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:13:8 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:13:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:13:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:13:8 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 16, effectively constant: 8

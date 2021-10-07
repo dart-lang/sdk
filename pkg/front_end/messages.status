@@ -608,6 +608,7 @@ NeverValueError/analyzerCode: Fail
 NeverValueError/example: Fail
 NeverValueWarning/analyzerCode: Fail
 NeverValueWarning/example: Fail
+NewAsSelector/analyzerCode: Fail
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail

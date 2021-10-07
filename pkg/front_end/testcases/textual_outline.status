@@ -25,6 +25,7 @@ const_functions/const_functions_const_ctor_error: FormatterCrash
 const_functions/const_functions_const_factory: FormatterCrash
 constructor_tearoffs/issue46133: FormatterCrash
 constructor_tearoffs/issue47075: FormatterCrash
+constructor_tearoffs/new_as_selector: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
 extension_types/basic_show: FormatterCrash
@@ -88,6 +89,7 @@ general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
+general/new_as_selector: FormatterCrash
 general/null_aware_super: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash

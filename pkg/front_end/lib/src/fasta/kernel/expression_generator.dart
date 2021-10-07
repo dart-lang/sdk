@@ -220,20 +220,21 @@ abstract class Generator {
       {bool isTypeArgumentsInForest = false});
 
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    if (send is InvocationSelector) {
-      return _helper.buildMethodInvocation(buildSimpleRead(), send.name,
-          send.arguments, offsetForToken(send.token),
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
+    if (selector is InvocationSelector) {
+      return _helper.buildMethodInvocation(buildSimpleRead(), selector.name,
+          selector.arguments, offsetForToken(selector.token),
           isNullAware: isNullAware,
-          isConstantExpression: send.isPotentiallyConstant);
+          isConstantExpression: selector.isPotentiallyConstant);
     } else {
       if (_helper.constantContext != ConstantContext.none &&
-          send.name != lengthName) {
+          selector.name != lengthName) {
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
-      return PropertyAccessGenerator.make(
-          _helper, send.token, buildSimpleRead(), send.name, isNullAware);
+      return PropertyAccessGenerator.make(_helper, selector.token,
+          buildSimpleRead(), selector.name, isNullAware);
     }
   }
 
@@ -2642,17 +2643,18 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
     if (_helper.constantContext != ConstantContext.none) {
       _helper.addProblem(
           messageNotAConstantExpression, fileOffset, token.length);
     }
-    Generator generator =
-        _createInstanceAccess(send.token, send.name, isNullAware: isNullAware);
-    if (send.arguments != null) {
-      return generator.doInvocation(offsetForToken(send.token),
-          send.typeArguments, send.arguments! as ArgumentsImpl,
-          isTypeArgumentsInForest: send.isTypeArgumentsInForest);
+    Generator generator = _createInstanceAccess(selector.token, selector.name,
+        isNullAware: isNullAware);
+    if (selector.arguments != null) {
+      return generator.doInvocation(offsetForToken(selector.token),
+          selector.typeArguments, selector.arguments! as ArgumentsImpl,
+          isTypeArgumentsInForest: selector.isTypeArgumentsInForest);
     } else {
       return generator;
     }
@@ -2878,9 +2880,10 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    Object propertyAccess =
-        suffixGenerator.buildSelectorAccess(send, operatorOffset, isNullAware);
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
+    Object propertyAccess = suffixGenerator.buildSelectorAccess(
+        selector, operatorOffset, isNullAware);
     if (propertyAccess is Generator) {
       return new DeferredAccessGenerator(
           _helper, token, prefixGenerator, propertyAccess);
@@ -4059,14 +4062,15 @@ class PrefixUseGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    assert(send.name.text == send.token.lexeme,
-        "'${send.name.text}' != ${send.token.lexeme}");
-    Object result = qualifiedLookup(send.token);
-    if (send is InvocationSelector) {
-      result = _helper.finishSend(result, send.typeArguments,
-          send.arguments as ArgumentsImpl, send.fileOffset,
-          isTypeArgumentsInForest: send.isTypeArgumentsInForest);
+      Selector selector, int operatorOffset, bool isNullAware) {
+    assert(selector.name.text == selector.token.lexeme,
+        "'${selector.name.text}' != ${selector.token.lexeme}");
+    selector.reportNewAsSelector();
+    Object result = qualifiedLookup(selector.token);
+    if (selector is InvocationSelector) {
+      result = _helper.finishSend(result, selector.typeArguments,
+          selector.arguments as ArgumentsImpl, selector.fileOffset,
+          isTypeArgumentsInForest: selector.isTypeArgumentsInForest);
     }
     if (isNullAware) {
       result = _helper.wrapInLocatedProblem(
@@ -4442,21 +4446,22 @@ class ThisAccessGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    Name name = send.name;
-    Arguments? arguments = send.arguments;
-    int offset = offsetForToken(send.token);
-    if (isInitializer && send is InvocationSelector) {
+      Selector selector, int operatorOffset, bool isNullAware) {
+    Name name = selector.name;
+    Arguments? arguments = selector.arguments;
+    int offset = offsetForToken(selector.token);
+    if (isInitializer && selector is InvocationSelector) {
       if (isNullAware) {
         _helper.addProblem(
             messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
       }
       return buildConstructorInitializer(offset, name, arguments!);
     }
+    selector.reportNewAsSelector();
     if (inFieldInitializer && !inLateFieldInitializer && !isInitializer) {
       return buildFieldInitializerError(null);
     }
-    if (send is InvocationSelector) {
+    if (selector is InvocationSelector) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       if (isNullAware) {
@@ -4465,8 +4470,8 @@ class ThisAccessGenerator extends Generator {
       return _helper.buildMethodInvocation(
           _forest.createThisExpression(fileOffset),
           name,
-          send.arguments,
-          offsetForToken(send.token),
+          selector.arguments,
+          offsetForToken(selector.token),
           isSuper: isSuper);
     } else {
       if (isSuper) {
@@ -4476,7 +4481,7 @@ class ThisAccessGenerator extends Generator {
         return new SuperPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'super' token.
-            send.token,
+            selector.token,
             name,
             getter,
             setter);
@@ -4484,7 +4489,7 @@ class ThisAccessGenerator extends Generator {
         return new ThisPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'this' token.
-            send.token,
+            selector.token,
             name,
             thisOffset: fileOffset,
             isNullAware: isNullAware);
@@ -4751,20 +4756,21 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    if (send is InvocationSelector) {
-      return _helper.buildMethodInvocation(
-          _createRead(), send.name, send.arguments, offsetForToken(send.token),
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
+    if (selector is InvocationSelector) {
+      return _helper.buildMethodInvocation(_createRead(), selector.name,
+          selector.arguments, offsetForToken(selector.token),
           isNullAware: isNullAware,
-          isConstantExpression: send.isPotentiallyConstant);
+          isConstantExpression: selector.isPotentiallyConstant);
     } else {
       if (_helper.constantContext != ConstantContext.none &&
-          send.name != lengthName) {
+          selector.name != lengthName) {
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
       return PropertyAccessGenerator.make(
-          _helper, send.token, _createRead(), send.name, isNullAware);
+          _helper, selector.token, _createRead(), selector.name, isNullAware);
     }
   }
 }
@@ -4822,6 +4828,14 @@ abstract class Selector {
 
   void printOn(StringSink sink);
 
+  /// Report an error if the selector name "new" when the constructor-tearoff
+  /// feature is enabled.
+  void reportNewAsSelector() {
+    if (name.text == 'new' && _helper.enableConstructorTearOffsInLibrary) {
+      _helper.addProblem(messageNewAsSelector, fileOffset, name.text.length);
+    }
+  }
+
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
@@ -4875,6 +4889,7 @@ class InvocationSelector extends Selector {
     if (receiver is Generator) {
       return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
     }
+    reportNewAsSelector();
     return _helper.buildMethodInvocation(
         _helper.toValue(receiver), name, arguments, fileOffset,
         isNullAware: isNullAware);
@@ -4917,6 +4932,7 @@ class PropertySelector extends Selector {
     if (receiver is Generator) {
       return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
     }
+    reportNewAsSelector();
     return PropertyAccessGenerator.make(
         _helper, token, _helper.toValue(receiver), name, isNullAware);
   }
