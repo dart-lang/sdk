@@ -1231,7 +1231,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         _makeTypeNameNullable(node, decoratedType);
       }
     }
-    (node as TypeNameImpl).type =
+    (node as NamedTypeImpl).type =
         _fixBuilder._variables!.toFinalType(decoratedType);
     super.visitNamedType(node);
   }
