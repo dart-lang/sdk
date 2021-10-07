@@ -52,7 +52,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
   ///
   /// If [isValidKey] is omitted, it defaults to testing if the object is an
   /// [E] instance. That means that:
-  /// ```dart
+  /// ```dart template:expression
   /// LinkedHashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
   ///                    hashCode: (int e) => e % 5)
   /// ```
@@ -77,8 +77,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
   ///
   /// Effectively a shorthand for:
   /// ```dart
-  /// LinkedHashSet<E>(equals: identical,
-  ///                      hashCode: identityHashCode)
+  /// LinkedHashSet<E>(equals: identical, hashCode: identityHashCode)
   /// ```
   external factory LinkedHashSet.identity();
 

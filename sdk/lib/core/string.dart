@@ -49,13 +49,13 @@ part of dart.core;
 /// You can use `${}` to interpolate the value of Dart expressions
 /// within strings. The curly braces can be omitted when evaluating identifiers:
 /// ```dart
-/// string = 'dartlang';
+/// var string = 'dartlang';
 /// '$string has ${string.length} letters'; // 'dartlang has 8 letters'
 /// ```
 /// A string is represented by a sequence of Unicode UTF-16 code units
 /// accessible through the [codeUnitAt] or the [codeUnits] members:
 /// ```dart
-/// string = 'Dart';
+/// var string = 'Dart';
 /// string.codeUnitAt(0); // 68
 /// string.codeUnits;     // [68, 97, 114, 116]
 /// ```
@@ -559,17 +559,18 @@ abstract class String implements Comparable<String>, Pattern {
   /// ```dart
   /// var string = "Pub";
   /// string.split("");                       // ["P", "u", "b"]
+  ///
   /// // Same as:
   /// [for (var unit in string.codeUnits)
-  ///     String.fromCharCode(unit)]          // ["P", "u", "b"]
+  ///     String.fromCharCode(unit)];         // ["P", "u", "b"]
   /// ```
   ///
   /// Splitting happens at UTF-16 code unit boundaries,
   /// and not at rune (Unicode code point) boundaries:
   /// ```dart
   /// // String made up of two code units, but one rune.
-  /// string = '\u{1D11E}';
-  /// string.split('')  // ["\ud834", "\udd1e"] - 2 unpaired surrogate values
+  /// var string = '\u{1D11E}';
+  /// string.split('');  // ["\ud834", "\udd1e"] - 2 unpaired surrogate values
   /// ```
   /// To get a list of strings containing the individual runes of a string,
   /// you should not use split.

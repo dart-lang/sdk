@@ -3390,7 +3390,7 @@ class UriData {
   /// If the value contain non-ASCII percent escapes, they are decoded as UTF-8.
   ///
   /// Example:
-  /// ```dart
+  /// ```
   /// data:text/plain;charset=utf-8,Hello%20World!
   /// ```
   /// This data URI has the media type `text/plain;charset=utf-8`, which is the
