@@ -5409,3 +5409,9 @@ ConstructorTearOffWithTypeArguments:
   experiments: constructor-tearoffs
   script:
     - "class C<X> { C.foo(); } bar() { C.foo<int>; }"
+
+NewAsSelector:
+  problemMessage: "'new' can only be used as a constructor reference."
+  experiments: constructor-tearoffs
+  script: |
+    method(dynamic d) => d.new;

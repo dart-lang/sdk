@@ -4,36 +4,20 @@
 
 import 'dart:convert';
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-
-/// Extracts comments from the declaration of [field] and interprets them as a
-/// list of [ErrorCodeDocumentationPart] objects.  These objects represent
-/// user-publishable documentation about the error code, along with code blocks
-/// illustrating when the error occurs and how to fix it.
+/// Converts the given [documentation] string into a list of
+/// [ErrorCodeDocumentationPart] objects.  These objects represent
+/// user-publishable documentation about the given [errorCode], along with code
+/// blocks illustrating when the error occurs and how to fix it.
 List<ErrorCodeDocumentationPart>? parseErrorCodeDocumentation(
-    FieldDeclaration field) {
-  var comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
-  if (comments == null) {
+    String errorCode, String? documentation) {
+  if (documentation == null) {
     return null;
   }
-  var className = (field.parent as ClassDeclaration).name.name;
-  var errorName = field.fields.variables.single.name.name;
-  var commentLines = <String>[];
-  while (comments != null) {
-    String lexeme = comments.lexeme;
-    if (lexeme.startsWith('// ')) {
-      commentLines.add(lexeme.substring(3));
-    } else if (lexeme == '//') {
-      commentLines.add('');
-    }
-    comments = comments.next as CommentToken?;
-  }
-  if (commentLines.isEmpty) {
+  var documentationLines = documentation.split('\n');
+  if (documentationLines.isEmpty) {
     return null;
   }
-  var parser =
-      _ErrorCodeDocumentationParser('$className.$errorName', commentLines);
+  var parser = _ErrorCodeDocumentationParser(errorCode, documentationLines);
   parser.parse();
   return parser.result;
 }

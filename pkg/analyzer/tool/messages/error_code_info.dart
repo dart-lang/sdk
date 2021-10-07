@@ -94,6 +94,19 @@ final Map<String, ErrorCodeInfo> frontEndMessages = _loadFrontEndMessages();
 final String frontEndPkgPath =
     normalize(join(pkg_root.packageRoot, 'front_end'));
 
+/// Pattern used by the front end to identify placeholders in error message
+/// strings.  TODO(paulberry): share this regexp (and the code for interpreting
+/// it) between the CFE and analyzer.
+final RegExp _placeholderPattern =
+    RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
+
+/// Convert a CFE template string (which uses placeholders like `#string`) to
+/// an analyzer template string (which uses placeholders like `{0}`).
+String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
+  return entry.replaceAllMapped(_placeholderPattern,
+      (match) => '{${placeholderToIndexMap[match.group(0)!]}}');
+}
+
 /// Decodes a YAML object (obtained from `pkg/analyzer/messages.yaml`) into a
 /// two-level map of [ErrorCodeInfo], indexed first by class name and then by
 /// error name.
@@ -271,12 +284,6 @@ class ErrorClassInfo {
 /// `messages.yaml` file.  Supports both the analyzer and front_end message file
 /// formats.
 class ErrorCodeInfo {
-  /// Pattern used by the front end to identify placeholders in error message
-  /// strings.  TODO(paulberry): share this regexp (and the code for interpreting
-  /// it) between the CFE and analyzer.
-  static final RegExp _placeholderPattern =
-      RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
-
   /// For error code information obtained from the CFE, the set of analyzer
   /// error codes that corresponds to this error code, if any.
   final List<String> analyzerCode;
@@ -336,6 +343,26 @@ class ErrorCodeInfo {
             problemMessage: yaml['problemMessage'] as String,
             sharedName: yaml['sharedName'] as String?);
 
+  /// Given a messages.yaml entry, come up with a mapping from placeholder
+  /// patterns in its message strings to their corresponding indices.
+  Map<String, int> computePlaceholderToIndexMap() {
+    var mapping = <String, int>{};
+    for (var value in [problemMessage, correctionMessage]) {
+      if (value is! String) continue;
+      for (Match match in _placeholderPattern.allMatches(value)) {
+        // CFE supports a bunch of formatting options that analyzer doesn't;
+        // make sure none of those are used.
+        if (match.group(0) != '#${match.group(1)}') {
+          throw 'Template string ${json.encode(value)} contains unsupported '
+              'placeholder pattern ${json.encode(match.group(0))}';
+        }
+
+        mapping[match.group(0)!] ??= mapping.length;
+      }
+    }
+    return mapping;
+  }
+
   /// Generates a dart declaration for this error code, suitable for inclusion
   /// in the error class [className].  [errorCode] is the name of the error code
   /// to be generated.
@@ -343,15 +370,15 @@ class ErrorCodeInfo {
     var out = StringBuffer();
     out.writeln('$className(');
     out.writeln("'${sharedName ?? errorCode}',");
-    final placeholderToIndexMap = _computePlaceholderToIndexMap();
+    final placeholderToIndexMap = computePlaceholderToIndexMap();
     out.writeln(
-        json.encode(_convertTemplate(placeholderToIndexMap, problemMessage)) +
+        json.encode(convertTemplate(placeholderToIndexMap, problemMessage)) +
             ',');
     final correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
       out.write('correctionMessage: ');
       out.writeln(json.encode(
-              _convertTemplate(placeholderToIndexMap, correctionMessage)) +
+              convertTemplate(placeholderToIndexMap, correctionMessage)) +
           ',');
     }
     if (hasPublishedDocs) {
@@ -399,34 +426,6 @@ class ErrorCodeInfo {
         if (comment != null) 'comment': comment,
         if (documentation != null) 'documentation': documentation,
       };
-
-  /// Given a messages.yaml entry, come up with a mapping from placeholder
-  /// patterns in its message strings to their corresponding indices.
-  Map<String, int> _computePlaceholderToIndexMap() {
-    var mapping = <String, int>{};
-    for (var value in [problemMessage, correctionMessage]) {
-      if (value is! String) continue;
-      for (Match match in _placeholderPattern.allMatches(value)) {
-        // CFE supports a bunch of formatting options that we don't; make sure
-        // none of those are used.
-        if (match.group(0) != '#${match.group(1)}') {
-          throw 'Template string ${json.encode(value)} contains unsupported '
-              'placeholder pattern ${json.encode(match.group(0))}';
-        }
-
-        mapping[match.group(0)!] ??= mapping.length;
-      }
-    }
-    return mapping;
-  }
-
-  /// Convert a CFE template string (which uses placeholders like `#string`) to
-  /// an analyzer template string (which uses placeholders like `{0}`).
-  static String _convertTemplate(
-      Map<String, int> placeholderToIndexMap, String entry) {
-    return entry.replaceAllMapped(_placeholderPattern,
-        (match) => '{${placeholderToIndexMap[match.group(0)!]}}');
-  }
 
   static List<String> _decodeAnalyzerCode(Object? value) {
     if (value == null) {

@@ -1,0 +1,311 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:10:5: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// int new = 87; // error
+//     ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:17:7: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   int new = 42; // error
+//       ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:19:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   C() : super.new(); // error
+//               ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:20:20: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   C.named() : this.new(); // error
+//                    ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:31:16: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   external int new; // error
+//                ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:23:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//     this.new; // error
+//          ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:24:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//     this.new(); // error
+//          ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:25:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//     this.new<int>(); // error
+//          ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:26:10: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//     this.new = 87; // error
+//          ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:39:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   new C().new; // error
+//           ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:40:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   new C().new(); // error
+//           ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:41:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   new C().new = 87; // error
+//           ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:43:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   c.new; // error
+//     ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:44:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   c.new = 87; // error
+//     ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:46:7: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo.new; // error
+//       ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:47:7: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo.new(); // error
+//       ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:48:7: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo.new<int>(); // error
+//       ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:49:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo?.new; // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:50:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo?.new(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:51:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo?.new<int>(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:52:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo..new; // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:53:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo..new(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:54:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   foo..new<int>(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:55:9: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   (foo).new; // error
+//         ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:56:9: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   (foo).new(); // error
+//         ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:57:9: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   (foo).new<int>(); // error
+//         ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:58:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   prefix1.new; // error
+//           ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:59:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   prefix1.new(); // error
+//           ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:60:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   prefix1.new<int>(); // error
+//           ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:61:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   prefix2.c.new; // error
+//             ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:62:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   prefix2.c.new(); // error
+//             ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:63:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   prefix2.c.new<int>(); // error
+//             ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:64:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   E(0).new; // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:65:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   E(0).new(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:66:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   E(0).new<int>(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:67:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   unresolved.new; // error
+//              ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:67:3: Error: Undefined name 'unresolved'.
+//   unresolved.new; // error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:68:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   unresolved.new(); // error
+//              ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:68:3: Error: Undefined name 'unresolved'.
+//   unresolved.new(); // error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:69:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   unresolved.new<int>(); // error
+//              ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:69:3: Error: Undefined name 'unresolved'.
+//   unresolved.new<int>(); // error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:70:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   C.new; // error
+//     ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:70:5: Error: Member not found: 'new'.
+//   C.new; // error
+//     ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector.dart:71:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   C.new(); // error
+//     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///new_as_selector.dart" as prefix1;
+import "org-dartlang-testcase:///new_as_selector.dart" deferred as prefix2 hide E;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+class C extends self::Super {
+  field core::int new = 42;
+  constructor •() → self::C
+    : super self::Super::•()
+    ;
+  constructor named() → self::C
+    : this self::C::•()
+    ;
+  method method() → dynamic {
+    this.{self::C::new}{core::int};
+    self::E|call<dynamic>(this.{self::C::new}{core::int});
+    self::E|call<core::int>(this.{self::C::new}{core::int});
+    this.{self::C::new} = 87;
+  }
+}
+extension E on core::int {
+  get new = self::E|get#new;
+  set new = self::E|set#new;
+  method call = self::E|call;
+  tearoff call = self::E|get#call;
+}
+static field core::int new = 87;
+static field self::C c = new self::C::•();
+external static method E|get#new(core::int #this) → core::int;
+external static method E|set#new(core::int #this, core::int #externalFieldValue) → void;
+static method E|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
+static method E|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::E|call<T%>(#this);
+static method method(dynamic d) → dynamic
+  return d{dynamic}.new;
+static method test() → dynamic {
+  new self::C::•().{self::C::new}{core::int};
+  self::E|call<dynamic>(new self::C::•().{self::C::new}{core::int});
+  new self::C::•().{self::C::new} = 87;
+  self::C c = new self::C::•();
+  c.{self::C::new}{core::int};
+  c.{self::C::new} = 87;
+  dynamic foo;
+  foo{dynamic}.new;
+  foo{dynamic}.new();
+  foo{dynamic}.new<core::int>();
+  let final dynamic #t1 = foo in #t1 == null ?{dynamic} null : #t1{dynamic}.new;
+  let final dynamic #t2 = foo in #t2 == null ?{dynamic} null : #t2{dynamic}.new();
+  let final dynamic #t3 = foo in #t3 == null ?{dynamic} null : #t3{dynamic}.new<core::int>();
+  let final dynamic #t4 = foo in block {
+    #t4{dynamic}.new;
+  } =>#t4;
+  let final dynamic #t5 = foo in block {
+    #t5{dynamic}.new();
+  } =>#t5;
+  let final dynamic #t6 = foo in block {
+    #t6{dynamic}.new<core::int>();
+  } =>#t6;
+  foo{dynamic}.new;
+  foo{dynamic}.new();
+  foo{dynamic}.new<core::int>();
+  self::new;
+  self::E|call<dynamic>(self::new);
+  self::E|call<core::int>(self::new);
+  let final dynamic #t7 = CheckLibraryIsLoaded(prefix2) in self::c.{self::C::new}{core::int};
+  let final dynamic #t8 = CheckLibraryIsLoaded(prefix2) in self::E|call<dynamic>(self::c.{self::C::new}{core::int});
+  let final dynamic #t9 = CheckLibraryIsLoaded(prefix2) in self::E|call<core::int>(self::c.{self::C::new}{core::int});
+  self::E|get#new(0);
+  self::E|call<dynamic>(self::E|get#new(0));
+  self::E|call<core::int>(self::E|get#new(0));
+  invalid-expression "pkg/front_end/testcases/general/new_as_selector.dart:67:3: Error: Undefined name 'unresolved'.
+  unresolved.new; // error
+  ^^^^^^^^^^"{<invalid>}.new;
+  invalid-expression "pkg/front_end/testcases/general/new_as_selector.dart:68:3: Error: Undefined name 'unresolved'.
+  unresolved.new(); // error
+  ^^^^^^^^^^"{dynamic}.new();
+  invalid-expression "pkg/front_end/testcases/general/new_as_selector.dart:69:3: Error: Undefined name 'unresolved'.
+  unresolved.new<int>(); // error
+  ^^^^^^^^^^"{dynamic}.new<core::int>();
+  invalid-expression "pkg/front_end/testcases/general/new_as_selector.dart:70:5: Error: Member not found: 'new'.
+  C.new; // error
+    ^^^";
+  new self::C::•();
+}
+static method main() → dynamic {}

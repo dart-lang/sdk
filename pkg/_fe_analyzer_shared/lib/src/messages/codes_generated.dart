@@ -7457,6 +7457,13 @@ const MessageCode messageNeverValueWarning = const MessageCode(
         r"""The expression can not result in a value with sound null safety because the expression type is `Never`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNewAsSelector = messageNewAsSelector;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNewAsSelector = const MessageCode("NewAsSelector",
+    problemMessage: r"""'new' can only be used as a constructor reference.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateNoFormals = const Template<
         Message Function(Token token)>(
