@@ -14,6 +14,8 @@ import 'dart:nativewrappers';
 
 import "package:expect/expect.dart";
 
+import "isolates/fast_object_copy_test.dart" show nonCopyableClosures;
+
 import "isolates/fast_object_copy2_test.dart"
     show sharableObjects, copyableClosures;
 
@@ -48,6 +50,21 @@ verifyCantSendReceivePort() async {
           'Invalid argument: "Illegal argument in isolate message : '
           '(object is a ReceivePort)\"'));
   receivePort.close();
+}
+
+verifyCantSendNonCopyable() async {
+  final port = ReceivePort();
+  final inbox = StreamIterator<dynamic>(port);
+  final isolate = await Isolate.spawn((sendPort) {
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => Isolate.exit(sendPort, closure));
+    }
+    sendPort.send(true);
+  }, port.sendPort);
+
+  await inbox.moveNext();
+  Expect.isTrue(inbox.current);
+  port.close();
 }
 
 sendShareable(SendPort sendPort) {
@@ -111,6 +128,7 @@ verifyExitMessageIsPostedLast() async {
 main() async {
   await verifyCantSendNative();
   await verifyCantSendReceivePort();
+  await verifyCantSendNonCopyable();
   await verifyCanSendShareable();
   await verifyCanSendCopyableClosures();
   await verifyExitMessageIsPostedLast();

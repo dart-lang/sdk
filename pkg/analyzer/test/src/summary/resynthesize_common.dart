@@ -10418,6 +10418,39 @@ library
 ''');
   }
 
+  test_const_simpleIdentifier_tearOffTypeArgumentTypes() async {
+    var library = await checkLibrary(r'''
+void f<T>(T a) {}
+
+const void Function(int) v = f;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @44
+        type: void Function(int)
+        constantInitializer
+          SimpleIdentifier
+            staticElement: self::@function::f
+            staticType: void Function(int)
+            tearOffTypeArgumentTypes
+              int
+            token: f @48
+    accessors
+      synthetic static get v @-1
+        returnType: void Function(int)
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
+''');
+  }
+
   test_const_topLevel_binary() async {
     var library = await checkLibrary(r'''
 const vEqual = 1 == 2;
@@ -13978,6 +14011,8 @@ library
                   SimpleIdentifier
                     staticElement: self::@function::defaultF
                     staticType: void Function(dynamic)
+                    tearOffTypeArgumentTypes
+                      dynamic
                     token: defaultF @93
         accessors
           synthetic get f @-1

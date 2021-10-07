@@ -33,6 +33,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         (elements['library'] as Map).values.map((l) => parseLibrary(l)));
     result.classes
         .addAll((elements['class'] as Map).values.map((c) => parseClass(c)));
+    result.classTypes.addAll(
+        (elements['classType'] as Map).values.map((c) => parseClassType(c)));
     result.functions.addAll(
         (elements['function'] as Map).values.map((f) => parseFunction(f)));
 
@@ -114,6 +116,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         result.topLevelVariables.add(child);
       } else if (child is ClassInfo) {
         result.classes.add(child);
+      } else if (child is ClassTypeInfo) {
+        result.classTypes.add(child);
       } else {
         assert(child is TypedefInfo);
         result.typedefs.add(child);
@@ -139,6 +143,16 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         result.fields.add(child);
       }
     }
+    return result;
+  }
+
+  ClassTypeInfo parseClassType(Map json) {
+    ClassTypeInfo result = parseId(json['id']);
+    result
+      ..name = json['name']
+      ..parent = parseId(json['parent'])
+      ..outputUnit = parseId(json['outputUnit'])
+      ..size = json['size'];
     return result;
   }
 
@@ -296,6 +310,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         return new LibraryInfo.internal();
       } else if (serializedId.startsWith('class/')) {
         return new ClassInfo.internal();
+      } else if (serializedId.startsWith('classType/')) {
+        return new ClassTypeInfo.internal();
       } else if (serializedId.startsWith('field/')) {
         return new FieldInfo.internal();
       } else if (serializedId.startsWith('constant/')) {
@@ -383,6 +399,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map _visitAllInfoElements(AllInfo info) {
     var jsonLibraries = _visitList(info.libraries);
     var jsonClasses = _visitList(info.classes);
+    var jsonClassTypes = _visitList(info.classTypes);
     var jsonFunctions = _visitList(info.functions);
     var jsonTypedefs = _visitList(info.typedefs);
     var jsonFields = _visitList(info.fields);
@@ -391,6 +408,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     return {
       'library': jsonLibraries,
       'class': jsonClasses,
+      'classType': jsonClassTypes,
       'function': jsonFunctions,
       'typedef': jsonTypedefs,
       'field': jsonFields,
@@ -484,6 +502,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
               info.topLevelFunctions,
               info.topLevelVariables,
               info.classes,
+              info.classTypes,
               info.typedefs
             ].expand((i) => i),
             idFor),
@@ -499,6 +518,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         'children': _toSortedSerializedIds(
             [info.fields, info.functions].expand((i) => i), idFor)
       });
+  }
+
+  Map visitClassType(ClassTypeInfo info) {
+    return _visitBasicInfo(info);
   }
 
   Map visitField(FieldInfo info) {

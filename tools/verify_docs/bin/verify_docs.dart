@@ -195,23 +195,38 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     final lines = sample.text.split('\n').map((l) => l.trim()).toList();
 
     final hasImports = text.contains("import '") || text.contains('import "');
-    var useDefaultTemplate = true;
 
-    if (lines.any((line) =>
-        line.startsWith('class ') ||
-        line.startsWith('enum ') ||
-        line.startsWith('extension '))) {
-      useDefaultTemplate = false;
-    }
+    // One of 'none', 'main', or 'expression'.
+    String? template;
 
-    if (lines
-        .any((line) => line.startsWith('main(') || line.contains(' main('))) {
-      useDefaultTemplate = false;
+    if (sample.hasTemplateDirective) {
+      template = sample.templateDirective;
+    } else {
+      // If there's no explicit template, auto-detect one.
+      if (lines.any((line) =>
+          line.startsWith('class ') ||
+          line.startsWith('enum ') ||
+          line.startsWith('extension '))) {
+        template = 'none';
+      } else if (lines
+          .any((line) => line.startsWith('main(') || line.contains(' main('))) {
+        template = 'none';
+      } else if (lines.length == 1 && !lines.first.trim().endsWith(';')) {
+        template = 'expression';
+      } else {
+        template = 'main';
+      }
     }
 
     if (!hasImports) {
-      if (useDefaultTemplate) {
+      if (template == 'none') {
+        // just use the sample text as is
+      } else if (template == 'main') {
         text = "main() async {\n${text.trimRight()}\n}\n";
+      } else if (template == 'expression') {
+        text = "main() async {\n${text.trimRight()}\n;\n}\n";
+      } else {
+        throw 'unexpected template directive: $template';
       }
 
       for (final directive
@@ -270,6 +285,11 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       if (errors.isNotEmpty) {
         print('$filePath:${sample.lineStartOffset}: ${errors.length} errors');
 
+        errors = errors.toList()
+          ..sort(
+            (a, b) => a.offset - b.offset,
+          );
+
         for (final error in errors) {
           final location = result.lineInfo.getLocation(error.offset);
           print(
@@ -317,6 +337,17 @@ class CodeSample {
     this.directives = const {},
     required this.lineStartOffset,
   });
+
+  bool get hasTemplateDirective => templateDirective != null;
+
+  String? get templateDirective {
+    const prefix = 'template:';
+
+    String? match = directives.cast<String?>().firstWhere(
+        (directive) => directive!.startsWith(prefix),
+        orElse: () => null);
+    return match == null ? match : match.substring(prefix.length);
+  }
 }
 
 String _severity(Severity severity) {

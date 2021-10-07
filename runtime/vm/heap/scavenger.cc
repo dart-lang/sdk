@@ -121,6 +121,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         visiting_old_object_(nullptr),
         promoted_list_(promotion_stack),
         delayed_weak_properties_(WeakProperty::null()) {}
+  ~ScavengerVisitorBase() {
+    ASSERT(delayed_weak_properties_ == WeakProperty::null());
+  }
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                           CompressedObjectPtr* first,
@@ -265,6 +268,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   void Finalize() {
     if (scavenger_->abort_) {
       promoted_list_.AbandonWork();
+      delayed_weak_properties_ = WeakProperty::null();
     } else {
       ASSERT(!HasWork());
 

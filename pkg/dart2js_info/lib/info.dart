@@ -77,6 +77,9 @@ class AllInfo {
   /// Information about each class (in any library).
   List<ClassInfo> classes = <ClassInfo>[];
 
+  /// Information about each class type (in any library).
+  List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
+
   /// Information about fields (in any class).
   List<FieldInfo> fields = <FieldInfo>[];
 
@@ -180,6 +183,9 @@ class LibraryInfo extends BasicInfo {
   /// Classes defined within the library.
   List<ClassInfo> classes = <ClassInfo>[];
 
+  /// Class types defined within the library.
+  List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
+
   /// Typedefs defined within the library.
   List<TypedefInfo> typedefs = <TypedefInfo>[];
 
@@ -189,7 +195,10 @@ class LibraryInfo extends BasicInfo {
 
   /// Whether there is any information recorded for this library.
   bool get isEmpty =>
-      topLevelFunctions.isEmpty && topLevelVariables.isEmpty && classes.isEmpty;
+      topLevelFunctions.isEmpty &&
+      topLevelVariables.isEmpty &&
+      classes.isEmpty &&
+      classTypes.isEmpty;
 
   LibraryInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
       : super(InfoKind.library, name, outputUnit, size, null);
@@ -237,6 +246,18 @@ class ClassInfo extends BasicInfo {
   ClassInfo.internal() : super.internal(InfoKind.clazz);
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitClass(this);
+}
+
+/// Information about a class type element. [ClassTypeInfo] is distinct from
+/// [ClassInfo] because a class and its type may end up in different output
+/// units.
+class ClassTypeInfo extends BasicInfo {
+  ClassTypeInfo({String name, OutputUnitInfo outputUnit, int size: 0})
+      : super(InfoKind.classType, name, outputUnit, size, null);
+
+  ClassTypeInfo.internal() : super.internal(InfoKind.classType);
+
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitClassType(this);
 }
 
 /// A code span of generated code. A [CodeSpan] object is associated with a
@@ -435,6 +456,7 @@ class FunctionModifiers {
 enum InfoKind {
   library,
   clazz,
+  classType,
   function,
   field,
   constant,
@@ -449,6 +471,8 @@ String kindToString(InfoKind kind) {
       return 'library';
     case InfoKind.clazz:
       return 'class';
+    case InfoKind.classType:
+      return 'classType';
     case InfoKind.function:
       return 'function';
     case InfoKind.field:
@@ -472,6 +496,8 @@ InfoKind kindFromString(String kind) {
       return InfoKind.library;
     case 'class':
       return InfoKind.clazz;
+    case 'classType':
+      return InfoKind.classType;
     case 'function':
       return InfoKind.function;
     case 'field':
@@ -495,6 +521,7 @@ abstract class InfoVisitor<T> {
   T visitProgram(ProgramInfo info);
   T visitLibrary(LibraryInfo info);
   T visitClass(ClassInfo info);
+  T visitClassType(ClassTypeInfo info);
   T visitField(FieldInfo info);
   T visitConstant(ConstantInfo info);
   T visitFunction(FunctionInfo info);
@@ -523,6 +550,7 @@ class RecursiveInfoVisitor extends InfoVisitor<Null> {
     info.topLevelFunctions.forEach(visitFunction);
     info.topLevelVariables.forEach(visitField);
     info.classes.forEach(visitClass);
+    info.classTypes.forEach(visitClassType);
     info.typedefs.forEach(visitTypedef);
   }
 
@@ -530,6 +558,8 @@ class RecursiveInfoVisitor extends InfoVisitor<Null> {
     info.functions.forEach(visitFunction);
     info.fields.forEach(visitField);
   }
+
+  visitClassType(ClassTypeInfo info) {}
 
   visitField(FieldInfo info) {
     info.closures.forEach(visitClosure);

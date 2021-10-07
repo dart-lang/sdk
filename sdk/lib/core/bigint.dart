@@ -190,7 +190,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// add one, i.e. use `x.bitLength + 1`.
   ///
   /// ```dart
-  /// x.bitLength == (-x-1).bitLength
+  /// x.bitLength == (-x-1).bitLength;
   ///
   /// BigInt.from(3).bitLength == 2;   // 00000011
   /// BigInt.from(2).bitLength == 2;   // 00000010
@@ -291,10 +291,10 @@ abstract class BigInt implements Comparable<BigInt> {
   /// var big15 = BigInt.from(15);
   /// var big16 = BigInt.from(16);
   /// var big239 = BigInt.from(239);
-  ///                                      V--sign bit-V
-  /// big16.toSigned(5) == -big16   //  00010000 -> 11110000
-  /// big239.toSigned(5) == big15   //  11101111 -> 00001111
-  ///                                      ^           ^
+  ///                                //     V--sign bit-V
+  /// big16.toSigned(5) == -big16;   //  00010000 -> 11110000
+  /// big239.toSigned(5) == big15;   //  11101111 -> 00001111
+  ///                                //     ^           ^
   /// ```
   ///
   /// This operation can be used to simulate arithmetic from low level languages.

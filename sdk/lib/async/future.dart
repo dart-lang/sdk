@@ -742,7 +742,7 @@ abstract class Future<T> {
   ///   return this.then((v) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) => v);
-  ///     return v
+  ///     return v;
   ///   }, onError: (e) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) { throw e; });

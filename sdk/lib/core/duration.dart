@@ -29,6 +29,7 @@ part of dart.core;
 /// This means that individual parts can be larger than the next-bigger unit.
 /// For example, [inMinutes] can be greater than 59.
 /// ```dart
+/// const fastestMarathon = const Duration(hours: 2, minutes: 3, seconds: 2);
 /// assert(fastestMarathon.inMinutes == 123);
 /// ```
 /// All individual parts are allowed to be negative.

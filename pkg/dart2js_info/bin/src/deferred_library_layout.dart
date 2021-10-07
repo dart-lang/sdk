@@ -46,6 +46,7 @@ _showLayout(String file) async {
 
   info.functions.forEach(register);
   info.classes.forEach(register);
+  info.classTypes.forEach(register);
   info.fields.forEach(register);
   info.closures.forEach(register);
 

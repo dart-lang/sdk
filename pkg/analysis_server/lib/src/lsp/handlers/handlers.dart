@@ -77,18 +77,18 @@ mixin Handler<P, R> {
 
   Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(String path) async {
     final result = await server.getResolvedUnit(path);
-    if (result?.state != ResultState.VALID) {
+    if (result == null) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
-    return success(result!);
+    return success(result);
   }
 
   ErrorOr<ParsedUnitResult> requireUnresolvedUnit(String path) {
     final result = server.getParsedUnit(path);
-    if (result?.state != ResultState.VALID) {
+    if (result == null) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
-    return success(result!);
+    return success(result);
   }
 }
 

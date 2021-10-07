@@ -180,6 +180,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   ClassTable* class_table = isolate->group()->class_table();
 
   Class& klass = Class::Handle(zone);
+  Closure& closure = Closure::Handle(zone);
 
   bool error_found = false;
   Function& erroneous_closure_function = Function::Handle(zone);
@@ -208,6 +209,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       switch (cid) {
         case kRegExpCid:
           // Can be shared, need to be explicitly listed to prevent inspection.
+          continue;
+        case kClosureCid:
+          closure ^= raw;
+          // Only context has to be checked.
+          working_set.Add(closure.context());
           continue;
 
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \

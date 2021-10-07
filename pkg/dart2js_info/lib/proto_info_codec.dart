@@ -82,6 +82,8 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
         info.topLevelVariables.map((field) => idFor(field).serializedId));
     proto.childrenIds
         .addAll(info.classes.map((clazz) => idFor(clazz).serializedId));
+    proto.childrenIds.addAll(
+        info.classTypes.map((classType) => idFor(classType).serializedId));
     proto.childrenIds
         .addAll(info.typedefs.map((def) => idFor(def).serializedId));
 
@@ -97,6 +99,10 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
         .addAll(info.fields.map((field) => idFor(field).serializedId));
 
     return proto;
+  }
+
+  ClassTypeInfoPB _convertToClassTypeInfoPB(ClassTypeInfo info) {
+    return ClassTypeInfoPB();
   }
 
   static FunctionModifiersPB _convertToFunctionModifiers(
@@ -207,6 +213,8 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       proto.libraryInfo = _convertToLibraryInfoPB(info);
     } else if (info is ClassInfo) {
       proto.classInfo = _convertToClassInfoPB(info);
+    } else if (info is ClassTypeInfo) {
+      proto.classTypeInfo = _convertToClassTypeInfoPB(info);
     } else if (info is FunctionInfo) {
       proto.functionInfo = _convertToFunctionInfoPB(info);
     } else if (info is FieldInfo) {
@@ -277,6 +285,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
 
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.libraries));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.classes));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.classTypes));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.functions));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.fields));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.constants));

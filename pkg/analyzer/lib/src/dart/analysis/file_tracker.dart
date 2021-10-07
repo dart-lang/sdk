@@ -160,11 +160,6 @@ class FileTracker {
     _pendingFiles.addAll(addedFiles);
   }
 
-  /// Schedule all added files for analysis.
-  void scheduleAllAddedFiles() {
-    _pendingFiles.addAll(addedFiles);
-  }
-
   /// Verify the API signature for the file with the given [path], and decide
   /// which linked libraries should be invalidated, and files reanalyzed.
   FileState verifyApiSignature(String path) {

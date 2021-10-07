@@ -954,15 +954,6 @@ class FileSystemState {
     _clearFiles();
   }
 
-  /// Reset URI resolution, and forget all files. So, the next time any file is
-  /// requested, it will be read, and its whole (potentially different) graph
-  /// will be built.
-  void resetUriResolution() {
-    _sourceFactory.clearCache();
-    _fileContentCache.invalidateAll();
-    _clearFiles();
-  }
-
   void _addFileWithPath(String path, FileState file) {
     var files = _pathToFiles[path];
     if (files == null) {

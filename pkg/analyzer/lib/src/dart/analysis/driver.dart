@@ -80,7 +80,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 183;
+  static const int DATA_VERSION = 184;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1216,16 +1216,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _fileTracker.removeFile(path);
       _scheduler.notify(this);
     }
-  }
-
-  /// Reset URI resolution, read again all files, build files graph, and ensure
-  /// that for all added files new results are reported.
-  void resetUriResolution() {
-    _priorityResults.clear();
-    clearLibraryContext();
-    _fsState.resetUriResolution();
-    _fileTracker.scheduleAllAddedFiles();
-    _scheduler.notify(this);
   }
 
   void _addDeclaredVariablesToSignature(ApiSignature buffer) {

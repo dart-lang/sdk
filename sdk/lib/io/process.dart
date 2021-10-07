@@ -232,7 +232,7 @@ class ProcessStartMode {
 /// import 'dart:io';
 ///
 /// main() async {
-///   var process = Process.start('ls', ['-l']);
+///   var process = await Process.start('ls', ['-l']);
 ///   var exitCode = await process.exitCode;
 ///   print('exit code: $exitCode');
 /// }

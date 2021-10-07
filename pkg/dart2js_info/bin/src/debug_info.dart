@@ -100,6 +100,7 @@ validateParents(AllInfo info) {
   failIfNoParents(info.functions);
   failIfNoParents(info.typedefs);
   failIfNoParents(info.classes);
+  failIfNoParents(info.classTypes);
   failIfNoParents(info.fields);
   failIfNoParents(info.closures);
   if (parentlessInfos.isEmpty) {
@@ -230,6 +231,23 @@ class _SizeTracker extends RecursiveInfoVisitor {
     }
     _push();
     super.visitClass(info);
+    _pop(info);
+    if (_debug) {
+      _debugCode.write(' ' * _indent);
+      _debugCode.write('},\n');
+      _indent -= 2;
+    }
+  }
+
+  visitClassType(ClassTypeInfo info) {
+    if (_debug) {
+      print('$info');
+      _debugCode.write(' ' * _indent);
+      _debugCode.write('ClassType: ${info.name}: {\n');
+      _indent += 2;
+    }
+    _push();
+    super.visitClassType(info);
     _pop(info);
     if (_debug) {
       _debugCode.write(' ' * _indent);

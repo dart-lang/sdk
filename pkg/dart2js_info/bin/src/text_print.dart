@@ -124,6 +124,9 @@ class TextPrinter implements InfoVisitor<void> {
       if (info.classes.isNotEmpty) {
         _writeBlock('Classes', () => info.classes.forEach(visitClass));
       }
+      if (info.classTypes.isNotEmpty) {
+        _writeBlock('Classes', () => info.classTypes.forEach(visitClassType));
+      }
       if (info.typedefs.isNotEmpty) {
         _writeBlock("Typedefs", () => info.typedefs.forEach(visitTypedef));
         buffer.writeln();
@@ -143,6 +146,12 @@ class TextPrinter implements InfoVisitor<void> {
       }
       if (info.functions.isNotEmpty || info.fields.isNotEmpty) buffer.writeln();
     });
+  }
+
+  void visitClassType(ClassTypeInfo info) {
+    _writeBlock(
+        '${info.name}: ${_size(info.size)} [${info.outputUnit.filename}]',
+        () {});
   }
 
   void visitField(FieldInfo info) {

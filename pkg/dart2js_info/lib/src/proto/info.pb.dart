@@ -2,8 +2,8 @@
 //  Generated code. Do not modify.
 //  source: info.proto
 //
-// @dart = 2.3
-// ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
+// @dart = 2.12
+// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
 
@@ -11,24 +11,57 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class DependencyInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('DependencyInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DependencyInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'targetId')
-    ..aOS(2, 'mask')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'targetId')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mask')
     ..hasRequiredFields = false;
 
   DependencyInfoPB._() : super();
-  factory DependencyInfoPB() => create();
+  factory DependencyInfoPB({
+    $core.String? targetId,
+    $core.String? mask,
+  }) {
+    final _result = create();
+    if (targetId != null) {
+      _result.targetId = targetId;
+    }
+    if (mask != null) {
+      _result.mask = mask;
+    }
+    return _result;
+  }
   factory DependencyInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory DependencyInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DependencyInfoPB clone() => DependencyInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DependencyInfoPB copyWith(void Function(DependencyInfoPB) updates) =>
-      super.copyWith((message) => updates(message as DependencyInfoPB));
+      super.copyWith((message) => updates(message as DependencyInfoPB))
+          as DependencyInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static DependencyInfoPB create() => DependencyInfoPB._();
@@ -38,7 +71,7 @@ class DependencyInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static DependencyInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<DependencyInfoPB>(create);
-  static DependencyInfoPB _defaultInstance;
+  static DependencyInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get targetId => $_getSZ(0);
@@ -66,31 +99,74 @@ class DependencyInfoPB extends $pb.GeneratedMessage {
 }
 
 class AllInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('AllInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'AllInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOM<ProgramInfoPB>(1, 'program', subBuilder: ProgramInfoPB.create)
-    ..m<$core.String, InfoPB>(2, 'allInfos',
+    ..aOM<ProgramInfoPB>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'program',
+        subBuilder: ProgramInfoPB.create)
+    ..m<$core.String, InfoPB>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'allInfos',
         entryClassName: 'AllInfoPB.AllInfosEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
         valueCreator: InfoPB.create,
         packageName: const $pb.PackageName('dart2js_info.proto'))
-    ..pc<LibraryDeferredImportsPB>(3, 'deferredImports', $pb.PbFieldType.PM,
+    ..pc<LibraryDeferredImportsPB>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'deferredImports',
+        $pb.PbFieldType.PM,
         subBuilder: LibraryDeferredImportsPB.create)
     ..hasRequiredFields = false;
 
   AllInfoPB._() : super();
-  factory AllInfoPB() => create();
+  factory AllInfoPB({
+    ProgramInfoPB? program,
+    $core.Map<$core.String, InfoPB>? allInfos,
+    $core.Iterable<LibraryDeferredImportsPB>? deferredImports,
+  }) {
+    final _result = create();
+    if (program != null) {
+      _result.program = program;
+    }
+    if (allInfos != null) {
+      _result.allInfos.addAll(allInfos);
+    }
+    if (deferredImports != null) {
+      _result.deferredImports.addAll(deferredImports);
+    }
+    return _result;
+  }
   factory AllInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory AllInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   AllInfoPB clone() => AllInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   AllInfoPB copyWith(void Function(AllInfoPB) updates) =>
-      super.copyWith((message) => updates(message as AllInfoPB));
+      super.copyWith((message) => updates(message as AllInfoPB))
+          as AllInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static AllInfoPB create() => AllInfoPB._();
@@ -99,7 +175,7 @@ class AllInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static AllInfoPB getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AllInfoPB>(create);
-  static AllInfoPB _defaultInstance;
+  static AllInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   ProgramInfoPB get program => $_getN(0);
@@ -131,6 +207,7 @@ enum InfoPB_Concrete {
   outputUnitInfo,
   typedefInfo,
   closureInfo,
+  classTypeInfo,
   notSet
 }
 
@@ -144,45 +221,209 @@ class InfoPB extends $pb.GeneratedMessage {
     105: InfoPB_Concrete.outputUnitInfo,
     106: InfoPB_Concrete.typedefInfo,
     107: InfoPB_Concrete.closureInfo,
+    108: InfoPB_Concrete.classTypeInfo,
     0: InfoPB_Concrete.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('InfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'InfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..oo(0, [100, 101, 102, 103, 104, 105, 106, 107])
-    ..aOS(1, 'name')
-    ..a<$core.int>(2, 'id', $pb.PbFieldType.O3)
-    ..aOS(3, 'serializedId')
-    ..aOS(4, 'coverageId')
-    ..a<$core.int>(5, 'size', $pb.PbFieldType.O3)
-    ..aOS(6, 'parentId')
-    ..pc<DependencyInfoPB>(7, 'uses', $pb.PbFieldType.PM,
+    ..oo(0, [100, 101, 102, 103, 104, 105, 106, 107, 108])
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'id',
+        $pb.PbFieldType.O3)
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'serializedId')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'coverageId')
+    ..a<$core.int>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'size',
+        $pb.PbFieldType.O3)
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'parentId')
+    ..pc<DependencyInfoPB>(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'uses',
+        $pb.PbFieldType.PM,
         subBuilder: DependencyInfoPB.create)
-    ..aOS(8, 'outputUnitId')
-    ..aOM<LibraryInfoPB>(100, 'libraryInfo', subBuilder: LibraryInfoPB.create)
-    ..aOM<ClassInfoPB>(101, 'classInfo', subBuilder: ClassInfoPB.create)
-    ..aOM<FunctionInfoPB>(102, 'functionInfo',
+    ..aOS(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'outputUnitId')
+    ..aOM<LibraryInfoPB>(
+        100,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'libraryInfo',
+        subBuilder: LibraryInfoPB.create)
+    ..aOM<ClassInfoPB>(
+        101,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'classInfo',
+        subBuilder: ClassInfoPB.create)
+    ..aOM<FunctionInfoPB>(
+        102,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'functionInfo',
         subBuilder: FunctionInfoPB.create)
-    ..aOM<FieldInfoPB>(103, 'fieldInfo', subBuilder: FieldInfoPB.create)
-    ..aOM<ConstantInfoPB>(104, 'constantInfo',
+    ..aOM<FieldInfoPB>(
+        103,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'fieldInfo',
+        subBuilder: FieldInfoPB.create)
+    ..aOM<ConstantInfoPB>(
+        104,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'constantInfo',
         subBuilder: ConstantInfoPB.create)
-    ..aOM<OutputUnitInfoPB>(105, 'outputUnitInfo',
+    ..aOM<OutputUnitInfoPB>(
+        105,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'outputUnitInfo',
         subBuilder: OutputUnitInfoPB.create)
-    ..aOM<TypedefInfoPB>(106, 'typedefInfo', subBuilder: TypedefInfoPB.create)
-    ..aOM<ClosureInfoPB>(107, 'closureInfo', subBuilder: ClosureInfoPB.create)
+    ..aOM<TypedefInfoPB>(
+        106,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'typedefInfo',
+        subBuilder: TypedefInfoPB.create)
+    ..aOM<ClosureInfoPB>(
+        107,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'closureInfo',
+        subBuilder: ClosureInfoPB.create)
+    ..aOM<ClassTypeInfoPB>(
+        108,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'classTypeInfo',
+        subBuilder: ClassTypeInfoPB.create)
     ..hasRequiredFields = false;
 
   InfoPB._() : super();
-  factory InfoPB() => create();
+  factory InfoPB({
+    $core.String? name,
+    $core.int? id,
+    $core.String? serializedId,
+    $core.String? coverageId,
+    $core.int? size,
+    $core.String? parentId,
+    $core.Iterable<DependencyInfoPB>? uses,
+    $core.String? outputUnitId,
+    LibraryInfoPB? libraryInfo,
+    ClassInfoPB? classInfo,
+    FunctionInfoPB? functionInfo,
+    FieldInfoPB? fieldInfo,
+    ConstantInfoPB? constantInfo,
+    OutputUnitInfoPB? outputUnitInfo,
+    TypedefInfoPB? typedefInfo,
+    ClosureInfoPB? closureInfo,
+    ClassTypeInfoPB? classTypeInfo,
+  }) {
+    final _result = create();
+    if (name != null) {
+      _result.name = name;
+    }
+    if (id != null) {
+      _result.id = id;
+    }
+    if (serializedId != null) {
+      _result.serializedId = serializedId;
+    }
+    if (coverageId != null) {
+      _result.coverageId = coverageId;
+    }
+    if (size != null) {
+      _result.size = size;
+    }
+    if (parentId != null) {
+      _result.parentId = parentId;
+    }
+    if (uses != null) {
+      _result.uses.addAll(uses);
+    }
+    if (outputUnitId != null) {
+      _result.outputUnitId = outputUnitId;
+    }
+    if (libraryInfo != null) {
+      _result.libraryInfo = libraryInfo;
+    }
+    if (classInfo != null) {
+      _result.classInfo = classInfo;
+    }
+    if (functionInfo != null) {
+      _result.functionInfo = functionInfo;
+    }
+    if (fieldInfo != null) {
+      _result.fieldInfo = fieldInfo;
+    }
+    if (constantInfo != null) {
+      _result.constantInfo = constantInfo;
+    }
+    if (outputUnitInfo != null) {
+      _result.outputUnitInfo = outputUnitInfo;
+    }
+    if (typedefInfo != null) {
+      _result.typedefInfo = typedefInfo;
+    }
+    if (closureInfo != null) {
+      _result.closureInfo = closureInfo;
+    }
+    if (classTypeInfo != null) {
+      _result.classTypeInfo = classTypeInfo;
+    }
+    return _result;
+  }
   factory InfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory InfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   InfoPB clone() => InfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   InfoPB copyWith(void Function(InfoPB) updates) =>
-      super.copyWith((message) => updates(message as InfoPB));
+      super.copyWith((message) => updates(message as InfoPB))
+          as InfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static InfoPB create() => InfoPB._();
@@ -191,9 +432,9 @@ class InfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static InfoPB getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InfoPB>(create);
-  static InfoPB _defaultInstance;
+  static InfoPB? _defaultInstance;
 
-  InfoPB_Concrete whichConcrete() => _InfoPB_ConcreteByTag[$_whichOneof(0)];
+  InfoPB_Concrete whichConcrete() => _InfoPB_ConcreteByTag[$_whichOneof(0)]!;
   void clearConcrete() => clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -394,38 +635,174 @@ class InfoPB extends $pb.GeneratedMessage {
   void clearClosureInfo() => clearField(107);
   @$pb.TagNumber(107)
   ClosureInfoPB ensureClosureInfo() => $_ensure(15);
+
+  @$pb.TagNumber(108)
+  ClassTypeInfoPB get classTypeInfo => $_getN(16);
+  @$pb.TagNumber(108)
+  set classTypeInfo(ClassTypeInfoPB v) {
+    setField(108, v);
+  }
+
+  @$pb.TagNumber(108)
+  $core.bool hasClassTypeInfo() => $_has(16);
+  @$pb.TagNumber(108)
+  void clearClassTypeInfo() => clearField(108);
+  @$pb.TagNumber(108)
+  ClassTypeInfoPB ensureClassTypeInfo() => $_ensure(16);
 }
 
 class ProgramInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('ProgramInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ProgramInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'entrypointId')
-    ..a<$core.int>(2, 'size', $pb.PbFieldType.O3)
-    ..aOS(3, 'dart2jsVersion')
-    ..aInt64(4, 'compilationMoment')
-    ..aInt64(5, 'compilationDuration')
-    ..aInt64(6, 'toProtoDuration')
-    ..aInt64(7, 'dumpInfoDuration')
-    ..aOB(8, 'noSuchMethodEnabled')
-    ..aOB(9, 'isRuntimeTypeUsed')
-    ..aOB(10, 'isIsolateUsed')
-    ..aOB(11, 'isFunctionApplyUsed')
-    ..aOB(12, 'isMirrorsUsed')
-    ..aOB(13, 'minified')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'entrypointId')
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'size',
+        $pb.PbFieldType.O3)
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'dart2jsVersion')
+    ..aInt64(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'compilationMoment')
+    ..aInt64(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'compilationDuration')
+    ..aInt64(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'toProtoDuration')
+    ..aInt64(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'dumpInfoDuration')
+    ..aOB(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'noSuchMethodEnabled')
+    ..aOB(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isRuntimeTypeUsed')
+    ..aOB(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isIsolateUsed')
+    ..aOB(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isFunctionApplyUsed')
+    ..aOB(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isMirrorsUsed')
+    ..aOB(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'minified')
     ..hasRequiredFields = false;
 
   ProgramInfoPB._() : super();
-  factory ProgramInfoPB() => create();
+  factory ProgramInfoPB({
+    $core.String? entrypointId,
+    $core.int? size,
+    $core.String? dart2jsVersion,
+    $fixnum.Int64? compilationMoment,
+    $fixnum.Int64? compilationDuration,
+    $fixnum.Int64? toProtoDuration,
+    $fixnum.Int64? dumpInfoDuration,
+    $core.bool? noSuchMethodEnabled,
+    $core.bool? isRuntimeTypeUsed,
+    $core.bool? isIsolateUsed,
+    $core.bool? isFunctionApplyUsed,
+    $core.bool? isMirrorsUsed,
+    $core.bool? minified,
+  }) {
+    final _result = create();
+    if (entrypointId != null) {
+      _result.entrypointId = entrypointId;
+    }
+    if (size != null) {
+      _result.size = size;
+    }
+    if (dart2jsVersion != null) {
+      _result.dart2jsVersion = dart2jsVersion;
+    }
+    if (compilationMoment != null) {
+      _result.compilationMoment = compilationMoment;
+    }
+    if (compilationDuration != null) {
+      _result.compilationDuration = compilationDuration;
+    }
+    if (toProtoDuration != null) {
+      _result.toProtoDuration = toProtoDuration;
+    }
+    if (dumpInfoDuration != null) {
+      _result.dumpInfoDuration = dumpInfoDuration;
+    }
+    if (noSuchMethodEnabled != null) {
+      _result.noSuchMethodEnabled = noSuchMethodEnabled;
+    }
+    if (isRuntimeTypeUsed != null) {
+      _result.isRuntimeTypeUsed = isRuntimeTypeUsed;
+    }
+    if (isIsolateUsed != null) {
+      _result.isIsolateUsed = isIsolateUsed;
+    }
+    if (isFunctionApplyUsed != null) {
+      _result.isFunctionApplyUsed = isFunctionApplyUsed;
+    }
+    if (isMirrorsUsed != null) {
+      _result.isMirrorsUsed = isMirrorsUsed;
+    }
+    if (minified != null) {
+      _result.minified = minified;
+    }
+    return _result;
+  }
   factory ProgramInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory ProgramInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ProgramInfoPB clone() => ProgramInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ProgramInfoPB copyWith(void Function(ProgramInfoPB) updates) =>
-      super.copyWith((message) => updates(message as ProgramInfoPB));
+      super.copyWith((message) => updates(message as ProgramInfoPB))
+          as ProgramInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ProgramInfoPB create() => ProgramInfoPB._();
@@ -435,7 +812,7 @@ class ProgramInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ProgramInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ProgramInfoPB>(create);
-  static ProgramInfoPB _defaultInstance;
+  static ProgramInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get entrypointId => $_getSZ(0);
@@ -595,24 +972,57 @@ class ProgramInfoPB extends $pb.GeneratedMessage {
 }
 
 class LibraryInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('LibraryInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'LibraryInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'uri')
-    ..pPS(2, 'childrenIds')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'uri')
+    ..pPS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'childrenIds')
     ..hasRequiredFields = false;
 
   LibraryInfoPB._() : super();
-  factory LibraryInfoPB() => create();
+  factory LibraryInfoPB({
+    $core.String? uri,
+    $core.Iterable<$core.String>? childrenIds,
+  }) {
+    final _result = create();
+    if (uri != null) {
+      _result.uri = uri;
+    }
+    if (childrenIds != null) {
+      _result.childrenIds.addAll(childrenIds);
+    }
+    return _result;
+  }
   factory LibraryInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory LibraryInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   LibraryInfoPB clone() => LibraryInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   LibraryInfoPB copyWith(void Function(LibraryInfoPB) updates) =>
-      super.copyWith((message) => updates(message as LibraryInfoPB));
+      super.copyWith((message) => updates(message as LibraryInfoPB))
+          as LibraryInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static LibraryInfoPB create() => LibraryInfoPB._();
@@ -622,7 +1032,7 @@ class LibraryInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static LibraryInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<LibraryInfoPB>(create);
-  static LibraryInfoPB _defaultInstance;
+  static LibraryInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get uri => $_getSZ(0);
@@ -641,23 +1051,48 @@ class LibraryInfoPB extends $pb.GeneratedMessage {
 }
 
 class OutputUnitInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('OutputUnitInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'OutputUnitInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..pPS(1, 'imports')
+    ..pPS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'imports')
     ..hasRequiredFields = false;
 
   OutputUnitInfoPB._() : super();
-  factory OutputUnitInfoPB() => create();
+  factory OutputUnitInfoPB({
+    $core.Iterable<$core.String>? imports,
+  }) {
+    final _result = create();
+    if (imports != null) {
+      _result.imports.addAll(imports);
+    }
+    return _result;
+  }
   factory OutputUnitInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory OutputUnitInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   OutputUnitInfoPB clone() => OutputUnitInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   OutputUnitInfoPB copyWith(void Function(OutputUnitInfoPB) updates) =>
-      super.copyWith((message) => updates(message as OutputUnitInfoPB));
+      super.copyWith((message) => updates(message as OutputUnitInfoPB))
+          as OutputUnitInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static OutputUnitInfoPB create() => OutputUnitInfoPB._();
@@ -667,31 +1102,64 @@ class OutputUnitInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static OutputUnitInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<OutputUnitInfoPB>(create);
-  static OutputUnitInfoPB _defaultInstance;
+  static OutputUnitInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.String> get imports => $_getList(0);
 }
 
 class ClassInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('ClassInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ClassInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOB(1, 'isAbstract')
-    ..pPS(2, 'childrenIds')
+    ..aOB(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isAbstract')
+    ..pPS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'childrenIds')
     ..hasRequiredFields = false;
 
   ClassInfoPB._() : super();
-  factory ClassInfoPB() => create();
+  factory ClassInfoPB({
+    $core.bool? isAbstract,
+    $core.Iterable<$core.String>? childrenIds,
+  }) {
+    final _result = create();
+    if (isAbstract != null) {
+      _result.isAbstract = isAbstract;
+    }
+    if (childrenIds != null) {
+      _result.childrenIds.addAll(childrenIds);
+    }
+    return _result;
+  }
   factory ClassInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory ClassInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ClassInfoPB clone() => ClassInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ClassInfoPB copyWith(void Function(ClassInfoPB) updates) =>
-      super.copyWith((message) => updates(message as ClassInfoPB));
+      super.copyWith((message) => updates(message as ClassInfoPB))
+          as ClassInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ClassInfoPB create() => ClassInfoPB._();
@@ -700,7 +1168,7 @@ class ClassInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ClassInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ClassInfoPB>(create);
-  static ClassInfoPB _defaultInstance;
+  static ClassInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.bool get isAbstract => $_getBF(0);
@@ -718,24 +1186,91 @@ class ClassInfoPB extends $pb.GeneratedMessage {
   $core.List<$core.String> get childrenIds => $_getList(1);
 }
 
-class ConstantInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('ConstantInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+class ClassTypeInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ClassTypeInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'code')
+    ..hasRequiredFields = false;
+
+  ClassTypeInfoPB._() : super();
+  factory ClassTypeInfoPB() => create();
+  factory ClassTypeInfoPB.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ClassTypeInfoPB.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ClassTypeInfoPB clone() => ClassTypeInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ClassTypeInfoPB copyWith(void Function(ClassTypeInfoPB) updates) =>
+      super.copyWith((message) => updates(message as ClassTypeInfoPB))
+          as ClassTypeInfoPB; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ClassTypeInfoPB create() => ClassTypeInfoPB._();
+  ClassTypeInfoPB createEmptyInstance() => create();
+  static $pb.PbList<ClassTypeInfoPB> createRepeated() =>
+      $pb.PbList<ClassTypeInfoPB>();
+  @$core.pragma('dart2js:noInline')
+  static ClassTypeInfoPB getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ClassTypeInfoPB>(create);
+  static ClassTypeInfoPB? _defaultInstance;
+}
+
+class ConstantInfoPB extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ConstantInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'code')
     ..hasRequiredFields = false;
 
   ConstantInfoPB._() : super();
-  factory ConstantInfoPB() => create();
+  factory ConstantInfoPB({
+    $core.String? code,
+  }) {
+    final _result = create();
+    if (code != null) {
+      _result.code = code;
+    }
+    return _result;
+  }
   factory ConstantInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory ConstantInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ConstantInfoPB clone() => ConstantInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ConstantInfoPB copyWith(void Function(ConstantInfoPB) updates) =>
-      super.copyWith((message) => updates(message as ConstantInfoPB));
+      super.copyWith((message) => updates(message as ConstantInfoPB))
+          as ConstantInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ConstantInfoPB create() => ConstantInfoPB._();
@@ -745,7 +1280,7 @@ class ConstantInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ConstantInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ConstantInfoPB>(create);
-  static ConstantInfoPB _defaultInstance;
+  static ConstantInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get code => $_getSZ(0);
@@ -761,28 +1296,93 @@ class ConstantInfoPB extends $pb.GeneratedMessage {
 }
 
 class FieldInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('FieldInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'FieldInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'type')
-    ..aOS(2, 'inferredType')
-    ..pPS(3, 'childrenIds')
-    ..aOS(4, 'code')
-    ..aOB(5, 'isConst')
-    ..aOS(6, 'initializerId')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'type')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'inferredType')
+    ..pPS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'childrenIds')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'code')
+    ..aOB(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isConst')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'initializerId')
     ..hasRequiredFields = false;
 
   FieldInfoPB._() : super();
-  factory FieldInfoPB() => create();
+  factory FieldInfoPB({
+    $core.String? type,
+    $core.String? inferredType,
+    $core.Iterable<$core.String>? childrenIds,
+    $core.String? code,
+    $core.bool? isConst,
+    $core.String? initializerId,
+  }) {
+    final _result = create();
+    if (type != null) {
+      _result.type = type;
+    }
+    if (inferredType != null) {
+      _result.inferredType = inferredType;
+    }
+    if (childrenIds != null) {
+      _result.childrenIds.addAll(childrenIds);
+    }
+    if (code != null) {
+      _result.code = code;
+    }
+    if (isConst != null) {
+      _result.isConst = isConst;
+    }
+    if (initializerId != null) {
+      _result.initializerId = initializerId;
+    }
+    return _result;
+  }
   factory FieldInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory FieldInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   FieldInfoPB clone() => FieldInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   FieldInfoPB copyWith(void Function(FieldInfoPB) updates) =>
-      super.copyWith((message) => updates(message as FieldInfoPB));
+      super.copyWith((message) => updates(message as FieldInfoPB))
+          as FieldInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static FieldInfoPB create() => FieldInfoPB._();
@@ -791,7 +1391,7 @@ class FieldInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static FieldInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<FieldInfoPB>(create);
-  static FieldInfoPB _defaultInstance;
+  static FieldInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get type => $_getSZ(0);
@@ -858,23 +1458,48 @@ class FieldInfoPB extends $pb.GeneratedMessage {
 }
 
 class TypedefInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('TypedefInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'TypedefInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'type')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'type')
     ..hasRequiredFields = false;
 
   TypedefInfoPB._() : super();
-  factory TypedefInfoPB() => create();
+  factory TypedefInfoPB({
+    $core.String? type,
+  }) {
+    final _result = create();
+    if (type != null) {
+      _result.type = type;
+    }
+    return _result;
+  }
   factory TypedefInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory TypedefInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   TypedefInfoPB clone() => TypedefInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   TypedefInfoPB copyWith(void Function(TypedefInfoPB) updates) =>
-      super.copyWith((message) => updates(message as TypedefInfoPB));
+      super.copyWith((message) => updates(message as TypedefInfoPB))
+          as TypedefInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static TypedefInfoPB create() => TypedefInfoPB._();
@@ -884,7 +1509,7 @@ class TypedefInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static TypedefInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<TypedefInfoPB>(create);
-  static TypedefInfoPB _defaultInstance;
+  static TypedefInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get type => $_getSZ(0);
@@ -900,26 +1525,75 @@ class TypedefInfoPB extends $pb.GeneratedMessage {
 }
 
 class FunctionModifiersPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('FunctionModifiersPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'FunctionModifiersPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOB(1, 'isStatic')
-    ..aOB(2, 'isConst')
-    ..aOB(3, 'isFactory')
-    ..aOB(4, 'isExternal')
+    ..aOB(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isStatic')
+    ..aOB(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isConst')
+    ..aOB(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isFactory')
+    ..aOB(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isExternal')
     ..hasRequiredFields = false;
 
   FunctionModifiersPB._() : super();
-  factory FunctionModifiersPB() => create();
+  factory FunctionModifiersPB({
+    $core.bool? isStatic,
+    $core.bool? isConst,
+    $core.bool? isFactory,
+    $core.bool? isExternal,
+  }) {
+    final _result = create();
+    if (isStatic != null) {
+      _result.isStatic = isStatic;
+    }
+    if (isConst != null) {
+      _result.isConst = isConst;
+    }
+    if (isFactory != null) {
+      _result.isFactory = isFactory;
+    }
+    if (isExternal != null) {
+      _result.isExternal = isExternal;
+    }
+    return _result;
+  }
   factory FunctionModifiersPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory FunctionModifiersPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   FunctionModifiersPB clone() => FunctionModifiersPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   FunctionModifiersPB copyWith(void Function(FunctionModifiersPB) updates) =>
-      super.copyWith((message) => updates(message as FunctionModifiersPB));
+      super.copyWith((message) => updates(message as FunctionModifiersPB))
+          as FunctionModifiersPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static FunctionModifiersPB create() => FunctionModifiersPB._();
@@ -929,7 +1603,7 @@ class FunctionModifiersPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static FunctionModifiersPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<FunctionModifiersPB>(create);
-  static FunctionModifiersPB _defaultInstance;
+  static FunctionModifiersPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.bool get isStatic => $_getBF(0);
@@ -981,25 +1655,66 @@ class FunctionModifiersPB extends $pb.GeneratedMessage {
 }
 
 class ParameterInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('ParameterInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ParameterInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'name')
-    ..aOS(2, 'type')
-    ..aOS(3, 'declaredType')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'type')
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'declaredType')
     ..hasRequiredFields = false;
 
   ParameterInfoPB._() : super();
-  factory ParameterInfoPB() => create();
+  factory ParameterInfoPB({
+    $core.String? name,
+    $core.String? type,
+    $core.String? declaredType,
+  }) {
+    final _result = create();
+    if (name != null) {
+      _result.name = name;
+    }
+    if (type != null) {
+      _result.type = type;
+    }
+    if (declaredType != null) {
+      _result.declaredType = declaredType;
+    }
+    return _result;
+  }
   factory ParameterInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory ParameterInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ParameterInfoPB clone() => ParameterInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ParameterInfoPB copyWith(void Function(ParameterInfoPB) updates) =>
-      super.copyWith((message) => updates(message as ParameterInfoPB));
+      super.copyWith((message) => updates(message as ParameterInfoPB))
+          as ParameterInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ParameterInfoPB create() => ParameterInfoPB._();
@@ -1009,7 +1724,7 @@ class ParameterInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ParameterInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ParameterInfoPB>(create);
-  static ParameterInfoPB _defaultInstance;
+  static ParameterInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
@@ -1049,32 +1764,115 @@ class ParameterInfoPB extends $pb.GeneratedMessage {
 }
 
 class FunctionInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('FunctionInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'FunctionInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOM<FunctionModifiersPB>(1, 'functionModifiers',
+    ..aOM<FunctionModifiersPB>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'functionModifiers',
         subBuilder: FunctionModifiersPB.create)
-    ..pPS(2, 'childrenIds')
-    ..aOS(3, 'returnType')
-    ..aOS(4, 'inferredReturnType')
-    ..pc<ParameterInfoPB>(5, 'parameters', $pb.PbFieldType.PM,
+    ..pPS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'childrenIds')
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'returnType')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'inferredReturnType')
+    ..pc<ParameterInfoPB>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'parameters',
+        $pb.PbFieldType.PM,
         subBuilder: ParameterInfoPB.create)
-    ..aOS(6, 'sideEffects')
-    ..a<$core.int>(7, 'inlinedCount', $pb.PbFieldType.O3)
-    ..aOS(8, 'code')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sideEffects')
+    ..a<$core.int>(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'inlinedCount',
+        $pb.PbFieldType.O3)
+    ..aOS(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'code')
     ..hasRequiredFields = false;
 
   FunctionInfoPB._() : super();
-  factory FunctionInfoPB() => create();
+  factory FunctionInfoPB({
+    FunctionModifiersPB? functionModifiers,
+    $core.Iterable<$core.String>? childrenIds,
+    $core.String? returnType,
+    $core.String? inferredReturnType,
+    $core.Iterable<ParameterInfoPB>? parameters,
+    $core.String? sideEffects,
+    $core.int? inlinedCount,
+    $core.String? code,
+  }) {
+    final _result = create();
+    if (functionModifiers != null) {
+      _result.functionModifiers = functionModifiers;
+    }
+    if (childrenIds != null) {
+      _result.childrenIds.addAll(childrenIds);
+    }
+    if (returnType != null) {
+      _result.returnType = returnType;
+    }
+    if (inferredReturnType != null) {
+      _result.inferredReturnType = inferredReturnType;
+    }
+    if (parameters != null) {
+      _result.parameters.addAll(parameters);
+    }
+    if (sideEffects != null) {
+      _result.sideEffects = sideEffects;
+    }
+    if (inlinedCount != null) {
+      _result.inlinedCount = inlinedCount;
+    }
+    if (code != null) {
+      _result.code = code;
+    }
+    return _result;
+  }
   factory FunctionInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory FunctionInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   FunctionInfoPB clone() => FunctionInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   FunctionInfoPB copyWith(void Function(FunctionInfoPB) updates) =>
-      super.copyWith((message) => updates(message as FunctionInfoPB));
+      super.copyWith((message) => updates(message as FunctionInfoPB))
+          as FunctionInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static FunctionInfoPB create() => FunctionInfoPB._();
@@ -1084,7 +1882,7 @@ class FunctionInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static FunctionInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<FunctionInfoPB>(create);
-  static FunctionInfoPB _defaultInstance;
+  static FunctionInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   FunctionModifiersPB get functionModifiers => $_getN(0);
@@ -1168,23 +1966,48 @@ class FunctionInfoPB extends $pb.GeneratedMessage {
 }
 
 class ClosureInfoPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('ClosureInfoPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ClosureInfoPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'functionId')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'functionId')
     ..hasRequiredFields = false;
 
   ClosureInfoPB._() : super();
-  factory ClosureInfoPB() => create();
+  factory ClosureInfoPB({
+    $core.String? functionId,
+  }) {
+    final _result = create();
+    if (functionId != null) {
+      _result.functionId = functionId;
+    }
+    return _result;
+  }
   factory ClosureInfoPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory ClosureInfoPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ClosureInfoPB clone() => ClosureInfoPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ClosureInfoPB copyWith(void Function(ClosureInfoPB) updates) =>
-      super.copyWith((message) => updates(message as ClosureInfoPB));
+      super.copyWith((message) => updates(message as ClosureInfoPB))
+          as ClosureInfoPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ClosureInfoPB create() => ClosureInfoPB._();
@@ -1194,7 +2017,7 @@ class ClosureInfoPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ClosureInfoPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ClosureInfoPB>(create);
-  static ClosureInfoPB _defaultInstance;
+  static ClosureInfoPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get functionId => $_getSZ(0);
@@ -1210,24 +2033,57 @@ class ClosureInfoPB extends $pb.GeneratedMessage {
 }
 
 class DeferredImportPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('DeferredImportPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DeferredImportPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'prefix')
-    ..pPS(2, 'files')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'prefix')
+    ..pPS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'files')
     ..hasRequiredFields = false;
 
   DeferredImportPB._() : super();
-  factory DeferredImportPB() => create();
+  factory DeferredImportPB({
+    $core.String? prefix,
+    $core.Iterable<$core.String>? files,
+  }) {
+    final _result = create();
+    if (prefix != null) {
+      _result.prefix = prefix;
+    }
+    if (files != null) {
+      _result.files.addAll(files);
+    }
+    return _result;
+  }
   factory DeferredImportPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory DeferredImportPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DeferredImportPB clone() => DeferredImportPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DeferredImportPB copyWith(void Function(DeferredImportPB) updates) =>
-      super.copyWith((message) => updates(message as DeferredImportPB));
+      super.copyWith((message) => updates(message as DeferredImportPB))
+          as DeferredImportPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static DeferredImportPB create() => DeferredImportPB._();
@@ -1237,7 +2093,7 @@ class DeferredImportPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static DeferredImportPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<DeferredImportPB>(create);
-  static DeferredImportPB _defaultInstance;
+  static DeferredImportPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get prefix => $_getSZ(0);
@@ -1256,28 +2112,70 @@ class DeferredImportPB extends $pb.GeneratedMessage {
 }
 
 class LibraryDeferredImportsPB extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('LibraryDeferredImportsPB',
-      package: const $pb.PackageName('dart2js_info.proto'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'LibraryDeferredImportsPB',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart2js_info.proto'),
       createEmptyInstance: create)
-    ..aOS(1, 'libraryUri')
-    ..aOS(2, 'libraryName')
-    ..pc<DeferredImportPB>(3, 'imports', $pb.PbFieldType.PM,
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'libraryUri')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'libraryName')
+    ..pc<DeferredImportPB>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'imports',
+        $pb.PbFieldType.PM,
         subBuilder: DeferredImportPB.create)
     ..hasRequiredFields = false;
 
   LibraryDeferredImportsPB._() : super();
-  factory LibraryDeferredImportsPB() => create();
+  factory LibraryDeferredImportsPB({
+    $core.String? libraryUri,
+    $core.String? libraryName,
+    $core.Iterable<DeferredImportPB>? imports,
+  }) {
+    final _result = create();
+    if (libraryUri != null) {
+      _result.libraryUri = libraryUri;
+    }
+    if (libraryName != null) {
+      _result.libraryName = libraryName;
+    }
+    if (imports != null) {
+      _result.imports.addAll(imports);
+    }
+    return _result;
+  }
   factory LibraryDeferredImportsPB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory LibraryDeferredImportsPB.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   LibraryDeferredImportsPB clone() =>
       LibraryDeferredImportsPB()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   LibraryDeferredImportsPB copyWith(
           void Function(LibraryDeferredImportsPB) updates) =>
-      super.copyWith((message) => updates(message as LibraryDeferredImportsPB));
+      super.copyWith((message) => updates(message as LibraryDeferredImportsPB))
+          as LibraryDeferredImportsPB; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static LibraryDeferredImportsPB create() => LibraryDeferredImportsPB._();
@@ -1287,7 +2185,7 @@ class LibraryDeferredImportsPB extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static LibraryDeferredImportsPB getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<LibraryDeferredImportsPB>(create);
-  static LibraryDeferredImportsPB _defaultInstance;
+  static LibraryDeferredImportsPB? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get libraryUri => $_getSZ(0);

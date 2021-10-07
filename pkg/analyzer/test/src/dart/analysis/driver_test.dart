@@ -1646,7 +1646,6 @@ class B {}
     ResolvedUnitResult result = await driver.getResultValid(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.state, ResultState.VALID);
     expect(result.content, content);
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
@@ -1697,7 +1696,7 @@ main() {
     ResolvedUnitResult result = await driver.getResultValid(a);
     expect(result.path, a);
     expect(result.uri.toString(), 'package:test/a.dart');
-    expect(result.state, ResultState.NOT_A_FILE);
+    expect(result.exists, isFalse);
     expect(result.content, '');
   }
 
@@ -3080,55 +3079,6 @@ var A = B;
     expect(() {
       driver.removeFile('not_absolute.dart');
     }, throwsArgumentError);
-  }
-
-  test_resetUriResolution() async {
-    var a = convertPath('/aaa/lib/a.dart');
-    var b = convertPath('/bbb/lib/b.dart');
-
-    newFile(a, content: '');
-    newFile(b, content: r'''
-import 'package:aaa/a.dart';
-A a;
-''');
-
-    // Subscribe for errors.
-    driver.addFile(b);
-
-    // `package:aaa/a.dart` does not define class `A`.
-    // So, there is an error in `b.dart`.
-    await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
-    expect(allResults[0].path, b);
-    expect(allResults[0].errors, hasLength(2));
-
-    // Create generated file for `package:aaa/a.dart`.
-    var aUri = Uri.parse('package:aaa/a.dart');
-    var aGeneratedPath = convertPath('/generated/aaa/lib/a2.dart');
-    var aGeneratedFile = newFile(aGeneratedPath, content: 'class A {}');
-
-    // Configure UriResolver to provide this generated file.
-    generatedUriResolver.resolveAbsoluteFunction =
-        (uri) => aGeneratedFile.createSource(uri);
-    generatedUriResolver.restoreAbsoluteFunction = (source) {
-      String path = source.fullName;
-      if (path == a || path == aGeneratedPath) {
-        return aUri;
-      } else {
-        return null;
-      }
-    };
-
-    // Reset URI resolution, and analyze.
-    allResults.clear();
-    driver.resetUriResolution();
-
-    // `package:aaa/a.dart` is resolved differently now, so the new list of
-    // errors for `b.dart` (the empty list) is reported.
-    await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
-    expect(allResults[0].path, b);
-    expect(allResults[0].errors, isEmpty);
   }
 
   test_results_order() async {

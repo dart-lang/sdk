@@ -472,7 +472,7 @@ class DateTime implements Comparable<DateTime> {
   /// Returns [this] if it is already in the local time zone.
   /// Otherwise this method is equivalent to:
   ///
-  /// ```dart
+  /// ```dart template:expression
   /// DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
   ///                                     isUtc: false)
   /// ```
@@ -488,7 +488,7 @@ class DateTime implements Comparable<DateTime> {
   /// Returns [this] if it is already in UTC.
   /// Otherwise this method is equivalent to:
   ///
-  /// ```dart
+  /// ```dart template:expression
   /// DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
   ///                                     isUtc: true)
   /// ```
