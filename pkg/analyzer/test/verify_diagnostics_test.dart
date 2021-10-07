@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart';
@@ -14,6 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/diagnostics/generate.dart';
 import '../tool/messages/error_code_documentation_info.dart';
+import '../tool/messages/error_code_info.dart';
 import 'src/dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -111,19 +108,8 @@ class DocumentationValidator {
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
   ];
 
-  /// The absolute paths of the files containing the declarations of the error
-  /// codes.
-  final List<CodePath> codePaths;
-
   /// The buffer to which validation errors are written.
   final StringBuffer buffer = StringBuffer();
-
-  /// The path to the file currently being verified.
-  late String filePath;
-
-  /// A flag indicating whether the [filePath] has already been written to the
-  /// buffer.
-  bool hasWrittenFilePath = false;
 
   /// The name of the variable currently being verified.
   late String variableName;
@@ -136,30 +122,29 @@ class DocumentationValidator {
   bool hasWrittenVariableName = false;
 
   /// Initialize a newly created documentation validator.
-  DocumentationValidator(this.codePaths);
+  DocumentationValidator();
 
   /// Validate the documentation.
   Future<void> validate() async {
-    AnalysisContextCollection collection = AnalysisContextCollection(
-        includedPaths:
-            codePaths.map((codePath) => codePath.documentationPath).toList(),
-        resourceProvider: PhysicalResourceProvider.INSTANCE);
-    for (CodePath codePath in codePaths) {
-      await _validateFile(_parse(collection, codePath.documentationPath));
+    for (var classEntry in analyzerMessages.entries) {
+      var errorClass = classEntry.key;
+      await _validateMessages(errorClass, classEntry.value);
+    }
+    ErrorClassInfo? errorClassIncludingCfeMessages;
+    for (var errorClass in errorClasses) {
+      if (errorClass.includeCfeMessages) {
+        if (errorClassIncludingCfeMessages != null) {
+          fail('Multiple error classes include CFE messages: '
+              '${errorClassIncludingCfeMessages.name} and ${errorClass.name}');
+        }
+        errorClassIncludingCfeMessages = errorClass;
+        await _validateMessages(
+            errorClass.name, cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo);
+      }
     }
     if (buffer.isNotEmpty) {
       fail(buffer.toString());
     }
-  }
-
-  /// Return the name of the code as defined in the [initializer].
-  String _extractCodeName(VariableDeclaration variable) {
-    var initializer = variable.initializer;
-    if (initializer is MethodInvocation) {
-      var firstArgument = initializer.argumentList.arguments[0];
-      return (firstArgument as StringLiteral).stringValue!;
-    }
-    return variable.name.name;
   }
 
   _SnippetData _extractSnippetData(
@@ -227,24 +212,8 @@ class DocumentationValidator {
     return snippets;
   }
 
-  /// Use the analysis context [collection] to parse the file at the given
-  /// [path] and return the result.
-  ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
-    AnalysisSession session = collection.contextFor(path).currentSession;
-    var result = session.getParsedUnit(path);
-    if (result is! ParsedUnitResult) {
-      throw StateError('Unable to parse "$path"');
-    }
-    return result;
-  }
-
   /// Report a problem with the current error code.
   void _reportProblem(String problem, {List<AnalysisError> errors = const []}) {
-    if (!hasWrittenFilePath) {
-      buffer.writeln();
-      buffer.writeln('In $filePath');
-      hasWrittenFilePath = true;
-    }
     if (!hasWrittenVariableName) {
       buffer.writeln('  $variableName');
       hasWrittenVariableName = true;
@@ -262,53 +231,43 @@ class DocumentationValidator {
     }
   }
 
-  /// Extract documentation from the file that was parsed to produce the given
-  /// [result].
-  Future<void> _validateFile(ParsedUnitResult result) async {
-    filePath = result.path;
-    hasWrittenFilePath = false;
-    CompilationUnit unit = result.unit;
-    for (CompilationUnitMember declaration in unit.declarations) {
-      if (declaration is ClassDeclaration) {
-        String className = declaration.name.name;
-        for (ClassMember member in declaration.members) {
-          if (member is FieldDeclaration) {
-            var docs = parseErrorCodeDocumentation(member);
-            if (docs != null) {
-              VariableDeclaration variable = member.fields.variables[0];
-              codeName = _extractCodeName(variable);
-              if (codeName == 'NULLABLE_TYPE_IN_CATCH_CLAUSE') {
-                DateTime.now();
-              }
-              variableName = '$className.${variable.name.name}';
-              if (unverifiedDocs.contains(variableName)) {
-                continue;
-              }
-              hasWrittenVariableName = false;
+  /// Extract documentation from the given [messages], which are error messages
+  /// destined for the class [className].
+  Future<void> _validateMessages(
+      String className, Map<String, ErrorCodeInfo> messages) async {
+    for (var errorEntry in messages.entries) {
+      var errorName = errorEntry.key;
+      var errorCodeInfo = errorEntry.value;
+      var docs = parseErrorCodeDocumentation(
+          '$className.$errorName', errorCodeInfo.documentation);
+      if (docs != null) {
+        codeName = errorCodeInfo.sharedName ?? errorName;
+        variableName = '$className.$errorName';
+        if (unverifiedDocs.contains(variableName)) {
+          continue;
+        }
+        hasWrittenVariableName = false;
 
-              List<_SnippetData> exampleSnippets =
-                  _extractSnippets(docs, BlockSection.examples);
-              _SnippetData? firstExample;
-              if (exampleSnippets.isEmpty) {
-                _reportProblem('No example.');
-              } else {
-                firstExample = exampleSnippets[0];
-              }
-              for (int i = 0; i < exampleSnippets.length; i++) {
-                await _validateSnippet('example', i, exampleSnippets[i]);
-              }
+        List<_SnippetData> exampleSnippets =
+            _extractSnippets(docs, BlockSection.examples);
+        _SnippetData? firstExample;
+        if (exampleSnippets.isEmpty) {
+          _reportProblem('No example.');
+        } else {
+          firstExample = exampleSnippets[0];
+        }
+        for (int i = 0; i < exampleSnippets.length; i++) {
+          await _validateSnippet('example', i, exampleSnippets[i]);
+        }
 
-              List<_SnippetData> fixesSnippets =
-                  _extractSnippets(docs, BlockSection.commonFixes);
-              for (int i = 0; i < fixesSnippets.length; i++) {
-                _SnippetData snippet = fixesSnippets[i];
-                if (firstExample != null) {
-                  snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
-                }
-                await _validateSnippet('fixes', i, snippet);
-              }
-            }
+        List<_SnippetData> fixesSnippets =
+            _extractSnippets(docs, BlockSection.commonFixes);
+        for (int i = 0; i < fixesSnippets.length; i++) {
+          _SnippetData snippet = fixesSnippets[i];
+          if (firstExample != null) {
+            snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
           }
+          await _validateSnippet('fixes', i, snippet);
         }
       }
     }
@@ -364,11 +323,10 @@ class VerifyDiagnosticsTest {
   @TestTimeout(Timeout.factor(4))
   test_diagnostics() async {
     Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
-    List<CodePath> codePaths = computeCodePaths();
     //
     // Validate that the input to the generator is correct.
     //
-    DocumentationValidator validator = DocumentationValidator(codePaths);
+    DocumentationValidator validator = DocumentationValidator();
     await validator.validate();
     //
     // Validate that the generator has been run.
@@ -379,7 +337,7 @@ class VerifyDiagnosticsTest {
           .readAsStringSync();
 
       StringBuffer sink = StringBuffer();
-      DocumentationGenerator generator = DocumentationGenerator(codePaths);
+      DocumentationGenerator generator = DocumentationGenerator();
       generator.writeDocumentation(sink);
       String expectedContent = sink.toString();
 
