@@ -642,8 +642,6 @@ class Scheduler {
   }
 
  private:
-  typedef DirectChainedHashMap<PointerKeyValueTrait<Instruction> > Map;
-
   Instruction* EmitRecursively(Instruction* instruction, Instruction* sink) {
     // Schedule all unscheduled inputs and unwrap all constrained inputs.
     for (intptr_t i = 0; i < instruction->InputCount(); i++) {
@@ -723,7 +721,7 @@ class Scheduler {
   }
 
   FlowGraph* flow_graph_;
-  Map map_;
+  PointerSet<Instruction> map_;
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers_;
   GrowableArray<BlockEntryInstr*> pre_headers_;
   GrowableArray<Instruction*> emitted_;
