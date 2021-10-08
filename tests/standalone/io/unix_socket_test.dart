@@ -842,7 +842,7 @@ Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
 }
 
 void main(List<String> args) async {
-  try {
+  runZonedGuarded(() async {
     if (args.length > 0 && args[0] == '--start-stdio-message-test') {
       await withTempDir('unix_socket_test', (Directory dir) async {
         await testStdioMessage('${dir.path}', caller: false);
@@ -895,12 +895,12 @@ void main(List<String> args) async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testStdioMessage('${dir.path}', caller: true);
     });
-  } catch (e) {
+  }, (e, st) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
       Expect.fail("Unexpected exception $e is thrown");
     } else {
       Expect.isTrue(e is SocketException);
       Expect.isTrue(e.toString().contains('not available'));
     }
-  }
+  });
 }
