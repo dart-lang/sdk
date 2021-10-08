@@ -45,6 +45,7 @@ namespace bin {
   V(File_Exists, 2)                                                            \
   V(File_Flush, 1)                                                             \
   V(File_GetPointer, 1)                                                        \
+  V(File_GetFD, 1)                                                             \
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 3)                                                           \
   V(File_LastAccessed, 2)                                                      \
@@ -81,6 +82,10 @@ namespace bin {
   V(Filter_CreateZLibInflate, 4)                                               \
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
+  V(ResourceHandleImpl_toFile, 1)                                              \
+  V(ResourceHandleImpl_toSocket, 1)                                            \
+  V(ResourceHandleImpl_toRawSocket, 1)                                         \
+  V(ResourceHandleImpl_toRawDatagramSocket, 1)                                 \
   V(InternetAddress_Parse, 1)                                                  \
   V(InternetAddress_ParseScopedLinkLocalAddress, 1)                            \
   V(InternetAddress_RawAddrToString, 1)                                        \
@@ -147,6 +152,7 @@ namespace bin {
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
+  V(Socket_GetFD, 1)                                                           \
   V(Socket_GetOption, 3)                                                       \
   V(Socket_GetRawOption, 4)                                                    \
   V(Socket_GetSocketId, 1)                                                     \
@@ -156,11 +162,15 @@ namespace bin {
   V(Socket_LeaveMulticast, 4)                                                  \
   V(Socket_Read, 2)                                                            \
   V(Socket_RecvFrom, 1)                                                        \
+  V(Socket_ReceiveMessage, 2)                                                  \
+  V(Socket_SendMessage, 5)                                                     \
   V(Socket_SendTo, 6)                                                          \
   V(Socket_SetOption, 4)                                                       \
   V(Socket_SetRawOption, 4)                                                    \
   V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
+  V(SocketControlMessage_fromHandles, 2)                                       \
+  V(SocketControlMessageImpl_extractHandles, 1)                                \
   V(Stdin_ReadByte, 1)                                                         \
   V(Stdin_GetEchoMode, 1)                                                      \
   V(Stdin_SetEchoMode, 2)                                                      \

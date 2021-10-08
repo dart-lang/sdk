@@ -221,7 +221,8 @@ class File : public ReferenceCounted<File> {
   // (stdin, stout or stderr).
   static File* OpenStdio(int fd);
 
-#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
+#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX) ||            \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_MACOS)
   static File* OpenFD(int fd);
 #endif
 
