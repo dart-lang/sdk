@@ -99,6 +99,20 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
 }
 
+bool SocketControlMessage::is_file_descriptors_control_message() {
+  return false;
+}
+
+intptr_t SocketBase::ReceiveMessage(intptr_t fd,
+                                    void* buffer,
+                                    int64_t* p_buffer_num_bytes,
+                                    SocketControlMessage** p_messages,
+                                    SocketOpKind sync,
+                                    OSError* p_oserror) {
+  errno = ENOSYS;
+  return -1;
+}
+
 bool SocketBase::AvailableDatagram(intptr_t fd,
                                    void* buffer,
                                    intptr_t num_bytes) {
@@ -123,6 +137,34 @@ intptr_t SocketBase::SendTo(intptr_t fd,
   RawAddr& raw = const_cast<RawAddr&>(addr);
   return handle->SendTo(buffer, num_bytes, &raw.addr,
                         SocketAddress::GetAddrLength(addr));
+}
+
+intptr_t SocketBase::SendMessage(intptr_t fd,
+                                 void* buffer,
+                                 size_t num_bytes,
+                                 SocketControlMessage* messages,
+                                 intptr_t num_messages,
+                                 SocketOpKind sync,
+                                 OSError* p_oserror) {
+  errno = ENOSYS;
+  return -1;
+}
+
+bool SocketBase::GetSocketName(intptr_t fd, SocketAddress* p_sa) {
+  ASSERT(fd >= 0);
+  ASSERT(p_sa != nullptr);
+  RawAddr raw;
+  socklen_t size = sizeof(raw);
+  if (getsockname(fd, &raw.addr, &size) == SOCKET_ERROR) {
+    return false;
+  }
+
+  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
+  // If size is the size of sa_family_t, this is an unnamed socket and
+  // sun_path contains garbage.
+  new (p_sa) SocketAddress(&raw.addr,
+                           /*unnamed_unix_socket=*/size == sizeof(u_short));
+  return true;
 }
 
 intptr_t SocketBase::GetPort(intptr_t fd) {

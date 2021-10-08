@@ -3524,7 +3524,11 @@ void Obfuscator::InitializeRenamingMap() {
   PreventRenaming("html");
 
   // Looked up by name via "DartUtils::GetDartType".
+  PreventRenaming("_RandomAccessFile");
   PreventRenaming("_RandomAccessFileOpsImpl");
+  PreventRenaming("ResourceHandle");
+  PreventRenaming("_ResourceHandleImpl");
+  PreventRenaming("_SocketControlMessageImpl");
   PreventRenaming("_NamespaceImpl");
 }
 

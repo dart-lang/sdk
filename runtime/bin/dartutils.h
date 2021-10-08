@@ -161,7 +161,7 @@ class DartUtils {
   static void CloseFile(void* stream);
   static bool EntropySource(uint8_t* buffer, intptr_t length);
   static Dart_Handle ReadStringFromFile(const char* filename);
-  static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
+  static Dart_Handle MakeUint8Array(const void* buffer, intptr_t length);
   static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
                                              bool trace_loading);
   static Dart_Handle SetupPackageConfig(const char* packages_file);

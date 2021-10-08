@@ -150,6 +150,30 @@ class AddressList {
   DISALLOW_COPY_AND_ASSIGN(AddressList);
 };
 
+class SocketControlMessage {
+ public:
+  SocketControlMessage(intptr_t level,
+                       intptr_t type,
+                       void* data,
+                       size_t data_length)
+      : level_(level), type_(type), data_(data), data_length_(data_length) {}
+
+  intptr_t level() const { return level_; }
+  intptr_t type() const { return type_; }
+  void* data() const { return data_; }
+  size_t data_length() const { return data_length_; }
+
+  inline bool is_file_descriptors_control_message();
+
+ private:
+  const intptr_t level_;
+  const intptr_t type_;
+  void* data_;
+  const size_t data_length_;
+
+  DISALLOW_COPY_AND_ASSIGN(SocketControlMessage);
+};
+
 class SocketBase : public AllStatic {
  public:
   enum SocketRequest {
@@ -182,16 +206,30 @@ class SocketBase : public AllStatic {
                          intptr_t num_bytes,
                          const RawAddr& addr,
                          SocketOpKind sync);
+  static intptr_t SendMessage(intptr_t fd,
+                              void* buffer,
+                              size_t buffer_num_bytes,
+                              SocketControlMessage* messages,
+                              intptr_t num_messages,
+                              SocketOpKind sync,
+                              OSError* p_oserror);
   static intptr_t RecvFrom(intptr_t fd,
                            void* buffer,
                            intptr_t num_bytes,
                            RawAddr* addr,
                            SocketOpKind sync);
+  static intptr_t ReceiveMessage(intptr_t fd,
+                                 void* buffer,
+                                 int64_t* p_buffer_num_bytes,
+                                 SocketControlMessage** p_messages,
+                                 SocketOpKind sync,
+                                 OSError* p_oserror);
   static bool AvailableDatagram(intptr_t fd, void* buffer, intptr_t num_bytes);
   // Returns true if the given error-number is because the system was not able
   // to bind the socket to a specific IP.
   static bool IsBindError(intptr_t error_number);
   static intptr_t GetPort(intptr_t fd);
+  static bool GetSocketName(intptr_t fd, SocketAddress* p_sa);
   static SocketAddress* GetRemotePeer(intptr_t fd, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
   static int GetType(intptr_t fd);

@@ -647,6 +647,7 @@ abstract class _RandomAccessFileOps {
   external factory _RandomAccessFileOps(int pointer);
 
   int getPointer();
+  int get fd;
   int close();
   readByte();
   read(int bytes);
@@ -1050,6 +1051,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   bool closed = false;
+
+  int get fd => _ops.fd;
 
   // WARNING:
   // Calling this function will increase the reference count on the native
