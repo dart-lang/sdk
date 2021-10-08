@@ -93,14 +93,14 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 /// ```
 ///
 /// If `bytes` contains values that are not in the range 0 .. 255, the decoder
-/// throws [FormatException].
+/// throws a [FormatException].
 ///
 ///
-/// If `allowInvalid` is set to true on constructor,
-/// the decoder replaces the invalid bytes using a character `U+FFFD` �.
+/// If `allowInvalid` is set to true,
+/// the decoder replaces the invalid bytes with the character `U+FFFD` �.
 ///
 ///
-/// Allow invalid byte value example:
+/// Example with `allowInvalid` set to true:
 /// ```dart
 /// const Latin1Decoder latin1Decoder = Latin1Decoder(allowInvalid: true);
 /// const List<int> encodedBytes = [224, 225, 226, 227, 228, 229, 300];
