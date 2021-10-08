@@ -6,7 +6,7 @@ description: >
   information, deobfuscation of stack-traces and minified names.
 dependencies:
   path: any
-  source_maps: ^0.10.7
+  source_maps: ^0.10.10
   source_span: any
   stack_trace: ^1.9.3
 environment:

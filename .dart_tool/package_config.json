@@ -623,7 +623,7 @@
       "name": "source_maps",
       "rootUri": "../third_party/pkg/source_maps",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "source_span",
