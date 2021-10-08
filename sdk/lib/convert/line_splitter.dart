@@ -10,12 +10,31 @@ const int _CR = 13;
 
 /// A [StreamTransformer] that splits a [String] into individual lines.
 ///
-/// A line is terminated by either a CR (U+000D), a LF (U+000A), a
-/// CR+LF sequence (DOS line ending),
-/// and a final non-empty line can be ended by the end of the string.
+/// A line is terminated by either:
+/// * a CR, carriage return:`\r, U+000D, 0x0D`
+/// * a LF, line feed:`\n, U+000A, 0x0A` (unix line break)
+/// * a CR+LF sequence (DOS line ending)
+/// * a final non-empty line can be ended by the end of the string
 ///
 /// The returned lines do not contain the line terminators.
-
+///
+/// Example:
+/// ```dart
+/// const LineSplitter ls = LineSplitter();
+/// const String sampleText =
+///     'Dart is: \ran object-oriented \nclass-based \ngarbage-collected'
+///     '\r\nlanguage with C-style syntax\r\n';
+///
+/// final List<String> sampleTextLines = ls.convert(sampleText);
+/// for (var i = 0; i < sampleTextLines.length; i++) {
+///   print('$i: ${sampleTextLines[i]}');
+/// }
+/// // 0: Dart is:
+/// // 1: an object-oriented
+/// // 2: class-based
+/// // 3: garbage-collected
+/// // 4: language with C-style syntax
+/// ```
 class LineSplitter extends StreamTransformerBase<String, String> {
   const LineSplitter();
 
