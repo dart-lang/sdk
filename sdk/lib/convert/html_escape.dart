@@ -48,7 +48,8 @@ const HtmlEscape htmlEscape = HtmlEscape();
 ///     escapeLtGt: true,
 ///     escapeQuot: false,
 ///     escapeApos: false,
-///     escapeSlash: false);
+///     escapeSlash: false,
+/// );
 ///
 /// const HtmlEscape htmlEscape = HtmlEscape(htmlEscapeMode);
 /// final htmlEscaped = htmlEscape.convert(sample);
