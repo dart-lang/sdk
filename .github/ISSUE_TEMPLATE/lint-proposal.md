@@ -1,5 +1,5 @@
 ---
-name: Lint propsoal
+name: Lint proposal
 about: Propose a new lint rule.
 title: 'proposal: `<rule_name>`'
 labels: 'lint proposal, status: pending'
