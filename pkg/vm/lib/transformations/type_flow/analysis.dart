@@ -550,8 +550,7 @@ class _DispatchableInvocation extends _Invocation {
       TypeFlowAnalysis typeFlowAnalysis) {
     final TFClass cls = receiver.cls;
 
-    Member? target =
-        (cls as _TFClassImpl).getDispatchTarget(selector, typeFlowAnalysis);
+    Member? target = (cls as _TFClassImpl).getDispatchTarget(selector);
 
     if (target != null) {
       if (kPrintTrace) {
@@ -948,9 +947,13 @@ class _TFClassImpl extends TFClass {
   /// exceeds this constant, then WideConeType approximation is used.
   static const int maxAllocatedTypesInSetSpecializations = 128;
 
+  final _TFClassImpl? superclass;
   final Set<_TFClassImpl> supertypes; // List of super-types including this.
   final Set<_TFClassImpl> _allocatedSubtypes = new Set<_TFClassImpl>();
-  final Map<Selector, Member> _dispatchTargets = <Selector, Member>{};
+  late final Map<Name, Member> _dispatchTargetsSetters =
+      _initDispatchTargets(true);
+  late final Map<Name, Member> _dispatchTargetsNonSetters =
+      _initDispatchTargets(false);
   final _DependencyTracker dependencyTracker = new _DependencyTracker();
 
   /// Flag indicating if this class has a noSuchMethod() method not inherited
@@ -958,7 +961,7 @@ class _TFClassImpl extends TFClass {
   /// Lazy initialized by ClassHierarchyCache.hasNonTrivialNoSuchMethod().
   bool? hasNonTrivialNoSuchMethod;
 
-  _TFClassImpl(int id, Class classNode, this.supertypes)
+  _TFClassImpl(int id, Class classNode, this.superclass, this.supertypes)
       : super(id, classNode) {
     supertypes.add(this);
   }
@@ -1001,19 +1004,37 @@ class _TFClassImpl extends TFClass {
     _specializedConeType = null; // Reset cached specialization.
   }
 
-  Member? getDispatchTarget(
-      Selector selector, TypeFlowAnalysis typeFlowAnalysis) {
-    Member? target = _dispatchTargets[selector];
-    if (target == null) {
-      target = typeFlowAnalysis.hierarchyCache.hierarchy.getDispatchTarget(
-          classNode, selector.name,
-          setter: selector.isSetter);
-      target ??= _DispatchableInvocation.kNoSuchMethodMarker;
-      _dispatchTargets[selector] = target;
+  Map<Name, Member> _initDispatchTargets(bool setters) {
+    Map<Name, Member> targets;
+    final superclass = this.superclass;
+    if (superclass != null) {
+      targets = Map.from(setters
+          ? superclass._dispatchTargetsSetters
+          : superclass._dispatchTargetsNonSetters);
+    } else {
+      targets = {};
     }
-    return identical(target, _DispatchableInvocation.kNoSuchMethodMarker)
-        ? null
-        : target;
+    for (Field f in classNode.fields) {
+      if (!f.isStatic && !f.isAbstract) {
+        if (!setters || f.hasSetter) {
+          targets[f.name] = f;
+        }
+      }
+    }
+    for (Procedure p in classNode.procedures) {
+      if (!p.isStatic && !p.isAbstract) {
+        if (p.isSetter == setters) {
+          targets[p.name] = p;
+        }
+      }
+    }
+    return targets;
+  }
+
+  Member? getDispatchTarget(Selector selector) {
+    return (selector.isSetter
+        ? _dispatchTargetsSetters
+        : _dispatchTargetsNonSetters)[selector.name];
   }
 
   String dump() => "$this {supers: $supertypes}";
@@ -1127,7 +1148,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
     for (var sup in c.supers) {
       supertypes.addAll(getTFClass(sup.classNode).supertypes);
     }
-    return new _TFClassImpl(++_classIdCounter, c, supertypes);
+    Class? superclassNode = c.superclass;
+    _TFClassImpl? superclass =
+        superclassNode != null ? getTFClass(superclassNode) : null;
+    return new _TFClassImpl(++_classIdCounter, c, superclass, supertypes);
   }
 
   ConcreteType addAllocatedClass(Class cl) {
