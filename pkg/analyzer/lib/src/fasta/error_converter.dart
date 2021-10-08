@@ -114,10 +114,6 @@ class FastaErrorReporter {
             length,
             [name]);
         return;
-      case "FUNCTION_TYPED_PARAMETER_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, offset, length);
-        return;
       case "GETTER_WITH_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
@@ -274,10 +270,6 @@ class FastaErrorReporter {
             CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
             offset,
             length);
-        return;
-      case "TYPE_PARAMETER_ON_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR, offset, length);
         return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(

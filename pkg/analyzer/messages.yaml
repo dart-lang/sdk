@@ -17468,9 +17468,6 @@ ParserErrorCode:
   FINAL_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
-  FUNCTION_TYPED_PARAMETER_VAR:
-    problemMessage: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
-    correctionMessage: Try replacing the keyword with a return type.
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
     correctionMessage: Try moving the getter outside the method or function, or converting the getter to a function.
@@ -17628,12 +17625,6 @@ ParserErrorCode:
   STATIC_TOP_LEVEL_DECLARATION:
     problemMessage: "Top-level declarations can't be declared to be static."
     correctionMessage: "Try removing the keyword 'static'."
-  TYPE_PARAMETER_ON_OPERATOR:
-    problemMessage: "Types parameters aren't allowed when defining an operator."
-    correctionMessage: Try removing the type parameters.
-    comment: |-
-      7.1.1 Operators: Type parameters are not syntactically supported on an
-      operator.
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to open a parameter group."
     correctionMessage: "Try inserting the '{0}' at the appropriate location."

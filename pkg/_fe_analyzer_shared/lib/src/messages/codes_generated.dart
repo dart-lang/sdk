@@ -4604,7 +4604,7 @@ const Code<Null> codeFunctionTypedParameterVar =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFunctionTypedParameterVar = const MessageCode(
     "FunctionTypedParameterVar",
-    analyzerCodes: <String>["FUNCTION_TYPED_PARAMETER_VAR"],
+    index: 119,
     problemMessage:
         r"""Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
     correctionMessage: r"""Try replacing the keyword with a return type.""");
@@ -8163,7 +8163,7 @@ const Code<Null> codeOperatorWithTypeParameters =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOperatorWithTypeParameters = const MessageCode(
     "OperatorWithTypeParameters",
-    analyzerCodes: <String>["TYPE_PARAMETER_ON_OPERATOR"],
+    index: 120,
     problemMessage:
         r"""Types parameters aren't allowed when defining an operator.""",
     correctionMessage: r"""Try removing the type parameters.""");
