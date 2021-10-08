@@ -1,18 +1,19 @@
 import 'dart:io';
+import 'package:source_maps/parser.dart';
 import 'package:source_span/source_span.dart';
 import 'dart2js_mapping.dart';
 
 abstract class FileProvider {
   String sourcesFor(Uri uri);
   SourceFile fileFor(Uri uri);
-  Dart2jsMapping mappingFor(Uri uri);
+  Dart2jsMapping? mappingFor(Uri uri);
 }
 
 class CachingFileProvider implements FileProvider {
   final Map<Uri, String> _sources = {};
   final Map<Uri, SourceFile> _files = {};
-  final Map<Uri, Dart2jsMapping> _mappings = {};
-  final Logger logger;
+  final Map<Uri, Dart2jsMapping?> _mappings = {};
+  final Logger? logger;
 
   CachingFileProvider({this.logger});
 
@@ -22,7 +23,7 @@ class CachingFileProvider implements FileProvider {
   SourceFile fileFor(Uri uri) =>
       _files[uri] ??= new SourceFile.fromString(sourcesFor(uri));
 
-  Dart2jsMapping mappingFor(Uri uri) =>
+  Dart2jsMapping? mappingFor(Uri uri) =>
       _mappings[uri] ??= parseMappingFor(uri, logger: logger);
 }
 
@@ -44,7 +45,7 @@ class DownloadedFileProvider extends CachingFileProvider {
 
   SourceFile fileFor(Uri uri) => super.fileFor(_localize(uri));
 
-  Dart2jsMapping mappingFor(Uri uri) => super.mappingFor(_localize(uri));
+  Dart2jsMapping? mappingFor(Uri uri) => super.mappingFor(_localize(uri));
 }
 
 class Logger {
@@ -57,3 +58,5 @@ class Logger {
 }
 
 var logger = Logger();
+
+SingleMapping parseSingleMapping(Map json) => parseJson(json) as SingleMapping;
