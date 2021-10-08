@@ -2545,7 +2545,9 @@ class ResourceHandle {
 
 @pragma("vm:entry-point")
 class _ResourceHandleImpl implements ResourceHandle {
+  @pragma("vm:entry-point")
   int _handle; // file descriptor on linux
+  @pragma("vm:entry-point")
   _ResourceHandleImpl(this._handle);
 
   @pragma("vm:external-name", "ResourceHandleImpl_toFile")
@@ -2572,6 +2574,7 @@ class _ResourceHandleImpl implements ResourceHandle {
   @pragma("vm:external-name", "ResourceHandleImpl_toRawDatagramSocket")
   external RawDatagramSocket toRawDatagramSocket();
 
+  @pragma("vm:entry-point")
   static final _ResourceHandleImpl _sentinel = _ResourceHandleImpl(-1);
 }
 
@@ -2581,11 +2584,16 @@ class SocketControlMessage {
       native "SocketControlMessage_fromHandles";
 }
 
+@pragma("vm:entry-point")
 class _SocketControlMessageImpl implements SocketControlMessage {
+  @pragma("vm:entry-point")
   final int level;
+  @pragma("vm:entry-point")
   final int type;
+  @pragma("vm:entry-point")
   final Uint8List data;
 
+  @pragma("vm:entry-point")
   _SocketControlMessageImpl(this.level, this.type, this.data);
 
   @pragma("vm:external-name", "SocketControlMessageImpl_extractHandles")

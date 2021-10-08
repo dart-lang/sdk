@@ -4803,19 +4803,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// list and the element type is known to be invariant so it can skip the
     /// type check.
     bool isNativeListInvariantAdd(InvocationExpression node) {
-      Expression receiver;
-      if (receiver != null && node.name.text == 'add') {
+      if (node is InstanceInvocation &&
+          node.isInvariant &&
+          node.name.text == 'add') {
         // The call to add is marked as invariant, so the type check on the
         // parameter to add is not needed.
+        var receiver = node.receiver;
         if (receiver is VariableGet &&
             receiver.variable.isFinal &&
             !receiver.variable.isLate) {
           // The receiver is a final variable, so it only contains the
           // initializer value. Also, avoid late variables in case the CFE
           // lowering of late variables is changed in the future.
-          if (receiver.variable.initializer is ListLiteral) {
+          var initializer = receiver.variable.initializer;
+          if (initializer is ListLiteral) {
             // The initializer is a list literal, so we know the list can be
             // grown, modified, and is represented by a JavaScript Array.
+            return true;
+          }
+          if (initializer is StaticInvocation &&
+              initializer.target.enclosingClass == _coreTypes.listClass &&
+              initializer.target.name.text == 'of' &&
+              initializer.arguments.named.isEmpty) {
+            // The initializer is a `List.of()` call from the dart:core library
+            // and the growable named argument has not been passed (it defaults
+            // to true).
             return true;
           }
         }

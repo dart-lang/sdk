@@ -693,6 +693,7 @@ Future testSocketMessage(String uniqueName) async {
           final receivedSocket = handles[0].toRawSocket();
           receivedSocket.write('Hello, server!\n'.codeUnits);
           socket.write('server replied'.codeUnits);
+          receivedSocket.close();
           break;
         case RawSocketEvent.readClosed:
           socket.close();

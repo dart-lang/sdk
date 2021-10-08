@@ -133,6 +133,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.LITERAL_WITH_CLASS,
   ParserErrorCode.LITERAL_WITH_NEW,
   ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS,
+  ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
+  ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR,
 ];
 
 class ParserErrorCode extends ErrorCode {
