@@ -103,7 +103,7 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
   Stream<List<int>> bind(Stream<String> stream) => super.bind(stream);
 }
 
-/// This class converts strings of only ASCII characters to bytes.
+/// Converts strings of only ASCII characters to bytes.
 ///
 /// Example:
 /// ```dart
@@ -204,7 +204,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 }
 
-/// This class converts ASCII bytes to strings
+/// Converts ASCII bytes to strings.
 ///
 /// Example:
 /// ```dart
@@ -218,8 +218,8 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// If `bytes` contains values that are not in the range 0 .. 127, the decoder
 /// throws [FormatException].
 ///
-/// If `allowInvalid` is set to true on constructor,
-/// the decoder replaces the invalid bytes using a character `U+FFFD` �.
+/// If `allowInvalid` is set to true,
+/// the decoder replaces the invalid bytes with the character `U+FFFD` �.
 ///
 /// Example:
 /// ```dart
