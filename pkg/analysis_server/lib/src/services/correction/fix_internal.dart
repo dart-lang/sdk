@@ -1202,6 +1202,9 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.newInstance,
     ],
+    HintCode.UNNECESSARY_IMPORT: [
+      RemoveUnusedImport.newInstance,
+    ],
 //    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
