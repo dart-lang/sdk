@@ -46,12 +46,14 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the struct class
+   * 0: the name of the subclass
+   * 1: the name of the superclass
    */
   static const FfiCode EMPTY_STRUCT = FfiCode(
     'EMPTY_STRUCT',
-    "Struct '{0}' is empty. Empty structs are undefined behavior.",
-    correctionMessage: "Try adding a field to '{0}' or use a different Struct.",
+    "The class '{0}' can’t be empty because it's a subclass of '{1}'.",
+    correctionMessage:
+        "Try adding a field to '{0}' or use a different superclass.",
   );
 
   /**
