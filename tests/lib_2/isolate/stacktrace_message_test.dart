@@ -5,40 +5,26 @@
 // @dart = 2.9
 
 import 'dart:isolate';
+
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 // Test that StackTrace objects can be sent between isolates spawned from
 // the same isolate using Isolate.spawn.
 
-void main() {
-  asyncStart();
-  ReceivePort reply = new ReceivePort();
+void main() async {
+  final reply = ReceivePort();
   Isolate.spawn(runTest, reply.sendPort);
-  reply.first.then((pair) {
-    StackTrace stack = pair[0];
-    String stackString = pair[1];
-    if (stack == null) {
-      print("Failed to send stack-trace");
-      print(stackString);
-      Expect.fail("Sending stack-trace");
-    }
-    Expect.equals(stackString, "!$stack");
-    print(stack);
-    asyncEnd();
-  });
+  final pair = await reply.first;
+  final stack = pair[0] as StackTrace;
+  final stackString = pair[1] as String;
+  Expect.isNotNull(stack);
+  Expect.equals(stackString, "$stack");
 }
 
 runTest(SendPort sendport) {
   try {
     throw 'sorry';
   } catch (e, stack) {
-    try {
-      sendport.send([stack, "$stack"]);
-      print("Stacktrace sent");
-    } catch (e, s) {
-      print("Stacktrace not sent");
-      sendport.send([null, "$e\n$s"]);
-    }
+    sendport.send([stack, "$stack"]);
   }
 }
