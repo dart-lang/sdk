@@ -205,11 +205,30 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       ObjectPtr raw = working_set.RemoveLast();
 
       const intptr_t cid = raw->GetClassId();
-      // Keep the list in sync with the one in message_snapshot.cc
+      // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
       switch (cid) {
+        // Can be shared.
+        case kOneByteStringCid:
+        case kTwoByteStringCid:
+        case kExternalOneByteStringCid:
+        case kExternalTwoByteStringCid:
+        case kMintCid:
+        case kImmutableArrayCid:
+        case kNeverCid:
+        case kSentinelCid:
+        case kInt32x4Cid:
+        case kSendPortCid:
+        case kCapabilityCid:
         case kRegExpCid:
-          // Can be shared, need to be explicitly listed to prevent inspection.
+        case kStackTraceCid:
           continue;
+        // Cannot be shared due to possibly being mutable boxes for unboxed
+        // fields in JIT, but can be transferred via Isolate.exit()
+        case kDoubleCid:
+        case kFloat32x4Cid:
+        case kFloat64x2Cid:
+          continue;
+
         case kClosureCid:
           closure ^= raw;
           // Only context has to be checked.
@@ -223,14 +242,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     error_found = true;                                                        \
     break;
 
-          MESSAGE_SNAPSHOT_ILLEGAL(FunctionType);
-          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-          MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
-          MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
-
           MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
           MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+          MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
 
         default:
           if (cid >= kNumPredefinedCids) {
