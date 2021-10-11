@@ -896,7 +896,7 @@ class LibraryCycle {
   /// the signatures of the cycles that the [libraries] reference
   /// directly.  So, indirectly it is based on the transitive closure of all
   /// files that [libraries] reference (but we don't compute these files).
-  late List<int> signature;
+  late Uint8List signature;
 
   /// The hash of all the paths of the files in this cycle.
   late String cyclePathsHash;

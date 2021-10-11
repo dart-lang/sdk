@@ -123,11 +123,11 @@ class FileState {
   Set<String>? _definedClassMemberNames;
   Set<String>? _definedTopLevelNames;
   Set<String>? _referencedNames;
-  List<int>? _unlinkedSignature;
+  Uint8List? _unlinkedSignature;
   String? _unlinkedKey;
   String? _informativeKey;
   AnalysisDriverUnlinkedUnit? _driverUnlinkedUnit;
-  List<int>? _apiSignature;
+  Uint8List? _apiSignature;
 
   UnlinkedUnit2? _unlinked2;
 
@@ -156,7 +156,7 @@ class FileState {
   );
 
   /// The unlinked API signature of the file.
-  List<int> get apiSignature => _apiSignature!;
+  Uint8List get apiSignature => _apiSignature!;
 
   /// The content of the file.
   String get content => _content!;
@@ -331,7 +331,7 @@ class FileState {
   UnlinkedUnit2 get unlinked2 => _unlinked2!;
 
   /// The MD5 signature based on the content, feature sets, language version.
-  List<int> get unlinkedSignature => _unlinkedSignature!;
+  Uint8List get unlinkedSignature => _unlinkedSignature!;
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
