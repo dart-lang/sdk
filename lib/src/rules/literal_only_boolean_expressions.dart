@@ -79,6 +79,17 @@ void bad() {
 }
 ```
 
+**NOTE:** that an exception is made for the common `while (true) { }` idiom,
+which is often reasonably prefered to the equivalent `for (;;)`.
+
+**GOOD:**
+```dart
+void good() {
+  while (true) {
+    // Do stuff.
+  }
+}
+```
 ''';
 
 bool _onlyLiterals(Expression? rawExpression) {
@@ -149,7 +160,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    if (_onlyLiterals(node.condition)) {
+    var condition = node.condition;
+    // Allow `while (true) { }`
+    // See: https://github.com/dart-lang/linter/issues/453
+    if (condition is BooleanLiteral && condition.value) {
+      return;
+    }
+
+    if (_onlyLiterals(condition)) {
       rule.reportLint(node);
     }
   }
