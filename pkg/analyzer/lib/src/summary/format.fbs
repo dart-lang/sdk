@@ -293,25 +293,6 @@ table AnalysisDriverUnitIndex {
   usedNames:[uint] (id: 14);
 }
 
-/// Information about an unlinked unit.
-table AnalysisDriverUnlinkedUnit {
-  /// List of class member names defined by the unit.
-  definedClassMemberNames:[string] (id: 2);
-
-  /// List of top-level names defined by the unit.
-  definedTopLevelNames:[string] (id: 1);
-
-  /// List of external names referenced by the unit.
-  referencedNames:[string] (id: 0);
-
-  /// List of names which are used in `extends`, `with` or `implements` clauses
-  /// in the file. Import prefixes and type arguments are not included.
-  subtypedNames:[string] (id: 3);
-
-  /// Unlinked information for the unit.
-  unit2:UnlinkedUnit2 (id: 4);
-}
-
 /// Information about a single declaration.
 table AvailableDeclaration {
   children:[AvailableDeclaration] (id: 0);

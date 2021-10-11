@@ -259,34 +259,6 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   List<int> get usedNames;
 }
 
-/// Information about an unlinked unit.
-@TopLevel('ADUU')
-abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
-  factory AnalysisDriverUnlinkedUnit.fromBuffer(List<int> buffer) =>
-      generated.readAnalysisDriverUnlinkedUnit(buffer);
-
-  /// List of class member names defined by the unit.
-  @Id(2)
-  List<String> get definedClassMemberNames;
-
-  /// List of top-level names defined by the unit.
-  @Id(1)
-  List<String> get definedTopLevelNames;
-
-  /// List of external names referenced by the unit.
-  @Id(0)
-  List<String> get referencedNames;
-
-  /// List of names which are used in `extends`, `with` or `implements` clauses
-  /// in the file. Import prefixes and type arguments are not included.
-  @Id(3)
-  List<String> get subtypedNames;
-
-  /// Unlinked information for the unit.
-  @Id(4)
-  UnlinkedUnit2? get unit2;
-}
-
 /// Information about a single declaration.
 abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(0)
