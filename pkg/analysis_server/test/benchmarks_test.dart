@@ -27,8 +27,8 @@ void defineTests() {
 
     const benchmarkIdsToSkip = {
       'analysis-flutter-analyze',
-      'das-flutter-completion',
-      'lsp-flutter-completion'
+      'das-flutter',
+      'lsp-flutter',
     };
 
     for (var benchmarkId in benchmarks) {
