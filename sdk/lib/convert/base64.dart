@@ -223,6 +223,14 @@ class Base64Codec extends Codec<List<int>, String> {
 /// Encodes lists of bytes using base64 or base64url encoding.
 ///
 /// The results are ASCII strings using a restricted alphabet.
+///
+/// Example:
+/// ```dart
+///  const Base64Encoder base64Encoder = Base64Encoder();
+///  const String sampleText = 'Dart is opensource';
+///  final String encodedSample = base64Encoder.convert(sampleText.codeUnits);
+///  print(encodedSample); // RGFydCBpcyBvcGVuc291cmNl
+/// ```
 class Base64Encoder extends Converter<List<int>, String> {
   final bool _urlSafe;
 
@@ -469,6 +477,18 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 /// This decoder accepts both base64 and base64url ("url-safe") encodings.
 ///
 /// The encoding is required to be properly padded.
+///
+/// Example:
+/// ```dart
+/// const Base64Decoder base64Decoder = Base64Decoder();
+/// const String base64Bytes = 'RGFydCBpcyBvcGVuc291cmNl';
+/// final List<int> decodedSample = base64Decoder.convert(base64Bytes);
+/// // decodedSample: [68, 97, 114, 116, 32, 105, 115, 32, 111, 112, 101, 110, 115,
+/// // 111, 117, 114, 99, 101]
+///
+/// // print as string using utf8 decoder
+/// // print(utf8.decode(decodedSample)); // Dart is opensource
+/// ```
 class Base64Decoder extends Converter<String, List<int>> {
   const Base64Decoder();
 
