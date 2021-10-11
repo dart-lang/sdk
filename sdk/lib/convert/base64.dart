@@ -489,7 +489,7 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 /// // 111, 117, 114, 99, 101]
 ///
 /// // print as string using utf8 decoder
-/// // print(utf8.decode(decodedSample)); // Dart is opensource
+/// print(utf8.decode(decodedSample)); // Dart is opensource
 /// ```
 class Base64Decoder extends Converter<String, List<int>> {
   const Base64Decoder();
