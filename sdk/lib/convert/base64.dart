@@ -478,6 +478,8 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 ///
 /// The encoding is required to be properly padded.
 ///
+/// Throws a [FormatException] if the input is not valid base64 data
+///
 /// Example:
 /// ```dart
 /// const Base64Decoder base64Decoder = Base64Decoder();
