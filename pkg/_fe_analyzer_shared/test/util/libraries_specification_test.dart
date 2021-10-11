@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:front_end/src/base/libraries_specification.dart';
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -91,7 +89,7 @@ void main() {
       ''';
       var spec = LibrariesSpecification.parse(
           Uri.parse('org-dartlang-test:///f.json'), jsonString);
-      expect(spec.specificationFor("none").libraryInfoFor("c").patches.first,
+      expect(spec.specificationFor("none").libraryInfoFor("c")!.patches.first,
           Uri.parse('org-dartlang-test:///a.dart'));
 
       jsonString = '''
@@ -108,7 +106,7 @@ void main() {
       ''';
       spec = LibrariesSpecification.parse(
           Uri.parse('org-dartlang-test:///f.json'), jsonString);
-      expect(spec.specificationFor("none").libraryInfoFor("c").patches.first,
+      expect(spec.specificationFor("none").libraryInfoFor("c")!.patches.first,
           Uri.parse('org-dartlang-test:///a.dart'));
     });
 
@@ -120,7 +118,7 @@ void main() {
           Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
       expect(spec, isNotNull);
       expect(
-          spec.specificationFor('none').libraryInfoFor('c').patches, isEmpty);
+          spec.specificationFor('none').libraryInfoFor('c')!.patches, isEmpty);
     });
 
     test('library paths are resolved from spec uri', () async {
@@ -130,7 +128,7 @@ void main() {
 
       var spec = LibrariesSpecification.parse(
           Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
-      expect(spec.specificationFor('none').libraryInfoFor('c').uri,
+      expect(spec.specificationFor('none').libraryInfoFor('c')!.uri,
           Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
     });
 
@@ -153,9 +151,9 @@ void main() {
 
       var spec = LibrariesSpecification.parse(
           Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
-      expect(spec.specificationFor('none').libraryInfoFor('c').patches[0],
+      expect(spec.specificationFor('none').libraryInfoFor('c')!.patches[0],
           Uri.parse('org-dartlang-test:///one/a/p1.dart'));
-      expect(spec.specificationFor('none').libraryInfoFor('c').patches[1],
+      expect(spec.specificationFor('none').libraryInfoFor('c')!.patches[1],
           Uri.parse('org-dartlang-test:///one/a/p2.dart'));
     });
 
@@ -192,11 +190,11 @@ void main() {
       var spec = LibrariesSpecification.parse(
           Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
 
-      expect(spec.specificationFor('vm').libraryInfoFor('foo').uri,
+      expect(spec.specificationFor('vm').libraryInfoFor('foo')!.uri,
           Uri.parse('org-dartlang-test:///one/two/a/main.dart'));
-      expect(spec.specificationFor('vm').libraryInfoFor('bar').uri,
+      expect(spec.specificationFor('vm').libraryInfoFor('bar')!.uri,
           Uri.parse('org-dartlang-test:///one/two/b/main.dart'));
-      expect(spec.specificationFor('none').libraryInfoFor('c').uri,
+      expect(spec.specificationFor('none').libraryInfoFor('c')!.uri,
           Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
     });
 
@@ -242,12 +240,12 @@ void main() {
       ''';
       var spec = LibrariesSpecification.parse(
           Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
+      expect(spec.specificationFor('vm').libraryInfoFor('foo')!.isSupported,
+          false);
       expect(
-          spec.specificationFor('vm').libraryInfoFor('foo').isSupported, false);
+          spec.specificationFor('vm').libraryInfoFor('bar')!.isSupported, true);
       expect(
-          spec.specificationFor('vm').libraryInfoFor('bar').isSupported, true);
-      expect(
-          spec.specificationFor('vm').libraryInfoFor('baz').isSupported, true);
+          spec.specificationFor('vm').libraryInfoFor('baz')!.isSupported, true);
     });
   });
 

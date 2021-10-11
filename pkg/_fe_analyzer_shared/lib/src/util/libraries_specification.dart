@@ -87,11 +87,9 @@
 /// https://github.com/dart-lang/sdk/issues/28836), but for now we need to pay
 /// close attention to change them consistently.
 
-// TODO(sigmund): move this file to a shared package.
 import 'dart:convert' show jsonDecode, jsonEncode;
 
-import 'package:_fe_analyzer_shared/src/util/relativize.dart'
-    show relativizeUri, isWindows;
+import 'relativize.dart' show relativizeUri, isWindows;
 
 /// Contents from a single library specification file.
 ///

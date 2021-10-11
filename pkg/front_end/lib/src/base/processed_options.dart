@@ -8,6 +8,12 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show
+        LibrariesSpecification,
+        LibrariesSpecificationException,
+        TargetLibrariesSpecification;
+
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart'
@@ -69,12 +75,6 @@ import '../fasta/problems.dart' show DebugAbort, unimplemented;
 import '../fasta/ticker.dart' show Ticker;
 
 import '../fasta/uri_translator.dart' show UriTranslator;
-
-import 'libraries_specification.dart'
-    show
-        LibrariesSpecification,
-        LibrariesSpecificationException,
-        TargetLibrariesSpecification;
 
 import 'nnbd_mode.dart';
 

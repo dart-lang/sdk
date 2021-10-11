@@ -55,8 +55,8 @@ class CompilerOptions {
   ///
   /// A libraries specification file is a JSON file that describes how to map
   /// `dart:*` libraries to URIs in the underlying [fileSystem].  See
-  /// `package:front_end/src/base/libraries_specification.dart` for details on
-  /// the format.
+  /// `package:_fe_analyzer_shared/src/util/libraries_specification.dart` for
+  /// details on the format.
   ///
   /// If a value is not specified and `compileSdk = true`, the compiler will
   /// infer at a default location under [sdkRoot], typically under
