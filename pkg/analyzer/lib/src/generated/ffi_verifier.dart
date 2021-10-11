@@ -78,7 +78,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           compound = node;
           if (node.declaredElement!.isEmptyStruct) {
             _errorReporter.reportErrorForNode(
-                FfiCode.EMPTY_STRUCT, node.name, [node.name.name]);
+                FfiCode.EMPTY_STRUCT, node.name, [node.name.name, className]);
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -722,10 +722,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
-          // TODO(brianwilkerson) There are no tests for this branch. Ensure
-          //  that the diagnostic is correct and add tests.
-          _errorReporter
-              .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
+          _errorReporter.reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [
+            clazz.name,
+            clazz.supertype!.getDisplayString(withNullability: false)
+          ]);
         }
         _validatePackingNesting(compound!.declaredElement!, clazz,
             errorNode: fieldType);
