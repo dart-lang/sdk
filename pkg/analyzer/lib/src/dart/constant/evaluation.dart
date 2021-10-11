@@ -2206,7 +2206,7 @@ class _InstanceCreationEvaluator {
       if (baseParameter.isNamed) {
         argumentValue = _namedValues[baseParameter.name];
         errorTarget = _namedNodes[baseParameter.name];
-      } else if (i < arguments.length) {
+      } else if (i < _argumentValues.length) {
         argumentValue = _argumentValues[i];
         errorTarget = arguments[i];
       }
