@@ -13,7 +13,6 @@ import 'package:observatory_2/src/elements/nav/isolate_menu.dart';
 import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class SentinelViewElement extends CustomElement implements Renderable {
   RenderingScheduler<SentinelViewElement> _r;
@@ -82,8 +81,6 @@ class SentinelViewElement extends CustomElement implements Renderable {
             ..text = 'Sentinel: #{_sentinel.valueAsString}',
           new HRElement(),
           new DivElement()..text = _sentinelKindToDescription(_sentinel.kind),
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

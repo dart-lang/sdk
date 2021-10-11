@@ -12,7 +12,6 @@ import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
 import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class ErrorViewElement extends CustomElement implements Renderable {
   RenderingScheduler<ErrorViewElement> _r;
@@ -67,7 +66,6 @@ class ErrorViewElement extends CustomElement implements Renderable {
             ..classes = ['well']
             ..children = <Element>[new PreElement()..text = error.message]
         ],
-      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

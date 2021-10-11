@@ -16,7 +16,6 @@ import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 import 'package:observatory_2/utils.dart';
 
 class VMViewElement extends CustomElement implements Renderable {
@@ -119,7 +118,6 @@ class VMViewElement extends CustomElement implements Renderable {
       describeVM(),
       describeIsolateGroups(),
       describeSystemIsolateGroups(),
-      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

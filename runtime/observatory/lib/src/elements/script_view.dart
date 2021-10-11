@@ -21,7 +21,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/script_inset.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class ScriptViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<ScriptViewElement> _r;
@@ -149,7 +148,6 @@ class ScriptViewElement extends CustomElement implements Renderable {
           new ScriptInsetElement(_isolate, _script, _scripts, _objects, _events,
                   currentPos: _pos, queue: _r.queue)
               .element,
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

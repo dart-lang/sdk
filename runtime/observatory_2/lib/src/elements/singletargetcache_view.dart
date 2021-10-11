@@ -17,7 +17,6 @@ import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
 import 'package:observatory_2/src/elements/object_common.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class SingleTargetCacheViewElement extends CustomElement implements Renderable {
   RenderingScheduler<SingleTargetCacheViewElement> _r;
@@ -170,8 +169,6 @@ class SingleTargetCacheViewElement extends CustomElement implements Renderable {
                     ]
                 ]
             ],
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

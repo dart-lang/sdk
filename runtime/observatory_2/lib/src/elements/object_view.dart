@@ -17,7 +17,6 @@ import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
 import 'package:observatory_2/src/elements/object_common.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class ObjectViewElement extends CustomElement implements Renderable {
   RenderingScheduler<ObjectViewElement> _r;
@@ -117,8 +116,6 @@ class ObjectViewElement extends CustomElement implements Renderable {
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element,
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }
