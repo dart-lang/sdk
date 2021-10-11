@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement != null) {
       var fileName = declaredElement.source.shortName;
       if (!isValidDartFileName(fileName)) {
-        rule.reportLint(node);
+        rule.reportLintForOffset(0, 0);
       }
     }
   }
