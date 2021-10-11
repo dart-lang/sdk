@@ -14,6 +14,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken, Token;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show LibraryInfo;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
@@ -40,9 +42,6 @@ import 'package:front_end/src/api_prototype/file_system.dart'
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
-
-import 'package:front_end/src/base/libraries_specification.dart'
-    show LibraryInfo;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;

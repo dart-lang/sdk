@@ -39,7 +39,8 @@ class DateTime {
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
       {bool isUtc: false})
       : this._withValue(
-            millisecondsSinceEpoch * Duration.microsecondsPerMillisecond,
+            _validateMilliseconds(millisecondsSinceEpoch) *
+                Duration.microsecondsPerMillisecond,
             isUtc: isUtc);
 
   @patch
@@ -57,6 +58,13 @@ class DateTime {
     if (_value == -1) throw new ArgumentError();
     if (isUtc == null) throw new ArgumentError();
   }
+
+  static int _validateMilliseconds(int millisecondsSinceEpoch) =>
+      RangeError.checkValueInInterval(
+          millisecondsSinceEpoch,
+          -_maxMillisecondsSinceEpoch,
+          _maxMillisecondsSinceEpoch,
+          "millisecondsSinceEpoch");
 
   @patch
   DateTime._now()

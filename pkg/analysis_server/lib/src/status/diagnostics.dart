@@ -994,7 +994,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     h3('Current registrations');
     p('Showing the LSP method name and the registration params sent to the '
         'client.');
-    prettyJson(server.capabilitiesComputer.currentRegistrations);
+    prettyJson(server.capabilitiesComputer.currentRegistrations.toList());
   }
 }
 
