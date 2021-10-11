@@ -1188,6 +1188,34 @@ void testIsoString() {
   Expect.equals("-010000-01-01T23:49:59.989979Z", d.toIso8601String());
 }
 
+void testRegression46966() {
+  // See http://dartbug.com/46966
+  // The constructor allowed numbers larger than 100_000_000 days
+  // from epoch, contrary to documentation (and web behavior).
+
+  // Maximally allowed milliseconds on either side of epoch
+  // (±100 000 000 days).
+  var maxMilliseconds = 100000000 * 24 * 60 * 60 * 1000;
+  var maxDate = DateTime.fromMillisecondsSinceEpoch(maxMilliseconds);
+  var minDate = DateTime.fromMillisecondsSinceEpoch(-maxMilliseconds);
+
+  // Throws if greater.
+  Expect.throws(() => DateTime.fromMillisecondsSinceEpoch(maxMilliseconds + 1));
+  Expect.throws(
+      () => DateTime.fromMillisecondsSinceEpoch(-maxMilliseconds - 1));
+
+  // But also if much greater.
+  // The badMin value overflows 64-bits when multiplied by 1000.
+  var badMin = 0x20c49ba5e353f8;
+  Expect.throws(() => DateTime.fromMillisecondsSinceEpoch(badMin));
+  Expect.throws(() => DateTime.fromMillisecondsSinceEpoch(-badMin));
+  Expect.throws(() => DateTime.fromMillisecondsSinceEpoch(badMin + 1));
+  Expect.throws(() => DateTime.fromMillisecondsSinceEpoch(-badMin - 1));
+  var badMax = double.maxFinite.toInt(); // 2^63-1 on VM, max double on JS.
+  Expect.throws(() => DateTime.fromMillisecondsSinceEpoch(badMax));
+  Expect.throws(() => DateTime.fromMillisecondsSinceEpoch(-badMax - 1));
+}
+
 void main() {
   testNow();
   testMillisecondsSinceEpoch();
@@ -1203,4 +1231,5 @@ void main() {
   testWeekday();
   testToStrings();
   testIsoString();
+  testRegression46966();
 }
