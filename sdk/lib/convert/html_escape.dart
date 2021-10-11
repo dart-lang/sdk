@@ -158,12 +158,26 @@ class HtmlEscapeMode {
 ///
 /// Example:
 /// ```dart
-/// const sample = 'Text & subject, <, >, "quoted", \'single-quoted\', /';
+/// const HtmlEscape htmlEscape = HtmlEscape();
+/// String unescaped = 'Text & subject';
+/// String escaped = htmlEscape.convert(unescaped);
+/// print(escaped); // Text &amp; subject
 ///
-/// final htmlEscaped = const HtmlEscape().convert(sample);
-/// print(htmlEscaped);
-/// // Text &amp; subject, &lt;, &gt;, &quot;quoted&quot;,
-/// // &#39;single-quoted&#39;, &#47;
+/// unescaped = '10 > 1 and 1 < 10';
+/// escaped = htmlEscape.convert(unescaped);
+/// print(escaped); // 10 &gt; 1 and 1 &lt; 10
+///
+/// unescaped = "Single-quoted: 'text'";
+/// escaped = htmlEscape.convert(unescaped);
+/// print(escaped); // Single-quoted: &#39;text&#39;
+///
+/// unescaped = 'Double-quoted: "text"';
+/// escaped = htmlEscape.convert(unescaped);
+/// print(escaped); // Double-quoted: &quot;text&quot;
+///
+/// unescaped = 'Path: /system/ ';
+/// escaped = htmlEscape.convert(unescaped);
+/// print(escaped); // Path: &#47;system&#47;
 /// ```
 class HtmlEscape extends Converter<String, String> {
   /// The [HtmlEscapeMode] used by the converter.
