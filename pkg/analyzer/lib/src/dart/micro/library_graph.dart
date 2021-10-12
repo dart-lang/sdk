@@ -277,14 +277,6 @@ class FileState {
         var decoded = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!);
         unlinked2 = decoded.unlinkedUnit!;
 
-        var unitDeclarations = decoded.topLevelDeclarations!;
-        topLevelDeclarations = TopLevelDeclarations(
-          extensionNames: unitDeclarations.extensionNames.toList(),
-          functionNames: unitDeclarations.functionNames.toList(),
-          typeNames: unitDeclarations.typeNames.toList(),
-          variableNames: unitDeclarations.variableNames.toList(),
-        );
-
         performance.run('prefetch', (_) {
           _prefetchDirectReferences(unlinked2);
         });
@@ -295,8 +287,18 @@ class FileState {
     }
 
     // Read the unlinked bundle.
-    unlinked2 = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!).unlinkedUnit!;
+    var decoded = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!);
+    unlinked2 = decoded.unlinkedUnit!;
     _apiSignature = Uint8List.fromList(unlinked2.apiSignature);
+
+    // Copy information about top-level declarations.
+    var unitDeclarations = decoded.topLevelDeclarations!;
+    topLevelDeclarations = TopLevelDeclarations(
+      extensionNames: unitDeclarations.extensionNames.toList(),
+      functionNames: unitDeclarations.functionNames.toList(),
+      typeNames: unitDeclarations.typeNames.toList(),
+      variableNames: unitDeclarations.variableNames.toList(),
+    );
 
     // Build the graph.
     for (var directive in unlinked2.imports) {
