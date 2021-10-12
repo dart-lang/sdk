@@ -1,3 +1,11 @@
+# 1.13.0
+
+- allow `while (true) { ...}` in `literal_only_boolean_expressions`
+- fixed `file_names` to report at the start of the file (not the entire 
+  compilation unit)
+- fixed `prefer_collection_literals` named typed param false positive
+- control flow improvements for `use_build_context_synchronously`
+
 # 1.12.0
 
 - fixed `unnecessary_lambdas` false positive for const constructor invocations
