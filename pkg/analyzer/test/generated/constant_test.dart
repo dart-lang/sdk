@@ -48,50 +48,6 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
   }
 
-  test_constructorInvocation_assert_false() async {
-    var result = await _getExpressionValue("const C(0)", context: '''
-class C {
-  const C(int x) : assert(x > 0);
-}
-''');
-    expect(result.isValid, isFalse);
-  }
-
-  test_constructorInvocation_assert_inherited() async {
-    var result = await _getExpressionValue(
-      "const Center(name: 'v')",
-      context: '''
-class Align {
-  final double? widthFactor;
-  const Align({String name, this.widthFactor})
-        assert(widthFactor == null || widthFactor >= 0.0);
-}
-class Center extends Align {
-  const Center({String name})
-    : super(name: name);
-}
-''',
-    );
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'Center');
-    DartObject superclassFields =
-        value.getField(GenericState.SUPERCLASS_FIELD)!;
-    DartObject widthFactor = superclassFields.getField('widthFactor')!;
-    expect(widthFactor.isNull, isTrue);
-  }
-
-  test_constructorInvocation_assert_true() async {
-    var result = await _getExpressionValue("const C(3)", context: '''
-class C {
-  const C(int x) : assert(x > 0);
-}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'C');
-  }
-
   test_constructorInvocation_fieldInitializer() async {
     var result = await _getExpressionValue("const C(2)", context: '''
 class C {
