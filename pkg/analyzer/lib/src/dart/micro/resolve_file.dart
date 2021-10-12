@@ -545,7 +545,7 @@ class FileResolver {
           file.exists,
           file.getContent(),
           file.lineInfo,
-          file.unlinked2.hasPartOfDirective,
+          file.unlinked.unit.hasPartOfDirective,
           fileResult.unit,
           fileResult.errors,
         );
@@ -856,7 +856,7 @@ class _LibraryContext {
 
             String? partUriStr;
             if (partIndex >= 0) {
-              partUriStr = libraryFile.unlinked2.parts[partIndex];
+              partUriStr = libraryFile.unlinked.unit.parts[partIndex];
             }
             partIndex++;
 
