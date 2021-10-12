@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -131,8 +132,11 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
   test_writeAsBytesSync_notExisting() {
     File file = getFile(exists: false);
 
-    expect(() => file.writeAsBytesSync(<int>[99, 99]),
-        throwsA(isFileSystemException));
+    var bytes = Uint8List.fromList([99, 99]);
+    expect(
+      () => file.writeAsBytesSync(bytes),
+      throwsA(isFileSystemException),
+    );
   }
 
   @override

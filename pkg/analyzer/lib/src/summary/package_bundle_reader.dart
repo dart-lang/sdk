@@ -162,7 +162,7 @@ class SummaryDataStore {
     Uint8List bytes;
     if (resourceProvider != null) {
       var file = resourceProvider.getFile(path);
-      bytes = file.readAsBytesSync() as Uint8List;
+      bytes = file.readAsBytesSync();
     } else {
       io.File file = io.File(path);
       bytes = file.readAsBytesSync();
