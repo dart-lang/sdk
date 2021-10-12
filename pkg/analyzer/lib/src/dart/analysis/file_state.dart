@@ -404,11 +404,8 @@ class FileState {
       _informativeKey = '$signatureHex.ast';
     }
 
-    // Prepare bytes of the unlinked bundle - existing or new.
-    var bytes = _getUnlinkedBytes();
-
-    // Read the unlinked bundle.
-    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBytes(bytes);
+    // Prepare the unlinked unit.
+    _driverUnlinkedUnit = _getUnlinkedUnit();
     _unlinked2 = _driverUnlinkedUnit!.unit;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
@@ -493,11 +490,11 @@ class FileState {
     return _fsState.getFileForUri(absoluteUri);
   }
 
-  /// Return the bytes of the unlinked summary - existing or new.
-  Uint8List _getUnlinkedBytes() {
+  /// Return the unlinked unit, from bytes or new.
+  AnalysisDriverUnlinkedUnit _getUnlinkedUnit() {
     var bytes = _fsState._byteStore.get(_unlinkedKey!);
     if (bytes != null && bytes.isNotEmpty) {
-      return bytes;
+      return AnalysisDriverUnlinkedUnit.fromBytes(bytes);
     }
 
     var unit = parse();
@@ -506,17 +503,18 @@ class FileState {
       var definedNames = computeDefinedNames(unit);
       var referencedNames = computeReferencedNames(unit);
       var subtypedNames = computeSubtypedNames(unit);
-      var bytes = AnalysisDriverUnlinkedUnit(
+      var driverUnlinkedUnit = AnalysisDriverUnlinkedUnit(
         definedTopLevelNames: definedNames.topLevelNames,
         definedClassMemberNames: definedNames.classMemberNames,
         referencedNames: referencedNames,
         subtypedNames: subtypedNames,
         unit: unlinkedUnit,
-      ).toBytes();
+      );
+      var bytes = driverUnlinkedUnit.toBytes();
       _fsState._byteStore.put(_unlinkedKey!, bytes);
       counterUnlinkedBytes += bytes.length;
       counterUnlinkedLinkedBytes += bytes.length;
-      return bytes;
+      return driverUnlinkedUnit;
     });
   }
 
