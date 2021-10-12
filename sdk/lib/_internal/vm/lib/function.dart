@@ -10,7 +10,8 @@ class _Closure implements Function {
     throw "Unreachable";
   }
 
-  bool operator ==(Object other) native "Closure_equals";
+  @pragma("vm:external-name", "Closure_equals")
+  external bool operator ==(Object other);
 
   int get hashCode {
     _hash ??= _computeHash();
@@ -19,7 +20,8 @@ class _Closure implements Function {
 
   _Closure get call => this;
 
-  int _computeHash() native "Closure_computeHash";
+  @pragma("vm:external-name", "Closure_computeHash")
+  external int _computeHash();
 
   // No instance fields should be declared before the following fields whose
   // offsets must be identical in Dart and C++.

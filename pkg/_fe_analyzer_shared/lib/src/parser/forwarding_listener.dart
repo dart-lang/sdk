@@ -651,9 +651,9 @@ class ForwardingListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
-    listener?.endExtensionDeclaration(
-        extensionKeyword, typeKeyword, onKeyword, endToken);
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+    listener?.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
+        showKeyword, hideKeyword, endToken);
   }
 
   @override
@@ -1160,6 +1160,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    listener?.handleExtensionShowHide(
+        showKeyword, showElementCount, hideKeyword, hideElementCount);
+  }
+
+  @override
   void handleClassWithClause(Token withKeyword) {
     listener?.handleClassWithClause(withKeyword);
   }
@@ -1278,6 +1285,11 @@ class ForwardingListener implements Listener {
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     listener?.handleFunctionBodySkipped(token, isExpressionBody);
+  }
+
+  @override
+  void handleShowHideIdentifier(Token? modifier, Token identifier) {
+    listener?.handleShowHideIdentifier(modifier, identifier);
   }
 
   @override

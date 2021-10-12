@@ -825,6 +825,7 @@ rows
 runtimes
 rv
 sandboxed
+sanitize
 saves
 scans
 scheduler
@@ -926,6 +927,7 @@ timeout
 timer
 timings
 tinv
+tk
 told
 touch
 tpt

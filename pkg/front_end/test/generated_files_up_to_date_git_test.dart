@@ -20,7 +20,7 @@ import 'utils/io_utils.dart' show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();
 
-void main() async {
+Future<void> main() async {
   messages();
   experimentalFlags();
   directParserAstHelper();

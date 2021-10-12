@@ -156,7 +156,7 @@ class Foo<U extends core::Object* = dynamic> extends core::Object {
       return null;
     function foo6Prime() → core::List<invalid-type>*
       return null;
-    invalid-type foo7 = (invalid-type y) → invalid-type => y;
+    (invalid-type) →* void foo7 = (invalid-type y) → invalid-type => y;
     (core::List<invalid-type>*) →* void foo7Prime = (core::List<invalid-type>* y) → core::List<invalid-type>* => y;
   }
   static method foo8() → () →* invalid-type {

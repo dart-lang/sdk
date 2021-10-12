@@ -23,7 +23,11 @@ void CPU::FlushICache(uword start, uword size) {
 }
 
 const char* CPU::Id() {
-  return "x64";
+  return
+#if defined(USING_SIMULATOR)
+      "sim"
+#endif  // !defined(USING_SIMULATOR)
+      "x64";
 }
 
 const char* HostCPUFeatures::hardware_ = nullptr;

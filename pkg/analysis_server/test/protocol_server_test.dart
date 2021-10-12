@@ -254,7 +254,9 @@ class EnumTest {
     // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
     // use SearchResultKind inside the analysis server?
     EnumTester<MatchKind, SearchResultKind>()
-        .run(newSearchResultKind_fromEngine);
+        .run(newSearchResultKind_fromEngine, exceptions: {
+      MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
+    });
   }
 }
 

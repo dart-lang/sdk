@@ -94,30 +94,34 @@ class FfiNativeTransformer extends Transformer {
     assert(currentLibrary != null);
     final params = node.function.positionalParameters;
     final functionName = annotationConst
-        .fieldValues[ffiNativeNameField.getterReference] as StringConstant;
+        .fieldValues[ffiNativeNameField.fieldReference] as StringConstant;
     final isLeaf = annotationConst
-        .fieldValues[ffiNativeIsLeafField.getterReference] as BoolConstant;
+        .fieldValues[ffiNativeIsLeafField.fieldReference] as BoolConstant;
 
     // double Function(double)
     final DartType dartType =
         node.function.computeThisFunctionType(Nullability.nonNullable);
     // Double Function(Double)
-    final nativeType = annotationConst.typeArguments[0];
+    final nativeType = annotationConst.typeArguments[0] as FunctionType;
     // InterfaceType(NativeFunction<Double Function(Double)>*)
     final DartType nativeInterfaceType =
         InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeType]);
 
+    // Derive number of arguments from the native function signature.
+    final args_n = nativeType.positionalParameters.length;
+
     // TODO(dartbug.com/31579): Add `..fileOffset`s once we can handle these in
     // patch files.
 
-    // _ffi_resolver('dart:math', 'Math_sqrt')
+    // _ffi_resolver('dart:math', 'Math_sqrt', 1)
     final resolverInvocation = FunctionInvocation(
         FunctionAccessKind.FunctionType,
         StaticGet(resolverField),
         Arguments([
           ConstantExpression(
               StringConstant(currentLibrary!.importUri.toString())),
-          ConstantExpression(functionName)
+          ConstantExpression(functionName),
+          ConstantExpression(IntConstant(args_n)),
         ]),
         functionType: resolverField.type as FunctionType);
 
@@ -151,7 +155,7 @@ class FfiNativeTransformer extends Transformer {
       parent.addField(funcPtrField);
     } else {
       throw 'Unexpected parent of @FfiNative function. '
-        'Expected Class or Library, but found ${parent}.';
+          'Expected Class or Library, but found ${parent}.';
     }
 
     // _@FfiNative__square_root(x)

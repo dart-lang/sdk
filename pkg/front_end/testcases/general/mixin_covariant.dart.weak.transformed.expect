@@ -13,7 +13,7 @@ class M1 extends core::Object {
   synthetic constructor •() → self::M1*
     : super core::Object::•()
     ;
-  method method(covariant core::int* a, core::int* b) → dynamic {}
+  method method(covariant-by-declaration core::int* a, core::int* b) → dynamic {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -29,7 +29,7 @@ class M2 extends core::Object {
   synthetic constructor •() → self::M2*
     : super core::Object::•()
     ;
-  method method(core::int* a, covariant core::int* b) → dynamic {}
+  method method(core::int* a, covariant-by-declaration core::int* b) → dynamic {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -45,7 +45,7 @@ abstract class _C&Object&M1 extends core::Object implements self::M1 /*isAnonymo
   const synthetic constructor •() → self::_C&Object&M1*
     : super core::Object::•()
     ;
-  method method(covariant core::int* a, core::int* b) → dynamic {}
+  method method(covariant-by-declaration core::int* a, core::int* b) → dynamic {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -61,7 +61,7 @@ abstract class _C&Object&M1&M2 extends self::_C&Object&M1 implements self::M2 /*
   const synthetic constructor •() → self::_C&Object&M1&M2*
     : super self::_C&Object&M1::•()
     ;
-  method method(covariant core::int* a, covariant core::int* b) → dynamic {}
+  method method(covariant-by-declaration core::int* a, covariant-by-declaration core::int* b) → dynamic {}
 }
 class C extends self::_C&Object&M1&M2 {
   synthetic constructor •() → self::C*
@@ -72,9 +72,9 @@ class Direct extends core::Object {
   synthetic constructor •() → self::Direct*
     : super core::Object::•()
     ;
-  method positional(covariant core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void {}
-  method optional([covariant core::int* a = #C1, core::int* b = #C1, covariant core::int* c = #C1, core::int* d = #C1]) → void {}
-  method named({covariant core::int* a = #C1, core::int* b = #C1, covariant core::int* c = #C1, core::int* d = #C1}) → void {}
+  method positional(covariant-by-declaration core::int* a, core::int* b, covariant-by-declaration core::int* c, core::int* d, core::int* e) → void {}
+  method optional([covariant-by-declaration core::int* a = #C1, core::int* b = #C1, covariant-by-declaration core::int* c = #C1, core::int* d = #C1]) → void {}
+  method named({covariant-by-declaration core::int* a = #C1, core::int* b = #C1, covariant-by-declaration core::int* c = #C1, core::int* d = #C1}) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -95,7 +95,7 @@ class Override1 extends core::Object {
   synthetic constructor •() → self::Override1*
     : super core::Object::•()
     ;
-  method method(covariant core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void {}
+  method method(covariant-by-declaration core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -111,19 +111,19 @@ class Override2 extends self::Override1 {
   synthetic constructor •() → self::Override2*
     : super self::Override1::•()
     ;
-  method method(covariant core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void {}
+  method method(covariant-by-declaration core::int* a, core::int* b, covariant-by-declaration core::int* c, core::int* d, core::int* e) → void {}
 }
 class Override3 extends self::Override2 {
   synthetic constructor •() → self::Override3*
     : super self::Override2::•()
     ;
-  method method(covariant core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void {}
+  method method(covariant-by-declaration core::int* a, core::int* b, covariant-by-declaration core::int* c, core::int* d, core::int* e) → void {}
 }
 abstract class Implement1 extends core::Object {
   synthetic constructor •() → self::Implement1*
     : super core::Object::•()
     ;
-  method method(covariant core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void {}
+  method method(covariant-by-declaration core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -139,7 +139,7 @@ class Implement2 extends core::Object {
   synthetic constructor •() → self::Implement2*
     : super core::Object::•()
     ;
-  method method(core::int* a, covariant core::int* b, core::int* c, core::int* d, core::int* e) → void {}
+  method method(core::int* a, covariant-by-declaration core::int* b, core::int* c, core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -155,7 +155,7 @@ class Implement3 extends core::Object {
   synthetic constructor •() → self::Implement3*
     : super core::Object::•()
     ;
-  method method(core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void {}
+  method method(core::int* a, core::int* b, covariant-by-declaration core::int* c, core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -171,7 +171,7 @@ class Implement4 extends core::Object implements self::Implement3 {
   synthetic constructor •() → self::Implement4*
     : super core::Object::•()
     ;
-  method method(core::int* a, core::int* b, covariant core::int* c, covariant core::int* d, core::int* e) → void {}
+  method method(core::int* a, core::int* b, covariant-by-declaration core::int* c, covariant-by-declaration core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -187,7 +187,7 @@ class Implement5 extends core::Object implements self::Implement1, self::Impleme
   synthetic constructor •() → self::Implement5*
     : super core::Object::•()
     ;
-  method method(covariant core::int* a, covariant core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void {}
+  method method(covariant-by-declaration core::int* a, covariant-by-declaration core::int* b, covariant-by-declaration core::int* c, covariant-by-declaration core::int* d, covariant-by-declaration core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -203,7 +203,7 @@ class Interface1 extends core::Object {
   synthetic constructor •() → self::Interface1*
     : super core::Object::•()
     ;
-  method method(covariant core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void {}
+  method method(covariant-by-declaration core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -219,7 +219,7 @@ class Interface2 extends core::Object {
   synthetic constructor •() → self::Interface2*
     : super core::Object::•()
     ;
-  method method(core::int* a, covariant core::int* b, core::int* c, core::int* d, core::int* e) → void {}
+  method method(core::int* a, covariant-by-declaration core::int* b, core::int* c, core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -235,7 +235,7 @@ class Mixin1 extends core::Object {
   synthetic constructor •() → self::Mixin1*
     : super core::Object::•()
     ;
-  method method(core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void {}
+  method method(core::int* a, core::int* b, covariant-by-declaration core::int* c, core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -251,7 +251,7 @@ class Mixin2 extends core::Object {
   synthetic constructor •() → self::Mixin2*
     : super core::Object::•()
     ;
-  method method(core::int* a, core::int* b, core::int* c, covariant core::int* d, core::int* e) → void {}
+  method method(core::int* a, core::int* b, core::int* c, covariant-by-declaration core::int* d, core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -267,7 +267,7 @@ class Superclass extends core::Object {
   synthetic constructor •() → self::Superclass*
     : super core::Object::•()
     ;
-  method method(core::int* a, core::int* b, core::int* c, core::int* d, covariant core::int* e) → void {}
+  method method(core::int* a, core::int* b, core::int* c, core::int* d, covariant-by-declaration core::int* e) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -283,19 +283,19 @@ abstract class _Mixed&Superclass&Mixin1 extends self::Superclass implements self
   synthetic constructor •() → self::_Mixed&Superclass&Mixin1*
     : super self::Superclass::•()
     ;
-  method method(core::int* a, core::int* b, covariant core::int* c, core::int* d, covariant core::int* e) → void {}
+  method method(core::int* a, core::int* b, covariant-by-declaration core::int* c, core::int* d, covariant-by-declaration core::int* e) → void {}
 }
 abstract class _Mixed&Superclass&Mixin1&Mixin2 extends self::_Mixed&Superclass&Mixin1 implements self::Mixin2 /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Mixed&Superclass&Mixin1&Mixin2*
     : super self::_Mixed&Superclass&Mixin1::•()
     ;
-  method method(core::int* a, core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void {}
+  method method(core::int* a, core::int* b, covariant-by-declaration core::int* c, covariant-by-declaration core::int* d, covariant-by-declaration core::int* e) → void {}
 }
 class Mixed extends self::_Mixed&Superclass&Mixin1&Mixin2 implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::Mixed*
     : super self::_Mixed&Superclass&Mixin1&Mixin2::•()
     ;
-  forwarding-stub method method(covariant core::int* a, covariant core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void
+  forwarding-stub method method(covariant-by-declaration core::int* a, covariant-by-declaration core::int* b, covariant-by-declaration core::int* c, covariant-by-declaration core::int* d, covariant-by-declaration core::int* e) → void
     return super.{self::Mixin2::method}(a, b, c, d, e);
 }
 static method main() → void {

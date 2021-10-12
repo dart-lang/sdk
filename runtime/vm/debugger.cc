@@ -327,7 +327,7 @@ bool Debugger::NeedsDebugEvents() {
 
 static void InvokeEventHandler(ServiceEvent* event) {
   ASSERT(!event->IsPause());  // For pause events, call Pause instead.
-  Service::HandleEvent(event);
+  Service::HandleEvent(event, /*enter_safepoint*/ false);
 }
 
 ErrorPtr Debugger::PauseInterrupted() {
@@ -3129,6 +3129,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       isolate_->group()->object_store()->libraries());
   bool is_package = script_url.StartsWith(Symbols::PackageScheme());
+  bool is_dart_colon = script_url.StartsWith(Symbols::DartScheme());
   Script& script_for_lib = Script::Handle(zone);
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
@@ -3136,7 +3137,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     // are available for look up. When certain script only contains
     // top level functions, scripts could still be loaded correctly.
     lib.EnsureTopLevelClassIsFinalized();
-    script_for_lib = lib.LookupScript(script_url, !is_package);
+    bool useResolvedUri = !is_package && !is_dart_colon;
+    script_for_lib = lib.LookupScript(script_url, useResolvedUri);
     if (!script_for_lib.IsNull()) {
       scripts.Add(script_for_lib);
     }

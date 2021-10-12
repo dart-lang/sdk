@@ -22,60 +22,60 @@ class Test {
   B member;
 
   static void test(Test t) {
-    /*@ type=Test* */ /*@target=Test.==*/ t
+    /*@ type=Test* */  t
         ?. /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
 
-    /*@target=Test.==*/ t?.
+     t?.
             /*@target=Test.member*/ /*@target=Test.member*/ member
-        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+         ??= /*@ typeArgs=B* */ f();
 
-    /*@target=Test.==*/ t?.
+     t?.
             /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.+*/ += /*@ typeArgs=C* */ f();
 
-    /*@target=Test.==*/ t?.
+     t?.
             /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.**/ *= /*@ typeArgs=B* */ f();
 
-    /*@target=Test.==*/ t?.
+     t?.
             /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
 
-    /*@target=B.-*/ -- /*@target=Test.==*/ t?.
+    /*@target=B.-*/ --  t?.
         /*@target=Test.member*/ /*@target=Test.member*/ member;
 
-    /*@target=Test.==*/ t?.
+     t?.
             /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.-*/ --;
 
     var /*@ type=B* */ v1 =
-        /*@ type=Test* */ /*@target=Test.==*/ t
+        /*@ type=Test* */  t
             ?. /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
 
     var /*@ type=B* */ v2 =
-        /*@target=Test.==*/ t
+         t
                 ?. /*@target=Test.member*/ /*@target=Test.member*/ member
-            /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+             ??= /*@ typeArgs=B* */ f();
 
     var /*@ type=A* */ v3 =
-        /*@target=Test.==*/ t
+         t
                 ?. /*@target=Test.member*/ /*@target=Test.member*/ member
             /*@target=B.+*/ += /*@ typeArgs=C* */ f();
 
     var /*@ type=B* */ v4 =
-        /*@target=Test.==*/ t
+         t
                 ?. /*@target=Test.member*/ /*@target=Test.member*/ member
             /*@target=B.**/ *= /*@ typeArgs=B* */ f();
 
     var /*@ type=C* */ v5 =
-        /*@target=Test.==*/ t
+         t
                 ?. /*@target=Test.member*/ /*@target=Test.member*/ member
             /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
 
-    var /*@ type=B* */ v6 = /*@target=B.-*/ -- /*@target=Test.==*/ t
+    var /*@ type=B* */ v6 = /*@target=B.-*/ --  t
         ?. /*@target=Test.member*/ /*@target=Test.member*/ member;
 
-    var /*@ type=B* */ v7 = /*@target=Test.==*/ t
+    var /*@ type=B* */ v7 =  t
             ?. /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.-*/ --;
   }

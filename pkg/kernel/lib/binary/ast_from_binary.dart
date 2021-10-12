@@ -529,6 +529,17 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
+  List<Reference> readNonNullReferenceList(List<Reference> result) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      return emptyListOfReference;
+    }
+    for (int i = 0; i < length; ++i) {
+      result.add(readNonNullMemberReference());
+    }
+    return result;
+  }
+
   String? readStringOrNullIfEmpty() {
     String string = readStringReference();
     return string.isEmpty ? null : string;
@@ -1448,6 +1459,22 @@ class BinaryBuilder {
 
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType onType = readDartType();
+
+    if (readAndCheckOptionTag()) {
+      ExtensionTypeShowHideClause showHideClause =
+          node.showHideClause = new ExtensionTypeShowHideClause();
+      readSupertypeList(showHideClause.shownSupertypes);
+      readNonNullReferenceList(showHideClause.shownMethods);
+      readNonNullReferenceList(showHideClause.shownGetters);
+      readNonNullReferenceList(showHideClause.shownSetters);
+      readNonNullReferenceList(showHideClause.shownOperators);
+      readSupertypeList(showHideClause.hiddenSupertypes);
+      readNonNullReferenceList(showHideClause.hiddenMethods);
+      readNonNullReferenceList(showHideClause.hiddenGetters);
+      readNonNullReferenceList(showHideClause.hiddenSetters);
+      readNonNullReferenceList(showHideClause.hiddenOperators);
+    }
+
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1551,11 +1578,13 @@ class BinaryBuilder {
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
+    CanonicalName fieldCanonicalName = readNonNullCanonicalNameReference();
+    Reference fieldReference = fieldCanonicalName.reference;
     CanonicalName getterCanonicalName = readNonNullCanonicalNameReference();
     Reference getterReference = getterCanonicalName.reference;
     CanonicalName? setterCanonicalName = readNullableCanonicalNameReference();
     Reference? setterReference = setterCanonicalName?.reference;
-    Field? node = getterReference.node as Field?;
+    Field? node = fieldReference.node as Field?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1567,12 +1596,15 @@ class BinaryBuilder {
     if (node == null) {
       if (setterReference != null) {
         node = new Field.mutable(name,
+            fieldReference: fieldReference,
             getterReference: getterReference,
             setterReference: setterReference,
             fileUri: fileUri);
       } else {
         node = new Field.immutable(name,
-            getterReference: getterReference, fileUri: fileUri);
+            fieldReference: fieldReference,
+            getterReference: getterReference,
+            fileUri: fileUri);
       }
     }
     List<Expression> annotations = readAnnotationList(node);
@@ -2918,15 +2950,22 @@ class BinaryBuilder {
     return readAndCheckOptionTag() ? readSupertype() : null;
   }
 
-  List<Supertype> readSupertypeList() {
+  List<Supertype> readSupertypeList([List<Supertype>? result]) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
       return emptyListOfSupertype;
     }
-    return new List<Supertype>.generate(length, (_) => readSupertype(),
-        growable: useGrowableLists);
+    if (result != null) {
+      for (int i = 0; i < length; ++i) {
+        result.add(readSupertype());
+      }
+      return result;
+    } else {
+      return new List<Supertype>.generate(length, (_) => readSupertype(),
+          growable: useGrowableLists);
+    }
   }
 
   List<DartType> readDartTypeList() {

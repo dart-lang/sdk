@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* void;
 class C<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::C::T* x;
+  covariant-by-class field self::C::T* x;
   synthetic constructor •() → self::C<self::C::T*>*
     ;
-  set y(generic-covariant-impl self::C::T* value) → void
+  set y(covariant-by-class self::C::T* value) → void
     ;
-  method f(generic-covariant-impl self::C::T* value) → void
+  method f(covariant-by-class self::C::T* value) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

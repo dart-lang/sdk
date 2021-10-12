@@ -34,7 +34,7 @@
 /// as it's read from a file,
 /// The second is an instance of [LineSplitter],
 /// which splits the data on newline boundaries.
-/// ```dart
+/// ```dart import:io
 /// var lineNumber = 1;
 /// var stream = File('quotes.txt').openRead();
 ///

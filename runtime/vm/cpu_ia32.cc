@@ -24,7 +24,11 @@ void CPU::FlushICache(uword start, uword size) {
 }
 
 const char* CPU::Id() {
-  return "ia32";
+  return
+#if defined(USING_SIMULATOR)
+      "sim"
+#endif  // !defined(USING_SIMULATOR)
+      "ia32";
 }
 
 const char* HostCPUFeatures::hardware_ = nullptr;

@@ -166,7 +166,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     // We need to inform the applier about the right shape of the AST.
     // _sink.writeByte(node.name != null ? 1 : 0);
 
-    _writeNode(node.type);
+    _writeNode(node.type2);
     _writeOptionalNode(node.name);
 
     _sink.writeElement(node.staticElement);
@@ -485,12 +485,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     _writeByte(Tag.MethodInvocation);
 
+    var operatorType = node.operator?.type;
     _writeByte(
       AstBinaryFlags.encode(
-        hasPeriod: node.operator?.type == TokenType.PERIOD,
-        hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
+        hasPeriod: operatorType == TokenType.PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD,
+        hasPeriod2: operatorType == TokenType.PERIOD_PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
+        hasQuestion: operatorType == TokenType.QUESTION_PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
       ),
     );
+
     _writeOptionalNode(node.target);
     _writeNode(node.methodName);
     _storeInvocationExpression(node);
@@ -504,6 +510,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeStringReference(nameNode.name);
 
     _writeNode(node.expression);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    _writeByte(Tag.NamedType);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion: node.question != null,
+        hasTypeArguments: node.typeArguments != null,
+      ),
+    );
+
+    _writeNode(node.name);
+    _writeOptionalNode(node.typeArguments);
+
+    _sink.writeType(node.type);
   }
 
   @override
@@ -721,25 +744,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitTypeLiteral(TypeLiteral node) {
     _writeByte(Tag.TypeLiteral);
-    _writeNode(node.typeName);
+    _writeNode(node.type);
     _storeExpression(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    _writeByte(Tag.TypeName);
-
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasQuestion: node.question != null,
-        hasTypeArguments: node.typeArguments != null,
-      ),
-    );
-
-    _writeNode(node.name);
-    _writeOptionalNode(node.typeArguments);
-
-    _sink.writeType(node.type);
   }
 
   @override

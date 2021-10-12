@@ -217,7 +217,7 @@ abstract class CommonElements {
   InterfaceType getConstantListTypeFor(InterfaceType sourceType);
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
-      {bool onlyStringKeys: false});
+      {bool onlyStringKeys = false});
 
   InterfaceType getConstantSetTypeFor(InterfaceType sourceType);
 
@@ -531,6 +531,22 @@ abstract class CommonElements {
   /// Most foreign helpers are located in the `dart:_foreign_helper` library.
   bool isForeignHelper(MemberEntity member);
 
+  /// Returns `true` if [member] is the `createJsSentinel` function defined in
+  /// dart:_foreign_helper.
+  bool isCreateJsSentinel(MemberEntity member);
+
+  /// Returns `true` if [member] is the `isJsSentinel` function defined in
+  /// dart:_foreign_helper.
+  bool isIsJsSentinel(MemberEntity member);
+
+  /// Returns `true` if [member] is the `_lateReadCheck` function defined in
+  /// dart:_internal.
+  bool isLateReadCheck(MemberEntity member);
+
+  /// Returns `true` if [member] is the `createSentinel` function defined in
+  /// dart:_internal.
+  bool isCreateSentinel(MemberEntity member);
+
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData);
 
@@ -643,10 +659,6 @@ abstract class JCommonElements implements CommonElements {
   ClassEntity get jsBuiltinEnum;
 
   bool isForeign(MemberEntity element);
-
-  /// Returns `true` if [member] is the `createSentinel` function defined in
-  /// dart:_internal.
-  bool isCreateSentinel(MemberEntity element);
 
   /// Returns `true` if the implementation of the 'operator ==' [function] is
   /// known to handle `null` as argument.
@@ -992,26 +1004,26 @@ class CommonElementsImpl
   }
 
   ClassEntity _findClass(LibraryEntity library, String name,
-      {bool required: true}) {
+      {bool required = true}) {
     if (library == null) return null;
     return _env.lookupClass(library, name, required: required);
   }
 
   MemberEntity _findLibraryMember(LibraryEntity library, String name,
-      {bool setter: false, bool required: true}) {
+      {bool setter = false, bool required = true}) {
     if (library == null) return null;
     return _env.lookupLibraryMember(library, name,
         setter: setter, required: required);
   }
 
   MemberEntity _findClassMember(ClassEntity cls, String name,
-      {bool setter: false, bool required: true}) {
+      {bool setter = false, bool required = true}) {
     return _env.lookupLocalClassMember(cls, name,
         setter: setter, required: required);
   }
 
   ConstructorEntity _findConstructor(ClassEntity cls, String name,
-      {bool required: true}) {
+      {bool required = true}) {
     return _env.lookupConstructor(cls, name, required: required);
   }
 
@@ -1035,7 +1047,7 @@ class CommonElementsImpl
 
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
-      {bool onlyStringKeys: false}) {
+      {bool onlyStringKeys = false}) {
     ClassEntity classElement =
         onlyStringKeys ? constantStringMapClass : generalConstantMapClass;
     if (dartTypes.treatAsRawType(sourceType)) {
@@ -2117,13 +2129,28 @@ class CommonElementsImpl
         isCreateInvocationMirrorHelper(member);
   }
 
+  bool _isTopLevelFunctionNamed(String name, MemberEntity member) =>
+      member.name == name && member.isFunction && member.isTopLevel;
+
   @override
-  bool isCreateSentinel(MemberEntity member) {
-    return member.isTopLevel &&
-        member.isFunction &&
-        member.library == internalLibrary &&
-        member.name == 'createSentinel';
-  }
+  bool isCreateJsSentinel(MemberEntity member) =>
+      member.library == foreignLibrary &&
+      _isTopLevelFunctionNamed('createJsSentinel', member);
+
+  @override
+  bool isIsJsSentinel(MemberEntity member) =>
+      member.library == foreignLibrary &&
+      _isTopLevelFunctionNamed('isJsSentinel', member);
+
+  @override
+  bool isLateReadCheck(MemberEntity member) =>
+      member.library == lateHelperLibrary &&
+      _isTopLevelFunctionNamed('_lateReadCheck', member);
+
+  @override
+  bool isCreateSentinel(MemberEntity member) =>
+      member.library == internalLibrary &&
+      _isTopLevelFunctionNamed('createSentinel', member);
 
   @override
   bool operatorEqHandlesNullArgument(FunctionEntity function) {
@@ -2173,7 +2200,7 @@ abstract class ElementEnvironment {
 
   /// Lookup the library with the canonical [uri], fail if the library is
   /// missing and [required];
-  LibraryEntity lookupLibrary(Uri uri, {bool required: false});
+  LibraryEntity lookupLibrary(Uri uri, {bool required = false});
 
   /// Calls [f] for every class declared in [library].
   void forEachClass(LibraryEntity library, void f(ClassEntity cls));
@@ -2181,7 +2208,7 @@ abstract class ElementEnvironment {
   /// Lookup the class [name] in [library], fail if the class is missing and
   /// [required].
   ClassEntity lookupClass(LibraryEntity library, String name,
-      {bool required: false});
+      {bool required = false});
 
   /// Calls [f] for every top level member in [library].
   void forEachLibraryMember(LibraryEntity library, void f(MemberEntity member));
@@ -2189,18 +2216,18 @@ abstract class ElementEnvironment {
   /// Lookup the member [name] in [library], fail if the class is missing and
   /// [required].
   MemberEntity lookupLibraryMember(LibraryEntity library, String name,
-      {bool setter: false, bool required: false});
+      {bool setter = false, bool required = false});
 
   /// Lookup the member [name] in [cls], fail if the class is missing and
   /// [required].
   MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
-      {bool setter: false, bool required: false});
+      {bool setter = false, bool required = false});
 
   /// Lookup the member [name] in [cls] and its superclasses.
   ///
   /// Return `null` if the member is not found in the class or any superclass.
   MemberEntity lookupClassMember(ClassEntity cls, String name,
-      {bool setter: false}) {
+      {bool setter = false}) {
     var entity = lookupLocalClassMember(cls, name, setter: setter);
     if (entity != null) return entity;
 
@@ -2213,7 +2240,7 @@ abstract class ElementEnvironment {
   /// Lookup the constructor [name] in [cls], fail if the class is missing and
   /// [required].
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
-      {bool required: false});
+      {bool required = false});
 
   /// Calls [f] for each class member declared in [cls].
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member));
@@ -2247,7 +2274,7 @@ abstract class ElementEnvironment {
   /// the result of `getSuperClass(C, skipUnnamedMixinApplications: false)` is
   /// `S`.
   ClassEntity getSuperClass(ClassEntity cls,
-      {bool skipUnnamedMixinApplications: false});
+      {bool skipUnnamedMixinApplications = false});
 
   /// Calls [f] for each supertype of [cls].
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
@@ -2353,7 +2380,7 @@ abstract class KElementEnvironment extends ElementEnvironment {
 
   /// Returns the metadata constants declared on [member].
   Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
-      {bool includeParameterMetadata: false});
+      {bool includeParameterMetadata = false});
 }
 
 abstract class JElementEnvironment extends ElementEnvironment {

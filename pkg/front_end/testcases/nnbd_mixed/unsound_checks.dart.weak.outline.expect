@@ -201,17 +201,15 @@ class OptInClass6b extends core::Object {
   constructor •(core::int field) → self2::OptInClass6b
     ;
 }
-class E extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int index;
-  final field core::String _name;
+class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self2::E> values = const <self2::E>[self2::E::e1, self2::E::e2];
-  static const field self2::E e1 = const self2::E::•(0, "E.e1");
-  static const field self2::E e2 = const self2::E::•(1, "E.e2");
-  const constructor •(core::int index, core::String _name) → self2::E
-    : self2::E::index = index, self2::E::_name = _name, super core::Object::•()
+  static const field self2::E e1 = const self2::E::•(0, "e1");
+  static const field self2::E e2 = const self2::E::•(1, "e2");
+  const constructor •(core::int index, core::String name) → self2::E
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String
-    return this.{self2::E::_name}{core::String};
+    return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 extension OptInExtension on self2::OptInClass1 {
   operator [] = self2::OptInExtension|[];
@@ -296,7 +294,7 @@ static method handleInvalid(dynamic d) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///unsound_checks_lib.dart:145:6 -> ListConstant(const <E*>[const E{E.index: 0, E._name: "E.e1"}, const E{E.index: 1, E._name: "E.e2"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///unsound_checks_lib.dart:145:10 -> InstanceConstant(const E{E.index: 0, E._name: "E.e1"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///unsound_checks_lib.dart:145:14 -> InstanceConstant(const E{E.index: 1, E._name: "E.e2"})
-Extra constant evaluation: evaluated: 7, effectively constant: 3
+Evaluated: ListLiteral @ org-dartlang-testcase:///unsound_checks_lib.dart:145:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "e1"}, const E{_Enum.index: 1, _Enum._name: "e2"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///unsound_checks_lib.dart:145:10 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///unsound_checks_lib.dart:145:14 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "e2"})
+Extra constant evaluation: evaluated: 8, effectively constant: 3

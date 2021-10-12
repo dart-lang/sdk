@@ -24,6 +24,8 @@ LibTest/core/List/List_all_t06: SkipSlow # Very slow compilation in debug mode.
 LibTest/async/Stream/Stream.periodic_all_t02: Skip # Issue 42898
 
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipSlow # Very slow on sim* architectures.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipSlow # Very slow on sim* architectures.
 LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Very slow on sim* architectures.
 LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # Very slow on sim* architectures.
 LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # Very slow on sim* architectures.
@@ -35,5 +37,4 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow on si
 LibTest/ffi/*: SkipByDesign # dart:ffi is not supported on sim architectures
 
 [ $compiler == fasta || $runtime == dart_precompiled || $runtime == vm ]
-Language/Expressions/Numbers/syntax_t34: SkipByDesign # expects integer literal error that only occurs in JS
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.

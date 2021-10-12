@@ -17,6 +17,8 @@ dependencies:
   dart2native:
     path: ../dart2native
   dart_style: any
+  dds:
+    path: ../dds
   devtools_server: any
   front_end:
     path: ../front_end
@@ -26,7 +28,6 @@ dependencies:
   nnbd_migration:
     path: ../nnbd_migration
   path: any
-  pedantic: any
   pub: any
   telemetry:
     path: ../telemetry

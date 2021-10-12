@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
@@ -93,7 +92,6 @@ class Linker {
     _createTypeSystem();
     _buildEnumChildren();
     _resolveTypes();
-    _runDeclarationMacros();
     _performTopLevelInference();
     _resolveConstructors();
     _resolveConstantInitializers();
@@ -214,13 +212,6 @@ class Linker {
     TypesBuilder(this).build(nodesToBuildType);
   }
 
-  void _runDeclarationMacros() {
-    for (var library in builders.values) {
-      library.runDeclarationMacros();
-      library.processClassConstructors();
-    }
-  }
-
   void _writeLibraries() {
     var bundleWriter = BundleWriter(
       elementFactory.dynamicRef,
@@ -275,8 +266,6 @@ class LinkInputUnit {
 }
 
 class LinkResult {
-  @Deprecated('This field is not used anymore')
-  final Uint8List astBytes = Uint8List(0);
   final Uint8List resolutionBytes;
 
   LinkResult({

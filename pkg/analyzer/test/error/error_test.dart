@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -38,7 +37,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
       if (declaration is ClassDeclaration) {
         var extendsClause = declaration.extendsClause;
         if (extendsClause != null &&
-            extendsClause.superclass.name.name == 'ErrorCode') {
+            extendsClause.superclass2.name.name == 'ErrorCode') {
           String className = declaration.name.name;
           for (ClassMember member in declaration.members) {
             if (member is FieldDeclaration && member.isStatic) {

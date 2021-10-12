@@ -35,7 +35,5 @@ if [[ "$1" != "" ]] ; then
   fi
 fi
 
-# third_party IDL scripts are not compatible with python3, so use python2.7.
-
 reset && \
-python2.7 ./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-metadata --gen-interop "$ARG_OPTION"
+python3 ./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-metadata --gen-interop "$ARG_OPTION"

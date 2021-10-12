@@ -14,7 +14,7 @@ import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the
 // list.
-Set<String> doesNotEscapeListSet = new Set<String>.from(const <String>[
+Set<String> doesNotEscapeListSet = Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',
@@ -51,7 +51,7 @@ Set<String> doesNotEscapeListSet = new Set<String>.from(const <String>[
   'checkGrowable',
 ]);
 
-Set<String> doesNotEscapeSetSet = new Set<String>.from(const <String>[
+Set<String> doesNotEscapeSetSet = Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',
@@ -76,7 +76,7 @@ Set<String> doesNotEscapeSetSet = new Set<String>.from(const <String>[
   'retainAll',
 ]);
 
-Set<String> doesNotEscapeMapSet = new Set<String>.from(const <String>[
+Set<String> doesNotEscapeMapSet = Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',
@@ -101,8 +101,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   final InferrerEngine inferrer;
 
   static const int MAX_ANALYSIS_COUNT =
-      const int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
-  final Setlet<MemberEntity> analyzedElements = new Setlet<MemberEntity>();
+      int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
+  final Setlet<MemberEntity> analyzedElements = Setlet<MemberEntity>();
 
   TracerVisitor(this.tracedType, this.inferrer);
 
@@ -125,7 +125,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   /// maps and we must check how it escapes from these maps.
   final List<MapTypeInformation> mapsToAnalyze = <MapTypeInformation>[];
 
-  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
+  final Setlet<TypeInformation> flowsInto = Setlet<TypeInformation>();
 
   // The current [TypeInformation] in the analysis.
   TypeInformation currentUser;

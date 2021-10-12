@@ -2825,6 +2825,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       switch (call->function().recognized_kind()) {
         case MethodRecognizer::kByteDataFactory:
         case MethodRecognizer::kLinkedHashBase_getData:
+        case MethodRecognizer::kImmutableLinkedHashBase_getData:
           return flow_graph->constant_null();
         default:
           break;
@@ -5616,6 +5617,9 @@ void DoubleToIntegerSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->SlowPathEnvironmentFor(instruction(), /*num_slow_path_args=*/0);
 
   __ MoveUnboxedDouble(DoubleToIntegerStubABI::kInputReg, value_reg_);
+  __ LoadImmediate(
+      DoubleToIntegerStubABI::kRecognizedKindReg,
+      compiler::target::ToRawSmi(instruction()->recognized_kind()));
   compiler->GenerateStubCall(instruction()->source(),
                              StubCode::DoubleToInteger(),
                              UntaggedPcDescriptors::kOther, locs,
@@ -6199,10 +6203,10 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
 intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     MethodRecognizer::Kind kind) {
   switch (kind) {
-    case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil:
-    case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kDoubleTruncateToDouble:
+    case MethodRecognizer::kDoubleFloorToDouble:
+    case MethodRecognizer::kDoubleCeilToDouble:
+    case MethodRecognizer::kDoubleRoundToDouble:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathTan:
     case MethodRecognizer::kMathAcos:
@@ -6224,13 +6228,13 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   switch (recognized_kind_) {
-    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleTruncateToDouble:
       return kLibcTruncRuntimeEntry;
-    case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kDoubleRoundToDouble:
       return kLibcRoundRuntimeEntry;
-    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleFloorToDouble:
       return kLibcFloorRuntimeEntry;
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleCeilToDouble:
       return kLibcCeilRuntimeEntry;
     case MethodRecognizer::kMathDoublePow:
       return kLibcPowRuntimeEntry;

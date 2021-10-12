@@ -29,7 +29,7 @@ final RegExp tagParser = new RegExp(r"V\((\w*),\s*(\d+)\)");
 // Match stuff like "kNullConstant = 0,"
 final RegExp constantTagParser = new RegExp(r"k(\w*)\s*=\s*(\d+)");
 
-void main() async {
+Future<void> main() async {
   File binaryMd = new File("$repoDir/pkg/kernel/binary.md");
   String binaryMdContent = binaryMd.readAsStringSync();
 

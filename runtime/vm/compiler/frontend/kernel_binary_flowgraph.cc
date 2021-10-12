@@ -238,7 +238,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         ReadBool();
         const NameIndex field_name = ReadCanonicalNameReference();
         const Field& field =
-            Field::Handle(Z, H.LookupFieldByKernelGetterOrSetter(field_name));
+            Field::Handle(Z, H.LookupFieldByKernelField(field_name));
         initializer_fields[i] = &field;
         SkipExpression();
         continue;
@@ -1928,6 +1928,9 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
       ASSERT(instructions.current->previous() != nullptr);
       instructions.current = instructions.current->previous();
     } else {
+      if (NeedsDebugStepCheck(stack(), position)) {
+        instructions = DebugStepCheck(position) + instructions;
+      }
       instructions += CheckBoolean(position);
       instructions += Constant(Bool::True());
       Value* right_value = Pop();
@@ -2774,6 +2777,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
       ASSERT(Class::Handle(field.Owner()).library() ==
                  Library::InternalLibrary() &&
              Class::Handle(field.Owner()).Name() == Symbols::ClassID().ptr());
+      return Constant(Instance::ZoneHandle(
+          Z, Instance::RawCast(field.StaticConstFieldValue())));
+    } else if (field.is_final() && field.has_trivial_initializer()) {
+      // Final fields with trivial initializers are effectively constant.
       return Constant(Instance::ZoneHandle(
           Z, Instance::RawCast(field.StaticConstFieldValue())));
     } else {

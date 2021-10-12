@@ -75,11 +75,13 @@ ${superMember} is a ${_memberKind(superMember)}
       if (isSetter) {
         final DartType ownType = setterType(host, ownMember);
         final DartType superType = setterType(host, superMember);
-        final bool isCovariant = ownMember is Field
-            ? ownMember.isCovariant
-            : ownMember.function!.positionalParameters[0].isCovariant;
-        if (!_isValidParameterOverride(isCovariant, ownType, superType)) {
-          if (isCovariant) {
+        final bool isCovariantByDeclaration = ownMember is Field
+            ? ownMember.isCovariantByDeclaration
+            : ownMember
+                .function!.positionalParameters[0].isCovariantByDeclaration;
+        if (!_isValidParameterOverride(
+            isCovariantByDeclaration, ownType, superType)) {
+          if (isCovariantByDeclaration) {
             return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is neither a subtype nor supertype of ${superType}
 ''');
@@ -198,7 +200,7 @@ ${ownType} is not a subtype of ${superType}
       final VariableDeclaration superParameter =
           superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
-          ownParameter.isCovariant,
+          ownParameter.isCovariantByDeclaration,
           ownSubstitution.substituteType(ownParameter.type),
           superSubstitution.substituteType(superParameter.type))) {
         return '''
@@ -227,7 +229,7 @@ super method declares ${superParameter.type}
       }
 
       if (!_isValidParameterOverride(
-          ownParameter.isCovariant,
+          ownParameter.isCovariantByDeclaration,
           ownSubstitution.substituteType(ownParameter.type),
           superSubstitution.substituteType(superParameter.type))) {
         return '''
@@ -244,11 +246,11 @@ super method declares ${superParameter.type}
   /// Checks whether parameter with [ownParameterType] type is a valid override
   /// for parameter with [superParameterType] type taking into account its
   /// covariance and applying type parameter [substitution] if necessary.
-  bool _isValidParameterOverride(bool isCovariant, DartType ownParameterType,
-      DartType superParameterType) {
+  bool _isValidParameterOverride(bool isCovariantByDeclaration,
+      DartType ownParameterType, DartType superParameterType) {
     if (_isSubtypeOf(superParameterType, ownParameterType)) {
       return true;
-    } else if (isCovariant &&
+    } else if (isCovariantByDeclaration &&
         _isSubtypeOf(ownParameterType, superParameterType)) {
       return true;
     } else {

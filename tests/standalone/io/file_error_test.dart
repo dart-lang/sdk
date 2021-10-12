@@ -14,6 +14,20 @@ Directory tempDir() {
   return Directory.systemTemp.createTempSync('dart_file_error');
 }
 
+bool checkCannotOpenFileException(e) {
+  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e.osError != null);
+  Expect.isTrue(e.toString().indexOf("Cannot open file") != -1);
+  if (Platform.operatingSystem == "linux") {
+    Expect.equals(2, e.osError.errorCode);
+  } else if (Platform.operatingSystem == "macos") {
+    Expect.equals(2, e.osError.errorCode);
+  } else if (Platform.operatingSystem == "windows") {
+    Expect.equals(3, e.osError.errorCode);
+  }
+  return true;
+}
+
 bool checkNonExistentFileSystemException(e, str) {
   Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
@@ -34,6 +48,20 @@ bool checkDeleteNonExistentFileSystemException(e) {
 bool checkLengthNonExistentFileSystemException(e) {
   return checkNonExistentFileSystemException(
       e, "Cannot retrieve length of file");
+}
+
+void testOpenBlankFilename() {
+  asyncStart();
+  var file = new File("");
+
+  // Non-existing file should throw exception.
+  Expect.throws(() => file.openSync(), (e) => checkCannotOpenFileException(e));
+
+  var openFuture = file.open(mode: FileMode.read);
+  openFuture.then((raf) => Expect.fail("Unreachable code")).catchError((error) {
+    checkCannotOpenFileException(error);
+    asyncEnd();
+  });
 }
 
 void testOpenNonExistent() {
@@ -409,6 +437,7 @@ testReadSyncClosedFile() {
 }
 
 main() {
+  testOpenBlankFilename();
   testOpenNonExistent();
   testDeleteNonExistent();
   testLengthNonExistent();

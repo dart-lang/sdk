@@ -14,3 +14,6 @@ analyzer:
 linter:
   rules:
     - annotate_overrides
+    - prefer_final_fields
+    - prefer_if_null_operators
+    - prefer_null_aware_operators

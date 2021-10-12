@@ -64,7 +64,6 @@
 ///
 library kernel.ast;
 
-import 'dart:core';
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
@@ -80,6 +79,7 @@ export 'default_language_version.dart' show defaultLanguageVersion;
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart' as astToText;
 import 'core_types.dart';
+import 'class_hierarchy.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
@@ -216,11 +216,7 @@ abstract class NamedNode extends TreeNode {
 
   NamedNode(Reference? reference)
       : this.reference = reference ?? new Reference() {
-    if (this is Field) {
-      (this as Field).getterReference.node = this;
-    } else {
-      this.reference.node = this;
-    }
+    this.reference.node = this;
   }
 
   /// This is an advanced feature.
@@ -493,7 +489,10 @@ class Library extends NamedNode
     }
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
-      canonicalName.getChildFromField(field).bindTo(field.getterReference);
+      canonicalName.getChildFromField(field).bindTo(field.fieldReference);
+      canonicalName
+          .getChildFromFieldGetter(field)
+          .bindTo(field.getterReference);
       if (field.hasSetter) {
         canonicalName
             .getChildFromFieldSetter(field)
@@ -1262,7 +1261,10 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
-      canonicalName.getChildFromField(member).bindTo(member.getterReference);
+      canonicalName.getChildFromField(member).bindTo(member.fieldReference);
+      canonicalName
+          .getChildFromFieldGetter(member)
+          .bindTo(member.getterReference);
       if (member.hasSetter) {
         canonicalName
             .getChildFromFieldSetter(member)
@@ -1530,7 +1532,15 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   ///   class A {}
   ///   extension B on A {}
   ///
+  /// The 'on clause' appears also in the experimental feature 'extension
+  /// types' as a part of an extension type declaration, for example:
+  ///
+  ///   class A {}
+  ///   extension type B on A {}
   late DartType onType;
+
+  /// The 'show' and 'hide' clauses of an extension type declaration.
+  ExtensionTypeShowHideClause? showHideClause;
 
   /// The members declared by the extension.
   ///
@@ -1599,6 +1609,10 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   void visitChildren(Visitor v) {
     visitList(typeParameters, v);
     onType.accept(v);
+    if (showHideClause != null) {
+      visitList(showHideClause!.shownSupertypes, v);
+      visitList(showHideClause!.hiddenSupertypes, v);
+    }
   }
 
   @override
@@ -1609,6 +1623,10 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     if (onType != null) {
       onType = v.visitDartType(onType);
     }
+    if (showHideClause != null) {
+      v.transformSupertypeList(showHideClause!.shownSupertypes);
+      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
+    }
   }
 
   @override
@@ -1618,6 +1636,10 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     // ignore: unnecessary_null_comparison
     if (onType != null) {
       onType = v.visitDartType(onType, cannotRemoveSentinel);
+    }
+    if (showHideClause != null) {
+      v.transformSupertypeList(showHideClause!.shownSupertypes);
+      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
     }
   }
 
@@ -1653,7 +1675,7 @@ class ExtensionMemberDescriptor {
   /// The name of the extension member.
   ///
   /// The name of the generated top-level member is mangled to ensure
-  /// uniqueness. This name is used to lookup an extension method the
+  /// uniqueness. This name is used to lookup an extension method in the
   /// extension itself.
   Name name;
 
@@ -1703,6 +1725,180 @@ class ExtensionMemberDescriptor {
   String toString() {
     return 'ExtensionMemberDescriptor($name,$kind,'
         '${member.toStringInternal()},isStatic=${isStatic})';
+  }
+}
+
+enum CallSiteAccessKind {
+  methodInvocation,
+  getterInvocation,
+  setterInvocation,
+  operatorInvocation,
+}
+
+/// Elements of the 'show' and 'hide' clauses of an extension type declaration.
+class ExtensionTypeShowHideClause {
+  /// The types in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance A, B in:
+  ///
+  ///   class A {}
+  ///   class B {}
+  ///   class C extends B implements A {}
+  ///   extension type E on C show B, A {}
+  final List<Supertype> shownSupertypes = <Supertype>[];
+
+  /// The methods in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///   }
+  ///   extension type E on A show foo {}
+  final List<Reference> shownMethods = <Reference>[];
+
+  /// The getters in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar, baz in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///     int? bar;
+  ///     int get baz => 42;
+  ///   }
+  ///   extension type E on A show get foo, get bar, get baz {}
+  final List<Reference> shownGetters = <Reference>[];
+
+  /// The setters in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar in
+  ///
+  ///   class A {
+  ///     int? foo;
+  ///     void set bar(int value) {}
+  ///   }
+  ///   extension type E on A show set foo, set bar {}
+  final List<Reference> shownSetters = <Reference>[];
+
+  /// The operators in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance +, * in
+  ///
+  ///   class A {
+  ///     A operator+(A other) => other;
+  ///     A operator*(A other) => this;
+  ///   }
+  ///   extension type E on A show operator +, operator * {}
+  final List<Reference> shownOperators = <Reference>[];
+
+  /// The types in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance A, B in:
+  ///
+  ///   class A {}
+  ///   class B {}
+  ///   class C extends B implements A {}
+  ///   extension E on C hide A, B {}
+  final List<Supertype> hiddenSupertypes = <Supertype>[];
+
+  /// The methods in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///   }
+  ///   extension type E on A hide foo {}
+  final List<Reference> hiddenMethods = <Reference>[];
+
+  /// The getters in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar, baz in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///     int? bar;
+  ///     int get baz => 42;
+  ///   }
+  ///   extension type E on A hide get foo, get bar, get baz {}
+  final List<Reference> hiddenGetters = <Reference>[];
+
+  /// The setters in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar in
+  ///
+  ///   class A {
+  ///     int? foo;
+  ///     void set bar(int value) {}
+  ///   }
+  ///   extension type E on A hide set foo, set bar {}
+  final List<Reference> hiddenSetters = <Reference>[];
+
+  /// The operators in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance +, * in
+  ///
+  ///   class A {
+  ///     A operator+(A other) => other;
+  ///     A operator*(A other) => this;
+  ///   }
+  ///   extension type E on A hide operator +, operator * {}
+  final List<Reference> hiddenOperators = <Reference>[];
+
+  Reference? findShownReference(Name name,
+      CallSiteAccessKind callSiteAccessKind, ClassHierarchy hierarchy) {
+    List<Reference> shownReferences;
+    List<Reference> hiddenReferences;
+    switch (callSiteAccessKind) {
+      case CallSiteAccessKind.getterInvocation:
+        shownReferences = shownGetters;
+        hiddenReferences = hiddenGetters;
+        break;
+      case CallSiteAccessKind.setterInvocation:
+        shownReferences = shownSetters;
+        hiddenReferences = hiddenSetters;
+        break;
+      case CallSiteAccessKind.methodInvocation:
+        shownReferences = shownMethods;
+        hiddenReferences = hiddenMethods;
+        break;
+      case CallSiteAccessKind.operatorInvocation:
+        shownReferences = shownOperators;
+        hiddenReferences = hiddenOperators;
+        break;
+    }
+
+    Reference? reference = _findMember(
+        name, shownReferences, shownSupertypes, hierarchy, callSiteAccessKind);
+    if (reference != null &&
+        _findMember(name, hiddenReferences, hiddenSupertypes, hierarchy,
+                callSiteAccessKind) ==
+            null) {
+      return reference;
+    }
+
+    return null;
+  }
+
+  Reference? _findMember(
+      Name name,
+      List<Reference> references,
+      List<Supertype> interfaces,
+      ClassHierarchy hierarchy,
+      CallSiteAccessKind callSiteAccessKind) {
+    for (Reference reference in references) {
+      if (reference.asMember.name == name) {
+        return reference;
+      }
+    }
+    for (Supertype interface in interfaces) {
+      Member? member = hierarchy.getInterfaceMember(interface.classNode, name,
+          setter: callSiteAccessKind == CallSiteAccessKind.setterInvocation);
+      if (member != null) {
+        return member.reference;
+      }
+    }
+    return null;
   }
 }
 
@@ -1855,32 +2051,50 @@ class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   Expression? initializer; // May be null.
+
+  /// Reference used for reading from this field.
+  ///
+  /// This should be used as the target in [StaticGet], [InstanceGet], and
+  /// [SuperPropertyGet].
+  final Reference getterReference;
+
+  /// Reference used for writing to this field.
+  ///
+  /// This should be used as the target in [StaticSet], [InstanceSet], and
+  /// [SuperPropertySet].
   final Reference? setterReference;
 
   @override
   @Deprecated("Use the specific getterReference/setterReference instead")
   Reference get reference => super.reference;
 
-  Reference get getterReference => super.reference;
+  /// Reference used for initializing this field.
+  ///
+  /// This should be used as the target in [FieldInitializer] and as the key
+  /// in the field values of [InstanceConstant].
+  Reference get fieldReference => super.reference;
 
   Field.mutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isFinal: false,
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
       required Uri fileUri,
+      Reference? fieldReference,
       Reference? getterReference,
       Reference? setterReference})
-      : this.setterReference = setterReference ?? new Reference(),
-        super(name, fileUri, getterReference) {
+      : this.getterReference = getterReference ?? new Reference(),
+        this.setterReference = setterReference ?? new Reference(),
+        super(name, fileUri, fieldReference) {
+    this.getterReference.node = this;
     this.setterReference!.node = this;
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
-    this.isCovariant = isCovariant;
+    this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isStatic = isStatic;
     this.isLate = isLate;
@@ -1890,20 +2104,23 @@ class Field extends Member {
   Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
       required Uri fileUri,
+      Reference? fieldReference,
       Reference? getterReference})
-      : this.setterReference = null,
-        super(name, fileUri, getterReference) {
+      : this.getterReference = getterReference ?? new Reference(),
+        this.setterReference = null,
+        super(name, fileUri, fieldReference) {
+    this.getterReference.node = this;
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
-    this.isCovariant = isCovariant;
+    this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
@@ -1913,7 +2130,8 @@ class Field extends Member {
 
   @override
   void _relinkNode() {
-    super._relinkNode();
+    this.fieldReference.node = this;
+    this.getterReference.node = this;
     if (hasSetter) {
       this.setterReference!.node = this;
     }
@@ -1923,14 +2141,14 @@ class Field extends Member {
   static const int FlagConst = 1 << 1;
   static const int FlagStatic = 1 << 2;
   static const int FlagCovariant = 1 << 3;
-  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagExtensionMember = 1 << 6;
   static const int FlagNonNullableByDefault = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
-  bool get isCovariant => flags & FlagCovariant != 0;
+  bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
 
   bool get isFinal => flags & FlagFinal != 0;
 
@@ -1947,7 +2165,7 @@ class Field extends Member {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
@@ -1959,7 +2177,7 @@ class Field extends Member {
   // lowering.
   bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
-  void set isCovariant(bool value) {
+  void set isCovariantByDeclaration(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
 
@@ -1980,10 +2198,10 @@ class Field extends Member {
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   void set isLate(bool value) {
@@ -2074,7 +2292,7 @@ class Field extends Member {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(getterReference);
+    printer.writeMemberName(fieldReference);
   }
 }
 
@@ -2397,8 +2615,8 @@ enum ProcedureStubKind {
   /// The stub target is `null`.
   Regular,
 
-  /// An abstract procedure inserted to add `isCovariant` and
-  /// `isGenericCovariantImpl` to parameters for a set of overridden members.
+  /// An abstract procedure inserted to add `isCovariantByDeclaration` and
+  /// `isCovariantByClass` to parameters for a set of overridden members.
   ///
   /// The stub is inserted when not all of the overridden members agree on
   /// the covariance flags. For instance:
@@ -2423,8 +2641,8 @@ enum ProcedureStubKind {
   /// The stub target is one of the overridden members.
   AbstractForwardingStub,
 
-  /// A concrete procedure inserted to add `isCovariant` and
-  /// `isGenericCovariantImpl` checks to parameters before calling the
+  /// A concrete procedure inserted to add `isCovariantByDeclaration` and
+  /// `isCovariantByClass` checks to parameters before calling the
   /// overridden member in the superclass.
   ///
   /// The stub is inserted when not all of the overridden members agree on
@@ -2968,10 +3186,7 @@ class FieldInitializer extends Initializer {
   Expression value;
 
   FieldInitializer(Field field, Expression value)
-      : this.byReference(
-            // getterReference is used since this refers to the field itself
-            field.getterReference,
-            value);
+      : this.byReference(field.fieldReference, value);
 
   FieldInitializer.byReference(this.fieldReference, this.value) {
     value.parent = this;
@@ -2980,7 +3195,7 @@ class FieldInitializer extends Initializer {
   Field get field => fieldReference.asField;
 
   void set field(Field field) {
-    fieldReference = field.getterReference;
+    fieldReference = field.fieldReference;
   }
 
   @override
@@ -9927,8 +10142,8 @@ class VariableDeclaration extends Statement implements Annotatable {
       int flags: -1,
       bool isFinal: false,
       bool isConst: false,
-      bool isFieldFormal: false,
-      bool isCovariant: false,
+      bool isInitializingFormal: false,
+      bool isCovariantByDeclaration: false,
       bool isLate: false,
       bool isRequired: false,
       bool isLowered: false}) {
@@ -9940,8 +10155,8 @@ class VariableDeclaration extends Statement implements Annotatable {
     } else {
       this.isFinal = isFinal;
       this.isConst = isConst;
-      this.isFieldFormal = isFieldFormal;
-      this.isCovariant = isCovariant;
+      this.isInitializingFormal = isInitializingFormal;
+      this.isCovariantByDeclaration = isCovariantByDeclaration;
       this.isLate = isLate;
       this.isRequired = isRequired;
       this.isLowered = isLowered;
@@ -9952,7 +10167,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   VariableDeclaration.forValue(this.initializer,
       {bool isFinal: true,
       bool isConst: false,
-      bool isFieldFormal: false,
+      bool isInitializingFormal: false,
       bool isLate: false,
       bool isRequired: false,
       bool isLowered: false,
@@ -9962,7 +10177,7 @@ class VariableDeclaration extends Statement implements Annotatable {
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
-    this.isFieldFormal = isFieldFormal;
+    this.isInitializingFormal = isInitializingFormal;
     this.isLate = isLate;
     this.isRequired = isRequired;
     this.isLowered = isLowered;
@@ -9970,9 +10185,9 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagFieldFormal = 1 << 2;
-  static const int FlagCovariant = 1 << 3;
-  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagInitializingFormal = 1 << 2;
+  static const int FlagCovariantByDeclaration = 1 << 3;
+  static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagRequired = 1 << 6;
   static const int FlagLowered = 1 << 7;
@@ -9981,12 +10196,13 @@ class VariableDeclaration extends Statement implements Annotatable {
   bool get isConst => flags & FlagConst != 0;
 
   /// Whether the parameter is declared with the `covariant` keyword.
-  bool get isCovariant => flags & FlagCovariant != 0;
+  // TODO(johnniwinther): Rename to isCovariantByDeclaration
+  bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
 
-  /// Whether the variable is declared as a field formal parameter of
+  /// Whether the variable is declared as an initializing formal parameter of
   /// a constructor.
   @informative
-  bool get isFieldFormal => flags & FlagFieldFormal != 0;
+  bool get isInitializingFormal => flags & FlagInitializingFormal != 0;
 
   /// If this [VariableDeclaration] is a parameter of a method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -9994,7 +10210,8 @@ class VariableDeclaration extends Statement implements Annotatable {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  // TODO(johnniwinther): Rename to isCovariantByClass
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the variable is declared with the `late` keyword.
   ///
@@ -10039,19 +10256,23 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  void set isCovariant(bool value) {
-    flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
+  void set isCovariantByDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagCovariantByDeclaration)
+        : (flags & ~FlagCovariantByDeclaration);
   }
 
   @informative
-  void set isFieldFormal(bool value) {
-    flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
+  void set isInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagInitializingFormal)
+        : (flags & ~FlagInitializingFormal);
   }
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   void set isLate(bool value) {
@@ -12031,7 +12252,7 @@ class TypeParameter extends TreeNode implements Annotatable {
         defaultType = defaultType ?? unsetDefaultTypeSentinel;
 
   // Must match serialized bit positions.
-  static const int FlagGenericCovariantImpl = 1 << 0;
+  static const int FlagCovariantByClass = 1 << 0;
 
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -12039,12 +12260,12 @@ class TypeParameter extends TreeNode implements Annotatable {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   @override
@@ -14052,6 +14273,11 @@ final List<Constant> emptyListOfConstant =
 /// Almost const <String>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<String> emptyListOfString = List.filled(0, '', growable: false);
+
+/// Almost const <Reference>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Reference> emptyListOfReference =
+    List.filled(0, Reference(), growable: false);
 
 /// Almost const <Typedef>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.

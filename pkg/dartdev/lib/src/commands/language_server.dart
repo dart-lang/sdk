@@ -22,7 +22,7 @@ It communicates over stdin and stdout and provides services like code completion
 
 For more information about the server's capabilities and configuration, see:
 
-  https://github.com/dart-lang/sdk/tree/master/pkg/analysis_server''';
+  https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server''';
 
   LanguageServerCommand({bool verbose = false})
       : super(commandName, commandDescription, verbose, hidden: !verbose);

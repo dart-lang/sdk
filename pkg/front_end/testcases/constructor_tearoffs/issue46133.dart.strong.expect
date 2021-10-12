@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46133.dart:7:18: Error: Expected an identifier, but got '.'.
+// Try inserting an identifier before '.'.
+// test() => A.const.toString();
+//                  ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46133.dart:7:13: Error: Expected an identifier, but got 'const'.
+// Try inserting an identifier before 'const'.
+// test() => A.const.toString();
+//             ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46133.dart:7:13: Error: Expected an identifier, but got 'const'.
+Try inserting an identifier before 'const'.
+test() => A.const.toString();
+            ^^^^^";
+static method main() → dynamic {}

@@ -18,7 +18,7 @@ class A extends core::Object {
     ;
   method foo(core::int* x) → void {}
   no-such-method-forwarder set foo(core::int* x) → void
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
   method noSuchMethod(core::Invocation* i) → dynamic
     return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -36,6 +36,5 @@ static method main() → dynamic {}
 constants  {
   #C1 = #foo=
   #C2 = <core::Type*>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C3 = <core::Symbol*, dynamic>{)
 }

@@ -26,7 +26,7 @@ class DapTestClient {
 
   final Logger? _logger;
   final bool captureVmServiceTraffic;
-  final _requestWarningDuration = const Duration(seconds: 5);
+  final _requestWarningDuration = const Duration(seconds: 10);
   final Map<int, _OutgoingRequest> _pendingRequests = {};
   final _eventController = StreamController<Event>.broadcast();
   int _seq = 1;
@@ -36,11 +36,20 @@ class DapTestClient {
   final _serverRequestHandlers =
       <String, FutureOr<Object?> Function(Object?)>{};
 
+  late final Future<Uri?> vmServiceUri;
+
   DapTestClient._(
     this._channel,
     this._logger, {
     this.captureVmServiceTraffic = false,
   }) {
+    // Set up a future that will complete when the 'dart.debuggerUris' event is
+    // emitted by the debug adapter so tests have easy access to it.
+    vmServiceUri = event('dart.debuggerUris').then<Uri?>((event) {
+      final body = event.body as Map<String, Object?>;
+      return Uri.parse(body['vmServiceUri'] as String);
+    }).catchError((e) => null);
+
     _subscription = _channel.listen(
       _handleMessage,
       onDone: () {
@@ -58,6 +67,22 @@ class DapTestClient {
   /// Returns a stream of [OutputEventBody] events.
   Stream<OutputEventBody> get outputEvents => events('output')
       .map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
+
+  /// Returns a stream of custom 'dart.serviceExtensionAdded' events.
+  Stream<Map<String, Object?>> get serviceExtensionAddedEvents =>
+      events('dart.serviceExtensionAdded')
+          .map((e) => e.body as Map<String, Object?>);
+
+  /// Returns a stream of custom 'dart.serviceRegistered' events.
+  Stream<Map<String, Object?>> get serviceRegisteredEvents =>
+      events('dart.serviceRegistered')
+          .map((e) => e.body as Map<String, Object?>);
+
+  /// Returns a stream of 'dart.testNotification' custom events from the
+  /// package:test JSON reporter.
+  Stream<Map<String, Object?>> get testNotificationEvents =>
+      events('dart.testNotification')
+          .map((e) => e.body as Map<String, Object?>);
 
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
@@ -108,6 +133,11 @@ class DapTestClient {
     await resumeFuture;
 
     return attachResponse;
+  }
+
+  /// Calls a service method via a custom request.
+  Future<Response> callService(String name, Object? params) {
+    return custom('callService', {'method': name, 'params': params});
   }
 
   /// Sends a continue request for the given thread.
@@ -297,7 +327,7 @@ class DapTestClient {
   /// [launch] method.
   Future<void> start({
     File? file,
-    Future<Response> Function()? launch,
+    Future<Object?> Function()? launch,
   }) {
     return Future.wait([
       initialize(),
@@ -419,6 +449,17 @@ class DapTestClient {
   }
 }
 
+/// Useful events produced by the debug adapter during a debug session.
+class TestEvents {
+  final List<OutputEventBody> output;
+  final List<Map<String, Object?>> testNotifications;
+
+  TestEvents({
+    required this.output,
+    required this.testNotifications,
+  });
+}
+
 class _OutgoingRequest {
   final Completer<Response> completer;
   final String name;
@@ -442,6 +483,8 @@ extension DapTestClientExtension on DapTestClient {
     File file,
     int line, {
     String? condition,
+    String? cwd,
+    List<String>? args,
     Future<Response> Function()? launch,
   }) async {
     final stop = expectStop('breakpoint', file: file, line: line);
@@ -454,7 +497,7 @@ extension DapTestClientExtension on DapTestClient {
           breakpoints: [SourceBreakpoint(line: line, condition: condition)],
         ),
       ),
-      launch?.call() ?? this.launch(file.path),
+      launch?.call() ?? this.launch(file.path, cwd: cwd, args: args),
     ], eagerError: true);
 
     return stop;
@@ -617,15 +660,61 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// These results include all events in the order they are recieved, including
   /// console, stdout and stderr.
+  ///
+  /// Only one of [start] or [launch] may be provided. Use [start] to customise
+  /// the whole start of the session (including initialise) or [launch] to only
+  /// customise the [launchRequest].
   Future<List<OutputEventBody>> collectOutput({
     File? file,
+    Future<Response> Function()? start,
     Future<Response> Function()? launch,
   }) async {
+    assert(
+      start == null || launch == null,
+      'Only one of "start" or "launch" may be provided',
+    );
     final outputEventsFuture = outputEvents.toList();
 
-    await start(file: file, launch: launch);
+    if (start != null) {
+      await start();
+    } else {
+      await this.start(file: file, launch: launch);
+    }
 
     return outputEventsFuture;
+  }
+
+  /// Collects all output and test events until the program terminates.
+  ///
+  /// These results include all events in the order they are recieved, including
+  /// console, stdout, stderr and test notifications from the test JSON reporter.
+  ///
+  /// Only one of [start] or [launch] may be provided. Use [start] to customise
+  /// the whole start of the session (including initialise) or [launch] to only
+  /// customise the [launchRequest].
+  Future<TestEvents> collectTestOutput({
+    File? file,
+    Future<Response> Function()? start,
+    Future<Object?> Function()? launch,
+  }) async {
+    assert(
+      start == null || launch == null,
+      'Only one of "start" or "launch" may be provided',
+    );
+
+    final outputEventsFuture = outputEvents.toList();
+    final testNotificationEventsFuture = testNotificationEvents.toList();
+
+    if (start != null) {
+      await start();
+    } else {
+      await this.start(file: file, launch: launch);
+    }
+
+    return TestEvents(
+      output: await outputEventsFuture,
+      testNotifications: await testNotificationEventsFuture,
+    );
   }
 
   /// A helper that fetches scopes for a frame, checks for one with the name

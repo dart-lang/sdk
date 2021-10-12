@@ -167,7 +167,7 @@ class DartUnitHighlightsComputer {
     Set<SemanticTokenModifiers>? semanticModifiers;
     var parent = node.parent;
     var grandParent = parent?.parent;
-    if (parent is TypeName &&
+    if (parent is NamedType &&
         grandParent is ConstructorName &&
         grandParent.parent is InstanceCreationExpression) {
       // new Class()
@@ -303,6 +303,8 @@ class DartUnitHighlightsComputer {
     if (element is! FunctionElement) {
       return false;
     }
+    var parent = node.parent;
+    var isInvocation = parent is MethodInvocation && parent.methodName == node;
     HighlightRegionType type;
     var isTopLevel = element.enclosingElement is CompilationUnitElement;
     if (node.inDeclarationContext()) {
@@ -311,8 +313,12 @@ class DartUnitHighlightsComputer {
           : HighlightRegionType.LOCAL_FUNCTION_DECLARATION;
     } else {
       type = isTopLevel
-          ? HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE
-          : HighlightRegionType.LOCAL_FUNCTION_REFERENCE;
+          ? isInvocation
+              ? HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE
+              : HighlightRegionType.TOP_LEVEL_FUNCTION_TEAR_OFF
+          : isInvocation
+              ? HighlightRegionType.LOCAL_FUNCTION_REFERENCE
+              : HighlightRegionType.LOCAL_FUNCTION_TEAR_OFF;
     }
     return _addRegion_node(node, type);
   }
@@ -397,6 +403,8 @@ class DartUnitHighlightsComputer {
       return false;
     }
     var isStatic = element.isStatic;
+    var parent = node.parent;
+    var isInvocation = parent is MethodInvocation && parent.methodName == node;
     // OK
     HighlightRegionType type;
     if (node.inDeclarationContext()) {
@@ -407,9 +415,13 @@ class DartUnitHighlightsComputer {
       }
     } else {
       if (isStatic) {
-        type = HighlightRegionType.STATIC_METHOD_REFERENCE;
+        type = isInvocation
+            ? HighlightRegionType.STATIC_METHOD_REFERENCE
+            : HighlightRegionType.STATIC_METHOD_TEAR_OFF;
       } else {
-        type = HighlightRegionType.INSTANCE_METHOD_REFERENCE;
+        type = isInvocation
+            ? HighlightRegionType.INSTANCE_METHOD_REFERENCE
+            : HighlightRegionType.INSTANCE_METHOD_TEAR_OFF;
       }
     }
     return _addRegion_node(node, type);
@@ -659,6 +671,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.factoryKeyword, HighlightRegionType.BUILT_IN);
     super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitConstructorReference(ConstructorReference node) {
+    var constructorName = node.constructorName;
+    constructorName.type2.accept(this);
+
+    // We have a `ConstructorReference` only when it is resolved.
+    // TODO(scheglov) The `ConstructorName` in a tear-off always has a name,
+    //  but this is not expressed via types.
+    computer._addRegion_node(
+        constructorName.name!, HighlightRegionType.CONSTRUCTOR_TEAR_OFF);
   }
 
   @override
@@ -943,6 +967,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    var type = node.type;
+    if (type != null) {
+      if (type.isDynamic && node.name.name == 'dynamic') {
+        computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
+        return null;
+      }
+    }
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
     super.visitNativeClause(node);
@@ -1091,18 +1127,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.finallyKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitTryStatement(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    var type = node.type;
-    if (type != null) {
-      if (type.isDynamic && node.name.name == 'dynamic') {
-        computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
-        return null;
-      }
-    }
-    super.visitTypeName(node);
   }
 
   @override

@@ -17,7 +17,7 @@ class FunctionSet {
   final Map<String, FunctionSetNode> _nodes;
 
   factory FunctionSet(Iterable<MemberEntity> liveInstanceMembers) {
-    Map<String, FunctionSetNode> nodes = Map<String, FunctionSetNode>();
+    Map<String, FunctionSetNode> nodes = {};
     for (MemberEntity member in liveInstanceMembers) {
       String name = member.name;
       (nodes[name] ??= FunctionSetNode(name)).add(member);
@@ -136,14 +136,13 @@ class SelectorMask {
 /// selectors with the same [name].
 class FunctionSetNode {
   final String name;
-  final Map<SelectorMask, FunctionSetQuery> cache =
-      <SelectorMask, FunctionSetQuery>{};
+  final Map<SelectorMask, FunctionSetQuery> cache = {};
 
   // Initially, we keep the elements in a list because it is more
   // compact than a hash set. Once we get enough elements, we change
   // the representation to be a set to get faster contains checks.
   static const int MAX_ELEMENTS_IN_LIST = 8;
-  Iterable<MemberEntity> elements = <MemberEntity>[];
+  Iterable<MemberEntity> elements = [];
   bool isList = true;
 
   FunctionSetNode(this.name);
@@ -211,12 +210,10 @@ class FunctionSetNode {
     Setlet<MemberEntity> functions;
     for (MemberEntity element in elements) {
       if (selectorMask.applies(element, domain)) {
-        if (functions == null) {
-          // Defer the allocation of the functions set until we are
-          // sure we need it. This allows us to return immutable empty
-          // lists when the filtering produced no results.
-          functions = Setlet<MemberEntity>();
-        }
+        // Defer the allocation of the functions set until we are
+        // sure we need it. This allows us to return immutable empty
+        // lists when the filtering produced no results.
+        functions ??= Setlet();
         functions.add(element);
       }
     }
@@ -229,11 +226,8 @@ class FunctionSetNode {
       FunctionSetQuery noSuchMethodQuery =
           noSuchMethods.query(noSuchMethodMask, domain);
       if (!noSuchMethodQuery.functions.isEmpty) {
-        if (functions == null) {
-          functions = Setlet<MemberEntity>.from(noSuchMethodQuery.functions);
-        } else {
-          functions.addAll(noSuchMethodQuery.functions);
-        }
+        functions ??= Setlet();
+        functions.addAll(noSuchMethodQuery.functions);
       }
     }
     cache[selectorMask] = result = (functions != null)
@@ -276,7 +270,7 @@ class EmptyFunctionSetQuery implements FunctionSetQuery {
   AbstractValue computeMask(AbstractValueDomain domain) => domain.emptyType;
 
   @override
-  Iterable<MemberEntity> get functions => const <MemberEntity>[];
+  Iterable<MemberEntity> get functions => const [];
 
   @override
   String toString() => '<empty>';

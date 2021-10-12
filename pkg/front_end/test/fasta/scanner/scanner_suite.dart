@@ -9,8 +9,8 @@ import 'package:testing/testing.dart' show Chain, ChainContext, Step, runMe;
 import '../../utils/scanner_chain.dart' show Read, Scan;
 
 Future<ChainContext> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new ScannerContext();
+    Chain suite, Map<String, String> environment) {
+  return new Future.value(new ScannerContext());
 }
 
 class ScannerContext extends ChainContext {

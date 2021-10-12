@@ -266,8 +266,12 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT_EQUAL(WeakProperty::InstanceSize(), cls.host_instance_size());
   cls = object_store->linked_hash_map_class();
   ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
-  cls = object_store->linked_hash_set_class();
+  cls = object_store->immutable_linked_hash_map_class();
   ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
+  cls = object_store->linked_hash_set_class();
+  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
+  cls = object_store->immutable_linked_hash_set_class();
+  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -1221,12 +1225,16 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
+  // The enum_cls is the actual declared class.
+  // The shared super-class holds the fields for index and name.
+  const Class& super_cls = Class::Handle(zone, enum_cls.SuperClass());
+
   const Field& index_field =
-      Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
+      Field::Handle(zone, super_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
 
   const Field& name_field = Field::Handle(
-      zone, enum_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+      zone, super_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
   ASSERT(!name_field.IsNull());
 
   const String& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
@@ -1370,7 +1378,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
 
   // Now verify field offsets of 'Pointer' class.
-  cls = class_table.At(kFfiPointerCid);
+  cls = class_table.At(kPointerCid);
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   ASSERT(cls.NumTypeParameters() == 1);

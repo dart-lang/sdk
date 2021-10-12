@@ -5,7 +5,6 @@
 library dart2js.kernel.frontend_strategy;
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../common/backend_api.dart';
@@ -25,7 +24,6 @@ import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/impact.dart';
 import '../ir/modular.dart';
 import '../ir/scope.dart' show ScopeModel;
-import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
@@ -56,8 +54,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
   final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
       NativeBasicDataBuilderImpl();
   NativeBasicData _nativeBasicData;
-  CompilerOptions _options;
-  CompilerTask _compilerTask;
+  final CompilerOptions _options;
+  final CompilerTask _compilerTask;
   KernelToElementMapImpl _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
@@ -257,6 +255,16 @@ class KernelFrontendStrategy extends FrontendStrategy {
     }
   }
 
+  @override
+  void registerModuleData(List<ModuleData> data) {
+    if (data == null) {
+      _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
+    } else {
+      _modularStrategy =
+          DeserializedModularStrategy(_compilerTask, _elementMap, data);
+    }
+  }
+
   IrAnnotationData get irAnnotationDataForTesting => _irAnnotationData;
 
   ModularStrategy get modularStrategyForTesting => _modularStrategy;
@@ -376,7 +384,7 @@ class KernelWorkItem implements WorkItem {
       EnumSet<PragmaAnnotation> annotations = processMemberAnnotations(
           _elementMap.options,
           _elementMap.reporter,
-          _elementMap.getMemberNode(element),
+          node,
           pragmaAnnotationData);
       _annotationsDataBuilder.registerPragmaAnnotations(element, annotations);
 
@@ -433,25 +441,48 @@ class KernelModularStrategy extends ModularStrategy {
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
         'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
-    ImpactBuilderData impactBuilderData;
     if (useImpactDataForTesting) {
-      // TODO(johnniwinther): Always create and use the [ImpactBuilderData].
-      // Currently it is a bit half-baked since we cannot compute data that
-      // depend on metadata, so these parts of the impact data need to be
-      // computed during conversion to [ResolutionImpact].
-      impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
-        StaticTypeCacheImpl staticTypeCache = StaticTypeCacheImpl();
-        ImpactBuilder builder = ImpactBuilder(
-            ir.StaticTypeContext(node, _elementMap.typeEnvironment,
-                cache: staticTypeCache),
-            staticTypeCache,
-            _elementMap.classHierarchy,
-            scopeModel.variableScopeModel,
-            useAsserts: _elementMap.options.enableUserAssertions,
-            inferEffectivelyFinalVariableTypes:
-                !annotations.contains(PragmaAnnotation.disableFinal));
-        return builder.computeImpact(node);
+      return _compilerTask.measureSubtask('worldImpact', () {
+        return computeModularMemberData(node,
+            options: _elementMap.options,
+            typeEnvironment: _elementMap.typeEnvironment,
+            classHierarchy: _elementMap.classHierarchy,
+            scopeModel: scopeModel,
+            annotations: annotations);
       });
+    } else {
+      ImpactBuilderData impactBuilderData;
+      return ModularMemberData(scopeModel, impactBuilderData);
+    }
+  }
+}
+
+class DeserializedModularStrategy extends ModularStrategy {
+  final CompilerTask _compilerTask;
+  final KernelToElementMapImpl _elementMap;
+  final Map<ir.Member, ImpactBuilderData> _cache = {};
+
+  DeserializedModularStrategy(
+      this._compilerTask, this._elementMap, List<ModuleData> data) {
+    for (var module in data) {
+      _cache.addAll(module.impactData);
+    }
+  }
+
+  @override
+  List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
+    return computePragmaAnnotationDataFromIr(node);
+  }
+
+  @override
+  ModularMemberData getModularMemberData(
+      ir.Member node, EnumSet<PragmaAnnotation> annotations) {
+    // TODO(joshualitt): serialize scope model too.
+    var scopeModel = _compilerTask.measureSubtask(
+        'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
+    var impactBuilderData = _cache[node];
+    if (impactBuilderData == null) {
+      throw 'missing modular analysis data for $node';
     }
     return ModularMemberData(scopeModel, impactBuilderData);
   }

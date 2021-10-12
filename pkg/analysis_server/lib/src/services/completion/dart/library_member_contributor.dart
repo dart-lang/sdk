@@ -39,7 +39,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
       PrefixElement elem,
       List<ImportElement> imports) {
     var parent = request.target.containingNode.parent;
-    var typesOnly = parent is TypeName;
+    var typesOnly = parent is NamedType;
     var isConstructor = parent?.parent is ConstructorName;
     for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {

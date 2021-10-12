@@ -54,11 +54,6 @@ class Flags {
 
   static const String experimentNewRti = '--experiment-new-rti';
 
-  /// Use the dart2js lowering of late instance variables rather than the CFE
-  /// lowering.
-  static const String experimentLateInstanceVariables =
-      '--experiment-late-instance-variables';
-
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';
@@ -99,7 +94,6 @@ class Flags {
   static const String trustTypeAnnotations = '--trust-type-annotations';
   static const String trustJSInteropTypeAnnotations =
       '--experimental-trust-js-interop-type-annotations';
-  static const String useContentSecurityPolicy = '--csp';
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
@@ -119,6 +113,8 @@ class Flags {
   static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';
   static const String writeCodegen = '--write-codegen';
+  static const String readModularAnalysis = '--read-modular-analysis';
+  static const String writeModularAnalysis = '--write-modular-analysis';
   static const String codegenShard = '--codegen-shard';
   static const String codegenShards = '--codegen-shards';
   static const String cfeOnly = '--cfe-only';

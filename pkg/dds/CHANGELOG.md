@@ -1,3 +1,7 @@
+# 2.1.3
+- Ensure cancelling multiple historical streams with the same name doesn't cause an
+  asynchronous `StateError` to be thrown.
+
 # 2.1.2
 - Silently handle exceptions that occur within RPC request handlers.
 

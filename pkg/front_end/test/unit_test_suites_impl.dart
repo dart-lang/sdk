@@ -495,7 +495,7 @@ class SuiteConfiguration {
   );
 }
 
-void runSuite(SuiteConfiguration configuration) async {
+Future<void> runSuite(SuiteConfiguration configuration) async {
   Suite suite = configuration.suite;
   String name = suite.prefix;
   String fullSuiteName = "$suiteNamePrefix/$name";
@@ -531,7 +531,7 @@ Future<void> writeLinesToFile(Uri uri, List<String> lines) async {
   await File.fromUri(uri).writeAsString(lines.map((line) => "$line\n").join());
 }
 
-void main([List<String> arguments = const <String>[]]) async {
+Future<void> main([List<String> arguments = const <String>[]]) async {
   Stopwatch totalRuntime = new Stopwatch()..start();
 
   List<String> results = [];

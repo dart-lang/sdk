@@ -72,7 +72,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<String, String> environmentDefines,
     {bool trackNeededDillLibraries: false,
     bool verbose: false,
-    NnbdMode nnbdMode: NnbdMode.Weak}) async {
+    NnbdMode nnbdMode: NnbdMode.Weak}) {
   List<Component> outputLoadedAdditionalDills =
       new List<Component>.filled(additionalDills.length, dummyComponent);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
@@ -98,7 +98,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       nnbdMode: nnbdMode);
 }
 
-Future<InitializedCompilerState> initializeCompiler(
+InitializedCompilerState initializeCompiler(
   InitializedCompilerState? oldState,
   Uri sdkSummary,
   Uri librariesSpecificationUri,
@@ -110,7 +110,7 @@ Future<InitializedCompilerState> initializeCompiler(
   Map<String, String> environmentDefines, {
   bool verbose: false,
   NnbdMode nnbdMode: NnbdMode.Weak,
-}) async {
+}) {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
   // same input summary URIs, but with different contents, so we'd need to be

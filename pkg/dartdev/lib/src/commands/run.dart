@@ -165,6 +165,12 @@ class RunCommand extends DartdevCommand {
         negatable: false,
         help: 'Enables tracing of library and script loading.',
       )
+      ..addFlag('dds',
+          hide: !verbose,
+          help: 'Use the Dart Development Service (DDS) for enhanced debugging '
+              'functionality. Note: Disabling DDS may break some functionality '
+              'in IDEs and other tooling.',
+          defaultsTo: true)
       ..addFlag(
         'debug-dds',
         hide: true,

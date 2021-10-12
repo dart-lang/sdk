@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,16 +19,87 @@ main() {
 @reflectiveTest
 class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest
     with UnnecessaryTypeCheckFalseTestCases {
-  @override
-  test_type_not_object() async {
+  test_typeNonNullable_isNot_same() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  a is! int;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
+    ]);
+  }
+
+  test_typeNonNullable_isNot_subtype() async {
     await assertNoErrorsInCode(r'''
-void f<T>(T a) {
-  a is! Object;
+void f(num a) {
+  a is! int;
 }
 ''');
   }
 
-  test_type_not_objectQuestion() async {
+  test_typeNonNullable_isNot_supertype() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  a is! num;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
+    ]);
+  }
+
+  test_typeNullable_isNot_same() async {
+    await assertErrorsInCode(r'''
+void f(int? a) {
+  a is! int?;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
+    ]);
+  }
+
+  test_typeNullable_isNot_same_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  a is! int;
+}
+''');
+  }
+
+  test_typeNullable_isNot_subtype() async {
+    await assertNoErrorsInCode(r'''
+void f(num? a) {
+  a is! int?;
+}
+''');
+  }
+
+  test_typeNullable_isNot_subtype_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+void f(num? a) {
+  a is! int;
+}
+''');
+  }
+
+  test_typeNullable_isNot_supertype() async {
+    await assertErrorsInCode(r'''
+void f(int? a) {
+  a is! num?;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
+    ]);
+  }
+
+  test_typeNullable_isNot_supertype_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  a is! num;
+}
+''');
+  }
+
+  test_typeParameter_isNot_objectQuestion() async {
     await assertErrorsInCode(r'''
 void f<T>(T a) {
   a is! Object?;
@@ -40,7 +111,7 @@ void f<T>(T a) {
 }
 
 mixin UnnecessaryTypeCheckFalseTestCases on PubPackageResolutionTest {
-  test_null_not_Null() async {
+  test_null_isNot_Null() async {
     await assertErrorsInCode(r'''
 var b = null is! Null;
 ''', [
@@ -48,7 +119,7 @@ var b = null is! Null;
     ]);
   }
 
-  test_type_not_dynamic() async {
+  test_typeParameter_isNot_dynamic() async {
     await assertErrorsInCode(r'''
 void f<T>(T a) {
   a is! dynamic;
@@ -58,35 +129,110 @@ void f<T>(T a) {
     ]);
   }
 
-  test_type_not_object() async {
+  test_typeParameter_isNot_object() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [],
+      legacy: [
+        error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
+      ],
+    );
     await assertErrorsInCode(r'''
 void f<T>(T a) {
   a is! Object;
 }
-''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
-    ]);
+''', expectedErrors);
   }
 }
 
 @reflectiveTest
 class UnnecessaryTypeCheckFalseWithoutNullSafetyTest
     extends PubPackageResolutionTest
-    with UnnecessaryTypeCheckFalseTestCases, WithoutNullSafetyMixin {}
+    with WithoutNullSafetyMixin, UnnecessaryTypeCheckFalseTestCases {}
 
 @reflectiveTest
 class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest
     with UnnecessaryTypeCheckTrueTestCases {
-  @override
-  test_type_is_object() async {
+  test_typeNonNullable_is_same() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  a is int;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
+    ]);
+  }
+
+  test_typeNonNullable_is_subtype() async {
     await assertNoErrorsInCode(r'''
-void f<T>(T a) {
-  a is Object;
+void f(num a) {
+  a is int;
 }
 ''');
   }
 
-  test_type_is_objectQuestion() async {
+  test_typeNonNullable_is_supertype() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  a is num;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
+    ]);
+  }
+
+  test_typeNullable_is_same() async {
+    await assertErrorsInCode(r'''
+void f(int? a) {
+  a is int?;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
+    ]);
+  }
+
+  test_typeNullable_is_same_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  a is int;
+}
+''');
+  }
+
+  test_typeNullable_is_subtype() async {
+    await assertNoErrorsInCode(r'''
+void f(num? a) {
+  a is int?;
+}
+''');
+  }
+
+  test_typeNullable_is_subtype_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+void f(num? a) {
+  a is int;
+}
+''');
+  }
+
+  test_typeNullable_is_supertype() async {
+    await assertErrorsInCode(r'''
+void f(int? a) {
+  a is num?;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
+    ]);
+  }
+
+  test_typeNullable_is_supertype_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  a is num;
+}
+''');
+  }
+
+  test_typeParameter_is_objectQuestion() async {
     await assertErrorsInCode(r'''
 void f<T>(T a) {
   a is Object?;
@@ -108,6 +254,26 @@ var b = null is Null;
 
   test_type_is_dynamic() async {
     await assertErrorsInCode(r'''
+void f(int a) {
+  a is dynamic;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12),
+    ]);
+  }
+
+  test_type_is_unresolved() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  a is Unresolved;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 23, 10),
+    ]);
+  }
+
+  test_typeParameter_is_dynamic() async {
+    await assertErrorsInCode(r'''
 void f<T>(T a) {
   a is dynamic;
 }
@@ -116,18 +282,22 @@ void f<T>(T a) {
     ]);
   }
 
-  test_type_is_object() async {
+  test_typeParameter_is_object() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [],
+      legacy: [
+        error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 11),
+      ],
+    );
     await assertErrorsInCode(r'''
 void f<T>(T a) {
   a is Object;
 }
-''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 11),
-    ]);
+''', expectedErrors);
   }
 }
 
 @reflectiveTest
 class UnnecessaryTypeCheckTrueWithoutNullSafetyTest
     extends PubPackageResolutionTest
-    with UnnecessaryTypeCheckTrueTestCases, WithoutNullSafetyMixin {}
+    with WithoutNullSafetyMixin, UnnecessaryTypeCheckTrueTestCases {}

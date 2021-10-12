@@ -10,8 +10,8 @@ main() {
 
 promotedCascade(dynamic value) {
   if (/*dynamic*/ value is List<String>) {
-    value = '[${(
-        /*List<String>*/ value.. /*invoke: [List<String>]->void*/ sort()). /*invoke: [List<String>]->String*/ join(',')}]';
+    value =
+        '[${(/*List<String>*/ value.. /*invoke: [List<String>]->void*/ sort()). /*invoke: [List<String>]->String*/ join(',')}]';
   }
   return /*dynamic*/ value;
 }

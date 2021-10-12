@@ -69,13 +69,13 @@ class InstantiationStubGenerator {
     // }
     // ```
 
-    List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
+    List<jsAst.Parameter> parameters = [];
+    List<jsAst.Expression> arguments = [];
 
     for (int i = 0; i < callSelector.argumentCount; i++) {
       String jsName = 'a$i';
       arguments.add(js('#', jsName));
-      parameters.add(new jsAst.Parameter(jsName));
+      parameters.add(jsAst.Parameter(jsName));
     }
 
     for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
@@ -95,7 +95,7 @@ class InstantiationStubGenerator {
     // TODO(sra): .withSourceInformation(sourceInformation);
 
     jsAst.Name name = _namer.invocationName(callSelector);
-    return new ParameterStubMethod(name, null, function);
+    return ParameterStubMethod(name, null, function);
   }
 
   /// Generates a stub for a 'signature' selector. The stub calls the underlying
@@ -118,7 +118,7 @@ class InstantiationStubGenerator {
     // TODO(sra): Generate source information for stub that has no member.
     // TODO(sra): .withSourceInformation(sourceInformation);
 
-    return new ParameterStubMethod(operatorSignature, null, function);
+    return ParameterStubMethod(operatorSignature, null, function);
   }
 
   jsAst.Fun _generateSignatureNewRti(FieldEntity functionField) =>
@@ -156,8 +156,7 @@ class InstantiationStubGenerator {
         _codegenWorld.invocationsByName(call);
 
     Set<ParameterStructure> computeLiveParameterStructures() {
-      Set<ParameterStructure> parameterStructures =
-          new Set<ParameterStructure>();
+      Set<ParameterStructure> parameterStructures = {};
 
       void process(FunctionEntity function) {
         if (function.parameterStructure.typeParameters == typeArgumentCount) {
@@ -172,7 +171,7 @@ class InstantiationStubGenerator {
       return parameterStructures;
     }
 
-    List<StubMethod> stubs = <StubMethod>[];
+    List<StubMethod> stubs = [];
 
     // For every call-selector generate a stub to the corresponding selector
     // with filled-in type arguments.
@@ -188,7 +187,7 @@ class InstantiationStubGenerator {
         for (ParameterStructure parameterStructure in parameterStructures) {
           if (genericCallStructure.signatureApplies(parameterStructure)) {
             Selector genericSelector =
-                new Selector.call(selector.memberName, genericCallStructure);
+                Selector.call(selector.memberName, genericCallStructure);
             stubs.add(_generateStub(
                 instantiationClass, functionField, selector, genericSelector));
             break;

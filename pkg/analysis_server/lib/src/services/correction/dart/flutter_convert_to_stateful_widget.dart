@@ -23,7 +23,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var widgetClass = node.thisOrAncestorOfType<ClassDeclaration>();
-    var superclass = widgetClass?.extendsClause?.superclass;
+    var superclass = widgetClass?.extendsClause?.superclass2;
     if (widgetClass == null || superclass == null) {
       return;
     }
@@ -92,8 +92,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
             }
           }
         }
-      }
-      if (member is MethodDeclaration && !member.isStatic) {
+      } else if (member is MethodDeclaration && !member.isStatic) {
         nodesToMove.add(member);
         elementsToMove.add(member.declaredElement!);
       }
@@ -177,8 +176,9 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
       for (var node in widgetClass.members) {
         if (nodesToMove.contains(node)) {
           if (replaceOffset == 0) {
-            var linesRange = utils.getLinesRange(range.node(node));
-            replaceOffset = linesRange.offset;
+            var comments = node.beginToken.precedingComments;
+            var start = comments ?? node;
+            replaceOffset = utils.getLineContentStart(start.offset);
           }
           if (node == buildMethod) {
             hasBuildMethod = true;
@@ -236,6 +236,14 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
           if (writeEmptyLine) {
             builder.writeln();
           }
+
+          var comments = member.beginToken.precedingComments;
+          if (comments != null) {
+            var offset = utils.getLineContentStart(comments.offset);
+            var length = comments.end - offset;
+            builder.writeln(utils.getText(offset, length));
+          }
+
           var text = rewriteWidgetMemberReferences(member);
           builder.write(text);
           // Write empty lines between members, but not before the first.

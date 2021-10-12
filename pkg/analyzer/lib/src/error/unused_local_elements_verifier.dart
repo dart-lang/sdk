@@ -92,6 +92,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    usedElements.addElement(node.staticElement);
+    super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement;
     usedElements.addMember(element);
@@ -246,7 +252,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
-    if (node.parent is TypeName) {
+    if (node.parent is NamedType) {
       if (element is ClassElement) {
         AstNode parent2 = node.parent!.parent!;
         if (parent2 is IsExpression) {

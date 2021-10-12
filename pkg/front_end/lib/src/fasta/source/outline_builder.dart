@@ -41,7 +41,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 
-import '../combinator.dart' show Combinator;
+import '../combinator.dart' show CombinatorBuilder;
 
 import '../configuration.dart' show Configuration;
 
@@ -182,7 +182,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (names is ParserRecovery) {
       push(names);
     } else {
-      push(new Combinator.hide(names as Iterable<String>,
+      push(new CombinatorBuilder.hide(names as Iterable<String>,
           hideKeyword.charOffset, libraryBuilder.fileUri));
     }
   }
@@ -194,7 +194,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (names is ParserRecovery) {
       push(names);
     } else {
-      push(new Combinator.show(names as Iterable<String>,
+      push(new CombinatorBuilder.show(names as Iterable<String>,
           showKeyword.charOffset, libraryBuilder.fileUri));
     }
   }
@@ -202,7 +202,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endCombinators(int count) {
     debugEvent("Combinators");
-    push(const FixedNullableList<Combinator>()
+    push(const FixedNullableList<CombinatorBuilder>()
             .popNonNullable(stack, count, dummyCombinator) ??
         NullValue.Combinators);
   }
@@ -210,7 +210,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
-    List<Combinator>? combinators = pop() as List<Combinator>?;
+    List<CombinatorBuilder>? combinators = pop() as List<CombinatorBuilder>?;
     List<Configuration>? configurations = pop() as List<Configuration>?;
     int uriOffset = popCharOffset();
     String uri = pop() as String;
@@ -235,7 +235,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("EndImport");
-    List<Combinator>? combinators = pop() as List<Combinator>?;
+    List<CombinatorBuilder>? combinators = pop() as List<CombinatorBuilder>?;
     bool isDeferred = pop() as bool;
     int prefixOffset = popCharOffset();
     Object? prefix = pop(NullValue.Prefix);
@@ -328,6 +328,30 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleShowHideIdentifier(Token? modifier, Token identifier) {
+    debugEvent("ShowHideIdentifier");
+
+    assert(modifier == null ||
+        modifier.stringValue! == "get" ||
+        modifier.stringValue! == "set" ||
+        modifier.stringValue! == "operator");
+
+    if (modifier == null) {
+      handleIdentifier(
+          identifier, IdentifierContext.extensionShowHideElementMemberOrType);
+    } else if (modifier.stringValue! == "get") {
+      handleIdentifier(
+          identifier, IdentifierContext.extensionShowHideElementGetter);
+    } else if (modifier.stringValue! == "set") {
+      handleIdentifier(
+          identifier, IdentifierContext.extensionShowHideElementSetter);
+    } else if (modifier.stringValue! == "operator") {
+      handleIdentifier(
+          identifier, IdentifierContext.extensionShowHideElementOperator);
+    }
+  }
+
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
       debugEvent("handleIdentifier");
@@ -337,6 +361,16 @@ class OutlineBuilder extends StackListenerImpl {
       } else {
         push(new EnumConstantInfo(metadata, token.lexeme, token.charOffset));
       }
+    } else if (context == IdentifierContext.extensionShowHideElementGetter ||
+        context == IdentifierContext.extensionShowHideElementMemberOrType ||
+        context == IdentifierContext.extensionShowHideElementSetter) {
+      push(context);
+      super.handleIdentifier(token, context);
+      push(token.charOffset);
+    } else if (context == IdentifierContext.extensionShowHideElementOperator) {
+      push(context);
+      push(operatorFromString(token.stringValue!));
+      push(token.charOffset);
     } else {
       super.handleIdentifier(token, context);
       push(token.charOffset);
@@ -492,9 +526,22 @@ class OutlineBuilder extends StackListenerImpl {
   void beginClassOrMixinBody(DeclarationKind kind, Token token) {
     if (kind == DeclarationKind.Extension) {
       assert(checkState(token, [
+        /* hide type elements = */ ValueKinds.TypeBuilderListOrNull,
+        /* hide get elements = */ ValueKinds.NameListOrNull,
+        /* hide member or type elements = */ ValueKinds.NameListOrNull,
+        /* hide set elements = */ ValueKinds.NameListOrNull,
+        /* hide operator elements = */ ValueKinds.OperatorListOrNull,
+        /* show type elements = */ ValueKinds.TypeBuilderListOrNull,
+        /* show get elements = */ ValueKinds.NameListOrNull,
+        /* show member or type elements = */ ValueKinds.NameListOrNull,
+        /* show set elements */ ValueKinds.NameListOrNull,
+        /* show operator elements*/ ValueKinds.OperatorListOrNull,
         unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder])
       ]));
-      Object? extensionThisType = peek();
+
+      // We peek into 10th frame on the stack for the extension 'this' type.
+      Object? extensionThisType = stack[10];
+
       if (extensionThisType is TypeBuilder) {
         libraryBuilder.currentTypeParameterScopeBuilder
             .registerExtensionThisType(extensionThisType);
@@ -530,6 +577,75 @@ class OutlineBuilder extends StackListenerImpl {
     push(const FixedNullableList<TypeBuilder>()
             .popNonNullable(stack, interfacesCount, dummyTypeBuilder) ??
         NullValue.TypeBuilderList);
+  }
+
+  @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    debugEvent("ExtensionShow");
+
+    List<dynamic> toBePushed = <dynamic>[];
+    void handleShowHideElements(int elementCount) {
+      if (elementCount == 0) {
+        toBePushed.add(NullValue.TypeBuilderList);
+        toBePushed.add(NullValue.IdentifierList);
+        toBePushed.add(NullValue.IdentifierList);
+        toBePushed.add(NullValue.IdentifierList);
+        toBePushed.add(NullValue.OperatorList);
+      } else {
+        List<TypeBuilder> typeElements = <TypeBuilder>[];
+        List<String> getElements = <String>[];
+        List<String> ambiguousMemberOrTypeElements = <String>[];
+        List<String> setElements = <String>[];
+        List<Operator> operatorElements = <Operator>[];
+
+        for (int i = 0; i < elementCount; ++i) {
+          Object leadingElementPart = pop()!;
+          if (leadingElementPart is TypeBuilder) {
+            typeElements.add(leadingElementPart);
+          } else {
+            leadingElementPart as int; // Offset.
+            Object name = pop()!;
+            IdentifierContext context = pop() as IdentifierContext;
+
+            if (name is! ParserRecovery) {
+              assert(context ==
+                      IdentifierContext.extensionShowHideElementGetter ||
+                  context ==
+                      IdentifierContext.extensionShowHideElementMemberOrType ||
+                  context ==
+                      IdentifierContext.extensionShowHideElementOperator ||
+                  context == IdentifierContext.extensionShowHideElementSetter);
+
+              if (context == IdentifierContext.extensionShowHideElementGetter) {
+                getElements.add(name as String);
+              } else if (context ==
+                  IdentifierContext.extensionShowHideElementMemberOrType) {
+                ambiguousMemberOrTypeElements.add(name as String);
+              } else if (context ==
+                  IdentifierContext.extensionShowHideElementOperator) {
+                operatorElements.add(name as Operator);
+              } else if (context ==
+                  IdentifierContext.extensionShowHideElementSetter) {
+                setElements.add(name as String);
+              }
+            }
+          }
+        }
+
+        toBePushed.add(typeElements);
+        toBePushed.add(getElements);
+        toBePushed.add(ambiguousMemberOrTypeElements);
+        toBePushed.add(setElements);
+        toBePushed.add(operatorElements);
+      }
+    }
+
+    handleShowHideElements(hideElementCount);
+    handleShowHideElements(showElementCount);
+    for (int i = toBePushed.length - 1; i >= 0; --i) {
+      push(toBePushed[i]);
+    }
   }
 
   @override
@@ -774,8 +890,18 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
+      /* hide type elements = */ ValueKinds.TypeBuilderListOrNull,
+      /* hide get elements = */ ValueKinds.NameListOrNull,
+      /* hide member or type elements = */ ValueKinds.NameListOrNull,
+      /* hide set elements = */ ValueKinds.NameListOrNull,
+      /* hide operator elements = */ ValueKinds.OperatorListOrNull,
+      /* show type elements = */ ValueKinds.TypeBuilderListOrNull,
+      /* show get elements = */ ValueKinds.NameListOrNull,
+      /* show member or type elements = */ ValueKinds.NameListOrNull,
+      /* show set elements = */ ValueKinds.NameListOrNull,
+      /* show operator elements = */ ValueKinds.OperatorListOrNull,
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
       ValueKinds.TypeVariableListOrNull,
       ValueKinds.Integer,
@@ -783,6 +909,39 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.MetadataListOrNull
     ]));
     debugEvent("endExtensionDeclaration");
+
+    List<TypeBuilder>? hiddenSupertypes = pop() as List<TypeBuilder>?;
+    List<String>? hiddenGetters = pop() as List<String>?;
+    List<String>? hiddenMembersOrTypes = pop() as List<String>?;
+    List<String>? hiddenSetters = pop() as List<String>?;
+    List<Operator>? hiddenOperators = pop() as List<Operator>?;
+
+    List<TypeBuilder>? shownSupertypes = pop() as List<TypeBuilder>?;
+    List<String>? shownGetters = pop() as List<String>?;
+    List<String>? shownMembersOrTypes = pop() as List<String>?;
+    List<String>? shownSetters = pop() as List<String>?;
+    List<Operator>? shownOperators = pop() as List<Operator>?;
+
+    ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder =
+        new ExtensionTypeShowHideClauseBuilder(
+            shownSupertypes: shownSupertypes ?? const <TypeBuilder>[],
+            shownGetters: shownGetters ?? const <String>[],
+            shownSetters: shownSetters ?? const <String>[],
+            shownMembersOrTypes: shownMembersOrTypes ?? const <String>[],
+            shownOperators: shownOperators ?? const <Operator>[],
+            hiddenSupertypes: hiddenSupertypes ?? const <TypeBuilder>[],
+            hiddenGetters: hiddenGetters ?? const <String>[],
+            hiddenSetters: hiddenSetters ?? const <String>[],
+            hiddenMembersOrTypes: hiddenMembersOrTypes ?? const <String>[],
+            hiddenOperators: hiddenOperators ?? const <Operator>[]);
+
+    if (showKeyword != null && !libraryBuilder.enableExtensionTypesInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('extension-types',
+              libraryBuilder.enableExtensionTypesVersionInLibrary.toText()),
+          showKeyword.charOffset,
+          showKeyword.length);
+    }
     Object? onType = pop();
     if (onType is ParserRecovery) {
       ParserRecovery parserRecovery = onType;
@@ -819,6 +978,7 @@ class OutlineBuilder extends StackListenerImpl {
         name,
         typeVariables,
         onType as TypeBuilder,
+        extensionTypeShowHideClauseBuilder,
         isExtensionTypeDeclaration,
         startOffset,
         nameOffset,

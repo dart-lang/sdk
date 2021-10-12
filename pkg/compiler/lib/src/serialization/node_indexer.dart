@@ -252,14 +252,10 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void>
 
 /// Visitor that ascribes an index to all [ir.Constant]s that we potentially
 /// need to reference for serialization and deserialization.
-///
-/// Currently this is only list, map, and set constants, which are used as
-/// allocation identities in the global inference.
 class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   int _currentIndex = 0;
   final Map<int, ir.Constant> _indexToNodeMap = {};
   final Map<ir.Constant, int> _nodeToIndexMap = {};
-  final Set<ir.Constant> _visitedNonindexedNodes = {};
 
   /// Returns `true` if node not already registered.
   bool _register(ir.Constant node) {
@@ -283,34 +279,48 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   }
 
   @override
-  void visitUnevaluatedConstant(ir.UnevaluatedConstant node) {}
+  void visitUnevaluatedConstant(ir.UnevaluatedConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitTypeLiteralConstant(ir.TypeLiteralConstant node) {}
+  void visitTypeLiteralConstant(ir.TypeLiteralConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitStaticTearOffConstant(ir.StaticTearOffConstant node) {}
+  void visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) {}
+  void visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) {
+    _register(node);
+  }
 
   @override
   void visitRedirectingFactoryTearOffConstant(
-      ir.RedirectingFactoryTearOffConstant node) {}
+      ir.RedirectingFactoryTearOffConstant node) {
+    _register(node);
+  }
 
   @override
   void visitInstantiationConstant(ir.InstantiationConstant node) {
-    node.tearOffConstant.accept(this);
+    if (_register(node)) {
+      node.tearOffConstant.accept(this);
+    }
   }
 
   @override
   void visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) {
-    node.tearOffConstant.accept(this);
+    if (_register(node)) {
+      node.tearOffConstant.accept(this);
+    }
   }
 
   @override
   void visitInstanceConstant(ir.InstanceConstant node) {
-    if (_visitedNonindexedNodes.add(node)) {
+    if (_register(node)) {
       node.fieldValues.forEach((_, ir.Constant value) {
         value.accept(this);
       });
@@ -346,26 +356,38 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   }
 
   @override
-  void visitSymbolConstant(ir.SymbolConstant node) {}
+  void visitSymbolConstant(ir.SymbolConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitStringConstant(ir.StringConstant node) {}
+  void visitStringConstant(ir.StringConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitDoubleConstant(ir.DoubleConstant node) {}
+  void visitDoubleConstant(ir.DoubleConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitIntConstant(ir.IntConstant node) {}
+  void visitIntConstant(ir.IntConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitBoolConstant(ir.BoolConstant node) {}
+  void visitBoolConstant(ir.BoolConstant node) {
+    _register(node);
+  }
 
   @override
-  void visitNullConstant(ir.NullConstant node) {}
+  void visitNullConstant(ir.NullConstant node) {
+    _register(node);
+  }
 
   @override
   void defaultConstant(ir.Constant node) {
-    throw new UnimplementedError(
+    throw UnimplementedError(
         "Unexpected constant: $node (${node.runtimeType})");
   }
 }

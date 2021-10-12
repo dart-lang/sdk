@@ -72,7 +72,6 @@ import "dart:typed_data"
 // part "function_patch.dart";
 // part "growable_array.dart";
 // part "identical_patch.dart";
-// part "immutable_map.dart";
 // part "integers.dart";
 // part "integers_patch.dart";
 // part "invocation_mirror_patch.dart";
@@ -232,5 +231,6 @@ class _SyncIterator<T> implements Iterator<T> {
 @patch
 class StackTrace {
   @patch
-  static StackTrace get current native "StackTrace_current";
+  @pragma("vm:external-name", "StackTrace_current")
+  external static StackTrace get current;
 }

@@ -319,7 +319,7 @@ list of fields with `final`.
 We're now ready to create the actual fix. To do that we're going to use the
 `ChangeBuilder` passed to the `compute` method. In the example below we'll
 introduce a couple of the methods on `ChangeBuilder`, but for more information
-you can read [Creating `SourceChange`s](https://github.com/dart-lang/sdk/blob/master/pkg/analyzer_plugin/doc/tutorial/creating_edits.md).
+you can read [Creating `SourceChange`s](https://github.com/dart-lang/sdk/blob/main/pkg/analyzer_plugin/doc/tutorial/creating_edits.md).
 
 Fields can be declared with either `final`, `const`, `var`, or a type
 annotation, and the change that needs to be made depends on how the field was
@@ -394,7 +394,7 @@ generally only needed when you can't know in advance the maximum number of
 fixes that might need to be produced. For example, if there is an undefined
 identifier, and it might be possible to add an import to fix the problem,
 there's no way to know in advance how many libraries might define the name, but
-we'd want to proposing adding an import for each such library.
+we'd want to propose adding an import for each such library.
 
 If you are able to enumerate the possible fixes ahead of time, then you're
 better off to create one subclass of `CorrectionProducer` for each of the fixes.

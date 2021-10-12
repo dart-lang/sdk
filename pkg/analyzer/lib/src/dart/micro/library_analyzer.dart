@@ -100,7 +100,7 @@ class LibraryAnalyzer {
   TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
   /// Compute analysis results for all units of the library.
-  Map<FileState, UnitAnalysisResult> analyzeSync({
+  Map<FileState, UnitAnalysisResult> analyze({
     required String? completionPath,
     required int? completionOffset,
     required OperationPerformanceImpl performance,
@@ -413,7 +413,7 @@ class LibraryAnalyzer {
 
     bool isIgnored(AnalysisError error) {
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      return ignoreInfo.ignoredAt(error.errorCode.name, errorLine);
+      return ignoreInfo.ignoredAt(error.errorCode, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();

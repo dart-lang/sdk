@@ -141,6 +141,22 @@ class MemberSuggestionBuilder {
 /// An object used to build a list of suggestions in response to a single
 /// completion request.
 class SuggestionBuilder {
+  /// The cache of suggestions for [Element]s. We use it to avoid computing
+  /// the same documentation, parameters, return type, etc for elements that
+  /// are exactly the same (the same instances) as they were the last time.
+  ///
+  /// This cache works because:
+  /// 1. Flutter applications usually reference many libraries, which they
+  /// consume, but don't change. So, all their elements stay unchanged.
+  /// 2. The analyzer keeps the same library instances loaded as the user
+  /// types in the application, so the instances of all elements stay the
+  /// same, and the cache works.
+  /// 3. The analyzer does not patch elements (at least not after the linking
+  /// process is done, and the elements are exposed to any client code). So,
+  /// any type information, or documentation, stays the same. If this changes,
+  /// we would need a signal, e.g. some modification counter on the element.
+  static final _elementSuggestionCache = Expando<_CompletionSuggestionEntry>();
+
   /// The completion request for which suggestions are being built.
   final DartCompletionRequest request;
 
@@ -457,9 +473,8 @@ class SuggestionBuilder {
 
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
-    const callString = 'call';
-    final element = protocol.Element(
-        protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
+    final element = protocol.Element(protocol.ElementKind.METHOD,
+        FunctionElement.CALL_METHOD_NAME, protocol.Element.makeFlags(),
         location: null,
         typeParameters: null,
         parameters: '()',
@@ -467,8 +482,8 @@ class SuggestionBuilder {
     _add(CompletionSuggestion(
       CompletionSuggestionKind.INVOCATION,
       Relevance.callFunction,
-      callString,
-      callString.length,
+      FunctionElement.CALL_METHOD_NAME,
+      FunctionElement.CALL_METHOD_NAME.length,
       0,
       false,
       false,
@@ -1005,6 +1020,50 @@ class SuggestionBuilder {
       CompletionSuggestionKind? kind,
       String? prefix,
       required int relevance}) {
+    var inputs = _CompletionSuggestionInputs(
+      completion: completion,
+      elementKind: elementKind,
+      kind: kind,
+      prefix: prefix,
+    );
+
+    var cacheEntry = _elementSuggestionCache[element];
+    if (cacheEntry != null) {
+      if (cacheEntry.inputs == inputs) {
+        final suggestion = cacheEntry.suggestion;
+        suggestion.relevance = relevance;
+        return suggestion;
+      }
+    }
+
+    var suggestion = _createSuggestion0(
+      element,
+      completion: completion,
+      elementKind: elementKind,
+      kind: kind,
+      prefix: prefix,
+      relevance: relevance,
+    );
+    if (suggestion == null) {
+      return null;
+    }
+
+    _elementSuggestionCache[element] = _CompletionSuggestionEntry(
+      inputs: inputs,
+      suggestion: suggestion,
+    );
+    return suggestion;
+  }
+
+  /// The non-caching implementation of [_createSuggestion].
+  CompletionSuggestion? _createSuggestion0(
+    Element element, {
+    required String? completion,
+    required protocol.ElementKind? elementKind,
+    required CompletionSuggestionKind? kind,
+    required String? prefix,
+    required int relevance,
+  }) {
     if (element is ExecutableElement && element.isOperator) {
       // Do not include operators in suggestions
       return null;
@@ -1159,4 +1218,42 @@ abstract class SuggestionListener {
   /// Invoked when an element kind feature cannot be produced because there is
   /// no `elementKindRelevance` table associated with the [completionLocation].
   void missingElementKindTableFor(String completionLocation);
+}
+
+/// The entry of the element to suggestion cache.
+class _CompletionSuggestionEntry {
+  final _CompletionSuggestionInputs inputs;
+
+  /// The suggestion computed for the element and [inputs].
+  final CompletionSuggestion suggestion;
+
+  _CompletionSuggestionEntry({
+    required this.inputs,
+    required this.suggestion,
+  });
+}
+
+/// The inputs, other than the [Element], that were provided to create an
+/// instance of [CompletionSuggestion].
+class _CompletionSuggestionInputs {
+  final String? completion;
+  final protocol.ElementKind? elementKind;
+  final CompletionSuggestionKind? kind;
+  final String? prefix;
+
+  _CompletionSuggestionInputs({
+    required this.completion,
+    required this.elementKind,
+    required this.kind,
+    required this.prefix,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is _CompletionSuggestionInputs &&
+        other.completion == completion &&
+        other.elementKind == elementKind &&
+        other.kind == kind &&
+        other.prefix == prefix;
+  }
 }

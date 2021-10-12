@@ -301,9 +301,22 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
   Exceptions::ThrowArgumentError(value);
 }
 
-DEFINE_RUNTIME_ENTRY(DoubleToInteger, 0) {
+DEFINE_RUNTIME_ENTRY(DoubleToInteger, 1) {
   // Unboxed value is passed through a dedicated slot in Thread.
-  const double val = arguments.thread()->unboxed_double_runtime_arg();
+  double val = arguments.thread()->unboxed_double_runtime_arg();
+  const Smi& recognized_kind = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  switch (recognized_kind.Value()) {
+    case MethodRecognizer::kDoubleToInteger:
+      break;
+    case MethodRecognizer::kDoubleFloorToInt:
+      val = floor(val);
+      break;
+    case MethodRecognizer::kDoubleCeilToInt:
+      val = ceil(val);
+      break;
+    default:
+      UNREACHABLE();
+  }
   arguments.SetReturn(Integer::Handle(zone, DoubleToInteger(zone, val)));
 }
 
@@ -509,7 +522,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
   }
 
   if (add_to_remembered_set) {
-    object->untag()->AddToRememberedSet(thread);
+    object->untag()->EnsureInRememberedSet(thread);
   }
 
   // For incremental write barrier elimination, we need to ensure that the
@@ -1932,13 +1945,6 @@ void PatchableCallHandler::DoMonomorphicMissJIT(
   // The target didn't change, so we can stay inside monomorphic state.
   if (ic_data.NumberOfChecksIs(1) &&
       (ic_data.GetReceiverClassIdAt(0) == receiver().GetClassId())) {
-    // We got a miss because the old target code got disabled.
-    // Notice the reverse is not true: If the old code got disabled, the call
-    // might still have a different receiver then last time and possibly a
-    // different target.
-    ASSERT(miss_handler_ == MissHandler::kFixCallersTargetMonomorphic ||
-           !IsolateGroup::Current()->ContainsOnlyOneIsolate());
-
     // No need to update ICData - it's already up-to-date.
 
     if (FLAG_trace_ic) {
@@ -3628,6 +3634,9 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
   }
   if (thread->no_callback_scope_depth() != 0) {
     FATAL("Cannot invoke native callback when API callbacks are prohibited.");
+  }
+  if (thread->is_unwind_in_progress()) {
+    FATAL("Cannot invoke native callback while unwind error propagates.");
   }
   if (!thread->IsMutatorThread()) {
     FATAL("Native callbacks must be invoked on the mutator thread.");

@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-library dev_compiler.test.expression_compiler;
-
 import 'package:dev_compiler/dev_compiler.dart' show ModuleFormat;
 import 'package:test/test.dart';
 import 'expression_compiler_e2e_shared.dart';
@@ -21,8 +19,11 @@ void main() async {
 
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: true, moduleFormat: ModuleFormat.amd);
-      runSharedTests(setup, driver);
+          soundNullSafety: true,
+          legacyCode: false,
+          moduleFormat: ModuleFormat.amd);
+      runAgnosticSharedTests(setup, driver);
+      runNullSafeSharedTests(setup, driver);
     });
   });
 }

@@ -727,6 +727,128 @@ var A = B;
     expect(driver.fsState.knownFilePaths, isNot(contains(b)));
   }
 
+  test_changeFile_potentiallyAffected_imported() async {
+    newFile('/test/lib/a.dart', content: '');
+    var b = newFile('/test/lib/b.dart', content: '''
+import 'a.dart';
+''');
+    newFile('/test/lib/c.dart', content: '''
+import 'b.dart';
+''');
+    newFile('/test/lib/d.dart', content: '''
+import 'c.dart';
+''');
+    newFile('/test/lib/e.dart', content: '');
+
+    Future<LibraryElementImpl> getLibrary(String shortName) async {
+      var uriStr = 'package:test/$shortName';
+      var result = await driver.getLibraryByUriValid(uriStr);
+      return result.element as LibraryElementImpl;
+    }
+
+    var a_element = await getLibrary('a.dart');
+    var b_element = await getLibrary('b.dart');
+    var c_element = await getLibrary('c.dart');
+    var d_element = await getLibrary('d.dart');
+    var e_element = await getLibrary('e.dart');
+
+    // We have all libraries loaded after analysis.
+    driver.assertLoadedLibraryUriSet(
+      included: [
+        'package:test/a.dart',
+        'package:test/b.dart',
+        'package:test/c.dart',
+        'package:test/d.dart',
+        'package:test/e.dart',
+      ],
+    );
+
+    // All libraries are valid.
+    expect(a_element.isValid, true);
+    expect(b_element.isValid, true);
+    expect(c_element.isValid, true);
+    expect(d_element.isValid, true);
+    expect(e_element.isValid, true);
+
+    // Change `b.dart`, also removes `c.dart` and `d.dart` that import it.
+    // But `a.dart` and `d.dart` is not affected.
+    driver.changeFile(b.path);
+    driver.assertLoadedLibraryUriSet(
+      excluded: [
+        'package:test/b.dart',
+        'package:test/c.dart',
+        'package:test/d.dart',
+      ],
+      included: [
+        'package:test/a.dart',
+        'package:test/e.dart',
+      ],
+    );
+
+    // Only `a.dart` and `e.dart` are still valid.
+    expect(a_element.isValid, true);
+    expect(b_element.isValid, false);
+    expect(c_element.isValid, false);
+    expect(d_element.isValid, false);
+    expect(e_element.isValid, true);
+  }
+
+  test_changeFile_potentiallyAffected_part() async {
+    var a = newFile('/test/lib/a.dart', content: '''
+part of 'b.dart';
+''');
+    newFile('/test/lib/b.dart', content: '''
+part 'a.dart';
+''');
+    newFile('/test/lib/c.dart', content: '''
+import 'b.dart';
+''');
+    newFile('/test/lib/d.dart', content: '');
+
+    Future<LibraryElementImpl> getLibrary(String shortName) async {
+      var uriStr = 'package:test/$shortName';
+      var result = await driver.getLibraryByUriValid(uriStr);
+      return result.element as LibraryElementImpl;
+    }
+
+    var b_element = await getLibrary('b.dart');
+    var c_element = await getLibrary('c.dart');
+    var d_element = await getLibrary('d.dart');
+
+    // We have all libraries loaded after analysis.
+    driver.assertLoadedLibraryUriSet(
+      included: [
+        'package:test/b.dart',
+        'package:test/c.dart',
+        'package:test/d.dart',
+      ],
+    );
+
+    // All libraries are valid.
+    expect(b_element.isValid, true);
+    expect(c_element.isValid, true);
+    expect(d_element.isValid, true);
+
+    // Change `a.dart`, remove `b.dart` that part it.
+    // Removes `c.dart` that imports `b.dart`.
+    // But `d.dart` is not affected.
+    driver.changeFile(a.path);
+    driver.assertLoadedLibraryUriSet(
+      excluded: [
+        'package:test/b.dart',
+        'package:test/c.dart',
+      ],
+      included: [
+        'package:test/d.dart',
+      ],
+    );
+
+    // Only `d.dart` is still valid.
+    expect(b_element.isValid, false);
+    expect(c_element.isValid, false);
+    expect(d_element.isValid, true);
+  }
+
   test_changeFile_selfConsistent() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -987,7 +1109,7 @@ const x = 1;
   }
 
   test_currentSession() async {
-    var a = convertPath('/a.dart');
+    var a = convertPath('/test/lib/a.dart');
 
     newFile(a, content: 'var V = 1;');
     await driver.getResultValid(a);
@@ -1002,8 +1124,9 @@ const x = 1;
     var session2 = driver.currentSession;
     expect(session2, isNotNull);
 
-    // We get a new session.
-    expect(session2, isNot(session1));
+    // We don't discard the session anymore.
+    // So, the session is always the same.
+    expect(session2, same(session1));
   }
 
   test_discoverAvailableFiles_packages() async {
@@ -3349,7 +3472,32 @@ extension on AnalysisDriver {
     return getFileSync2(path) as FileResult;
   }
 
+  Set<String> get loadedLibraryUriSet {
+    var elementFactory = this.test.libraryContext!.elementFactory;
+    var libraryReferences = elementFactory.rootReference.children;
+    return libraryReferences.map((e) => e.name).toSet();
+  }
+
+  void assertLoadedLibraryUriSet({
+    Iterable<String>? included,
+    Iterable<String>? excluded,
+  }) {
+    var uriSet = loadedLibraryUriSet;
+    if (included != null) {
+      expect(uriSet, containsAll(included));
+    }
+    if (excluded != null) {
+      for (var excludedUri in excluded) {
+        expect(uriSet, isNot(contains(excludedUri)));
+      }
+    }
+  }
+
   Future<ResolvedUnitResult> getResultValid(String path) async {
     return await getResult2(path) as ResolvedUnitResult;
+  }
+
+  Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
+    return await getLibraryByUri2(uriStr) as LibraryElementResult;
   }
 }

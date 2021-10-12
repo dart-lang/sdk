@@ -8,29 +8,39 @@
 @pragma("vm:entry-point")
 class _Platform {
   @patch
-  static int _numberOfProcessors() native "Platform_NumberOfProcessors";
+  @pragma("vm:external-name", "Platform_NumberOfProcessors")
+  external static int _numberOfProcessors();
   @patch
-  static String _pathSeparator() native "Platform_PathSeparator";
+  @pragma("vm:external-name", "Platform_PathSeparator")
+  external static String _pathSeparator();
   @patch
-  static String _operatingSystem() native "Platform_OperatingSystem";
+  @pragma("vm:external-name", "Platform_OperatingSystem")
+  external static String _operatingSystem();
   @patch
-  static _operatingSystemVersion() native "Platform_OperatingSystemVersion";
+  @pragma("vm:external-name", "Platform_OperatingSystemVersion")
+  external static _operatingSystemVersion();
   @patch
-  static _localHostname() native "Platform_LocalHostname";
+  @pragma("vm:external-name", "Platform_LocalHostname")
+  external static _localHostname();
   @patch
-  static _executable() native "Platform_ExecutableName";
+  @pragma("vm:external-name", "Platform_ExecutableName")
+  external static _executable();
   @patch
-  static _resolvedExecutable() native "Platform_ResolvedExecutableName";
+  @pragma("vm:external-name", "Platform_ResolvedExecutableName")
+  external static _resolvedExecutable();
   @patch
-  static _environment() native "Platform_Environment";
+  @pragma("vm:external-name", "Platform_Environment")
+  external static _environment();
   @patch
-  static List<String> _executableArguments()
-      native "Platform_ExecutableArguments";
+  @pragma("vm:external-name", "Platform_ExecutableArguments")
+  external static List<String> _executableArguments();
   @patch
-  static String _version() native "Platform_GetVersion";
+  @pragma("vm:external-name", "Platform_GetVersion")
+  external static String _version();
 
   @patch
-  static String _localeName() native "Platform_LocaleName";
+  @pragma("vm:external-name", "Platform_LocaleName")
+  external static String _localeName();
 
   @patch
   static String? _packageRoot() => VMLibraryHooks.packageRootString;

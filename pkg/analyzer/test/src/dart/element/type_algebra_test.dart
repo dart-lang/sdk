@@ -117,6 +117,61 @@ class SubstituteTest extends _Base {
     _assertIdenticalType(typeProvider.dynamicType, {T: intNone});
   }
 
+  test_function_fromAlias_hasRef() async {
+    // typedef Alias<T> = void Function();
+    var T = typeParameter('T');
+    var Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: functionTypeNone(
+        returnType: voidNone,
+      ),
+    );
+
+    var U = typeParameter('U');
+    var type = typeAliasTypeNone(Alias, typeArguments: [
+      typeParameterTypeNone(U),
+    ]);
+    assertType(type, 'void Function() via Alias<U>');
+    _assertSubstitution(type, {U: intNone}, 'void Function() via Alias<int>');
+  }
+
+  test_function_fromAlias_noRef() async {
+    // typedef Alias<T> = void Function();
+    var T = typeParameter('T');
+    var Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: functionTypeNone(
+        returnType: voidNone,
+      ),
+    );
+
+    var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
+    assertType(type, 'void Function() via Alias<double>');
+
+    var U = typeParameter('U');
+    _assertIdenticalType(type, {U: intNone});
+  }
+
+  test_function_fromAlias_noTypeParameters() async {
+    // typedef Alias<T> = void Function();
+    var T = typeParameter('T');
+    var Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: functionTypeNone(
+        returnType: voidNone,
+      ),
+    );
+
+    var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
+    assertType(type, 'void Function() via Alias<int>');
+
+    var U = typeParameter('U');
+    _assertIdenticalType(type, {U: intNone});
+  }
+
   test_function_noSubstitutions() async {
     var type = functionTypeNone(
       parameters: [
@@ -265,6 +320,63 @@ class SubstituteTest extends _Base {
     _assertIdenticalType(type, {U: doubleNone});
   }
 
+  test_interface_noTypeParameters_fromAlias_hasRef() async {
+    // class A {}
+    var A = class_(name: 'A');
+
+    // typedef Alias<T> = A;
+    var T = typeParameter('T');
+    var Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: interfaceTypeNone(A),
+    );
+
+    var U = typeParameter('U');
+    var type = typeAliasTypeNone(Alias, typeArguments: [
+      typeParameterTypeNone(U),
+    ]);
+    assertType(type, 'A via Alias<U>');
+    _assertSubstitution(type, {U: intNone}, 'A via Alias<int>');
+  }
+
+  test_interface_noTypeParameters_fromAlias_noRef() async {
+    // class A {}
+    var A = class_(name: 'A');
+
+    // typedef Alias<T> = A;
+    var T = typeParameter('T');
+    var Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: interfaceTypeNone(A),
+    );
+
+    var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
+    assertType(type, 'A via Alias<double>');
+
+    var U = typeParameter('U');
+    _assertIdenticalType(type, {U: intNone});
+  }
+
+  test_interface_noTypeParameters_fromAlias_noTypeParameters() async {
+    // class A {}
+    var A = class_(name: 'A');
+
+    // typedef Alias = A;
+    var Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [],
+      aliasedType: interfaceTypeNone(A),
+    );
+
+    var type = typeAliasTypeNone(Alias);
+    assertType(type, 'A via Alias');
+
+    var T = typeParameter('T');
+    _assertIdenticalType(type, {T: intNone});
+  }
+
   test_typeParameter_nullability() async {
     var tElement = typeParameter('T');
 
@@ -368,11 +480,9 @@ class SubstituteWithNullabilityTest extends _Base {
   }
 }
 
-class _Base extends AbstractTypeSystemNullSafetyTest {
+class _Base extends AbstractTypeSystemTest {
   void assertType(DartType type, String expected) {
-    var typeStr = type.getDisplayString(
-      withNullability: true,
-    );
+    var typeStr = _typeStr(type);
     expect(typeStr, expected);
   }
 
@@ -383,5 +493,21 @@ class _Base extends AbstractTypeSystemNullSafetyTest {
   ) {
     var result = substitute(type, substitution);
     assertType(result, expected);
+    expect(result, isNot(same(type)));
+  }
+
+  static String _typeStr(DartType type) {
+    var result = type.getDisplayString(withNullability: true);
+
+    var alias = type.alias;
+    if (alias != null) {
+      result += ' via ${alias.element.name}';
+      var typeArgumentStrList = alias.typeArguments.map(_typeStr).toList();
+      if (typeArgumentStrList.isNotEmpty) {
+        result += '<${typeArgumentStrList.join(', ')}>';
+      }
+    }
+
+    return result;
   }
 }

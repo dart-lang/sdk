@@ -52,8 +52,7 @@ class ClassHierarchyNode {
   /// Enum set for selecting instantiated classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
-  static final EnumSet<Instantiation> INSTANTIATED =
-      EnumSet<Instantiation>.fromValues(const <Instantiation>[
+  static final EnumSet<Instantiation> INSTANTIATED = EnumSet.fromValues(const [
     Instantiation.DIRECTLY_INSTANTIATED,
     Instantiation.INDIRECTLY_INSTANTIATED,
     Instantiation.ABSTRACTLY_INSTANTIATED,
@@ -63,7 +62,7 @@ class ClassHierarchyNode {
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
   static final EnumSet<Instantiation> EXPLICITLY_INSTANTIATED =
-      EnumSet<Instantiation>.fromValues(const <Instantiation>[
+      EnumSet.fromValues(const [
     Instantiation.DIRECTLY_INSTANTIATED,
     Instantiation.ABSTRACTLY_INSTANTIATED
   ], fixed: true);
@@ -72,7 +71,7 @@ class ClassHierarchyNode {
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
   static final EnumSet<Instantiation> ALL =
-      EnumSet<Instantiation>.fromValues(Instantiation.values, fixed: true);
+      EnumSet.fromValues(Instantiation.values, fixed: true);
 
   /// Creates an enum set for selecting the returned classes in
   /// [ClassHierarchyNode.subclassesByMask],
@@ -82,7 +81,7 @@ class ClassHierarchyNode {
       bool includeIndirectlyInstantiated = true,
       bool includeUninstantiated = true,
       bool includeAbstractlyInstantiated = true}) {
-    EnumSet<Instantiation> mask = EnumSet<Instantiation>();
+    EnumSet<Instantiation> mask = EnumSet();
     if (includeDirectlyInstantiated) {
       mask.add(Instantiation.DIRECTLY_INSTANTIATED);
     }
@@ -99,8 +98,8 @@ class ClassHierarchyNode {
   }
 
   final ClassHierarchyNode parentNode;
-  final EnumSet<Instantiation> _mask = EnumSet<Instantiation>.fromValues(
-      const <Instantiation>[Instantiation.UNINSTANTIATED]);
+  final EnumSet<Instantiation> _mask =
+      EnumSet.fromValues(const [Instantiation.UNINSTANTIATED]);
   final IndexedClass cls;
 
   final int hierarchyDepth;
@@ -204,7 +203,7 @@ class ClassHierarchyNode {
   }
 
   /// The nodes for the direct subclasses of [cls].
-  List<ClassHierarchyNode> _directSubclasses = <ClassHierarchyNode>[];
+  final List<ClassHierarchyNode> _directSubclasses = [];
 
   ClassHierarchyNode(this.parentNode, this.cls, this.hierarchyDepth) {
     if (parentNode != null) {
@@ -619,12 +618,12 @@ class ClassSet {
   /// A class that implements [cls] through its superclasses is not included in
   /// the iterable.
   Iterable<ClassHierarchyNode> get subtypeNodes {
-    return _subtypes ?? const <ClassHierarchyNode>[];
+    return _subtypes ?? const [];
   }
 
   /// Returns an [Iterable] of the classes that mix in [cls] directly.
   Iterable<ClassHierarchyNode> get mixinApplicationNodes {
-    return _mixinApplications ?? const <ClassHierarchyNode>[];
+    return _mixinApplications ?? const [];
   }
 
   /// Returns an [Iterable] of the subclasses of [cls] possibly including [cls].
@@ -752,10 +751,10 @@ class ClassSet {
       return;
     }
     if (_subtypes == null) {
-      _subtypes = <ClassHierarchyNode>[subtype];
+      _subtypes = [subtype];
     } else {
       int hierarchyDepth = subtype.hierarchyDepth;
-      List<ClassHierarchyNode> newSubtypes = <ClassHierarchyNode>[];
+      List<ClassHierarchyNode> newSubtypes = [];
       bool added = false;
       for (ClassHierarchyNode otherSubtype in _subtypes) {
         int otherHierarchyDepth = otherSubtype.hierarchyDepth;
@@ -798,21 +797,15 @@ class ClassSet {
 
   /// Adds [mixinApplication] as a class that mixes in [cls].
   void addMixinApplication(ClassHierarchyNode mixinApplication) {
-    if (_mixinApplications == null) {
-      _mixinApplications = <ClassHierarchyNode>[mixinApplication];
-    } else {
-      _mixinApplications.add(mixinApplication);
-    }
+    (_mixinApplications ??= []).add(mixinApplication);
   }
 
   /// Returns the most specific subtype of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
   ClassEntity getLubOfInstantiatedSubtypes() {
-    if (_leastUpperInstantiatedSubtype == null) {
-      _leastUpperInstantiatedSubtype = _computeLeastUpperInstantiatedSubtype();
-    }
-    return _leastUpperInstantiatedSubtype;
+    return _leastUpperInstantiatedSubtype ??=
+        _computeLeastUpperInstantiatedSubtype();
   }
 
   ClassEntity _computeLeastUpperInstantiatedSubtype() {
@@ -913,7 +906,7 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
 
   @override
   ClassEntity get current {
-    return currentNode != null ? currentNode.cls : null;
+    return currentNode?.cls;
   }
 
   @override

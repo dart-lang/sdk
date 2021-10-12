@@ -18,7 +18,8 @@ import '../world.dart';
 import 'runtime_types_codegen.dart';
 import 'runtime_types_resolution.dart';
 
-typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
+typedef OnVariableCallback = jsAst.Expression Function(
+    TypeVariableType variable);
 
 /// Interface for the needed runtime type checks.
 abstract class RuntimeTypesChecks {
@@ -80,11 +81,11 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
       CodegenWorld codegenWorld, CompilerOptions options) {
     rtiChecksBuilderClosed = true;
 
-    Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
+    Map<ClassEntity, ClassUse> classUseMap = {};
     for (ClassEntity cls in _closedWorld.classHierarchy
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()) {
-      ClassUse classUse = new ClassUse()
+      ClassUse classUse = ClassUse()
         ..directInstance = true
         ..checkedInstance = true
         ..typeArgument = true
@@ -95,7 +96,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
     }
     TypeChecks typeChecks = _substitutions._requiredChecks =
         _substitutions._computeChecks(classUseMap);
-    return new TrivialTypesChecks(typeChecks);
+    return TrivialTypesChecks(typeChecks);
   }
 
   Set<ClassEntity> computeCheckedClasses(
@@ -108,7 +109,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
 
   Set<FunctionType> computeCheckedFunctions(
       CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
-    return new Set<FunctionType>();
+    return {};
   }
 }
 
@@ -130,18 +131,18 @@ abstract class RuntimeTypesSubstitutionsMixin
     // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
     // argument is a superclass of the element of an instantiated type.
-    TypeCheckMapping result = new TypeCheckMapping();
-    Set<ClassEntity> handled = new Set<ClassEntity>();
+    TypeCheckMapping result = TypeCheckMapping();
+    Set<ClassEntity> handled = {};
 
     // Empty usage object for classes with no direct rti usage.
-    final ClassUse emptyUse = new ClassUse();
+    final ClassUse emptyUse = ClassUse();
 
     /// Compute the $isX and $asX functions need for [cls].
     ClassChecks computeChecks(ClassEntity cls) {
       if (!handled.add(cls)) return result[cls];
 
       ClassUse classUse = classUseMap[cls] ?? emptyUse;
-      ClassChecks checks = new ClassChecks(classUse.functionType);
+      ClassChecks checks = ClassChecks(classUse.functionType);
       result[cls] = checks;
 
       // Find the superclass from which [cls] inherits checks.
@@ -174,14 +175,14 @@ abstract class RuntimeTypesSubstitutionsMixin
         // We need [cls] at runtime - even if [cls] is not instantiated. Either
         // as a type argument, for a type literal or for an is-test if [cls] is
         // native.
-        checks.add(new TypeCheck(cls, substitution, needsIs: isNativeClass));
+        checks.add(TypeCheck(cls, substitution, needsIs: isNativeClass));
       }
 
       // Compute the set of classes that [cls] inherited properties from.
       //
       // This set reflects the emitted class hierarchy and therefore uses
       // `getEffectiveMixinClass` to find the inherited mixins.
-      Set<ClassEntity> inheritedClasses = new Set<ClassEntity>();
+      Set<ClassEntity> inheritedClasses = {};
       ClassEntity other = cls;
       while (other != null) {
         inheritedClasses.add(other);
@@ -277,14 +278,14 @@ abstract class RuntimeTypesSubstitutionsMixin
             if (extendsSuperClassTrivially) {
               // [cls] implements [checkedClass] the same way as [superClass]
               // so the inherited substitution function already works.
-              checks.add(new TypeCheck(checkedClass, null, needsIs: false));
+              checks.add(TypeCheck(checkedClass, null, needsIs: false));
             } else {
               // [cls] implements [checkedClass] differently from [superClass]
               // so the inherited substitution function needs to be replaced.
               if (implementsCheckedTrivially) {
                 // We need an explicit trivial substitution function for
                 // [checkedClass] that overrides the inherited function.
-                checks.add(new TypeCheck(checkedClass,
+                checks.add(TypeCheck(checkedClass,
                     isCheckedGeneric ? const Substitution.trivial() : null,
                     needsIs: false));
               } else {
@@ -292,8 +293,8 @@ abstract class RuntimeTypesSubstitutionsMixin
                 // [checkedClass].
                 Substitution substitution =
                     computeSubstitution(cls, checkedClass);
-                checks.add(
-                    new TypeCheck(checkedClass, substitution, needsIs: false));
+                checks
+                    .add(TypeCheck(checkedClass, substitution, needsIs: false));
 
                 assert(substitution != null);
                 for (DartType argument in substitution.arguments) {
@@ -310,14 +311,14 @@ abstract class RuntimeTypesSubstitutionsMixin
               // We don't add an explicit substitution function for
               // [checkedClass] because the substitution is trivial and doesn't
               // need to override an inherited function.
-              checks.add(new TypeCheck(checkedClass, null, needsIs: needsIs));
+              checks.add(TypeCheck(checkedClass, null, needsIs: needsIs));
             } else {
               // We need a non-trivial substitution function for
               // [checkedClass].
               Substitution substitution =
                   computeSubstitution(cls, checkedClass);
-              checks.add(
-                  new TypeCheck(checkedClass, substitution, needsIs: needsIs));
+              checks
+                  .add(TypeCheck(checkedClass, substitution, needsIs: needsIs));
 
               assert(substitution != null);
               for (DartType argument in substitution.arguments) {
@@ -353,8 +354,8 @@ abstract class RuntimeTypesSubstitutionsMixin
 
   @override
   Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks) {
-    Set<ClassEntity> instantiated = new Set<ClassEntity>();
-    ArgumentCollector collector = new ArgumentCollector();
+    Set<ClassEntity> instantiated = {};
+    ArgumentCollector collector = ArgumentCollector();
     for (ClassEntity target in checks.classes) {
       ClassChecks classChecks = checks[target];
       for (TypeCheck check in classChecks.checks) {
@@ -430,7 +431,7 @@ abstract class RuntimeTypesSubstitutionsMixin
   }
 
   Substitution computeSubstitution(ClassEntity cls, ClassEntity check,
-      {bool alwaysGenerateFunction: false}) {
+      {bool alwaysGenerateFunction = false}) {
     if (isTrivialSubstitution(cls, check)) return null;
 
     // Unnamed mixin application classes do not need substitutions, because they
@@ -443,11 +444,11 @@ abstract class RuntimeTypesSubstitutionsMixin
       int typeArguments = target.typeArguments.length;
       // Generic JS-interop class need an explicit substitution to mark
       // the type arguments as `any` type.
-      return new Substitution.jsInterop(typeArguments);
+      return Substitution.jsInterop(typeArguments);
     } else if (typeVariables.isEmpty && !alwaysGenerateFunction) {
-      return new Substitution.list(target.typeArguments);
+      return Substitution.list(target.typeArguments);
     } else {
-      return new Substitution.function(target.typeArguments, typeVariables);
+      return Substitution.function(target.typeArguments, typeVariables);
     }
   }
 }
@@ -473,12 +474,11 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
 
   @override
   Iterable<ClassEntity> get requiredClasses {
-    Set<ClassEntity> required = new Set<ClassEntity>();
-    required.addAll(_typeArguments);
-    required.addAll(_typeLiterals);
-    required
-        .addAll(_substitutions.getClassesUsedInSubstitutions(requiredChecks));
-    return required;
+    return {
+      ..._typeArguments,
+      ..._typeLiterals,
+      ..._substitutions.getClassesUsedInSubstitutions(requiredChecks)
+    };
   }
 }
 
@@ -489,9 +489,9 @@ class RuntimeTypesImpl
   final JClosedWorld _closedWorld;
 
   // The set of type arguments tested against type variable bounds.
-  final Set<DartType> checkedTypeArguments = new Set<DartType>();
+  final Set<DartType> checkedTypeArguments = {};
   // The set of tested type variable bounds.
-  final Set<DartType> checkedBounds = new Set<DartType>();
+  final Set<DartType> checkedBounds = {};
 
   TypeChecks cachedRequiredChecks;
 
@@ -512,8 +512,7 @@ class RuntimeTypesImpl
 
   Map<ClassEntity, ClassUse> classUseMapForTesting;
 
-  final Set<GenericInstantiation> _genericInstantiations =
-      new Set<GenericInstantiation>();
+  final Set<GenericInstantiation> _genericInstantiations = {};
 
   @override
   void registerTypeVariableBoundsSubtypeCheck(
@@ -530,23 +529,20 @@ class RuntimeTypesImpl
   @override
   RuntimeTypesChecks computeRequiredChecks(
       CodegenWorld codegenWorld, CompilerOptions options) {
-    TypeVariableTests typeVariableTests = new TypeVariableTests(
-        _elementEnvironment,
-        _commonElements,
-        codegenWorld,
-        _genericInstantiations,
+    TypeVariableTests typeVariableTests = TypeVariableTests(_elementEnvironment,
+        _commonElements, codegenWorld, _genericInstantiations,
         forRtiNeeds: false);
     Set<DartType> explicitIsChecks = typeVariableTests.explicitIsChecks;
     Set<DartType> implicitIsChecks = typeVariableTests.implicitIsChecks;
 
-    Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
+    Map<ClassEntity, ClassUse> classUseMap = {};
     if (retainDataForTesting) {
       classUseMapForTesting = classUseMap;
     }
 
-    Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
-    Set<ClassEntity> typeLiterals = new Set<ClassEntity>();
-    Set<ClassEntity> typeArguments = new Set<ClassEntity>();
+    Set<FunctionType> checkedFunctionTypes = {};
+    Set<ClassEntity> typeLiterals = {};
+    Set<ClassEntity> typeArguments = {};
 
     // The [liveTypeVisitor] is used to register class use in the type of
     // instantiated objects like `new T` and the function types of
@@ -562,8 +558,8 @@ class RuntimeTypesImpl
     //
     // makes A and B live but C tested.
     TypeVisitor liveTypeVisitor =
-        new TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
-      ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
+        TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
+      ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
       switch (state) {
         case TypeVisitorState.covariantTypeArgument:
           classUse.typeArgument = true;
@@ -596,8 +592,8 @@ class RuntimeTypesImpl
     //
     // makes A and B tested but C live.
     TypeVisitor testedTypeVisitor =
-        new TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
-      ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
+        TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
+      ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
       switch (state) {
         case TypeVisitorState.covariantTypeArgument:
           classUse.typeArgument = true;
@@ -617,7 +613,7 @@ class RuntimeTypesImpl
     });
 
     codegenWorld.instantiatedClasses.forEach((ClassEntity cls) {
-      ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
+      ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
       classUse.instance = true;
     });
 
@@ -625,7 +621,7 @@ class RuntimeTypesImpl
     codegenWorld.instantiatedTypes.forEach((InterfaceType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.direct);
       ClassUse classUse =
-          classUseMap.putIfAbsent(type.element, () => new ClassUse());
+          classUseMap.putIfAbsent(type.element, () => ClassUse());
       classUse.directInstance = true;
       FunctionType callType = _types.getCallType(type);
       if (callType != null) {
@@ -706,14 +702,14 @@ class RuntimeTypesImpl
       ClassFunctionType functionType =
           _computeFunctionType(_elementEnvironment, cls);
       if (functionType != null) {
-        ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
+        ClassUse classUse = classUseMap.putIfAbsent(cls, () => ClassUse());
         classUse.functionType = functionType;
       }
     }
 
     // Collect classes that are 'live' either through instantiation or use in
     // type arguments.
-    List<ClassEntity> liveClasses = <ClassEntity>[];
+    List<ClassEntity> liveClasses = [];
     classUseMap.forEach((ClassEntity cls, ClassUse classUse) {
       if (classUse.isLive) {
         liveClasses.add(cls);
@@ -740,7 +736,7 @@ class RuntimeTypesImpl
 
     cachedRequiredChecks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;
-    return new _RuntimeTypesChecks(
+    return _RuntimeTypesChecks(
         this, cachedRequiredChecks, typeArguments, typeLiterals);
   }
 }
@@ -770,18 +766,18 @@ ClassFunctionType _computeFunctionType(
   if (call != null && call.isFunction) {
     FunctionEntity callFunction = call;
     FunctionType callType = elementEnvironment.getFunctionType(callFunction);
-    return new ClassFunctionType(callFunction, callType, signatureFunction);
+    return ClassFunctionType(callFunction, callType, signatureFunction);
   }
   return null;
 }
 
 class TypeCheckMapping implements TypeChecks {
-  final Map<ClassEntity, ClassChecks> map = new Map<ClassEntity, ClassChecks>();
+  final Map<ClassEntity, ClassChecks> map = {};
 
   @override
   ClassChecks operator [](ClassEntity element) {
     ClassChecks result = map[element];
-    return result != null ? result : const ClassChecks.empty();
+    return result ?? const ClassChecks.empty();
   }
 
   void operator []=(ClassEntity element, ClassChecks checks) {
@@ -793,7 +789,7 @@ class TypeCheckMapping implements TypeChecks {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (ClassEntity holder in classes) {
       for (TypeCheck check in this[holder].checks) {
         sb.write('${holder.name} <: ${check.cls.name}, ');
@@ -804,7 +800,7 @@ class TypeCheckMapping implements TypeChecks {
 }
 
 class ArgumentCollector extends DartTypeVisitor<void, void> {
-  final Set<ClassEntity> classes = new Set<ClassEntity>();
+  final Set<ClassEntity> classes = {};
 
   void addClass(ClassEntity cls) {
     classes.add(cls);
@@ -877,8 +873,7 @@ enum TypeVisitorState {
 }
 
 class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
-  Set<FunctionTypeVariable> _visitedFunctionTypeVariables =
-      new Set<FunctionTypeVariable>();
+  final Set<FunctionTypeVariable> _visitedFunctionTypeVariables = {};
 
   final void Function(ClassEntity entity, {TypeVisitorState state}) onClass;
   final void Function(TypeVariableEntity entity, {TypeVisitorState state})
@@ -902,7 +897,7 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       case TypeVisitorState.typeLiteral:
         return TypeVisitorState.typeLiteral;
     }
-    throw new UnsupportedError("Unexpected TypeVisitorState $state");
+    throw UnsupportedError("Unexpected TypeVisitorState $state");
   }
 
   TypeVisitorState contravariantArgument(TypeVisitorState state) {
@@ -916,7 +911,7 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       case TypeVisitorState.typeLiteral:
         return TypeVisitorState.typeLiteral;
     }
-    throw new UnsupportedError("Unexpected TypeVisitorState $state");
+    throw UnsupportedError("Unexpected TypeVisitorState $state");
   }
 
   void visitTypes(List<DartType> types, TypeVisitorState state) {
@@ -1063,7 +1058,7 @@ class ClassUse {
 
   @override
   String toString() {
-    List<String> properties = <String>[];
+    List<String> properties = [];
     if (instance) {
       properties.add('instance');
     }

@@ -4,21 +4,23 @@
 
 library fasta.kernel_target;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
-import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
 import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
+import '../../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../../api_prototype/file_system.dart' show FileSystem;
-import '../../api_prototype/experimental_flags.dart';
 import '../../base/nnbd_mode.dart';
+import '../../base/processed_options.dart' show ProcessedOptions;
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -38,15 +40,16 @@ import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../compiler_context.dart' show CompilerContext;
 import '../crash.dart' show withCrashReporting;
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 import '../dill/dill_target.dart' show DillTarget;
-import '../fasta_codes.dart' show LocatedMessage, Message;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         FormattedMessage,
+        LocatedMessage,
+        Message,
         messageAgnosticWithStrongDillLibrary,
         messageAgnosticWithWeakDillLibrary,
         messageConstConstructorLateFinalFieldCause,
@@ -67,11 +70,13 @@ import '../messages.dart'
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
+import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_library_builder.dart'
     show LanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
+import '../ticker.dart' show Ticker;
 import '../type_inference/type_schema.dart';
 import '../uri_translator.dart' show UriTranslator;
 import 'constant_evaluator.dart' as constants
@@ -79,12 +84,15 @@ import 'constant_evaluator.dart' as constants
         EvaluationMode,
         transformLibraries,
         transformProcedure,
-        ConstantCoverage;
+        ConstantCoverage,
+        ConstantEvaluationData;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
+  final Ticker ticker;
+
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
@@ -142,17 +150,161 @@ class KernelTarget extends TargetImplementation {
   final List<SynthesizedFunctionNode> synthesizedFunctionNodes =
       <SynthesizedFunctionNode>[];
 
+  final UriTranslator uriTranslator;
+
+  @override
+  final Target backendTarget;
+
+  @override
+  final CompilerContext context = CompilerContext.current;
+
+  /// Shared with [CompilerContext].
+  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+
+  MemberBuilder? _cachedAbstractClassInstantiationError;
+  MemberBuilder? _cachedCompileTimeError;
+  MemberBuilder? _cachedDuplicatedFieldInitializerError;
+  MemberBuilder? _cachedNativeAnnotation;
+
+  final ProcessedOptions _options;
+
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
-      UriTranslator uriTranslator)
+      this.uriTranslator)
       : dillTarget = dillTarget,
-        super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
+        backendTarget = dillTarget.backendTarget,
+        _options = CompilerContext.current.options,
+        ticker = dillTarget.ticker {
     loader = createLoader();
+  }
+
+  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
+    return _options.isExperimentEnabledInLibrary(flag, importUri);
+  }
+
+  Version getExperimentEnabledVersionInLibrary(
+      ExperimentalFlag flag, Uri importUri) {
+    return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
+  }
+
+  bool isExperimentEnabledInLibraryByVersion(
+      ExperimentalFlag flag, Uri importUri, Version version) {
+    return _options.isExperimentEnabledInLibraryByVersion(
+        flag, importUri, version);
+  }
+
+  /// Returns `true` if the [flag] is enabled by default.
+  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
+    return _options.isExperimentEnabledByDefault(flag);
+  }
+
+  /// Returns `true` if the [flag] is enabled globally.
+  ///
+  /// This is `true` either if the [flag] is passed through an explicit
+  /// `--enable-experiment` option or if the [flag] is expired and on by
+  /// default.
+  bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
+    return _options.isExperimentEnabledGlobally(flag);
+  }
+
+  Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
+
+  /// Returns a reference to the constructor of
+  /// [AbstractClassInstantiationError] error.  The constructor is expected to
+  /// accept a single argument of type String, which is the name of the
+  /// abstract class.
+  MemberBuilder getAbstractClassInstantiationError(Loader loader) {
+    return _cachedAbstractClassInstantiationError ??=
+        loader.coreLibrary.getConstructor("AbstractClassInstantiationError");
+  }
+
+  /// Returns a reference to the constructor used for creating a compile-time
+  /// error. The constructor is expected to accept a single argument of type
+  /// String, which is the compile-time error message.
+  MemberBuilder getCompileTimeError(Loader loader) {
+    return _cachedCompileTimeError ??= loader.coreLibrary
+        .getConstructor("_CompileTimeError", bypassLibraryPrivacy: true);
+  }
+
+  /// Returns a reference to the constructor used for creating a runtime error
+  /// when a final field is initialized twice. The constructor is expected to
+  /// accept a single argument which is the name of the field.
+  MemberBuilder getDuplicatedFieldInitializerError(Loader loader) {
+    return _cachedDuplicatedFieldInitializerError ??= loader.coreLibrary
+        .getConstructor("_DuplicatedFieldInitializerError",
+            bypassLibraryPrivacy: true);
+  }
+
+  /// Returns a reference to the constructor used for creating `native`
+  /// annotations. The constructor is expected to accept a single argument of
+  /// type String, which is the name of the native method.
+  MemberBuilder getNativeAnnotation(SourceLoader loader) {
+    if (_cachedNativeAnnotation != null) return _cachedNativeAnnotation!;
+    LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1,
+        accessor: loader.coreLibrary);
+    return _cachedNativeAnnotation = internal.getConstructor("ExternalName");
+  }
+
+  void loadExtraRequiredLibraries(SourceLoader loader) {
+    for (String uri in backendTarget.extraRequiredLibraries) {
+      loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
+    }
+    if (context.compilingPlatform) {
+      for (String uri in backendTarget.extraRequiredLibrariesPlatform) {
+        loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
+      }
+    }
+  }
+
+  FormattedMessage createFormattedMessage(
+      Message message,
+      int charOffset,
+      int length,
+      Uri? fileUri,
+      List<LocatedMessage>? messageContext,
+      Severity severity,
+      {List<Uri>? involvedFiles}) {
+    ProcessedOptions processedOptions = context.options;
+    return processedOptions.format(
+        fileUri != null
+            ? message.withLocation(fileUri, charOffset, length)
+            : message.withoutLocation(),
+        severity,
+        messageContext,
+        involvedFiles: involvedFiles);
+  }
+
+  String get currentSdkVersionString {
+    return CompilerContext.current.options.currentSdkVersion;
+  }
+
+  Version? _currentSdkVersion;
+  Version get currentSdkVersion {
+    if (_currentSdkVersion == null) {
+      _parseCurrentSdkVersion();
+    }
+    return _currentSdkVersion!;
+  }
+
+  void _parseCurrentSdkVersion() {
+    bool good = false;
+    // ignore: unnecessary_null_comparison
+    if (currentSdkVersionString != null) {
+      List<String> dotSeparatedParts = currentSdkVersionString.split(".");
+      if (dotSeparatedParts.length >= 2) {
+        _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0])!,
+            int.tryParse(dotSeparatedParts[1])!);
+        good = true;
+      }
+    }
+    if (!good) {
+      throw new StateError(
+          "Unparsable sdk version given: $currentSdkVersionString");
+    }
   }
 
   SourceLoader createLoader() =>
       new SourceLoader(fileSystem, includeComments, this);
 
-  @override
   void addSourceInformation(
       Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
     uriToSource[fileUri] =
@@ -212,7 +364,30 @@ class KernelTarget extends TargetImplementation {
     return entryPoint;
   }
 
-  @override
+  /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
+  /// already.
+  ///
+  /// [fileUri] must not be null and is a URI that can be passed to FileSystem
+  /// to locate the corresponding file.
+  ///
+  /// [origin] is non-null if the created library is a patch to [origin].
+  ///
+  /// [packageUri] is the base uri for the package which the library belongs to.
+  /// For instance 'package:foo'.
+  ///
+  /// This is used to associate libraries in for instance the 'bin' and 'test'
+  /// folders of a package source with the package uri of the 'lib' folder.
+  ///
+  /// If the [packageUri] is `null` the package association of this library is
+  /// based on its [importUri].
+  ///
+  /// For libraries with a 'package:' [importUri], the package path must match
+  /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
+  /// [packageUri] must be `null`.
+  ///
+  /// [packageLanguageVersion] is the language version defined by the package
+  /// which the library belongs to, or the current sdk version if the library
+  /// doesn't belong to a package.
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
@@ -222,13 +397,13 @@ class KernelTarget extends TargetImplementation {
       Library? referencesFrom,
       bool? referenceIsPartOwner) {
     if (dillTarget.isLoaded) {
-      LibraryBuilder? builder = dillTarget.loader.builders[uri];
+      DillLibraryBuilder? builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         if (!builder.isNonNullableByDefault &&
             (loader.nnbdMode == NnbdMode.Strong ||
                 loader.nnbdMode == NnbdMode.Agnostic)) {
           loader.registerStrongOptOutLibrary(builder);
-        } else if (builder is DillLibraryBuilder) {
+        } else {
           NonNullableByDefaultCompiledMode libraryMode =
               builder.library.nonNullableByDefaultCompiledMode;
           if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
@@ -290,7 +465,9 @@ class KernelTarget extends TargetImplementation {
     return result;
   }
 
-  @override
+  /// The class [cls] is involved in a cyclic definition. This method should
+  /// ensure that the cycle is broken, for example, by removing superclass and
+  /// implemented interfaces.
   void breakCycle(ClassBuilder builder) {
     Class cls = builder.cls;
     cls.implementedTypes.clear();
@@ -307,7 +484,6 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInTypeBuilder = null;
   }
 
-  @override
   Future<Component?> buildOutlines({CanonicalName? nameRoot}) async {
     if (loader.first == null) return null;
     return withCrashReporting<Component?>(() async {
@@ -333,6 +509,7 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
       loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
+      loader.computeShowHideElements();
       loader.installTypedefTearOffs();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
@@ -360,7 +537,6 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If [verify], run the default kernel verification on the resulting
   /// component.
-  @override
   Future<Component?> buildComponent({bool verify: false}) async {
     if (loader.first == null) return null;
     return withCrashReporting<Component?>(() async {
@@ -1185,7 +1361,7 @@ class KernelTarget extends TargetImplementation {
     assert(() {
       Set<String> patchFieldNames = {};
       builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
-        patchFieldNames.add(SourceFieldBuilder.createFieldName(
+        patchFieldNames.add(NameScheme.createFieldName(
           FieldNameType.Field,
           name,
           isInstanceMember: fieldBuilder.isClassInstanceMember,
@@ -1229,23 +1405,27 @@ class KernelTarget extends TargetImplementation {
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
-    constants.ConstantCoverage coverage = constants.transformLibraries(
-        loader.libraries,
-        backendTarget.constantsBackend(loader.coreTypes),
-        environmentDefines,
-        environment,
-        new KernelConstantErrorReporter(loader),
-        evaluationMode,
-        evaluateAnnotations: true,
-        enableTripleShift:
-            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-        enableConstFunctions:
-            isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-        enableConstructorTearOff:
-            isExperimentEnabledGlobally(ExperimentalFlag.constructorTearoffs),
-        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    constants.ConstantEvaluationData constantEvaluationData =
+        constants.transformLibraries(
+            loader.libraries,
+            backendTarget.constantsBackend,
+            environmentDefines,
+            environment,
+            new KernelConstantErrorReporter(loader),
+            evaluationMode,
+            evaluateAnnotations: true,
+            enableTripleShift:
+                isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+            enableConstFunctions:
+                isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
+            enableConstructorTearOff: isExperimentEnabledGlobally(
+                ExperimentalFlag.constructorTearoffs),
+            errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
+    markLibrariesUsed(constantEvaluationData.visitedLibraries);
+
+    constants.ConstantCoverage coverage = constantEvaluationData.coverage;
     coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
       Source? source = uriToSource[fileUri];
       // ignore: unnecessary_null_comparison
@@ -1284,7 +1464,7 @@ class KernelTarget extends TargetImplementation {
 
     constants.transformProcedure(
       procedure,
-      backendTarget.constantsBackend(loader.coreTypes),
+      backendTarget.constantsBackend,
       environmentDefines,
       environment,
       new KernelConstantErrorReporter(loader),
@@ -1355,7 +1535,6 @@ class KernelTarget extends TargetImplementation {
     return loader.libraries.contains(library);
   }
 
-  @override
   void readPatchFiles(SourceLibraryBuilder library) {
     assert(library.importUri.scheme == "dart");
     List<Uri>? patches = uriTranslator.getDartPatches(library.importUri.path);
@@ -1382,9 +1561,12 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  @override
   void releaseAncillaryResources() {
     component = null;
+  }
+
+  void markLibrariesUsed(Set<Library> visitedLibraries) {
+    // Default implementation does nothing.
   }
 }
 
@@ -1407,7 +1589,7 @@ Constructor? defaultSuperConstructor(Class cls) {
 
 class KernelDiagnosticReporter
     extends DiagnosticReporter<Message, LocatedMessage> {
-  final Loader loader;
+  final SourceLoader loader;
 
   KernelDiagnosticReporter(this.loader);
 

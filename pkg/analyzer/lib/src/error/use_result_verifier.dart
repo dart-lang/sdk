@@ -52,6 +52,11 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
+    if (node.parent is CommentReference) {
+      // Don't flag references in comments.
+      return;
+    }
+
     var annotation = _getUseResultMetadata(element);
     if (annotation == null) {
       return;
@@ -140,9 +145,11 @@ class UseResultVerifier {
       return false;
     }
 
-    if (parent is ParenthesizedExpression ||
-        parent is ConditionalExpression ||
-        parent is CascadeExpression) {
+    if (parent is CascadeExpression) {
+      return parent.target == node;
+    }
+
+    if (parent is ParenthesizedExpression || parent is ConditionalExpression) {
       return _isUsed(parent);
     }
 

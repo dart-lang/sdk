@@ -64,7 +64,7 @@ const char* CPU::Id() {
   return
 #if defined(USING_SIMULATOR)
       "sim"
-#endif  // !defined(HOST_ARCH_ARM64)
+#endif  // !defined(USING_SIMULATOR)
       "arm64";
 }
 

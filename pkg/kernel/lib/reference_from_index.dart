@@ -31,9 +31,11 @@ class ReferenceFromIndex {
 }
 
 abstract class IndexedContainer {
+  final Map<Name, Reference> _fieldReferences = new Map<Name, Reference>();
   final Map<Name, Reference> _getterReferences = new Map<Name, Reference>();
   final Map<Name, Reference> _setterReferences = new Map<Name, Reference>();
 
+  Reference? lookupFieldReference(Name name) => _fieldReferences[name];
   Reference? lookupGetterReference(Name name) => _getterReferences[name];
   Reference? lookupSetterReference(Name name) => _setterReferences[name];
 
@@ -63,6 +65,8 @@ abstract class IndexedContainer {
     for (int i = 0; i < fields.length; i++) {
       Field field = fields[i];
       Name name = field.name;
+      assert(_fieldReferences[name] == null);
+      _fieldReferences[name] = field.fieldReference;
       assert(_getterReferences[name] == null);
       _getterReferences[name] = field.getterReference;
       if (field.hasSetter) {

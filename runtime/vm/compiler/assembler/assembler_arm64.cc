@@ -50,6 +50,14 @@ void Assembler::Emit64(int64_t value) {
   buffer_.Emit<int64_t>(value);
 }
 
+int32_t Assembler::BindImm26Branch(int64_t position, int64_t dest) {
+  ASSERT(CanEncodeImm26BranchOffset(dest));
+  const int32_t next = buffer_.Load<int32_t>(position);
+  const int32_t encoded = EncodeImm26BranchOffset(dest, next);
+  buffer_.Store<int32_t>(position, encoded);
+  return DecodeImm26BranchOffset(next);
+}
+
 int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
   if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
     // Far branches are enabled, and we can't encode the branch offset in
@@ -63,6 +71,7 @@ int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
     const int32_t far_branch =
         buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
     const Condition c = DecodeImm19BranchCondition(guard_branch);
+    ASSERT(c != NV);
 
     // Grab the link to the next branch.
     const int32_t next = DecodeImm26BranchOffset(far_branch);
@@ -73,12 +82,6 @@ int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
 
     // Encode the branch.
     const int32_t encoded_branch = EncodeImm26BranchOffset(offset, far_branch);
-
-    // If the guard branch is conditioned on NV, replace it with a nop.
-    if (c == NV) {
-      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-    }
 
     // Write the far branch into the buffer and link to the next branch.
     buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
@@ -131,6 +134,7 @@ int32_t Assembler::BindImm14Branch(int64_t position, int64_t dest) {
     const int32_t far_branch =
         buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
     const Condition c = DecodeImm14BranchCondition(guard_branch);
+    ASSERT(c != NV);
 
     // Grab the link to the next branch.
     const int32_t next = DecodeImm26BranchOffset(far_branch);
@@ -141,12 +145,6 @@ int32_t Assembler::BindImm14Branch(int64_t position, int64_t dest) {
 
     // Encode the branch.
     const int32_t encoded_branch = EncodeImm26BranchOffset(offset, far_branch);
-
-    // If the guard branch is conditioned on NV, replace it with a nop.
-    if (c == NV) {
-      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-    }
 
     // Write the far branch into the buffer and link to the next branch.
     buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
@@ -241,10 +239,15 @@ void Assembler::Bind(Label* label) {
   while (label->IsLinked()) {
     const int64_t position = label->Position();
     const int64_t dest = bound_pc - position;
-    if (IsTestAndBranch(buffer_.Load<int32_t>(position))) {
+    const int32_t instr = buffer_.Load<int32_t>(position);
+    if (IsTestAndBranch(instr)) {
       label->position_ = BindImm14Branch(position, dest);
-    } else {
+    } else if (IsConditionalBranch(instr) || IsCompareAndBranch(instr)) {
       label->position_ = BindImm19Branch(position, dest);
+    } else if (IsUnconditionalBranch(instr)) {
+      label->position_ = BindImm26Branch(position, dest);
+    } else {
+      UNREACHABLE();
     }
   }
   label->BindTo(bound_pc, lr_state());
@@ -555,8 +558,11 @@ void Assembler::LoadObjectHelper(Register dst,
     }
   }
   if (CanLoadFromObjectPool(object)) {
-    const intptr_t index = is_unique ? object_pool_builder().AddObject(object)
-                                     : object_pool_builder().FindObject(object);
+    const intptr_t index =
+        is_unique ? object_pool_builder().AddObject(
+                        object, ObjectPoolBuilderEntry::kPatchable)
+                  : object_pool_builder().FindObject(
+                        object, ObjectPoolBuilderEntry::kNotPatchable);
     LoadWordFromPoolIndex(dst, index);
     return;
   }
@@ -1092,33 +1098,42 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
-                                      CanBeSmi value_can_be_smi) {
-  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
-    StoreIntoObject(object, FieldAddress(object, offset), value,
-                    value_can_be_smi);
+                                      CanBeSmi value_can_be_smi,
+                                      MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreRelease(value, object, offset);
+  } else if (FieldAddress::CanHoldOffset(offset)) {
+    str(value, FieldAddress(object, offset));
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(TMP), value, value_can_be_smi);
+    str(value, Address(TMP));
   }
+  StoreBarrier(object, value, value_can_be_smi);
 }
 
 void Assembler::StoreCompressedIntoObjectOffset(Register object,
                                                 int32_t offset,
                                                 Register value,
-                                                CanBeSmi value_can_be_smi) {
-  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
-    StoreCompressedIntoObject(object, FieldAddress(object, offset), value,
-                              value_can_be_smi);
+                                                CanBeSmi value_can_be_smi,
+                                                MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreReleaseCompressed(value, object, offset);
+  } else if (FieldAddress::CanHoldOffset(offset)) {
+    str(value, FieldAddress(object, offset), kObjectBytes);
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreCompressedIntoObject(object, Address(TMP), value, value_can_be_smi);
+    str(value, Address(TMP), kObjectBytes);
   }
+  StoreBarrier(object, value, value_can_be_smi);
 }
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi) {
+                                CanBeSmi can_be_smi,
+                                MemoryOrder memory_order) {
+  // stlr does not feature an address operand.
+  ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest);
   StoreBarrier(object, value, can_be_smi);
 }
@@ -1126,7 +1141,10 @@ void Assembler::StoreIntoObject(Register object,
 void Assembler::StoreCompressedIntoObject(Register object,
                                           const Address& dest,
                                           Register value,
-                                          CanBeSmi can_be_smi) {
+                                          CanBeSmi can_be_smi,
+                                          MemoryOrder memory_order) {
+  // stlr does not feature an address operand.
+  ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest, kObjectBytes);
   StoreBarrier(object, value, can_be_smi);
 }
@@ -1264,7 +1282,10 @@ void Assembler::StoreIntoArrayBarrier(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value) {
+                                         Register value,
+                                         MemoryOrder memory_order) {
+  // stlr does not feature an address operand.
+  ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest);
 #if defined(DEBUG)
   Label done;
@@ -1283,7 +1304,10 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
-                                                   Register value) {
+                                                   Register value,
+                                                   MemoryOrder memory_order) {
+  // stlr does not feature an address operand.
+  ASSERT(memory_order == kRelaxedNonAtomic);
   str(value, dest, kObjectBytes);
 #if defined(DEBUG)
   Label done;
@@ -1302,8 +1326,11 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
-                                               Register value) {
-  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+                                               Register value,
+                                               MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreRelease(value, object, offset);
+  } else if (FieldAddress::CanHoldOffset(offset)) {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
@@ -1311,10 +1338,14 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   }
 }
 
-void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(Register object,
-                                                         int32_t offset,
-                                                         Register value) {
-  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
+    Register object,
+    int32_t offset,
+    Register value,
+    MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreReleaseCompressed(value, object, offset);
+  } else if (FieldAddress::CanHoldOffset(offset)) {
     StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
                                        value);
   } else {
@@ -1339,7 +1370,10 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
-                                                   const Object& value) {
+                                                   const Object& value,
+                                                   MemoryOrder memory_order) {
+  // stlr does not feature an address operand.
+  ASSERT(memory_order == kRelaxedNonAtomic);
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
@@ -1353,8 +1387,17 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
-                                               const Object& value) {
-  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+                                               const Object& value,
+                                               MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    Register value_reg = TMP2;
+    if (IsSameObject(compiler::NullObject(), value)) {
+      value_reg = NULL_REG;
+    } else {
+      LoadObject(value_reg, value);
+    }
+    StoreIntoObjectOffsetNoBarrier(object, offset, value_reg, memory_order);
+  } else if (FieldAddress::CanHoldOffset(offset)) {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
@@ -1362,10 +1405,21 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   }
 }
 
-void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(Register object,
-                                                         int32_t offset,
-                                                         const Object& value) {
-  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
+    Register object,
+    int32_t offset,
+    const Object& value,
+    MemoryOrder memory_order) {
+  Register value_reg = TMP2;
+  if (memory_order == kRelease) {
+    if (IsSameObject(compiler::NullObject(), value)) {
+      value_reg = NULL_REG;
+    } else {
+      LoadObject(value_reg, value);
+    }
+    StoreCompressedIntoObjectOffsetNoBarrier(object, offset, value_reg,
+                                             memory_order);
+  } else if (FieldAddress::CanHoldOffset(offset)) {
     StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
                                        value);
   } else {

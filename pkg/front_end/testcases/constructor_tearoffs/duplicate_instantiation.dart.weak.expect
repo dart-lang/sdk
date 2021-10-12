@@ -238,12 +238,12 @@ static method test() → dynamic {
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>;
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(<core::int>[]);
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(<core::int>[]);
   invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:14:8: Error: The operator '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>();
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(<int extends core::Object? = dynamic>() → Null
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(<int extends core::Object? = dynamic>() → Null
     ;
 );
   #C5;
@@ -258,7 +258,7 @@ Try changing the operand or remove the type arguments.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named;
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:19:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:19:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named;
@@ -267,7 +267,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named();
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:20:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:20:19: Error: The method 'named' isn't defined for the class 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'named'.
   Class<int><int>.named();
@@ -276,7 +276,7 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int>;
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:21:24: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:21:24: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 Try changing the operand or remove the type arguments.
   Class<int><int>.named<int>;
                        ^");
@@ -284,7 +284,7 @@ Try changing the operand or remove the type arguments.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int>();
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the class 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'named'.
   Class<int><int>.named<int>();
@@ -293,7 +293,7 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int><int>;
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named<int><int>;
@@ -302,7 +302,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int><int>();
-       ^" in (#C2){<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:24:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:24:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named<int><int>();

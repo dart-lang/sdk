@@ -7,7 +7,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -18,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddNeNullMultiTest extends FixProcessorTest with WithNullSafetyMixin {
+class AddNeNullMultiTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_NE_NULL_MULTI;
 
@@ -61,7 +60,7 @@ f(String? p, String? q) {
 }
 
 @reflectiveTest
-class AddNeNullTest extends FixProcessorTest with WithNullSafetyMixin {
+class AddNeNullTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_NE_NULL;
 

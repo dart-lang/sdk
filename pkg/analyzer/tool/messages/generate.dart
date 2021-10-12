@@ -1,4 +1,7 @@
-// @dart = 2.9
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /// This file contains code to generate scanner and parser message
 /// based on the information in pkg/front_end/messages.yaml.
 ///
@@ -11,87 +14,268 @@
 ///
 /// It is expected that 'pkg/front_end/tool/fasta generate-messages'
 /// has already been successfully run.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer_utilities/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
+import 'error_code_info.dart';
+
 main() async {
-  String analyzerPkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
-  String frontEndPkgPath = normalize(join(pkg_root.packageRoot, 'front_end'));
-  String frontEndSharedPkgPath =
-      normalize(join(pkg_root.packageRoot, '_fe_analyzer_shared'));
+  await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
 
-  Map<dynamic, dynamic> messagesYaml =
-      loadYaml(File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
-  String errorConverterSource = File(join(analyzerPkgPath,
-          joinAll(posix.split('lib/src/fasta/error_converter.dart'))))
-      .readAsStringSync();
-  String syntacticErrorsSource = File(join(analyzerPkgPath,
-          joinAll(posix.split('lib/src/dart/error/syntactic_errors.dart'))))
-      .readAsStringSync();
-  String parserSource = File(join(frontEndSharedPkgPath,
-          joinAll(posix.split('lib/src/parser/parser.dart'))))
-      .readAsStringSync();
-
-  final codeGenerator = _SyntacticErrorGenerator(
-      messagesYaml, errorConverterSource, syntacticErrorsSource, parserSource);
-
-  await GeneratedContent.generateAll(analyzerPkgPath, <GeneratedContent>[
-    GeneratedFile('lib/src/dart/error/syntactic_errors.g.dart',
-        (String pkgPath) async {
-      codeGenerator.generateFormatCode();
-      return codeGenerator.out.toString();
-    }),
-  ]);
-
-  codeGenerator
+  _SyntacticErrorGenerator()
+    ..generateFormatCode()
     ..checkForManualChanges()
     ..printSummary();
 }
 
-const invalidAnalyzerCode = """
-Error: Expected the text in the 'analyzerCode:' field to contain
-       the name of the class containing the error
-       and the name of the error separated by a `.`
-       (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND).
-""";
+/// Information about all the classes derived from `ErrorCode` that should be
+/// generated.
+const List<_ErrorClassInfo> _errorClasses = [
+  _ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      severity: 'ERROR'),
+  _ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsHintCode',
+      type: 'HINT',
+      severity: 'INFO'),
+  _ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+  _ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'CompileTimeErrorCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  _ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'LanguageCode',
+      type: 'COMPILE_TIME_ERROR'),
+  _ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'StaticWarningCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  _ErrorClassInfo(
+      filePath: 'lib/src/dart/error/ffi_code.g.dart',
+      name: 'FfiCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  _ErrorClassInfo(
+      filePath: 'lib/src/dart/error/hint_codes.g.dart',
+      name: 'HintCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'HINT',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  _ErrorClassInfo(
+      // TODO(paulberry): merge with `syntactic_errors.g.dart`.
+      filePath: 'lib/src/dart/error/syntactic_errors.analyzer.g.dart',
+      name: 'ParserErrorCode',
+      type: 'SYNTACTIC_ERROR',
+      severity: 'ERROR',
+      includeCfeMessages: true),
+  _ErrorClassInfo(
+      filePath: 'lib/src/manifest/manifest_warning_code.g.dart',
+      name: 'ManifestWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+  _ErrorClassInfo(
+      filePath: 'lib/src/pubspec/pubspec_warning_code.g.dart',
+      name: 'PubspecWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+];
 
-const shouldRunFastaGenerateMessagesFirst = """
-Error: After modifying messages.yaml, run this first:
-       pkg/front_end/tool/fasta generate-messages
-""";
+/// A list of all targets generated by this code generator.
+final List<GeneratedContent> allTargets = <GeneratedContent>[
+  GeneratedFile('lib/src/dart/error/syntactic_errors.g.dart',
+      (String pkgPath) async {
+    final codeGenerator = _SyntacticErrorGenerator();
 
-/// Return an entry containing 2 strings,
-/// the name of the class containing the error and the name of the error,
-/// or throw an exception if 'analyzerCode:' field is invalid.
-List<String> nameForEntry(Map entry) {
-  final analyzerCode = entry['analyzerCode'];
-  if (analyzerCode is String) {
-    if (!analyzerCode.startsWith('ParserErrorCode.')) {
-      throw invalidAnalyzerCode;
-    }
-    List<String> name = analyzerCode.split('.');
-    if (name.length != 2 || name[1].isEmpty) {
-      throw invalidAnalyzerCode;
-    }
-    return name;
+    codeGenerator.generateFormatCode();
+    return codeGenerator.out.toString();
+  }),
+  ..._analyzerGeneratedFiles(),
+];
+
+/// The path to the `analyzer` package.
+final String analyzerPkgPath =
+    normalize(join(pkg_root.packageRoot, 'analyzer'));
+
+/// The path to the `front_end` package.
+final String frontEndPkgPath =
+    normalize(join(pkg_root.packageRoot, 'front_end'));
+
+/// Decoded messages from the anlayzer's `messages.yaml` file.
+final Map<String, Map<String, ErrorCodeInfo>> _analyzerMessages =
+    _loadAnalyzerMessages();
+
+/// Generates a list of [GeneratedContent] objects describing all the analyzer
+/// files that need to be generated.
+List<GeneratedContent> _analyzerGeneratedFiles() {
+  var classesByFile = <String, List<_ErrorClassInfo>>{};
+  for (var errorClassInfo in _errorClasses) {
+    (classesByFile[errorClassInfo.filePath] ??= []).add(errorClassInfo);
   }
-  throw invalidAnalyzerCode;
+  return [
+    for (var entry in classesByFile.entries)
+      GeneratedFile(entry.key, (String pkgPath) async {
+        final codeGenerator = _AnalyzerErrorGenerator(entry.value);
+        codeGenerator.generate();
+        return codeGenerator.out.toString();
+      })
+  ];
+}
+
+/// Loads analyzer messages from the analyzer's `messages.yaml` file.
+Map<String, Map<String, ErrorCodeInfo>> _loadAnalyzerMessages() {
+  Map<dynamic, dynamic> messagesYaml =
+      loadYaml(File(join(analyzerPkgPath, 'messages.yaml')).readAsStringSync());
+  return decodeAnalyzerMessagesYaml(messagesYaml);
+}
+
+/// Code generator for analyzer error classes.
+class _AnalyzerErrorGenerator {
+  final List<_ErrorClassInfo> errorClasses;
+  final out = StringBuffer('''
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Instead modify 'pkg/analyzer/messages.yaml' and run
+// 'dart pkg/analyzer/tool/messages/generate.dart' to update.
+''');
+
+  _AnalyzerErrorGenerator(this.errorClasses);
+
+  void generate() {
+    var imports = {'package:analyzer/error/error.dart'};
+    var parts = <String>{};
+    for (var errorClass in errorClasses) {
+      imports.addAll(errorClass.extraImports);
+      if (errorClass.includeCfeMessages) {
+        parts.add('syntactic_errors.g.dart');
+      }
+    }
+    out.writeln();
+    for (var importPath in imports.toList()..sort()) {
+      out.writeln("import ${json.encode(importPath)};");
+    }
+    if (parts.isNotEmpty) {
+      out.writeln();
+      for (var partPath in parts.toList()..sort()) {
+        out.writeln("part ${json.encode(partPath)};");
+      }
+    }
+    out.writeln();
+    out.writeln("// It is hard to visually separate each code's _doc comment_ "
+        "from its published");
+    out.writeln('// _documentation comment_ when each is written as an '
+        'end-of-line comment.');
+    out.writeln('// ignore_for_file: slash_for_doc_comments');
+    for (var errorClass in errorClasses.toList()
+      ..sort((a, b) => a.name.compareTo(b.name))) {
+      out.writeln();
+      out.write('class ${errorClass.name} extends ${errorClass.superclass} {');
+      for (var entry in _analyzerMessages[errorClass.name]!.entries.toList()
+        ..sort((a, b) => a.key.compareTo(b.key))) {
+        var errorName = entry.key;
+        var errorCodeInfo = entry.value;
+        out.writeln();
+        out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
+        out.writeln('  static const ${errorClass.name} $errorName =');
+        if (errorCodeInfo.copyFromCfe) {
+          out.writeln('  _$errorName;');
+        } else {
+          out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
+        }
+      }
+      out.writeln();
+      out.writeln('/// Initialize a newly created error code to have the given '
+          '[name].');
+      out.writeln('const ${errorClass.name}(String name, String message, {');
+      out.writeln('String? correction,');
+      out.writeln('bool hasPublishedDocs = false,');
+      out.writeln('bool isUnresolvedIdentifier = false,');
+      out.writeln('String? uniqueName,');
+      out.writeln('}) : super(');
+      out.writeln('correction: correction,');
+      out.writeln('hasPublishedDocs: hasPublishedDocs,');
+      out.writeln('isUnresolvedIdentifier: isUnresolvedIdentifier,');
+      out.writeln('message: message,');
+      out.writeln('name: name,');
+      out.writeln("uniqueName: '${errorClass.name}.\${uniqueName ?? name}',");
+      out.writeln(');');
+      out.writeln();
+      out.writeln('@override');
+      out.writeln('ErrorSeverity get errorSeverity => '
+          '${errorClass.severityCode};');
+      out.writeln();
+      out.writeln('@override');
+      out.writeln('ErrorType get type => ${errorClass.typeCode};');
+      out.writeln('}');
+    }
+  }
+}
+
+class _ErrorClassInfo {
+  final List<String> extraImports;
+
+  final String filePath;
+
+  final bool includeCfeMessages;
+
+  final String name;
+
+  final String? severity;
+
+  final String superclass;
+
+  final String type;
+
+  const _ErrorClassInfo(
+      {this.extraImports = const [],
+      required this.filePath,
+      this.includeCfeMessages = false,
+      required this.name,
+      this.severity,
+      this.superclass = 'ErrorCode',
+      required this.type});
+
+  String get severityCode {
+    var severity = this.severity;
+    if (severity == null) {
+      return '$typeCode.severity';
+    } else {
+      return 'ErrorSeverity.$severity';
+    }
+  }
+
+  String get typeCode => 'ErrorType.$type';
 }
 
 class _SyntacticErrorGenerator {
-  final Map messagesYaml;
+  final Map<String, ErrorCodeInfo> cfeMessages;
+  final CfeToAnalyzerErrorCodeTables tables;
+  final Map<String, Map<String, ErrorCodeInfo>> analyzerMessages;
   final String errorConverterSource;
-  final String syntacticErrorsSource;
   final String parserSource;
-  final translatedEntries = <Map>[];
-  final translatedFastaErrorCodes = <String>{};
   final out = StringBuffer('''
 //
 // THIS FILE IS GENERATED. DO NOT EDIT.
@@ -99,20 +283,42 @@ class _SyntacticErrorGenerator {
 // Instead modify 'pkg/front_end/messages.yaml' and run
 // 'dart pkg/analyzer/tool/messages/generate.dart' to update.
 
-part of 'syntactic_errors.dart';
+part of 'syntactic_errors.analyzer.g.dart';
 
 ''');
 
-  _SyntacticErrorGenerator(this.messagesYaml, this.errorConverterSource,
-      this.syntacticErrorsSource, this.parserSource);
+  factory _SyntacticErrorGenerator() {
+    String frontEndPkgPath = normalize(join(pkg_root.packageRoot, 'front_end'));
+    String frontEndSharedPkgPath =
+        normalize(join(pkg_root.packageRoot, '_fe_analyzer_shared'));
+
+    Map<dynamic, dynamic> cfeMessagesYaml = loadYaml(
+        File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
+    Map<dynamic, dynamic> analyzerMessagesYaml = loadYaml(
+        File(join(analyzerPkgPath, 'messages.yaml')).readAsStringSync());
+    String errorConverterSource = File(join(analyzerPkgPath,
+            joinAll(posix.split('lib/src/fasta/error_converter.dart'))))
+        .readAsStringSync();
+    String parserSource = File(join(frontEndSharedPkgPath,
+            joinAll(posix.split('lib/src/parser/parser.dart'))))
+        .readAsStringSync();
+
+    return _SyntacticErrorGenerator._(
+        decodeCfeMessagesYaml(cfeMessagesYaml),
+        decodeAnalyzerMessagesYaml(analyzerMessagesYaml),
+        errorConverterSource,
+        parserSource);
+  }
+
+  _SyntacticErrorGenerator._(this.cfeMessages, this.analyzerMessages,
+      this.errorConverterSource, this.parserSource)
+      : tables = CfeToAnalyzerErrorCodeTables(cfeMessages);
 
   void checkForManualChanges() {
     // Check for ParserErrorCodes that could be removed from
     // error_converter.dart now that those ParserErrorCodes are auto generated.
     int converterCount = 0;
-    for (Map entry in translatedEntries) {
-      final name = nameForEntry(entry);
-      final errorCode = name[1];
+    for (var errorCode in tables.infoToAnalyzerCode.values) {
       if (errorConverterSource.contains('"$errorCode"')) {
         if (converterCount == 0) {
           print('');
@@ -127,99 +333,35 @@ part of 'syntactic_errors.dart';
       print('  $converterCount total');
     }
 
-    // Check that the public ParserErrorCodes have been updated
-    // to reference the generated codes.
-    int publicCount = 0;
-    for (Map entry in translatedEntries) {
-      final name = nameForEntry(entry);
-      final errorCode = name[1];
-      if (!syntacticErrorsSource.contains(' _$errorCode')) {
-        if (publicCount == 0) {
-          print('');
-          print('The following ParserErrorCodes should be updated'
-              ' in syntactic_errors.dart');
-          print('to reference the associated generated error code:');
-        }
-        print('  static const ParserErrorCode $errorCode = _$errorCode;');
-        ++publicCount;
-      }
-    }
-
     // Fail if there are manual changes to be made, but do so
     // in a fire and forget manner so that the files are still generated.
-    if (converterCount > 0 || publicCount > 0) {
+    if (converterCount > 0) {
       print('');
       throw 'Error: missing manual code changes';
     }
   }
 
   void generateErrorCodes() {
-    final sortedErrorCodes = <String>[];
-    final entryMap = <String, Map>{};
-    for (var entry in translatedEntries) {
-      final name = nameForEntry(entry);
-      final errorCode = name[1];
-      sortedErrorCodes.add(errorCode);
-      if (entryMap[errorCode] == null) {
-        entryMap[errorCode] = entry;
-      } else {
-        throw 'Error: Duplicate error code $errorCode';
-      }
-    }
-    sortedErrorCodes.sort();
-    for (var errorCode in sortedErrorCodes) {
-      final entry = entryMap[errorCode];
-      final className = nameForEntry(entry)[0];
+    final entryMap = tables.analyzerCodeToInfo;
+    for (var errorCode in entryMap.keys.toList()..sort()) {
+      final entry = entryMap[errorCode]!;
+      final className = 'ParserErrorCode';
       out.writeln();
       out.writeln('const $className _$errorCode =');
-      out.writeln('$className(');
-      out.writeln("'$errorCode',");
-      out.writeln('r"${entry['template']}"');
-      final tip = entry['tip'];
-      if (tip is String) {
-        out.writeln(',correction: "$tip"');
-      }
-      final hasPublishedDocs = entry['hasPublishedDocs'];
-      if (hasPublishedDocs is bool && hasPublishedDocs) {
-        out.writeln(',hasPublishedDocs:true');
-      }
-      out.writeln(');');
+      out.writeln(entry.toAnalyzerCode(className, errorCode));
     }
   }
 
   void generateFastaAnalyzerErrorCodeList() {
-    final sorted = List<Map>.filled(translatedEntries.length, null);
-    for (var entry in translatedEntries) {
-      var index = entry['index'];
-      if (index is int && index >= 1 && index <= sorted.length) {
-        if (sorted[index - 1] == null) {
-          sorted[index - 1] = entry;
-          continue;
-        }
-      }
-      throw shouldRunFastaGenerateMessagesFirst;
-    }
-    out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode?>[null,');
-    for (var entry in sorted) {
-      List<String> name = nameForEntry(entry);
-      out.writeln('_${name[1]},');
+    out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode?>[');
+    for (var entry in tables.indexToInfo) {
+      var name = tables.infoToAnalyzerCode[entry];
+      out.writeln('${name == null ? 'null' : '_$name'},');
     }
     out.writeln('];');
   }
 
   void generateFormatCode() {
-    messagesYaml.forEach((name, entry) {
-      if (entry is Map) {
-        if (entry['index'] is int) {
-          if (entry['analyzerCode'] is String) {
-            translatedFastaErrorCodes.add(name);
-            translatedEntries.add(entry);
-          } else {
-            throw invalidAnalyzerCode;
-          }
-        }
-      }
-    });
     generateFastaAnalyzerErrorCodeList();
     generateErrorCodes();
   }
@@ -227,46 +369,44 @@ part of 'syntactic_errors.dart';
   void printSummary() {
     // Build a map of error message to ParserErrorCode
     final messageToName = <String, String>{};
-    for (ErrorCode errorCode in errorCodeValues) {
-      if (errorCode is ParserErrorCode) {
-        String message = errorCode.message.replaceAll(RegExp(r'\{\d+\}'), '');
-        messageToName[message] = errorCode.name;
-      }
+    for (var entry in analyzerMessages['ParserErrorCode']!.entries) {
+      if (entry.value.copyFromCfe) continue;
+      String message =
+          entry.value.problemMessage!.replaceAll(RegExp(r'\{\d+\}'), '');
+      messageToName[message] = entry.key;
     }
 
-    String messageFromEntryTemplate(Map entry) {
-      String template = entry['template'];
-      String message = template.replaceAll(RegExp(r'#\w+'), '');
+    String messageFromEntryTemplate(ErrorCodeInfo entry) {
+      String problemMessage = entry.problemMessage!;
+      String message = problemMessage.replaceAll(RegExp(r'#\w+'), '');
       return message;
     }
 
     // Remove entries that have already been translated
-    for (Map entry in translatedEntries) {
+    for (ErrorCodeInfo entry in tables.infoToAnalyzerCode.keys) {
       messageToName.remove(messageFromEntryTemplate(entry));
     }
 
     // Print the # of autogenerated ParserErrorCodes.
-    print('${translatedEntries.length} of ${messageToName.length}'
-        ' ParserErrorCodes generated.');
+    print('${tables.infoToAnalyzerCode.length} of '
+        '${messageToName.length} ParserErrorCodes generated.');
 
     // List the ParserErrorCodes that could easily be auto generated
     // but have not been already.
     final analyzerToFasta = <String, List<String>>{};
-    messagesYaml.forEach((fastaName, entry) {
-      if (entry is Map) {
-        final analyzerName = messageToName[messageFromEntryTemplate(entry)];
-        if (analyzerName != null) {
-          analyzerToFasta
-              .putIfAbsent(analyzerName, () => <String>[])
-              .add(fastaName);
-        }
+    cfeMessages.forEach((fastaName, entry) {
+      final analyzerName = messageToName[messageFromEntryTemplate(entry)];
+      if (analyzerName != null) {
+        analyzerToFasta
+            .putIfAbsent(analyzerName, () => <String>[])
+            .add(fastaName);
       }
     });
     if (analyzerToFasta.isNotEmpty) {
       print('');
       print('The following ParserErrorCodes could be auto generated:');
       for (String analyzerName in analyzerToFasta.keys.toList()..sort()) {
-        List<String> fastaNames = analyzerToFasta[analyzerName];
+        List<String> fastaNames = analyzerToFasta[analyzerName]!;
         if (fastaNames.length == 1) {
           print('  $analyzerName = ${fastaNames.first}');
         } else {
@@ -283,7 +423,7 @@ part of 'syntactic_errors.dart';
     Token token = scanString(parserSource).tokens;
     while (!token.isEof) {
       if (token.isIdentifier) {
-        String fastaErrorCode;
+        String? fastaErrorCode;
         String lexeme = token.lexeme;
         if (lexeme.length > 7) {
           if (lexeme.startsWith('message')) {
@@ -295,11 +435,11 @@ part of 'syntactic_errors.dart';
           }
         }
         if (fastaErrorCode != null &&
-            !translatedFastaErrorCodes.contains(fastaErrorCode)) {
+            tables.frontEndCodeToInfo[fastaErrorCode] == null) {
           untranslatedFastaErrorCodes.add(fastaErrorCode);
         }
       }
-      token = token.next;
+      token = token.next!;
     }
     if (untranslatedFastaErrorCodes.isNotEmpty) {
       print('');
@@ -307,16 +447,17 @@ part of 'syntactic_errors.dart';
       final sorted = untranslatedFastaErrorCodes.toList()..sort();
       for (String fastaErrorCode in sorted) {
         String analyzerCode = '';
-        String template = '';
-        var entry = messagesYaml[fastaErrorCode];
-        if (entry is Map) {
-          if (entry['index'] is! int && entry['analyzerCode'] is String) {
-            analyzerCode = entry['analyzerCode'];
-            template = entry['template'];
+        String problemMessage = '';
+        var entry = cfeMessages[fastaErrorCode];
+        if (entry != null) {
+          // TODO(paulberry): handle multiple analyzer codes
+          if (entry.index == null && entry.analyzerCode.length == 1) {
+            analyzerCode = entry.analyzerCode.single;
+            problemMessage = entry.problemMessage!;
           }
         }
         print('  ${fastaErrorCode.padRight(30)} --> $analyzerCode'
-            '\n      $template');
+            '\n      $problemMessage');
       }
     }
   }

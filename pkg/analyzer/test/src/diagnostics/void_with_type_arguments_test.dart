@@ -27,6 +27,6 @@ void<int> f() {}
 ''', [
       error(ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS, 4, 1),
     ]);
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 }

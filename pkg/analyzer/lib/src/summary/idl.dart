@@ -545,6 +545,12 @@ enum IndexRelationKind {
   /// Right: location.
   IS_REFERENCED_BY,
 
+  /// Left: a constructor.
+  ///   Is referenced by a constructor tear-off at, which is special because
+  ///   the name of the constructor is required (`new` for unnamed).
+  /// Right: location.
+  IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF,
+
   /// Left: unresolved member name.
   ///   Is read at.
   /// Right: location.
@@ -558,7 +564,7 @@ enum IndexRelationKind {
   /// Left: unresolved member name.
   ///   Is written at.
   /// Right: location.
-  IS_WRITTEN_BY
+  IS_WRITTEN_BY,
 }
 
 /// When we need to reference a synthetic element in [PackageIndex] we use a

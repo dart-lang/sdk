@@ -1061,7 +1061,9 @@ void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
   __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
                         target::Thread::unboxed_double_runtime_arg_offset());
   __ PushObject(NullObject()); /* Make room for result. */
-  __ CallRuntime(kDoubleToIntegerRuntimeEntry, 0);
+  __ PushRegister(DoubleToIntegerStubABI::kRecognizedKindReg);
+  __ CallRuntime(kDoubleToIntegerRuntimeEntry, 1);
+  __ Drop(1);
   __ PopRegister(DoubleToIntegerStubABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();

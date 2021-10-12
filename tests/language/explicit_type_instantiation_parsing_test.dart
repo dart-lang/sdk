@@ -292,20 +292,14 @@ void main() {
   // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
 
-  // Parsed as a generic instantiation, but `v` is not generic function or type.
-  // Would be valid if parsed as operators.
+  // Parsed as a generic invocation. Valid because of the `call` extension
+  // method on `Object?`.
   expect1(v < X, X > (2));
-  //        ^^^^^^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
 
-  // Parsed as a generic instantiation, but `d` is not generic function or type.
-  // Being dynamic doesn't help.
-  // Would be valid if parsed as operators.
-  expect1(v < X, X > (2));
-  //        ^^^^^^^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  // Parsed as a generic invocation. Valid because this is an *invocation*
+  // rather than an *instantiation*. We don't allow instantiation on `dynamic`,
+  // but we do allow calling.
+  expect1(d < X, X > (2));
 
   // Valid only if parenthesized.
   expect1((Z < X, X >) * 2);

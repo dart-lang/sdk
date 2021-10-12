@@ -266,7 +266,7 @@ Snapshots-with-code work almost in the same way as normal snapshots with a minor
 ![Snapshots](images/snapshot-with-code.png)
 
 !!! sourcecode "Source to read"
-    @{runtime/vm/clustered_snapshot.cc} handles serialization and deserialization of snapshots. A family of API functions `Dart_CreateXyzSnapshot[AsAssembly]` are responsible for writing out snapshots of the heap (e.g. @{Dart_CreateAppJITSnapshotAsBlobs} and @{Dart_CreateAppAOTSnapshotAsAssembly}). On the other hand @{Dart_CreateIsolateGroup} optionally takes snapshot data to start an isolate from.
+    @{runtime/vm/app_snapshot.cc} handles serialization and deserialization of snapshots. A family of API functions `Dart_CreateXyzSnapshot[AsAssembly]` are responsible for writing out snapshots of the heap (e.g. @{Dart_CreateAppJITSnapshotAsBlobs} and @{Dart_CreateAppAOTSnapshotAsAssembly}). On the other hand @{Dart_CreateIsolateGroup} optionally takes snapshot data to start an isolate from.
 
 ### Running from AppJIT snapshots
 
@@ -376,7 +376,7 @@ Finally if the number of checks in the linear array grows past threshold the cal
 
 ![AOT IC: dictionary](images/aot-ic-dictionary.png)
 
-[what-is-kernel]: https://github.com/dart-lang/sdk/blob/master/pkg/kernel/README.md
+[what-is-kernel]: https://github.com/dart-lang/sdk/blob/main/pkg/kernel/README.md
 [pkg-front_end]: https://github.com/dart-lang/sdk/tree/master/pkg/front_end
 
 ## Runtime System

@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,30 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ElementDisplayStringTest with ElementsTypesMixin {
-  late final TestAnalysisContext _analysisContext;
-
-  @override
-  late final LibraryElementImpl testLibrary;
-
-  @override
-  late final TypeProvider typeProvider;
-
-  late final TypeSystemImpl typeSystem;
-
-  void setUp() {
-    _analysisContext = TestAnalysisContext();
-    typeProvider = _analysisContext.typeProviderLegacy;
-    typeSystem = _analysisContext.typeSystemLegacy;
-
-    testLibrary = library_(
-      uriStr: 'package:test/test.dart',
-      analysisContext: _analysisContext,
-      analysisSession: _analysisContext.analysisSession,
-      typeSystem: typeSystem,
-    );
-  }
-
+class ElementDisplayStringTest extends AbstractTypeSystemTest {
   void test_longMethod() {
     final methodA = method(
       'longMethodName',

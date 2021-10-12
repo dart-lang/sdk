@@ -49,7 +49,7 @@ class Gen {
   //                    ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   //                   ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
 }
 
 // Operators cannot be static.

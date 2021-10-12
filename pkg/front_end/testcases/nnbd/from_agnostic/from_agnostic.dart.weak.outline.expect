@@ -27,8 +27,8 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: StaticInvocation @ org-dartlang-testcase:///from_agnostic.dart:7:12 -> BoolConstant(false)
-Evaluated: MapLiteral @ org-dartlang-testcase:///from_agnostic.dart:8:12 -> InstanceConstant(const _ImmutableMap<List<int?>*, int*>{_ImmutableMap._kvPairs: const <dynamic>[const <int*>[], 0, const <int?>[], 1]})
-Evaluated: SetLiteral @ org-dartlang-testcase:///from_agnostic.dart:9:12 -> InstanceConstant(const _UnmodifiableSet<List<int?>*>{_UnmodifiableSet._map: const _ImmutableMap<List<int?>*, Null>{_ImmutableMap._kvPairs: const <dynamic>[const <int*>[], null, const <int?>[], null]}})
+Evaluated: MapLiteral @ org-dartlang-testcase:///from_agnostic.dart:8:12 -> MapConstant(const <List<int?>*, int*>{const <int*>[]: 0, const <int?>[]: 1})
+Evaluated: SetLiteral @ org-dartlang-testcase:///from_agnostic.dart:9:12 -> SetConstant(const <List<int?>*>{const <int*>[], const <int?>[]})
 Evaluated: StaticGet @ org-dartlang-testcase:///from_agnostic.dart:10:12 -> ListConstant(const <int*>[])
 Evaluated: StaticGet @ org-dartlang-testcase:///from_agnostic.dart:11:12 -> ListConstant(const <int?>[])
 Extra constant evaluation: evaluated: 5, effectively constant: 5

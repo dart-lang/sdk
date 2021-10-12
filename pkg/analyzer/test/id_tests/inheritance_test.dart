@@ -24,7 +24,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest:
-          runTestFor(const _InheritanceDataComputer(), [analyzerNnbdConfig]),
+          runTestFor(const _InheritanceDataComputer(), [analyzerDefaultConfig]),
       skipMap: {
         analyzerMarker: [
           // These are CFE-centric tests for an opt-in/opt-out sdk.

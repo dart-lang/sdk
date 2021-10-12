@@ -153,9 +153,8 @@ Future<TestResult> runTests(
     String config, String filename, Uri uri, List<String> options,
     {bool verbose: true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(uri);
-  SourceMaps sourceMaps = await processor.process(
-      [Flags.useContentSecurityPolicy, Flags.disableInlining]..addAll(options),
-      verbose: verbose);
+  SourceMaps sourceMaps = await processor
+      .process(['--csp', Flags.disableInlining, ...options], verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
     if (info.element.library.canonicalUri.scheme == 'dart') continue;

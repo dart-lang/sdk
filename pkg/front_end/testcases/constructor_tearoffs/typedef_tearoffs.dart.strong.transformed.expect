@@ -15,10 +15,20 @@ library /*isNonNullableByDefault*/;
 // B<num> Function() test9() => DB1.new; // Error.
 //                              ^
 //
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be assigned to a variable of type 'B<Y> Function<Y>()'.
+//  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+// B<Y> Function<Y>() test17() => DB2.new; // Error.
+//                                ^
+//
 // pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be returned from a function with return type 'B<Y> Function<Y>()'.
 //  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 // B<Y> Function<Y>() test17() => DB2.new; // Error.
 //                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be assigned to a variable of type 'B<Y> Function<Y, Z>()'.
+//  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+// B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
+//                                   ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be returned from a function with return type 'B<Y> Function<Y, Z>()'.
 //  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
@@ -68,7 +78,7 @@ static method test9() → () → self::B<core::num>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:33:30: Error: A value of type 'B<String> Function()' can't be returned from a function with return type 'B<num> Function()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<num> Function() test9() => DB1.new; // Error.
-                             ^" in (#C4) as{TypeError,ForNonNullableByDefault} () → self::B<core::num>;
+                             ^" in #C4 as{TypeError,ForNonNullableByDefault} () → self::B<core::num>;
 static method test10() → () → self::B<core::String>
   return #C6;
 static method test11() → () → self::B<core::String>
@@ -87,7 +97,10 @@ static method test17() → <Y extends core::Object? = dynamic>() → self::B<Y%>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be returned from a function with return type 'B<Y> Function<Y>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y>() test17() => DB2.new; // Error.
-                               ^" in (#C12) as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic>() → self::B<Y%>;
+                               ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be assigned to a variable of type 'B<Y> Function<Y>()'.
+ - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+B<Y> Function<Y>() test17() => DB2.new; // Error.
+                               ^" in #C12 as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic>() → self::B<Y%>;
 static method test18() → () → self::B<core::num>
   return #C9;
 static method test19() → () → self::B<core::num>
@@ -102,24 +115,13 @@ static method test23() → <Y extends core::Object? = dynamic, Z extends core::O
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be returned from a function with return type 'B<Y> Function<Y, Z>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
-                                  ^" in (#C13) as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
+                                  ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be assigned to a variable of type 'B<Y> Function<Y, Z>()'.
+ - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
+                                  ^" in #C13 as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
 static method test24() → () → self::B<core::String>
   return #C14;
 static method main() → dynamic {}
-static method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
-  return new self::A::•();
-static method _#DB2#new#tearOff<X extends core::num>() → self::B<self::_#DB2#new#tearOff::X>
-  return new self::B::•<self::_#DB2#new#tearOff::X>();
-static method _#DB2#foo#tearOff<X extends core::num>() → self::B<self::_#DB2#foo#tearOff::X>
-  return new self::B::foo<self::_#DB2#foo#tearOff::X>();
-static method _#DB2#bar#tearOff<X extends core::num>() → self::B<self::_#DB2#bar#tearOff::X>
-  return self::B::bar<self::_#DB2#bar#tearOff::X>();
-static method _#DB3#new#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#new#tearOff::X>
-  return new self::B::•<self::_#DB3#new#tearOff::X>();
-static method _#DB3#foo#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#foo#tearOff::X>
-  return new self::B::foo<self::_#DB3#foo#tearOff::X>();
-static method _#DB3#bar#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#bar#tearOff::X>
-  return self::B::bar<self::_#DB3#bar#tearOff::X>();
 
 constants  {
   #C1 = constructor-tearoff self::A::•
@@ -133,7 +135,7 @@ constants  {
   #C9 = instantiation self::B::• <core::num>
   #C10 = instantiation self::B::foo <core::num>
   #C11 = instantiation self::B::bar <core::num>
-  #C12 = static-tearoff self::_#DB2#new#tearOff
-  #C13 = static-tearoff self::_#DB3#new#tearOff
+  #C12 = typedef-tearoff <X extends core::num>.(#C3<X>)
+  #C13 = typedef-tearoff <X extends core::num, unrelated Y extends core::String>.(#C3<X>)
   #C14 = instantiation self::B::• <Never>
 }

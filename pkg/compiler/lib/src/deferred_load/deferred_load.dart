@@ -343,7 +343,7 @@ class DeferredLoadTask extends CompilerTask {
 
   final Compiler compiler;
 
-  KernelToElementMap _elementMap;
+  final KernelToElementMap _elementMap;
 
   @override
   final _DeferredLoadTaskMetrics metrics = _DeferredLoadTaskMetrics();

@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
@@ -31,16 +30,16 @@ import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
   final SummaryDataReader _reader;
-  final Map<Uri, InformativeUnitData> _unitsInformativeData;
+  final Map<Uri, Uint8List> _unitsInformativeBytes;
 
   final Map<String, LibraryReader> libraryMap = {};
 
   BundleReader({
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
-    Map<Uri, InformativeUnitData> unitsInformativeData = const {},
+    Map<Uri, Uint8List> unitsInformativeBytes = const {},
   })  : _reader = SummaryDataReader(resolutionBytes),
-        _unitsInformativeData = unitsInformativeData {
+        _unitsInformativeBytes = unitsInformativeBytes {
     _reader.offset = _reader.bytes.length - 4 * 4;
     var baseResolutionOffset = _reader.readUInt32();
     var librariesOffset = _reader.readUInt32();
@@ -70,7 +69,7 @@ class BundleReader {
       libraryMap[uriStr] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
-        unitsInformativeData: _unitsInformativeData,
+        unitsInformativeBytes: _unitsInformativeBytes,
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
         reference: reference,
@@ -413,12 +412,11 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 class LibraryReader {
   final LinkedElementFactory _elementFactory;
   final SummaryDataReader _reader;
-  final Map<Uri, InformativeUnitData> _unitsInformativeData;
+  final Map<Uri, Uint8List> _unitsInformativeBytes;
   final int _baseResolutionOffset;
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
-  final Map<int, MacroGenerationData> _macroDeclarations = {};
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -428,7 +426,7 @@ class LibraryReader {
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
-    required Map<Uri, InformativeUnitData> unitsInformativeData,
+    required Map<Uri, Uint8List> unitsInformativeBytes,
     required int baseResolutionOffset,
     required _ReferenceReader referenceReader,
     required Reference reference,
@@ -436,7 +434,7 @@ class LibraryReader {
     required Uint32List classMembersLengths,
   })  : _elementFactory = elementFactory,
         _reader = reader,
-        _unitsInformativeData = unitsInformativeData,
+        _unitsInformativeBytes = unitsInformativeBytes,
         _baseResolutionOffset = baseResolutionOffset,
         _referenceReader = referenceReader,
         _reference = reference,
@@ -494,10 +492,8 @@ class LibraryReader {
 
     _declareDartCoreDynamicNever();
 
-    InformativeDataApplier(_elementFactory).applyTo(
-      _unitsInformativeData,
-      libraryElement,
-    );
+    InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
+        .applyTo(libraryElement);
 
     return libraryElement;
   }
@@ -528,10 +524,6 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
     ClassElementFlags.read(_reader, element);
-
-    element.macroExecutionErrors = _reader.readTypedList(
-      _readMacroExecutionError,
-    );
 
     element.typeParameters = _readTypeParameters();
 
@@ -595,7 +587,6 @@ class LibraryReader {
       element.setLinkedData(reference, linkedData);
       ConstructorElementFlags.read(_reader, element);
       element.parameters = _readParameters(element, reference);
-      _readMacro(element, element);
       return element;
     });
   }
@@ -765,9 +756,6 @@ class LibraryReader {
 
     FieldElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
-    element.macroExecutionErrors = _reader.readTypedList(
-      _readMacroExecutionError,
-    );
     element.createImplicitAccessors(classReference, name);
 
     return element;
@@ -859,29 +847,6 @@ class LibraryReader {
     return LibraryLanguageVersion(package: package, override: override);
   }
 
-  void _readMacro(Element element, HasMacroGenerationData hasMacro) {
-    var id = _reader.readOptionalUInt30();
-    if (id != null) {
-      var data = _macroDeclarations[id]!;
-      hasMacro.macro = data;
-      InformativeDataApplier(
-        _elementFactory,
-        baseOffset: data.codeOffset,
-      ).applyToDeclaration(
-        element,
-        data.informative,
-      );
-    }
-  }
-
-  macro.MacroExecutionError _readMacroExecutionError() {
-    return macro.MacroExecutionError(
-      annotationIndex: _reader.readUInt30(),
-      macroName: _reader.readStringReference(),
-      message: _reader.readStringReference(),
-    );
-  }
-
   List<MethodElementImpl> _readMethods(
     CompilationUnitElementImpl unitElement,
     ElementImpl enclosingElement,
@@ -905,7 +870,6 @@ class LibraryReader {
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
       element.typeInferenceError = _readTopLevelInferenceError();
-      _readMacro(element, element);
       return element;
     });
   }
@@ -1047,7 +1011,6 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
 
     element.parameters = _readParameters(element, reference);
-    _readMacro(element, element);
     return element;
   }
 
@@ -1266,9 +1229,7 @@ class LibraryReader {
 
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
-    unitElement.sourceContent = _reader.readOptionalStringUtf8();
 
-    _readUnitMacroGenerationDataList(unitElement);
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
@@ -1284,28 +1245,6 @@ class LibraryReader {
     unitElement.accessors = accessors;
     unitElement.topLevelVariables = variables;
     return unitElement;
-  }
-
-  void _readUnitMacroGenerationDataList(
-    CompilationUnitElementImpl unitElement,
-  ) {
-    var length = _reader.readUInt30();
-    if (length == 0) {
-      return;
-    }
-
-    var dataList = List.generate(length, (index) {
-      return MacroGenerationData(
-        id: _reader.readUInt30(),
-        code: _reader.readStringUtf8(),
-        informative: _reader.readUint8List(),
-        classDeclarationIndex: _reader.readOptionalUInt30(),
-      );
-    });
-    unitElement.macroGenerationDataList = dataList;
-    for (var data in dataList) {
-      _macroDeclarations[data.id] = data;
-    }
   }
 
   static Variance? _decodeVariance(int index) {

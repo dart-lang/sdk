@@ -1381,11 +1381,6 @@ class InferenceVisitor
     reportNonNullableInNullAwareWarningIfNeeded(
         lhsResult.inferredType, "??", node.left.fileOffset);
 
-    Member equalsMember = inferrer
-        .findInterfaceMember(
-            lhsResult.inferredType, equalsName, node.fileOffset)
-        .member!;
-
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
 
@@ -1420,9 +1415,7 @@ class InferenceVisitor
       VariableDeclaration variable =
           createVariable(left, lhsResult.inferredType);
       Expression equalsNull = inferrer.createEqualsNull(
-          lhsResult.expression.fileOffset,
-          createVariableGet(variable),
-          equalsMember);
+          lhsResult.expression.fileOffset, createVariableGet(variable));
       VariableGet variableGet = createVariableGet(variable);
       if (inferrer.library.isNonNullableByDefault &&
           !identical(nonNullableLhsType, originalLhsType)) {
@@ -3054,7 +3047,9 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, node.propertyName, node.writeOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     DartType writeType = inferrer.getSetterType(writeTarget, receiverType);
 
     ExpressionInferenceResult binaryResult = _computeBinaryExpression(
@@ -3115,7 +3110,9 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, node.propertyName, receiver.fileOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
 
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
@@ -3130,10 +3127,6 @@ class InferenceVisitor
         receiverType, node.propertyName, writeTarget, rhs,
         forEffect: node.forEffect, valueType: writeType);
 
-    Member equalsMember = inferrer
-        .findInterfaceMember(readType, equalsName, node.fileOffset)
-        .member!;
-
     DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(
@@ -3145,8 +3138,7 @@ class InferenceVisitor
       //
       //     let v1 = o in v1.a == null ? v1.a = b : null
       //
-      Expression equalsNull =
-          inferrer.createEqualsNull(node.fileOffset, read, equalsMember);
+      Expression equalsNull = inferrer.createEqualsNull(node.fileOffset, read);
       ConditionalExpression conditional = new ConditionalExpression(equalsNull,
           write, new NullLiteral()..fileOffset = node.fileOffset, inferredType)
         ..fileOffset = node.fileOffset;
@@ -3160,7 +3152,7 @@ class InferenceVisitor
       //
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
-          node.fileOffset, createVariableGet(readVariable), equalsMember);
+          node.fileOffset, createVariableGet(readVariable));
       VariableGet variableGet = createVariableGet(readVariable);
       if (inferrer.library.isNonNullableByDefault &&
           !identical(nonNullableReadType, readType)) {
@@ -3194,10 +3186,6 @@ class InferenceVisitor
         .inferExpression(node.write, typeContext, true, isVoidAllowed: true);
     inferrer.flowAnalysis.ifNullExpression_end();
 
-    Member equalsMember = inferrer
-        .findInterfaceMember(readType, equalsName, node.fileOffset)
-        .member!;
-
     DartType originalReadType = readType;
     DartType nonNullableReadType = originalReadType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
@@ -3210,8 +3198,7 @@ class InferenceVisitor
       //
       //     a == null ? a = b : null
       //
-      Expression equalsNull =
-          inferrer.createEqualsNull(node.fileOffset, read, equalsMember);
+      Expression equalsNull = inferrer.createEqualsNull(node.fileOffset, read);
       replacement = new ConditionalExpression(
           equalsNull,
           writeResult.expression,
@@ -3225,7 +3212,7 @@ class InferenceVisitor
       //
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
-          node.fileOffset, createVariableGet(readVariable), equalsMember);
+          node.fileOffset, createVariableGet(readVariable));
       VariableGet variableGet = createVariableGet(readVariable);
       if (inferrer.library.isNonNullableByDefault &&
           !identical(nonNullableReadType, originalReadType)) {
@@ -3252,7 +3239,8 @@ class InferenceVisitor
 
     ObjectAccessTarget indexGetTarget = inferrer.findInterfaceMember(
         receiverType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType indexType = inferrer.getIndexKeyType(indexGetTarget, receiverType);
 
@@ -3294,7 +3282,8 @@ class InferenceVisitor
 
     ObjectAccessTarget indexSetTarget = inferrer.findInterfaceMember(
         receiverType, indexSetName, node.fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType indexType = inferrer.getIndexKeyType(indexSetTarget, receiverType);
     DartType valueType =
@@ -3517,7 +3506,8 @@ class InferenceVisitor
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, indexGetName, node.readOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind checkKind =
         inferrer.preCheckInvocationContravariance(receiverType, readTarget,
@@ -3527,7 +3517,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, indexSetName, node.writeOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType writeIndexType =
         inferrer.getIndexKeyType(writeTarget, receiverType);
@@ -3567,10 +3558,6 @@ class InferenceVisitor
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
-
-    Member equalsMember = inferrer
-        .findInterfaceMember(readType, equalsName, node.testOffset)
-        .member!;
 
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex,
@@ -3623,8 +3610,7 @@ class InferenceVisitor
       //     let indexVariable = a in
       //         o[indexVariable] == null ? o.[]=(indexVariable, b) : null
       //
-      Expression equalsNull =
-          inferrer.createEqualsNull(node.testOffset, read, equalsMember);
+      Expression equalsNull = inferrer.createEqualsNull(node.testOffset, read);
       ConditionalExpression conditional = new ConditionalExpression(equalsNull,
           write, new NullLiteral()..fileOffset = node.testOffset, inferredType)
         ..fileOffset = node.testOffset;
@@ -3656,7 +3642,7 @@ class InferenceVisitor
       //
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
-          node.testOffset, createVariableGet(readVariable), equalsMember);
+          node.testOffset, createVariableGet(readVariable));
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
       VariableGet variableGet = createVariableGet(readVariable);
@@ -3700,10 +3686,6 @@ class InferenceVisitor
         readType, "??=", node.readOffset);
     DartType readIndexType =
         inferrer.getIndexKeyType(readTarget, inferrer.thisType!);
-
-    Member equalsMember = inferrer
-        .findInterfaceMember(readType, equalsName, node.testOffset)
-        .member!;
 
     ObjectAccessTarget writeTarget = node.setter != null
         ? new ObjectAccessTarget.interfaceMember(node.setter!,
@@ -3807,8 +3789,7 @@ class InferenceVisitor
       //        super[v1] == null ? super.[]=(v1, b) : null
       //
       assert(valueVariable == null);
-      Expression equalsNull =
-          inferrer.createEqualsNull(node.testOffset, read, equalsMember);
+      Expression equalsNull = inferrer.createEqualsNull(node.testOffset, read);
       replacement = new ConditionalExpression(equalsNull, write,
           new NullLiteral()..fileOffset = node.testOffset, inferredType)
         ..fileOffset = node.testOffset;
@@ -3826,7 +3807,7 @@ class InferenceVisitor
 
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
-          node.testOffset, createVariableGet(readVariable), equalsMember);
+          node.testOffset, createVariableGet(readVariable));
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
       VariableGet readVariableGet = createVariableGet(readVariable);
@@ -3925,10 +3906,6 @@ class InferenceVisitor
     DartType readType = readResult.inferredType;
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
 
-    Member equalsMember = inferrer
-        .findInterfaceMember(readType, equalsName, node.testOffset)
-        .member!;
-
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);
 
@@ -3974,8 +3951,7 @@ class InferenceVisitor
       //          ? receiverVariable.[]=(indexVariable, b) : null
       //
       assert(valueVariable == null);
-      Expression equalsNull =
-          inferrer.createEqualsNull(node.testOffset, read, equalsMember);
+      Expression equalsNull = inferrer.createEqualsNull(node.testOffset, read);
       replacement = new ConditionalExpression(equalsNull, write,
           new NullLiteral()..fileOffset = node.testOffset, inferredType)
         ..fileOffset = node.testOffset;
@@ -3994,7 +3970,7 @@ class InferenceVisitor
       //
       VariableDeclaration readVariable = createVariable(read, readType);
       Expression equalsNull = inferrer.createEqualsNull(
-          node.testOffset, createVariableGet(readVariable), equalsMember);
+          node.testOffset, createVariableGet(readVariable));
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
       VariableGet readVariableGet = createVariableGet(readVariable);
@@ -4063,7 +4039,8 @@ class InferenceVisitor
 
     ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
         leftType, equalsName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     assert(
         equalsTarget.isInstanceMember ||
@@ -4109,7 +4086,8 @@ class InferenceVisitor
       // Ensure operator == member even for `Never`.
       Member target = inferrer
           .findInterfaceMember(const DynamicType(), equalsName, -1,
-              instrumented: false)
+              instrumented: false,
+              callSiteAccessKind: CallSiteAccessKind.operatorInvocation)
           .member!;
       equals = new EqualsCall(left, right,
           functionType: functionType, interfaceTarget: target as Procedure)
@@ -4147,7 +4125,8 @@ class InferenceVisitor
 
     ObjectAccessTarget binaryTarget = inferrer.findInterfaceMember(
         leftType, binaryName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind binaryCheckKind =
         inferrer.preCheckInvocationContravariance(leftType, binaryTarget,
@@ -4328,7 +4307,8 @@ class InferenceVisitor
       Map<DartType, NonPromotionReason> Function() whyNotPromoted) {
     ObjectAccessTarget unaryTarget = inferrer.findInterfaceMember(
         expressionType, unaryName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind unaryCheckKind =
         inferrer.preCheckInvocationContravariance(expressionType, unaryTarget,
@@ -4688,7 +4668,8 @@ class InferenceVisitor
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, propertyName, fileOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
     DartType readType = inferrer.getGetterType(readTarget, receiverType);
 
@@ -4977,7 +4958,8 @@ class InferenceVisitor
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, indexGetName, node.readOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     MethodContravarianceCheckKind readCheckKind =
         inferrer.preCheckInvocationContravariance(receiverType, readTarget,
@@ -5029,7 +5011,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, indexSetName, node.writeOffset,
-        includeExtensionMethods: true);
+        includeExtensionMethods: true,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     DartType writeIndexType =
         inferrer.getIndexKeyType(writeTarget, receiverType);
@@ -5175,7 +5158,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         nonNullReceiverType, node.propertyName, node.writeOffset,
-        setter: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        includeExtensionMethods: true);
 
     DartType valueType =
         inferrer.getSetterType(writeTarget, nonNullReceiverType);
@@ -5643,7 +5627,9 @@ class InferenceVisitor
 
     ObjectAccessTarget target = inferrer.findInterfaceMember(
         receiverType, node.name, node.fileOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     if (target.isInstanceMember || target.isObjectMember) {
       if (inferrer.instrumentation != null &&
           receiverType == const DynamicType()) {
@@ -5697,10 +5683,6 @@ class InferenceVisitor
     DartType readType = readResult.inferredType;
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
 
-    Member readEqualsMember = inferrer
-        .findInterfaceMember(readType, equalsName, node.testOffset)
-        .member!;
-
     VariableDeclaration? readVariable;
     if (!node.forEffect) {
       readVariable = createVariable(read, readType);
@@ -5709,7 +5691,8 @@ class InferenceVisitor
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         nonNullReceiverType, node.name, node.writeOffset,
-        setter: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        includeExtensionMethods: true);
 
     DartType valueType =
         inferrer.getSetterType(writeTarget, nonNullReceiverType);
@@ -5741,7 +5724,7 @@ class InferenceVisitor
       //
 
       Expression readEqualsNull =
-          inferrer.createEqualsNull(node.readOffset, read, readEqualsMember);
+          inferrer.createEqualsNull(node.readOffset, read);
       replacement = new ConditionalExpression(readEqualsNull, write,
           new NullLiteral()..fileOffset = node.writeOffset, inferredType)
         ..fileOffset = node.writeOffset;
@@ -5756,8 +5739,8 @@ class InferenceVisitor
       //
       assert(readVariable != null);
 
-      Expression readEqualsNull = inferrer.createEqualsNull(
-          receiverVariable.fileOffset, read, readEqualsMember);
+      Expression readEqualsNull =
+          inferrer.createEqualsNull(receiverVariable.fileOffset, read);
       VariableGet variableGet = createVariableGet(readVariable!);
       if (inferrer.library.isNonNullableByDefault &&
           !identical(nonNullableReadType, readType)) {
@@ -7016,7 +6999,9 @@ class PropertyForInVariable implements ForInVariable {
     DartType receiverType = receiverResult.inferredType;
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, propertySet.name, propertySet.fileOffset,
-        setter: true, instrumented: true, includeExtensionMethods: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true,
+        includeExtensionMethods: true);
     DartType elementType =
         _writeType = inferrer.getSetterType(writeTarget, receiverType);
     Expression? error = inferrer.reportMissingInterfaceMember(
@@ -7074,7 +7059,8 @@ class SuperPropertyForInVariable implements ForInVariable {
     DartType receiverType = inferrer.thisType!;
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, superPropertySet.name, superPropertySet.fileOffset,
-        setter: true, instrumented: true);
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true);
     if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
       superPropertySet.interfaceTarget = writeTarget.member;
     }

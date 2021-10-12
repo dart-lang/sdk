@@ -10,7 +10,7 @@ static method a<T1 extends core::Object? = dynamic, T2 extends core::Object? = d
   return "a<${self::a::T1%}, ${self::a::T2%}>(${x})";
 }
 static method main() → dynamic {
-  self::expect("${#C3}, null", self::f((#C3).{core::Object::toString}(){() → core::String}));
+  self::expect("${#C3}, null", self::f(#C3.{core::Object::toString}(){() → core::String}));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

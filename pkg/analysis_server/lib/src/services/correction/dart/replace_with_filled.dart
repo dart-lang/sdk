@@ -15,10 +15,10 @@ class ReplaceWithFilled extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var typeName = node is SimpleIdentifier ? node.parent : node;
-    var creation = typeName?.parent?.parent;
-    if (typeName is TypeName && creation is InstanceCreationExpression) {
-      var elementType = (typeName.type as InterfaceType).typeArguments[0];
+    var namedType = node is SimpleIdentifier ? node.parent : node;
+    var creation = namedType?.parent?.parent;
+    if (namedType is NamedType && creation is InstanceCreationExpression) {
+      var elementType = (namedType.type as InterfaceType).typeArguments[0];
       if (typeSystem.isNullable(elementType)) {
         var argumentList = creation.argumentList;
         if (argumentList.arguments.length == 1) {

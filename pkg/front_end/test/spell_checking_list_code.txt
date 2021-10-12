@@ -501,6 +501,7 @@ gardening
 gen
 generation
 getable
+getable
 getables
 gets
 getter1a
@@ -934,6 +935,7 @@ prime
 printer
 printf
 println
+prioritization
 proc
 producers
 product
@@ -959,6 +961,7 @@ queries
 quick
 quiver
 quoted
+qux
 r
 r'$creation
 r'\f
@@ -1109,6 +1112,7 @@ serve
 server
 service
 session
+setable
 setable
 setables
 setaf

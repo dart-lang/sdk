@@ -7,4 +7,4 @@ previously a compile-time error, and it is intended to allow
 developers to express the intent that the value of certain expressions
 is of no interest, and help them to avoid using such values. For more
 details, please check the
-[feature specification](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/generalized-void.md).
+[feature specification](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/generalized-void.md).

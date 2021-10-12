@@ -67,9 +67,9 @@ class ReplaceWithVar extends CorrectionProducer {
               }
             }
           } else if (initializer is InstanceCreationExpression) {
-            if (initializer.constructorName.type.typeArguments == null) {
+            if (initializer.constructorName.type2.typeArguments == null) {
               typeArgumentsText = utils.getNodeText(typeArguments);
-              typeArgumentsOffset = initializer.constructorName.type.end;
+              typeArgumentsOffset = initializer.constructorName.type2.end;
             }
           }
         }

@@ -1171,7 +1171,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('A.n');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1180,7 +1180,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('p.A.n');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
   }
@@ -1189,7 +1189,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('A');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1198,7 +1198,7 @@ abstract class Foo {}
     ConstructorName name = parseConstructorName('p.A');
     expectNotNullIfNoErrors(name);
     assertNoErrors();
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
@@ -1246,8 +1246,8 @@ abstract class Foo {}
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.extendsKeyword, isNotNull);
-    expect(clause.superclass, isNotNull);
-    expect(clause.superclass, isTypeName);
+    expect(clause.superclass2, isNotNull);
+    expect(clause.superclass2, isNamedType);
   }
 
   void test_parseFunctionBody_block() {
@@ -1381,7 +1381,7 @@ abstract class Foo {}
     ImplementsClause clause = parseImplementsClause('implements A, B, C');
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
-    expect(clause.interfaces, hasLength(3));
+    expect(clause.interfaces2, hasLength(3));
     expect(clause.implementsKeyword, isNotNull);
   }
 
@@ -1389,7 +1389,7 @@ abstract class Foo {}
     ImplementsClause clause = parseImplementsClause('implements A');
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
-    expect(clause.interfaces, hasLength(1));
+    expect(clause.interfaces2, hasLength(1));
     expect(clause.implementsKeyword, isNotNull);
   }
 
@@ -1432,7 +1432,7 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     var creation = body.expression as InstanceCreationExpressionImpl;
     expect(creation.keyword, isNull);
     ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'C<E>');
+    expect(constructorName.type2.toSource(), 'C<E>');
     expect(constructorName.period, isNotNull);
     expect(constructorName.name, isNotNull);
     expect(creation.argumentList, isNotNull);
@@ -1467,7 +1467,7 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     var creation = body.expression as InstanceCreationExpression;
     expect(creation.keyword, isNull);
     ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'p.C<E>');
+    expect(constructorName.type2.toSource(), 'p.C<E>');
     expect(constructorName.period, isNotNull);
     expect(constructorName.name, isNotNull);
     expect(creation.argumentList, isNotNull);
@@ -1604,14 +1604,14 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameters[0], isSimpleFormalParameter);
     var parameter = parameters[0] as SimpleFormalParameter;
     expect(parameter.identifier, isNull);
-    expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'int');
+    expect(parameter.type, isNamedType);
+    expect((parameter.type as NamedType).name.name, 'int');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.identifier, isNull);
-    expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'int');
+    expect(parameter.type, isNamedType);
+    expect((parameter.type as NamedType).name.name, 'int');
   }
 
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
@@ -1647,7 +1647,7 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_function_returnType_classFunction() {
     createParser('Function');
-    var functionType = parser.parseTypeAnnotation(false) as TypeName;
+    var functionType = parser.parseTypeAnnotation(false) as NamedType;
     expectNotNullIfNoErrors(functionType);
     assertNoErrors();
   }
@@ -1690,15 +1690,15 @@ Function<A>(core.List<core.int> x) m() => null;
     var parameter = parameters[0] as SimpleFormalParameter;
     expect(parameter.identifier, isNotNull);
     expect(parameter.identifier!.name, 's');
-    expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'String');
+    expect(parameter.type, isNamedType);
+    expect((parameter.type as NamedType).name.name, 'String');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
     expect(parameter.identifier, isNotNull);
     expect(parameter.identifier!.name, 'i');
-    expect(parameter.type, isTypeName);
-    expect((parameter.type as TypeName).name.name, 'int');
+    expect(parameter.type, isNamedType);
+    expect((parameter.type as NamedType).name.name, 'int');
   }
 
   void test_parseTypeAnnotation_function_returnType_simple() {
@@ -1750,8 +1750,8 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_named() {
     createParser('A<B>');
-    var typeName = parser.parseTypeAnnotation(false) as TypeName;
-    expectNotNullIfNoErrors(typeName);
+    var namedType = parser.parseTypeAnnotation(false) as NamedType;
+    expectNotNullIfNoErrors(namedType);
     assertNoErrors();
   }
 
@@ -1782,7 +1782,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
-    var argument = argumentList.arguments[0] as TypeName;
+    var argument = argumentList.arguments[0] as NamedType;
     expect(argument, isNotNull);
     var innerList = argument.typeArguments!;
     expect(innerList, isNotNull);
@@ -1799,7 +1799,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(argumentList.rightBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
 
-    var argument = argumentList.arguments[0] as TypeName;
+    var argument = argumentList.arguments[0] as NamedType;
     expect(argument, isNotNull);
 
     var innerList = argument.typeArguments!;
@@ -1819,7 +1819,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(argumentList.rightBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
 
-    var argument = argumentList.arguments[0] as TypeName;
+    var argument = argumentList.arguments[0] as NamedType;
     expect(argument, isNotNull);
 
     var innerList = argument.typeArguments!;
@@ -1828,7 +1828,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(innerList.arguments, hasLength(1));
     expect(innerList.rightBracket, isNotNull);
 
-    var innerArgument = innerList.arguments[0] as TypeName;
+    var innerArgument = innerList.arguments[0] as NamedType;
     expect(innerArgument, isNotNull);
 
     var innerInnerList = innerArgument.typeArguments!;
@@ -1851,20 +1851,20 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeName_parameterized() {
     createParser('List<int>');
-    TypeName typeName = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(typeName);
+    NamedType namedType = parser.parseTypeName(false);
+    expectNotNullIfNoErrors(namedType);
     assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNotNull);
+    expect(namedType.name, isNotNull);
+    expect(namedType.typeArguments, isNotNull);
   }
 
   void test_parseTypeName_simple() {
     createParser('int');
-    TypeName typeName = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(typeName);
+    NamedType namedType = parser.parseTypeName(false);
+    expectNotNullIfNoErrors(namedType);
     assertNoErrors();
-    expect(typeName.name, isNotNull);
-    expect(typeName.typeArguments, isNull);
+    expect(namedType.name, isNotNull);
+    expect(namedType.typeArguments, isNull);
   }
 
   void test_parseTypeParameter_bounded_functionType_noReturn() {
@@ -1892,7 +1892,7 @@ Function<A>(core.List<core.int> x) m() => null;
     TypeParameter parameter = parser.parseTypeParameter();
     expectNotNullIfNoErrors(parameter);
     assertNoErrors();
-    expect(parameter.bound, isTypeName);
+    expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
     expect(parameter.name, isNotNull);
   }
@@ -1902,7 +1902,7 @@ Function<A>(core.List<core.int> x) m() => null;
     TypeParameter parameter = parser.parseTypeParameter();
     expectNotNullIfNoErrors(parameter);
     assertNoErrors();
-    expect(parameter.bound, isTypeName);
+    expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
     expect(parameter.name, isNotNull);
   }
@@ -1947,13 +1947,13 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameterList.typeParameters, hasLength(1));
     TypeParameter typeParameter = parameterList.typeParameters[0];
     expect(typeParameter.name.name, 'A');
-    var bound = typeParameter.bound as TypeName;
+    var bound = typeParameter.bound as NamedType;
     expect(bound.name.name, 'B');
     var typeArguments = bound.typeArguments!;
     expect(typeArguments.arguments, hasLength(1));
     expect(typeArguments.rightBracket, isNotNull);
     expect(typeArguments.rightBracket.precedingComments!.lexeme, '/* foo */');
-    var argument = typeArguments.arguments[0] as TypeName;
+    var argument = typeArguments.arguments[0] as NamedType;
     expect(argument.name.name, 'E');
   }
 
@@ -2077,7 +2077,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes, hasLength(3));
+    expect(clause.mixinTypes2, hasLength(3));
   }
 
   void test_parseWithClause_single() {
@@ -2085,7 +2085,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expectNotNullIfNoErrors(clause);
     assertNoErrors();
     expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes, hasLength(1));
+    expect(clause.mixinTypes2, hasLength(1));
   }
 
   void test_typeAlias_37733() {

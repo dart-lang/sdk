@@ -1,0 +1,139 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib1.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart" as lib;
+
+static field mai::C c;
+static method main() → void
+  ;
+static method testUninitializedNonFinalInstanceField() → void
+  ;
+static method testUninitializedFinalInstanceField() → void
+  ;
+static method testInitializedNonFinalInstanceField() → void
+  ;
+static method testInitializedFinalInstanceField() → void
+  ;
+static method testUninitializedNonFinalStaticField() → void
+  ;
+static method testUninitializedFinalStaticField() → void
+  ;
+static method testInitializedNonFinalStaticField() → void
+  ;
+static method testInitializedFinalStaticField() → void
+  ;
+static method testUninitializedNonFinalTopLevelField() → void
+  ;
+static method testUninitializedFinalTopLevelField() → void
+  ;
+static method testInitializedNonFinalTopLevelField() → void
+  ;
+static method testInitializedFinalTopLevelField() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+import "dart:_late_helper" as _la;
+import "dart:_internal" as _in;
+
+class C extends core::Object {
+  field core::int _#C#a = _in::createSentinel<core::int>();
+  field core::int _#C#b = _in::createSentinel<core::int>();
+  field core::int _#C#c = _in::createSentinel<core::int>();
+  field core::int _#C#d = _in::createSentinel<core::int>();
+  synthetic constructor •() → mai::C
+    ;
+  static method _#new#tearOff() → mai::C
+    return new mai::C::•();
+  get a() → core::int
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#a}{core::int}, "a");
+  set a(core::int value) → void
+    this.{mai::C::_#C#a} = value;
+  get b() → core::int
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#b}{core::int}, "b");
+  set b(core::int value) → void {
+    _la::_lateWriteOnceCheck(this.{mai::C::_#C#b}{core::int}, "b");
+    this.{mai::C::_#C#b} = value;
+  }
+  get c() → core::int
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#c}{core::int}, "c");
+  set c(core::int value) → void
+    this.{mai::C::_#C#c} = value;
+  get d() → core::int
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#d}{core::int}, "d");
+  set d(core::int value) → void {
+    _la::_lateWriteOnceCheck(this.{mai::C::_#C#d}{core::int}, "d");
+    this.{mai::C::_#C#d} = value;
+  }
+}
+class Statics extends core::Object {
+  static final field _la::_Cell _#a = new _la::_Cell::named("a");
+  static final field _la::_Cell _#b = new _la::_Cell::named("b");
+  static final field _la::_Cell _#c = new _la::_Cell::named("c");
+  static final field _la::_Cell _#d = new _la::_Cell::named("d");
+  synthetic constructor •() → mai::Statics
+    ;
+  static method _#new#tearOff() → mai::Statics
+    return new mai::Statics::•();
+  static get a() → core::int
+    return mai::Statics::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set a(core::int value) → void
+    return mai::Statics::_#a.{_la::_Cell::value} = value;
+  static get b() → core::int
+    return mai::Statics::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set b(core::int value) → void
+    return mai::Statics::_#b.{_la::_Cell::finalFieldValue} = value;
+  static get c() → core::int
+    return mai::Statics::_#c.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set c(core::int value) → void
+    return mai::Statics::_#c.{_la::_Cell::value} = value;
+  static get d() → core::int
+    return mai::Statics::_#d.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set d(core::int value) → void
+    return mai::Statics::_#d.{_la::_Cell::finalFieldValue} = value;
+}
+static method testNullableUninitializedNonFinalLocal() → void
+  ;
+static method testNonNullableUninitializedNonFinalLocal() → void
+  ;
+static method testNullableUninitializedFinalLocal() → void
+  ;
+static method testNonNullableUninitializedFinalLocal() → void
+  ;
+static method testNullableInitializedNonFinalLocal() → void
+  ;
+static method testNonNullableInitializedNonFinalLocal() → void
+  ;
+static method testNullableInitializedFinalLocal() → void
+  ;
+static method testNonNullableInitializedFinalLocal() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+import "dart:_late_helper" as _la;
+
+static final field _la::_Cell _#a = new _la::_Cell::named("a");
+static final field _la::_Cell _#b = new _la::_Cell::named("b");
+static final field _la::_Cell _#c = new _la::_Cell::named("c");
+static final field _la::_Cell _#d = new _la::_Cell::named("d");
+static get a() → core::int
+  return self2::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set a(core::int value) → void
+  return self2::_#a.{_la::_Cell::value} = value;
+static get b() → core::int
+  return self2::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set b(core::int value) → void
+  return self2::_#b.{_la::_Cell::finalFieldValue} = value;
+static get c() → core::int
+  return self2::_#c.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set c(core::int value) → void
+  return self2::_#c.{_la::_Cell::value} = value;
+static get d() → core::int
+  return self2::_#d.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set d(core::int value) → void
+  return self2::_#d.{_la::_Cell::finalFieldValue} = value;

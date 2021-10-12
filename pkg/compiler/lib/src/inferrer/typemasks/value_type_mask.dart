@@ -13,16 +13,16 @@ class ValueTypeMask extends ForwardingTypeMask {
   final TypeMask forwardTo;
   final PrimitiveConstantValue value;
 
-  ValueTypeMask(this.forwardTo, this.value);
+  const ValueTypeMask(this.forwardTo, this.value);
 
   /// Deserializes a [ValueTypeMask] object from [source].
   factory ValueTypeMask.readFromDataSource(
       DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
+    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ConstantValue constant = source.readConstant();
     source.end(tag);
-    return new ValueTypeMask(forwardTo, constant);
+    return ValueTypeMask(forwardTo, constant);
   }
 
   /// Serializes this [ValueTypeMask] to [sink].
@@ -36,40 +36,45 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  TypeMask nullable() {
-    return isNullable ? this : new ValueTypeMask(forwardTo.nullable(), value);
-  }
-
-  @override
-  TypeMask nonNullable() {
-    return isNullable
-        ? new ValueTypeMask(forwardTo.nonNullable(), value)
-        : this;
+  ValueTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+    isNullable ??= this.isNullable;
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
+      return this;
+    }
+    return ValueTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        value);
   }
 
   @override
   bool get isValue => true;
 
   @override
-  bool equalsDisregardNull(other) {
+  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {bool isNullable, bool hasLateSentinel}) {
+    assert(isNullable != null);
+    assert(hasLateSentinel != null);
+    if (other is ValueTypeMask &&
+        forwardTo.withoutFlags() == other.forwardTo.withoutFlags() &&
+        value == other.value) {
+      return withFlags(
+          isNullable: isNullable, hasLateSentinel: hasLateSentinel);
+    }
+    return null;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
     if (other is! ValueTypeMask) return false;
-    return super.equalsDisregardNull(other) && value == other.value;
+    return super == other && value == other.value;
   }
 
   @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
-    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
-    return forwardIntersection.isNullable ? nullable() : nonNullable();
-  }
-
-  @override
-  bool operator ==(other) => super == other;
-
-  @override
-  int get hashCode {
-    return computeHashCode(value, isNullable, forwardTo);
-  }
+  int get hashCode => Hashing.objectHash(value, super.hashCode);
 
   @override
   String toString() {

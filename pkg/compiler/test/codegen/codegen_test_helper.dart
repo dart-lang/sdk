@@ -10,7 +10,6 @@ import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
@@ -135,7 +134,7 @@ class CodeDataInterpreter implements DataInterpreter<String> {
   const CodeDataInterpreter();
 
   String _clean(String code) => code.replaceAll(_re, '');
-  static RegExp _re = RegExp(r'[\n\r]\s*');
+  static final RegExp _re = RegExp(r'[\n\r]\s*');
 
   @override
   String isAsExpected(String actualData, String expectedData) {

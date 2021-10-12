@@ -43,8 +43,7 @@ class OrderedTypeSet {
     // internal links like the original type sets do?
     source.begin(tag);
     int typesCount = source.readInt();
-    LinkBuilder<InterfaceType> typeLinkBuilder =
-        new LinkBuilder<InterfaceType>();
+    LinkBuilder<InterfaceType> typeLinkBuilder = LinkBuilder<InterfaceType>();
     List<Link<InterfaceType>> links = [];
     for (int i = 0; i < typesCount; i++) {
       links.add(typeLinkBuilder.addLast(source.readDartType()));
@@ -55,12 +54,12 @@ class OrderedTypeSet {
 
     int levelCount = source.readInt();
     List<Link<InterfaceType>> levels =
-        new List<Link<InterfaceType>>.filled(levelCount, null);
+        List<Link<InterfaceType>>.filled(levelCount, null);
     for (int i = 0; i < levelCount; i++) {
       levels[i] = links[source.readInt()];
     }
     source.end(tag);
-    return new OrderedTypeSet.internal(levels, types);
+    return OrderedTypeSet.internal(levels, types);
   }
 
   /// Serializes this [OrderedTypeSet] to [sink].
@@ -89,11 +88,10 @@ class OrderedTypeSet {
 
   factory OrderedTypeSet.singleton(InterfaceType type) {
     Link<InterfaceType> types =
-        new LinkEntry<InterfaceType>(type, const Link<InterfaceType>());
-    List<Link<InterfaceType>> list =
-        new List<Link<InterfaceType>>.filled(1, null);
+        LinkEntry<InterfaceType>(type, const Link<InterfaceType>());
+    List<Link<InterfaceType>> list = List<Link<InterfaceType>>.filled(1, null);
     list[0] = types;
-    return new OrderedTypeSet.internal(list, types);
+    return OrderedTypeSet.internal(list, types);
   }
 
   /// Creates a new [OrderedTypeSet] for [type] when it directly extends the
@@ -106,15 +104,14 @@ class OrderedTypeSet {
             type.element,
             'Cannot extend generic class ${types.head} using '
             'OrderedTypeSet.extendClass'));
-    Link<InterfaceType> extendedTypes =
-        new LinkEntry<InterfaceType>(type, types);
+    Link<InterfaceType> extendedTypes = LinkEntry<InterfaceType>(type, types);
     List<Link<InterfaceType>> list =
-        new List<Link<InterfaceType>>.filled(levels + 1, null);
+        List<Link<InterfaceType>>.filled(levels + 1, null);
     for (int i = 0; i < levels; i++) {
       list[i] = _levels[i];
     }
     list[levels] = extendedTypes;
-    return new OrderedTypeSet.internal(list, extendedTypes);
+    return OrderedTypeSet.internal(list, extendedTypes);
   }
 
   Link<InterfaceType> get supertypes => types.tail;
@@ -132,7 +129,7 @@ class OrderedTypeSet {
 
   /// Returns the offsets into [types] at which each level begins.
   List<int> get levelOffsets {
-    List<int> offsets = new List.filled(levels, -1);
+    List<int> offsets = List.filled(levels, -1);
     int offset = 0;
     Link<InterfaceType> pointer = types;
     for (int depth = maxDepth; depth >= 0; depth--) {
@@ -201,8 +198,7 @@ abstract class OrderedTypeSetBuilder {
 }
 
 abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
-  Map<int, LinkEntry<InterfaceType>> map =
-      new Map<int, LinkEntry<InterfaceType>>();
+  Map<int, LinkEntry<InterfaceType>> map = Map<int, LinkEntry<InterfaceType>>();
   int maxDepth = -1;
 
   final ClassEntity cls;
@@ -245,7 +241,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       prev = link;
       link = link.tail;
     }
-    LinkEntry<InterfaceType> next = new LinkEntry<InterfaceType>(type);
+    LinkEntry<InterfaceType> next = LinkEntry<InterfaceType>(type);
     next.tail = null;
     if (prev == null) {
       map[depth] = next;
@@ -259,9 +255,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
 
   OrderedTypeSet toTypeSet() {
     List<Link<InterfaceType>> levels =
-        new List<Link<InterfaceType>>.filled(maxDepth + 1, null);
+        List<Link<InterfaceType>>.filled(maxDepth + 1, null);
     if (maxDepth < 0) {
-      return new OrderedTypeSet.internal(levels, const Link<InterfaceType>());
+      return OrderedTypeSet.internal(levels, const Link<InterfaceType>());
     }
     Link<InterfaceType> next = const Link<InterfaceType>();
     for (int depth = 0; depth <= maxDepth; depth++) {
@@ -278,12 +274,12 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
         next = first;
       }
     }
-    return new OrderedTypeSet.internal(levels, levels.last);
+    return OrderedTypeSet.internal(levels, levels.last);
   }
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (int depth = 0; depth <= maxDepth; depth++) {
       sb.write('$depth: ');
       LinkEntry<InterfaceType> first = map[depth];

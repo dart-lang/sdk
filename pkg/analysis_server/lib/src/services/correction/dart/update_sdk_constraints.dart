@@ -72,6 +72,11 @@ class UpdateSdkConstraints extends CorrectionProducer {
   }
 
   /// Return an instance of this class that will update the SDK constraints to
+  /// '2.14.0'. Used as a tear-off in `FixProcessor`.
+  static UpdateSdkConstraints version_2_14_0() =>
+      UpdateSdkConstraints('2.14.0');
+
+  /// Return an instance of this class that will update the SDK constraints to
   /// '2.1.0'. Used as a tear-off in `FixProcessor`.
   static UpdateSdkConstraints version_2_1_0() => UpdateSdkConstraints('2.1.0');
 

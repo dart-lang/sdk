@@ -11,8 +11,8 @@
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
 #include "platform/unicode.h"
+#include "vm/app_snapshot.h"
 #include "vm/class_finalizer.h"
-#include "vm/clustered_snapshot.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
@@ -483,6 +483,16 @@ Dart_Handle Api::AcquiredError(IsolateGroup* isolate_group) {
   ASSERT(state != NULL);
   PersistentHandle* acquired_error_handle = state->AcquiredError();
   return reinterpret_cast<Dart_Handle>(acquired_error_handle);
+}
+
+Dart_Handle Api::UnwindInProgressError() {
+  Thread* T = Thread::Current();
+  CHECK_API_SCOPE(T);
+  TransitionToVM transition(T);
+  HANDLESCOPE(T);
+  const String& message = String::Handle(
+      Z, String::New("No api calls are allowed while unwind is in progress"));
+  return Api::NewHandle(T, UnwindError::New(message));
 }
 
 bool Api::IsValid(Dart_Handle handle) {
@@ -5800,41 +5810,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
 
   return Api::NewHandle(T, result.ptr());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
-DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
-  DARTSCOPE(Thread::Current());
-  auto IG = T->isolate_group();
-  const String& scheme_vm = Api::UnwrapStringHandle(Z, scheme);
-  if (scheme_vm.IsNull()) {
-    RETURN_TYPE_ERROR(Z, scheme, String);
-  }
-
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(Z, IG->object_store()->libraries());
-  const GrowableObjectArray& result =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Library& importer = Library::Handle(Z);
-  Array& imports = Array::Handle(Z);
-  Namespace& ns = Namespace::Handle(Z);
-  Library& importee = Library::Handle(Z);
-  String& importee_uri = String::Handle(Z);
-  for (intptr_t i = 0; i < libraries.Length(); i++) {
-    importer ^= libraries.At(i);
-    imports = importer.imports();
-    for (intptr_t j = 0; j < imports.Length(); j++) {
-      ns ^= imports.At(j);
-      if (ns.IsNull()) continue;
-      importee = ns.target();
-      importee_uri = importee.url();
-      if (importee_uri.StartsWith(scheme_vm)) {
-        result.Add(importer);
-        result.Add(importee);
-      }
-    }
-  }
-
-  return Api::NewHandle(T, Array::MakeFixedLength(result));
 }
 
 // Finalizes classes and invokes Dart core library function that completes

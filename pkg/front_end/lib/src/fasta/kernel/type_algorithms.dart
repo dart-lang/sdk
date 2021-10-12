@@ -37,8 +37,6 @@ import '../fasta_codes.dart'
 
 import '../kernel/utils.dart';
 
-export 'package:kernel/ast.dart' show Variance;
-
 /// Initial value for "variance" that is to be computed by the compiler.
 const int pendingVariance = -1;
 

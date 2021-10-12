@@ -7,9 +7,9 @@ class Base extends core::Object {
     : super core::Object::•()
     ;
   no-such-method-forwarder set push(core::int* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
-  no-such-method-forwarder set float(covariant core::int* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
+  no-such-method-forwarder set float(covariant-by-declaration core::int* x) → void
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
   method noSuchMethod(core::Invocation* i) → dynamic
     return core::print("${this.{self::Base::runtimeType}{core::Type*}}: ${i.{core::Invocation::positionalArguments}{core::List<dynamic>*}.{core::List::[]}(0){(core::int*) →* dynamic}}");
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -32,9 +32,9 @@ class You extends self::Base {
     : super self::Base::•()
     ;
   no-such-method-forwarder set push(core::num* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
-  no-such-method-forwarder set float(covariant core::num* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
+  no-such-method-forwarder set float(covariant-by-declaration core::num* x) → void
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
 }
 static method main() → dynamic {
   core::List<self::Base*>* list = <self::Base*>[new self::Me::•(), new self::You::•()];
@@ -65,7 +65,6 @@ static method main() → dynamic {
 constants  {
   #C1 = #push=
   #C2 = <core::Type*>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
-  #C5 = #float=
+  #C3 = <core::Symbol*, dynamic>{)
+  #C4 = #float=
 }

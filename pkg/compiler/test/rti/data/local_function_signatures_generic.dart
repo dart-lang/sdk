@@ -14,7 +14,8 @@ class Class1 {
   }
 
   method2() {
-    /*needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/num local<T>(int n) => null;
+    /*needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/ num
+        local<T>(int n) => null;
     return local;
   }
 
@@ -48,7 +49,7 @@ class Class4 {
   /*prod.member: Class4.method6:needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
   /*spec.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
   method6<T>() {
-    /*needsSignature*/num local(num n, T t) => null;
+    /*needsSignature*/ num local(num n, T t) => null;
     return local;
   }
 }
@@ -71,7 +72,7 @@ method8<T>() {
 /*spec.member: method9:direct,explicit=[method9.T*],needsArgs*/
 /*prod.member: method9:needsArgs*/
 method9<T>() {
-  /*needsSignature*/num local(num n, T t) => null;
+  /*needsSignature*/ num local(num n, T t) => null;
   return local;
 }
 
@@ -90,7 +91,7 @@ method11() {
 
 method12() {
   /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
-  /*prod.needsArgs,needsSignature*/num local<T>(num n, T t) => null;
+  /*prod.needsArgs,needsSignature*/ num local<T>(num n, T t) => null;
   return local;
 }
 

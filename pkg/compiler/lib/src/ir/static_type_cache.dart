@@ -24,7 +24,7 @@ class StaticTypeCache {
       Map<ir.ForInStatement, ir.DartType> forInIteratorTypes = source
           .readTreeNodeMapInContext(source.readDartTypeNode, emptyAsNull: true);
       source.end(tag);
-      return new StaticTypeCache(expressionTypes, forInIteratorTypes);
+      return StaticTypeCache(expressionTypes, forInIteratorTypes);
     });
   }
 

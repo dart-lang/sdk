@@ -50,11 +50,10 @@ class FunctionInlineCache {
   static const int _canInlineInLoopMayInlineOutside = 3;
   static const int _canInline = 4;
 
-  final Map<FunctionEntity, int> _cachedDecisions =
-      new Map<FunctionEntity, int>();
+  final Map<FunctionEntity, int> _cachedDecisions = {};
 
-  final Set<FunctionEntity> _noInlineFunctions = new Set<FunctionEntity>();
-  final Set<FunctionEntity> _tryInlineFunctions = new Set<FunctionEntity>();
+  final Set<FunctionEntity> _noInlineFunctions = {};
+  final Set<FunctionEntity> _tryInlineFunctions = {};
 
   FunctionInlineCache(AnnotationsData annotationsData) {
     annotationsData.forEachNoInline((FunctionEntity function) {
@@ -185,7 +184,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsNonInlinable(FunctionEntity element, {bool insideLoop: true}) {
+  void markAsNonInlinable(FunctionEntity element, {bool insideLoop = true}) {
     assert(checkFunction(element), failedAt(element));
     int oldDecision = _cachedDecisions[element];
 
@@ -312,7 +311,7 @@ abstract class CodegenInputs {
 
 class CodegenInputsImpl implements CodegenInputs {
   @override
-  final CheckedModeHelpers checkedModeHelpers = new CheckedModeHelpers();
+  final CheckedModeHelpers checkedModeHelpers = CheckedModeHelpers();
 
   @override
   final RuntimeTypesSubstitutions rtiSubstitutions;

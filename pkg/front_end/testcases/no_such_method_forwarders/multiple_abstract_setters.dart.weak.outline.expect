@@ -83,8 +83,8 @@ Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:17:12 -> SymbolConstant(#bar)
 Evaluated: ListLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:17:12 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:17:12 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:17:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:17:12 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:16:12 -> SymbolConstant(#foo=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:16:12 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:16:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///multiple_abstract_setters.dart:16:12 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 19, effectively constant: 7

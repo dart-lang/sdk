@@ -41,7 +41,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     synthetic constructor •() → lib::Baz*
       : super dart.core::Object::•()
       ;
-    method hello(covariant lib::FooEntry* entry) → void {}
+    method hello(covariant-by-declaration lib::FooEntry* entry) → void {}
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -59,13 +59,13 @@ library from "org-dartlang-test:///lib.dart" as lib {
     synthetic constructor •() → lib::Qux*
       : super lib::Baz::•()
       ;
-    method hello(covariant lib::BarEntry* entry) → void {}
+    method hello(covariant-by-declaration lib::BarEntry* entry) → void {}
   }
   abstract class _Quux&Qux&MyMixin extends lib::Qux implements lib::MyMixin /*isAnonymousMixin,isEliminatedMixin*/  {
     synthetic constructor •() → lib::_Quux&Qux&MyMixin*
       : super lib::Qux::•()
       ;
-    abstract member-signature method hello(covariant lib::FooEntry* entry) → void; -> lib::Baz::hello
+    abstract member-signature method hello(covariant-by-declaration lib::FooEntry* entry) → void; -> lib::Baz::hello
   }
   class Quux extends lib::_Quux&Qux&MyMixin {
     synthetic constructor •() → lib::Quux*

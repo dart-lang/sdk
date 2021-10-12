@@ -1122,8 +1122,10 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
 
   intptr_t size = Utils::RoundUp(num_blocks_ * sizeof(TimelineEventBlock),
                                  VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-timeline");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-timeline");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -1512,7 +1514,7 @@ void TimelineEventBlock::Finish() {
   if (Service::timeline_stream.enabled()) {
     ServiceEvent service_event(ServiceEvent::kTimelineEvents);
     service_event.set_timeline_event_block(this);
-    Service::HandleEvent(&service_event);
+    Service::HandleEvent(&service_event, /* enter_safepoint */ false);
   }
 #endif
 }

@@ -552,7 +552,7 @@ void Precompiler::DoCompileAll() {
 
       // With the nnbd experiment enabled, these non-nullable type arguments may
       // not be retained, although they will be used and expected to be
-      // canonical.
+      // canonical by Dart_NewListOfType.
       AddTypeArguments(
           TypeArguments::Handle(Z, IG->object_store()->type_argument_int()));
       AddTypeArguments(
@@ -782,6 +782,7 @@ void Precompiler::Iterate() {
 }
 
 void Precompiler::CollectCallbackFields() {
+  PRECOMPILER_TIMER_SCOPE(this, CollectCallbackFields);
   HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -883,6 +884,7 @@ void Precompiler::ProcessFunction(const Function& function) {
 }
 
 void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
+  PRECOMPILER_TIMER_SCOPE(this, AddCalleesOf);
   ASSERT(function.HasCode());
 
   const Code& code = Code::Handle(Z, function.CurrentCode());
@@ -987,51 +989,70 @@ static bool IsPotentialClosureCall(const String& selector) {
 void Precompiler::AddCalleesOfHelper(const Object& entry,
                                      String* temp_selector,
                                      Class* temp_cls) {
-  if (entry.IsUnlinkedCall()) {
-    const auto& call_site = UnlinkedCall::Cast(entry);
-    // A dynamic call.
-    *temp_selector = call_site.target_name();
-    AddSelector(*temp_selector);
-    if (IsPotentialClosureCall(*temp_selector)) {
-      const Array& arguments_descriptor =
-          Array::Handle(Z, call_site.arguments_descriptor());
-      AddClosureCall(*temp_selector, arguments_descriptor);
-    }
-  } else if (entry.IsMegamorphicCache()) {
-    // A dynamic call.
-    const auto& cache = MegamorphicCache::Cast(entry);
-    *temp_selector = cache.target_name();
-    AddSelector(*temp_selector);
-    if (IsPotentialClosureCall(*temp_selector)) {
-      const Array& arguments_descriptor =
-          Array::Handle(Z, cache.arguments_descriptor());
-      AddClosureCall(*temp_selector, arguments_descriptor);
-    }
-  } else if (entry.IsField()) {
-    // Potential need for field initializer.
-    const auto& field = Field::Cast(entry);
-    AddField(field);
-  } else if (entry.IsInstance()) {
-    // Const object, literal or args descriptor.
-    const auto& instance = Instance::Cast(entry);
-    AddConstObject(instance);
-  } else if (entry.IsFunction()) {
-    // Local closure function.
-    const auto& target = Function::Cast(entry);
-    AddFunction(target, RetainReasons::kLocalClosure);
-    if (target.IsFfiTrampoline()) {
-      const auto& callback_target =
-          Function::Handle(Z, target.FfiCallbackTarget());
-      if (!callback_target.IsNull()) {
-        AddFunction(callback_target, RetainReasons::kFfiCallbackTarget);
+  switch (entry.GetClassId()) {
+    case kOneByteStringCid:
+    case kNullCid:
+      // Skip common leaf constants early in order to
+      // process object pools faster.
+      return;
+    case kUnlinkedCallCid: {
+      const auto& call_site = UnlinkedCall::Cast(entry);
+      // A dynamic call.
+      *temp_selector = call_site.target_name();
+      AddSelector(*temp_selector);
+      if (IsPotentialClosureCall(*temp_selector)) {
+        const Array& arguments_descriptor =
+            Array::Handle(Z, call_site.arguments_descriptor());
+        AddClosureCall(*temp_selector, arguments_descriptor);
       }
+      break;
     }
-  } else if (entry.IsCode()) {
-    const auto& target_code = Code::Cast(entry);
-    if (target_code.IsAllocationStubCode()) {
-      *temp_cls ^= target_code.owner();
-      AddInstantiatedClass(*temp_cls);
+    case kMegamorphicCacheCid: {
+      // A dynamic call.
+      const auto& cache = MegamorphicCache::Cast(entry);
+      *temp_selector = cache.target_name();
+      AddSelector(*temp_selector);
+      if (IsPotentialClosureCall(*temp_selector)) {
+        const Array& arguments_descriptor =
+            Array::Handle(Z, cache.arguments_descriptor());
+        AddClosureCall(*temp_selector, arguments_descriptor);
+      }
+      break;
     }
+    case kFieldCid: {
+      // Potential need for field initializer.
+      const auto& field = Field::Cast(entry);
+      AddField(field);
+      break;
+    }
+    case kFunctionCid: {
+      // Local closure function.
+      const auto& target = Function::Cast(entry);
+      AddFunction(target, RetainReasons::kLocalClosure);
+      if (target.IsFfiTrampoline()) {
+        const auto& callback_target =
+            Function::Handle(Z, target.FfiCallbackTarget());
+        if (!callback_target.IsNull()) {
+          AddFunction(callback_target, RetainReasons::kFfiCallbackTarget);
+        }
+      }
+      break;
+    }
+    case kCodeCid: {
+      const auto& target_code = Code::Cast(entry);
+      if (target_code.IsAllocationStubCode()) {
+        *temp_cls ^= target_code.owner();
+        AddInstantiatedClass(*temp_cls);
+      }
+      break;
+    }
+    default:
+      if (entry.IsInstance()) {
+        // Const object, literal or args descriptor.
+        const auto& instance = Instance::Cast(entry);
+        AddConstObject(instance);
+      }
+      break;
   }
 }
 
@@ -1603,6 +1624,7 @@ void Precompiler::AddAnnotatedRoots() {
 }
 
 void Precompiler::CheckForNewDynamicFunctions() {
+  PRECOMPILER_TIMER_SCOPE(this, CheckForNewDynamicFunctions);
   HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);

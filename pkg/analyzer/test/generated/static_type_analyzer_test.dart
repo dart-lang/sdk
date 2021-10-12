@@ -503,7 +503,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
-    var featureSet = FeatureSet.forTesting();
+    var featureSet = FeatureSet.latestLanguageVersion();
 
     _definingLibrary = LibraryElementImpl(
         context, _AnalysisSessionMock(), 'name', -1, 0, featureSet);

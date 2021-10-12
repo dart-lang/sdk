@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 70;
+  UInt32 formatVersion = 73;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -346,6 +346,20 @@ type Extension extends Node {
   Byte flags (isExtensionTypeDeclaration);
   List<TypeParameter> typeParameters;
   DartType onType;
+  Option<ExtensionTypeShowHideClause> showHideClause;
+}
+
+type ExtensionTypeShowHideClause {
+  List<DartType> shownSupertypes;
+  List<CanonicalNameReference> shownMembers;
+  List<CanonicalNameReference> shownGetters;
+  List<CanonicalNameReference> shownSetters;
+  List<CanonicalNameReference> shownOperators;
+  List<DartType> hiddenSupertypes;
+  List<CanonicalNameReference> hiddenMembers;
+  List<CanonicalNameReference> hiddenGetters;
+  List<CanonicalNameReference> hiddenSetters;
+  List<CanonicalNameReference> hiddenOperators;
   List<ExtensionMemberDescriptor> members;
 }
 
@@ -362,14 +376,15 @@ abstract type Member extends Node {}
 
 type Field extends Member {
   Byte tag = 4;
+  CanonicalNameReference canonicalNameField;
   CanonicalNameReference canonicalNameGetter;
   CanonicalNameReference canonicalNameSetter;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  UInt flags (isFinal, isConst, isStatic, isCovariant,
-                isGenericCovariantImpl, isLate, isExtensionMember,
+  UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
+                isCovariantByClass, isLate, isExtensionMember,
                 isNonNullableByDefault, isInternalImplementation);
   Name name;
   List<Expression> annotations;
@@ -1377,8 +1392,8 @@ type VariableDeclarationPlain {
 
   List<Expression> annotations;
 
-  Byte flags (isFinal, isConst, isFieldFormal, isCovariant,
-              isGenericCovariantImpl, isLate, isRequired, isLowered);
+  Byte flags (isFinal, isConst, isInitializingFormal, isCovariantByDeclaration,
+              isCovariantByClass, isLate, isRequired, isLowered);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1501,7 +1516,7 @@ type TypedefType {
 
 type TypeParameter {
   // Note: there is no tag on TypeParameter
-  Byte flags (isGenericCovariantImpl);
+  Byte flags (isCovariantByClass);
   List<Expression> annotations;
   Byte variance; // Index into the Variance enum above
   StringReference name; // Cosmetic, may be empty, not unique.

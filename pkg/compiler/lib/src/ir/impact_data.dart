@@ -13,18 +13,18 @@ import 'static_type.dart';
 
 /// [ImpactRegistry] that stores registered impact in an [ImpactData] object.
 abstract class ImpactRegistryMixin implements ImpactRegistry {
-  final ImpactDataImpl _data = new ImpactDataImpl();
+  final ImpactDataImpl _data = ImpactDataImpl();
 
   ImpactData get impactData => _data;
 
   void _registerFeature(_Feature feature) {
-    _data._features ??= new EnumSet<_Feature>();
+    _data._features ??= EnumSet<_Feature>();
     _data._features.add(feature);
   }
 
   void _registerTypeUse(ir.DartType type, _TypeUseKind kind) {
     _data._typeUses ??= [];
-    _data._typeUses.add(new _TypeUse(type, kind));
+    _data._typeUses.add(_TypeUse(type, kind));
   }
 
   @override
@@ -35,11 +35,8 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     _data._superInitializers ??= [];
-    _data._superInitializers.add(new _SuperInitializer(
-        source,
-        target,
-        new _CallStructure(
-            positionalArguments, namedArguments, typeArguments)));
+    _data._superInitializers.add(_SuperInitializer(source, target,
+        _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
@@ -58,40 +55,36 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
     _data._superInvocations ??= [];
-    _data._superInvocations.add(new _SuperInvocation(
-        target,
-        new _CallStructure(
-            positionalArguments, namedArguments, typeArguments)));
+    _data._superInvocations.add(_SuperInvocation(target,
+        _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
     _data._instanceSets ??= [];
-    _data._instanceSets
-        .add(new _InstanceAccess(receiverType, relation, target));
+    _data._instanceSets.add(_InstanceAccess(receiverType, relation, target));
   }
 
   @override
   void registerDynamicSet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
     _data._dynamicSets ??= [];
-    _data._dynamicSets.add(new _DynamicAccess(receiverType, relation, name));
+    _data._dynamicSets.add(_DynamicAccess(receiverType, relation, name));
   }
 
   @override
   void registerInstanceGet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
     _data._instanceGets ??= [];
-    _data._instanceGets
-        .add(new _InstanceAccess(receiverType, relation, target));
+    _data._instanceGets.add(_InstanceAccess(receiverType, relation, target));
   }
 
   @override
   void registerDynamicGet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
     _data._dynamicGets ??= [];
-    _data._dynamicGets.add(new _DynamicAccess(receiverType, relation, name));
+    _data._dynamicGets.add(_DynamicAccess(receiverType, relation, name));
   }
 
   @override
@@ -101,10 +94,8 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     _data._functionInvocations ??= [];
-    _data._functionInvocations.add(new _FunctionInvocation(
-        receiverType,
-        new _CallStructure(
-            positionalArguments, namedArguments, typeArguments)));
+    _data._functionInvocations.add(_FunctionInvocation(receiverType,
+        _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
@@ -116,12 +107,11 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     _data._instanceInvocations ??= [];
-    _data._instanceInvocations.add(new _InstanceInvocation(
+    _data._instanceInvocations.add(_InstanceInvocation(
         receiverType,
         relation,
         target,
-        new _CallStructure(
-            positionalArguments, namedArguments, typeArguments)));
+        _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
@@ -133,12 +123,11 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     _data._dynamicInvocations ??= [];
-    _data._dynamicInvocations.add(new _DynamicInvocation(
+    _data._dynamicInvocations.add(_DynamicInvocation(
         receiverType,
         relation,
         name,
-        new _CallStructure(
-            positionalArguments, namedArguments, typeArguments)));
+        _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
@@ -148,10 +137,8 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     _data._localFunctionInvocations ??= [];
-    _data._localFunctionInvocations.add(new _LocalFunctionInvocation(
-        localFunction,
-        new _CallStructure(
-            positionalArguments, namedArguments, typeArguments)));
+    _data._localFunctionInvocations.add(_LocalFunctionInvocation(localFunction,
+        _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
@@ -162,9 +149,9 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       List<ir.DartType> typeArguments,
       ir.LibraryDependency import) {
     _data._staticInvocations ??= [];
-    _data._staticInvocations.add(new _StaticInvocation(
+    _data._staticInvocations.add(_StaticInvocation(
         target,
-        new _CallStructure(positionalArguments, namedArguments, typeArguments),
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
         import));
   }
 
@@ -178,10 +165,10 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       ir.LibraryDependency import,
       {bool isConst}) {
     _data._constructorInvocations ??= [];
-    _data._constructorInvocations.add(new _ConstructorInvocation(
+    _data._constructorInvocations.add(_ConstructorInvocation(
         constructor,
         type,
-        new _CallStructure(positionalArguments, namedArguments, typeArguments),
+        _CallStructure(positionalArguments, namedArguments, typeArguments),
         import,
         isConst: isConst));
   }
@@ -191,7 +178,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       ir.LibraryDependency import) {
     _data._constInstantiations ??= [];
     _data._constInstantiations
-        .add(new _ConstInstantiation(cls, typeArguments, import));
+        .add(_ConstInstantiation(cls, typeArguments, import));
   }
 
   @override
@@ -211,10 +198,8 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     _data._redirectingInitializers ??= [];
-    _data._redirectingInitializers.add(new _RedirectingInitializer(
-        constructor,
-        new _CallStructure(
-            positionalArguments, namedArguments, typeArguments)));
+    _data._redirectingInitializers.add(_RedirectingInitializer(constructor,
+        _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
@@ -238,7 +223,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import) {
     _data._typeLiterals ??= [];
-    _data._typeLiterals.add(new _TypeLiteral(type, import));
+    _data._typeLiterals.add(_TypeLiteral(type, import));
   }
 
   @override
@@ -260,7 +245,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
       ClassRelation iteratorClassRelation) {
     _data._forInData ??= [];
-    _data._forInData.add(new _ForInData(
+    _data._forInData.add(_ForInData(
         iterableType, iteratorType, iteratorClassRelation,
         isAsync: true));
   }
@@ -269,7 +254,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
       ClassRelation iteratorClassRelation) {
     _data._forInData ??= [];
-    _data._forInData.add(new _ForInData(
+    _data._forInData.add(_ForInData(
         iterableType, iteratorType, iteratorClassRelation,
         isAsync: false));
   }
@@ -330,7 +315,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       ir.FunctionType expressionType, List<ir.DartType> typeArguments) {
     _data._genericInstantiations ??= [];
     _data._genericInstantiations
-        .add(new _GenericInstantiation(expressionType, typeArguments));
+        .add(_GenericInstantiation(expressionType, typeArguments));
   }
 
   @override
@@ -343,28 +328,28 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerStaticSet(ir.Member member, ir.LibraryDependency import) {
     _data._staticSets ??= [];
-    _data._staticSets.add(new _StaticAccess(member, import));
+    _data._staticSets.add(_StaticAccess(member, import));
   }
 
   @override
   void registerStaticGet(ir.Member member, ir.LibraryDependency import) {
     _data._staticGets ??= [];
-    _data._staticGets.add(new _StaticAccess(member, import));
+    _data._staticGets.add(_StaticAccess(member, import));
   }
 
   @override
   void registerStaticTearOff(
       ir.Procedure procedure, ir.LibraryDependency import) {
     _data._staticTearOffs ??= [];
-    _data._staticTearOffs.add(new _StaticAccess(procedure, import));
+    _data._staticTearOffs.add(_StaticAccess(procedure, import));
   }
 
   @override
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
       {bool isConst, bool isEmpty}) {
     _data._mapLiterals ??= [];
-    _data._mapLiterals.add(new _MapLiteral(keyType, valueType,
-        isConst: isConst, isEmpty: isEmpty));
+    _data._mapLiterals.add(
+        _MapLiteral(keyType, valueType, isConst: isConst, isEmpty: isEmpty));
   }
 
   @override
@@ -372,7 +357,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       {bool isConst, bool isEmpty}) {
     _data._listLiterals ??= [];
     _data._listLiterals.add(
-        new _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
+        _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
   }
 
   @override
@@ -380,7 +365,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       {bool isConst, bool isEmpty}) {
     _data._setLiterals ??= [];
     _data._setLiterals.add(
-        new _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
+        _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
   }
 
   @override
@@ -425,7 +410,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
       ir.DartType receiverType, ir.DartType argumentType) {
     _data._runtimeTypeUses ??= [];
     _data._runtimeTypeUses
-        .add(new _RuntimeTypeUse(node, kind, receiverType, argumentType));
+        .add(_RuntimeTypeUse(node, kind, receiverType, argumentType));
   }
 
   @override
@@ -529,90 +514,85 @@ class ImpactDataImpl implements ImpactData {
   ImpactDataImpl.fromDataSource(DataSource source) {
     source.begin(tag);
     _superInitializers = source.readList(
-        () => new _SuperInitializer.fromDataSource(source),
+        () => _SuperInitializer.fromDataSource(source),
         emptyAsNull: true);
     _superSets =
         source.readList(() => source.readMemberNode(), emptyAsNull: true);
     _superGets =
         source.readList(() => source.readMemberNode(), emptyAsNull: true);
     _superInvocations = source.readList(
-        () => new _SuperInvocation.fromDataSource(source),
+        () => _SuperInvocation.fromDataSource(source),
         emptyAsNull: true);
     _instanceSets = source.readList(
-        () => new _InstanceAccess.fromDataSource(source),
+        () => _InstanceAccess.fromDataSource(source),
         emptyAsNull: true);
-    _dynamicSets = source.readList(
-        () => new _DynamicAccess.fromDataSource(source),
+    _dynamicSets = source.readList(() => _DynamicAccess.fromDataSource(source),
         emptyAsNull: true);
     _instanceGets = source.readList(
-        () => new _InstanceAccess.fromDataSource(source),
+        () => _InstanceAccess.fromDataSource(source),
         emptyAsNull: true);
-    _dynamicGets = source.readList(
-        () => new _DynamicAccess.fromDataSource(source),
+    _dynamicGets = source.readList(() => _DynamicAccess.fromDataSource(source),
         emptyAsNull: true);
     _functionInvocations = source.readList(
-        () => new _FunctionInvocation.fromDataSource(source),
+        () => _FunctionInvocation.fromDataSource(source),
         emptyAsNull: true);
     _instanceInvocations = source.readList(
-        () => new _InstanceInvocation.fromDataSource(source),
+        () => _InstanceInvocation.fromDataSource(source),
         emptyAsNull: true);
     _dynamicInvocations = source.readList(
-        () => new _DynamicInvocation.fromDataSource(source),
+        () => _DynamicInvocation.fromDataSource(source),
         emptyAsNull: true);
     _localFunctionInvocations = source.readList(
-        () => new _LocalFunctionInvocation.fromDataSource(source),
+        () => _LocalFunctionInvocation.fromDataSource(source),
         emptyAsNull: true);
     _staticInvocations = source.readList(
-        () => new _StaticInvocation.fromDataSource(source),
+        () => _StaticInvocation.fromDataSource(source),
         emptyAsNull: true);
     _constructorInvocations = source.readList(
-        () => new _ConstructorInvocation.fromDataSource(source),
+        () => _ConstructorInvocation.fromDataSource(source),
         emptyAsNull: true);
-    _features = new EnumSet<_Feature>.fromValue(source.readInt());
-    _typeUses = source.readList(() => new _TypeUse.fromDataSource(source),
+    _features = EnumSet<_Feature>.fromValue(source.readInt());
+    _typeUses = source.readList(() => _TypeUse.fromDataSource(source),
         emptyAsNull: true);
     _redirectingInitializers = source.readList(
-        () => new _RedirectingInitializer.fromDataSource(source),
+        () => _RedirectingInitializer.fromDataSource(source),
         emptyAsNull: true);
-    _fieldInitializers = source.readMemberNodes(emptyAsNull: true);
+    _fieldInitializers = source.readMemberNodes<ir.Field>(emptyAsNull: true);
     _fieldConstantInitializers =
         source.readMemberNodeMap(source.readTreeNodes, emptyAsNull: true);
-    _typeLiterals = source.readList(
-        () => new _TypeLiteral.fromDataSource(source),
+    _typeLiterals = source.readList(() => _TypeLiteral.fromDataSource(source),
         emptyAsNull: true);
     _localFunctions = source.readTreeNodes(emptyAsNull: true);
     _genericInstantiations = source.readList(
-        () => new _GenericInstantiation.fromDataSource(source),
+        () => _GenericInstantiation.fromDataSource(source),
         emptyAsNull: true);
-    _staticSets = source.readList(
-        () => new _StaticAccess.fromDataSource(source),
+    _staticSets = source.readList(() => _StaticAccess.fromDataSource(source),
         emptyAsNull: true);
-    _staticGets = source.readList(
-        () => new _StaticAccess.fromDataSource(source),
+    _staticGets = source.readList(() => _StaticAccess.fromDataSource(source),
         emptyAsNull: true);
     _staticTearOffs = source.readList(
-        () => new _StaticAccess.fromDataSource(source),
+        () => _StaticAccess.fromDataSource(source),
         emptyAsNull: true);
-    _mapLiterals = source.readList(() => new _MapLiteral.fromDataSource(source),
+    _mapLiterals = source.readList(() => _MapLiteral.fromDataSource(source),
         emptyAsNull: true);
     _listLiterals = source.readList(
-        () => new _ContainerLiteral.fromDataSource(source),
+        () => _ContainerLiteral.fromDataSource(source),
         emptyAsNull: true);
     _setLiterals = source.readList(
-        () => new _ContainerLiteral.fromDataSource(source),
+        () => _ContainerLiteral.fromDataSource(source),
         emptyAsNull: true);
-    _symbolLiterals = source.readStrings(emptyAsNull: true).toSet();
-    _stringLiterals = source.readStrings(emptyAsNull: true).toSet();
+    _symbolLiterals = source.readStrings(emptyAsNull: true)?.toSet();
+    _stringLiterals = source.readStrings(emptyAsNull: true)?.toSet();
     _boolLiterals =
-        source.readList(() => source.readBool(), emptyAsNull: true).toSet();
+        source.readList(() => source.readBool(), emptyAsNull: true)?.toSet();
     _doubleLiterals = source
         .readList(() => source.readDoubleValue(), emptyAsNull: true)
-        .toSet();
+        ?.toSet();
     _intLiterals = source
         .readList(() => source.readIntegerValue(), emptyAsNull: true)
-        .toSet();
+        ?.toSet();
     _runtimeTypeUses = source.readList(
-        () => new _RuntimeTypeUse.fromDataSource(source),
+        () => _RuntimeTypeUse.fromDataSource(source),
         emptyAsNull: true);
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
@@ -1063,7 +1043,7 @@ class _CallStructure {
 
   factory _CallStructure(int positionalArguments, List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    return new _CallStructure.internal(
+    return _CallStructure.internal(
         typeArguments, positionalArguments, namedArguments);
   }
 
@@ -1073,7 +1053,7 @@ class _CallStructure {
     int positionalArguments = source.readInt();
     List<String> namedArguments = source.readStrings();
     source.end(tag);
-    return new _CallStructure.internal(
+    return _CallStructure.internal(
         typeArguments, positionalArguments, namedArguments);
   }
 
@@ -1099,9 +1079,9 @@ class _SuperInitializer {
     source.begin(tag);
     ir.Constructor sourceConstructor = source.readMemberNode();
     ir.Constructor targetConstructor = source.readMemberNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _SuperInitializer(
+    return _SuperInitializer(
         sourceConstructor, targetConstructor, callStructure);
   }
 
@@ -1125,9 +1105,9 @@ class _SuperInvocation {
   factory _SuperInvocation.fromDataSource(DataSource source) {
     source.begin(tag);
     ir.Member member = source.readMemberNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _SuperInvocation(member, callStructure);
+    return _SuperInvocation(member, callStructure);
   }
 
   void toDataSink(DataSink sink) {
@@ -1153,7 +1133,7 @@ class _InstanceAccess {
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Member target = source.readMemberNode();
     source.end(tag);
-    return new _InstanceAccess(receiverType, classRelation, target);
+    return _InstanceAccess(receiverType, classRelation, target);
   }
 
   void toDataSink(DataSink sink) {
@@ -1180,7 +1160,7 @@ class _DynamicAccess {
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Name name = source.readName();
     source.end(tag);
-    return new _DynamicAccess(receiverType, classRelation, name);
+    return _DynamicAccess(receiverType, classRelation, name);
   }
 
   void toDataSink(DataSink sink) {
@@ -1203,9 +1183,9 @@ class _FunctionInvocation {
   factory _FunctionInvocation.fromDataSource(DataSource source) {
     source.begin(tag);
     ir.DartType receiverType = source.readDartTypeNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _FunctionInvocation(receiverType, callStructure);
+    return _FunctionInvocation(receiverType, callStructure);
   }
 
   void toDataSink(DataSink sink) {
@@ -1232,9 +1212,9 @@ class _InstanceInvocation {
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Member target = source.readMemberNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _InstanceInvocation(
+    return _InstanceInvocation(
         receiverType, classRelation, target, callStructure);
   }
 
@@ -1264,10 +1244,9 @@ class _DynamicInvocation {
     ir.DartType receiverType = source.readDartTypeNode();
     ClassRelation classRelation = source.readEnum(ClassRelation.values);
     ir.Name name = source.readName();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _DynamicInvocation(
-        receiverType, classRelation, name, callStructure);
+    return _DynamicInvocation(receiverType, classRelation, name, callStructure);
   }
 
   void toDataSink(DataSink sink) {
@@ -1291,9 +1270,9 @@ class _LocalFunctionInvocation {
   factory _LocalFunctionInvocation.fromDataSource(DataSource source) {
     source.begin(tag);
     ir.FunctionDeclaration localFunction = source.readTreeNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _LocalFunctionInvocation(localFunction, callStructure);
+    return _LocalFunctionInvocation(localFunction, callStructure);
   }
 
   void toDataSink(DataSink sink) {
@@ -1316,10 +1295,10 @@ class _StaticInvocation {
   factory _StaticInvocation.fromDataSource(DataSource source) {
     source.begin(tag);
     ir.Procedure target = source.readMemberNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
     source.end(tag);
-    return new _StaticInvocation(target, callStructure, import);
+    return _StaticInvocation(target, callStructure, import);
   }
 
   void toDataSink(DataSink sink) {
@@ -1348,11 +1327,11 @@ class _ConstructorInvocation {
     source.begin(tag);
     ir.Member constructor = source.readMemberNode();
     ir.InterfaceType type = source.readDartTypeNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
     bool isConst = source.readBool();
     source.end(tag);
-    return new _ConstructorInvocation(constructor, type, callStructure, import,
+    return _ConstructorInvocation(constructor, type, callStructure, import,
         isConst: isConst);
   }
 
@@ -1401,7 +1380,7 @@ class _TypeUse {
     ir.DartType type = source.readDartTypeNode();
     _TypeUseKind kind = source.readEnum(_TypeUseKind.values);
     source.end(tag);
-    return new _TypeUse(type, kind);
+    return _TypeUse(type, kind);
   }
 
   void toDataSink(DataSink sink) {
@@ -1434,9 +1413,9 @@ class _RedirectingInitializer {
   factory _RedirectingInitializer.fromDataSource(DataSource source) {
     source.begin(tag);
     ir.Constructor constructor = source.readMemberNode();
-    _CallStructure callStructure = new _CallStructure.fromDataSource(source);
+    _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _RedirectingInitializer(constructor, callStructure);
+    return _RedirectingInitializer(constructor, callStructure);
   }
 
   void toDataSink(DataSink sink) {
@@ -1460,7 +1439,7 @@ class _TypeLiteral {
     ir.DartType type = source.readDartTypeNode();
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
     source.end(tag);
-    return new _TypeLiteral(type, import);
+    return _TypeLiteral(type, import);
   }
 
   void toDataSink(DataSink sink) {
@@ -1484,7 +1463,7 @@ class _GenericInstantiation {
     ir.FunctionType expressionType = source.readDartTypeNode();
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
     source.end(tag);
-    return new _GenericInstantiation(expressionType, typeArguments);
+    return _GenericInstantiation(expressionType, typeArguments);
   }
 
   void toDataSink(DataSink sink) {
@@ -1508,7 +1487,7 @@ class _StaticAccess {
     ir.Member target = source.readMemberNode();
     ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
     source.end(tag);
-    return new _StaticAccess(target, import);
+    return _StaticAccess(target, import);
   }
 
   void toDataSink(DataSink sink) {
@@ -1563,8 +1542,8 @@ class _ContainerLiteral {
     ir.DartType elementType = source.readDartTypeNode();
     bool isConst = source.readBool();
     bool isEmpty = source.readBool();
-    return new _ContainerLiteral(elementType,
-        isConst: isConst, isEmpty: isEmpty);
+    source.end(tag);
+    return _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty);
   }
 
   void toDataSink(DataSink sink) {
@@ -1594,7 +1573,8 @@ class _RuntimeTypeUse {
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
     ir.DartType receiverType = source.readDartTypeNode();
     ir.DartType argumentType = source.readDartTypeNode(allowNull: true);
-    return new _RuntimeTypeUse(node, kind, receiverType, argumentType);
+    source.end(tag);
+    return _RuntimeTypeUse(node, kind, receiverType, argumentType);
   }
 
   void toDataSink(DataSink sink) {

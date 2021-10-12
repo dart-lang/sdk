@@ -33,7 +33,7 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReference node) {
-    var classElement = node.constructorName.type.name.staticElement;
+    var classElement = node.constructorName.type2.name.staticElement;
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
@@ -46,7 +46,7 @@ class TypeArgumentsVerifier {
     if (typeParameters.isEmpty) {
       return;
     }
-    var typeArgumentList = node.constructorName.type.typeArguments;
+    var typeArgumentList = node.constructorName.type2.typeArguments;
     if (typeArgumentList == null) {
       return;
     }
@@ -147,6 +147,15 @@ class TypeArgumentsVerifier {
     _checkForImplicitDynamicInvoke(node);
   }
 
+  void checkNamedType(NamedType node) {
+    _checkForTypeArgumentNotMatchingBounds(node);
+    var parent = node.parent;
+    if (parent is! ConstructorName ||
+        parent.parent is! InstanceCreationExpression) {
+      _checkForRawTypeName(node);
+    }
+  }
+
   void checkSetLiteral(SetOrMapLiteral node) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -160,15 +169,6 @@ class TypeArgumentsVerifier {
           CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
     }
     _checkForImplicitDynamicTypedLiteral(node);
-  }
-
-  void checkTypeName(TypeName node) {
-    _checkForTypeArgumentNotMatchingBounds(node);
-    var parent = node.parent;
-    if (parent is! ConstructorName ||
-        parent.parent is! InstanceCreationExpression) {
-      _checkForRawTypeName(node);
-    }
   }
 
   void _checkForImplicitDynamicInvoke(InvocationExpression node) {
@@ -232,10 +232,10 @@ class TypeArgumentsVerifier {
   /// This checks if [node] refers to a generic type and does not have explicit
   /// or inferred type arguments. When that happens, it reports error code
   /// [HintCode.STRICT_RAW_TYPE].
-  void _checkForRawTypeName(TypeName node) {
-    AstNode parentEscapingTypeArguments(TypeName node) {
+  void _checkForRawTypeName(NamedType node) {
+    AstNode parentEscapingTypeArguments(NamedType node) {
       var parent = node.parent!;
-      while (parent is TypeArgumentList || parent is TypeName) {
+      while (parent is TypeArgumentList || parent is NamedType) {
         if (parent.parent == null) {
           return parent;
         }
@@ -262,10 +262,10 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Verify that the type arguments in the given [typeName] are all within
+  /// Verify that the type arguments in the given [namedType] are all within
   /// their bounds.
-  void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    var type = typeName.type;
+  void _checkForTypeArgumentNotMatchingBounds(NamedType namedType) {
+    var type = namedType.type;
     if (type == null) {
       return;
     }
@@ -298,7 +298,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            _typeArgumentErrorNode(typeName, i),
+            _typeArgumentErrorNode(namedType, i),
           );
           continue;
         }
@@ -326,11 +326,11 @@ class TypeArgumentsVerifier {
     }
 
     // If not allowed to be super-bounded, report issues.
-    if (!_shouldAllowSuperBoundedTypes(typeName)) {
+    if (!_shouldAllowSuperBoundedTypes(namedType)) {
       for (var issue in issues) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          _typeArgumentErrorNode(typeName, issue.index),
+          _typeArgumentErrorNode(namedType, issue.index),
           [issue.argument, issue.parameter.name, issue.parameterBound],
         );
       }
@@ -365,7 +365,7 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          _typeArgumentErrorNode(typeName, i),
+          _typeArgumentErrorNode(namedType, i),
           [typeArgument, typeParameter.name, bound],
         );
       }
@@ -442,7 +442,7 @@ class TypeArgumentsVerifier {
   void _checkTypeArgumentConst(
       NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
     for (TypeAnnotation type in arguments) {
-      if (type is TypeName && type.type is TypeParameterType) {
+      if (type is NamedType && type.type is TypeParameterType) {
         _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
       }
     }
@@ -515,10 +515,10 @@ class TypeArgumentsVerifier {
     return false;
   }
 
-  /// Determines if the given [typeName] occurs in a context where super-bounded
-  /// types are allowed.
-  bool _shouldAllowSuperBoundedTypes(TypeName typeName) {
-    var parent = typeName.parent;
+  /// Determines if the given [namedType] occurs in a context where
+  /// super-bounded types are allowed.
+  bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
+    var parent = namedType.parent;
     if (parent is ExtendsClause) return false;
     if (parent is OnClause) return false;
     if (parent is ClassTypeAlias) return false;
@@ -530,7 +530,7 @@ class TypeArgumentsVerifier {
   }
 
   /// Return the type arguments at [index] from [node], or the [node] itself.
-  static TypeAnnotation _typeArgumentErrorNode(TypeName node, int index) {
+  static TypeAnnotation _typeArgumentErrorNode(NamedType node, int index) {
     var typeArguments = node.typeArguments?.arguments;
     if (typeArguments != null && index < typeArguments.length) {
       return typeArguments[index];

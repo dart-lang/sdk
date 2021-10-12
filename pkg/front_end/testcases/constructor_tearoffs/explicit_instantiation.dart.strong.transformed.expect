@@ -13,7 +13,7 @@ class C extends core::Object {
     return value;
   method method() → void {
     (core::int) → core::int f1 = #C2;
-    core::String f1TypeName = (#C2).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+    core::String f1TypeName = #C2.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f2 = this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f2TypeName = (this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -27,7 +27,7 @@ abstract class M extends self::C /*isMixinDeclaration*/  {
     return value;
   method mmethod() → void {
     (core::int) → core::int f1 = #C4;
-    core::String f1TypeName = (#C4).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+    core::String f1TypeName = #C4.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f2 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f2TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -42,7 +42,7 @@ abstract class _D&C&M extends self::C implements self::M /*isAnonymousMixin,isEl
     return value;
   method mmethod() → void {
     (core::int) → core::int f1 = #C4;
-    core::String f1TypeName = (#C4).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+    core::String f1TypeName = #C4.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f2 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f2TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -77,7 +77,7 @@ static method Ext|get#einst(lowered final self::C #this) → <T extends core::Ob
   return <T extends core::Object? = dynamic>(T% value) → T% => self::Ext|einst<T%>(#this, value);
 static method Ext|emethod(lowered final self::C #this) → void {
   (core::int) → core::int f1 = #C6;
-  core::String f1TypeName = (#C6).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+  core::String f1TypeName = #C6.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   (core::int) → core::int f2 = self::Ext|get#einst(#this)<core::int>;
   core::String f2TypeName = (self::Ext|get#einst(#this)<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   (core::int) → core::int f3 = self::Ext|get#einst(#this)<core::int>;
@@ -95,23 +95,9 @@ static method main() → void {
   (core::int) → core::int f4 = d.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
   (core::int) → core::int f5 = d.{self::_D&C&M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
   (core::int) → core::int f6 = self::Ext|get#einst(d)<core::int>;
-  core::String typeName = (#C7).{core::Type::toString}(){() → core::String};
+  core::String typeName = #C7.{core::Type::toString}(){() → core::String};
   core::String functionTypeName = (local<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
 }
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#ListList#new#tearOff<T extends core::Object? = dynamic>([core::int? length = #C9]) → core::List<core::List<self::_#ListList#new#tearOff::T%>>
-  return core::_List::•<core::List<self::_#ListList#new#tearOff::T%>>(length);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#ListList#filled#tearOff<T extends core::Object? = dynamic>(core::int length, core::List<self::_#ListList#filled#tearOff::T%> fill, {core::bool growable = #C10}) → core::List<core::List<self::_#ListList#filled#tearOff::T%>>
-  return core::List::filled<core::List<self::_#ListList#filled#tearOff::T%>>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#ListList#empty#tearOff<T extends core::Object? = dynamic>({core::bool growable = #C10}) → core::List<core::List<self::_#ListList#empty#tearOff::T%>>
-  return core::List::empty<core::List<self::_#ListList#empty#tearOff::T%>>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#ListList#from#tearOff<T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C11}) → core::List<core::List<self::_#ListList#from#tearOff::T%>>
-  return core::List::from<core::List<self::_#ListList#from#tearOff::T%>>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#ListList#of#tearOff<T extends core::Object? = dynamic>(core::Iterable<core::List<self::_#ListList#of#tearOff::T%>> elements, {core::bool growable = #C11}) → core::List<core::List<self::_#ListList#of#tearOff::T%>>
-  return core::List::of<core::List<self::_#ListList#of#tearOff::T%>>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#ListList#generate#tearOff<T extends core::Object? = dynamic>(core::int length, (core::int) → core::List<self::_#ListList#generate#tearOff::T%> generator, {core::bool growable = #C11}) → core::List<core::List<self::_#ListList#generate#tearOff::T%>>
-  return core::List::generate<core::List<self::_#ListList#generate#tearOff::T%>>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#ListList#unmodifiable#tearOff<T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<core::List<self::_#ListList#unmodifiable#tearOff::T%>>
-  return core::List::unmodifiable<core::List<self::_#ListList#unmodifiable#tearOff::T%>>(elements);
 
 constants  {
   #C1 = static-tearoff self::C::stat
@@ -122,7 +108,4 @@ constants  {
   #C6 = instantiation self::Ext|estat <core::int>
   #C7 = TypeLiteralConstant(core::List<core::int>)
   #C8 = TypeLiteralConstant(core::List<core::List<core::int>>)
-  #C9 = null
-  #C10 = false
-  #C11 = true
 }

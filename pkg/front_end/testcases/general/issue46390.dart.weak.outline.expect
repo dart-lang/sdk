@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method foo(core::num n) → core::num
+    ;
+}
+abstract class B<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X%>
+    ;
+  abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
+}
+abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&A&B
+    : super self::A::•()
+    ;
+  forwarding-stub method foo(covariant-by-class core::num x) → core::num
+    return super.{self::A::foo}(x);
+}
+class C extends self::_C&A&B {
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → void
+  ;

@@ -86,7 +86,7 @@ constants  {
   #C1 = #date
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C4 = <core::Symbol*, dynamic>{)
   #C5 = #date=
   #C6 = #expires
   #C7 = #expires=

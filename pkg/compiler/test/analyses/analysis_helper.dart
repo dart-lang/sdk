@@ -141,7 +141,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   final bool Function(Uri uri) analyzedUrisFilter;
 
   Map _expectedJson = {};
-  Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
+  final Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
   DynamicVisitor(this.reporter, this.component, this._allowedListPath,
       this.analyzedUrisFilter)

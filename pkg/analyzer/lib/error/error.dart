@@ -5,8 +5,6 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:_fe_analyzer_shared/src/messages/codes.dart';
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
@@ -142,6 +140,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
   CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+  CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+  CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
   CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH,
@@ -270,7 +270,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
   CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
   CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
-  CompileTimeErrorCode.MACRO_EXECUTION_ERROR,
   CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE,
   CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
   CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
@@ -439,13 +438,16 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
   CompileTimeErrorCode.UNDEFINED_FUNCTION,
   CompileTimeErrorCode.UNDEFINED_GETTER,
+  CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
   CompileTimeErrorCode.UNDEFINED_METHOD,
+  CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
   CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
   CompileTimeErrorCode.UNDEFINED_OPERATOR,
   CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
   CompileTimeErrorCode.UNDEFINED_SETTER,
+  CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
   CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
   CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
   CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
@@ -681,6 +683,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.CONST_METHOD,
   ParserErrorCode.CONST_TYPEDEF,
   ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
+  ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
   ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
   ParserErrorCode.COVARIANT_AND_STATIC,
@@ -1010,23 +1013,15 @@ class AnalysisError implements Diagnostic {
   /// [length]. The error will have the given [errorCode] and the map  of
   /// [arguments] will be used to complete the message and correction. If any
   /// [contextMessages] are provided, they will be recorded with the error.
-  AnalysisError.withNamedArguments(this.source, int offset, int length,
-      this.errorCode, Map<String, dynamic> arguments,
+  ///
+  /// Deprecated - no analyzer errors use named arguments anymore.  Please use
+  /// `AnalysisError()`.
+  @deprecated
+  AnalysisError.withNamedArguments(Source source, int offset, int length,
+      ErrorCode errorCode, Map<String, dynamic> arguments,
       {List<DiagnosticMessage> contextMessages = const []})
-      : _contextMessages = contextMessages {
-    var messageText = applyArgumentsToTemplate(errorCode.message, arguments);
-    var correctionTemplate = errorCode.correction;
-    if (correctionTemplate != null) {
-      _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
-    }
-    _problemMessage = DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: messageText,
-      offset: offset,
-      url: null,
-    );
-  }
+      : this(source, offset, length, errorCode,
+            _translateNamedArguments(arguments), contextMessages);
 
   @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
@@ -1125,5 +1120,22 @@ class AnalysisError implements Diagnostic {
       errors.addAll(errorList);
     }
     return errors.toList();
+  }
+
+  static List<Object?>? _translateNamedArguments(
+      Map<String, dynamic> arguments) {
+    // All analyzer errors now use positional arguments, so if this method is
+    // being called, either no arguments were provided to the
+    // AnalysisError.withNamedArguments constructor, or the client was
+    // developed against an older version of the analyzer that used named
+    // arguments.  In either case, we'll make a best effort translation of named
+    // arguments to positional ones.  In the case where some arguments were
+    // provided, we have an assertion to alert the developer that they may not
+    // get correct results.
+    assert(
+        arguments.isEmpty,
+        'AnalysisError.withNamedArguments is no longer supported.  Making a '
+        'best effort translation to positional arguments.  Please use '
+        'AnalysisError() instead.');
   }
 }

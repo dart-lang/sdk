@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -31,13 +30,6 @@ main() {
 class BoundsHelperPredicatesTest extends _BoundsTestBase {
   static final Map<String, StackTrace> _isMoreBottomChecked = {};
   static final Map<String, StackTrace> _isMoreTopChecked = {};
-
-  @override
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
 
   void isBottom(DartType type) {
     expect(typeSystem.isBottom(type), isTrue, reason: _typeString(type));
@@ -3347,7 +3339,7 @@ class UpperBoundTest extends _BoundsTestBase {
 }
 
 @reflectiveTest
-class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
+class _BoundsTestBase extends AbstractTypeSystemTest {
   void _assertBottom(DartType type) {
     if (!typeSystem.isBottom(type)) {
       fail('isBottom must be true: ' + _typeString(type));

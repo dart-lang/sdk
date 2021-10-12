@@ -138,7 +138,7 @@ constants  {
   #C1 = #bar
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C4 = <core::Symbol*, dynamic>{)
   #C5 = #foo
   #C6 = #bazz
   #C7 = null

@@ -246,7 +246,7 @@ class IntConstantValue extends NumConstantValue {
 
   // Caching IntConstantValues representing -2 through 10 so that we don't have
   // to create new ones every time those values are used.
-  static Map<BigInt, IntConstantValue> _cachedValues = {};
+  static final Map<BigInt, IntConstantValue> _cachedValues = {};
 
   @override
   double get doubleValue => intValue.toDouble();
@@ -912,7 +912,7 @@ class LateSentinelConstantValue extends ConstantValue {
   }
 
   @override
-  DartType getType(CommonElements types) => types.dynamicType;
+  DartType getType(CommonElements types) => types.dartTypes.neverType();
 
   @override
   ConstantValueKind get kind => ConstantValueKind.LATE_SENTINEL;

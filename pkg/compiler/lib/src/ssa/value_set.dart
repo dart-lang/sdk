@@ -9,7 +9,7 @@ class ValueSet {
   int size = 0;
   List<HInstruction> table;
   ValueSetNode collisions;
-  ValueSet() : table = new List<HInstruction>.filled(8, null);
+  ValueSet() : table = List<HInstruction>.filled(8, null);
 
   bool get isEmpty => size == 0;
   int get length => size;
@@ -28,7 +28,7 @@ class ValueSet {
     if (table[index] == null) {
       table[index] = instruction;
     } else {
-      collisions = new ValueSetNode(instruction, hashCode, collisions);
+      collisions = ValueSetNode(instruction, hashCode, collisions);
     }
     size++;
   }
@@ -81,7 +81,7 @@ class ValueSet {
   }
 
   ValueSet copy() {
-    return copyTo(new ValueSet(), table, collisions);
+    return copyTo(ValueSet(), table, collisions);
   }
 
   List<HInstruction> toList() {
@@ -111,7 +111,7 @@ class ValueSet {
 
   ValueSet intersection(ValueSet other) {
     if (size > other.size) return other.intersection(this);
-    ValueSet result = new ValueSet();
+    ValueSet result = ValueSet();
     // Look in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
       HInstruction instruction = table[index];
@@ -138,7 +138,7 @@ class ValueSet {
     // Reset the table with a bigger capacity.
     assert(capacity > table.length);
     size = 0;
-    table = new List<HInstruction>.filled(capacity, null);
+    table = List<HInstruction>.filled(capacity, null);
     collisions = null;
     // Add the old instructions to the new table.
     copyTo(this, oldTable, oldCollisions);

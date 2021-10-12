@@ -85,7 +85,7 @@ class _Finder {
     if (hasSelfReference) return;
     if (node == null) return;
 
-    if (node is TypeName) {
+    if (node is NamedType) {
       var element = node.name.staticElement;
       if (element is! ElementImpl) {
         return;

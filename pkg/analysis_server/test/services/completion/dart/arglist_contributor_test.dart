@@ -9,13 +9,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_context.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgListContributorTest);
-    defineReflectiveTests(ArgListContributorWithNullSafetyTest);
   });
 }
 
@@ -1095,26 +1093,6 @@ main() { f("16", radix: ^);}''');
     assertNoSuggestions();
   }
 
-  Future<void> test_superConstructorInvocation() async {
-    addTestSource('''
-class A {
-  final bool field1;
-  final int field2;
-  A({this.field1, this.field2});
-}
-class B extends A {
-  B() : super(^);
-}
-''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'field1': 'bool', 'field2': 'int'});
-  }
-}
-
-@reflectiveTest
-class ArgListContributorWithNullSafetyTest extends DartCompletionContributorTest
-    with WithNullSafetyMixin, ArgListContributorMixin {
   Future<void> test_ArgumentList_nnbd_function_named_param() async {
     addTestSource(r'''
 f({int? nullable, int nonnullable}) {}
@@ -1154,5 +1132,21 @@ main() { f(^);}');
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
       'named': 'int*',
     });
+  }
+
+  Future<void> test_superConstructorInvocation() async {
+    addTestSource('''
+class A {
+  final bool field1;
+  final int field2;
+  A({this.field1, this.field2});
+}
+class B extends A {
+  B() : super(^);
+}
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'field1': 'bool', 'field2': 'int'});
   }
 }

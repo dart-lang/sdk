@@ -380,7 +380,6 @@ class DeferredHolderExpressionFinalizerImpl
   Holder mainConstantHolder;
 
   /// Maps of various object types to the holders they ended up in.
-  final Map<Library, Holder> libraryMap = {};
   final Map<ClassEntity, Holder> classEntityMap = {};
   final Map<ConstantValue, Holder> constantValueMap = {};
   final Map<MemberEntity, Holder> memberEntityMap = {};
@@ -401,11 +400,6 @@ class DeferredHolderExpressionFinalizerImpl
     }
     // See the below note on globalObjectForConstants.
     return map[data] ?? mainHolder;
-  }
-
-  /// Returns the [Holder] for [library].
-  Holder globalObjectForLibrary(Library library) {
-    return _lookup(library, library.element, libraryMap);
   }
 
   /// Returns true if [element] is stored in the static state holder
@@ -663,7 +657,7 @@ class DeferredHolderExpressionFinalizerImpl
       // Sort holders by reference count within this resource.
       var sortedHolders = holders.toList(growable: false);
       sortedHolders.sort((a, b) {
-        return a.refCount(resource).compareTo(b.refCount(resource));
+        return b.refCount(resource).compareTo(a.refCount(resource));
       });
 
       // Assign names based on frequency. This will be ignored unless
@@ -734,7 +728,6 @@ class DeferredHolderExpressionFinalizerImpl
           constantValueMap[constant.value] = constantHolder;
         }
         for (var library in fragment.libraries) {
-          libraryMap[library] = holder;
           for (var cls in library.classes) {
             _addClass(holder, cls);
           }
@@ -890,7 +883,7 @@ class LegacyDeferredHolderExpressionFinalizerImpl
   }
 
   final List<String> userGlobalObjects =
-      new List.from(Namer.reservedGlobalObjectNames)
+      List.from(Namer.reservedGlobalObjectNames)
         ..remove('C')
         ..remove('H')
         ..remove('J')

@@ -284,7 +284,7 @@ use `?` and `late` in their library today.
 That's it. Now you have a library that Dart tools know targets 2.8+non-nullable,
 at least today.
 
-[experimental flags doc]: https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md
+[experimental flags doc]: https://github.com/dart-lang/sdk/blob/main/docs/process/experimental-flags.md
 
 ### 2.8.0 ships without null safety
 

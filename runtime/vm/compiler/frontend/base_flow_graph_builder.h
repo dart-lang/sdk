@@ -196,14 +196,18 @@ class BaseFlowGraphBuilder {
       const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic);
   Fragment StoreNativeField(
       const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier) {
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic) {
     return StoreNativeField(TokenPosition::kNoSource, slot, kind,
-                            emit_store_barrier);
+                            emit_store_barrier, memory_order);
   }
   Fragment StoreInstanceField(
       const Field& field,
@@ -447,12 +451,14 @@ class BaseFlowGraphBuilder {
                                intptr_t num_inputs);
 
   // Pops double value and converts it to double as specified
-  // by the recognized method (kDoubleTruncate,
-  // kDoubleFloor or kDoubleCeil).
+  // by the recognized method (kDoubleTruncateToDouble,
+  // kDoubleFloorToDouble or kDoubleCeilToDouble).
   Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
 
-  // Pops double value and converts it to int.
-  Fragment DoubleToInteger();
+  // Pops double value and converts it to int as specified
+  // by the recognized method (kDoubleToInteger,
+  // kDoubleFloorToInt or kDoubleCeilToInt).
+  Fragment DoubleToInteger(MethodRecognizer::Kind recognized_kind);
 
   // Pops double value and applies unary math operation.
   Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);

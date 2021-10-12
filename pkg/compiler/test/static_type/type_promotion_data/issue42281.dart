@@ -41,10 +41,9 @@ method3(Class c, Type type, [o]) {
         c = new SubClass(String);
       }
       /*{c:[{true:SubClass},{false:Class}|SubClass,Class]}*/ c;
-      print(
-          /*{c:[{true:SubClass},{false:Class}|SubClass,Class]}*/ type ==
-              /*{c:[{true:SubClass},{false:Class}|SubClass,Class]}*/ c
-                  ?.componentType);
+      print(/*{c:[{true:SubClass},{false:Class}|SubClass,Class]}*/ type ==
+          /*{c:[{true:SubClass},{false:Class}|SubClass,Class]}*/ c
+              ?.componentType);
     }
   }
 }

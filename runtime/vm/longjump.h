@@ -16,11 +16,9 @@ class Error;
 
 class LongJumpScope : public StackResource {
  public:
-  LongJumpScope()
-      : StackResource(ThreadState::Current()),
-        top_(nullptr),
-        base_(thread()->long_jump_base()) {
-    thread()->set_long_jump_base(this);
+  explicit LongJumpScope(ThreadState* thread = ThreadState::Current())
+      : StackResource(thread), top_(nullptr), base_(thread->long_jump_base()) {
+    thread->set_long_jump_base(this);
   }
 
   ~LongJumpScope() {

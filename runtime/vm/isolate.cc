@@ -650,7 +650,6 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
-  thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (is_mutator) {
     // The mutator thread structure stays alive and attached to the isolate as
@@ -1127,6 +1126,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
+        Thread::Current()->StartUnwindError();
         obj = message.At(2);
         if (I->VerifyTerminateCapability(obj)) {
           // We will kill the current isolate by returning an UnwindError.
@@ -2116,7 +2116,7 @@ void Isolate::MakeRunnableLocked() {
 #ifndef PRODUCT
   if (!Isolate::IsSystemIsolate(this) && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
-    Service::HandleEvent(&runnableEvent);
+    Service::HandleEvent(&runnableEvent, /* enter_safepoint */ false);
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
 #endif  // !PRODUCT
@@ -2315,8 +2315,12 @@ bool Isolate::NotifyErrorListeners(const char* message,
   msg.value.as_string = const_cast<char*>(message);
   arr_values[0] = &msg;
   Dart_CObject stack;
-  stack.type = Dart_CObject_kString;
-  stack.value.as_string = const_cast<char*>(stacktrace);
+  if (stacktrace == NULL) {
+    stack.type = Dart_CObject_kNull;
+  } else {
+    stack.type = Dart_CObject_kString;
+    stack.value.as_string = const_cast<char*>(stacktrace);
+  }
   arr_values[1] = &stack;
 
   SendPort& listener = SendPort::Handle(current_zone());
@@ -2381,10 +2385,14 @@ void Isolate::FreeSampleBlock(SampleBlock* block) {
 
 void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
   SampleBlock* head = free_block_list_.exchange(nullptr);
+  if (head == nullptr) {
+    // No sample blocks to process.
+    return;
+  }
   // Reverse the list before processing so older blocks are streamed and reused
   // first.
   SampleBlock* reversed_head = nullptr;
-  while (head != nullptr) {
+  do {
     SampleBlock* next = head->next_free_;
     if (reversed_head == nullptr) {
       reversed_head = head;
@@ -2394,24 +2402,28 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
       reversed_head = head;
     }
     head = next;
-  }
+  } while (head != nullptr);
   head = reversed_head;
-  while (head != nullptr) {
-    if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
-      StackZone zone(thread);
-      HandleScope handle_scope(thread);
-      Profile profile;
-      profile.Build(thread, nullptr, head);
-      ServiceEvent event(this, ServiceEvent::kCpuSamples);
-      event.set_cpu_profile(&profile);
-      Service::HandleEvent(&event);
-    }
+
+  if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
+    SampleBlockListProcessor buffer(head);
+    StackZone zone(thread);
+    HandleScope handle_scope(thread);
+    Profile profile;
+    profile.Build(thread, nullptr, &buffer);
+    ServiceEvent event(this, ServiceEvent::kCpuSamples);
+    event.set_cpu_profile(&profile);
+    Service::HandleEvent(&event);
+  }
+
+  do {
     SampleBlock* next = head->next_free_;
     head->next_free_ = nullptr;
     head->evictable_ = true;
     Profiler::sample_block_buffer()->FreeBlock(head);
     head = next;
-  }
+    thread->CheckForSafepoint();
+  } while (head != nullptr);
 }
 #endif  // !defined(PRODUCT)
 
@@ -2887,6 +2899,10 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   if (source()->loaded_blobs_ != nullptr) {
     visitor->VisitPointer(
         reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+  }
+
+  if (become() != nullptr) {
+    become()->VisitObjectPointers(visitor);
   }
 }
 

@@ -45,14 +45,10 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
     writeln();
     if (forClient) {
       writeln(
-          "import 'package:analysis_server_client/src/protocol/protocol_util.dart';");
-      writeln(
           "import 'package:analysis_server_client/src/protocol/protocol_base.dart';");
       writeln(
           "import 'package:analysis_server_client/src/protocol/protocol_internal.dart';");
     } else {
-      writeln(
-          "import 'package:analyzer/src/generated/utilities_general.dart';");
       writeln("import 'package:$packageName/protocol/protocol.dart';");
       writeln(
           "import 'package:$packageName/src/protocol/protocol_internal.dart';");

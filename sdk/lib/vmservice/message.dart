@@ -251,10 +251,11 @@ class Message {
       setResponse(encodeRpcError(this, code, details: '$method: $details'));
 }
 
-bool sendIsolateServiceMessage(SendPort sp, List m)
-    native 'VMService_SendIsolateServiceMessage';
+@pragma("vm:external-name", "VMService_SendIsolateServiceMessage")
+external bool sendIsolateServiceMessage(SendPort sp, List m);
 
-void sendRootServiceMessage(List m) native 'VMService_SendRootServiceMessage';
+@pragma("vm:external-name", "VMService_SendRootServiceMessage")
+external void sendRootServiceMessage(List m);
 
-void sendObjectRootServiceMessage(List m)
-    native 'VMService_SendObjectRootServiceMessage';
+@pragma("vm:external-name", "VMService_SendObjectRootServiceMessage")
+external void sendObjectRootServiceMessage(List m);

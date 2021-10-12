@@ -18,6 +18,64 @@ main() {
 @reflectiveTest
 class InvalidAssignmentTest extends PubPackageResolutionTest
     with InvalidAssignmentTestCases {
+  test_constructorTearoff_inferredTypeArgs() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C<int>.new;
+''');
+  }
+
+  test_constructorTearoff_withExplicitTypeArgs() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+C Function(int) g = C<int>.new;
+''');
+  }
+
+  test_constructorTearoff_withExplicitTypeArgs_invalid() async {
+    await assertErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+C Function(String) g = C<int>.new;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 49, 10),
+    ]);
+  }
+
+  test_functionTearoff_inferredTypeArgs() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f<int>;
+''');
+  }
+
+  test_functionTearoff_withExplicitTypeArgs() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+void Function(int) g = f<int>;
+''');
+  }
+
+  test_functionTearoff_withExplicitTypeArgs_invalid() async {
+    await assertErrorsInCode('''
+void f<T>(T a) {}
+
+void Function(String) g = f<int>;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 6),
+    ]);
+  }
+
   test_ifNullAssignment() async {
     await assertErrorsInCode('''
 void f(int i) {

@@ -24,19 +24,19 @@ class SetTypeMask extends AllocationTypeMask {
   // The element type of this set.
   final TypeMask elementType;
 
-  SetTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
+  const SetTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
       this.elementType);
 
   /// Deserializes a [SetTypeMask] object from [source].
   factory SetTypeMask.readFromDataSource(
       DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
+    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask elementType = new TypeMask.readFromDataSource(source, domain);
+    TypeMask elementType = TypeMask.readFromDataSource(source, domain);
     source.end(tag);
-    return new SetTypeMask(
+    return SetTypeMask(
         forwardTo, allocationNode, allocationElement, elementType);
   }
 
@@ -53,16 +53,20 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  TypeMask nullable() => isNullable
-      ? this
-      : new SetTypeMask(
-          forwardTo.nullable(), allocationNode, allocationElement, elementType);
-
-  @override
-  TypeMask nonNullable() => isNullable
-      ? new SetTypeMask(forwardTo.nonNullable(), allocationNode,
-          allocationElement, elementType)
-      : this;
+  SetTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+    isNullable ??= this.isNullable;
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
+      return this;
+    }
+    return SetTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        allocationNode,
+        allocationElement,
+        elementType);
+  }
 
   @override
   bool get isSet => true;
@@ -71,45 +75,29 @@ class SetTypeMask extends AllocationTypeMask {
   bool get isExact => true;
 
   @override
-  bool equalsDisregardNull(other) {
-    if (other is! SetTypeMask) return false;
-    return super.equalsDisregardNull(other) &&
-        allocationNode == other.allocationNode &&
-        elementType == other.elementType;
-  }
-
-  @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
-    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
-    return forwardIntersection.isNullable ? nullable() : nonNullable();
-  }
-
-  @override
-  TypeMask union(dynamic other, CommonMasks domain) {
-    if (this == other) {
-      return this;
-    } else if (equalsDisregardNull(other)) {
-      return other.isNullable ? other : this;
-    } else if (other.isEmptyOrNull) {
-      return other.isNullable ? this.nullable() : this;
-    } else if (other.isSet &&
+  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {bool isNullable, bool hasLateSentinel}) {
+    assert(isNullable != null);
+    assert(hasLateSentinel != null);
+    if (other is SetTypeMask &&
         elementType != null &&
         other.elementType != null) {
       TypeMask newElementType = elementType.union(other.elementType, domain);
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
-      return new SetTypeMask(newForwardTo, null, null, newElementType);
-    } else {
-      return forwardTo.union(other, domain);
+      return SetTypeMask(newForwardTo, null, null, newElementType);
     }
+    return null;
   }
 
   @override
-  bool operator ==(other) => super == other;
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! SetTypeMask) return false;
+    return super == other && elementType == other.elementType;
+  }
 
   @override
-  int get hashCode =>
-      computeHashCode(allocationNode, isNullable, elementType, forwardTo);
+  int get hashCode => Hashing.objectHash(elementType, super.hashCode);
 
   @override
   String toString() => 'Set($forwardTo, element: $elementType)';

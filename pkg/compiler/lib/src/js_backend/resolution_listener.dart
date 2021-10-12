@@ -71,13 +71,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void _addInterceptors(ClassEntity cls, WorldImpactBuilder impactBuilder) {
     _interceptorData.addInterceptors(cls);
     impactBuilder.registerTypeUse(
-        new TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
+        TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
     _backendUsage.registerBackendClassUse(cls);
   }
 
   @override
   WorldImpact registerClosurizedMember(FunctionEntity element) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     _backendUsage.processBackendImpact(_impacts.memberClosure);
     impactBuilder
         .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
@@ -101,7 +101,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   void registerInstantiatedType(InterfaceType type,
-      {bool isGlobal: false, bool nativeUsage: false}) {
+      {bool isGlobal = false, bool nativeUsage = false}) {
     if (isGlobal) {
       _backendUsage.registerGlobalClassDependency(type.element);
     }
@@ -112,20 +112,20 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
-    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl mainImpact = WorldImpactBuilderImpl();
     CallStructure callStructure = mainMethod.parameterStructure.callStructure;
     if (callStructure.argumentCount > 0) {
       _impacts.mainWithArguments
           .registerImpact(mainImpact, _elementEnvironment);
       _backendUsage.processBackendImpact(_impacts.mainWithArguments);
-      mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, callStructure));
+      mainImpact
+          .registerStaticUse(StaticUse.staticInvoke(mainMethod, callStructure));
     }
     if (mainMethod.isGetter) {
-      mainImpact.registerStaticUse(new StaticUse.staticGet(mainMethod));
+      mainImpact.registerStaticUse(StaticUse.staticGet(mainMethod));
     } else {
       mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+          StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
     }
     return mainImpact;
   }
@@ -216,7 +216,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     if (constant.isFunction) {
       FunctionConstantValue function = constant;
       impactBuilder
-          .registerStaticUse(new StaticUse.staticTearOff(function.element));
+          .registerStaticUse(StaticUse.staticTearOff(function.element));
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
@@ -224,24 +224,24 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _computeImpactForInstantiatedConstantType(type, impactBuilder);
     } else if (constant.isType) {
       FunctionEntity helper = _commonElements.createRuntimeType;
-      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+      impactBuilder.registerStaticUse(StaticUse.staticInvoke(
           helper, helper.parameterStructure.callStructure));
       _backendUsage.registerBackendFunctionUse(helper);
       impactBuilder
-          .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
+          .registerTypeUse(TypeUse.instantiation(_commonElements.typeType));
     }
   }
 
   void _computeImpactForInstantiatedConstantType(
       DartType type, WorldImpactBuilder impactBuilder) {
     if (type is InterfaceType) {
-      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
+      impactBuilder.registerTypeUse(TypeUse.instantiation(type));
       if (type.element == _commonElements.typeLiteralClass) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
         FunctionEntity helper = _commonElements.createRuntimeType;
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        impactBuilder.registerStaticUse(StaticUse.staticInvoke(
             helper, helper.parameterStructure.callStructure));
       }
     }
@@ -249,14 +249,14 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerUsedConstant(ConstantValue constant) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     _computeImpactForCompileTimeConstant(constant, impactBuilder);
     return impactBuilder;
   }
 
   @override
   WorldImpact registerUsedElement(MemberEntity member) {
-    WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl worldImpact = WorldImpactBuilderImpl();
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction) {
@@ -265,15 +265,16 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         FunctionType functionType =
             _elementEnvironment.getFunctionType(function);
 
-        var allParameterTypes = <DartType>[]
-          ..addAll(functionType.parameterTypes)
-          ..addAll(functionType.optionalParameterTypes)
-          ..addAll(functionType.namedParameterTypes);
+        var allParameterTypes = <DartType>[
+          ...functionType.parameterTypes,
+          ...functionType.optionalParameterTypes,
+          ...functionType.namedParameterTypes
+        ];
         for (var type in allParameterTypes) {
           if (type.withoutNullability is FunctionType) {
             var closureConverter = _commonElements.closureConverter;
-            worldImpact.registerStaticUse(
-                new StaticUse.implicitInvoke(closureConverter));
+            worldImpact
+                .registerStaticUse(StaticUse.implicitInvoke(closureConverter));
             _backendUsage.registerBackendFunctionUse(closureConverter);
             _backendUsage.registerGlobalFunctionDependency(closureConverter);
             break;
@@ -323,7 +324,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   WorldImpact _processClass(ClassEntity cls) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
     // for these into [CommonElements] or [BackendImpacts].
     // Register any helper that will be needed by the backend.
@@ -426,7 +427,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   /// Compute the [WorldImpact] for backend helper methods.
   WorldImpact computeHelpersImpact() {
     assert(_commonElements.interceptorsLibrary != null);
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
@@ -454,12 +455,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the _commonElements in the resolution queue.
     // TODO(13155): Find a way to register fewer _commonElements.
-    List<FunctionEntity> staticUses = <FunctionEntity>[];
+    List<FunctionEntity> staticUses = [];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
       staticUses.add(helper.getStaticUse(_commonElements).element);
     }
     _registerBackendImpact(
-        impactBuilder, new BackendImpact(globalUses: staticUses));
+        impactBuilder, BackendImpact(globalUses: staticUses));
   }
 
   @override

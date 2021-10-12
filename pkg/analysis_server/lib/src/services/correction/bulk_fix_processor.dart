@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
-
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -234,7 +232,11 @@ class BulkFixProcessor {
     var analysisOptions = result.session.analysisContext.analysisOptions;
     for (var unitResult in result.units) {
       var overrideSet = _readOverrideSet(unitResult);
-      for (var error in unitResult.errors) {
+
+      var errors = List.from(unitResult.errors, growable: false);
+      errors.sort((a, b) => a.offset.compareTo(b.offset));
+
+      for (var error in errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         // Only fix errors not filtered out in analysis options.
         if (processor == null || processor.severity != null) {

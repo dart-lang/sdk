@@ -1539,6 +1539,7 @@ innermost
 inout
 input
 inputs
+inscrutable
 insert
 inserted
 inserting
@@ -3156,6 +3157,7 @@ unalias
 unaliased
 unaliasing
 unambiguous
+unambiguously
 unary
 unassignable
 unassigned

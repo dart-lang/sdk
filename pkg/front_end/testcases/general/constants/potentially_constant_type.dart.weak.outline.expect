@@ -1,0 +1,274 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:26:18: Error: Type variables can't be used as constants.
+//       : field1 = T,
+//                  ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:27:21: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field5 = <T>[],
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:27:19: Error: Type variables can't be used as constants.
+//         field5 = <T>[],
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:28:21: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field6 = <T>{},
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:28:19: Error: Type variables can't be used as constants.
+//         field6 = <T>{},
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:29:24: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field7 = <T, T>{},
+//                        ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:29:19: Error: Type variables can't be used as constants.
+//         field7 = <T, T>{},
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:29:22: Error: Type variables can't be used as constants.
+//         field7 = <T, T>{},
+//                      ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:30:23: Error: Type variables can't be used as constants.
+//         field8 = o is T,
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:31:29: Error: Type variables can't be used as constants.
+//         field9 = o is Class<T>,
+//                             ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:32:24: Error: Type variables can't be used as constants.
+//         field10 = o as T,
+//                        ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:33:30: Error: Type variables can't be used as constants.
+//         field11 = o as Class<T>,
+//                              ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:34:26: Error: Type variables can't be used as constants.
+//         field15 = <Class<T>>[];
+//                          ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:34:29: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field15 = <Class<T>>[];
+//                             ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+import "org-dartlang-testcase:///potentially_constant_type_lib1.dart";
+import "org-dartlang-testcase:///potentially_constant_type_lib2.dart";
+
+class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field dynamic field1;
+  final field dynamic field5;
+  final field dynamic field6;
+  final field dynamic field7;
+  final field dynamic field8;
+  final field dynamic field9;
+  final field dynamic field10;
+  final field dynamic field11;
+  final field dynamic field15;
+  const constructor •(dynamic o) → self::Class<self::Class::T*>*
+    : self::Class::field1 = invalid-type, self::Class::field5 = <invalid-type>[], self::Class::field6 = block {
+      final core::Set<invalid-type>* #t1 = col::LinkedHashSet::•<invalid-type>();
+    } =>#t1, self::Class::field7 = <invalid-type, invalid-type>{}, self::Class::field8 = o is invalid-type, self::Class::field9 = o is self::Class<invalid-type>*, self::Class::field10 = o as invalid-type, self::Class::field11 = o as self::Class<invalid-type>*, self::Class::field15 = <self::Class<invalid-type>*>[], super core::Object::•()
+    ;
+  method method() → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method id<T extends core::Object* = dynamic>(self::id::T* t) → self::id::T*
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:23:18: Error: Type variables can't be used as constants.
+//       : field1 = T,
+//                  ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:24:21: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field5 = <T>[],
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:24:19: Error: Type variables can't be used as constants.
+//         field5 = <T>[],
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:25:21: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field6 = <T>{},
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:25:19: Error: Type variables can't be used as constants.
+//         field6 = <T>{},
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:26:24: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field7 = <T, T>{},
+//                        ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:26:19: Error: Type variables can't be used as constants.
+//         field7 = <T, T>{},
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:26:22: Error: Type variables can't be used as constants.
+//         field7 = <T, T>{},
+//                      ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:31:26: Error: Type variables can't be used as constants.
+//         field15 = <Class<T>>[];
+//                          ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib1.dart:31:29: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field15 = <Class<T>>[];
+//                             ^
+//
+import self as self2;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field dynamic field1;
+  final field dynamic field5;
+  final field dynamic field6;
+  final field dynamic field7;
+  final field dynamic field8;
+  final field dynamic field9;
+  final field dynamic field10;
+  final field dynamic field11;
+  final field dynamic field15;
+  const constructor •(dynamic o) → self2::Class<self2::Class::T%>
+    : self2::Class::field1 = invalid-type, self2::Class::field5 = <invalid-type>[], self2::Class::field6 = block {
+      final core::Set<invalid-type> #t2 = col::LinkedHashSet::•<invalid-type>();
+    } =>#t2, self2::Class::field7 = <invalid-type, invalid-type>{}, self2::Class::field8 = o is{ForNonNullableByDefault} self2::Class::T%, self2::Class::field9 = o is{ForNonNullableByDefault} self2::Class<self2::Class::T%>, self2::Class::field10 = o as{ForNonNullableByDefault} self2::Class::T%, self2::Class::field11 = o{self2::Class::T%} as{ForNonNullableByDefault} self2::Class<self2::Class::T%>, self2::Class::field15 = <self2::Class<invalid-type>>[], super core::Object::•()
+    ;
+  method method() → void
+    ;
+}
+static method id<T extends core::Object? = dynamic>(self2::id::T% t) → self2::id::T%
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:34:21: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field5 = <T>[],
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:34:19: Error: Type variables can't be used as constants.
+//         field5 = <T>[],
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:35:21: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field6 = <T>{},
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:35:19: Error: Type variables can't be used as constants.
+//         field6 = <T>{},
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:36:24: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field7 = <T, T>{},
+//                        ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:36:19: Error: Type variables can't be used as constants.
+//         field7 = <T, T>{},
+//                   ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:36:22: Error: Type variables can't be used as constants.
+//         field7 = <T, T>{},
+//                      ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:44:29: Error: Constant expression expected.
+// Try inserting 'const'.
+//         field15 = <Class<T>>[],
+//                             ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type_lib2.dart:44:26: Error: Type variables can't be used as constants.
+//         field15 = <Class<T>>[],
+//                          ^
+//
+import self as self3;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+typedef F<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self3::Class<X%>;
+typedef G<unrelated X extends core::Object? = dynamic> = self3::Class<core::int>;
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field dynamic field1;
+  final field dynamic field2;
+  final field dynamic field3;
+  final field dynamic field4;
+  final field dynamic field5;
+  final field dynamic field6;
+  final field dynamic field7;
+  final field dynamic field8;
+  final field dynamic field9;
+  final field dynamic field10;
+  final field dynamic field11;
+  final field dynamic field12;
+  final field dynamic field13;
+  final field dynamic field14;
+  final field dynamic field15;
+  final field dynamic field16;
+  const constructor •(dynamic o) → self3::Class<self3::Class::T%>
+    : self3::Class::field1 = self3::Class::T%, self3::Class::field2 = self3::Class<self3::Class::T%>, self3::Class::field3 = self3::id<self3::Class::T%>, self3::Class::field4 = self3::id<self3::Class::T%>, self3::Class::field5 = <invalid-type>[], self3::Class::field6 = block {
+      final core::Set<invalid-type> #t3 = col::LinkedHashSet::•<invalid-type>();
+    } =>#t3, self3::Class::field7 = <invalid-type, invalid-type>{}, self3::Class::field8 = o is{ForNonNullableByDefault} self3::Class::T%, self3::Class::field9 = o is{ForNonNullableByDefault} self3::Class<self3::Class::T%>, self3::Class::field10 = o as{ForNonNullableByDefault} self3::Class::T%, self3::Class::field11 = o{self3::Class::T%} as{ForNonNullableByDefault} self3::Class<self3::Class::T%>, self3::Class::field12 = self3::Class::•<self3::Class::T%>, self3::Class::field13 = self3::Class::•<self3::Class::T%>, self3::Class::field14 = self3::id<self3::Class<self3::Class::T%>>, self3::Class::field15 = <self3::Class<invalid-type>>[], self3::Class::field16 = self3::Class::•<core::int>, super core::Object::•()
+    ;
+  method method() → void
+    ;
+}
+static method id<T extends core::Object? = dynamic>(self3::id::T% t) → self3::id::T%
+  ;
+static method main() → dynamic
+  ;
+static method _#F#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>(dynamic o) → self3::Class<self3::_#F#new#tearOff::X%>
+  return new self3::Class::•<self3::_#F#new#tearOff::X%>(o);
+static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic>(dynamic o) → self3::Class<core::int>
+  return new self3::Class::•<core::int>(o);
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///potentially_constant_type.dart:26:18 -> TypeLiteralConstant(<invalid>)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///potentially_constant_type_lib1.dart:23:18 -> TypeLiteralConstant(<invalid>)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///potentially_constant_type_lib2.dart:32:18 -> StaticTearOffConstant(id)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///potentially_constant_type_lib2.dart:33:19 -> StaticTearOffConstant(id)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///potentially_constant_type_lib2.dart:41:19 -> ConstructorTearOffConstant(Class.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///potentially_constant_type_lib2.dart:42:19 -> ConstructorTearOffConstant(Class.)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///potentially_constant_type_lib2.dart:43:19 -> StaticTearOffConstant(id)
+Evaluated: Instantiation @ org-dartlang-testcase:///potentially_constant_type_lib2.dart:45:19 -> InstantiationConstant(Class.<int*>)
+Extra constant evaluation: evaluated: 61, effectively constant: 8

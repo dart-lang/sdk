@@ -903,8 +903,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  Field cloneField(
-      Field node, Reference? getterReference, Reference? setterReference) {
+  Field cloneField(Field node, Reference? fieldReference,
+      Reference? getterReference, Reference? setterReference) {
     final Uri? activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri;
 
@@ -915,6 +915,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
           initializer: cloneOptional(node.initializer),
           transformerFlags: node.transformerFlags,
           fileUri: node.fileUri,
+          fieldReference: fieldReference,
           getterReference: getterReference,
           setterReference: setterReference);
     } else {
@@ -927,6 +928,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
           initializer: cloneOptional(node.initializer),
           transformerFlags: node.transformerFlags,
           fileUri: node.fileUri,
+          fieldReference: fieldReference,
           getterReference: getterReference);
     }
     result

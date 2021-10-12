@@ -11,7 +11,6 @@ import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
@@ -27,8 +26,7 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     bool strict = args.contains('-s');
     await checkTests(dataDir, new OptimizationDataComputer(strict: strict),
-      options: [Flags.disableInlining],
-        args: args);
+        options: [Flags.disableInlining], args: args);
   });
 }
 

@@ -30,7 +30,7 @@ class Maplet<K, V> extends MapBase<K, V> {
 
   Maplet();
 
-  Maplet.from(Maplet<K, V> other) {
+  Maplet.of(Maplet<K, V> other) {
     other.forEach((K key, V value) {
       this[key] = value;
     });

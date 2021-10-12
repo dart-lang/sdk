@@ -7,7 +7,9 @@
 /*library: scope=[
   A2,
   B2,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 class A1 {}
 
@@ -39,12 +41,12 @@ main() {
   B1</*error: errors=['A2' isn't a type.]*/A2> var3;
 }
 
-/*error: errors=['A2' isn't a type.]*/
+/*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/
 A2 method1() => null;
 
 // TODO(johnniwinther): We should report an error on the number of type
 // arguments here.
-/*error: errors=['B2' isn't a type.,Expected 0 type arguments.]*/
+/*error: errors=[Expected 0 type arguments.,This requires the 'extension-types' language feature to be enabled.]*/
 B2<A1> method2() => null;
 
-B1</*error: errors=['A2' isn't a type.]*/A2> method3() => null;
+B1</*error: errors=[This requires the 'extension-types' language feature to be enabled.]*/A2> method3() => null;

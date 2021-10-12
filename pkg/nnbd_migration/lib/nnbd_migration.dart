@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
@@ -125,7 +124,8 @@ class NullabilityFixDescription {
   /// Informative message: there is no valid migration for `null` in a
   /// non-nullable context.
   static const noValidMigrationForNull = NullabilityFixDescription._(
-      appliedMessage: 'No valid migration for `null` in a non-nullable context',
+      appliedMessage: 'No valid migration for expression with type `Null` in '
+          'a non-nullable context',
       kind: NullabilityFixKind.noValidMigrationForNull);
 
   /// Informative message: a null-aware access won't be necessary in strong
@@ -254,12 +254,7 @@ class NullabilityFixDescription {
       {required this.appliedMessage, required this.kind});
 
   @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, appliedMessage.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(appliedMessage, kind);
 
   @override
   bool operator ==(Object other) =>

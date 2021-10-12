@@ -18,10 +18,10 @@ class Test1 {
     var /*@ type=num* */ v2 = /*@target=Test1.t*/ t = getNum();
 
     var /*@ type=int* */ v4 = /*@target=Test1.t*/ /*@target=Test1.t*/ t
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = /*@target=Test1.t*/ /*@target=Test1.t*/ t
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=int* */ v7 = /*@target=Test1.t*/ /*@target=Test1.t*/ t
         /*@target=num.+*/ += getInt();
@@ -49,13 +49,13 @@ class Test2 {
     var /*@ type=double* */ v3 = /*@target=Test2.t*/ t = getDouble();
 
     var /*@ type=num* */ v4 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
 
     var /*@ type=num* */ v5 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=num* */ v6 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=num* */ v7 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
         /*@target=num.+*/ += getInt();
@@ -84,10 +84,10 @@ class Test3 {
     var /*@ type=double* */ v3 = /*@target=Test3.t*/ t = getDouble();
 
     var /*@ type=num* */ v5 = /*@target=Test3.t*/ /*@target=Test3.t*/ t
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
 
     var /*@ type=double* */ v6 = /*@target=Test3.t*/ /*@target=Test3.t*/ t
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
 
     var /*@ type=double* */ v7 = /*@target=Test3.t*/ /*@target=Test3.t*/ t
         /*@target=double.+*/ += getInt();

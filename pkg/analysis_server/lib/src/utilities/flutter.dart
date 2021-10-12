@@ -558,7 +558,7 @@ class Flutter {
     if (node == null) {
       return false;
     }
-    if (node.parent is TypeName || node.parent?.parent is TypeName) {
+    if (node.parent is NamedType || node.parent?.parent is NamedType) {
       return false;
     }
     if (node.parent is ConstructorName) {

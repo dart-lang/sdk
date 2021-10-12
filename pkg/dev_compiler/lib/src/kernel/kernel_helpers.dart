@@ -211,13 +211,13 @@ bool isInlineJS(Member e) =>
 /// Whether the parameter [p] is covariant (either explicitly `covariant` or
 /// implicitly due to generics) and needs a check for soundness.
 bool isCovariantParameter(VariableDeclaration p) {
-  return p.isCovariant || p.isGenericCovariantImpl;
+  return p.isCovariantByDeclaration || p.isCovariantByClass;
 }
 
 /// Whether the field [p] is covariant (either explicitly `covariant` or
 /// implicitly due to generics) and needs a check for soundness.
 bool isCovariantField(Field f) {
-  return f.isCovariant || f.isGenericCovariantImpl;
+  return f.isCovariantByDeclaration || f.isCovariantByClass;
 }
 
 /// Returns true iff this factory constructor just throws [UnsupportedError]/

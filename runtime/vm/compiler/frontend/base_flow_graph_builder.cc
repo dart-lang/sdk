@@ -506,7 +506,8 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
     const Slot& slot,
     StoreInstanceFieldInstr::Kind
         kind /* = StoreInstanceFieldInstr::Kind::kOther */,
-    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */) {
+    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
+    compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
@@ -1216,9 +1217,11 @@ Fragment BaseFlowGraphBuilder::DoubleToDouble(
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::DoubleToInteger() {
+Fragment BaseFlowGraphBuilder::DoubleToInteger(
+    MethodRecognizer::Kind recognized_kind) {
   Value* value = Pop();
-  auto* instr = new (Z) DoubleToIntegerInstr(value, GetNextDeoptId());
+  auto* instr =
+      new (Z) DoubleToIntegerInstr(value, recognized_kind, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }

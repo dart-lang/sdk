@@ -29,6 +29,8 @@ public class HighlightRegionType {
 
   public static final String CONSTRUCTOR = "CONSTRUCTOR";
 
+  public static final String CONSTRUCTOR_TEAR_OFF = "CONSTRUCTOR_TEAR_OFF";
+
   public static final String DIRECTIVE = "DIRECTIVE";
 
   /**
@@ -91,6 +93,8 @@ public class HighlightRegionType {
 
   public static final String INSTANCE_METHOD_REFERENCE = "INSTANCE_METHOD_REFERENCE";
 
+  public static final String INSTANCE_METHOD_TEAR_OFF = "INSTANCE_METHOD_TEAR_OFF";
+
   public static final String INSTANCE_SETTER_DECLARATION = "INSTANCE_SETTER_DECLARATION";
 
   public static final String INSTANCE_SETTER_REFERENCE = "INSTANCE_SETTER_REFERENCE";
@@ -118,6 +122,8 @@ public class HighlightRegionType {
   public static final String LOCAL_FUNCTION_DECLARATION = "LOCAL_FUNCTION_DECLARATION";
 
   public static final String LOCAL_FUNCTION_REFERENCE = "LOCAL_FUNCTION_REFERENCE";
+
+  public static final String LOCAL_FUNCTION_TEAR_OFF = "LOCAL_FUNCTION_TEAR_OFF";
 
   /**
    * Deprecated - no longer sent.
@@ -177,6 +183,8 @@ public class HighlightRegionType {
 
   public static final String STATIC_METHOD_REFERENCE = "STATIC_METHOD_REFERENCE";
 
+  public static final String STATIC_METHOD_TEAR_OFF = "STATIC_METHOD_TEAR_OFF";
+
   public static final String STATIC_SETTER_DECLARATION = "STATIC_SETTER_DECLARATION";
 
   public static final String STATIC_SETTER_REFERENCE = "STATIC_SETTER_REFERENCE";
@@ -184,6 +192,8 @@ public class HighlightRegionType {
   public static final String TOP_LEVEL_FUNCTION_DECLARATION = "TOP_LEVEL_FUNCTION_DECLARATION";
 
   public static final String TOP_LEVEL_FUNCTION_REFERENCE = "TOP_LEVEL_FUNCTION_REFERENCE";
+
+  public static final String TOP_LEVEL_FUNCTION_TEAR_OFF = "TOP_LEVEL_FUNCTION_TEAR_OFF";
 
   public static final String TOP_LEVEL_GETTER_DECLARATION = "TOP_LEVEL_GETTER_DECLARATION";
 

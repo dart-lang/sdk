@@ -384,8 +384,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln("import 'dart:convert' hide JsonDecoder;");
     writeln();
     if (isServer) {
-      writeln(
-          "import 'package:analyzer/src/generated/utilities_general.dart';");
       writeln("import 'package:$packageName/protocol/protocol.dart';");
       writeln(
           "import 'package:$packageName/src/protocol/protocol_internal.dart';");
@@ -400,7 +398,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           "import 'package:$packageName/src/protocol/protocol_common.dart';");
       writeln(
           "import 'package:$packageName/src/protocol/protocol_internal.dart';");
-      writeln("import 'package:$packageName/src/protocol/protocol_util.dart';");
     }
   }
 
@@ -641,25 +638,34 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the hashCode getter for an object class.
   void emitObjectHashCode(TypeObject? type, String className) {
     writeln('@override');
-    writeln('int get hashCode {');
+    writeln('int get hashCode => ');
     indent(() {
       if (type == null) {
-        writeln('return ${className.hashCode};');
+        writeln(' ${className.hashCode}');
       } else {
-        writeln('var hash = 0;');
-        for (var field in type.fields) {
-          String valueToCombine;
+        final items = type.fields.map((field) {
           if (field.value != null) {
-            valueToCombine = field.value.hashCode.toString();
+            return field.value.hashCode.toString();
           } else {
-            valueToCombine = '${field.name}.hashCode';
+            return field.name;
           }
-          writeln('hash = JenkinsSmiHash.combine(hash, $valueToCombine);');
+        }).toList();
+
+        if (items.isEmpty) {
+          writeln('0');
+        } else if (items.length == 1) {
+          write(items.single);
+          write('.hashCode');
+        } else {
+          writeln('Object.hash(');
+          for (var field in items) {
+            writeln('$field,');
+          }
+          writeln(')');
         }
-        writeln('return JenkinsSmiHash.finish(hash);');
       }
+      writeln(';');
     });
-    writeln('}');
   }
 
   /// If the class named [className] requires special constructors, emit them

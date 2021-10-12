@@ -67,10 +67,14 @@ dart/appjit_cha_deopt_test: SkipSlow
 dart/regress_40462_test: SkipSlow
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
+dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
+dart/v8_snapshot_profile_writer_test: SkipSlow
 dart_2/appjit_cha_deopt_test: SkipSlow
 dart_2/regress_40462_test: SkipSlow
 dart_2/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart_2/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
+dart_2/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
+dart_2/v8_snapshot_profile_writer_test: SkipSlow
 
 [ $compiler == app_jitk ]
 dart/snapshot_version_test: RuntimeError
@@ -313,6 +317,8 @@ dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Do
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+cc/DartAPI_NativeFieldAccess: Skip # Test uses dart:ffi which is not supported on simulators.
+cc/DartAPI_NativeFieldAccess_Throws: Skip # Test uses dart:ffi which is not supported on simulators.
 cc/Dart_SetFfiNativeResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 cc/Dart_SetFfiNativeResolver_DoesNotResolve: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 cc/Dart_SetFfiNativeResolver_MissingResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.

@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int boz;
+  synthetic constructor •() → self::A
+    ;
+  method foo(core::int n) → core::num
+    ;
+  method bar({required core::int x}) → core::num
+    ;
+  set baz(core::int x) → void
+    ;
+}
+abstract class B<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X%>
+    ;
+  abstract method foo(covariant-by-class self::B::X% x) → self::B::X%;
+  abstract method bar({required covariant-by-class self::B::X% x}) → self::B::X%;
+  abstract set baz(covariant-by-class self::B::X% x) → void;
+  abstract set boz(covariant-by-class self::B::X% x) → void;
+}
+abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&A&B
+    : super self::A::•()
+    ;
+  forwarding-stub set boz(covariant-by-class core::num x) → void
+    return super.{self::A::boz} = x as core::int;
+  forwarding-stub method foo(covariant-by-class core::num x) → core::num
+    return super.{self::A::foo}(x as core::int);
+  forwarding-stub method bar({required covariant-by-class core::num x}) → core::num
+    return super.{self::A::bar}(x: x as core::int);
+  forwarding-stub set baz(covariant-by-class core::num x) → void
+    return super.{self::A::baz} = x as core::int;
+}
+class C extends self::_C&A&B {
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → void
+  ;
+static method throws(() → void f) → dynamic
+  ;

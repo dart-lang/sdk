@@ -2,8 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+_toolchain_cpu = host_cpu
+if (host_os == "mac") {
+  # TODO(https://fxbug.dev/73385): Use arm64 toolchain on arm64 when it exists.
+  _toolchain_cpu = "x64"
+}
+
 default_clang_prefix =
-    rebase_path("//buildtools/${host_os}-${host_cpu}/clang/bin", root_build_dir)
+    rebase_path("//buildtools/${host_os}-${_toolchain_cpu}/clang/bin",
+                root_build_dir)
 
 declare_args() {
   clang_prefix = default_clang_prefix

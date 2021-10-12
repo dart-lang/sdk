@@ -15,7 +15,8 @@ import "dart:_internal" show VMLibraryHooks, patch;
 // part "timer_patch.dart";
 
 // Equivalent of calling FATAL from C++ code.
-_fatal(msg) native "DartAsync_fatal";
+@pragma("vm:external-name", "DartAsync_fatal")
+external _fatal(msg);
 
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
@@ -244,7 +245,8 @@ class _AsyncStarStreamController<T> {
 }
 
 @patch
-void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
+@pragma("vm:external-name", "Async_rethrow")
+external void _rethrow(Object error, StackTrace stackTrace);
 
 @patch
 class _StreamImpl<T> {
@@ -275,5 +277,5 @@ void _completeOnAsyncError(
   }
 }
 
-void _moveNextDebuggerStepCheck(Function async_op)
-    native "AsyncStarMoveNext_debuggerStepCheck";
+@pragma("vm:external-name", "AsyncStarMoveNext_debuggerStepCheck")
+external void _moveNextDebuggerStepCheck(Function async_op);

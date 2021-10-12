@@ -43,7 +43,7 @@ Future<void> main(List<String> args) async {
 
   await setup(entryUri);
 
-  Map<Uri, List<int>> files = await scanReachableFiles(entryUri);
+  Map<Uri, List<int>> files = scanReachableFiles(entryUri);
   var handlers = {
     'scan': () async => scanFiles(files),
     // TODO(sigmund): enable when we can run the ast-builder standalone.
@@ -113,7 +113,7 @@ void scanFiles(Map<Uri, List<int>> files) {
 
 /// Load and scans all files we need to process: files reachable from the
 /// entrypoint and all core libraries automatically included by the VM.
-Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
+Map<Uri, List<int>> scanReachableFiles(Uri entryUri) {
   var files = <Uri, List<int>>{};
   var loadTimer = new Stopwatch()..start();
   scanTimer = new Stopwatch();
@@ -134,7 +134,7 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
     Uri.parse('dart:typed_data'),
   ];
   for (var entry in entrypoints) {
-    await collectSources(entry, files);
+    collectSources(entry, files);
   }
   loadTimer.stop();
 
@@ -151,7 +151,7 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
 }
 
 /// Add to [files] all sources reachable from [start].
-Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
+void collectSources(Uri start, Map<Uri, List<int>> files) {
   void helper(Uri uri) {
     uri = uriResolver.translate(uri) ?? uri;
     // ignore: unnecessary_null_comparison
@@ -221,7 +221,7 @@ Future<CompilerResult> generateKernel(Uri entryUri,
     {bool compileSdk: true}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
-  await scanReachableFiles(entryUri);
+  scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()

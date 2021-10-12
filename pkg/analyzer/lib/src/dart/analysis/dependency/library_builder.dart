@@ -169,9 +169,9 @@ class _LibraryBuilder {
   void _addClassOrMixin(ClassOrMixinDeclaration node) {
     var enclosingClassName = node.name.name;
 
-    TypeName? enclosingSuperClass;
+    NamedType? enclosingSuperClass;
     if (node is ClassDeclaration) {
-      enclosingSuperClass = node.extendsClause?.superclass;
+      enclosingSuperClass = node.extendsClause?.superclass2;
     }
 
     enclosingClassNameSignature =
@@ -288,7 +288,7 @@ class _LibraryBuilder {
     var api = referenceCollector.collect(
       apiTokenSignature,
       typeParameters: node.typeParameters,
-      superClass: node.superclass,
+      superClass: node.superclass2,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
     );
@@ -303,7 +303,7 @@ class _LibraryBuilder {
 
   void _addConstructor(
     Node enclosingClass,
-    TypeName? enclosingSuperClass,
+    NamedType? enclosingSuperClass,
     List<Node> classMembers,
     ConstructorDeclaration node,
   ) {

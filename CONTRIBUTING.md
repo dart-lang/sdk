@@ -12,7 +12,7 @@ If you'd like to improve the documentation, you have three options:
     * To report an API doc bug,
       [create an SDK issue](https://github.com/dart-lang/sdk/issues/new?title=API%20doc%20issue:).
   * Contribute to the Dart developer websites such as [dart.dev](https://dart.dev) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)) and [dart.dev/web](https://dart.dev/web) (repo: [dart-lang/site-www/src/web](https://github.com/dart-lang/site-www/tree/master/src/web)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/wiki/Writing-for-Dart-and-Flutter-websites).
-  * Improve the API reference docs at [api.dart.dev](https://api.dart.dev) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/master/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://dart.dev/guides/language/effective-dart/documentation).
+  * Improve the API reference docs at [api.dart.dev](https://api.dart.dev) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/main/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://dart.dev/guides/language/effective-dart/documentation).
 
 ## Before you contribute
 
@@ -26,7 +26,7 @@ We occasionally take pull requests, e.g., for comment changes, but the main flow
 
 ## Getting the code
 
-To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `master` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source)
+To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `main` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source)
 
 ## Starting a patch with git
 
@@ -41,10 +41,10 @@ git commit
 ...
 ```
 
-## Keeping your branch updated with origin/master
+## Keeping your branch updated with origin/main
 
 As you work, and before you send a patch for review, you should
-ensure your branch is merging cleanly to `origin/master`.
+ensure your branch is merging cleanly to `origin/main`.
 
 There are multiple ways to do this, but we generally recommend
 running:
@@ -56,7 +56,7 @@ git rebase-update
 Note: you can run this command from any branch.
 
 This command will fetch
-origin/master, rebase all your open branches, and delete
+`origin/main`, rebase all your open branches, and delete
 cleanly merged branches.
 
 Your local workflow may vary.

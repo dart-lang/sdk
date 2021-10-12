@@ -254,7 +254,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (name != null) {
         constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName.type.name.staticElement;
+        var classElem = parent.constructorName.type2.name.staticElement;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -452,7 +452,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    if (identical(entity, node.superclass)) {
+    if (identical(entity, node.superclass2)) {
       optype.completionLocation = 'ClassTypeAlias_superclass';
       optype.includeTypeNameSuggestions = true;
     }
@@ -646,7 +646,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    if (identical(entity, node.superclass)) {
+    if (identical(entity, node.superclass2)) {
       optype.completionLocation = 'ExtendsClause_superclass';
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = _nonMixinClasses;
@@ -1073,6 +1073,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    // The entity won't be the first child entity (node.name), since
+    // CompletionTarget would have chosen an edge higher in the parse tree. So
+    // it must be node.typeArguments, meaning that the cursor is between the
+    // type name and the "<" that starts the type arguments. In this case,
+    // we have no completions to offer.
+    assert(identical(entity, node.typeArguments));
+  }
+
+  @override
   void visitNode(AstNode node) {
     // no suggestion by default
   }
@@ -1120,7 +1130,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return;
       }
       optype.isPrefixed = true;
-      if (node.parent is TypeName && node.parent?.parent is ConstructorName) {
+      if (node.parent is NamedType && node.parent?.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
       } else if (node.parent is Annotation) {
         optype.includeConstructorSuggestions = true;
@@ -1353,16 +1363,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    // The entity won't be the first child entity (node.name), since
-    // CompletionTarget would have chosen an edge higher in the parse tree. So
-    // it must be node.typeArguments, meaning that the cursor is between the
-    // type name and the "<" that starts the type arguments. In this case,
-    // we have no completions to offer.
-    assert(identical(entity, node.typeArguments));
-  }
-
-  @override
   void visitTypeParameter(TypeParameter node) {
     if (entity == node.bound) {
       optype.completionLocation = 'TypeParameter_bound';
@@ -1408,7 +1408,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    if (node.mixinTypes.contains(entity)) {
+    if (node.mixinTypes2.contains(entity)) {
       optype.completionLocation = 'WithClause_mixinType';
     }
     optype.includeTypeNameSuggestions = true;

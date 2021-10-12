@@ -293,6 +293,8 @@ class ServerCapabilitiesComputer {
         // interestingFiles. Prefix a `**/` so that the glob matches nested
         // folders as well.
         .map((glob) => DocumentFilter(scheme: 'file', pattern: '**/$glob'));
+    final pluginTypesExcludingDart =
+        pluginTypes.where((filter) => filter.pattern != '**/*.dart');
 
     final fullySupportedTypes = {dartFiles, ...pluginTypes}.toList();
 
@@ -314,7 +316,7 @@ class ServerCapabilitiesComputer {
     final completionSupportedTypesExcludingDart = {
       // Dart is excluded here at it's registered separately with trigger/commit
       // characters.
-      ...pluginTypes,
+      ...pluginTypesExcludingDart,
       pubspecFile,
       analysisOptionsFile,
       fixDataFile,

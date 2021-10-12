@@ -5,15 +5,9 @@
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/macro/api/macro.dart' as macro;
-import 'package:analyzer/src/macro/builders/data_class.dart' as macro;
-import 'package:analyzer/src/macro/builders/observable.dart' as macro;
-import 'package:analyzer/src/macro/impl/error.dart' as macro;
-import 'package:analyzer/src/macro/impl/macro.dart' as macro;
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
@@ -147,38 +141,6 @@ class LibraryBuilder {
     }
   }
 
-  /// We don't create default constructors during building elements from AST,
-  /// there might be macros that will add one later. So, this method is
-  /// invoked after all macros that affect element models.
-  void processClassConstructors() {
-    // TODO(scheglov) We probably don't need constructors for mixins.
-    var classes = element.topLevelElements
-        .whereType<ClassElementImpl>()
-        .where((e) => !e.isMixinApplication)
-        .toList();
-
-    for (var element in classes) {
-      if (element.constructors.isEmpty) {
-        var containerRef = element.reference!.getChild('@constructor');
-        element.constructors = [
-          ConstructorElementImpl('', -1)
-            ..isSynthetic = true
-            ..reference = containerRef.getChild(''),
-        ];
-      }
-
-      // We have all fields and constructors.
-      // Now we can resolve field formal parameters.
-      for (var constructor in element.constructors) {
-        for (var parameter in constructor.parameters) {
-          if (parameter is FieldFormalParameterElementImpl) {
-            parameter.field = element.getField(parameter.name);
-          }
-        }
-      }
-    }
-  }
-
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, element).resolve();
   }
@@ -198,139 +160,6 @@ class LibraryBuilder {
     for (var linkingUnit in units) {
       var resolver = ReferenceResolver(linker, nodesToBuildType, element);
       linkingUnit.node.accept(resolver);
-    }
-  }
-
-  /// Run built-in declaration macros.
-  void runDeclarationMacros() {
-    /// If [node] has a macro annotation with the required [name],
-    /// return the index of this annotation node.
-    int? hasMacroAnnotation(ast.AnnotatedNode node, String name) {
-      var metadata = node.metadata;
-      for (var i = 0; i < metadata.length; i++) {
-        var annotation = metadata[i];
-        var nameNode = annotation.name;
-        if (nameNode is ast.SimpleIdentifier &&
-            annotation.arguments == null &&
-            annotation.constructorName == null &&
-            nameNode.name == name) {
-          var nameElement = element.scope.lookup(name).getter;
-          if (nameElement != null &&
-              nameElement.library?.name == 'analyzer.macro.annotations') {
-            return i;
-          }
-        }
-      }
-      return null;
-    }
-
-    /// Build types for type annotations in new [nodes].
-    void resolveTypeAnnotations(
-      List<ast.AstNode> nodes, {
-      ClassElementImpl? classElement,
-    }) {
-      var nodesToBuildType = NodesToBuildType();
-      var resolver = ReferenceResolver(linker, nodesToBuildType, element);
-      if (classElement != null) {
-        resolver.enterScopeClassElement(classElement);
-      }
-      for (var node in nodes) {
-        node.accept(resolver);
-      }
-      TypesBuilder(linker).build(nodesToBuildType);
-    }
-
-    for (var linkingUnit in units) {
-      var classDeclarationIndex = -1;
-      for (var declaration in linkingUnit.node.declarations) {
-        if (declaration is ast.ClassDeclarationImpl) {
-          classDeclarationIndex++;
-          var macroExecutionErrors = <macro.MacroExecutionError>[];
-
-          var members = declaration.members.toList();
-          var classBuilder = macro.ClassDeclarationBuilderImpl(
-            linkingUnit,
-            classDeclarationIndex,
-            declaration,
-          );
-
-          void runClassMacro(
-            String name,
-            macro.ClassDeclarationMacro Function() newInstance,
-          ) {
-            var annotationIndex = hasMacroAnnotation(declaration, name);
-            if (annotationIndex != null) {
-              try {
-                newInstance().visitClassDeclaration(
-                  declaration,
-                  classBuilder,
-                );
-              } catch (e) {
-                macroExecutionErrors.add(
-                  macro.MacroExecutionError(
-                    annotationIndex: annotationIndex,
-                    macroName: name,
-                    message: e.toString(),
-                  ),
-                );
-              }
-            }
-          }
-
-          runClassMacro('autoConstructor', () => macro.AutoConstructorMacro());
-          runClassMacro('dataClass', () => macro.DataClassMacro());
-          runClassMacro('hashCode', () => macro.HashCodeMacro());
-          runClassMacro('toString', () => macro.ToStringMacro());
-
-          var classElement = declaration.declaredElement as ClassElementImpl;
-          classElement.macroExecutionErrors = macroExecutionErrors;
-
-          for (var member in members) {
-            if (member is ast.FieldDeclarationImpl) {
-              var macroExecutionErrors = <macro.MacroExecutionError>[];
-
-              void runFieldMacro(
-                String name,
-                macro.FieldDeclarationMacro Function() newInstance,
-              ) {
-                var annotationIndex = hasMacroAnnotation(member, name);
-                if (annotationIndex != null) {
-                  try {
-                    newInstance().visitFieldDeclaration(member, classBuilder);
-                  } catch (e) {
-                    macroExecutionErrors.add(
-                      macro.MacroExecutionError(
-                        annotationIndex: annotationIndex,
-                        macroName: name,
-                        message: e.toString(),
-                      ),
-                    );
-                  }
-                }
-              }
-
-              runFieldMacro('observable', () => macro.ObservableMacro());
-              member.firstElement.macroExecutionErrors = macroExecutionErrors;
-            }
-          }
-
-          var newMembers = declaration.members.sublist(members.length);
-          if (newMembers.isNotEmpty) {
-            var elementBuilder = ElementBuilder(
-              libraryBuilder: this,
-              unitReference: linkingUnit.reference,
-              unitElement: linkingUnit.element,
-            );
-            var classElement = declaration.declaredElement as ClassElementImpl;
-            elementBuilder.buildMacroClassMembers(classElement, newMembers);
-            resolveTypeAnnotations(newMembers, classElement: classElement);
-          }
-        }
-      }
-    }
-
-    for (var linkingUnit in units) {
-      linkingUnit.macroGeneratedContent.finish();
     }
   }
 
@@ -415,7 +244,6 @@ class LibraryBuilder {
       unitElement.librarySource = inputLibrary.source;
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = inputUnit.source;
-      unitElement.sourceContent = inputUnit.sourceContent;
       unitElement.uri = inputUnit.partUriStr;
       unitElement.setCodeRange(0, unitNode.length);
 
@@ -461,8 +289,6 @@ class LinkingUnit {
   final Reference reference;
   final ast.CompilationUnitImpl node;
   final CompilationUnitElementImpl element;
-  late final macro.MacroGeneratedContent macroGeneratedContent =
-      macro.MacroGeneratedContent(this);
 
   LinkingUnit({
     required this.input,

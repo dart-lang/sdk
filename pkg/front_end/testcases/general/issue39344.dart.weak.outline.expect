@@ -23,13 +23,13 @@ class B extends self::A {
 class Class<T extends self::A*> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T*>*
     ;
-  method method1a(generic-covariant-impl self::Class::T* t) → void
+  method method1a(covariant-by-class self::Class::T* t) → void
     ;
-  method method1b(generic-covariant-impl self::Class::T* t) → void
+  method method1b(covariant-by-class self::Class::T* t) → void
     ;
-  method method2a(generic-covariant-impl self::Class::T* t) → void
+  method method2a(covariant-by-class self::Class::T* t) → void
     ;
-  method method2b(generic-covariant-impl self::Class::T* t) → void
+  method method2b(covariant-by-class self::Class::T* t) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

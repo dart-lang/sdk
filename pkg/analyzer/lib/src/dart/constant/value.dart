@@ -13,7 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 /// The state of an object representing a boolean value.
 class BoolState extends InstanceState {
@@ -184,7 +184,7 @@ class DartObjectImpl implements DartObject {
   Map<String, DartObjectImpl>? get fields => _state.fields;
 
   @override
-  int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
+  int get hashCode => Object.hash(type.hashCode, _state.hashCode);
 
   @override
   bool get hasKnownValue => !_state.isUnknown;
@@ -208,6 +208,9 @@ class DartObjectImpl implements DartObject {
   /// Return `true` if this object represents an instance of a user-defined
   /// class.
   bool get isUserDefinedObject => _state is GenericState;
+
+  @visibleForTesting
+  List<DartType>? get typeArguments => (_state as FunctionState)._typeArguments;
 
   @override
   bool operator ==(Object object) {
@@ -917,6 +920,23 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
+  /// Return the result of type-instantiating this object as [type].
+  ///
+  /// [typeArguments] are the type arguments used in the instantiation.
+  DartObjectImpl? typeInstantiate(
+    TypeSystemImpl typeSystem,
+    FunctionType type,
+    List<DartType> typeArguments,
+  ) {
+    var functionState = _state as FunctionState;
+    var element = functionState._element;
+    return DartObjectImpl(
+      typeSystem,
+      type,
+      FunctionState(element, typeArguments: typeArguments),
+    );
+  }
+
   /// Throw an exception if the given [object]'s state does not represent a Type
   /// value.
   void _assertType(DartObjectImpl object) {
@@ -1232,9 +1252,12 @@ class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
   final ExecutableElement? _element;
 
+  final List<DartType>? _typeArguments;
+
   /// Initialize a newly created state to represent the function with the given
   /// [element].
-  FunctionState(this._element);
+  FunctionState(this._element, {List<DartType>? typeArguments})
+      : _typeArguments = typeArguments;
 
   @override
   int get hashCode => _element == null ? 0 : _element.hashCode;
@@ -1243,8 +1266,28 @@ class FunctionState extends InstanceState {
   String get typeName => "Function";
 
   @override
-  bool operator ==(Object object) =>
-      object is FunctionState && (_element == object._element);
+  bool operator ==(Object object) {
+    if (object is! FunctionState) {
+      return false;
+    }
+    if (_element != object._element) {
+      return false;
+    }
+    var typeArguments = _typeArguments;
+    var otherTypeArguments = object._typeArguments;
+    if (typeArguments == null || otherTypeArguments == null) {
+      return typeArguments == null && otherTypeArguments == null;
+    }
+    if (typeArguments.length != otherTypeArguments.length) {
+      return false;
+    }
+    for (var i = 0; i < typeArguments.length; i++) {
+      if (typeArguments[i] != otherTypeArguments[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   StringState convertToString() {
@@ -1269,7 +1312,32 @@ class FunctionState extends InstanceState {
       if (rightElement == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(_element == rightElement);
+
+      var element = _element;
+      var otherElement = rightOperand._element;
+      var elementsAreEqual = identical(element, otherElement) ||
+          (element != null &&
+              otherElement != null &&
+              otherElement.kind == element.kind &&
+              otherElement.location == element.location);
+      if (!elementsAreEqual) {
+        return BoolState.FALSE_STATE;
+      }
+      var typeArguments = _typeArguments;
+      var otherTypeArguments = rightOperand._typeArguments;
+      if (typeArguments == null || otherTypeArguments == null) {
+        return BoolState.from(
+            typeArguments == null && otherTypeArguments == null);
+      }
+      if (typeArguments.length != otherTypeArguments.length) {
+        return BoolState.FALSE_STATE;
+      }
+      for (var i = 0; i < typeArguments.length; i++) {
+        if (typeArguments[i] != otherTypeArguments[i]) {
+          return BoolState.FALSE_STATE;
+        }
+      }
+      return BoolState.TRUE_STATE;
     }
     return BoolState.FALSE_STATE;
   }

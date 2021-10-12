@@ -32,7 +32,7 @@ import '../util/util.dart' show Setlet;
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
-  Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
+  final Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
   final CodegenWorldBuilderImpl _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
@@ -47,22 +47,21 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   WorldImpactVisitor _impactVisitor;
 
-  final Queue<WorkItem> _queue = new Queue<WorkItem>();
+  final Queue<WorkItem> _queue = Queue<WorkItem>();
 
   /// All declaration elements that have been processed by codegen.
-  final Set<MemberEntity> _processedEntities = new Set<MemberEntity>();
+  final Set<MemberEntity> _processedEntities = {};
 
   // If not `null` this is called when the queue has been emptied. It allows for
   // applying additional impacts before re-emptying the queue.
   void Function() onEmptyForTesting;
 
-  static const ImpactUseCase IMPACT_USE =
-      const ImpactUseCase('CodegenEnqueuer');
+  static const ImpactUseCase IMPACT_USE = ImpactUseCase('CodegenEnqueuer');
 
   CodegenEnqueuer(this.task, this._worldBuilder, this._workItemBuilder,
       this.listener, this._annotationsData)
       : this.name = 'codegen enqueuer' {
-    _impactVisitor = new EnqueuerImplImpactVisitor(this);
+    _impactVisitor = EnqueuerImplImpactVisitor(this);
   }
 
   @override
@@ -106,7 +105,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void _registerInstantiatedType(InterfaceType type,
-      {bool nativeUsage: false}) {
+      {bool nativeUsage = false}) {
     task.measureSubtask('codegen.typeUse', () {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse);
       listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
@@ -172,7 +171,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
       switch (staticUse.kind) {
         case StaticUseKind.CONSTRUCTOR_INVOKE:
         case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-          processTypeUse(member, new TypeUse.instantiation(staticUse.type));
+          processTypeUse(member, TypeUse.instantiation(staticUse.type));
           break;
         case StaticUseKind.INLINING:
           // TODO(johnniwinther): Should this be tracked with _MemberUsage ?

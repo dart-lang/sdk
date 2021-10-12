@@ -60,7 +60,7 @@ class A extends core::Object {
   get covariantInstanceField() → core::num
     return this.{self::A::_#A#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t7 = this.{self::A::_#A#covariantInstanceField}{core::num?} in #t7{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
   @#C1
-  set covariantInstanceField(covariant core::num #t8) → void {
+  set covariantInstanceField(covariant-by-declaration core::num #t8) → void {
     this.{self::A::_#A#covariantInstanceField#isSet} = true;
     this.{self::A::_#A#covariantInstanceField} = #t8;
   }
@@ -144,7 +144,7 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   get covariantInstanceField() → core::num
     return this.{self::B::_#B#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t21 = this.{self::B::_#B#covariantInstanceField}{core::num?} in #t21{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
   @#C1
-  set covariantInstanceField(covariant core::num #t22) → void {
+  set covariantInstanceField(covariant-by-declaration core::num #t22) → void {
     this.{self::B::_#B#covariantInstanceField#isSet} = true;
     this.{self::B::_#B#covariantInstanceField} = #t22;
   }

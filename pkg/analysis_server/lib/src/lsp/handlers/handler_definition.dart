@@ -6,7 +6,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisGetNavigationParams;
-import 'package:analysis_server/src/domains/analysis/macro_files.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -16,7 +15,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
 
@@ -56,10 +54,8 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     final result = await server.getResolvedUnit(path);
     final unit = result?.unit;
     if (result?.state == ResultState.VALID && unit != null) {
-      computeDartNavigation(server.resourceProvider, collector, unit, offset, 0,
-          analyzerConverter: AnalyzerConverter(
-              locationProvider: MacroElementLocationProvider(
-                  MacroFiles(server.resourceProvider))));
+      computeDartNavigation(
+          server.resourceProvider, collector, unit, offset, 0);
       collector.createRegions();
     }
 

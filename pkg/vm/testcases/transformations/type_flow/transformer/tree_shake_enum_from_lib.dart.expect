@@ -6,21 +6,19 @@ import "dart:_internal" as _in;
 
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/tree_shake_enum_from_lib.lib.dart";
 
-abstract class UnusedEnum extends core::Object implements core::Enum {
+abstract class UnusedEnum extends core::_Enum {
 }
-class UsedEnum extends core::Object implements core::Enum /*isEnum*/  {
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->i]  final field core::int index;
-[@vm.inferred-type.metadata=dart.core::_OneByteString (value: "UsedEnum.usedValue")] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  final field core::String _name;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method toString() → core::String
-    return [@vm.direct-call.metadata=#lib::UsedEnum._name] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "UsedEnum.usedValue")] this.{self::UsedEnum::_name}{core::String};
+class UsedEnum extends core::_Enum /*isEnum*/  {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method toString() → core::String
+    return "UsedEnum.${[@vm.direct-call.metadata=dart.core::_Enum._name] this.{core::_Enum::_name}{core::String}}";
 }
 abstract class UnusedInterface extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  abstract get /*isLegacy*/ usedInterfaceField() → core::int?;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  abstract set /*isLegacy*/ usedInterfaceField(core::int? value) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract get /*isLegacy*/ usedInterfaceField() → core::int?;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract set /*isLegacy*/ usedInterfaceField(core::int? value) → void;
 }
 class UsedClass extends core::Object implements self::UnusedInterface {
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  field core::int? usedField = null;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field core::int? usedInterfaceField = null;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field core::int? usedField = null;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field core::int? usedInterfaceField = null;
   synthetic constructor •() → self::UsedClass
     : super core::Object::•()
     ;
@@ -40,20 +38,19 @@ static method main() → dynamic {
 }
 constants  {
   #C1 = 1
-  #C2 = "UsedEnum.usedValue"
+  #C2 = "usedValue"
   #C3 = self::UsedEnum {index:#C1, _name:#C2}
 }
 library tree_shake_enum_from_lib.lib.dart /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-abstract class ConstEnum extends core::Object implements core::Enum {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3273]  abstract get /*isLegacy*/ index() → core::int;
+abstract class ConstEnum extends core::_Enum {
 }
 class ConstClass extends core::Object {
   synthetic constructor •() → self::ConstClass
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3274,getterSelectorId:3275]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
-    return [@vm.inferred-type.metadata=!] e.{self::ConstEnum::index}{core::int};
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3265,getterSelectorId:3266]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
+    return [@vm.inferred-type.metadata=!] e.{core::_Enum::index}{core::int};
 }

@@ -26,7 +26,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag, experimentEnabledVersion;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
-    show MemoryFileSystem;
+    show MemoryFileSystem, MemoryFileSystemEntity;
 
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 
@@ -124,13 +124,13 @@ const Expectation InitializedFromDillMismatch =
     const Expectation.fail("InitializedFromDillMismatch");
 const Expectation NNBDModeMismatch = const Expectation.fail("NNBDModeMismatch");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
-  return new Context(environment["updateExpectations"] == "true",
-      environment["addDebugBreaks"] == "true");
+  return new Future.value(new Context(
+      environment["updateExpectations"] == "true",
+      environment["addDebugBreaks"] == "true"));
 }
 
 class Context extends ChainContext {
@@ -299,12 +299,16 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
   checkIsEqual(normalDillData, initializedDillData);
 }
 
-Future<Map<String, List<int>>> createModules(Map module,
-    final List<int> sdkSummaryData, Target target, String sdkSummary) async {
+Future<Map<String, List<int>>> createModules(
+    Map module,
+    final List<int> sdkSummaryData,
+    Target target,
+    Target originalTarget,
+    String sdkSummary) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
-  MemoryFileSystem fs = new MemoryFileSystem(base);
+  TestMemoryFileSystem fs = new TestMemoryFileSystem(base);
   fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
 
   // Setup all sources
@@ -332,6 +336,10 @@ Future<Map<String, List<int>>> createModules(Map module,
         moduleSources.add(uri);
       }
     }
+    bool outlineOnly = false;
+    if (originalTarget is DevCompilerTarget) {
+      outlineOnly = true;
+    }
     CompilerOptions options =
         getOptions(target: target, sdkSummary: sdkSummary);
     options.fileSystem = fs;
@@ -345,8 +353,8 @@ Future<Map<String, List<int>>> createModules(Map module,
     if (packagesUri != null) {
       options.packagesFileUri = packagesUri;
     }
-    TestIncrementalCompiler compiler =
-        new TestIncrementalCompiler(options, moduleSources.first, null);
+    TestIncrementalCompiler compiler = new TestIncrementalCompiler(
+        options, moduleSources.first, /* initializeFrom = */ null, outlineOnly);
     Component c = await compiler.computeDelta(entryPoints: moduleSources);
     c.computeCanonicalNames();
     List<Library> wantedLibs = <Library>[];
@@ -416,6 +424,7 @@ class NewWorldTest {
         throw "Unknown target name '$targetName'";
       }
     }
+    Target originalTarget = target;
     target = new TestTargetWrapper(target, targetFlags);
 
     String sdkSummary = computePlatformDillName(
@@ -442,8 +451,8 @@ class NewWorldTest {
     Map<String, Component>? moduleComponents;
 
     if (modules != null) {
-      moduleData =
-          await createModules(modules, sdkSummaryData, target, sdkSummary);
+      moduleData = await createModules(
+          modules, sdkSummaryData, target, originalTarget, sdkSummary);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
               filename: null, disableLazyReading: false)
@@ -499,7 +508,7 @@ class NewWorldTest {
       }
 
       if (brandNewWorld) {
-        fs = new MemoryFileSystem(base);
+        fs = new TestMemoryFileSystem(base);
       }
       fs!.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
       bool expectInitializeFromDill = false;
@@ -1961,8 +1970,11 @@ void doSimulateTransformer(Component c) {
     Name fieldName = new Name("unique_SimulateTransformer");
     Field field = new Field.immutable(fieldName,
         isFinal: true,
-        getterReference: lib.reference.canonicalName
+        fieldReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
+            .reference,
+        getterReference: lib.reference.canonicalName
+            ?.getChildFromFieldGetterWithName(fieldName)
             .reference,
         fileUri: lib.fileUri);
     lib.addField(field);
@@ -1974,11 +1986,30 @@ void doSimulateTransformer(Component c) {
       fieldName = new Name("unique_SimulateTransformer");
       field = new Field.immutable(fieldName,
           isFinal: true,
-          getterReference: c.reference.canonicalName
+          fieldReference: lib.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
+              .reference,
+          getterReference: c.reference.canonicalName
+              ?.getChildFromFieldGetterWithName(fieldName)
               .reference,
           fileUri: c.fileUri);
       c.addField(field);
     }
+  }
+}
+
+class TestMemoryFileSystem extends MemoryFileSystem {
+  TestMemoryFileSystem(Uri currentDirectory) : super(currentDirectory);
+
+  @override
+  MemoryFileSystemEntity entityForUri(Uri uri) {
+    // Try to "sanitize" the uri as a real file system does, namely
+    // "a/b.dart" and "a//b.dart" returns the same file.
+    if (uri.pathSegments.contains("")) {
+      Uri newUri = uri.replace(
+          pathSegments: uri.pathSegments.where((element) => element != ""));
+      return super.entityForUri(newUri);
+    }
+    return super.entityForUri(uri);
   }
 }

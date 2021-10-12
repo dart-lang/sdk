@@ -8,18 +8,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddConst extends CorrectionProducer {
   @override
-  bool canBeAppliedInBulk;
+  bool get canBeAppliedInBulk => true;
 
   @override
-  bool canBeAppliedToFile;
-
-  AddConst(this.canBeAppliedInBulk, this.canBeAppliedToFile);
+  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_CONST;
@@ -42,10 +41,29 @@ class AddConst extends CorrectionProducer {
       return;
     }
 
+    bool isParentConstant(
+        DartFileEditBuilderImpl builder, Expression targetNode) {
+      var edits = builder.fileEdit.edits;
+      var child = targetNode.parent;
+      while (child is Expression || child is ArgumentList) {
+        if (edits.any((element) =>
+            element.replacement == 'const ' &&
+            element.offset == child!.offset)) {
+          return true;
+        }
+        child = child!.parent;
+      }
+      return false;
+    }
+
     Future<void> insertAtOffset(Expression targetNode) async {
       var finder = _ConstRangeFinder();
       targetNode.accept(finder);
       await builder.addDartFileEdit(file, (builder) {
+        if (builder is DartFileEditBuilderImpl &&
+            isParentConstant(builder, targetNode)) {
+          return;
+        }
         builder.addSimpleInsertion(targetNode.offset, 'const ');
         for (var range in finder.ranges) {
           builder.addDeletion(range);
@@ -61,7 +79,7 @@ class AddConst extends CorrectionProducer {
       await insertAtOffset(targetNode);
       return;
     }
-    if (targetNode is TypeName) {
+    if (targetNode is NamedType) {
       targetNode = targetNode.parent;
     }
     if (targetNode is ConstructorName) {
@@ -76,16 +94,7 @@ class AddConst extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddConst toDeclaration() => AddConst(true, true);
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  // TODO(brianwilkerson) This fix can produce changes that are inconsistent
-  //  with the `unnecessary_const` lint. Fix it and then enable it for both
-  //  uses.
-  static AddConst toInvocation() => AddConst(false, false);
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddConst toLiteral() => AddConst(true, true);
+  static AddConst newInstance() => AddConst();
 }
 
 class _ConstRangeFinder extends RecursiveAstVisitor<void> {

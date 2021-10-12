@@ -4,6 +4,7 @@
 
 #include "vm/log.h"
 
+#include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/thread.h"
@@ -28,8 +29,43 @@ DEFINE_FLAG(charp,
             "Default: service isolate log messages are suppressed "
             "(specify 'vm-service' to log them).");
 
-Log::Log(LogPrinter printer)
-    : printer_(printer), manual_flush_(0), buffer_(0) {}
+DEFINE_FLAG(charp,
+            redirect_isolate_log_to,
+            nullptr,
+            "Log isolate messages into the given file.");
+
+namespace {
+class LogFile {
+ public:
+  static const LogFile& Instance() {
+    static LogFile log_file;
+    return log_file;
+  }
+
+  static void Print(const char* data) {
+    Dart::file_write_callback()(data, strlen(data), Instance().handle_);
+  }
+
+ private:
+  LogFile()
+      : handle_(Dart::file_open_callback()(FLAG_redirect_isolate_log_to,
+                                           /*write=*/true)) {}
+
+  ~LogFile() { Dart::file_close_callback()(handle_); }
+
+  void* handle_;
+};
+}  // namespace
+
+Log::Log(LogPrinter printer) : printer_(printer), manual_flush_(0), buffer_(0) {
+  if (printer_ == nullptr) {
+    if (FLAG_redirect_isolate_log_to == nullptr) {
+      printer_ = [](const char* data) { OS::PrintErr("%s", data); };
+    } else {
+      printer_ = &LogFile::Print;
+    }
+  }
+}
 
 Log::~Log() {
   // Did someone enable manual flushing and then forgot to Flush?
@@ -108,7 +144,7 @@ void Log::Flush(const intptr_t cursor) {
   TerminateString();
   const char* str = &buffer_[cursor];
   ASSERT(str != nullptr);
-  printer_("%s", str);
+  printer_(str);
   buffer_.TruncateTo(cursor);
 }
 
@@ -172,6 +208,13 @@ void Log::DisableManualFlush(const intptr_t cursor) {
 }
 
 bool Log::ShouldFlush() const {
+#ifdef DART_TARGET_OS_ANDROID
+  // Android truncates on 1023 characters, flush more eagerly.
+  // Flush on newlines, because otherwise Android inserts newlines everywhere.
+  if (*(buffer_.end() - 1) == '\n') {
+    return true;
+  }
+#endif  // DART_TARGET_OS_ANDROID
   return ((manual_flush_ == 0) || FLAG_force_log_flush ||
           ((FLAG_force_log_flush_at_size > 0) &&
            (cursor() > FLAG_force_log_flush_at_size)));

@@ -395,14 +395,17 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      expect(e.nameOffset, isNonNegative);
+      expect(e.nameOffset, isPositive);
     }
   }
 
   void _writeDocumentation(Element element) {
     var documentation = element.documentationComment;
     if (documentation != null) {
-      _writelnMultiLineWithIndent('documentationComment: $documentation');
+      var str = documentation;
+      str = str.replaceAll('\n', r'\n');
+      str = str.replaceAll('\r', r'\r');
+      _writelnWithIndent('documentationComment: $str');
     }
   }
 
@@ -516,12 +519,6 @@ class _ElementWriter {
     buffer.write(indent);
     f();
     buffer.writeln();
-  }
-
-  void _writelnMultiLineWithIndent(String str) {
-    str = str.replaceAll('\n', r'\n');
-    str = str.replaceAll('\r', r'\r');
-    _writelnWithIndent(str);
   }
 
   void _writelnWithIndent(String line) {
@@ -648,8 +645,6 @@ class _ElementWriter {
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
-    e as PropertyAccessorElementImpl;
-
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
@@ -796,13 +791,12 @@ class _ElementWriter {
       }
 
       var aliasedElement = e.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        final aliasedElement_ = aliasedElement as GenericFunctionTypeElement;
+      if (aliasedElement is GenericFunctionTypeElementImpl) {
         _writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
         _withIndent(() {
-          _writeTypeParameterElements(aliasedElement_.typeParameters);
-          _writeParameterElements(aliasedElement_.parameters);
-          _writeType(aliasedElement_.returnType, name: 'returnType');
+          _writeTypeParameterElements(aliasedElement.typeParameters);
+          _writeParameterElements(aliasedElement.parameters);
+          _writeType(aliasedElement.returnType, name: 'returnType');
         });
       }
     });
@@ -859,7 +853,6 @@ class _ElementWriter {
   }
 
   void _writeUnitElement(CompilationUnitElement e) {
-    e as CompilationUnitElementImpl;
     _writeElements('classes', e.classes, _writeClassElement);
     _writeElements('enums', e.enums, _writeClassElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
@@ -876,12 +869,6 @@ class _ElementWriter {
       _writePropertyAccessorElement,
     );
     _writeElements('functions', e.functions, _writeFunctionElement);
-
-    var macroGeneratedContent = e.macroGeneratedContent;
-    if (macroGeneratedContent != null) {
-      _writelnWithIndent('macroGeneratedContent');
-      buffer.write(macroGeneratedContent);
-    }
   }
 
   void _writeUri(Source? source) {

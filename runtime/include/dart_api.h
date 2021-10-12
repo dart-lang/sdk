@@ -3046,7 +3046,7 @@ typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
  *
  * See Dart_SetFfiNativeResolver.
  */
-typedef void* (*Dart_FfiNativeResolver)(const char* name);
+typedef void* (*Dart_FfiNativeResolver)(const char* name, uintptr_t args_n);
 
 /*
  * ===========
@@ -3448,17 +3448,6 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadLibraryFromKernel(const uint8_t* kernel_buffer,
                            intptr_t kernel_buffer_size);
-
-/**
- * Returns a flattened list of pairs. The first element in each pair is the
- * importing library and and the second element is the imported library for each
- * import in the isolate of a library whose URI's scheme is [scheme].
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to a list of flattened pairs of importer-importee.
- */
-DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme);
 
 /**
  * Indicates that all outstanding load requests have been satisfied.

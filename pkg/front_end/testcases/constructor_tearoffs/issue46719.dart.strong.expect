@@ -23,35 +23,34 @@ extension FunctionApplier on core::Function {
 static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
   return <self::m::X%>[x];
 static method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
-  return core::print(core::Function::apply(#this, positionalArguments, #C2));
+  return core::print(core::Function::apply(#this, positionalArguments, #C1));
 static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
   return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
 static method test() → dynamic {
-  (#C4).{core::Object::toString}(){() → core::String};
+  #C3.{core::Object::toString}(){() → core::String};
 }
 static method main() → void {
   self::A<dynamic> a = new self::A::•<dynamic>();
   self::FunctionApplier|applyAndPrint(a.{self::A::m}{<X extends core::Object? = dynamic>(X%) → core::List<X%>}<core::int>, <core::Object?>[2]);
   self::FunctionApplier|applyAndPrint(a.{self::A::m}{<X extends core::Object? = dynamic>(X%) → core::List<X%>}<core::String>, <core::Object?>["three"]);
-  self::FunctionApplier|applyAndPrint(#C6, <core::Object?>[2]);
-  self::FunctionApplier|applyAndPrint(#C7, <core::Object?>["three"]);
-  self::FunctionApplier|applyAndPrint(#C9, <core::Object?>[2]);
-  self::FunctionApplier|applyAndPrint(#C10, <core::Object?>["three"]);
-  self::FunctionApplier|applyAndPrint(#C6, <core::Object?>[2]);
-  self::FunctionApplier|applyAndPrint(#C7, <core::Object?>["three"]);
-  (#C3).{core::Object::toString}(){() → core::String};
-  (#C4).{core::Object::toString}(){() → core::String};
+  self::FunctionApplier|applyAndPrint(#C5, <core::Object?>[2]);
+  self::FunctionApplier|applyAndPrint(#C6, <core::Object?>["three"]);
+  self::FunctionApplier|applyAndPrint(#C8, <core::Object?>[2]);
+  self::FunctionApplier|applyAndPrint(#C9, <core::Object?>["three"]);
+  self::FunctionApplier|applyAndPrint(#C5, <core::Object?>[2]);
+  self::FunctionApplier|applyAndPrint(#C6, <core::Object?>["three"]);
+  #C2.{core::Object::toString}(){() → core::String};
+  #C3.{core::Object::toString}(){() → core::String};
 }
 
 constants  {
-  #C1 = <dynamic>[]
-  #C2 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C1}
-  #C3 = constructor-tearoff self::A::named
-  #C4 = instantiation self::A::named <core::int>
-  #C5 = static-tearoff self::A::n
-  #C6 = instantiation self::A::n <core::int>
-  #C7 = instantiation self::A::n <core::String>
-  #C8 = static-tearoff self::m
-  #C9 = instantiation self::m <core::int>
-  #C10 = instantiation self::m <core::String>
+  #C1 = <core::Symbol, dynamic>{)
+  #C2 = constructor-tearoff self::A::named
+  #C3 = instantiation self::A::named <core::int>
+  #C4 = static-tearoff self::A::n
+  #C5 = instantiation self::A::n <core::int>
+  #C6 = instantiation self::A::n <core::String>
+  #C7 = static-tearoff self::m
+  #C8 = instantiation self::m <core::int>
+  #C9 = instantiation self::m <core::String>
 }

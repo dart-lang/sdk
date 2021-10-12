@@ -89,19 +89,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
-  /// Build elements for [members] and add into the [element].
-  void buildMacroClassMembers(
-    ClassElementImpl element,
-    List<ClassMember> members,
-  ) {
-    var holder = _buildClassMembers(element, members);
-
-    element.accessors.addAll(holder.propertyAccessors);
-    element.constructors.addAll(holder.constructors);
-    element.fields.addAll(holder.properties.whereType<FieldElementImpl>());
-    element.methods.addAll(holder.methods);
-  }
-
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameNode = node.name;
@@ -161,7 +148,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }
@@ -240,7 +227,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override
@@ -601,7 +588,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    node.interfaces.accept(this);
+    node.interfaces2.accept(this);
   }
 
   @override
@@ -745,8 +732,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitOnClause(OnClause node) {
-    node.superclassConstraints.accept(this);
+    node.superclassConstraints2.accept(this);
   }
 
   @override
@@ -868,11 +860,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    node.typeArguments?.accept(this);
-  }
-
-  @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var nameNode = node.name;
     var name = nameNode.name;
@@ -895,7 +882,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    node.mixinTypes.accept(this);
+    node.mixinTypes2.accept(this);
   }
 
   List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {
@@ -903,7 +890,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   _EnclosingContext _buildClassMembers(
-      ElementImpl element, List<ClassMember> members) {
+      ElementImpl element, NodeList<ClassMember> members) {
     var hasConstConstructor = members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -919,9 +906,29 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as ClassElementImpl;
     var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
+
+    var constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      var containerRef = element.reference!.getChild('@constructor');
+      constructors = [
+        ConstructorElementImpl('', -1)
+          ..isSynthetic = true
+          ..reference = containerRef.getChild(''),
+      ];
+    }
+    element.constructors = constructors;
+
+    // We have all fields and constructors.
+    // Now we can resolve field formal parameters.
+    for (var constructor in constructors) {
+      for (var parameter in constructor.parameters) {
+        if (parameter is FieldFormalParameterElementImpl) {
+          parameter.field = element.getField(parameter.name);
+        }
+      }
+    }
   }
 
   void _buildExecutableElementChildren({
@@ -1025,7 +1032,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   bool _shouldBeConstField(FieldDeclaration node) {
     var fields = node.fields;
     return fields.isConst ||
-        fields.isFinal && _enclosingContext.hasConstConstructor;
+        !node.isStatic &&
+            fields.isFinal &&
+            _enclosingContext.hasConstConstructor;
   }
 
   void _visitPropertyFirst<T extends AstNode>(List<AstNode> nodes) {

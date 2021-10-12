@@ -27,7 +27,7 @@ class Test extends Base {
     super.member = /*@ typeArgs=B* */ f();
 
     super. /*@target=Base.member*/ member
-        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+         ??= /*@ typeArgs=B* */ f();
 
     super. /*@target=Base.member*/ member
         /*@target=B.+*/ += /*@ typeArgs=C* */ f();
@@ -46,7 +46,7 @@ class Test extends Base {
     var /*@ type=B* */ v1 = super.member = /*@ typeArgs=B* */ f();
 
     var /*@ type=B* */ v2 = super. /*@target=Base.member*/ member
-        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+         ??= /*@ typeArgs=B* */ f();
 
     var /*@ type=A* */ v3 = super. /*@target=Base.member*/ member
         /*@target=B.+*/ += /*@ typeArgs=C* */ f();

@@ -1,0 +1,7 @@
+// @dart = 2.14
+class A {}
+
+extension E on A {}
+
+main() {}
+test(E e) {}

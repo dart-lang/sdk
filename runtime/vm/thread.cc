@@ -4,6 +4,7 @@
 
 #include "vm/thread.h"
 
+#include "vm/cpu.h"
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/heap/safepoint.h"
@@ -83,6 +84,8 @@ Thread::Thread(bool is_vm_isolate)
       ffi_callback_code_(GrowableObjectArray::null()),
       ffi_callback_stack_return_(TypedData::null()),
       api_top_scope_(NULL),
+      double_truncate_round_supported_(
+          TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(),
@@ -95,7 +98,6 @@ Thread::Thread(bool is_vm_isolate)
       stack_overflow_count_(0),
       hierarchy_info_(NULL),
       type_usage_info_(NULL),
-      pending_functions_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
@@ -214,17 +216,6 @@ void Thread::InitVMConstants() {
   this->object##_handle_ = this->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
-}
-
-GrowableObjectArrayPtr Thread::pending_functions() {
-  if (pending_functions_ == GrowableObjectArray::null()) {
-    pending_functions_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  return pending_functions_;
-}
-
-void Thread::clear_pending_functions() {
-  pending_functions_ = GrowableObjectArray::null();
 }
 
 void Thread::set_active_exception(const Object& value) {
@@ -475,10 +466,7 @@ ErrorPtr Thread::HandleInterrupts() {
             "\tisolate:    %s\n",
             isolate()->name());
       }
-      NoSafepointScope no_safepoint;
-      ErrorPtr error = Thread::Current()->StealStickyError();
-      ASSERT(error->IsUnwindError());
-      return error;
+      return StealStickyError();
     }
   }
   return Error::null();
@@ -610,7 +598,6 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&pending_functions_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&global_object_pool_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
@@ -693,9 +680,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 
       switch (op_) {
         case Thread::RestoreWriteBarrierInvariantOp::kAddToRememberedSet:
-          if (!obj->untag()->IsRemembered()) {
-            obj->untag()->AddToRememberedSet(current_);
-          }
+          obj->untag()->EnsureInRememberedSet(current_);
           if (current_->is_marking()) {
             current_->DeferredMarkingStackAddObject(obj);
           }

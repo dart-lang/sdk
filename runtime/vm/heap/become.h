@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HEAP_BECOME_H_
 
 #include "platform/atomic.h"
+#include "platform/growable_array.h"
 #include "vm/allocation.h"
 #include "vm/raw_object.h"
 
@@ -26,8 +27,9 @@ class ForwardingCorpse {
   ObjectPtr target() const { return target_; }
   void set_target(ObjectPtr target) { target_ = target; }
 
-  intptr_t HeapSize() {
-    intptr_t size = UntaggedObject::SizeTag::decode(tags_);
+  intptr_t HeapSize() { return HeapSize(tags_); }
+  intptr_t HeapSize(uword tags) {
+    intptr_t size = UntaggedObject::SizeTag::decode(tags);
     if (size != 0) return size;
     return *SizeAddress();
   }
@@ -68,15 +70,39 @@ class ForwardingCorpse {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ForwardingCorpse);
 };
 
-// TODO(johnmccutchan): Refactor this class so that it is not all static and
-// provides utility methods for building the mapping of before and after.
-class Become : public AllStatic {
+// Forward/exchange object identity within pairs of objects.
+//
+// Forward: Redirects all pointers to each 'before' object to the corresponding
+// 'after' object. Every 'before' object is guaranteed to be unreachable after
+// the operation. The identity hash of the 'before' object is retained.
+//
+// This is useful for atomically applying behavior and schema changes, which can
+// be done by allocating fresh objects with the new schema and forwarding the
+// identity of the old objects to the new objects.
+//
+// Exchange: Redirect all pointers to each 'before' object to the corresponding
+// 'after' object and vice versa. Both objects remain reachable after the
+// operation.
+//
+// This is useful for implementing certain types of proxies. For example, an
+// infrequently accessed object may be written to disk and swapped with a
+// so-called "husk", and swapped back when it is later accessed.
+//
+// This operation is named 'become' after its original in Smalltalk:
+//   x become: y             "exchange identity for one pair"
+//   x becomeForward: y      "forward identity for one pair"
+//   #(x ...) elementsExchangeIdentityWith: #(y ...)
+//   #(x ...) elementsForwardIdentityTo: #(y ...)
+class Become {
  public:
-  // Smalltalk's one-way bulk become (Array>>#elementsForwardIdentityTo:).
-  // Redirects all pointers to elements of 'before' to the corresponding element
-  // in 'after'. Every element in 'before' is guaranteed to be not reachable.
-  // Useful for atomically applying behavior and schema changes.
-  static void ElementsForwardIdentity(const Array& before, const Array& after);
+  Become();
+  ~Become();
+
+  void Add(const Object& before, const Object& after);
+  void Forward();
+  void Exchange() { UNIMPLEMENTED(); }
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Convert and instance object into a dummy object,
   // making the instance independent of its class.
@@ -88,7 +114,8 @@ class Become : public AllStatic {
   static void FollowForwardingPointers(Thread* thread);
 
  private:
-  static void CrashDump(ObjectPtr before_obj, ObjectPtr after_obj);
+  MallocGrowableArray<ObjectPtr> pointers_;
+  DISALLOW_COPY_AND_ASSIGN(Become);
 };
 
 }  // namespace dart

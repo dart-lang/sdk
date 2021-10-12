@@ -1,0 +1,6 @@
+var list1 = List<int>.generate(10, (i) => i);
+var list2 = List<int>.generate(10, (i) => i, growable: true);
+var list3 = List<int>.generate(10, (i) => i, growable: false);
+var list4 = List<int>.generate(10, (i) => i, growable: someGrowable);
+bool someGrowable = true;
+void main() {}

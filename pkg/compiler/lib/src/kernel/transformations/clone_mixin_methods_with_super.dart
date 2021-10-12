@@ -19,7 +19,7 @@ class _CloneMixinMethodsWithSuper {
   /// libraries have already been transformed.
   static void transform(List<Library> libraries) {
     // Clone any mixed in methods that uses super.
-    var processedClasses = new Set<Class>();
+    var processedClasses = Set<Class>();
     for (var library in libraries) {
       for (var cls in library.classes) {
         if (processedClasses.add(cls)) {
@@ -61,7 +61,7 @@ class _CloneMixinMethodsWithSuper {
         Procedure? existingGetter = existingNonSetters[field.name];
         Procedure? existingSetter = existingSetters[field.name];
         cls.addField(cloneVisitor.cloneField(
-            field, existingGetter?.reference, existingSetter?.reference));
+            field, null, existingGetter?.reference, existingSetter?.reference));
         if (existingGetter != null) {
           cls.procedures.remove(existingGetter);
         }

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-09-01T12:41:37.776425",
+  "generated": "2021-10-03T09:32:39.517171",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -70,7 +70,7 @@
       "name": "analysis_server",
       "rootUri": "../pkg/analysis_server",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analysis_server_client",
@@ -82,7 +82,7 @@
       "name": "analyzer",
       "rootUri": "../pkg/analyzer",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_cli",
@@ -94,7 +94,7 @@
       "name": "analyzer_plugin",
       "rootUri": "../pkg/analyzer_plugin",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_utilities",
@@ -112,7 +112,7 @@
       "name": "async",
       "rootUri": "../third_party/pkg/async",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "async_helper",
@@ -351,7 +351,7 @@
       "name": "http",
       "rootUri": "../third_party/pkg/http",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "http_io",
@@ -476,7 +476,7 @@
       "name": "nnbd_migration",
       "rootUri": "../pkg/nnbd_migration",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "oauth2",
@@ -494,7 +494,7 @@
       "name": "observatory_2",
       "rootUri": "../runtime/observatory_2",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "observatory_test_package",
@@ -808,6 +808,12 @@
     {
       "name": "yaml",
       "rootUri": "../third_party/pkg/yaml",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "yaml_edit",
+      "rootUri": "../third_party/pkg/yaml_edit",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }

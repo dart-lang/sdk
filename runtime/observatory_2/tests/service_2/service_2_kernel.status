@@ -2,13 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+complex_reload_test: Skip # http://dartbug.com/47130
 valid_source_locations_test: Pass, Slow
 
 [ $compiler == app_jitk ]
 add_breakpoint_rpc_kernel_test: SkipByDesign # No incremental compiler available.
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 break_on_activation_test: SkipByDesign # No incremental compiler available.
-complex_reload_test: RuntimeError
 debugger_inspect_test: SkipByDesign # No incremental compiler available.
 debugger_location_second_test: SkipByDesign # No script sources available.
 eval_internal_class_test: SkipByDesign # No incremental compiler available.
@@ -47,6 +47,7 @@ awaiter_async_stack_contents_test: SkipByDesign # Debugger is disabled in AOT mo
 bad_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 break_on_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_async_function_test: SkipByDesign # Debugger is disabled in AOT mode.
+break_on_dart_colon_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_default_constructor_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_child_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_many_child_isolates_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -61,6 +62,7 @@ breakpoint_on_if_null_1_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_on_if_null_2_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_on_if_null_3_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_on_if_null_4_test: SkipByDesign # Debugger is disabled in AOT mode.
+breakpoint_on_simple_conditions_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_partfile_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_two_args_checked_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoints_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -95,6 +97,7 @@ evaluate_class_type_parameters_test: SkipByDesign # Debugger is disabled in AOT 
 evaluate_function_type_parameters_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_async_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_async_star_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
+evaluate_in_extension_method_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_frame_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_frame_with_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
 evaluate_in_sync_star_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -210,9 +213,6 @@ rewind_optimized_out_test: SkipSlow # Timeout
 [ $arch == ia32 && $compiler == dartk ]
 valid_source_locations_test: Skip # Issue 34736, too slow.
 
-[ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $compiler == dartk ]
-complex_reload_test: RuntimeError
-
 [ $compiler == app_jitk && $system == linux ]
 get_vm_timeline_rpc_test: Skip # Timeout.
 
@@ -278,7 +278,6 @@ async_generator_breakpoint_test: SkipByDesign # No incremental compiler availabl
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #34736
 breakpoint_in_package_parts_class_file_uri_test: RuntimeError # Issue #34736
-complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 dds_log_history_size_gigantic_test: SkipSlow # Involves hundreds of thousands of log messages
 debugger_inspect_test: RuntimeError, Timeout # Issue #34736
 eval_internal_class_test: RuntimeError # Issue #34736

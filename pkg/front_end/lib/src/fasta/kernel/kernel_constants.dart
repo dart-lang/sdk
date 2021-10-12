@@ -8,12 +8,12 @@ import '../builder/library_builder.dart';
 
 import '../fasta_codes.dart' show LocatedMessage;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import 'constant_evaluator.dart' show ErrorReporter;
 
 class KernelConstantErrorReporter extends ErrorReporter {
-  final Loader loader;
+  final SourceLoader loader;
 
   KernelConstantErrorReporter(this.loader);
 

@@ -10,6 +10,7 @@ import logging
 import monitored
 import os
 import re
+from collections import OrderedDict
 from generator import *
 from htmldartgenerator import *
 from htmlrenamer import generateCallbackInterface
@@ -183,14 +184,14 @@ class ElementConstructorInfo(object):
         info.js_name = None
         info.type_name = interface_name
         # optional parameters are always nullable
-        info.param_infos = map(
-            lambda tXn: ParamInfo(
-                name=tXn[1],
-                type_id=tXn[0],
-                is_optional=True,
-                is_nullable=True,
-                default_value=None,
-                default_value_is_null=False), self.opt_params)
+        info.param_infos = [
+            ParamInfo(name=tXn[1],
+                      type_id=tXn[0],
+                      is_optional=True,
+                      is_nullable=True,
+                      default_value=None,
+                      default_value_is_null=False) for tXn in self.opt_params
+        ]
         info.requires_named_arguments = True
         info.factory_parameters = ['"%s"' % self.tag]
         info.pure_dart_constructor = True
@@ -513,67 +514,69 @@ _js_support_checks_additional_element = [
     'SVGSetElement',
 ]
 
-js_support_checks = dict({
-    'Animation':
-    "JS('bool', '!!(document.body.animate)')",
-    'AudioContext':
-    "JS('bool', '!!(window.AudioContext ||"
-    " window.webkitAudioContext)')",
-    'Crypto':
-    "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
-    'Database':
-    "JS('bool', '!!(window.openDatabase)')",
-    'DOMPoint':
-    "JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)')",
-    'ApplicationCache':
-    "JS('bool', '!!(window.applicationCache)')",
-    'DOMFileSystem':
-    "JS('bool', '!!(window.webkitRequestFileSystem)')",
-    'FormData':
-    "JS('bool', '!!(window.FormData)')",
-    'HashChangeEvent':
-    "Device.isEventTypeSupported('HashChangeEvent')",
-    'HTMLShadowElement':
-    ElemSupportStr('shadow'),
-    'HTMLTemplateElement':
-    ElemSupportStr('template'),
-    'MediaStreamEvent':
-    "Device.isEventTypeSupported('MediaStreamEvent')",
-    'MediaStreamTrackEvent':
-    "Device.isEventTypeSupported('MediaStreamTrackEvent')",
-    'MediaSource':
-    "JS('bool', '!!(window.MediaSource)')",
-    'Notification':
-    "JS('bool', '!!(window.Notification)')",
-    'Performance':
-    "JS('bool', '!!(window.performance)')",
-    'SpeechRecognition':
-    "JS('bool', '!!(window.SpeechRecognition || "
-    "window.webkitSpeechRecognition)')",
-    'SVGExternalResourcesRequired':
-    ('supported(SvgElement element)',
-     "JS('bool', '#.externalResourcesRequired !== undefined && "
-     "#.externalResourcesRequired.animVal !== undefined', "
-     "element, element)"),
-    'SVGLangSpace':
-    ('supported(SvgElement element)',
-     "JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', "
-     "element, element)"),
-    'TouchList':
-    "JS('bool', '!!document.createTouchList')",
-    'WebGLRenderingContext':
-    "JS('bool', '!!(window.WebGLRenderingContext)')",
-    'WebSocket':
-    "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
-    'Worker':
-    "JS('bool', '(typeof window.Worker != \"undefined\")')",
-    'XSLTProcessor':
-    "JS('bool', '!!(window.XSLTProcessor)')",
-}.items() + dict(
-    (key, SvgSupportStr(_svg_element_constructors[key]) if key.
-     startswith('SVG') else ElemSupportStr(_html_element_constructors[key]))
-    for key in _js_support_checks_basic_element_with_constructors +
-    _js_support_checks_additional_element).items())
+js_support_checks = dict(
+    list({
+        'Animation':
+        "JS('bool', '!!(document.body.animate)')",
+        'AudioContext':
+        "JS('bool', '!!(window.AudioContext ||"
+        " window.webkitAudioContext)')",
+        'Crypto':
+        "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
+        'Database':
+        "JS('bool', '!!(window.openDatabase)')",
+        'DOMPoint':
+        "JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)')",
+        'ApplicationCache':
+        "JS('bool', '!!(window.applicationCache)')",
+        'DOMFileSystem':
+        "JS('bool', '!!(window.webkitRequestFileSystem)')",
+        'FormData':
+        "JS('bool', '!!(window.FormData)')",
+        'HashChangeEvent':
+        "Device.isEventTypeSupported('HashChangeEvent')",
+        'HTMLShadowElement':
+        ElemSupportStr('shadow'),
+        'HTMLTemplateElement':
+        ElemSupportStr('template'),
+        'MediaStreamEvent':
+        "Device.isEventTypeSupported('MediaStreamEvent')",
+        'MediaStreamTrackEvent':
+        "Device.isEventTypeSupported('MediaStreamTrackEvent')",
+        'MediaSource':
+        "JS('bool', '!!(window.MediaSource)')",
+        'Notification':
+        "JS('bool', '!!(window.Notification)')",
+        'Performance':
+        "JS('bool', '!!(window.performance)')",
+        'SpeechRecognition':
+        "JS('bool', '!!(window.SpeechRecognition || "
+        "window.webkitSpeechRecognition)')",
+        'SVGExternalResourcesRequired':
+        ('supported(SvgElement element)',
+         "JS('bool', '#.externalResourcesRequired !== undefined && "
+         "#.externalResourcesRequired.animVal !== undefined', "
+         "element, element)"),
+        'SVGLangSpace':
+        ('supported(SvgElement element)',
+         "JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', "
+         "element, element)"),
+        'TouchList':
+        "JS('bool', '!!document.createTouchList')",
+        'WebGLRenderingContext':
+        "JS('bool', '!!(window.WebGLRenderingContext)')",
+        'WebSocket':
+        "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
+        'Worker':
+        "JS('bool', '(typeof window.Worker != \"undefined\")')",
+        'XSLTProcessor':
+        "JS('bool', '!!(window.XSLTProcessor)')",
+    }.items()) + list(
+        dict((key,
+              SvgSupportStr(_svg_element_constructors[key]) if key.startswith(
+                  'SVG') else ElemSupportStr(_html_element_constructors[key]))
+             for key in _js_support_checks_basic_element_with_constructors +
+             _js_support_checks_additional_element).items()))
 
 # JavaScript element class names of elements for which createElement does not
 # always return exactly the right element, either because it might not be
@@ -719,7 +722,9 @@ class HtmlDartInterfaceGenerator(object):
 
         implements_str = ''
         if implements:
-            implements_str = ' implements ' + ', '.join(set(implements))
+            # Get rid of duplicates using OrderedDict.
+            implements = list(OrderedDict([(i, None) for i in implements]))
+            implements_str = ' implements ' + ', '.join(implements)
 
         mixins = self._backend.Mixins()
 
@@ -815,6 +820,9 @@ class HtmlDartInterfaceGenerator(object):
             NULLABLE='?',
             NULLSAFECAST=True,
             NULLASSERT='!')
+        if self._interface.doc_js_name is 'RadioNodeList':
+            print(self._backend.ImplementationTemplate())
+            print(implementation_members_emitter)
         stream_getter_signatures_emitter = None
         element_stream_getters_emitter = None
         class_members_emitter = None
@@ -2195,7 +2203,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 return re.search('^@.*Returns', ann) or re.search(
                     '^@.*Creates', ann)
 
-            if not filter(js_type_annotation, anns):
+            if not list(filter(js_type_annotation, anns)):
                 _logger.warn('Member with wildcard native type: %s.%s' %
                              (self._interface.id, idl_member_name))
 
@@ -2317,7 +2325,7 @@ class DartLibrary():
 
         # Emit the $!TYPE_MAP
         if map_emitter:
-            items = self._typeMap.items()
+            items = list(self._typeMap.items())
             items.sort()
             for (idl_name, dart_name) in items:
                 map_emitter.Emit(

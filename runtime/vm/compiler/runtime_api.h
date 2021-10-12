@@ -648,6 +648,12 @@ class LinkedHashBase : public AllStatic {
   static word InstanceSize();
 };
 
+class ImmutableLinkedHashBase : public LinkedHashBase {
+ public:
+  // The data slot is an immutable list and final in immutable maps and sets.
+  static word data_offset();
+};
+
 class LinkedHashMap : public LinkedHashBase {
  public:
   FINAL_CLASS();
@@ -1050,6 +1056,7 @@ class MonomorphicSmiableCall : public AllStatic {
 class Thread : public AllStatic {
  public:
   static word api_top_scope_offset();
+  static word double_truncate_round_supported_offset();
   static word exit_through_ffi_offset();
   static uword exit_through_runtime_call();
   static uword exit_through_ffi();
@@ -1317,6 +1324,8 @@ class Context : public AllStatic {
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kMaxElements;
 };
 
 class Closure : public AllStatic {

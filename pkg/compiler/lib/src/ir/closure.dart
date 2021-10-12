@@ -37,7 +37,7 @@ class KernelScopeInfo {
   /// this scope. The items in this set are either of type VariableDeclaration
   /// or TypeParameterTypeWithContext.
   Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
-      freeVariables = new Set<ir.Node>();
+      freeVariables = Set<ir.Node>();
 
   /// A set of type parameters that are defined in another scope and are only
   /// used if runtime type information is checked. If runtime type information
@@ -57,11 +57,11 @@ class KernelScopeInfo {
   /// performing runtime type checks. It is stored
   /// separately from [thisUsedAsFreeVariable] because we don't know at this
   /// stage if we will be needing type checks for this scope.
-  Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = new Set<VariableUse>();
+  Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = Set<VariableUse>();
 
   KernelScopeInfo(this.hasThisLocal)
-      : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
-        boxedVariables = new Set<ir.VariableDeclaration>(),
+      : localsUsedInTryOrSync = Set<ir.VariableDeclaration>(),
+        boxedVariables = Set<ir.VariableDeclaration>(),
         capturedVariablesAccessor = null;
 
   KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
@@ -81,7 +81,7 @@ class KernelScopeInfo {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('KernelScopeInfo(this=$hasThisLocal,');
     sb.write('freeVriables=$freeVariables,');
     sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
@@ -132,7 +132,7 @@ class KernelCapturedScope extends KernelScopeInfo {
             scope.hasThisLocal);
 
   // Silly hack because we don't have const sets.
-  static final Set<ir.VariableDeclaration> _empty = new Set();
+  static final Set<ir.VariableDeclaration> _empty = Set();
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -293,25 +293,25 @@ class VariableUse {
         this.invocation = null;
 
   static const VariableUse explicit =
-      const VariableUse._simple(VariableUseKind.explicit);
+      VariableUse._simple(VariableUseKind.explicit);
 
   static const VariableUse localType =
-      const VariableUse._simple(VariableUseKind.localType);
+      VariableUse._simple(VariableUseKind.localType);
 
   static const VariableUse implicitCast =
-      const VariableUse._simple(VariableUseKind.implicitCast);
+      VariableUse._simple(VariableUseKind.implicitCast);
 
   static const VariableUse listLiteral =
-      const VariableUse._simple(VariableUseKind.listLiteral);
+      VariableUse._simple(VariableUseKind.listLiteral);
 
   static const VariableUse setLiteral =
-      const VariableUse._simple(VariableUseKind.setLiteral);
+      VariableUse._simple(VariableUseKind.setLiteral);
 
   static const VariableUse mapLiteral =
-      const VariableUse._simple(VariableUseKind.mapLiteral);
+      VariableUse._simple(VariableUseKind.mapLiteral);
 
   static const VariableUse fieldType =
-      const VariableUse._simple(VariableUseKind.fieldType);
+      VariableUse._simple(VariableUseKind.fieldType);
 
   @override
   int get hashCode =>
@@ -386,7 +386,7 @@ class TypeVariableTypeWithContext implements ir.Node {
       typeDeclaration = typeDeclaration.parent;
       context = typeDeclaration;
     }
-    return new TypeVariableTypeWithContext.internal(
+    return TypeVariableTypeWithContext.internal(
         type, context, kind, typeDeclaration);
   }
 
@@ -395,17 +395,17 @@ class TypeVariableTypeWithContext implements ir.Node {
 
   @override
   R accept<R>(ir.Visitor<R> v) {
-    throw new UnsupportedError('TypeVariableTypeWithContext.accept');
+    throw UnsupportedError('TypeVariableTypeWithContext.accept');
   }
 
   @override
   R accept1<R, A>(ir.Visitor1<R, A> v, A arg) {
-    throw new UnsupportedError('TypeVariableTypeWithContext.accept1');
+    throw UnsupportedError('TypeVariableTypeWithContext.accept1');
   }
 
   @override
   visitChildren(ir.Visitor v) {
-    throw new UnsupportedError('TypeVariableTypeWithContext.visitChildren');
+    throw UnsupportedError('TypeVariableTypeWithContext.visitChildren');
   }
 
   @override

@@ -338,6 +338,29 @@ f() {
     ]);
   }
 
+  test_deadBlock_ifElement() async {
+    await assertErrorsInCode(r'''
+f() {
+  [
+    if (false) 2,
+  ];
+}''', [
+      error(HintCode.DEAD_CODE, 25, 1),
+    ]);
+  }
+
+  test_deadBlock_ifElement_else() async {
+    await assertErrorsInCode(r'''
+f() {
+  [
+    if (true) 2
+    else 3,
+  ];
+}''', [
+      error(HintCode.DEAD_CODE, 35, 1),
+    ]);
+  }
+
   test_deadBlock_while() async {
     await assertErrorsInCode(r'''
 f() {

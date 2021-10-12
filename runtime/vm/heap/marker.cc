@@ -46,7 +46,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   void AddMicros(int64_t micros) { marked_micros_ += micros; }
 
   bool ProcessPendingWeakProperties() {
-    bool marked = false;
+    bool more_to_mark = false;
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
     delayed_weak_properties_ = WeakProperty::null();
     while (cur_weak != WeakProperty::null()) {
@@ -55,10 +55,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       ObjectPtr raw_key = cur_weak->untag()->key();
       // Reset the next pointer in the weak property.
       cur_weak->untag()->next_ = WeakProperty::null();
-      if (raw_key->untag()->IsMarked()) {
+      if (raw_key->IsSmiOrNewObject() || raw_key->untag()->IsMarked()) {
         ObjectPtr raw_val = cur_weak->untag()->value();
-        marked = marked ||
-                 (raw_val->IsHeapObject() && !raw_val->untag()->IsMarked());
+        if (!raw_val->IsSmiOrNewObject() && !raw_val->untag()->IsMarked()) {
+          more_to_mark = true;
+        }
 
         // The key is marked so we make sure to properly visit all pointers
         // originating from this weak property.
@@ -70,7 +71,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // Advance to next weak property in the queue.
       cur_weak = next_weak;
     }
-    return marked;
+    return more_to_mark;
   }
 
   void DrainMarkingStack() {
@@ -175,16 +176,24 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ObjectPtr raw_obj;
     while ((raw_obj = deferred_work_list_.Pop()) != nullptr) {
       ASSERT(raw_obj->IsHeapObject() && raw_obj->IsOldObject());
-      // N.B. We are scanning the object even if it is already marked.
+      // We need to scan objects even if they were already scanned via ordinary
+      // marking. An object may have changed since its ordinary scan and been
+      // added to deferred marking stack to compensate for write-barrier
+      // elimination.
+      // A given object may be included in the deferred marking stack multiple
+      // times. It may or may not also be in the ordinary marking stack, so
+      // failing to acquire the mark bit here doesn't reliably indicate the
+      // object was already encountered through the deferred marking stack. Our
+      // processing here is idempotent, so repeated visits only hurt performance
+      // but not correctness. Duplicatation is expected to be low.
+      // By the absence of a special case, we are treating WeakProperties as
+      // strong references here. This guarantees a WeakProperty will only be
+      // added to the delayed_weak_properties_ list of the worker that
+      // encounters it during ordinary marking. This is in the same spirit as
+      // the eliminated write barrier, which would have added the newly written
+      // key and value to the ordinary marking stack.
       bool did_mark = TryAcquireMarkBit(raw_obj);
-      const intptr_t class_id = raw_obj->GetClassId();
-      intptr_t size;
-      if (class_id != kWeakPropertyCid) {
-        size = raw_obj->untag()->VisitPointersNonvirtual(this);
-      } else {
-        WeakPropertyPtr raw_weak = static_cast<WeakPropertyPtr>(raw_obj);
-        size = ProcessWeakProperty(raw_weak, did_mark);
-      }
+      intptr_t size = raw_obj->untag()->VisitPointersNonvirtual(this);
       // Add the size only if we win the marking race to prevent
       // double-counting.
       if (did_mark) {

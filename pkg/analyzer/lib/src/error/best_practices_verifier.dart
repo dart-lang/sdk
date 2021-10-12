@@ -240,7 +240,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
               node,
-              [declaredElement.name, node.name.name]);
+              [declaredElement.name]);
         }
 
         if (parent is TopLevelVariableDeclaration) {
@@ -698,6 +698,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    var question = node.question;
+    if (question != null) {
+      var name = node.name.name;
+      var type = node.typeOrThrow;
+      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
+      // not report synthetic `dynamic` in place of an unresolved type.
+      if ((type.element == _nullType.element ||
+              (type.isDynamic && name == 'dynamic')) &&
+          type.alias == null) {
+        _errorReporter.reportErrorForToken(
+            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+      }
+    }
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
@@ -771,24 +789,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  @override
-  void visitTypeName(TypeName node) {
-    var question = node.question;
-    if (question != null) {
-      var name = node.name.name;
-      var type = node.typeOrThrow;
-      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
-      // not report synthetic `dynamic` in place of an unresolved type.
-      if ((type.element == _nullType.element ||
-              (type.isDynamic && name == 'dynamic')) &&
-          type.alias == null) {
-        _errorReporter.reportErrorForToken(
-            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
-      }
-    }
-    super.visitTypeName(node);
-  }
-
   /// Check for the passed is expression for the unnecessary type check hint
   /// codes as well as null checks expressed using an is expression.
   ///
@@ -798,71 +798,58 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [HintCode.UNNECESSARY_TYPE_CHECK_TRUE], and
   /// [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
-    Expression expression = node.expression;
-    TypeAnnotation typeName = node.type;
-    var rhsType = typeName.type as TypeImpl;
-    var rhsNameStr = typeName is TypeName ? typeName.name.name : null;
-    // if x is dynamic
-    if (rhsType.isDynamic && rhsNameStr == Keyword.DYNAMIC.lexeme) {
-      if (node.notOperator == null) {
-        // the is case
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
-      } else {
-        // the is not case
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
-      }
-      return true;
+    var leftNode = node.expression;
+    var rightNode = node.type;
+    var rightType = rightNode.type as TypeImpl;
+
+    void report() {
+      _errorReporter.reportErrorForNode(
+        node.notOperator == null
+            ? HintCode.UNNECESSARY_TYPE_CHECK_TRUE
+            : HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+        node,
+      );
     }
+
+    // `is dynamic` or `is! dynamic`
+    if (rightType.isDynamic) {
+      var rightTypeStr = rightNode is NamedType ? rightNode.name.name : null;
+      if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
+        report();
+        return true;
+      }
+      return false;
+    }
+
     // `is Null` or `is! Null`
-    if (rhsType.isDartCoreNull) {
-      if (expression is NullLiteral) {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-            node,
-          );
-        }
+    if (rightType.isDartCoreNull) {
+      if (leftNode is NullLiteral) {
+        report();
       } else {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.TYPE_CHECK_IS_NULL,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.TYPE_CHECK_IS_NOT_NULL,
-            node,
-          );
-        }
+        _errorReporter.reportErrorForNode(
+          node.notOperator == null
+              ? HintCode.TYPE_CHECK_IS_NULL
+              : HintCode.TYPE_CHECK_IS_NOT_NULL,
+          node,
+        );
       }
       return true;
     }
-    // `is Object` or `is! Object`
-    if (rhsType.isDartCoreObject) {
-      var nullability = rhsType.nullabilitySuffix;
-      if (nullability == NullabilitySuffix.star ||
-          nullability == NullabilitySuffix.question) {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-            node,
-          );
-        }
+
+    if (_isNonNullableByDefault) {
+      var leftType = leftNode.typeOrThrow;
+      if (_typeSystem.isSubtypeOf(leftType, rightType)) {
+        report();
+        return true;
+      }
+    } else {
+      // In legacy all types are subtypes of `Object`.
+      if (rightType.isDartCoreObject) {
+        report();
         return true;
       }
     }
+
     return false;
   }
 
@@ -1209,7 +1196,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
-      String fullConstructorName = constructorName.type.name.name;
+      String fullConstructorName = constructorName.type2.name.name;
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
@@ -1240,9 +1227,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         prefix.name, FunctionElement.LOAD_LIBRARY_NAME);
     if (loadLibraryElement != null) {
       _errorReporter.reportErrorForNode(
-          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
-          node,
-          [importedLibrary.name]);
+          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, node);
       return true;
     }
     return false;

@@ -138,12 +138,6 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
       return Error::Cast(result).ptr();
     }
 
-    // The builtin library should be registered with the VM.
-    const auto& dart_builtin =
-        String::Handle(zone, String::New("dart:_builtin"));
-    library = Library::LookupLibrary(thread, dart_builtin);
-    isolate_group->object_store()->set_builtin_library(library);
-
     if (FLAG_precompiled_mode) {
       loader.ReadLoadingUnits();
     }

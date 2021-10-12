@@ -40,7 +40,8 @@ class _IOServicePorts {
     }
   }
 
-  static SendPort _newServicePort() native "IOService_NewServicePort";
+  @pragma("vm:external-name", "IOService_NewServicePort")
+  external static SendPort _newServicePort();
 }
 
 @patch

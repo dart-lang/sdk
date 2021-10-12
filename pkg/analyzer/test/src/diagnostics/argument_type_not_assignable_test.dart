@@ -83,6 +83,70 @@ n(int i) {}
 ''');
   }
 
+  test_expressionFromConstructorTearoff_withoutTypeArgs() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C.new;
+var x = g('Hello');
+''');
+  }
+
+  test_expressionFromConstructorTearoff_withTypeArgs_assignable() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C<int>.new;
+var x = g(0);
+''');
+  }
+
+  test_expressionFromConstructorTearoff_withTypeArgs_notAssignable() async {
+    await assertErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C<int>.new;
+var x = g('Hello');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 56, 7),
+    ]);
+  }
+
+  test_expressionFromFunctionTearoff_withoutTypeArgs() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f;
+var x = g('Hello');
+''');
+  }
+
+  test_expressionFromFunctionTearoff_withTypeArgs_assignable() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f<int>;
+var x = g(0);
+''');
+  }
+
+  test_expressionFromFunctionTearoff_withTypeArgs_notAssignable() async {
+    await assertErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f<int>;
+var x = g('Hello');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7),
+    ]);
+  }
+
   test_invocation_functionTypes_optional() async {
     await assertErrorsInCode('''
 void acceptFunOptBool(void funNumOptBool([bool b])) {}

@@ -538,7 +538,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
 
   int vm_service_server_port = INVALID_VM_SERVICE_SERVER_PORT;
-  if (Options::disable_dart_dev()) {
+  if (Options::disable_dart_dev() || Options::disable_dds()) {
     vm_service_server_port = Options::vm_service_server_port();
   } else if (Options::vm_service_server_port() !=
              INVALID_VM_SERVICE_SERVER_PORT) {
@@ -549,12 +549,14 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // the following scenarios:
   // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is
   //   enabled.
+  // - DDS is disabled.
   // TODO(bkonyi): do we want to tie DevTools / DDS to the CLI in the long run?
-  bool wait_for_dds_to_advertise_service = !Options::disable_dart_dev();
+  bool wait_for_dds_to_advertise_service =
+      !(Options::disable_dart_dev() || Options::disable_dds());
   // Load embedder specific bits and return.
   if (!VmService::Setup(
-          Options::disable_dart_dev() ? Options::vm_service_server_ip()
-                                      : DEFAULT_VM_SERVICE_SERVER_IP,
+          !wait_for_dds_to_advertise_service ? Options::vm_service_server_ip()
+                                             : DEFAULT_VM_SERVICE_SERVER_IP,
           vm_service_server_port, Options::vm_service_dev_mode(),
           Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),

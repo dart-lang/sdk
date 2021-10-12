@@ -30,15 +30,15 @@ class AbstractBool {
 
   /// A value of `Abstract.True` is used when the property is known _always_ to
   /// be true.
-  static const AbstractBool True = const AbstractBool._(true);
+  static const AbstractBool True = AbstractBool._(true);
 
   /// A value of `Abstract.False` is used when the property is known _never_ to
   /// be true.
-  static const AbstractBool False = const AbstractBool._(false);
+  static const AbstractBool False = AbstractBool._(false);
 
   /// A value of `Abstract.Maybe` is used when the property might or might not
   /// be true.
-  static const AbstractBool Maybe = const AbstractBool._(null);
+  static const AbstractBool Maybe = AbstractBool._(null);
 
   static AbstractBool trueOrMaybe(bool value) => value ? True : Maybe;
 
@@ -104,7 +104,11 @@ class AbstractValueWithPrecision {
 
 /// A system that implements an abstraction over runtime values.
 abstract class AbstractValueDomain {
-  /// The [AbstractValue] that represents an unknown runtime value.
+  /// The [AbstractValue] that represents an unknown runtime value. This
+  /// includes values internal to the implementation, such as late sentinels.
+  AbstractValue get internalTopType;
+
+  /// The [AbstractValue] that represents an unknown runtime Dart value.
   AbstractValue get dynamicType;
 
   /// The [AbstractValue] that represents a non-null subtype of `Type` at
@@ -152,6 +156,9 @@ abstract class AbstractValueDomain {
 
   /// The [AbstractValue] that represents the `null` at runtime.
   AbstractValue get nullType;
+
+  /// The [AbstractValue] that represents a late sentinel value at runtime.
+  AbstractValue get lateSentinelType;
 
   /// The [AbstractValue] that represents a non-null growable JavaScript array
   /// at runtime.
@@ -273,6 +280,14 @@ abstract class AbstractValueDomain {
   /// Returns the version of the abstract [value] that includes `null`.
   AbstractValue includeNull(covariant AbstractValue value);
 
+  /// Returns the version of the abstract [value] that excludes the late
+  /// sentinel.
+  AbstractValue excludeLateSentinel(covariant AbstractValue value);
+
+  /// Returns the version of the abstract [value] that includes the late
+  /// sentinel.
+  AbstractValue includeLateSentinel(covariant AbstractValue value);
+
   /// Returns an [AbstractBool] that describes whether [value] contains
   /// instances of [cls] at runtime.
   AbstractBool containsType(covariant AbstractValue value, ClassEntity cls);
@@ -299,10 +314,6 @@ abstract class AbstractValueDomain {
   /// exact class at runtime.
   AbstractBool isExact(covariant AbstractValue value);
 
-  /// Returns an [AbstractBool] that describes whether [value] is an exact class
-  /// or `null` at runtime.
-  AbstractBool isExactOrNull(covariant AbstractValue value);
-
   /// Returns the [ClassEntity] if this [value] is a non-null instance of an
   /// exact class at runtime, and `null` otherwise.
   ClassEntity getExactClass(covariant AbstractValue value);
@@ -310,6 +321,10 @@ abstract class AbstractValueDomain {
   /// Returns an [AbstractBool] that describes whether [value] is `null` at
   /// runtime.
   AbstractBool isNull(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a sentinel for
+  /// an uninitialized late variable at runtime.
+  AbstractBool isLateSentinel(covariant AbstractValue value);
 
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// bool, number, string, array or `null` at runtime.
@@ -322,10 +337,6 @@ abstract class AbstractValueDomain {
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// bool at runtime.
   AbstractBool isPrimitiveBoolean(covariant AbstractValue value);
-
-  /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
-  /// array at runtime.
-  AbstractBool isPrimitiveArray(covariant AbstractValue value);
 
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// string, array, native HTML list or `null` at runtime.

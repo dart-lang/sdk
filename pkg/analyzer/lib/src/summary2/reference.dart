@@ -65,8 +65,8 @@ class Reference {
     return map[name] ??= Reference._(this, name);
   }
 
-  void removeChild(String name) {
-    _children?.remove(name);
+  Reference? removeChild(String name) {
+    return _children?.remove(name);
   }
 
   @override

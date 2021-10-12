@@ -7,7 +7,7 @@ class B<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
-  operator +(generic-covariant-impl self::B<self::B::T*>* other) → self::B<self::B::T*>*
+  operator +(covariant-by-class self::B<self::B::T*>* other) → self::B<self::B::T*>*
     return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

@@ -328,7 +328,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     MemberEntity element = staticUse.element;
-    EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
+    EnumSet<MemberUse> useSet = EnumSet();
     MemberUsage usage = _getMemberUsage(element, useSet);
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
@@ -421,7 +421,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false}) {
     if (!member.isInstanceMember) return;
-    EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
+    EnumSet<MemberUse> useSet = EnumSet();
     MemberUsage usage = _getMemberUsage(member, useSet);
     if (useSet.isNotEmpty) {
       if (checkEnqueuerConsistency) {
@@ -604,7 +604,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 }
 
 class CodegenWorldImpl implements CodegenWorld {
-  JClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   final Map<MemberEntity, MemberUsage> _liveMemberUsage;
 

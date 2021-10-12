@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int b = 1;
+  core::int c = 2;
+  core::int as = 3;
+  self::a(b.{core::num::<}(c){(core::num) → core::bool}, as.{core::num::>}(1){(core::num) → core::bool});
+}
+static method a(core::bool x, core::bool y) → void {
+  core::print("${x} ${y}");
+}

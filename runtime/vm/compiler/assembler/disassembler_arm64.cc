@@ -1435,8 +1435,12 @@ void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
       Format(instr, "fmovrd'sf 'rd, 'vn");
     } else if (instr->Bits(16, 5) == 7) {
       Format(instr, "fmovdr'sf 'vd, 'rn");
+    } else if (instr->Bits(16, 5) == 8) {
+      Format(instr, "fcvtps'sf 'rd, 'vn");
+    } else if (instr->Bits(16, 5) == 16) {
+      Format(instr, "fcvtms'sf 'rd, 'vn");
     } else if (instr->Bits(16, 5) == 24) {
-      Format(instr, "fcvtzds'sf 'rd, 'vn");
+      Format(instr, "fcvtzs'sf 'rd, 'vn");
     } else {
       Unknown(instr);
     }

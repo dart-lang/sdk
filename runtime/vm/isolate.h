@@ -46,6 +46,7 @@ namespace dart {
 // Forward declarations.
 class ApiState;
 class BackgroundCompiler;
+class Become;
 class Capability;
 class CodeIndexTable;
 class Debugger;
@@ -687,6 +688,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #endif
   }
 
+  Become* become() const { return become_; }
+  void set_become(Become* become) { become_ = become; }
+
   uint64_t id() const { return id_; }
 
   static void Init();
@@ -829,6 +833,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   RelaxedAtomic<intptr_t> reload_every_n_stack_overflow_checks_;
   ProgramReloadContext* program_reload_context_ = nullptr;
 #endif
+  Become* become_ = nullptr;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;

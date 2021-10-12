@@ -173,6 +173,8 @@ class Section : public ZoneAllocated {
   }
   bool IsWritable() const { return (flags & elf::SHF_WRITE) == elf::SHF_WRITE; }
 
+  bool HasBits() const { return type != elf::SectionHeaderType::SHT_NOBITS; }
+
   // Returns whether the size of a section can change.
   bool HasBeenFinalized() const {
     // Sections can grow or shrink up until Elf::ComputeOffsets has been run,
@@ -1559,8 +1561,27 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
   // We now do several passes over the collected sections to reorder them in
   // a way that minimizes segments (and thus padding) in the resulting snapshot.
 
-  // If a build ID was created, we put it after the program table so it can
-  // be read with a minimum number of bytes from the ELF file.
+  auto add_sections_matching =
+      [&](const std::function<bool(Section*)>& should_add) {
+        // We order the sections in a segment so all non-NOBITS sections come
+        // before NOBITS sections, since the former sections correspond to the
+        // file contents for the segment.
+        for (auto* const section : sections_) {
+          if (!section->HasBits()) continue;
+          if (should_add(section)) {
+            add_to_reordered_sections(section);
+          }
+        }
+        for (auto* const section : sections_) {
+          if (section->HasBits()) continue;
+          if (should_add(section)) {
+            add_to_reordered_sections(section);
+          }
+        }
+      };
+
+  // If a build ID was created, we put it right after the program table so it
+  // can be read with a minimum number of bytes from the ELF file.
   auto* const build_id = Find(Elf::kBuildIdNoteName);
   if (build_id != nullptr) {
     ASSERT(build_id->type == elf::SectionHeaderType::SHT_NOTE);
@@ -1568,38 +1589,31 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
   }
 
   // Now add the other non-writable, non-executable allocated sections.
-  for (auto* const section : sections_) {
-    if (section == build_id) continue;  // Already added.
-    if (section->IsAllocated() && !section->IsWritable() &&
-        !section->IsExecutable()) {
-      add_to_reordered_sections(section);
-    }
-  }
+  add_sections_matching([&](Section* section) -> bool {
+    if (section == build_id) return false;  // Already added.
+    return section->IsAllocated() && !section->IsWritable() &&
+           !section->IsExecutable();
+  });
 
   // Now add the executable sections in a new segment.
-  for (auto* const section : sections_) {
-    if (section->IsExecutable()) {  // Implies IsAllocated() && !IsWritable()
-      add_to_reordered_sections(section);
-    }
-  }
+  add_sections_matching([](Section* section) -> bool {
+    return section->IsExecutable();  // Implies IsAllocated() && !IsWritable()
+  });
 
   // Now add all the writable sections.
-  for (auto* const section : sections_) {
-    if (section->IsWritable()) {  // Implies IsAllocated() && !IsExecutable()
-      add_to_reordered_sections(section);
-    }
-  }
+  add_sections_matching([](Section* section) -> bool {
+    return section->IsWritable();  // Implies IsAllocated() && !IsExecutable()
+  });
 
   // We put all non-reserved unallocated sections last. Otherwise, they would
   // affect the file offset but not the memory offset of any following allocated
   // sections. Doing it in this order makes it easier to keep file and memory
   // offsets page-aligned with respect to each other, which is required for
   // some loaders.
-  for (intptr_t i = 1; i < num_sections; i++) {
-    auto* const section = sections_[i];
-    if (section->IsAllocated()) continue;
-    add_to_reordered_sections(section);
-  }
+  add_sections_matching([](Section* section) -> bool {
+    // Don't re-add the initial reserved section.
+    return !section->IsReservedSection() && !section->IsAllocated();
+  });
 
   // All sections should have been accounted for in the loops above.
   ASSERT_EQUAL(sections_.length(), reordered_sections.length());

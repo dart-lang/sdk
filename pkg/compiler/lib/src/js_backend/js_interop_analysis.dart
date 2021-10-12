@@ -17,7 +17,7 @@ import 'native_data.dart';
 jsAst.Statement buildJsInteropBootstrap(
     CodegenWorld codegenWorld, NativeBasicData nativeBasicData, Namer namer) {
   if (!nativeBasicData.isJsInteropUsed) return null;
-  List<jsAst.Statement> statements = <jsAst.Statement>[];
+  List<jsAst.Statement> statements = [];
   codegenWorld.forEachInvokedName(
       (String name, Map<Selector, SelectorConstraints> selectors) {
     selectors.forEach((Selector selector, SelectorConstraints constraints) {
@@ -27,7 +27,7 @@ jsAst.Statement buildJsInteropBootstrap(
         int argumentCount = selector.argumentCount;
         String candidateParameterNames =
             'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        List<String> parameters = new List<String>.generate(
+        List<String> parameters = List<String>.generate(
             argumentCount, (i) => candidateParameterNames[i]);
 
         jsAst.Name name = namer.invocationName(selector);
@@ -37,7 +37,7 @@ jsAst.Statement buildJsInteropBootstrap(
       }
     });
   });
-  return new jsAst.Block(statements);
+  return jsAst.Block(statements);
 }
 
 FunctionType buildJsFunctionType(DartTypes dartTypes) {
@@ -47,7 +47,7 @@ FunctionType buildJsFunctionType(DartTypes dartTypes) {
   return dartTypes.functionType(
       dartTypes.dynamicType(),
       const <DartType>[],
-      new List<DartType>.filled(16, dartTypes.dynamicType()),
+      List<DartType>.filled(16, dartTypes.dynamicType()),
       const <String>[],
       const <String>{},
       const <DartType>[],

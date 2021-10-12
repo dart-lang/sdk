@@ -47,11 +47,11 @@ class SsaFunctionCompiler implements FunctionCompiler {
       BackendStrategy backendStrategy,
       Measurer measurer,
       this.sourceInformationStrategy)
-      : generator = new SsaCodeGeneratorTask(
-            measurer, _options, sourceInformationStrategy),
-        _builder = new SsaBuilderTask(
+      : generator =
+            SsaCodeGeneratorTask(measurer, _options, sourceInformationStrategy),
+        _builder = SsaBuilderTask(
             measurer, backendStrategy, sourceInformationStrategy),
-        optimizer = new SsaOptimizerTask(measurer, _options);
+        optimizer = SsaOptimizerTask(measurer, _options);
 
   @override
   void initialize(GlobalTypeInferenceResults globalInferenceResults,
@@ -67,10 +67,10 @@ class SsaFunctionCompiler implements FunctionCompiler {
   CodegenResult compile(MemberEntity member) {
     JClosedWorld closedWorld = _globalInferenceResults.closedWorld;
     CodegenRegistry registry =
-        new CodegenRegistry(closedWorld.elementEnvironment, member);
-    ModularNamer namer = new ModularNamerImpl(
+        CodegenRegistry(closedWorld.elementEnvironment, member);
+    ModularNamer namer = ModularNamerImpl(
         registry, closedWorld.commonElements, _codegen.fixedNames);
-    ModularEmitter emitter = new ModularEmitterImpl(namer, registry, _options);
+    ModularEmitter emitter = ModularEmitterImpl(namer, registry, _options);
     if (member.isConstructor &&
         member.enclosingClass == closedWorld.commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
@@ -202,7 +202,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     List<js.Expression> itemTypeExpression =
         _fetchItemTypeNewRti(commonElements, registry, elementType);
 
-    AsyncRewriter rewriter = new AsyncRewriter(_reporter, element,
+    AsyncRewriter rewriter = AsyncRewriter(_reporter, element,
         asyncStart: emitter.staticFunctionAccess(startFunction),
         asyncAwait:
             emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
@@ -216,7 +216,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
         safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
         bodyName: namer.deriveAsyncBodyName(name));
 
-    registry.registerStaticUse(new StaticUse.staticInvoke(
+    registry.registerStaticUse(StaticUse.staticInvoke(
         completerFactory,
         const CallStructure.unnamed(0, 1),
         [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
@@ -238,7 +238,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     List<js.Expression> itemTypeExpression =
         _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
 
-    SyncStarRewriter rewriter = new SyncStarRewriter(_reporter, element,
+    SyncStarRewriter rewriter = SyncStarRewriter(_reporter, element,
         endOfIteration:
             emitter.staticFunctionAccess(commonElements.endOfIteration),
         iterableFactory: emitter
@@ -251,7 +251,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
         safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
         bodyName: namer.deriveAsyncBodyName(name));
 
-    registry.registerStaticUse(new StaticUse.staticInvoke(
+    registry.registerStaticUse(StaticUse.staticInvoke(
         commonElements.syncStarIterableFactory,
         const CallStructure.unnamed(1, 1),
         [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
@@ -273,7 +273,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     List<js.Expression> itemTypeExpression =
         _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
 
-    AsyncStarRewriter rewriter = new AsyncStarRewriter(_reporter, element,
+    AsyncStarRewriter rewriter = AsyncStarRewriter(_reporter, element,
         asyncStarHelper:
             emitter.staticFunctionAccess(commonElements.asyncStarHelper),
         streamOfController:
@@ -289,7 +289,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
             emitter.staticFunctionAccess(commonElements.yieldStar),
         bodyName: namer.deriveAsyncBodyName(name));
 
-    registry.registerStaticUse(new StaticUse.staticInvoke(
+    registry.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncStarStreamControllerFactory,
         const CallStructure.unnamed(1, 1),
         [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
@@ -299,7 +299,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
   @override
   Iterable<CompilerTask> get tasks {
-    return <CompilerTask>[_builder, optimizer, generator];
+    return [_builder, optimizer, generator];
   }
 }
 

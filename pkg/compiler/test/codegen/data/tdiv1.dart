@@ -45,11 +45,8 @@ int foo2(bool param) {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: foo3:function(param) {
-  return C.JSInt_methods._tdivFast$1(param ? 4294967295 : -1, 2);
-}*/
-/*canary.member: foo3:function(param) {
-  return A.JSInt_methods._tdivFast$1(param ? 4294967295 : -1, 2);
+/*member: foo3:function(param) {
+  return B.JSInt_methods._tdivFast$1(param ? 4294967295 : -1, 2);
 }*/
 int foo3(bool param) {
   var a = param ? 0xFFFFFFFF : -1;
@@ -59,11 +56,8 @@ int foo3(bool param) {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: foo4:function(param1, param2) {
-  return C.JSInt_methods.$tdiv(param1 ? 4294967295 : 0, param2);
-}*/
-/*canary.member: foo4:function(param1, param2) {
-  return A.JSInt_methods.$tdiv(param1 ? 4294967295 : 0, param2);
+/*member: foo4:function(param1, param2) {
+  return B.JSInt_methods.$tdiv(param1 ? 4294967295 : 0, param2);
 }*/
 int foo4(bool param1, int param2) {
   var a = param1 ? 0xFFFFFFFF : 0;
@@ -74,13 +68,9 @@ int foo4(bool param1, int param2) {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: foo5:function(param1, param2) {
+/*member: foo5:function(param1, param2) {
   var a = param1 ? 4294967295 : 0;
-  return C.JSInt_methods.$tdiv(a, param2 ? 3 : 4);
-}*/
-/*canary.member: foo5:function(param1, param2) {
-  var a = param1 ? 4294967295 : 0;
-  return A.JSInt_methods.$tdiv(a, param2 ? 3 : 4);
+  return B.JSInt_methods.$tdiv(a, param2 ? 3 : 4);
 }*/
 int foo5(bool param1, bool param2) {
   var a = param1 ? 0xFFFFFFFF : 0;
@@ -93,13 +83,9 @@ int foo5(bool param1, bool param2) {
 }
 
 @pragma('dart2js:noInline')
-/*spec|prod.member: foo_regress_37502:function(param1, param2) {
+/*member: foo_regress_37502:function(param1, param2) {
   var a = param1 ? 1.2 : 12.3;
-  return C.JSInt_methods.gcd$1(C.JSNumber_methods.$tdiv(a, param2 ? 3.14 : 2.81), 2);
-}*/
-/*canary.member: foo_regress_37502:function(param1, param2) {
-  var a = param1 ? 1.2 : 12.3;
-  return A.JSInt_methods.gcd$1(A.JSNumber_methods.$tdiv(a, param2 ? 3.14 : 2.81), 2);
+  return B.JSInt_methods.gcd$1(B.JSNumber_methods.$tdiv(a, param2 ? 3.14 : 2.81), 2);
 }*/
 foo_regress_37502(param1, param2) {
   var a = param1 ? 1.2 : 12.3;

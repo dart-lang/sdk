@@ -51,13 +51,13 @@ class VariableScope {
   VariableScope.deepCopyOf(VariableScope other)
       : variables = other.variables == null
             ? null
-            : new Map<Local, TypeInformation>.from(other.variables),
+            : Map<Local, TypeInformation>.from(other.variables),
         tryBlock = other.tryBlock,
         copyOf = other.copyOf ?? other,
         _level = other._level,
         parent = other.parent == null
             ? null
-            : new VariableScope.deepCopyOf(other.parent);
+            : VariableScope.deepCopyOf(other.parent);
 
   /// `true` if this scope is for a try block.
   bool get isTry => tryBlock != null;
@@ -94,7 +94,7 @@ class VariableScope {
   void operator []=(Local variable, TypeInformation mask) {
     assert(mask != null);
     if (variables == null) {
-      variables = new Map<Local, TypeInformation>();
+      variables = Map<Local, TypeInformation>();
     }
     variables[variable] = mask;
   }
@@ -103,7 +103,7 @@ class VariableScope {
   /// [scope]. [f] is called at most once for each variable.
   void forEachLocalUntilScope(
       VariableScope scope, void f(Local variable, TypeInformation type)) {
-    _forEachLocalUntilScope(scope, f, new Setlet<Local>(), this);
+    _forEachLocalUntilScope(scope, f, Setlet<Local>(), this);
   }
 
   void _forEachLocalUntilScope(
@@ -142,7 +142,7 @@ class VariableScope {
   }
 
   String toStructuredText(String indent) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _toStructuredText(sb, indent);
     return sb.toString();
   }
@@ -196,13 +196,13 @@ class FieldInitializationScope {
 
   factory FieldInitializationScope.from(FieldInitializationScope other) {
     if (other == null) return null;
-    return new FieldInitializationScope.internalFrom(other);
+    return FieldInitializationScope.internalFrom(other);
   }
 
   void updateField(FieldEntity field, TypeInformation type) {
     if (isThisExposed) return;
     if (isIndefinite) return;
-    fields ??= new Map<FieldEntity, TypeInformation>();
+    fields ??= Map<FieldEntity, TypeInformation>();
     fields[field] = type;
   }
 
@@ -259,7 +259,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   int get length => positional.length + named.length;
 
   @override
-  Iterator<TypeInformation> get iterator => new ArgumentsTypesIterator(this);
+  Iterator<TypeInformation> get iterator => ArgumentsTypesIterator(this);
 
   @override
   String toString() => "{ positional = $positional, named = $named }";
@@ -279,7 +279,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('ArgumentsTypes.hashCode');
+  int get hashCode => throw UnsupportedError('ArgumentsTypes.hashCode');
 
   bool hasNoArguments() => positional.isEmpty && named.isEmpty;
 
@@ -329,16 +329,16 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
 class LocalsHandler {
   final VariableScope _locals;
 
-  LocalsHandler() : _locals = new VariableScope();
+  LocalsHandler() : _locals = VariableScope();
 
   LocalsHandler.from(LocalsHandler other)
-      : _locals = new VariableScope(parent: other._locals);
+      : _locals = VariableScope(parent: other._locals);
 
   LocalsHandler.tryBlock(LocalsHandler other, ir.TreeNode block)
-      : _locals = new VariableScope.tryBlock(block, parent: other._locals);
+      : _locals = VariableScope.tryBlock(block, parent: other._locals);
 
   LocalsHandler.deepCopyOf(LocalsHandler other)
-      : _locals = new VariableScope.deepCopyOf(other._locals);
+      : _locals = VariableScope.deepCopyOf(other._locals);
 
   TypeInformation use(InferrerEngine inferrer, Local local) {
     return _locals[local];
@@ -376,7 +376,7 @@ class LocalsHandler {
   /// replaced by the variables types in [other]. Otherwise the variable types
   /// from both are merged with a phi type.
   LocalsHandler mergeFlow(InferrerEngine inferrer, LocalsHandler other,
-      {bool inPlace: false}) {
+      {bool inPlace = false}) {
     VariableScope common = _locals.commonParent(other._locals);
     assert(
         common != null,
@@ -475,15 +475,15 @@ class LocalsHandler {
   /// labeled statement that do not break out.
   LocalsHandler mergeAfterBreaks(
       InferrerEngine inferrer, Iterable<LocalsHandler> handlers,
-      {bool keepOwnLocals: true}) {
+      {bool keepOwnLocals = true}) {
     ir.Node tryBlock = _locals.tryBlock;
     // Use a separate locals handler to perform the merge in, so that Phi
     // creation does not invalidate previous type knowledge while we might
     // still look it up.
     VariableScope merged = tryBlock != null
-        ? new VariableScope.tryBlock(tryBlock, parent: _locals)
-        : new VariableScope(parent: _locals);
-    Set<Local> seenLocals = new Setlet<Local>();
+        ? VariableScope.tryBlock(tryBlock, parent: _locals)
+        : VariableScope(parent: _locals);
+    Set<Local> seenLocals = Setlet<Local>();
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
       VariableScope common = _locals.commonParent(handler._locals);
@@ -587,7 +587,7 @@ class LocalsHandler {
   }
 
   String toStructuredText(String indent) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _toStructuredText(sb, indent);
     return sb.toString();
   }
@@ -601,7 +601,7 @@ class LocalsHandler {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('LocalsHandler(');
     sb.write('locals=$_locals');
     sb.write(')');

@@ -127,7 +127,7 @@ import "dart:core" as core;
 class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int* x;
   const constructor •(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, "x is not positive"), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, ""), assert((#C1) =={core::Object::==}{(core::Object*) →* core::bool*} false, "foo was ${#C1}"), assert((#C1) =={core::Object::==}{(core::Object*) →* core::bool*} false), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, "x is not positive"), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, ""), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false, "foo was ${#C1}"), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false), super core::Object::•()
     ;
   const constructor withMessage(core::int* x) → self::Foo*
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num*) →* core::bool*}, "btw foo was ${#C1}"), super core::Object::•()

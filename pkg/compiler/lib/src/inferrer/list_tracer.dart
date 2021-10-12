@@ -15,7 +15,7 @@ import 'type_graph_nodes.dart';
 /// A set of selector names that [List] implements, that we know do not
 /// change the element type of the list, or let the list escape to code
 /// that might change the element type.
-Set<String> okListSelectorsSet = new Set<String>.from(const <String>[
+Set<String> okListSelectorsSet = Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',
@@ -75,7 +75,7 @@ Set<String> okListSelectorsSet = new Set<String>.from(const <String>[
   'checkGrowable',
 ]);
 
-Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(const <String>[
+Set<String> doNotChangeLengthSelectorsSet = Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',
@@ -131,7 +131,7 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(const <String>[
 
 class ListTracerVisitor extends TracerVisitor {
   // The [Set] of found assignments to the list.
-  Set<TypeInformation> inputs = new Setlet<TypeInformation>();
+  Set<TypeInformation> inputs = Setlet<TypeInformation>();
   bool callsGrowableMethod = false;
 
   ListTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);

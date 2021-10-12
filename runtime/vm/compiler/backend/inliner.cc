@@ -1347,6 +1347,7 @@ class CallSiteInliner : public ValueObject {
     // changes while compiling. Propagate that 'error' and retry compilation
     // later.
     ASSERT(CompilerState::Current().is_aot() ||
+           (error.ptr() == Object::out_of_memory_error().ptr()) ||
            Compiler::IsBackgroundCompilation() || error.IsUnhandledException());
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
@@ -2310,6 +2311,9 @@ static bool IsInlineableOperator(const Function& function) {
 }
 
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
   Thread* thread = dart::Thread::Current();
   COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
@@ -2319,6 +2323,9 @@ bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
 }
 
 bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
   Thread* thread = dart::Thread::Current();
   COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();

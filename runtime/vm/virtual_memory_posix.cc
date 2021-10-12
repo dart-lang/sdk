@@ -15,6 +15,10 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#if defined(DART_HOST_OS_ANDROID)
+#include <sys/prctl.h>
+#endif
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/heap/pages.h"
@@ -105,8 +109,22 @@ static MemoryRegion ClipToAlignedRegion(MemoryRegion region, size_t alignment) {
 #endif  // LARGE_RESERVATIONS_MAY_FAIL
 
 void VirtualMemory::Init() {
+  if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --old_gen_heap_size %d is larger than"
+        " the physically addressable range, using 0(unlimited) instead.`\n",
+        FLAG_old_gen_heap_size);
+    FLAG_old_gen_heap_size = 0;
+  }
+  if (FLAG_new_gen_semi_max_size < 0 ||
+      FLAG_new_gen_semi_max_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --new_gen_semi_max_size %d is larger"
+        " than the physically addressable range, using %" Pd " instead.`\n",
+        FLAG_new_gen_semi_max_size, kDefaultNewGenSemiMaxSize);
+    FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
+  }
   page_size_ = CalculatePageSize();
-
 #if defined(DART_COMPRESSED_POINTERS)
   ASSERT(compressed_heap_ == nullptr);
 #if defined(LARGE_RESERVATIONS_MAY_FAIL)
@@ -160,7 +178,10 @@ void VirtualMemory::Init() {
   if (FLAG_dual_map_code) {
     intptr_t size = PageSize();
     intptr_t alignment = kOldPageSize;
-    VirtualMemory* vm = AllocateAligned(size, alignment, true, "memfd-test");
+    bool executable = true;
+    bool compressed = false;
+    VirtualMemory* vm =
+        AllocateAligned(size, alignment, executable, compressed, "memfd-test");
     if (vm == nullptr) {
       LOG_INFO("memfd_create not supported; disabling dual mapping of code.\n");
       FLAG_dual_map_code = false;
@@ -280,6 +301,7 @@ static void* MapAligned(void* hint,
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
+                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -293,7 +315,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(name != nullptr);
 
 #if defined(DART_COMPRESSED_POINTERS)
-  if (!is_executable) {
+  if (is_compressed) {
+    RELEASE_ASSERT(!is_executable);
     MemoryRegion region =
         VirtualMemoryCompressedHeap::Allocate(size, alignment);
     if (region.pointer() == nullptr) {
@@ -413,6 +436,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (address == nullptr) {
     return nullptr;
   }
+
+#if defined(DART_HOST_OS_ANDROID)
+  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, name);
+#endif
 
   MemoryRegion region(reinterpret_cast<void*>(address), size);
   return new VirtualMemory(region, region);

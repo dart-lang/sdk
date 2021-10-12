@@ -195,12 +195,12 @@ class _DirectInvocation extends _Invocation {
     final function = selector.member.function;
     if (function != null) {
       typeChecksNeeded =
-          function.typeParameters.any((t) => t.isGenericCovariantImpl);
+          function.typeParameters.any((t) => t.isCovariantByClass);
     } else {
       Field field = selector.member as Field;
       if (selector.callKind == CallKind.PropertySet) {
         // TODO(dartbug.com/40615): Use TFA results to improve this criterion.
-        typeChecksNeeded = field.isGenericCovariantImpl;
+        typeChecksNeeded = field.isCovariantByClass;
       }
     }
   }
@@ -1008,11 +1008,12 @@ class _TFClassImpl extends TFClass {
       target = typeFlowAnalysis.hierarchyCache.hierarchy.getDispatchTarget(
           classNode, selector.name,
           setter: selector.isSetter);
-      if (target != null) {
-        _dispatchTargets[selector] = target;
-      }
+      target ??= _DispatchableInvocation.kNoSuchMethodMarker;
+      _dispatchTargets[selector] = target;
     }
-    return target;
+    return identical(target, _DispatchableInvocation.kNoSuchMethodMarker)
+        ? null
+        : target;
   }
 
   String dump() => "$this {supers: $supertypes}";
@@ -1499,7 +1500,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     _FieldValue? fieldValue = _fieldValues[field];
     if (fieldValue == null) {
       Summary? typeGuardSummary = null;
-      if (field.isGenericCovariantImpl) {
+      if (field.isCovariantByClass) {
         typeGuardSummary = summaryCollector.createSummary(field,
             fieldSummaryType: FieldSummaryType.kFieldGuard);
       }

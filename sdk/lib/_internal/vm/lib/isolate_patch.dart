@@ -38,9 +38,10 @@ class Capability {
 
 @pragma("vm:entry-point")
 class _CapabilityImpl implements Capability {
-  factory _CapabilityImpl() native "CapabilityImpl_factory";
+  @pragma("vm:external-name", "CapabilityImpl_factory")
+  external factory _CapabilityImpl();
 
-  bool operator ==(var other) {
+  bool operator ==(Object other) {
     return (other is _CapabilityImpl) && _equals(other);
   }
 
@@ -48,8 +49,10 @@ class _CapabilityImpl implements Capability {
     return _get_hashcode();
   }
 
-  _equals(other) native "CapabilityImpl_equals";
-  _get_hashcode() native "CapabilityImpl_get_hashcode";
+  @pragma("vm:external-name", "CapabilityImpl_equals")
+  external bool _equals(Object other);
+  @pragma("vm:external-name", "CapabilityImpl_get_hashcode")
+  external int _get_hashcode();
 }
 
 @patch
@@ -137,8 +140,8 @@ class _RawReceivePortImpl implements RawReceivePort {
     return port;
   }
 
-  factory _RawReceivePortImpl._(String debugName)
-      native "RawReceivePortImpl_factory";
+  @pragma("vm:external-name", "RawReceivePortImpl_factory")
+  external factory _RawReceivePortImpl._(String debugName);
 
   close() {
     // Close the port and remove it from the handler map.
@@ -159,8 +162,10 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   /**** Internal implementation details ****/
-  int _get_id() native "RawReceivePortImpl_get_id";
-  SendPort _get_sendport() native "RawReceivePortImpl_get_sendport";
+  @pragma("vm:external-name", "RawReceivePortImpl_get_id")
+  external int _get_id();
+  @pragma("vm:external-name", "RawReceivePortImpl_get_sendport")
+  external SendPort _get_sendport();
 
   // Called from the VM to retrieve the handler for a message.
   @pragma("vm:entry-point", "call")
@@ -190,13 +195,15 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   // Call into the VM to close the VM maintained mappings.
-  int _closeInternal() native "RawReceivePortImpl_closeInternal";
+  @pragma("vm:external-name", "RawReceivePortImpl_closeInternal")
+  external int _closeInternal();
 
   // Set this port as active or inactive in the VM. If inactive, this port
   // will not be considered live even if it hasn't been explicitly closed.
   // TODO(bkonyi): determine if we want to expose this as an option through
   // RawReceivePort.
-  _setActive(bool active) native "RawReceivePortImpl_setActive";
+  @pragma("vm:external-name", "RawReceivePortImpl_setActive")
+  external _setActive(bool active);
 
   void set handler(Function? value) {
     final int id = this._get_id();
@@ -232,11 +239,14 @@ class _SendPortImpl implements SendPort {
   }
 
   /*--- private implementation ---*/
-  _get_id() native "SendPortImpl_get_id";
-  _get_hashcode() native "SendPortImpl_get_hashcode";
+  @pragma("vm:external-name", "SendPortImpl_get_id")
+  external _get_id();
+  @pragma("vm:external-name", "SendPortImpl_get_hashcode")
+  external _get_hashcode();
 
   // Forward the implementation of sending messages to the VM.
-  void _sendInternal(var message) native "SendPortImpl_sendInternal_";
+  @pragma("vm:external-name", "SendPortImpl_sendInternal_")
+  external void _sendInternal(var message);
 }
 
 typedef _NullaryFunction();
@@ -371,7 +381,8 @@ class Isolate {
     }
   }
 
-  static void _spawnFunction(
+  @pragma("vm:external-name", "Isolate_spawnFunction")
+  external static void _spawnFunction(
       SendPort readyPort,
       String uri,
       Function topLevelFunction,
@@ -381,7 +392,7 @@ class Isolate {
       SendPort? onExit,
       SendPort? onError,
       String? packageConfig,
-      String? debugName) native "Isolate_spawnFunction";
+      String? debugName);
 
   @patch
   static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
@@ -502,7 +513,8 @@ class Isolate {
 
   // For 'spawnFunction' see internal_patch.dart.
 
-  static void _spawnUri(
+  @pragma("vm:external-name", "Isolate_spawnUri")
+  external static void _spawnUri(
       SendPort readyPort,
       String uri,
       List<String> args,
@@ -514,12 +526,13 @@ class Isolate {
       bool? checked,
       List? environment,
       String? packageConfig,
-      String? debugName) native "Isolate_spawnUri";
+      String? debugName);
 
-  static void _sendOOB(port, msg) native "Isolate_sendOOB";
+  @pragma("vm:external-name", "Isolate_sendOOB")
+  external static void _sendOOB(port, msg);
 
-  static String _getDebugName(SendPort controlPort)
-      native "Isolate_getDebugName";
+  @pragma("vm:external-name", "Isolate_getDebugName")
+  external static String _getDebugName(SendPort controlPort);
 
   @patch
   void _pause(Capability resumeCapability) {
@@ -619,8 +632,8 @@ class Isolate {
         terminateCapability: portAndCapabilities[2]);
   }
 
-  static List _getPortAndCapabilitiesOfCurrentIsolate()
-      native "Isolate_getPortAndCapabilitiesOfCurrentIsolate";
+  @pragma("vm:external-name", "Isolate_getPortAndCapabilitiesOfCurrentIsolate")
+  external static List _getPortAndCapabilitiesOfCurrentIsolate();
 
   static Uri? _getCurrentRootUri() {
     try {
@@ -630,7 +643,15 @@ class Isolate {
     }
   }
 
-  static String _getCurrentRootUriStr() native "Isolate_getCurrentRootUriStr";
+  @pragma("vm:external-name", "Isolate_getCurrentRootUriStr")
+  external static String _getCurrentRootUriStr();
+
+  @pragma("vm:external-name", "Isolate_exit_")
+  external static Never _exit(SendPort? finalMessagePort, Object? message);
+
+  static Never exit([SendPort? finalMessagePort, Object? message]) {
+    _exit(finalMessagePort, message);
+  }
 }
 
 @patch
@@ -652,13 +673,13 @@ abstract class TransferableTypedData {
 
 @pragma("vm:entry-point")
 class _TransferableTypedDataImpl implements TransferableTypedData {
-  factory _TransferableTypedDataImpl(List<TypedData> list)
-      native "TransferableTypedData_factory";
+  @pragma("vm:external-name", "TransferableTypedData_factory")
+  external factory _TransferableTypedDataImpl(List<TypedData> list);
 
   ByteBuffer materialize() {
     return _materializeIntoUint8List().buffer;
   }
 
-  Uint8List _materializeIntoUint8List()
-      native "TransferableTypedData_materialize";
+  @pragma("vm:external-name", "TransferableTypedData_materialize")
+  external Uint8List _materializeIntoUint8List();
 }

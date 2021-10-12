@@ -15,8 +15,6 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 

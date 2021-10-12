@@ -350,23 +350,16 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   @override
   String toString() => '(priority=$priority; text=$text)';
 
+  /// Should keep these in sync! Copied from
+  /// https://github.com/dart-lang/linter/blob/658f497eef/lib/src/rules/directives_ordering.dart#L380-L387
+  /// Consider finding a way to share this code!
   static int _compareUri(String a, String b) {
-    var aList = _splitUri(a);
-    var bList = _splitUri(b);
-    int result;
-    if ((result = aList[0].compareTo(bList[0])) != 0) return result;
-    if ((result = aList[1].compareTo(bList[1])) != 0) return result;
-    return 0;
-  }
-
-  /// Split the given [uri] like `package:some.name/and/path.dart` into a list
-  /// like `[package:some.name, and/path.dart]`.
-  static List<String> _splitUri(String uri) {
-    var index = uri.indexOf('/');
-    if (index == -1) {
-      return <String>[uri, ''];
-    }
-    return <String>[uri.substring(0, index), uri.substring(index + 1)];
+    var indexA = a.indexOf('/');
+    var indexB = b.indexOf('/');
+    if (indexA == -1 || indexB == -1) return a.compareTo(b);
+    var result = a.substring(0, indexA).compareTo(b.substring(0, indexB));
+    if (result != 0) return result;
+    return a.substring(indexA + 1).compareTo(b.substring(indexB + 1));
   }
 }
 

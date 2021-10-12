@@ -1,124 +1,23 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:5:17: Error: A extension declaration must have a body, even if it is empty.
-// Try adding an empty body.
-// extension E1 on int show num {}
-//                 ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:5:26: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension E1 on int show num {}
-//                          ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:13:17: Error: A extension declaration must have a body, even if it is empty.
-// Try adding an empty body.
-// extension E2 on int show num hide ceil {}
-//                 ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:13:26: Error: Expected ';' after this.
-// extension E2 on int show num hide ceil {}
-//                          ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:13:26: Error: 'num' is already declared in this scope.
-// extension E2 on int show num hide ceil {}
-//                          ^^^
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:5:26: Context: Previous declaration of 'num'.
-// extension E1 on int show num {}
-//                          ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:13:35: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension E2 on int show num hide ceil {}
-//                                   ^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:21:17: Error: A extension declaration must have a body, even if it is empty.
-// Try adding an empty body.
-// extension E3 on int hide isEven {}
-//                 ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:21:26: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension E3 on int hide isEven {}
-//                          ^^^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:28:25: Error: A extension declaration must have a body, even if it is empty.
-// Try adding an empty body.
-// extension type MyInt on int show num, isEven hide floor {
-//                         ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:28:39: Error: Expected ';' after this.
-// extension type MyInt on int show num, isEven hide floor {
-//                                       ^^^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:28:34: Error: 'num' is already declared in this scope.
-// extension type MyInt on int show num, isEven hide floor {
-//                                  ^^^
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:13:26: Context: Previous declaration of 'num'.
-// extension E2 on int show num hide ceil {}
-//                          ^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:28:39: Error: 'isEven' is already declared in this scope.
-// extension type MyInt on int show num, isEven hide floor {
-//                                       ^^^^^^
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:21:26: Context: Previous declaration of 'isEven'.
-// extension E3 on int hide isEven {}
-//                          ^^^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:28:51: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension type MyInt on int show num, isEven hide floor {
-//                                                   ^^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:5:21: Error: Type 'show' not found.
-// extension E1 on int show num {}
-//                     ^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:13:21: Error: Type 'show' not found.
-// extension E2 on int show num hide ceil {}
-//                     ^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:13:30: Error: Type 'hide' not found.
-// extension E2 on int show num hide ceil {}
-//                              ^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:21:21: Error: Type 'hide' not found.
-// extension E3 on int hide isEven {}
-//                     ^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:28:29: Error: Type 'show' not found.
-// extension type MyInt on int show num, isEven hide floor {
-//                             ^^^^
-//
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:28:46: Error: Type 'hide' not found.
-// extension type MyInt on int show num, isEven hide floor {
-//                                              ^^^^
-//
 import self as self;
 import "dart:core" as core;
 
-extension E1 on core::int {
+extension E1 on core::int show-types core::num {
 }
-extension E2 on core::int {
+extension E2 on core::int show-types core::num hide-methods core::int::ceil hide-getters core::int::ceil {
 }
-extension E3 on core::int {
+extension E3 on core::int hide-getters core::int::isEven {
 }
-extension type MyInt on core::int {
+extension type MyInt on core::int show-types core::num show-getters core::int::isEven hide-methods core::int::floor hide-getters core::int::floor {
+  get twice = self::MyInt|get#twice;
 }
-static method num() → invalid-type
-  ;
 static method test1(self::E1 e1) → dynamic
-  ;
-static method ceil() → invalid-type
   ;
 static method test2(self::E2 e2) → dynamic
   ;
-static method isEven() → invalid-type
-  ;
 static method test3(self::E3 e3) → dynamic
   ;
-static method floor() → invalid-type
+static method MyInt|get#twice(lowered final core::int #this) → core::int
   ;
 static method test() → dynamic
   ;

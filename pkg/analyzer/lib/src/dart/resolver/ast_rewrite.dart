@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -26,7 +27,9 @@ import 'package:analyzer/src/error/codes.dart';
 class AstRewriter {
   final ErrorReporter _errorReporter;
 
-  AstRewriter(this._errorReporter);
+  final TypeProvider _typeProvider;
+
+  AstRewriter(this._errorReporter, this._typeProvider);
 
   /// Possibly rewrites [node] as a [MethodInvocation] with a
   /// [FunctionReference] target.
@@ -42,12 +45,18 @@ class AstRewriter {
       // Either `new` or `const` has been specified.
       return node;
     }
-    var typeName = node.constructorName.type.name;
+    var typeName = node.constructorName.type2.name;
     if (typeName is SimpleIdentifier) {
       var element = nameScope.lookup(typeName.name).getter;
-      if (element is FunctionElement || element is MethodElement) {
+      if (element is FunctionElement ||
+          element is MethodElement ||
+          element is PropertyAccessorElement) {
         return _toMethodInvocationOfFunctionReference(
             node: node, function: typeName);
+      } else if (element is TypeAliasElement &&
+          element.aliasedElement is GenericFunctionTypeElement) {
+        return _toMethodInvocationOfAliasedTypeLiteral(
+            node: node, function: typeName, element: element);
       }
     } else if (typeName is PrefixedIdentifier) {
       var prefixElement = nameScope.lookup(typeName.prefix.name).getter;
@@ -57,6 +66,10 @@ class AstRewriter {
         if (element is FunctionElement) {
           return _toMethodInvocationOfFunctionReference(
               node: node, function: typeName);
+        } else if (element is TypeAliasElement &&
+            element.aliasedElement is GenericFunctionTypeElement) {
+          return _toMethodInvocationOfAliasedTypeLiteral(
+              node: node, function: typeName, element: element);
         }
 
         // If `element` is a [ClassElement], or a [TypeAliasElement] aliasing
@@ -212,22 +225,25 @@ class AstRewriter {
   /// The [PrefixedIdentifier] may need to be rewritten as a
   /// [ConstructorReference].
   AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifier node) {
-    if (node.parent is Annotation) {
+    var parent = node.parent;
+    if (parent is Annotation) {
       // An annotations which is a const constructor invocation can initially be
       // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
       return node;
     }
-    if (node.parent is CommentReference) {
+    if (parent is CommentReference) {
       // TODO(srawlins): This probably should be rewritten to a
       // [ConstructorReference] at some point.
+      return node;
+    }
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      // A constructor cannot be assigned to, in some expression like
+      // `C.new = foo`; do not rewrite.
       return node;
     }
     var identifier = node.identifier;
     if (identifier.isSynthetic) {
       // This isn't a constructor reference.
-      return node;
-    }
-    if (node.parent is AssignmentExpression) {
       return node;
     }
     var prefix = node.prefix;
@@ -266,21 +282,31 @@ class AstRewriter {
       return node;
     }
     var receiver = node.target!;
-    if (receiver is! FunctionReference) {
-      return node;
-    }
     var propertyName = node.propertyName;
     if (propertyName.isSynthetic) {
       // This isn't a constructor reference.
       return node;
     }
-    // A [ConstructorReference] with explicit type arguments is initially parsed
-    // as a [PropertyAccess] with a [FunctionReference] target; for example:
-    // `List<int>.filled` or `core.List<int>.filled`.
-    var receiverIdentifier = receiver.function;
-    if (receiverIdentifier is! Identifier) {
-      // If [receiverIdentifier] is not an Identifier then [node] is not a
-      // ConstructorReference.
+
+    Identifier receiverIdentifier;
+    TypeArgumentList? typeArguments;
+    if (receiver is PrefixedIdentifier) {
+      receiverIdentifier = receiver;
+    } else if (receiver is FunctionReference) {
+      // A [ConstructorReference] with explicit type arguments is initially
+      // parsed as a [PropertyAccess] with a [FunctionReference] target; for
+      // example: `List<int>.filled` or `core.List<int>.filled`.
+      var function = receiver.function;
+      if (function is! Identifier) {
+        // If [receiverIdentifier] is not an Identifier then [node] is not a
+        // ConstructorReference.
+        return node;
+      }
+      receiverIdentifier = function;
+      typeArguments = receiver.typeArguments;
+    } else {
+      // If the receiver is not (initially) a prefixed identifier or a function
+      // reference, then [node] is not a constructor reference.
       return node;
     }
 
@@ -310,7 +336,7 @@ class AstRewriter {
       return _toConstructorReference_propertyAccess(
         node: node,
         receiver: receiverIdentifier,
-        typeArguments: receiver.typeArguments!,
+        typeArguments: typeArguments,
         classElement: element,
       );
     } else if (element is TypeAliasElement) {
@@ -323,7 +349,7 @@ class AstRewriter {
         return _toConstructorReference_propertyAccess(
           node: node,
           receiver: receiverIdentifier,
-          typeArguments: receiver.typeArguments!,
+          typeArguments: typeArguments,
           classElement: aliasedType.element,
         );
       }
@@ -365,7 +391,10 @@ class AstRewriter {
           [classElement.name, constructorElement.name]);
     }
 
-    var typeName = astFactory.typeName(typeNameIdentifier, typeArguments);
+    var typeName = astFactory.namedType(
+      name: typeNameIdentifier,
+      typeArguments: typeArguments,
+    );
     var constructorName = astFactory.constructorName(
         typeName, node.operator, constructorIdentifier);
     var instanceCreationExpression = astFactory.instanceCreationExpression(
@@ -384,7 +413,7 @@ class AstRewriter {
       return node;
     }
 
-    var typeName = astFactory.typeName(node.prefix, null);
+    var typeName = astFactory.namedType(name: node.prefix);
     var constructorName =
         astFactory.constructorName(typeName, node.period, node.identifier);
     var constructorReference =
@@ -393,15 +422,30 @@ class AstRewriter {
     return constructorReference;
   }
 
-  ConstructorReference _toConstructorReference_propertyAccess({
+  AstNode _toConstructorReference_propertyAccess({
     required PropertyAccess node,
     required Identifier receiver,
-    required TypeArgumentList typeArguments,
+    required TypeArgumentList? typeArguments,
     required ClassElement classElement,
   }) {
+    var name = node.propertyName.name;
+    var constructorElement = name == 'new'
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(name);
+    if (constructorElement == null && typeArguments == null) {
+      // If there is no constructor by this name, and no type arguments,
+      // do not rewrite the node. If there _are_ type arguments (like
+      // `prefix.C<int>.name`, then it looks more like a constructor tearoff
+      // than anything else, so continue with the rewrite.
+      return node;
+    }
+
     var operator = node.operator;
 
-    var typeName = astFactory.typeName(receiver, typeArguments);
+    var typeName = astFactory.namedType(
+      name: receiver,
+      typeArguments: typeArguments,
+    );
     var constructorName =
         astFactory.constructorName(typeName, operator, node.propertyName);
     var constructorReference =
@@ -415,10 +459,14 @@ class AstRewriter {
     required SimpleIdentifier prefixIdentifier,
     required SimpleIdentifier typeIdentifier,
   }) {
-    var typeName = astFactory.typeName(
-        astFactory.prefixedIdentifier(
-            prefixIdentifier, node.operator!, typeIdentifier),
-        node.typeArguments);
+    var typeName = astFactory.namedType(
+      name: astFactory.prefixedIdentifier(
+        prefixIdentifier,
+        node.operator!,
+        typeIdentifier,
+      ),
+      typeArguments: node.typeArguments,
+    );
     var constructorName = astFactory.constructorName(typeName, null, null);
     var instanceCreationExpression = astFactory.instanceCreationExpression(
         null, constructorName, node.argumentList);
@@ -430,7 +478,10 @@ class AstRewriter {
     required MethodInvocation node,
     required SimpleIdentifier typeIdentifier,
   }) {
-    var typeName = astFactory.typeName(typeIdentifier, node.typeArguments);
+    var typeName = astFactory.namedType(
+      name: typeIdentifier,
+      typeArguments: node.typeArguments,
+    );
     var constructorName = astFactory.constructorName(typeName, null, null);
     var instanceCreationExpression = astFactory.instanceCreationExpression(
         null, constructorName, node.argumentList);
@@ -457,7 +508,7 @@ class AstRewriter {
           typeArguments,
           [classElement.name, constructorElement.name]);
     }
-    var typeName = astFactory.typeName(typeIdentifier, null);
+    var typeName = astFactory.namedType(name: typeIdentifier);
     var constructorName = astFactory.constructorName(
         typeName, node.operator, constructorIdentifier);
     // TODO(scheglov) I think we should drop "typeArguments" below.
@@ -468,13 +519,37 @@ class AstRewriter {
     return instanceCreationExpression;
   }
 
+  MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
+    required InstanceCreationExpression node,
+    required Identifier function,
+    required TypeAliasElement element,
+  }) {
+    var typeName = astFactory.namedType(
+      name: node.constructorName.type2.name,
+      typeArguments: node.constructorName.type2.typeArguments,
+    );
+    typeName.type = element.aliasedType;
+    typeName.name.staticType = element.aliasedType;
+    var typeLiteral = astFactory.typeLiteral(typeName: typeName);
+    typeLiteral.staticType = _typeProvider.typeType;
+    var methodInvocation = astFactory.methodInvocation(
+      typeLiteral,
+      node.constructorName.period,
+      node.constructorName.name!,
+      null,
+      node.argumentList,
+    );
+    NodeReplacer.replace(node, methodInvocation);
+    return methodInvocation;
+  }
+
   MethodInvocation _toMethodInvocationOfFunctionReference({
     required InstanceCreationExpression node,
     required Identifier function,
   }) {
     var functionReference = astFactory.functionReference(
       function: function,
-      typeArguments: node.constructorName.type.typeArguments,
+      typeArguments: node.constructorName.type2.typeArguments,
     );
     var methodInvocation = astFactory.methodInvocation(
       functionReference,

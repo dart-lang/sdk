@@ -22,7 +22,7 @@ const int LINE_E = 58;
 @pragma("vm:prefer-inline")
 bar() {
   // Keep the 'throw' and its argument on separate lines.
-  throw // force linebreak with dartfmt // LINE_A
+  throw // force linebreak with dart format // LINE_A
       "Hello, Dwarf!";
 }
 

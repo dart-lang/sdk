@@ -26,7 +26,7 @@ class E<T extends core::Object* = dynamic> extends self::D<self::E::T*> {
     ;
 }
 class B<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::D<self::B::T*>* x = null;
+  covariant-by-class field self::D<self::B::T*>* x = null;
   synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
@@ -47,7 +47,7 @@ class C<U extends core::Object* = dynamic> extends self::B<asy::Future<self::C::
     ;
   get x() → self::E<asy::Future<self::C::U*>*>*
     return null;
-  set x(generic-covariant-impl core::Object* x) → void {}
+  set x(covariant-by-class core::Object* x) → void {}
   method g() → void {
     super.{self::B::x} = self::f<self::D<asy::Future<self::C::U*>*>*>();
   }

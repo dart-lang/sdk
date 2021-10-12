@@ -157,7 +157,7 @@ class HValidator extends HInstructionVisitor {
   static bool everyInstruction(
       List<HInstruction> instructions, bool Function(HInstruction, int) f) {
     if (instructions.length > kMaxValidatedInstructionListLength) return true;
-    var copy = new List<HInstruction>.from(instructions);
+    var copy = List<HInstruction>.from(instructions);
     // TODO(floitsch): there is currently no way to sort HInstructions before
     // we have assigned an ID. The loop is therefore O(n^2) for now.
     for (int i = 0; i < copy.length; i++) {

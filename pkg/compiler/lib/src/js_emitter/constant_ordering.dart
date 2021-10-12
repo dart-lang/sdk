@@ -22,7 +22,7 @@ class _ConstantOrdering
   final Sorter _sorter;
   _DartTypeOrdering _dartTypeOrdering;
   _ConstantOrdering(this._sorter) {
-    _dartTypeOrdering = new _DartTypeOrdering(this);
+    _dartTypeOrdering = _DartTypeOrdering(this);
   }
 
   @override
@@ -233,8 +233,8 @@ class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   final _ConstantOrdering _constantOrdering;
   DartType _root;
-  List<FunctionTypeVariable> _leftFunctionTypeVariables = [];
-  List<FunctionTypeVariable> _rightFunctionTypeVariables = [];
+  final List<FunctionTypeVariable> _leftFunctionTypeVariables = [];
+  final List<FunctionTypeVariable> _rightFunctionTypeVariables = [];
   _DartTypeOrdering(this._constantOrdering);
 
   int compare(DartType a, DartType b) {
@@ -269,13 +269,13 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
 
   @override
   int visitVoidType(covariant VoidType type, covariant VoidType other) {
-    throw new UnsupportedError('Unreachable');
+    throw UnsupportedError('Unreachable');
   }
 
   @override
   int visitTypeVariableType(
       covariant TypeVariableType type, covariant TypeVariableType other) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "Type variables are not expected in constants: '$type' in '$_root'");
   }
 
@@ -330,7 +330,7 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   @override
   int visitDynamicType(
       covariant DynamicType type, covariant DynamicType other) {
-    throw new UnsupportedError('Unreachable');
+    throw UnsupportedError('Unreachable');
   }
 
   @override

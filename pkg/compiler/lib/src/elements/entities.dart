@@ -166,21 +166,19 @@ abstract class FunctionEntity extends MemberEntity {
 /// Enum for the synchronous/asynchronous function body modifiers.
 class AsyncMarker {
   /// The default function body marker.
-  static const AsyncMarker SYNC = const AsyncMarker._(AsyncModifier.Sync);
+  static const AsyncMarker SYNC = AsyncMarker._(AsyncModifier.Sync);
 
   /// The `sync*` function body marker.
   static const AsyncMarker SYNC_STAR =
-      const AsyncMarker._(AsyncModifier.SyncStar, isYielding: true);
+      AsyncMarker._(AsyncModifier.SyncStar, isYielding: true);
 
   /// The `async` function body marker.
   static const AsyncMarker ASYNC =
-      const AsyncMarker._(AsyncModifier.Async, isAsync: true);
+      AsyncMarker._(AsyncModifier.Async, isAsync: true);
 
   /// The `async*` function body marker.
-  static const AsyncMarker ASYNC_STAR = const AsyncMarker._(
-      AsyncModifier.AsyncStar,
-      isAsync: true,
-      isYielding: true);
+  static const AsyncMarker ASYNC_STAR =
+      AsyncMarker._(AsyncModifier.AsyncStar, isAsync: true, isYielding: true);
 
   /// Is `true` if this marker defines the function body to have an
   /// asynchronous result, that is, either a [Future] or a [Stream].
@@ -193,7 +191,7 @@ class AsyncMarker {
   final AsyncModifier asyncParserState;
 
   const AsyncMarker._(this.asyncParserState,
-      {this.isAsync: false, this.isYielding: false});
+      {this.isAsync = false, this.isYielding = false});
 
   @override
   String toString() {
@@ -203,7 +201,7 @@ class AsyncMarker {
   /// Canonical list of marker values.
   ///
   /// Added to make [AsyncMarker] enum-like.
-  static const List<AsyncMarker> values = const <AsyncMarker>[
+  static const List<AsyncMarker> values = <AsyncMarker>[
     SYNC,
     SYNC_STAR,
     ASYNC,

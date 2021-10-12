@@ -85,7 +85,7 @@ void main() {
   const {1: null, if (isTrue) null: null else null: null};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 83, 12),
+      error(HintCode.DEAD_CODE, 83, 10),
     ]);
   }
 

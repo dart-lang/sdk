@@ -1,0 +1,59 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with modules compiled as outlines with constants.
+# When compiling the "real" library (as non-outline) constant evaluation
+# goes into more modules than in just the outline version.
+
+type: newworld
+# Set to DDC for compiling modules as outline.
+target: DDC
+modules:
+  moduleC:
+    moduleC/lib.dart: |
+      const constC = ['value_c'];
+    moduleC/.packages: |
+      moduleC:.
+  moduleB:
+    moduleB/lib.dart: |
+      import "package:moduleC/lib.dart";
+      const constB = ['value_b', constC];
+    moduleB/.packages: |
+      moduleB:.
+      moduleC:../moduleC
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        import 'package:moduleB/lib.dart';
+        import 'lib.dart';
+        const constA = ['value_a', constB];
+        const constLib = constFromLib;
+      lib.dart: |
+        const constFromLib = 42;
+      .packages: |
+        moduleB:moduleB
+        moduleC:moduleC
+    modules:
+      - moduleB
+      - moduleC
+    expectedLibraryCount: 4
+    neededDillLibraries:
+      # Because the modules are complied as outlines they haven't had constants
+      # evaluated. As this is fully compiled it does evaluate constants and thus
+      # goes into both B and C.
+      # We do not mark "lib.dart" though as it is not loaded from dill.
+      - package:moduleB/lib.dart
+      - package:moduleC/lib.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Field constA
+        - Field constLib
+      org-dartlang-test:///lib.dart:
+        - Field constFromLib
+      package:moduleB/lib.dart:
+        - Field constB
+      package:moduleC/lib.dart:
+        - Field constC

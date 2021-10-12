@@ -67,22 +67,17 @@ var _subscribeToOutputStreams = false;
 /// Pattern for a trailing semicolon.
 final _trailingSemicolonPattern = RegExp(r';$');
 
-/// An implementation of [LaunchRequestArguments] that includes all fields used
+/// An implementation of [AttachRequestArguments] that includes all fields used
 /// by the base Dart debug adapter.
 ///
 /// This class represents the data passed from the client editor to the debug
-/// adapter in launchRequest, which is a request to start debugging an
+/// adapter in attachRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely extend this class with
-/// their own additional fields.
+/// Specialised adapters (such as Flutter) will likely have their own versions
+/// of this class.
 class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements AttachRequestArguments {
-  /// Optional data from the previous, restarted session.
-  /// The data is sent as the 'restart' attribute of the 'terminated' event.
-  /// The client should leave the data intact.
-  final Object? restart;
-
   /// The VM Service URI to attach to.
   ///
   /// Either this or [vmServiceInfoFile] must be supplied.
@@ -94,9 +89,9 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   final String? vmServiceInfoFile;
 
   DartAttachRequestArguments({
-    this.restart,
     this.vmServiceUri,
     this.vmServiceInfoFile,
+    Object? restart,
     String? name,
     String? cwd,
     List<String>? additionalProjectPaths,
@@ -108,6 +103,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   }) : super(
           name: name,
           cwd: cwd,
+          restart: restart,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -117,15 +113,13 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
         );
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
-      : restart = obj['restart'],
-        vmServiceUri = obj['vmServiceUri'] as String?,
+      : vmServiceUri = obj['vmServiceUri'] as String?,
         vmServiceInfoFile = obj['vmServiceInfoFile'] as String?,
         super.fromMap(obj);
 
   @override
   Map<String, Object?> toJson() => {
         ...super.toJson(),
-        if (restart != null) 'restart': restart,
         if (vmServiceUri != null) 'vmServiceUri': vmServiceUri,
         if (vmServiceInfoFile != null) 'vmServiceInfoFile': vmServiceInfoFile,
       };
@@ -137,6 +131,11 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
 /// A common base for [DartLaunchRequestArguments] and
 /// [DartAttachRequestArguments] for fields that are common to both.
 class DartCommonLaunchAttachRequestArguments extends RequestArguments {
+  /// Optional data from the previous, restarted session.
+  /// The data is sent as the 'restart' attribute of the 'terminated' event.
+  /// The client should leave the data intact.
+  final Object? restart;
+
   final String? name;
   final String? cwd;
 
@@ -187,6 +186,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   final bool? sendLogsToClient;
 
   DartCommonLaunchAttachRequestArguments({
+    required this.restart,
     required this.name,
     required this.cwd,
     required this.additionalProjectPaths,
@@ -198,7 +198,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   });
 
   DartCommonLaunchAttachRequestArguments.fromMap(Map<String, Object?> obj)
-      : name = obj['name'] as String?,
+      : restart = obj['restart'],
+        name = obj['name'] as String?,
         cwd = obj['cwd'] as String?,
         additionalProjectPaths =
             (obj['additionalProjectPaths'] as List?)?.cast<String>(),
@@ -212,6 +213,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         sendLogsToClient = obj['sendLogsToClient'] as bool?;
 
   Map<String, Object?> toJson() => {
+        if (restart != null) 'restart': restart,
         if (name != null) 'name': name,
         if (cwd != null) 'cwd': cwd,
         if (additionalProjectPaths != null)
@@ -263,8 +265,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
 /// an expression into an evaluation console) or to events sent by the server
 /// (for example when the server sends a `StoppedEvent` it may cause the client
 /// to then send a `stackTraceRequest` or `scopesRequest` to get variables).
-abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
-    TA extends DartAttachRequestArguments> extends BaseDebugAdapter<TL, TA> {
+abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
+    TA extends AttachRequestArguments> extends BaseDebugAdapter<TL, TA> {
   late final DartCommonLaunchAttachRequestArguments args;
   final _debuggerInitializedCompleter = Completer<void>();
   final _configurationDoneCompleter = Completer<void>();
@@ -359,6 +361,8 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     this.enableAuthCodes = true,
     this.logger,
   }) : super(channel) {
+    channel.closed.then((_) => shutdown());
+
     _isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
   }
@@ -377,6 +381,14 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
   ///
   /// `null` if the `initialize` request has not yet been made.
   InitializeRequestArguments? get initializeArgs => _initializeArgs;
+
+  /// Whether or not this adapter can handle the restartRequest.
+  ///
+  /// If false, the editor will just terminate the debug session and start a new
+  /// one when the user asks to restart. If true, the adapter must implement
+  /// the [restartRequest] method and handle its own restart (for example the
+  /// Flutter adapter will perform a Hot Restart).
+  bool get supportsRestartRequest => false;
 
   /// Whether the VM Service closing should be used as a signal to terminate the
   /// debug session.
@@ -407,7 +419,7 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     TA args,
     void Function() sendResponse,
   ) async {
-    this.args = args;
+    this.args = args as DartCommonLaunchAttachRequestArguments;
     isAttach = true;
     _subscribeToOutputStreams = true;
 
@@ -480,7 +492,7 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
       logger?.call('Starting a DDS instance for $uri');
       try {
         final dds = await DartDevelopmentService.startDartDevelopmentService(
-          uri,
+          vmServiceUriToHttp(uri),
           enableAuthCodes: enableAuthCodes,
           ipv6: ipv6,
         );
@@ -492,13 +504,13 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
         // instance.
         if (e.errorCode ==
             DartDevelopmentServiceException.existingDdsInstanceError) {
-          uri = _cleanVmServiceUri(uri);
+          uri = vmServiceUriToWebSocket(uri);
         } else {
           rethrow;
         }
       }
     } else {
-      uri = _cleanVmServiceUri(uri);
+      uri = vmServiceUriToWebSocket(uri);
     }
 
     logger?.call('Connecting to debugger at $uri');
@@ -506,21 +518,25 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
-    // TODO(dantup): VS Code currently depends on a custom dart.debuggerUris
-    // event to notify it of VM Services that become available (for example to
-    // register with the DevTools server). If this is still required, it will
-    // need implementing here (and also documented as a customisation and
-    // perhaps gated on a capability/argument).
+    // Send a custom event with the VM Service URI as the editor might want to
+    // know about this (for example so it can connect an embedded DevTools to
+    // this app).
+    sendEvent(
+      RawEventBody({
+        'vmServiceUri': uri.toString(),
+      }),
+      eventType: 'dart.debuggerUris',
+    );
+
     this.vmService = vmService;
 
     unawaited(vmService.onDone.then((_) => _handleVmServiceClosed()));
     _subscriptions.addAll([
-      vmService.onIsolateEvent.listen(_handleIsolateEvent),
-      vmService.onDebugEvent.listen(_handleDebugEvent),
-      vmService.onLoggingEvent.listen(_handleLoggingEvent),
-      // TODO(dantup): Implement these.
-      // vmService.onExtensionEvent.listen(_handleExtensionEvent),
-      // vmService.onServiceEvent.listen(_handleServiceEvent),
+      vmService.onIsolateEvent.listen(handleIsolateEvent),
+      vmService.onDebugEvent.listen(handleDebugEvent),
+      vmService.onLoggingEvent.listen(handleLoggingEvent),
+      vmService.onExtensionEvent.listen(handleExtensionEvent),
+      vmService.onServiceEvent.listen(handleServiceEvent),
       if (_subscribeToOutputStreams)
         vmService.onStdoutEvent.listen(_handleStdoutEvent),
       if (_subscribeToOutputStreams)
@@ -530,8 +546,8 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
       vmService.streamListen(vm.EventStreams.kIsolate),
       vmService.streamListen(vm.EventStreams.kDebug),
       vmService.streamListen(vm.EventStreams.kLogging),
-      // vmService.streamListen(vm.EventStreams.kExtension),
-      // vmService.streamListen(vm.EventStreams.kService),
+      vmService.streamListen(vm.EventStreams.kExtension),
+      vmService.streamListen(vm.EventStreams.kService),
       vmService.streamListen(vm.EventStreams.kStdout),
       vmService.streamListen(vm.EventStreams.kStderr),
     ]);
@@ -631,6 +647,24 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
           await _updateDebugOptions(args.args);
         }
         sendResponse(null);
+        break;
+
+      /// Allows an editor to call a service/service extension that it was told
+      /// about via a custom 'dart.serviceRegistered' or
+      /// 'dart.serviceExtensionAdded' event.
+      case 'callService':
+        final method = args?.args['method'] as String?;
+        if (method == null) {
+          throw DebugAdapterException(
+            'Method is required to call services/service extensions',
+          );
+        }
+        final params = args?.args['params'] as Map<String, Object?>?;
+        final response = await vmService?.callServiceExtension(
+          method,
+          args: params,
+        );
+        sendResponse(response?.json);
         break;
 
       default:
@@ -848,6 +882,7 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
       supportsDelayedStackTraceLoading: true,
       supportsEvaluateForHovers: true,
       supportsLogPoints: true,
+      supportsRestartRequest: supportsRestartRequest,
       // TODO(dantup): All of these...
       // supportsRestartFrame: true,
       supportsTerminateRequest: true,
@@ -903,7 +938,7 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     TL args,
     void Function() sendResponse,
   ) async {
-    this.args = args;
+    this.args = args as DartCommonLaunchAttachRequestArguments;
     isAttach = false;
 
     // Common setup.
@@ -946,6 +981,23 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
   /// Returns `null` if no mapping was possible, for example if the package is
   /// not in the package mapping file.
   String? resolvePackageUri(Uri uri) => _converter.resolvePackageUri(uri);
+
+  /// restart is called by the client when the user invokes a restart (for
+  /// example with the button on the debug toolbar).
+  ///
+  /// The base implementation of this method throws. It is up to a debug adapter
+  /// that advertises `supportsRestartRequest` to override this method.
+  @override
+  Future<void> restartRequest(
+    Request request,
+    RestartArguments? args,
+    void Function() sendResponse,
+  ) async {
+    throw DebugAdapterException(
+      'restartRequest was called on an adapter that '
+      'does not provide an implementation',
+    );
+  }
 
   /// [scopesRequest] is called by the client to request all of the variables
   /// scopes available for a given stack frame.
@@ -1417,11 +1469,25 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     sendResponse(VariablesResponseBody(variables: variables));
   }
 
+  /// Fixes up a VM Service WebSocket URI to not have a trailing /ws
+  /// and use the HTTP scheme which is what DDS expects.
+  Uri vmServiceUriToHttp(Uri uri) {
+    final isSecure = uri.isScheme('https') || uri.isScheme('wss');
+    uri = uri.replace(scheme: isSecure ? 'https' : 'http');
+
+    final segments = uri.pathSegments;
+    if (segments.isNotEmpty && segments.last == 'ws') {
+      uri = uri.replace(pathSegments: segments.take(segments.length - 1));
+    }
+
+    return uri;
+  }
+
   /// Fixes up an Observatory [uri] to a WebSocket URI with a trailing /ws
   /// for connecting when not using DDS.
   ///
   /// DDS does its own cleaning up of the URI.
-  Uri _cleanVmServiceUri(Uri uri) {
+  Uri vmServiceUriToWebSocket(Uri uri) {
     // The VM Service library always expects the WebSockets URI so fix the
     // scheme (http -> ws, https -> wss).
     final isSecure = uri.isScheme('https') || uri.isScheme('wss');
@@ -1468,7 +1534,9 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     );
   }
 
-  Future<void> _handleDebugEvent(vm.Event event) async {
+  @protected
+  @mustCallSuper
+  Future<void> handleDebugEvent(vm.Event event) async {
     // Delay processing any events until the debugger initialization has
     // finished running, as events may arrive (for ex. IsolateRunnable) while
     // it's doing is own initialization that this may interfere with.
@@ -1477,17 +1545,42 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     await _isolateManager.handleEvent(event);
   }
 
-  Future<void> _handleIsolateEvent(vm.Event event) async {
+  @protected
+  @mustCallSuper
+  Future<void> handleExtensionEvent(vm.Event event) async {
+    await debuggerInitialized;
+
+    // Base Dart does not do anything here, but other DAs (like Flutter) may
+    // override it to do their own handling.
+  }
+
+  @protected
+  @mustCallSuper
+  Future<void> handleIsolateEvent(vm.Event event) async {
     // Delay processing any events until the debugger initialization has
     // finished running, as events may arrive (for ex. IsolateRunnable) while
     // it's doing is own initialization that this may interfere with.
     await debuggerInitialized;
 
+    // Allow IsolateManager to handle any state-related events.
     await _isolateManager.handleEvent(event);
+
+    switch (event.kind) {
+      // Pass any Service Extension events on to the client so they can enable
+      // functionality based upon them.
+      case vm.EventKind.kServiceExtensionAdded:
+        this._sendServiceExtensionAdded(
+          event.extensionRPC!,
+          event.isolate!.id!,
+        );
+        break;
+    }
   }
 
   /// Handles a dart:developer log() event, sending output to the client.
-  Future<void> _handleLoggingEvent(vm.Event event) async {
+  @protected
+  @mustCallSuper
+  Future<void> handleLoggingEvent(vm.Event event) async {
     final record = event.logRecord;
     final thread = _isolateManager.threadForIsolate(event.isolate);
     if (record == null || thread == null) {
@@ -1501,7 +1594,8 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
       if (ref == null || ref.kind == vm.InstanceKind.kNull) {
         return null;
       }
-      return _converter.convertVmInstanceRefToDisplayString(
+      return _converter
+          .convertVmInstanceRefToDisplayString(
         thread,
         ref,
         // Always allow calling toString() here as the user expects the full
@@ -1510,7 +1604,14 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
         allowCallingToString: true,
         allowTruncatedValue: false,
         includeQuotesAroundString: false,
-      );
+      )
+          .catchError((e) {
+        // Fetching strings from the server may throw if they have been
+        // collected since (for example if a Hot Restart occurs while
+        // we're running this). Log the error and just return null so
+        // nothing is shown.
+        logger?.call('$e');
+      });
     }
 
     var loggerName = await asString(record.loggerName);
@@ -1531,6 +1632,23 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     }
     if (stack != null) {
       sendPrefixedOutput('console', prefix, '$stack\n');
+    }
+  }
+
+  @protected
+  @mustCallSuper
+  Future<void> handleServiceEvent(vm.Event event) async {
+    await debuggerInitialized;
+
+    switch (event.kind) {
+      // Service registrations are passed to the client so they can toggle
+      // behaviour based on their presence.
+      case vm.EventKind.kServiceRegistered:
+        this._sendServiceRegistration(event.service!, event.method!);
+        break;
+      case vm.EventKind.kServiceUnregistered:
+        this._sendServiceUnregistration(event.service!, event.method!);
+        break;
     }
   }
 
@@ -1583,6 +1701,27 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
     }
     final message = utf8.decode(base64Decode(data));
     sendOutput('stdout', message);
+  }
+
+  void _sendServiceExtensionAdded(String extensionRPC, String isolateId) {
+    sendEvent(
+      RawEventBody({'extensionRPC': extensionRPC, 'isolateId': isolateId}),
+      eventType: 'dart.serviceExtensionAdded',
+    );
+  }
+
+  void _sendServiceRegistration(String service, String method) {
+    sendEvent(
+      RawEventBody({'service': service, 'method': method}),
+      eventType: 'dart.serviceRegistered',
+    );
+  }
+
+  void _sendServiceUnregistration(String service, String method) {
+    sendEvent(
+      RawEventBody({'service': service, 'method': method}),
+      eventType: 'dart.serviceUnregistered',
+    );
   }
 
   /// Updates the current debug options for the session.
@@ -1641,23 +1780,26 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
 /// adapter in launchRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely extend this class with
-/// their own additional fields.
+/// Specialised adapters (such as Flutter) will likely have their own versions
+/// of this class.
 class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements LaunchRequestArguments {
-  /// Optional data from the previous, restarted session.
-  /// The data is sent as the 'restart' attribute of the 'terminated' event.
-  /// The client should leave the data intact.
-  final Object? restart;
-
   /// If noDebug is true the launch request should launch the program without
   /// enabling debugging.
   final bool? noDebug;
 
+  /// The program/Dart script to be run.
   final String program;
+
+  /// Arguments to be passed to [program].
   final List<String>? args;
+
+  /// Arguments to be passed to the tool that will run [program] (for example,
+  /// the VM or Flutter tool).
+  final List<String>? toolArgs;
+
   final int? vmServicePort;
-  final List<String>? vmAdditionalArgs;
+
   final bool? enableAsserts;
 
   /// Which console to run the program in.
@@ -1673,14 +1815,14 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   final String? console;
 
   DartLaunchRequestArguments({
-    this.restart,
     this.noDebug,
     required this.program,
     this.args,
     this.vmServicePort,
-    this.vmAdditionalArgs,
+    this.toolArgs,
     this.console,
     this.enableAsserts,
+    Object? restart,
     String? name,
     String? cwd,
     List<String>? additionalProjectPaths,
@@ -1690,6 +1832,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
   }) : super(
+          restart: restart,
           name: name,
           cwd: cwd,
           additionalProjectPaths: additionalProjectPaths,
@@ -1701,11 +1844,10 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         );
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)
-      : restart = obj['restart'],
-        noDebug = obj['noDebug'] as bool?,
+      : noDebug = obj['noDebug'] as bool?,
         program = obj['program'] as String,
         args = (obj['args'] as List?)?.cast<String>(),
-        vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
+        toolArgs = (obj['toolArgs'] as List?)?.cast<String>(),
         vmServicePort = obj['vmServicePort'] as int?,
         console = obj['console'] as String?,
         enableAsserts = obj['enableAsserts'] as bool?,
@@ -1714,11 +1856,10 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   @override
   Map<String, Object?> toJson() => {
         ...super.toJson(),
-        if (restart != null) 'restart': restart,
         if (noDebug != null) 'noDebug': noDebug,
         'program': program,
         if (args != null) 'args': args,
-        if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
+        if (toolArgs != null) 'toolArgs': toolArgs,
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (console != null) 'console': console,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,

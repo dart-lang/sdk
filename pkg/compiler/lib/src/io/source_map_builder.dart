@@ -362,7 +362,7 @@ class SourceMapEntry {
 
 /// Map from line/column pairs to lists of [T] elements.
 class LineColumnMap<T> {
-  Map<int, Map<int, List<T>>> _map = {};
+  final Map<int, Map<int, List<T>>> _map = {};
 
   /// Returns the list of elements associated with ([line],[column]).
   List<T> _getList(int line, int column) {

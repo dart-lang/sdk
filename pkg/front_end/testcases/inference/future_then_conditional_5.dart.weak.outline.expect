@@ -29,7 +29,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#whenComplete, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
   no-such-method-forwarder method asStream() → asy::Stream<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#asStream, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} asy::Stream<self::MyFuture::T*>*;
-  no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<self::MyFuture::T*>* onTimeout}) → asy::Future<self::MyFuture::T*>*
+  no-such-method-forwarder method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<self::MyFuture::T*>* onTimeout}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#timeout, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onTimeout: onTimeout}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
 static method test() → void
@@ -44,11 +44,11 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> SymbolConstant(#test)
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> SymbolConstant(#whenComplete)
 Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> SymbolConstant(#asStream)
 Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> SymbolConstant(#timeout)
 Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> ListConstant(const <Type*>[])
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_conditional_5.dart:10:7 -> SymbolConstant(#onTimeout)

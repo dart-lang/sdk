@@ -7,8 +7,9 @@ library front_end.kernel_generator_impl;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart'
-    show CanonicalName, Component, NonNullableByDefaultCompiledMode;
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 
 import 'base/nnbd_mode.dart';
 
@@ -22,15 +23,13 @@ import 'fasta/dill/dill_target.dart' show DillTarget;
 
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 
-import 'fasta/kernel/kernel_api.dart';
-
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'fasta/loader.dart' show Loader;
+import 'fasta/source/source_loader.dart' show SourceLoader;
 
 import 'fasta/uri_translator.dart' show UriTranslator;
 
@@ -68,7 +67,7 @@ Future<CompilerResult> generateKernelInternal(
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
-  Loader? sourceLoader;
+  SourceLoader? sourceLoader;
   return withCrashReporting<CompilerResult>(() async {
     UriTranslator uriTranslator = await options.getUriTranslator();
 
@@ -91,7 +90,7 @@ Future<CompilerResult> generateKernelInternal(
       dillTarget.loader.appendLibraries(additionalDill);
     }
 
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
 
     KernelTarget kernelTarget =
         new KernelTarget(fs, false, dillTarget, uriTranslator);

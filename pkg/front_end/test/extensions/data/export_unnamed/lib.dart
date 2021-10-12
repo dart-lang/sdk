@@ -7,7 +7,9 @@
 /*library: scope=[
   NamedExtension,
   _extension#0,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 /*class: _extension#0:
  builder-name=_extension#0,

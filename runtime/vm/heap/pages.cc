@@ -47,9 +47,11 @@ OldPage* OldPage::Allocate(intptr_t size_in_words,
                            PageType type,
                            const char* name) {
   const bool executable = type == kExecutable;
+  const bool compressed = !executable;
 
   VirtualMemory* memory = VirtualMemory::AllocateAligned(
-      size_in_words << kWordSizeLog2, kOldPageSize, executable, name);
+      size_in_words << kWordSizeLog2, kOldPageSize, executable, compressed,
+      name);
   if (memory == NULL) {
     return NULL;
   }
@@ -1035,6 +1037,8 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
 }
 
 void PageSpace::TryReleaseReservation() {
+  ASSERT(phase() != kSweepingLarge);
+  ASSERT(phase() != kSweepingRegular);
   if (oom_reservation_ == nullptr) return;
   uword addr = reinterpret_cast<uword>(oom_reservation_);
   intptr_t size = oom_reservation_->HeapSize();

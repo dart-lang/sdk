@@ -67,6 +67,7 @@ class LocalScope;
 class CallSiteResetter;
 class CodeStatistics;
 class IsolateGroupReloadContext;
+class ObjectGraphCopier;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -864,6 +865,7 @@ class Object {
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
   friend class InstanceDeserializationCluster;
+  friend class ObjectGraphCopier;  // For Object::InitializeObject
   friend class Simd128MessageDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;
@@ -949,7 +951,7 @@ enum class Nullability : uint8_t {
   kNullable = 0,
   kNonNullable = 1,
   kLegacy = 2,
-  // Adjust kNullabilityBitSize in clustered_snapshot.cc if adding new values.
+  // Adjust kNullabilityBitSize in app_snapshot.cc if adding new values.
 };
 
 // Equality kind between types.
@@ -2433,6 +2435,8 @@ class ICData : public CallSiteData {
   void set_receiver_cannot_be_smi(bool value) const {
     untag()->state_bits_.UpdateBool<ReceiverCannotBeSmiBit>(value);
   }
+
+  uword Hash() const;
 
  private:
   static ICDataPtr New();
@@ -4964,7 +4968,6 @@ class Library : public Object {
   static LibraryPtr MirrorsLibrary();
 #endif
   static LibraryPtr NativeWrappersLibrary();
-  static LibraryPtr ProfilerLibrary();
   static LibraryPtr TypedDataLibrary();
   static LibraryPtr VMServiceLibrary();
 
@@ -6818,7 +6821,7 @@ class Context : public Object {
 
   void Dump(int indent = 0) const;
 
-  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static const intptr_t kAwaitJumpVarIndex = 0;
@@ -6835,11 +6838,11 @@ class Context : public Object {
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(UntaggedContext, data) +
-           (kWordSize * context_index);
+           (kBytesPerElement * context_index);
   }
 
   static bool IsValidLength(intptr_t len) {
-    return 0 <= len && len <= compiler::target::Array::kMaxElements;
+    return 0 <= len && len <= compiler::target::Context::kMaxElements;
   }
 
   static intptr_t InstanceSize() {
@@ -10970,6 +10973,16 @@ class DynamicLibrary : public Instance {
 
 class LinkedHashBase : public Instance {
  public:
+  // Keep consistent with _indexSizeToHashMask in compact_hash.dart.
+  static intptr_t IndexSizeToHashMask(intptr_t index_size) {
+    ASSERT(index_size >= kInitialIndexSize);
+    intptr_t index_bits = Utils::BitLength(index_size) - 2;
+#if defined(HAS_SMI_63_BITS)
+    return (1 << (32 - index_bits)) - 1;
+#else
+    return (1 << (Object::kHashBits - index_bits)) - 1;
+#endif
+  }
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLinkedHashBase));
   }
@@ -10998,13 +11011,99 @@ class LinkedHashBase : public Instance {
     return OFFSET_OF(UntaggedLinkedHashBase, deleted_keys_);
   }
 
+  static const LinkedHashBase& Cast(const Object& obj) {
+    ASSERT(obj.IsLinkedHashMap() || obj.IsLinkedHashSet());
+    return static_cast<const LinkedHashBase&>(obj);
+  }
+
+  bool IsImmutable() const {
+    return GetClassId() == kImmutableLinkedHashMapCid ||
+           GetClassId() == kImmutableLinkedHashSetCid;
+  }
+
+  virtual TypeArgumentsPtr GetTypeArguments() const {
+    return untag()->type_arguments();
+  }
+  virtual void SetTypeArguments(const TypeArguments& value) const {
+    const intptr_t num_type_args = IsLinkedHashMap() ? 2 : 1;
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= num_type_args) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/message3_test.dart.
+    untag()->set_type_arguments(value.ptr());
+  }
+
+  TypedDataPtr index() const { return untag()->index(); }
+  void set_index(const TypedData& value) const {
+    ASSERT(!value.IsNull());
+    untag()->set_index(value.ptr());
+  }
+
+  ArrayPtr data() const { return untag()->data(); }
+  void set_data(const Array& value) const { untag()->set_data(value.ptr()); }
+
+  SmiPtr hash_mask() const { return untag()->hash_mask(); }
+  void set_hash_mask(intptr_t value) const {
+    untag()->set_hash_mask(Smi::New(value));
+  }
+
+  SmiPtr used_data() const { return untag()->used_data(); }
+  void set_used_data(intptr_t value) const {
+    untag()->set_used_data(Smi::New(value));
+  }
+
+  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
+  void set_deleted_keys(intptr_t value) const {
+    untag()->set_deleted_keys(Smi::New(value));
+  }
+
+  intptr_t Length() const {
+    // The map or set may be uninitialized.
+    if (untag()->used_data() == Object::null()) return 0;
+    if (untag()->deleted_keys() == Object::null()) return 0;
+
+    intptr_t used = Smi::Value(untag()->used_data());
+    if (IsLinkedHashMap()) {
+      used >>= 1;
+    }
+    const intptr_t deleted = Smi::Value(untag()->deleted_keys());
+    return used - deleted;
+  }
+
+  // We do not compute the indices in the VM, but we do precompute the hash
+  // mask to avoid a load acquire barrier on reading the combination of index
+  // and hash mask.
+  void ComputeAndSetHashMask() const;
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+
  protected:
   // Keep this in sync with Dart implementation (lib/compact_hash.dart).
   static const intptr_t kInitialIndexBits = 2;
   static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
 
+ private:
+  LinkedHashBasePtr ptr() const { return static_cast<LinkedHashBasePtr>(ptr_); }
+  UntaggedLinkedHashBase* untag() const {
+    ASSERT(ptr() != null());
+    return const_cast<UntaggedLinkedHashBase*>(ptr()->untag());
+  }
+
   friend class Class;
+  friend class ImmutableLinkedHashBase;
   friend class LinkedHashBaseDeserializationCluster;
+};
+
+class ImmutableLinkedHashBase : public AllStatic {
+ public:
+  static constexpr bool ContainsCompressedPointers() {
+    return LinkedHashBase::ContainsCompressedPointers();
+  }
+
+  static intptr_t data_offset() { return LinkedHashBase::data_offset(); }
 };
 
 // Corresponds to
@@ -11018,59 +11117,15 @@ class LinkedHashMap : public LinkedHashBase {
   }
 
   // Allocates a map with some default capacity, just like "new Map()".
-  static LinkedHashMapPtr NewDefault(Heap::Space space = Heap::kNew);
-  static LinkedHashMapPtr New(const Array& data,
+  static LinkedHashMapPtr NewDefault(intptr_t class_id = kLinkedHashMapCid,
+                                     Heap::Space space = Heap::kNew);
+  static LinkedHashMapPtr New(intptr_t class_id,
+                              const Array& data,
                               const TypedData& index,
                               intptr_t hash_mask,
                               intptr_t used_data,
                               intptr_t deleted_keys,
                               Heap::Space space = Heap::kNew);
-
-  virtual TypeArgumentsPtr GetTypeArguments() const {
-    return untag()->type_arguments();
-  }
-  virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() ||
-           ((value.Length() >= 2) &&
-            value.IsInstantiated() /*&& value.IsCanonical()*/));
-    // TODO(asiva): Values read from a message snapshot are not properly marked
-    // as canonical. See for example tests/isolate/message3_test.dart.
-    untag()->set_type_arguments(value.ptr());
-  }
-
-  TypedDataPtr index() const { return untag()->index(); }
-  void SetIndex(const TypedData& value) const {
-    ASSERT(!value.IsNull());
-    untag()->set_index(value.ptr());
-  }
-
-  ArrayPtr data() const { return untag()->data(); }
-  void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
-
-  SmiPtr hash_mask() const { return untag()->hash_mask(); }
-  void SetHashMask(intptr_t value) const {
-    untag()->set_hash_mask(Smi::New(value));
-  }
-
-  SmiPtr used_data() const { return untag()->used_data(); }
-  void SetUsedData(intptr_t value) const {
-    untag()->set_used_data(Smi::New(value));
-  }
-
-  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
-  void SetDeletedKeys(intptr_t value) const {
-    untag()->set_deleted_keys(Smi::New(value));
-  }
-
-  intptr_t Length() const {
-    // The map may be uninitialized.
-    if (untag()->used_data() == Object::null()) return 0;
-    if (untag()->deleted_keys() == Object::null()) return 0;
-
-    intptr_t used = Smi::Value(untag()->used_data());
-    intptr_t deleted = Smi::Value(untag()->deleted_keys());
-    return (used >> 1) - deleted;
-  }
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11115,10 +11170,40 @@ class LinkedHashMap : public LinkedHashBase {
 
   // Allocate a map, but leave all fields set to null.
   // Used during deserialization (since map might contain itself as key/value).
-  static LinkedHashMapPtr NewUninitialized(Heap::Space space = Heap::kNew);
+  static LinkedHashMapPtr NewUninitialized(intptr_t class_id,
+                                           Heap::Space space = Heap::kNew);
 
   friend class Class;
+  friend class ImmutableLinkedHashMap;
   friend class LinkedHashMapDeserializationCluster;
+};
+
+class ImmutableLinkedHashMap : public AllStatic {
+ public:
+  static constexpr bool ContainsCompressedPointers() {
+    return LinkedHashMap::ContainsCompressedPointers();
+  }
+
+  static ImmutableLinkedHashMapPtr NewDefault(Heap::Space space = Heap::kNew);
+
+  static ImmutableLinkedHashMapPtr NewUninitialized(
+      Heap::Space space = Heap::kNew);
+
+  static const ClassId kClassId = kImmutableLinkedHashMapCid;
+
+  static intptr_t InstanceSize() { return LinkedHashMap::InstanceSize(); }
+
+ private:
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
+  static ImmutableLinkedHashMapPtr raw(const LinkedHashMap& map) {
+    return static_cast<ImmutableLinkedHashMapPtr>(map.ptr());
+  }
+
+  friend class Class;
 };
 
 class LinkedHashSet : public LinkedHashBase {
@@ -11128,59 +11213,15 @@ class LinkedHashSet : public LinkedHashBase {
   }
 
   // Allocates a set with some default capacity, just like "new Set()".
-  static LinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
-  static LinkedHashSetPtr New(const Array& data,
+  static LinkedHashSetPtr NewDefault(intptr_t class_id = kLinkedHashSetCid,
+                                     Heap::Space space = Heap::kNew);
+  static LinkedHashSetPtr New(intptr_t class_id,
+                              const Array& data,
                               const TypedData& index,
                               intptr_t hash_mask,
                               intptr_t used_data,
                               intptr_t deleted_keys,
                               Heap::Space space = Heap::kNew);
-
-  virtual TypeArgumentsPtr GetTypeArguments() const {
-    return untag()->type_arguments();
-  }
-  virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() ||
-           ((value.Length() >= 1) &&
-            value.IsInstantiated() /*&& value.IsCanonical()*/));
-    // TODO(asiva): Values read from a message snapshot are not properly marked
-    // as canonical. See for example tests/isolate/message3_test.dart.
-    untag()->set_type_arguments(value.ptr());
-  }
-
-  TypedDataPtr index() const { return untag()->index(); }
-  void SetIndex(const TypedData& value) const {
-    ASSERT(!value.IsNull());
-    untag()->set_index(value.ptr());
-  }
-
-  ArrayPtr data() const { return untag()->data(); }
-  void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
-
-  SmiPtr hash_mask() const { return untag()->hash_mask(); }
-  void SetHashMask(intptr_t value) const {
-    untag()->set_hash_mask(Smi::New(value));
-  }
-
-  SmiPtr used_data() const { return untag()->used_data(); }
-  void SetUsedData(intptr_t value) const {
-    untag()->set_used_data(Smi::New(value));
-  }
-
-  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
-  void SetDeletedKeys(intptr_t value) const {
-    untag()->set_deleted_keys(Smi::New(value));
-  }
-
-  intptr_t Length() const {
-    // The map may be uninitialized.
-    if (untag()->used_data() == Object::null()) return 0;
-    if (untag()->deleted_keys() == Object::null()) return 0;
-
-    intptr_t used = Smi::Value(untag()->used_data());
-    intptr_t deleted = Smi::Value(untag()->deleted_keys());
-    return used - deleted;
-  }
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11223,7 +11264,38 @@ class LinkedHashSet : public LinkedHashBase {
 
   // Allocate a set, but leave all fields set to null.
   // Used during deserialization (since set might contain itself as key/value).
-  static LinkedHashSetPtr NewUninitialized(Heap::Space space = Heap::kNew);
+  static LinkedHashSetPtr NewUninitialized(intptr_t class_id,
+                                           Heap::Space space = Heap::kNew);
+
+  friend class Class;
+  friend class ImmutableLinkedHashSet;
+  friend class LinkedHashSetDeserializationCluster;
+};
+
+class ImmutableLinkedHashSet : public AllStatic {
+ public:
+  static constexpr bool ContainsCompressedPointers() {
+    return LinkedHashSet::ContainsCompressedPointers();
+  }
+
+  static ImmutableLinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
+
+  static ImmutableLinkedHashSetPtr NewUninitialized(
+      Heap::Space space = Heap::kNew);
+
+  static const ClassId kClassId = kImmutableLinkedHashSetCid;
+
+  static intptr_t InstanceSize() { return LinkedHashSet::InstanceSize(); }
+
+ private:
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
+  static ImmutableLinkedHashSetPtr raw(const LinkedHashSet& map) {
+    return static_cast<ImmutableLinkedHashSetPtr>(map.ptr());
+  }
 
   friend class Class;
 };

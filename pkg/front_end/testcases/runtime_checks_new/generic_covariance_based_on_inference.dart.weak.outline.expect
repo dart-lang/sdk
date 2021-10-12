@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class B<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::B::T* x;
-  generic-covariant-impl field self::B::T* y;
+  covariant-by-class field self::B::T* x;
+  covariant-by-class field self::B::T* y;
   synthetic constructor •() → self::B<self::B::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -19,11 +19,11 @@ class B<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class C<T extends core::Object* = dynamic> extends core::Object implements self::B<core::num*> {
-  generic-covariant-impl field core::num* x;
+  covariant-by-class field core::num* x;
   synthetic constructor •() → self::C<self::C::T*>*
     ;
   abstract get y() → core::num*;
-  abstract set y(generic-covariant-impl core::num* value) → void;
+  abstract set y(covariant-by-class core::num* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -36,11 +36,11 @@ abstract class C<T extends core::Object* = dynamic> extends core::Object impleme
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class D<T extends core::Object* = dynamic> extends core::Object implements self::B<self::D::T*> {
-  generic-covariant-impl field self::D::T* x;
+  covariant-by-class field self::D::T* x;
   synthetic constructor •() → self::D<self::D::T*>*
     ;
   abstract get y() → self::D::T*;
-  abstract set y(generic-covariant-impl self::D::T* value) → void;
+  abstract set y(covariant-by-class self::D::T* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

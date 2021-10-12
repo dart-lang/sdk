@@ -25,7 +25,7 @@ class C<T1 extends core::Object* = dynamic, T2 extends core::Object* = dynamic, 
     ;
 }
 class D<P extends core::Object* = dynamic, Q extends core::Object* = dynamic> extends self::C<core::int*, self::D::Q*, self::D::P*> {
-  generic-covariant-impl field core::Map<self::D::P*, self::D::Q*>* foo;
+  covariant-by-class field core::Map<self::D::P*, self::D::Q*>* foo;
   constructor •(dynamic tt) → self::D<self::D::P*, self::D::Q*>*
     ;
   method foo2(dynamic y) → dynamic
@@ -38,7 +38,7 @@ class D<P extends core::Object* = dynamic, Q extends core::Object* = dynamic> ex
 class E<P extends core::String*> extends core::Object {
   static factory •<P extends core::String*>() → self::E<self::E::•::P*>*
     ;
-  method foo6<generic-covariant-impl T extends self::E::P*, U extends core::List<self::E::foo6::T*>* = core::List<self::E::P*>*>(core::Map<self::E::foo6::T*, self::E::foo6::U*>* map) → void
+  method foo6<covariant-by-class T extends self::E::P*, U extends core::List<self::E::foo6::T*>* = core::List<self::E::P*>*>(core::Map<self::E::foo6::T*, self::E::foo6::U*>* map) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -54,8 +54,8 @@ class E<P extends core::String*> extends core::Object {
 abstract class F<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::F<self::F::T*>*
     ;
-  abstract method foo7<generic-covariant-impl Q extends self::F::T*>(self::F::foo7::Q* a, covariant core::num* b, generic-covariant-impl self::F::T* c) → void;
-  abstract method foo8<generic-covariant-impl Q extends self::F::T*>(self::F::foo8::Q* a, covariant core::num* b, generic-covariant-impl self::F::T* c) → void;
+  abstract method foo7<covariant-by-class Q extends self::F::T*>(self::F::foo7::Q* a, covariant-by-declaration core::num* b, covariant-by-class self::F::T* c) → void;
+  abstract method foo8<covariant-by-class Q extends self::F::T*>(self::F::foo8::Q* a, covariant-by-declaration core::num* b, covariant-by-class self::F::T* c) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -70,7 +70,7 @@ abstract class F<T extends core::Object* = dynamic> extends core::Object {
 class G<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::G<self::G::T*>*
     ;
-  method foo7<generic-covariant-impl Q extends self::G::T*>(self::G::foo7::Q* a, core::int* b, generic-covariant-impl self::G::T* c) → void
+  method foo7<covariant-by-class Q extends self::G::T*>(self::G::foo7::Q* a, core::int* b, covariant-by-class self::G::T* c) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -86,10 +86,10 @@ class G<T extends core::Object* = dynamic> extends core::Object {
 class H<T extends core::Object* = dynamic> extends self::G<self::H::T*> implements self::F<self::H::T*> {
   synthetic constructor •() → self::H<self::H::T*>*
     ;
-  method foo8<generic-covariant-impl Q extends self::H::T*>(self::H::foo8::Q* a, covariant core::int* b, generic-covariant-impl self::H::T* c) → void
+  method foo8<covariant-by-class Q extends self::H::T*>(self::H::foo8::Q* a, covariant-by-declaration core::int* b, covariant-by-class self::H::T* c) → void
     ;
-  forwarding-stub method foo7<generic-covariant-impl Q extends self::H::T*>(self::H::foo7::Q* a, covariant core::num* b, generic-covariant-impl self::H::T* c) → void
-    return super.{self::G::foo7}<self::H::foo7::Q*>(a, b, c);
+  forwarding-stub method foo7<covariant-by-class Q extends self::H::T*>(self::H::foo7::Q* a, covariant-by-declaration core::num* b, covariant-by-class self::H::T* c) → void
+    return super.{self::G::foo7}<self::H::foo7::Q*>(a, b as core::int*, c);
 }
 static field core::List<core::Iterable<dynamic>*>* globalVar;
 static method foo1(dynamic x) → dynamic

@@ -47,65 +47,9 @@
     "Dynamic access of 'memberContext'.": 1,
     "Dynamic access of 'name'.": 1
   },
-  "pkg/compiler/lib/src/inferrer/typemasks/container_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isContainer'.": 1,
-    "Dynamic access of 'elementType'.": 2,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'forwardTo'.": 1,
-    "Dynamic access of 'allocationNode'.": 1,
-    "Dynamic access of 'allocationElement'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/dictionary_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isDictionary'.": 1,
-    "Dynamic access of 'forwardTo'.": 2,
-    "Dynamic access of 'keyType'.": 3,
-    "Dynamic access of 'valueType'.": 3,
-    "Dynamic access of 'masks::_typeMap'.": 2,
-    "Dynamic invocation of 'containsKey'.": 1,
-    "Dynamic invocation of 'nullable'.": 2,
-    "Dynamic invocation of 'union'.": 1,
-    "Dynamic invocation of 'forEach'.": 1,
-    "Dynamic access of 'isMap'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/forwarding_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/map_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isMap'.": 1,
-    "Dynamic access of 'keyType'.": 4,
-    "Dynamic access of 'valueType'.": 2,
-    "Dynamic access of 'forwardTo'.": 2,
-    "Dynamic access of 'isDictionary'.": 1,
-    "Dynamic invocation of 'union'.": 1,
-    "Dynamic access of 'typeMap'.": 1,
-    "Dynamic access of 'values'.": 1,
-    "Dynamic invocation of 'fold'.": 1,
-    "Dynamic access of 'allocationNode'.": 1,
-    "Dynamic access of 'allocationElement'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/set_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isSet'.": 1,
-    "Dynamic access of 'elementType'.": 2,
-    "Dynamic access of 'forwardTo'.": 1
-  },
   "pkg/compiler/lib/src/inferrer/typemasks/type_mask.dart": {
     "Dynamic access of 'isForwarding'.": 1,
     "Dynamic access of 'forwardTo'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/union_type_mask.dart": {
-    "Dynamic invocation of 'nonNullable'.": 2,
-    "Dynamic access of 'isNullable'.": 3,
-    "Dynamic access of 'isUnion'.": 2,
-    "Dynamic access of 'disjointMasks'.": 3,
-    "Dynamic invocation of 'contains'.": 1
   },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,

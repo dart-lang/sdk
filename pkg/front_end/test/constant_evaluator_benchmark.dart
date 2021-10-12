@@ -25,15 +25,16 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart' as constants
     show EvaluationMode, transformLibraries, ErrorReporter;
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
-
 import 'package:kernel/target/targets.dart'
     show ConstantsBackend, DiagnosticReporter, Target, TargetFlags;
+import 'package:kernel/type_environment.dart';
 
 import "package:vm/target/flutter.dart" show FlutterTarget;
 
@@ -80,7 +81,7 @@ void benchmark(Component component, List<Library> libraries) {
         stopwatch.reset();
         CoreTypes coreTypes = new CoreTypes(component);
         ConstantsBackend constantsBackend =
-            target.backendTarget.constantsBackend(coreTypes);
+            target.backendTarget.constantsBackend;
         ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
         TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
         if (verbose) {
@@ -130,7 +131,7 @@ class SilentErrorReporter implements constants.ErrorReporter {
 
 late IncrementalCompiler incrementalCompiler;
 
-void main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   Uri? platformUri;
   Uri mainUri;
   bool nnbd = false;

@@ -47,6 +47,7 @@ class NullableDereferenceVerifier {
       List<DiagnosticMessage>? messages}) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
       errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
+      arguments = [];
     }
     if (errorEntity is AstNode) {
       _errorReporter.reportErrorForNode(

@@ -767,6 +767,7 @@ class SampleBlock : public SampleBuffer {
   SampleBlock* next_free_ = nullptr;
 
  private:
+  friend class SampleBlockListProcessor;
   friend class SampleBlockBuffer;
   friend class Isolate;
 
@@ -871,6 +872,20 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
 
   friend class Isolate;
   DISALLOW_COPY_AND_ASSIGN(SampleBlockBuffer);
+};
+
+class SampleBlockListProcessor : public ProcessedSampleBufferBuilder {
+ public:
+  explicit SampleBlockListProcessor(SampleBlock* head) : head_(head) {}
+
+  virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
+      SampleFilter* filter,
+      ProcessedSampleBuffer* buffer = nullptr);
+
+ private:
+  SampleBlock* head_;
+
+  DISALLOW_COPY_AND_ASSIGN(SampleBlockListProcessor);
 };
 
 class AllocationSampleBuffer : public SampleBuffer {

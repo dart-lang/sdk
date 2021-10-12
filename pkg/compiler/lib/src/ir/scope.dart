@@ -22,7 +22,7 @@ class ScopeModel {
   /// be marked as free variables.
   factory ScopeModel.from(
       ir.Member node, ir.ConstantEvaluator constantEvaluator) {
-    ScopeModelBuilder builder = new ScopeModelBuilder(constantEvaluator);
+    ScopeModelBuilder builder = ScopeModelBuilder(constantEvaluator);
     return builder.computeModel(node);
   }
 }
@@ -34,15 +34,15 @@ abstract class VariableScopeModel {
 }
 
 class VariableScopeModelImpl implements VariableScopeModel {
-  Map<ir.TreeNode, VariableScope> _scopeMap = {};
+  final Map<ir.TreeNode, VariableScope> _scopeMap = {};
   Set<ir.VariableDeclaration> _assignedVariables;
 
   VariableScope createScopeFor(ir.TreeNode node) {
-    return _scopeMap[node] ??= new VariableScopeImpl();
+    return _scopeMap[node] ??= VariableScopeImpl();
   }
 
   void registerAssignedVariable(ir.VariableDeclaration node) {
-    _assignedVariables ??= new Set<ir.VariableDeclaration>();
+    _assignedVariables ??= Set<ir.VariableDeclaration>();
     _assignedVariables.add(node);
   }
 
@@ -83,7 +83,7 @@ class VariableScopeImpl implements VariableScope {
   }
 
   void registerAssignedVariable(ir.VariableDeclaration variable) {
-    _assignedVariables ??= new Set<ir.VariableDeclaration>();
+    _assignedVariables ??= Set<ir.VariableDeclaration>();
     _assignedVariables.add(variable);
   }
 
@@ -102,7 +102,7 @@ class VariableScopeImpl implements VariableScope {
 
 abstract class VariableCollectorMixin {
   VariableScopeImpl currentVariableScope;
-  VariableScopeModelImpl variableScopeModel = new VariableScopeModelImpl();
+  VariableScopeModelImpl variableScopeModel = VariableScopeModelImpl();
 
   void visitInVariableScope(ir.TreeNode root, void f()) {
     VariableScopeImpl oldScope = currentVariableScope;

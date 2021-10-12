@@ -11,13 +11,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_context.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
-    defineReflectiveTests(KeywordContributorWithNullSafetyTest);
   });
 }
 
@@ -2331,7 +2329,3 @@ f() => [...^];
     return true;
   }
 }
-
-@reflectiveTest
-class KeywordContributorWithNullSafetyTest extends KeywordContributorTest
-    with WithNullSafetyMixin {}

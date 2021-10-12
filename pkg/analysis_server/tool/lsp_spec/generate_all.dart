@@ -170,7 +170,6 @@ import 'package:analysis_server/lsp_protocol/protocol${importCustom ? '_custom' 
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 

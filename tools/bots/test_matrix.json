@@ -279,6 +279,7 @@
       "out/DebugAndroidARM/",
       "out/DebugAndroidARM_X64/",
       "out/DebugAndroidARM64/",
+      "out/DebugAndroidARM64C/",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
       "out/ReleaseX64C/",
@@ -289,6 +290,7 @@
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM_X64/",
       "out/ReleaseAndroidARM64/",
+      "out/ReleaseAndroidARM64C/",
       "out/ReleaseASANX64/",
       "out/ReleaseLSANX64/",
       "out/ReleaseMSANX64/",
@@ -304,6 +306,7 @@
       "out/ProductSIMARM_X64/",
       "out/ProductAndroidARM/",
       "out/ProductAndroidARM64/",
+      "out/ProductAndroidARM64C/",
       "xcodebuild/DebugIA32/",
       "xcodebuild/DebugSIMARM/",
       "xcodebuild/DebugSIMARM64/",
@@ -409,6 +412,17 @@
         "use-sdk": true
       }
     },
+    "web-unittest-asserts-(linux|mac|win)": {
+      "options": {
+        "builder-tag": "web",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
     "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -416,15 +430,6 @@
         "runtime": "vm",
         "timeout": 240,
         "use-sdk": true
-      }
-    },
-    "unittest-weak-asserts-no-sdk-(linux|mac|win)": {
-      "options": {
-        "compiler": "dartk",
-        "enable-asserts": true,
-        "mode": "release",
-        "runtime": "vm",
-        "timeout": 240
       }
     },
     "analyzer-unittest-asserts-(debug|product|release)-(linux|mac|win)": {
@@ -452,15 +457,6 @@
     },
     "vm-ffi-unit-test": {
       "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
-    },
-    "unittest-asserts-no-sdk-(linux|mac|win)": {
-      "options": {
-        "compiler": "dartk",
-        "enable-asserts": true,
-        "mode": "release",
-        "runtime": "vm",
-        "timeout": 240
-      }
     },
     "unittest-analyzer_use_fasta-(linux|mac|win)": {
       "options": {
@@ -2454,7 +2450,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/compiler/tool/modular_test_suite.dart",
-            "-nunittest-asserts-no-sdk-linux",
+            "-nweb-unittest-asserts-linux",
             "--verbose",
             "--use-sdk"
           ]
@@ -2462,16 +2458,18 @@
         {
           "name": "js_runtime unit tests",
           "arguments": [
-            "-nunittest-asserts-no-sdk-linux",
+            "-nweb-unittest-asserts-linux",
             "pkg//js_runtime/"
           ]
         },
         {
           "name": "dart2js unit tests",
           "arguments": [
-            "-nunittest-asserts-no-sdk-linux",
+            "-nweb-unittest-asserts-linux",
             "pkg//compiler/"
-          ]
+          ],
+          "shards": 3,
+          "fileset": "web_platform"
         }
       ]
     },
@@ -2883,13 +2881,6 @@
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts_nnbd"
-        },
-        {
-          "name": "dart2js nnbd unit tests",
-          "arguments": [
-            "-nunittest-weak-asserts-no-sdk-linux",
-            "pkg//compiler/"
-          ]
         }
       ]
     },

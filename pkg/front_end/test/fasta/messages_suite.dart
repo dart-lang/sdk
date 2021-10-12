@@ -218,7 +218,7 @@ class MessageTestSuite extends ChainContext {
         // characters with two characters without actually having the string
         // "backslash n".
         switch (key) {
-          case "template":
+          case "problemMessage":
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -230,14 +230,14 @@ class MessageTestSuite extends ChainContext {
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Template has the following word that is "
+                  "problemMessage has the following word that is "
                       "not in our dictionary",
-                  "Template has the following word that is "
+                  "problemMessage has the following word that is "
                       "on our deny-list"));
             }
             break;
 
-          case "tip":
+          case "correctionMessage":
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -249,9 +249,9 @@ class MessageTestSuite extends ChainContext {
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Tip has the following word that is "
+                  "correctionMessage has the following word that is "
                       "not in our dictionary",
-                  "Tip has the following word that is "
+                  "correctionMessage has the following word that is "
                       "on our deny-list"));
             }
             break;
@@ -741,11 +741,11 @@ class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
 
   @override
   Future<Result<Example>> run(
-      MessageTestDescription description, MessageTestSuite suite) async {
+      MessageTestDescription description, MessageTestSuite suite) {
     if (description.problem != null) {
-      return fail(null, description.problem);
+      return new Future.value(fail(null, description.problem));
     } else {
-      return pass(description.example);
+      return new Future.value(pass(description.example));
     }
   }
 }
@@ -836,10 +836,10 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 }
 
 Future<MessageTestSuite> createContext(
-    Chain suite, Map<String, String> environment) async {
+    Chain suite, Map<String, String> environment) {
   final bool fastOnly = environment["fastOnly"] == "true";
   final bool interactive = environment["interactive"] == "true";
-  return new MessageTestSuite(fastOnly, interactive);
+  return new Future.value(new MessageTestSuite(fastOnly, interactive));
 }
 
 String relativize(Uri uri) {

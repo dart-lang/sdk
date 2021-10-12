@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
@@ -71,23 +70,14 @@ class ChangeBuilderImpl implements ChangeBuilder {
     // In addition, we should consider implementing our own hash function for
     // file edits because the `hashCode` defined for them might not be
     // sufficient to detect all changes to the list of edits.
-    var hash = 0;
-    for (var builder in _genericFileEditBuilders.values) {
-      if (builder.hasEdits) {
-        hash = JenkinsSmiHash.combine(hash, builder.fileEdit.hashCode);
-      }
-    }
-    for (var builder in _dartFileEditBuilders.values) {
-      if (builder.hasEdits) {
-        hash = JenkinsSmiHash.combine(hash, builder.fileEdit.hashCode);
-      }
-    }
-    for (var builder in _yamlFileEditBuilders.values) {
-      if (builder.hasEdits) {
-        hash = JenkinsSmiHash.combine(hash, builder.fileEdit.hashCode);
-      }
-    }
-    return JenkinsSmiHash.finish(hash);
+    return Object.hashAll([
+      for (var builder in _genericFileEditBuilders.values)
+        if (builder.hasEdits) builder.fileEdit,
+      for (var builder in _dartFileEditBuilders.values)
+        if (builder.hasEdits) builder.fileEdit,
+      for (var builder in _yamlFileEditBuilders.values)
+        if (builder.hasEdits) builder.fileEdit,
+    ]);
   }
 
   @override

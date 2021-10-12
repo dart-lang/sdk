@@ -1106,7 +1106,7 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
   }
 }
 
-void Service::HandleEvent(ServiceEvent* event) {
+void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
   if (event->stream_info() != NULL && !event->stream_info()->enabled()) {
     if (FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
       // If we are about to pause a running program which has no
@@ -1133,7 +1133,8 @@ void Service::HandleEvent(ServiceEvent* event) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
+  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js,
+            enter_safepoint);
 
   // Post event to the native Service Stream handlers if set.
   if (event->stream_info() != nullptr &&
@@ -1147,13 +1148,28 @@ void Service::HandleEvent(ServiceEvent* event) {
 void Service::PostEvent(Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
-                        JSONStream* event) {
-  ASSERT(stream_id != NULL);
-  ASSERT(kind != NULL);
-  ASSERT(event != NULL);
+                        JSONStream* event,
+                        bool enter_safepoint) {
+  if (enter_safepoint) {
+    // Enter a safepoint so we don't block the mutator while processing
+    // large events.
+    TransitionToNative transition(Thread::Current());
+    PostEventImpl(isolate, stream_id, kind, event);
+    return;
+  }
+  PostEventImpl(isolate, stream_id, kind, event);
+}
+
+void Service::PostEventImpl(Isolate* isolate,
+                            const char* stream_id,
+                            const char* kind,
+                            JSONStream* event) {
+  ASSERT(stream_id != nullptr);
+  ASSERT(kind != nullptr);
+  ASSERT(event != nullptr);
 
   if (FLAG_trace_service) {
-    if (isolate != NULL) {
+    if (isolate != nullptr) {
       OS::PrintErr(
           "vm-service: Pushing ServiceEvent(isolate='%s', "
           "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
@@ -2721,6 +2737,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   String& klass_name = String::Handle(zone);
+  String& method_name = String::Handle(zone);
   String& library_uri = String::Handle(zone);
   bool isStatic = false;
 
@@ -2746,11 +2763,13 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         klass_name = cls.UserVisibleName();
       }
       library_uri = Library::Handle(zone, cls.library()).url();
+      method_name = frame->function().UserVisibleName();
       isStatic = true;
     } else {
       const Class& method_cls = Class::Handle(zone, frame->function().origin());
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();
+      method_name = frame->function().UserVisibleName();
       isStatic = false;
     }
   } else {
@@ -2829,6 +2848,9 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   if (!klass_name.IsNull()) {
     report.AddProperty("klass", klass_name.ToCString());
   }
+  if (!method_name.IsNull()) {
+    report.AddProperty("method", method_name.ToCString());
+  }
   report.AddProperty("isStatic", isStatic);
 }
 
@@ -2877,6 +2899,7 @@ static const MethodParameter* const compile_expression_params[] = {
     new StringParameter("libraryUri", true),
     new StringParameter("klass", false),
     new BoolParameter("isStatic", false),
+    new StringParameter("method", false),
     NULL,
 };
 
@@ -2922,7 +2945,8 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
           kernel_buffer, kernel_buffer_len, js->LookupParam("expression"),
           Array::Handle(Array::MakeFixedLength(params)),
           Array::Handle(Array::MakeFixedLength(type_params)),
-          js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
+          js->LookupParam("libraryUri"), js->LookupParam("klass"),
+          js->LookupParam("method"), is_static);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
@@ -4275,10 +4299,17 @@ static void AddVMMappings(JSONArray* rss_children) {
       // Skipping a few paths to avoid double counting:
       // (deleted) - memfd dual mapping in Dart heap
       // [heap] - sbrk area, should already included with malloc
-      // <empty> - anonymous mappings, mostly in Dart heap
+      // <empty> - anonymous mappings, mostly in Dart heap (Linux)
+      // [anon:dart-*] - as labelled (Android)
       if ((strcmp(property, "Rss:") == 0) && (size != 0) &&
           (strcmp(path, "(deleted)") != 0) && (strcmp(path, "[heap]") != 0) &&
-          (strcmp(path, "") != 0)) {
+          (strcmp(path, "") != 0) &&
+          (strcmp(path, "[anon:dart-newspace]") != 0) &&
+          (strcmp(path, "[anon:dart-oldspace]") != 0) &&
+          (strcmp(path, "[anon:dart-codespace]") != 0) &&
+          (strcmp(path, "[anon:dart-profiler]") != 0) &&
+          (strcmp(path, "[anon:dart-timeline]") != 0) &&
+          (strcmp(path, "[anon:dart-zone]") != 0)) {
         bool updated = false;
         for (intptr_t i = 0; i < mappings.length(); i++) {
           if (strcmp(mappings[i].path, path) == 0) {
@@ -5226,7 +5257,7 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   {                                                                            \
     JSONArray internals(&map, #clazz);                                         \
     DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
-    DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
+    DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                             \
     DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)

@@ -103,7 +103,7 @@ class BaseMarshaller : public ZoneAllocated {
   // Requires boxing or unboxing.
   bool IsPointer(intptr_t arg_index) const {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
-           kFfiPointerCid;
+           kPointerCid;
   }
   bool IsHandle(intptr_t arg_index) const {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==

@@ -191,8 +191,6 @@ import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
-import 'ffi_array_multi_non_positive_input_test.dart'
-    as ffi_array_multi_non_positive_input_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
@@ -488,6 +486,7 @@ import 'non_generative_implicit_constructor_test.dart'
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
+import 'non_positive_array_dimension_test.dart' as non_positive_array_dimension;
 import 'non_sized_type_argument_test.dart' as non_sized_type_argument;
 import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
@@ -850,7 +849,6 @@ main() {
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
-    ffi_array_multi_non_positive_input_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
     field_in_struct_with_initializer.main();
@@ -1040,6 +1038,7 @@ main() {
     non_generative_implicit_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
+    non_positive_array_dimension.main();
     non_sized_type_argument.main();
     non_type_as_type_argument.main();
     non_type_in_catch_clause.main();

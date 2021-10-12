@@ -45,7 +45,7 @@ class PowersetValue implements AbstractValue {
 }
 
 AbstractValue unwrapOrNull(PowersetValue powerset) {
-  return powerset == null ? null : powerset._abstractValue;
+  return powerset?._abstractValue;
 }
 
 PowersetValue wrapOrNull(AbstractValue abstractValue, int powersetBits) {
@@ -63,10 +63,13 @@ class PowersetDomain implements AbstractValueDomain {
   PowersetBitsDomain get powersetBitsDomain => _powersetBitsDomain;
 
   @override
-  AbstractValue get dynamicType {
-    AbstractValue abstractValue = _abstractValueDomain.dynamicType;
-    return PowersetValue(abstractValue, _powersetBitsDomain.powersetTop);
-  }
+  AbstractValue get internalTopType => PowersetValue(
+      _abstractValueDomain.internalTopType,
+      _powersetBitsDomain.internalTopType);
+
+  @override
+  AbstractValue get dynamicType => PowersetValue(
+      _abstractValueDomain.dynamicType, _powersetBitsDomain.dynamicType);
 
   //TODO(coam)
   @override
@@ -528,12 +531,6 @@ class PowersetDomain implements AbstractValueDomain {
           _abstractValueDomain.isIndexablePrimitive(value._abstractValue));
 
   @override
-  AbstractBool isPrimitiveArray(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-          _powersetBitsDomain.isPrimitiveArray(value._powersetBits),
-          _abstractValueDomain.isPrimitiveArray(value._abstractValue));
-
-  @override
   AbstractBool isPrimitiveBoolean(covariant PowersetValue value) =>
       AbstractBool.strengthen(
           _powersetBitsDomain.isPrimitiveBoolean(value._powersetBits),
@@ -557,14 +554,14 @@ class PowersetDomain implements AbstractValueDomain {
       _abstractValueDomain.isNull(value._abstractValue));
 
   @override
-  ClassEntity getExactClass(covariant PowersetValue value) =>
-      _abstractValueDomain.getExactClass(value._abstractValue);
+  AbstractBool isLateSentinel(covariant PowersetValue value) =>
+      AbstractBool.strengthen(
+          _powersetBitsDomain.isLateSentinel(value._powersetBits),
+          _abstractValueDomain.isLateSentinel(value._abstractValue));
 
   @override
-  AbstractBool isExactOrNull(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-          _powersetBitsDomain.isExactOrNull(value._powersetBits),
-          _abstractValueDomain.isExactOrNull(value._abstractValue));
+  ClassEntity getExactClass(covariant PowersetValue value) =>
+      _abstractValueDomain.getExactClass(value._abstractValue);
 
   @override
   AbstractBool isExact(covariant PowersetValue value) =>
@@ -615,6 +612,24 @@ class PowersetDomain implements AbstractValueDomain {
     int powersetBits = _powersetBitsDomain.excludeNull(value._powersetBits);
     AbstractValue abstractValue =
         _abstractValueDomain.excludeNull(value._abstractValue);
+    return PowersetValue(abstractValue, powersetBits);
+  }
+
+  @override
+  AbstractValue includeLateSentinel(covariant PowersetValue value) {
+    int powersetBits =
+        _powersetBitsDomain.includeLateSentinel(value._powersetBits);
+    AbstractValue abstractValue =
+        _abstractValueDomain.includeLateSentinel(value._abstractValue);
+    return PowersetValue(abstractValue, powersetBits);
+  }
+
+  @override
+  AbstractValue excludeLateSentinel(covariant PowersetValue value) {
+    int powersetBits =
+        _powersetBitsDomain.excludeLateSentinel(value._powersetBits);
+    AbstractValue abstractValue =
+        _abstractValueDomain.excludeLateSentinel(value._abstractValue);
     return PowersetValue(abstractValue, powersetBits);
   }
 
@@ -745,6 +760,11 @@ class PowersetDomain implements AbstractValueDomain {
   @override
   AbstractValue get nonNullType => PowersetValue(
       _abstractValueDomain.nonNullType, _powersetBitsDomain.nonNullType);
+
+  @override
+  AbstractValue get lateSentinelType => PowersetValue(
+      _abstractValueDomain.lateSentinelType,
+      _powersetBitsDomain.lateSentinelType);
 
   @override
   AbstractValue get mapType =>

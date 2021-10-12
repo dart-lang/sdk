@@ -24,6 +24,7 @@
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
+#include "vm/timeline.h"
 #include "vm/version.h"
 
 namespace dart {
@@ -185,8 +186,10 @@ SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
                                      intptr_t samples_per_block) {
   const intptr_t size = Utils::RoundUp(
       blocks * samples_per_block * sizeof(Sample), VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -239,6 +242,23 @@ void SampleBlockBuffer::ProcessCompletedBlocks() {
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("SampleBlockBuffer::ProcessCompletedBlocks", start, end,
                      Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
+}
+
+ProcessedSampleBuffer* SampleBlockListProcessor::BuildProcessedSampleBuffer(
+    SampleFilter* filter,
+    ProcessedSampleBuffer* buffer) {
+  ASSERT(filter != NULL);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  if (buffer == nullptr) {
+    buffer = new (zone) ProcessedSampleBuffer();
+  }
+  while (head_ != nullptr) {
+    head_->BuildProcessedSampleBuffer(filter, buffer);
+    head_ = head_->next_free_;
+  }
+  return buffer;
 }
 
 ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
@@ -341,8 +361,10 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
 AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity) {
   const intptr_t size =
       Utils::RoundUp(capacity * sizeof(Sample), VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -1548,13 +1570,17 @@ void CodeLookupTable::Build(Thread* thread) {
   // Clear.
   code_objects_.Clear();
 
+  thread->CheckForSafepoint();
   // Add all found Code objects.
   {
+    TimelineBeginEndScope tl(Timeline::GetIsolateStream(),
+                             "CodeLookupTable::Build HeapIterationScope");
     HeapIterationScope iteration(thread);
     CodeLookupTableBuilder cltb(this);
     iteration.IterateVMIsolateObjects(&cltb);
     iteration.IterateOldObjects(&cltb);
   }
+  thread->CheckForSafepoint();
 
   // Sort by entry.
   code_objects_.Sort(CodeDescriptor::Compare);
@@ -1628,6 +1654,7 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
 
   const intptr_t length = capacity();
   for (intptr_t i = 0; i < length; i++) {
+    thread->CheckForSafepoint();
     Sample* sample = At(i);
     if (sample->ignore_sample()) {
       // Bad sample.

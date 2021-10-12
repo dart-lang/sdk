@@ -13,9 +13,6 @@ namespace compiler {
 namespace ffi {
 
 classid_t ElementTypedDataCid(classid_t class_id) {
-  ASSERT(class_id >= kFfiPointerCid);
-  ASSERT(class_id < kFfiVoidCid);
-  ASSERT(class_id != kFfiNativeFunctionCid);
   switch (class_id) {
     case kFfiInt8Cid:
       return kTypedDataInt8ArrayCid;
@@ -36,7 +33,7 @@ classid_t ElementTypedDataCid(classid_t class_id) {
     case kFfiIntPtrCid:
       return target::kWordSize == 4 ? kTypedDataInt32ArrayCid
                                     : kTypedDataInt64ArrayCid;
-    case kFfiPointerCid:
+    case kPointerCid:
       return target::kWordSize == 4 ? kTypedDataUint32ArrayCid
                                     : kTypedDataUint64ArrayCid;
     case kFfiFloatCid:
@@ -55,7 +52,6 @@ classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
   case MethodRecognizer::kFfiStore##type:                                      \
     return kFfi##type##Cid;
     CLASS_LIST_FFI_NUMERIC(LOAD_STORE)
-    LOAD_STORE(Pointer)
 #undef LOAD_STORE
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
@@ -63,6 +59,9 @@ classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiStoreDoubleUnaligned:
       return kFfiDoubleCid;
+    case MethodRecognizer::kFfiLoadPointer:
+    case MethodRecognizer::kFfiStorePointer:
+      return kPointerCid;
     default:
       UNREACHABLE();
   }

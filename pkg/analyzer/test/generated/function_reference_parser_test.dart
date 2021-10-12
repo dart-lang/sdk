@@ -24,8 +24,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect((functionReference.function as SimpleIdentifier).name, 'f');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void expect_two_args(MethodInvocation methodInvocation) {
@@ -101,8 +101,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(methodInvocation.methodName.name, 'f');
     var typeArgs = methodInvocation.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
     expect(methodInvocation.argumentList.arguments, isEmpty);
   }
 
@@ -113,12 +113,12 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
         parseExpression('f<a, b>.toString()', featureSet: constructorTearoffs)
             as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
+    var type = constructorName.type2;
     expect((type.name as SimpleIdentifier).name, 'f');
     var typeArgs = type.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
     expect(constructorName.name!.name, 'toString');
     expect(instanceCreationExpression.argumentList.arguments, isEmpty);
   }
@@ -358,8 +358,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(functionReference.function, TypeMatcher<IndexExpression>());
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void test_functionReference_after_indexExpression_bang() {
@@ -371,8 +371,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(functionReference.function, TypeMatcher<PostfixExpression>());
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void test_functionReference_after_indexExpression_functionCall() {
@@ -385,8 +385,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
         TypeMatcher<FunctionExpressionInvocation>());
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void test_functionReference_after_indexExpression_nullAware() {
@@ -398,8 +398,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(functionReference.function, TypeMatcher<IndexExpression>());
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void test_methodTearoff() {
@@ -412,8 +412,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.propertyName.name, 'm');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void test_methodTearoff_cascaded() {
@@ -427,8 +427,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.propertyName.name, 'm');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void test_prefixedIdentifier() {
@@ -440,8 +440,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.identifier.name, 'f');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 
   void test_three_identifiers() {
@@ -454,7 +454,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.propertyName.name, 'm');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect(((typeArgs[0] as NamedType).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as NamedType).name as SimpleIdentifier).name, 'b');
   }
 }

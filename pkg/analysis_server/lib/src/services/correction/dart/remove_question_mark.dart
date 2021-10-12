@@ -33,7 +33,7 @@ class RemoveQuestionMark extends CorrectionProducer {
         return;
       }
     }
-    if (targetNode is TypeName) {
+    if (targetNode is NamedType) {
       var questionMark = targetNode.question;
       if (questionMark == null) {
         return;

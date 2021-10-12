@@ -111,7 +111,7 @@ class VariableNameContributor extends DartCompletionContributor {
   }
 
   static Identifier? _typeAnnotationIdentifier(TypeAnnotation? type) {
-    if (type is TypeName) {
+    if (type is NamedType) {
       return type.name;
     }
     return null;

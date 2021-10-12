@@ -2789,7 +2789,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kLinkedHashBase_index:
+    case Slot::Kind::kImmutableLinkedHashBase_index:
     case Slot::Kind::kLinkedHashBase_data:
+    case Slot::Kind::kImmutableLinkedHashBase_data:
     case Slot::Kind::kGrowableObjectArray_data:
     case Slot::Kind::kContext_parent:
     case Slot::Kind::kTypeArguments:

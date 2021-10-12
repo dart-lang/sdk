@@ -317,13 +317,6 @@ class FastaErrorReporter {
             offset,
             length);
         return;
-      case "WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR":
-        errorReporter?.reportErrorMessage(
-            CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-            offset,
-            length,
-            message);
-        return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
@@ -347,12 +340,8 @@ class FastaErrorReporter {
     if (index > 0 && index < fastaAnalyzerErrorCodes.length) {
       var errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter!.reportError(AnalysisError.withNamedArguments(
-            errorReporter!.source,
-            offset,
-            length,
-            errorCode,
-            message.arguments));
+        errorReporter!.reportError(AnalysisError(errorReporter!.source, offset,
+            length, errorCode, message.arguments.values.toList()));
         return;
       }
     }
@@ -369,8 +358,8 @@ class FastaErrorReporter {
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter!.reportError(AnalysisError.withNamedArguments(
-          errorReporter!.source, offset, length, errorCode, message.arguments));
+      errorReporter!.reportError(AnalysisError(errorReporter!.source, offset,
+          length, errorCode, message.arguments.values.toList()));
     }
   }
 }

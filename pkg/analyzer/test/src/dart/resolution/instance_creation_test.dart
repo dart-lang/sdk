@@ -64,7 +64,7 @@ void f() {
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'int'},
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_class_generic_unnamed_inferTypeArguments() async {
@@ -107,7 +107,7 @@ void f() {
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'int'},
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_class_notGeneric() async {
@@ -201,8 +201,7 @@ main() {
   new p.Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 44,
-          3),
+      error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the

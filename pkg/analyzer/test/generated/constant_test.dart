@@ -20,6 +20,18 @@ main() {
 
 @reflectiveTest
 class ConstantEvaluatorTest extends PubPackageResolutionTest {
+  void assertTypeArguments(DartObject value, List<String>? typeArgumentNames) {
+    var typeArguments = (value as DartObjectImpl).typeArguments;
+    if (typeArguments == null) {
+      expect(typeArguments, typeArgumentNames);
+      return;
+    }
+    expect(
+      typeArguments.map((arg) => arg.getDisplayString(withNullability: true)),
+      equals(typeArgumentNames),
+    );
+  }
+
   test_bitAnd_int_int() async {
     await _assertValueInt(74 & 42, "74 & 42");
   }
@@ -269,10 +281,6 @@ class C {
     expect(value, null);
   }
 
-  test_leftShift_int_int() async {
-    await _assertValueInt(64, "16 << 2");
-  }
-
   test_lessThan_int_int() async {
     await _assertValueBool(true, "2 < 3");
   }
@@ -291,6 +299,16 @@ class C {
 
   test_literal_list() async {
     var result = await _getExpressionValue("const ['a', 'b', 'c']");
+    expect(result.isValid, isTrue);
+  }
+
+  test_literal_list_explicitType() async {
+    var result = await _getExpressionValue("const <String>['a', 'b', 'c']");
+    expect(result.isValid, isTrue);
+  }
+
+  test_literal_list_explicitType_functionType() async {
+    var result = await _getExpressionValue("const <void Function()>[]");
     expect(result.isValid, isTrue);
   }
 
@@ -446,18 +464,6 @@ const [for (var i = 0; i < 4; i++) i]
     expect(value, null);
   }
 
-  test_remainder_double_double() async {
-    await _assertValueDouble(3.2 % 2.3, "3.2 % 2.3");
-  }
-
-  test_remainder_int_int() async {
-    await _assertValueInt(2, "8 % 3");
-  }
-
-  test_rightShift() async {
-    await _assertValueInt(16, "64 >> 2");
-  }
-
   @failingTest
   test_simpleIdentifier_invalid() async {
     var result = await _getExpressionValue("?");
@@ -480,26 +486,6 @@ const [for (var i = 0; i < 4; i++) i]
 
   test_stringLength_simple() async {
     await _assertValueInt(6, "'Dvorak'.length");
-  }
-
-  test_times_double_double() async {
-    await _assertValueDouble(2.3 * 3.2, "2.3 * 3.2");
-  }
-
-  test_times_int_int() async {
-    await _assertValueInt(6, "2 * 3");
-  }
-
-  test_tripleShift() async {
-    await _assertValueInt(16, "64 >>> 2");
-  }
-
-  test_truncatingDivide_double_double() async {
-    await _assertValueInt(1, "3.2 ~/ 2.3");
-  }
-
-  test_truncatingDivide_int_int() async {
-    await _assertValueInt(3, "10 ~/ 3");
   }
 
   Future<void> _assertValueBool(bool expectedValue, String contents) async {

@@ -241,23 +241,3 @@ Iterable<String> getSupportedLibraryNames(
 // TODO(sigmund): Delete this API once `member.isRedirectingFactory`
 // is implemented correctly for patch files (Issue #33495).
 bool isRedirectingFactory(ir.Procedure member) => member.isRedirectingFactory;
-
-/// Determines what `ProcedureKind` the given extension [member] is based on
-/// the member name.
-///
-/// Note: classifies operators as `ProcedureKind.Method`.
-ir.ProcedureKind getExtensionMemberKind(ir.Procedure member) {
-  assert(member.isExtensionMember);
-  String name = member.name.text;
-  int pipeIndex = name.indexOf('|');
-  int poundIndex = name.indexOf('#');
-  assert(pipeIndex >= 0);
-  if (poundIndex >= 0) {
-    String getOrSet = name.substring(pipeIndex + 1, poundIndex);
-    return getOrSet == 'get'
-        ? ir.ProcedureKind.Getter
-        : ir.ProcedureKind.Setter;
-  } else {
-    return member.kind;
-  }
-}

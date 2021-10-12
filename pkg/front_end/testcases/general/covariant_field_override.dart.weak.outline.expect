@@ -18,7 +18,7 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B extends core::Object {
-  covariant field core::num* field;
+  covariant-by-declaration field core::num* field;
   synthetic constructor •() → self::B*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -33,7 +33,7 @@ class B extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends self::A implements self::B {
-  covariant field core::num* field;
+  covariant-by-declaration field core::num* field;
   synthetic constructor •() → self::C*
     ;
 }

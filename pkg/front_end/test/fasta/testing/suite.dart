@@ -67,7 +67,7 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
     show ClassHierarchyNode;
 
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
+import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
@@ -677,14 +677,14 @@ class FastaContext extends ChainContext with MatchContext {
     return platformBinaries.resolve(fileName);
   }
 
-  Future<Component> loadPlatform(Target target, NnbdMode nnbdMode) async {
+  Component loadPlatform(Target target, NnbdMode nnbdMode) {
     Uri uri = _getPlatformUri(target, nnbdMode);
     return _platforms.putIfAbsent(uri, () {
       return loadComponentFromBytes(new File.fromUri(uri).readAsBytesSync());
     });
   }
 
-  void clearPlatformCache(Target target, NnbdMode nnbdMode) async {
+  void clearPlatformCache(Target target, NnbdMode nnbdMode) {
     Uri uri = _getPlatformUri(target, nnbdMode);
     _platforms.remove(uri);
   }
@@ -737,7 +737,7 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   static Future<FastaContext> create(
-      Chain suite, Map<String, String> environment) async {
+      Chain suite, Map<String, String> environment) {
     const Set<String> knownEnvironmentKeys = {
       "enableExtensionMethods",
       "enableNonNullable",
@@ -785,7 +785,7 @@ class FastaContext extends ChainContext with MatchContext {
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
-    return new FastaContext(
+    return new Future.value(new FastaContext(
         suite.uri,
         vm,
         platformBinaries == null
@@ -801,7 +801,7 @@ class FastaContext extends ChainContext with MatchContext {
         kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
         verify,
-        soundNullSafety);
+        soundNullSafety));
   }
 }
 
@@ -877,10 +877,9 @@ class StressConstantEvaluatorStep
 
   @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, FastaContext context) async {
+      ComponentResult result, FastaContext context) {
     KernelTarget target = result.sourceTarget;
-    ConstantsBackend constantsBackend =
-        target.backendTarget.constantsBackend(target.loader.coreTypes);
+    ConstantsBackend constantsBackend = target.backendTarget.constantsBackend;
     TypeEnvironment environment =
         new TypeEnvironment(target.loader.coreTypes, target.loader.hierarchy);
     StressConstantEvaluatorVisitor stressConstantEvaluatorVisitor =
@@ -903,7 +902,7 @@ class StressConstantEvaluatorStep
           "evaluated: ${stressConstantEvaluatorVisitor.tries}, "
           "effectively constant: ${stressConstantEvaluatorVisitor.success}");
     }
-    return pass(result);
+    return new Future.value(pass(result));
   }
 }
 
@@ -1159,8 +1158,8 @@ class FuzzCompiles
     UriTranslator uriTranslator =
         await context.computeUriTranslator(result.description);
 
-    Component platform = await context.loadPlatform(
-        backendTarget, compilationSetup.options.nnbdMode);
+    Component platform =
+        context.loadPlatform(backendTarget, compilationSetup.options.nnbdMode);
     Result<ComponentResult>? passResult = await performFileInvalidation(
         compilationSetup,
         platform,
@@ -1879,8 +1878,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       ProcessedOptions options,
       List<Uri> entryPoints,
       {Component? alsoAppend}) async {
-    Component platform =
-        await context.loadPlatform(options.target, options.nnbdMode);
+    Component platform = context.loadPlatform(options.target, options.nnbdMode);
     Ticker ticker = new Ticker();
     UriTranslator uriTranslator =
         await context.computeUriTranslator(description);
@@ -1897,7 +1895,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
     sourceTarget.setEntryPoints(entryPoints);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     return sourceTarget;
   }
 }
@@ -1971,19 +1969,20 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
 
     Component component = result.component;
     StringBuffer messages = new StringBuffer();
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (messages.isNotEmpty) {
-              messages.write("\n");
-            }
-            messages.writeAll(message.plainTextFormatted, "\n");
-          });
-    return await CompilerContext.runWithOptions(options,
-        (compilerContext) async {
+    void Function(DiagnosticMessage)? previousOnDiagnostics =
+        result.options.rawOptionsForTesting.onDiagnostic;
+    result.options.rawOptionsForTesting.onDiagnostic =
+        (DiagnosticMessage message) {
+      if (messages.isNotEmpty) {
+        messages.write("\n");
+      }
+      messages.writeAll(message.plainTextFormatted, "\n");
+    };
+    Result<ComponentResult> verifyResult = await CompilerContext.runWithOptions(
+        result.options, (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
-          component, options.target,
+          component, result.options.target,
           isOutline: !fullCompile, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
@@ -1993,6 +1992,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
             null, context.expectationSet["VerificationError"], "$messages");
       }
     }, errorOnMissingInput: false);
+    result.options.rawOptionsForTesting.onDiagnostic = previousOnDiagnostics;
+    return verifyResult;
   }
 }
 
@@ -2074,14 +2075,14 @@ class EnsureNoErrors
 
   @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, FastaContext context) async {
+      ComponentResult result, FastaContext context) {
     List<Iterable<String>> errors = result.compilationSetup.errors;
-    return errors.isEmpty
+    return new Future.value(errors.isEmpty
         ? pass(result)
         : fail(
             result,
             "Unexpected errors:\n"
-            "${errors.map((error) => error.join('\n')).join('\n\n')}");
+            "${errors.map((error) => error.join('\n')).join('\n\n')}"));
   }
 }
 
@@ -2094,7 +2095,7 @@ class MatchHierarchy
 
   @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, FastaContext context) async {
+      ComponentResult result, FastaContext context) {
     Component component = result.component;
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri.scheme == "file");

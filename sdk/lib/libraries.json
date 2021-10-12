@@ -56,7 +56,6 @@
           "_internal/vm/lib/function_patch.dart",
           "_internal/vm/lib/growable_array.dart",
           "_internal/vm/lib/identical_patch.dart",
-          "_internal/vm/lib/immutable_map.dart",
           "_internal/vm/lib/integers.dart",
           "_internal/vm/lib/integers_patch.dart",
           "_internal/vm/lib/invocation_mirror_patch.dart",

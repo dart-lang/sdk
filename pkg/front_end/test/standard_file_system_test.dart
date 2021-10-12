@@ -49,18 +49,18 @@ class DirectoryTest extends _BaseTest {
     expect(dir == entityForPath(p.join(tempPath, 'dir')), isTrue);
   }
 
-  void test_exists_directoryExists() async {
+  Future<void> test_exists_directoryExists() async {
     await new io.Directory(path).create();
     expect(await dir.exists(), isTrue);
   }
 
-  void test_exists_doesNotExist() async {
+  Future<void> test_exists_doesNotExist() async {
     expect(await dir.exists(), isFalse);
   }
 
-  void test_readAsBytes() async {
+  Future<void> test_readAsBytes() async {
     await new io.Directory(path).create();
-    expect(dir.readAsBytes(), _throwsFileSystemException);
+    await expectLater(dir.readAsBytes, _throwsFileSystemException);
   }
 
   void test_uri() {
@@ -88,11 +88,11 @@ class FileTest extends _BaseTest {
     expect(file == entityForPath(p.join(tempPath, 'file.txt')), isTrue);
   }
 
-  void test_exists_doesNotExist() async {
+  Future<void> test_exists_doesNotExist() async {
     expect(await file.exists(), isFalse);
   }
 
-  void test_exists_fileExists() async {
+  Future<void> test_exists_fileExists() async {
     new io.File(path).writeAsStringSync('contents');
     expect(await file.exists(), isTrue);
   }
@@ -101,39 +101,39 @@ class FileTest extends _BaseTest {
     expect(file.hashCode, entityForPath(p.join(tempPath, 'file.txt')).hashCode);
   }
 
-  void test_readAsBytes_badUtf8() async {
+  Future<void> test_readAsBytes_badUtf8() async {
     // A file containing invalid UTF-8 can still be read as raw bytes.
     List<int> bytes = [0xc0, 0x40]; // Invalid UTF-8
     new io.File(path).writeAsBytesSync(bytes);
     expect(await file.readAsBytes(), bytes);
   }
 
-  void test_readAsBytes_doesNotExist() {
-    expect(file.readAsBytes(), _throwsFileSystemException);
+  Future<void> test_readAsBytes_doesNotExist() async {
+    await expectLater(file.readAsBytes, _throwsFileSystemException);
   }
 
-  void test_readAsBytes_exists() async {
+  Future<void> test_readAsBytes_exists() async {
     var s = 'contents';
     new io.File(path).writeAsStringSync(s);
     expect(await file.readAsBytes(), utf8.encode(s));
   }
 
-  void test_readAsString_badUtf8() {
+  Future<void> test_readAsString_badUtf8() async {
     new io.File(path).writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
-    expect(file.readAsString(), _throwsFileSystemException);
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
-  void test_readAsString_doesNotExist() {
-    expect(file.readAsString(), _throwsFileSystemException);
+  Future<void> test_readAsString_doesNotExist() async {
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
-  void test_readAsString_exists() async {
+  Future<void> test_readAsString_exists() async {
     var s = 'contents';
     new io.File(path).writeAsStringSync(s);
     expect(await file.readAsString(), s);
   }
 
-  void test_readAsString_utf8() async {
+  Future<void> test_readAsString_utf8() async {
     var bytes = [0xe2, 0x82, 0xac]; // Unicode € symbol (in UTF-8)
     new io.File(path).writeAsBytesSync(bytes);
     expect(await file.readAsString(), '\u20ac');
@@ -206,8 +206,8 @@ class StandardFileSystemTest extends _BaseTest {
     }
   }
 
-  void test_entityForUri_nonFileUri() {
-    expect(
+  Future<void> test_entityForUri_nonFileUri() async {
+    await expectLater(
         () => StandardFileSystem.instance
             .entityForUri(Uri.parse('package:foo/bar.dart')),
         _throwsFileSystemException);
@@ -242,7 +242,7 @@ class _BaseTest {
     tempPath = tempDirectory.absolute.path;
   }
 
-  void tearDown() async {
+  Future<void> tearDown() async {
     try {
       tempDirectory.deleteSync(recursive: true);
     } on io.FileSystemException {
@@ -257,7 +257,7 @@ class _BaseTest {
 
 @reflectiveTest
 class DataTest {
-  void test_Data_URIs() async {
+  Future<void> test_Data_URIs() async {
     String string = "<{[DART]}>";
     Uri string_uri = new Uri.dataFromString(string, base64: false);
     Uri string_uri_base64 = new Uri.dataFromString(string, base64: true);

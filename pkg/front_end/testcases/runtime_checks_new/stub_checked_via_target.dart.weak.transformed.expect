@@ -25,7 +25,7 @@ abstract class I extends core::Object {
   synthetic constructor •() → self::I*
     : super core::Object::•()
     ;
-  abstract method f(covariant core::Object* x) → core::int*;
+  abstract method f(covariant-by-declaration core::Object* x) → core::int*;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -41,8 +41,8 @@ class C extends self::B implements self::I {
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;
-  forwarding-stub method f(covariant core::Object* x) → core::int*
-    return super.{self::B::f}(x);
+  forwarding-stub method f(covariant-by-declaration core::Object* x) → core::int*
+    return super.{self::B::f}(x as core::int*);
 }
 static method expectTypeError(() →* void callback) → void {
   try {

@@ -783,8 +783,7 @@ class C {
 
   /*member: C.[]=:[null]*/
   operator []=(
-      /*[exact=JSUInt31]*/ index,
-      /*[subclass=JSPositiveInt]*/ value) {}
+      /*[exact=JSUInt31]*/ index, /*[subclass=JSPositiveInt]*/ value) {}
 
   /*member: C.returnInt5:[subclass=JSPositiveInt]*/
   returnInt5() => /*invoke: [subclass=JSPositiveInt]*/ ++this /*[exact=C]*/ /*update: [exact=C]*/ [
@@ -809,8 +808,7 @@ testCascade2() {
   return new CascadeHelper()
     .. /*update: [exact=CascadeHelper]*/ a = "hello"
     .. /*update: [exact=CascadeHelper]*/ b = 42
-    .. /*[exact=CascadeHelper]*/ i
-        /*invoke: [subclass=JSPositiveInt]*/ /*update: [exact=CascadeHelper]*/ +=
+    .. /*[exact=CascadeHelper]*/ i /*invoke: [subclass=JSPositiveInt]*/ /*update: [exact=CascadeHelper]*/ +=
         1;
 }
 

@@ -41,20 +41,20 @@ class FileTest extends _BaseTestNative {
     file = entityForPath(path);
   }
 
-  void test_createDirectory_doesNotExist() async {
+  Future<void> test_createDirectory_doesNotExist() async {
     file.createDirectory();
     expect(await file.exists(), true);
   }
 
-  void test_createDirectory_exists_asDirectory() async {
+  Future<void> test_createDirectory_exists_asDirectory() async {
     file.createDirectory();
     file.createDirectory();
     expect(await file.exists(), true);
   }
 
-  void test_createDirectory_exists_asFile() async {
+  Future<void> test_createDirectory_exists_asFile() async {
     file.writeAsStringSync('');
-    expect(() => file.createDirectory(), _throwsFileSystemException);
+    await expectLater(file.createDirectory, _throwsFileSystemException);
   }
 
   void test_equals_differentPaths() {
@@ -65,16 +65,16 @@ class FileTest extends _BaseTestNative {
     expect(file == entityForPath(join(tempPath, 'file.txt')), isTrue);
   }
 
-  void test_exists_directory_exists() async {
+  Future<void> test_exists_directory_exists() async {
     file.createDirectory();
     expect(await file.exists(), true);
   }
 
-  void test_exists_doesNotExist() async {
+  Future<void> test_exists_doesNotExist() async {
     expect(await file.exists(), false);
   }
 
-  void test_exists_file_exists() async {
+  Future<void> test_exists_file_exists() async {
     file.writeAsStringSync('x');
     expect(await file.exists(), true);
   }
@@ -87,56 +87,57 @@ class FileTest extends _BaseTestNative {
     expect(file.uri, context.toUri(path));
   }
 
-  void test_readAsBytes_badUtf8() async {
+  Future<void> test_readAsBytes_badUtf8() async {
     // A file containing invalid UTF-8 can still be read as raw bytes.
     List<int> bytes = [0xc0, 0x40]; // Invalid UTF-8
     file.writeAsBytesSync(bytes);
     expect(await file.readAsBytes(), bytes);
   }
 
-  void test_readAsBytes_doesNotExist() {
-    expect(file.readAsBytes(), _throwsFileSystemException);
+  Future<void> test_readAsBytes_doesNotExist() async {
+    await expectLater(file.readAsBytes, _throwsFileSystemException);
   }
 
-  void test_readAsBytes_exists() async {
+  Future<void> test_readAsBytes_exists() async {
     var s = 'contents';
     file.writeAsStringSync(s);
     expect(await file.readAsBytes(), utf8.encode(s));
   }
 
-  void test_readAsString_badUtf8() {
+  Future<void> test_readAsString_badUtf8() async {
     file.writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
-    expect(file.readAsString(), _throwsFileSystemException);
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
-  void test_readAsString_doesNotExist() {
-    expect(file.readAsString(), _throwsFileSystemException);
+  Future<void> test_readAsString_doesNotExist() async {
+    await expectLater(file.readAsString, _throwsFileSystemException);
   }
 
-  void test_readAsString_exists() async {
+  Future<void> test_readAsString_exists() async {
     var s = 'contents';
     file.writeAsStringSync(s);
     expect(await file.readAsString(), s);
   }
 
-  void test_readAsString_utf8() async {
+  Future<void> test_readAsString_utf8() async {
     file.writeAsBytesSync([0xe2, 0x82, 0xac]); // Unicode € symbol, in UTF-8
     expect(await file.readAsString(), '\u20ac');
   }
 
-  void test_writeAsBytesSync_directory() async {
+  Future<void> test_writeAsBytesSync_directory() async {
     file.createDirectory();
-    expect(() => file.writeAsBytesSync([0]), _throwsFileSystemException);
+    await expectLater(
+        () => file.writeAsBytesSync([0]), _throwsFileSystemException);
   }
 
-  void test_writeAsBytesSync_modifyAfterRead() async {
+  Future<void> test_writeAsBytesSync_modifyAfterRead() async {
     // For efficiency we do not make defensive copies.
     file.writeAsBytesSync([1]);
     (await file.readAsBytes())[0] = 2;
     expect(await file.readAsBytes(), [2]);
   }
 
-  void test_writeAsBytesSync_modifyAfterWrite_Uint8List() async {
+  Future<void> test_writeAsBytesSync_modifyAfterWrite_Uint8List() async {
     // For efficiency we do not make defensive copies.
     var bytes = new Uint8List.fromList([1]);
     file.writeAsBytesSync(bytes);
@@ -144,7 +145,7 @@ class FileTest extends _BaseTestNative {
     expect(await file.readAsBytes(), [2]);
   }
 
-  void test_writeAsBytesSync_modifyAfterWrite() async {
+  Future<void> test_writeAsBytesSync_modifyAfterWrite() async {
     // For efficiency we generally do not make defensive copies, but on the
     // other hrand we keep everything as `Uint8List`s internally, so in this
     // case a copy is actually made.
@@ -154,24 +155,25 @@ class FileTest extends _BaseTestNative {
     expect(await file.readAsBytes(), [1]);
   }
 
-  void test_writeAsBytesSync_overwrite() async {
+  Future<void> test_writeAsBytesSync_overwrite() async {
     file.writeAsBytesSync([1]);
     file.writeAsBytesSync([2]);
     expect(await file.readAsBytes(), [2]);
   }
 
-  void test_writeAsStringSync_directory() async {
+  Future<void> test_writeAsStringSync_directory() async {
     file.createDirectory();
-    expect(() => file.writeAsStringSync(''), _throwsFileSystemException);
+    await expectLater(
+        () => file.writeAsStringSync(''), _throwsFileSystemException);
   }
 
-  void test_writeAsStringSync_overwrite() async {
+  Future<void> test_writeAsStringSync_overwrite() async {
     file.writeAsStringSync('first');
     file.writeAsStringSync('second');
     expect(await file.readAsString(), 'second');
   }
 
-  void test_writeAsStringSync_utf8() async {
+  Future<void> test_writeAsStringSync_utf8() async {
     file.writeAsStringSync('\u20ac'); // Unicode € symbol
     expect(await file.readAsBytes(), [0xe2, 0x82, 0xac]);
   }
@@ -221,7 +223,7 @@ abstract class MemoryFileSystemTestMixin implements _BaseTest {
         Uri.parse('$tempUri/file.txt'));
   }
 
-  void test_entityForUri_fileUri_relative() {
+  Future<void> test_entityForUri_fileUri_relative() async {
     // A weird quirk of the Uri class is that it doesn't seem possible to create
     // a `file:` uri with a relative path, no matter how many slashes you use or
     // if you populate the fields directly.  But just to be certain, try to do
@@ -234,7 +236,7 @@ abstract class MemoryFileSystemTestMixin implements _BaseTest {
       Uri.parse('file:///file.txt')
     ]) {
       if (!uri.path.startsWith('/')) {
-        expect(() => fileSystem.entityForUri(uri),
+        await expectLater(() => fileSystem.entityForUri(uri),
             throwsA(const TypeMatcher<Error>()));
       }
     }

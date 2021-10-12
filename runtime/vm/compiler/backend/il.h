@@ -5354,10 +5354,13 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                           Value* value,
                           StoreBarrierType emit_store_barrier,
                           const InstructionSource& source,
-                          Kind kind = Kind::kOther)
+                          Kind kind = Kind::kOther,
+                          compiler::Assembler::MemoryOrder memory_order =
+                              compiler::Assembler::kRelaxedNonAtomic)
       : TemplateInstruction(source),
         slot_(slot),
         emit_store_barrier_(emit_store_barrier),
+        memory_order_(memory_order),
         token_pos_(source.token_pos),
         is_initialization_(kind == Kind::kInitializing) {
     SetInputAt(kInstancePos, instance);
@@ -5464,6 +5467,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   const Slot& slot_;
   StoreBarrierType emit_store_barrier_;
+  compiler::Assembler::MemoryOrder memory_order_;
   const TokenPosition token_pos_;
   // Marks initializing stores. E.g. in the constructor.
   const bool is_initialization_;
@@ -8316,12 +8320,19 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
-  DoubleToIntegerInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
+  DoubleToIntegerInstr(Value* value,
+                       MethodRecognizer::Kind recognized_kind,
+                       intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), recognized_kind_(recognized_kind) {
+    ASSERT((recognized_kind == MethodRecognizer::kDoubleToInteger) ||
+           (recognized_kind == MethodRecognizer::kDoubleFloorToInt) ||
+           (recognized_kind == MethodRecognizer::kDoubleCeilToInt));
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
 
   DECLARE_INSTRUCTION(DoubleToInteger)
   virtual CompileType ComputeType() const;
@@ -8344,9 +8355,13 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsDoubleToInteger()->recognized_kind() == recognized_kind();
+  }
 
  private:
+  const MethodRecognizer::Kind recognized_kind_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
 
@@ -8385,6 +8400,9 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
                       MethodRecognizer::Kind recognized_kind,
                       intptr_t deopt_id)
       : TemplateDefinition(deopt_id), recognized_kind_(recognized_kind) {
+    ASSERT((recognized_kind == MethodRecognizer::kDoubleTruncateToDouble) ||
+           (recognized_kind == MethodRecognizer::kDoubleFloorToDouble) ||
+           (recognized_kind == MethodRecognizer::kDoubleCeilToDouble));
     SetInputAt(0, value);
   }
 

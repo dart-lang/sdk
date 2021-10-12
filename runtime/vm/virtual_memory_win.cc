@@ -53,8 +53,22 @@ static void* AllocateAlignedImpl(intptr_t size,
 }
 
 void VirtualMemory::Init() {
+  if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --old_gen_heap_size %d is larger than"
+        " the physically addressable range, using 0(unlimited) instead.`\n",
+        FLAG_old_gen_heap_size);
+    FLAG_old_gen_heap_size = 0;
+  }
+  if (FLAG_new_gen_semi_max_size < 0 ||
+      FLAG_new_gen_semi_max_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --new_gen_semi_max_size %d is larger"
+        " than the physically addressable range, using %" Pd " instead.`\n",
+        FLAG_new_gen_semi_max_size, kDefaultNewGenSemiMaxSize);
+    FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
+  }
   page_size_ = CalculatePageSize();
-
 #if defined(DART_COMPRESSED_POINTERS)
   ASSERT(compressed_heap_ == nullptr);
   compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
@@ -82,6 +96,7 @@ bool VirtualMemory::DualMappingEnabled() {
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
+                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -91,7 +106,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsAligned(alignment, PageSize()));
 
 #if defined(DART_COMPRESSED_POINTERS)
-  if (!is_executable) {
+  if (is_compressed) {
+    RELEASE_ASSERT(!is_executable);
     MemoryRegion region =
         VirtualMemoryCompressedHeap::Allocate(size, alignment);
     if (region.pointer() == nullptr) {

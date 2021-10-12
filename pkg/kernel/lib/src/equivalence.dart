@@ -1516,6 +1516,49 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkExtensionTypeShowHideClause(EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! ExtensionTypeShowHideClause) return false;
+    if (other is! ExtensionTypeShowHideClause) return false;
+    bool result = true;
+    if (!checkExtensionTypeShowHideClause_shownSupertypes(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_shownMethods(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_shownGetters(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_shownSetters(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_shownOperators(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_hiddenSupertypes(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_hiddenMethods(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_hiddenGetters(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_hiddenSetters(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeShowHideClause_hiddenOperators(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    return result;
+  }
+
   bool checkExtensionMemberDescriptor(EquivalenceVisitor visitor,
       ExtensionMemberDescriptor? node, Object? other) {
     if (identical(node, other)) return true;
@@ -1559,6 +1602,9 @@ class EquivalenceStrategy {
     if (!checkExtension_onType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkExtension_showHideClause(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkExtension_members(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -1596,6 +1642,9 @@ class EquivalenceStrategy {
     if (!checkField_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkField_getterReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkField_setterReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -1614,7 +1663,7 @@ class EquivalenceStrategy {
     if (!checkField_transformerFlags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkField_getterReference(visitor, node, other)) {
+    if (!checkField_fieldReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkField_fileOffset(visitor, node, other)) {
@@ -4723,6 +4772,87 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.onType, other.onType, 'onType');
   }
 
+  bool checkExtensionTypeShowHideClause_shownSupertypes(
+      EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node,
+      ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.shownSupertypes, other.shownSupertypes,
+        visitor.checkNodes, 'shownSupertypes');
+  }
+
+  bool checkExtensionTypeShowHideClause_shownMethods(EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node, ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.shownMethods, other.shownMethods,
+        visitor.checkReferences, 'shownMethods');
+  }
+
+  bool checkExtensionTypeShowHideClause_shownGetters(EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node, ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.shownGetters, other.shownGetters,
+        visitor.checkReferences, 'shownGetters');
+  }
+
+  bool checkExtensionTypeShowHideClause_shownSetters(EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node, ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.shownSetters, other.shownSetters,
+        visitor.checkReferences, 'shownSetters');
+  }
+
+  bool checkExtensionTypeShowHideClause_shownOperators(
+      EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node,
+      ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.shownOperators, other.shownOperators,
+        visitor.checkReferences, 'shownOperators');
+  }
+
+  bool checkExtensionTypeShowHideClause_hiddenSupertypes(
+      EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node,
+      ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.hiddenSupertypes, other.hiddenSupertypes,
+        visitor.checkNodes, 'hiddenSupertypes');
+  }
+
+  bool checkExtensionTypeShowHideClause_hiddenMethods(
+      EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node,
+      ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.hiddenMethods, other.hiddenMethods,
+        visitor.checkReferences, 'hiddenMethods');
+  }
+
+  bool checkExtensionTypeShowHideClause_hiddenGetters(
+      EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node,
+      ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.hiddenGetters, other.hiddenGetters,
+        visitor.checkReferences, 'hiddenGetters');
+  }
+
+  bool checkExtensionTypeShowHideClause_hiddenSetters(
+      EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node,
+      ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.hiddenSetters, other.hiddenSetters,
+        visitor.checkReferences, 'hiddenSetters');
+  }
+
+  bool checkExtensionTypeShowHideClause_hiddenOperators(
+      EquivalenceVisitor visitor,
+      ExtensionTypeShowHideClause node,
+      ExtensionTypeShowHideClause other) {
+    return visitor.checkLists(node.hiddenOperators, other.hiddenOperators,
+        visitor.checkReferences, 'hiddenOperators');
+  }
+
+  bool checkExtension_showHideClause(
+      EquivalenceVisitor visitor, Extension node, Extension other) {
+    'showHideClause';
+    return checkExtensionTypeShowHideClause(
+        visitor, node.showHideClause, other.showHideClause);
+  }
+
   bool checkExtensionMemberDescriptor_name(EquivalenceVisitor visitor,
       ExtensionMemberDescriptor node, ExtensionMemberDescriptor other) {
     return visitor.checkNodes(node.name, other.name, 'name');
@@ -4788,6 +4918,12 @@ class EquivalenceStrategy {
         node.initializer, other.initializer, 'initializer');
   }
 
+  bool checkField_getterReference(
+      EquivalenceVisitor visitor, Field node, Field other) {
+    return visitor.checkReferences(
+        node.getterReference, other.getterReference, 'getterReference');
+  }
+
   bool checkField_setterReference(
       EquivalenceVisitor visitor, Field node, Field other) {
     return visitor.checkReferences(
@@ -4844,10 +4980,10 @@ class EquivalenceStrategy {
     return checkMember_transformerFlags(visitor, node, other);
   }
 
-  bool checkField_getterReference(
+  bool checkField_fieldReference(
       EquivalenceVisitor visitor, Field node, Field other) {
     return visitor.checkReferences(
-        node.getterReference, other.getterReference, 'getterReference');
+        node.fieldReference, other.fieldReference, 'fieldReference');
   }
 
   bool checkMember_fileOffset(

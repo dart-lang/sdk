@@ -58,30 +58,30 @@ class TypeSystem {
 
   /// [ParameterTypeInformation]s for parameters.
   final Map<Local, ParameterTypeInformation> parameterTypeInformations =
-      new Map<Local, ParameterTypeInformation>();
+      Map<Local, ParameterTypeInformation>();
 
   /// [MemberTypeInformation]s for members.
   final Map<MemberEntity, MemberTypeInformation> memberTypeInformations =
-      new Map<MemberEntity, MemberTypeInformation>();
+      Map<MemberEntity, MemberTypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
   final Map<ir.TreeNode, ListTypeInformation> allocatedLists =
-      new Map<ir.TreeNode, ListTypeInformation>();
+      Map<ir.TreeNode, ListTypeInformation>();
 
   /// [SetTypeInformation] for allocated Sets.
   final Map<ir.TreeNode, SetTypeInformation> allocatedSets =
-      new Map<ir.TreeNode, SetTypeInformation>();
+      Map<ir.TreeNode, SetTypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
   final Map<ir.TreeNode, TypeInformation> allocatedMaps =
-      new Map<ir.TreeNode, TypeInformation>();
+      Map<ir.TreeNode, TypeInformation>();
 
   /// Closures found during the analysis.
-  final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();
+  final Set<TypeInformation> allocatedClosures = Set<TypeInformation>();
 
   /// Cache of [ConcreteTypeInformation].
   final Map<AbstractValue, TypeInformation> concreteTypes =
-      new Map<AbstractValue, TypeInformation>();
+      Map<AbstractValue, TypeInformation>();
 
   /// Cache of some primitive constant types.
   final Map<Object, TypeInformation> primitiveConstantTypes = {};
@@ -278,10 +278,14 @@ class TypeSystem {
         getConcreteTypeFor(_abstractValueDomain.asyncStarStreamType);
   }
 
+  TypeInformation _lateSentinelType;
+  TypeInformation get lateSentinelType => _lateSentinelType ??=
+      getConcreteTypeFor(_abstractValueDomain.lateSentinelType);
+
   TypeInformation nonNullEmptyType;
 
   TypeInformation stringLiteralType(String value) {
-    return new StringLiteralTypeInformation(
+    return StringLiteralTypeInformation(
         _abstractValueDomain, value, _abstractValueDomain.stringType);
   }
 
@@ -337,8 +341,13 @@ class TypeSystem {
   ///
   /// If [excludeNull] is true, the intersection excludes `null` even if the
   /// Dart type implies `null`.
+  ///
+  /// [narrowType] will not exclude the late sentinel value by default, only if
+  /// [excludeLateSentinel] is `true`.
   TypeInformation narrowType(TypeInformation type, DartType annotation,
-      {bool isCast: true, bool excludeNull: false}) {
+      {bool isCast = true,
+      bool excludeNull = false,
+      bool excludeLateSentinel = false}) {
     // Avoid refining an input with an exact type. It we are almost always
     // adding a narrowing to a subtype of the same class or a superclass.
     if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
@@ -350,6 +359,9 @@ class TypeSystem {
     AbstractValue abstractValue = narrowing.abstractValue;
     if (excludeNull) {
       abstractValue = _abstractValueDomain.excludeNull(abstractValue);
+    }
+    if (!excludeLateSentinel) {
+      abstractValue = _abstractValueDomain.includeLateSentinel(abstractValue);
     }
 
     if (_abstractValueDomain.containsAll(abstractValue).isPotentiallyTrue) {
@@ -405,7 +417,7 @@ class TypeSystem {
   ConcreteTypeInformation getConcreteTypeFor(AbstractValue mask) {
     assert(mask != null);
     return concreteTypes.putIfAbsent(mask, () {
-      return new ConcreteTypeInformation(mask);
+      return ConcreteTypeInformation(mask);
     });
   }
 
@@ -465,12 +477,12 @@ class TypeSystem {
     AbstractValue mask = _abstractValueDomain.createContainerValue(
         type.type, node, enclosing, elementTypeMask, inferredLength);
     ElementInContainerTypeInformation element =
-        new ElementInContainerTypeInformation(
+        ElementInContainerTypeInformation(
             _abstractValueDomain, currentMember, elementType);
     element.inferred = isElementInferred;
 
     allocatedTypes.add(element);
-    return allocatedLists[node] = new ListTypeInformation(
+    return allocatedLists[node] = ListTypeInformation(
         _abstractValueDomain, currentMember, mask, element, length);
   }
 
@@ -478,8 +490,8 @@ class TypeSystem {
   /// static or top-level method [element] used as a function constant or for
   /// the synthesized 'call' method [element] created for a local function.
   TypeInformation allocateClosure(FunctionEntity element) {
-    TypeInformation result = new ClosureTypeInformation(
-        _abstractValueDomain, currentMember, element);
+    TypeInformation result =
+        ClosureTypeInformation(_abstractValueDomain, currentMember, element);
     allocatedClosures.add(result);
     return result;
   }
@@ -494,13 +506,13 @@ class TypeSystem {
         isConst ? elementType.type : dynamicType.type;
     AbstractValue mask = _abstractValueDomain.createSetValue(
         type.type, node, enclosing, elementTypeMask);
-    ElementInSetTypeInformation element = new ElementInSetTypeInformation(
+    ElementInSetTypeInformation element = ElementInSetTypeInformation(
         _abstractValueDomain, currentMember, elementType);
     element.inferred = isConst;
 
     allocatedTypes.add(element);
     return allocatedSets[node] =
-        new SetTypeInformation(currentMember, mask, element);
+        SetTypeInformation(currentMember, mask, element);
   }
 
   TypeInformation allocateMap(
@@ -538,15 +550,15 @@ class TypeSystem {
     AbstractValue mask = _abstractValueDomain.createMapValue(
         type.type, node, element, keyTypeMask, valueTypeMask);
 
-    TypeInformation keyTypeInfo = new KeyInMapTypeInformation(
-        _abstractValueDomain, currentMember, keyType);
-    TypeInformation valueTypeInfo = new ValueInMapTypeInformation(
+    TypeInformation keyTypeInfo =
+        KeyInMapTypeInformation(_abstractValueDomain, currentMember, keyType);
+    TypeInformation valueTypeInfo = ValueInMapTypeInformation(
         _abstractValueDomain, currentMember, valueType);
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);
 
     MapTypeInformation map =
-        new MapTypeInformation(currentMember, mask, keyTypeInfo, valueTypeInfo);
+        MapTypeInformation(currentMember, mask, keyTypeInfo, valueTypeInfo);
 
     for (int i = 0; i < keyTypes.length; ++i) {
       TypeInformation newType = map.addEntryInput(
@@ -572,7 +584,7 @@ class TypeSystem {
   /// Returns a new type that unions [firstInput] and [secondInput].
   TypeInformation allocateDiamondPhi(
       TypeInformation firstInput, TypeInformation secondInput) {
-    PhiElementTypeInformation result = new PhiElementTypeInformation(
+    PhiElementTypeInformation result = PhiElementTypeInformation(
         _abstractValueDomain, currentMember, null, null,
         isTry: false);
     result.addInput(firstInput);
@@ -583,7 +595,7 @@ class TypeSystem {
 
   PhiElementTypeInformation _addPhi(
       ir.Node node, Local variable, TypeInformation inputType, bool isTry) {
-    PhiElementTypeInformation result = new PhiElementTypeInformation(
+    PhiElementTypeInformation result = PhiElementTypeInformation(
         _abstractValueDomain, currentMember, node, variable,
         isTry: isTry);
     allocatedTypes.add(result);
@@ -643,25 +655,29 @@ class TypeSystem {
   }
 
   AbstractValue joinTypeMasks(Iterable<AbstractValue> masks) {
-    var dynamicType = _abstractValueDomain.dynamicType;
+    var topType = _abstractValueDomain.internalTopType;
     // Optimization: we are iterating over masks twice, but because `masks` is a
     // mapped iterable, we save the intermediate results to avoid computing them
     // again.
     var list = [];
-    bool isDynamicIngoringNull = false;
+    bool isTopIgnoringFlags = false;
     bool mayBeNull = false;
+    bool mayBeLateSentinel = false;
     for (AbstractValue mask in masks) {
       // Don't do any work on computing unions if we know that after all that
       // work the result will be `dynamic`.
-      // TODO(sigmund): change to `mask == dynamicType` so we can continue to
-      // track the non-nullable bit.
+      // TODO(sigmund): change to `mask == internalTopType` so we can continue
+      // to track the non-nullable and late sentinel bits.
       if (_abstractValueDomain.containsAll(mask).isPotentiallyTrue) {
-        isDynamicIngoringNull = true;
+        isTopIgnoringFlags = true;
       }
       if (_abstractValueDomain.isNull(mask).isPotentiallyTrue) {
         mayBeNull = true;
       }
-      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
+      if (_abstractValueDomain.isLateSentinel(mask).isPotentiallyTrue) {
+        mayBeLateSentinel = true;
+      }
+      if (isTopIgnoringFlags && mayBeNull && mayBeLateSentinel) return topType;
       list.add(mask);
     }
 
@@ -671,12 +687,15 @@ class TypeSystem {
           newType == null ? mask : _abstractValueDomain.union(newType, mask);
       // Likewise - stop early if we already reach dynamic.
       if (_abstractValueDomain.containsAll(newType).isPotentiallyTrue) {
-        isDynamicIngoringNull = true;
+        isTopIgnoringFlags = true;
       }
       if (_abstractValueDomain.isNull(newType).isPotentiallyTrue) {
         mayBeNull = true;
       }
-      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
+      if (_abstractValueDomain.isLateSentinel(newType).isPotentiallyTrue) {
+        mayBeLateSentinel = true;
+      }
+      if (isTopIgnoringFlags && mayBeNull && mayBeLateSentinel) return topType;
     }
 
     return newType ?? _abstractValueDomain.emptyType;

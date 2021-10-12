@@ -51,7 +51,7 @@ void generate(Uri path, String fileName,
 
   final fullPath = path.resolve(fileName).path;
   File(fullPath).writeAsStringSync(buffer.toString());
-  final fmtResult = Process.runSync(dartfmtPath().path, ["-w", fullPath]);
+  final fmtResult = Process.runSync(dartPath().path, ["format", fullPath]);
   if (fmtResult.exitCode != 0) {
     throw Exception(
         "Formatting failed:\n${fmtResult.stdout}\n${fmtResult.stderr}\n");
@@ -326,10 +326,10 @@ ArgParser argParser() {
   return parser;
 }
 
-Uri dartfmtPath() {
-  // TODO(dacoharkes): Use "../../../tools/sdks/dart-sdk/bin/dartfmt" when the
+Uri dartPath() {
+  // TODO(dacoharkes): Use "../../../tools/sdks/dart-sdk/bin/dart" when the
   // pinned fully supports extension methods.
-  return Uri.parse("dartfmt");
+  return Uri.parse("dart");
 }
 
 class Config {

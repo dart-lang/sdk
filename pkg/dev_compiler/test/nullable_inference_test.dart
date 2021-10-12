@@ -676,8 +676,8 @@ const nullCheck = const _NullCheck();
   var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
   var oldCompilerState = _compilerState;
-  _compilerState = await fe.initializeCompiler(oldCompilerState, false, null,
-      sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
+  _compilerState = fe.initializeCompiler(oldCompilerState, false, null, sdkUri,
+      packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
       explicitExperimentalFlags: const {},
       environmentDefines: const {},

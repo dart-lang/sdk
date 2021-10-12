@@ -388,6 +388,36 @@ class B extends A<List> {
 @reflectiveTest
 class UndefinedGetterWithNullSafetyTest extends PubPackageResolutionTest
     with UndefinedGetterTestCases {
+  test_functionAlias_typeInstantiated_getter() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+  }
+
+  test_functionAlias_typeInstantiated_getter_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''');
+  }
+
   test_get_from_abstract_field_final_valid() async {
     await assertNoErrorsInCode('''
 abstract class A {

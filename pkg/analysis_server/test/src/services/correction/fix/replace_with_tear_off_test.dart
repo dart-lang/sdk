@@ -53,6 +53,121 @@ class ReplaceWithTearOffTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_lambdas;
 
+  Future<void> test_constructorTearOff_named() async {
+    await resolveTestCode('''
+class C {
+  int c;
+  C.create([this.c = 3]);
+}
+
+void f() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map((x) => C.create(x))) {
+    print(c.c);
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int c;
+  C.create([this.c = 3]);
+}
+
+void f() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map(C.create)) {
+    print(c.c);
+  }
+}
+''');
+  }
+
+  // @soloTest
+  Future<void> test_constructorTearOff_nameUnnamed() async {
+    await resolveTestCode('''
+class C {
+  int c;
+  C([this.c = 3]);
+}
+
+void f() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map((x) => C.new(x))) {
+    print(c.c);
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int c;
+  C([this.c = 3]);
+}
+
+void f() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map(C.new)) {
+    print(c.c);
+  }
+}
+''');
+  }
+
+  Future<void> test_constructorTearOff_oneParameter() async {
+    await resolveTestCode('''
+class C {
+  int c;
+  C([this.c = 3]);
+}
+
+void f() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map((x) => C(x))) {
+    print(c.c);
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int c;
+  C([this.c = 3]);
+}
+
+void f() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map(C.new)) {
+    print(c.c);
+  }
+}
+''');
+  }
+
+  Future<void> test_constructorTearOff_zeroParameters() async {
+    await resolveTestCode('''
+typedef Maker = Object Function();
+
+class C {
+  int c;
+  C([this.c = 3]);
+}
+
+var l = <Maker>[
+  () => C(),
+];
+''');
+    await assertHasFix('''
+typedef Maker = Object Function();
+
+class C {
+  int c;
+  C([this.c = 3]);
+}
+
+var l = <Maker>[
+  C.new,
+];
+''');
+  }
+
   Future<void> test_function_oneParameter() async {
     await resolveTestCode('''
 Function f() => (name) {

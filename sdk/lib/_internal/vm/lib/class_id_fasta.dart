@@ -8,7 +8,8 @@
 class ClassID {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  static int getID(Object value) native "ClassID_getID";
+  @pragma("vm:external-name", "ClassID_getID")
+  external static int getID(Object? value);
 
   @pragma("vm:entry-point")
   static final int cidArray = 0;
@@ -38,4 +39,8 @@ class ClassID {
   static final int cidUint8ClampedArray = 0;
   @pragma("vm:entry-point")
   static final int cidExternalUint8ClampedArray = 0;
+  // Used in const hashing to determine whether we're dealing with a
+  // user-defined const. See lib/_internal/vm/lib/compact_hash.dart.
+  @pragma("vm:entry-point")
+  static final int numPredefinedCids = 0;
 }

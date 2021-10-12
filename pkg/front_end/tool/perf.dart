@@ -28,7 +28,6 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:path/path.dart' as path;
 
@@ -42,7 +41,7 @@ Future<void> main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(path.fromUri(entryUri));
+  setup(path.fromUri(entryUri));
 
   Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {
@@ -197,7 +196,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-Future setup(String path) async {
+void setup(String path) {
   var provider = PhysicalResourceProvider.INSTANCE;
 
   var packages = findPackagesFrom(

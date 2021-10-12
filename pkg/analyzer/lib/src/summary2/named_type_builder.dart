@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
-/// The type builder for a [TypeName].
+/// The type builder for a [NamedType].
 class NamedTypeBuilder extends TypeBuilder {
   /// TODO(scheglov) Replace with `DartType` in `TypeAliasElementImpl`.
   static const _aliasedTypeKey = '_aliasedType';

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../dill/dill_member_builder.dart';
@@ -11,18 +12,18 @@ import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
-import '../kernel/kernel_api.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
 
 import '../problems.dart' show unexpected, unhandled;
 
+import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inferrer.dart';
@@ -36,7 +37,6 @@ import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'procedure_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -67,10 +67,10 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       int charEndOffset,
       Reference? procedureReference,
       AsyncMarker asyncModifier,
-      ProcedureNameScheme procedureNameScheme,
+      NameScheme nameScheme,
       {String? nativeMethodName})
       : _procedureInternal = new Procedure(
-            procedureNameScheme.getName(ProcedureKind.Factory, name),
+            nameScheme.getProcedureName(ProcedureKind.Factory, name),
             ProcedureKind.Factory,
             new FunctionNode(null),
             fileUri: libraryBuilder.fileUri,
@@ -199,7 +199,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       throw new UnsupportedError('${runtimeType}.localSetters');
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _procedureInternal.isExternal = true;
     super.becomeNative(loader);
   }
@@ -273,7 +273,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       int charOpenParenOffset,
       int charEndOffset,
       Reference? procedureReference,
-      ProcedureNameScheme procedureNameScheme,
+      NameScheme nameScheme,
       String? nativeMethodName,
       this.redirectionTarget)
       : super(
@@ -290,7 +290,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             charEndOffset,
             procedureReference,
             AsyncMarker.Sync,
-            procedureNameScheme,
+            nameScheme,
             nativeMethodName: nativeMethodName);
 
   @override

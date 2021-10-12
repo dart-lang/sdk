@@ -1287,8 +1287,11 @@ void Assembler::LoadObjectHelper(Register dst,
     }
   }
   if (CanLoadFromObjectPool(object)) {
-    const intptr_t index = is_unique ? object_pool_builder().AddObject(object)
-                                     : object_pool_builder().FindObject(object);
+    const intptr_t index =
+        is_unique ? object_pool_builder().AddObject(
+                        object, ObjectPoolBuilderEntry::kPatchable)
+                  : object_pool_builder().FindObject(
+                        object, ObjectPoolBuilderEntry::kNotPatchable);
     LoadWordFromPoolIndex(dst, index);
     return;
   }
@@ -1440,16 +1443,26 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi) {
-  movq(dest, value);
+                                CanBeSmi can_be_smi,
+                                MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreRelease(value, dest.base(), dest.disp32());
+  } else {
+    movq(dest, value);
+  }
   StoreBarrier(object, value, can_be_smi);
 }
 
 void Assembler::StoreCompressedIntoObject(Register object,
                                           const Address& dest,
                                           Register value,
-                                          CanBeSmi can_be_smi) {
-  OBJ(mov)(dest, value);
+                                          CanBeSmi can_be_smi,
+                                          MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreReleaseCompressed(value, dest.base(), dest.disp8());
+  } else {
+    OBJ(mov)(dest, value);
+  }
   StoreBarrier(object, value, can_be_smi);
 }
 
@@ -1560,8 +1573,13 @@ void Assembler::StoreIntoArrayBarrier(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value) {
-  movq(dest, value);
+                                         Register value,
+                                         MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreRelease(value, dest.base(), dest.disp32());
+  } else {
+    movq(dest, value);
+  }
 #if defined(DEBUG)
   Label done;
   pushq(value);
@@ -1580,8 +1598,13 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
-                                                   Register value) {
-  OBJ(mov)(dest, value);
+                                                   Register value,
+                                                   MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreReleaseCompressed(value, dest.base(), dest.disp8());
+  } else {
+    OBJ(mov)(dest, value);
+  }
 #if defined(DEBUG)
   Label done;
   pushq(value);
@@ -1600,15 +1623,22 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
-  StoreObject(dest, value);
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    LoadObject(TMP, value);
+    StoreIntoObjectNoBarrier(object, dest, TMP, memory_order);
+  } else {
+    StoreObject(dest, value);
+  }
 }
 
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
-                                                   const Object& value) {
+                                                   const Object& value,
+                                                   MemoryOrder memory_order) {
   LoadObject(TMP, value);
-  StoreCompressedIntoObjectNoBarrier(object, dest, TMP);
+  StoreCompressedIntoObjectNoBarrier(object, dest, TMP, memory_order);
 }
 
 void Assembler::StoreInternalPointer(Register object,

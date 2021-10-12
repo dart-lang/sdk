@@ -17,7 +17,7 @@ import utils
 # backwards-compatible.
 VM_SNAPSHOT_FILES = [
     # Header files.
-    'clustered_snapshot.h',
+    'app_snapshot.h',
     'datastream.h',
     'image_snapshot.h',
     'object.h',
@@ -25,7 +25,7 @@ VM_SNAPSHOT_FILES = [
     'snapshot.h',
     'symbols.h',
     # Source files.
-    'clustered_snapshot.cc',
+    'app_snapshot.cc',
     'dart.cc',
     'dart_api_impl.cc',
     'image_snapshot.cc',

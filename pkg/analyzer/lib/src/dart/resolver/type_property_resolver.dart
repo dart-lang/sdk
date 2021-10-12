@@ -112,8 +112,10 @@ class TypePropertyResolver {
       }
 
       CompileTimeErrorCode errorCode;
+      List<String> arguments;
       if (parentExpression == null) {
         errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+        arguments = [];
       } else {
         if (parentExpression is CascadeExpression) {
           parentExpression = parentExpression.cascadeSections.first;
@@ -121,16 +123,20 @@ class TypePropertyResolver {
         if (parentExpression is BinaryExpression) {
           errorCode = CompileTimeErrorCode
               .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
+          arguments = [name];
         } else if (parentExpression is MethodInvocation ||
             parentExpression is MethodReferenceExpression) {
           errorCode = CompileTimeErrorCode
               .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
+          arguments = [name];
         } else if (parentExpression is FunctionExpressionInvocation) {
           errorCode =
               CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+          arguments = [];
         } else {
           errorCode =
               CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE;
+          arguments = [name];
         }
       }
 
@@ -150,7 +156,7 @@ class TypePropertyResolver {
       }
       _resolver.nullableDereferenceVerifier.report(
           errorCode, propertyErrorEntity, receiverType,
-          arguments: [name], messages: messages);
+          arguments: arguments, messages: messages);
       _reportedGetterError = true;
       _reportedSetterError = true;
 
@@ -170,14 +176,16 @@ class TypePropertyResolver {
         if (_hasGetterOrSetter) {
           return _toResult();
         }
-        if (receiverTypeResolved.isDartCoreFunction && _name == 'call') {
+        if (receiverTypeResolved.isDartCoreFunction &&
+            _name == FunctionElement.CALL_METHOD_NAME) {
           _needsGetterError = false;
           _needsSetterError = false;
           return _toResult();
         }
       }
 
-      if (receiverTypeResolved is FunctionType && _name == 'call') {
+      if (receiverTypeResolved is FunctionType &&
+          _name == FunctionElement.CALL_METHOD_NAME) {
         return _toResult();
       }
 

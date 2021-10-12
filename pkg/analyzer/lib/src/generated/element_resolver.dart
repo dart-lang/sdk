@@ -238,7 +238,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorName(covariant ConstructorNameImpl node) {
-    var type = node.type.type;
+    var type = node.type2.type;
     if (type == null) {
       return;
     }
@@ -476,7 +476,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // TODO(brianwilkerson) Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    var superclassName = declaration?.extendsClause?.superclass.name;
+    var superclassName = declaration?.extendsClause?.superclass2.name;
     if (superclassName != null &&
         _resolver.definingLibrary
             .shouldIgnoreUndefinedIdentifier(superclassName)) {

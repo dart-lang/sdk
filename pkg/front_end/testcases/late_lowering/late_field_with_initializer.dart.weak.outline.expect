@@ -10,9 +10,9 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   field core::int? _#Class#lateInstanceField;
   field core::bool _#Class#lateInstanceField#isSet;
   final field self::Class::T% field;
-  generic-covariant-impl field self::Class::T? _#Class#lateGenericField1;
+  covariant-by-class field self::Class::T? _#Class#lateGenericField1;
   field core::bool _#Class#lateGenericField1#isSet;
-  generic-covariant-impl field self::Class::T? _#Class#lateGenericField2;
+  covariant-by-class field self::Class::T? _#Class#lateGenericField2;
   field core::bool _#Class#lateGenericField2#isSet;
   constructor •(self::Class::T% field) → self::Class<self::Class::T%>
     ;
@@ -25,10 +25,10 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   get lateInstanceField() → core::int;
   set lateInstanceField(core::int #t3) → void;
   get lateGenericField1() → self::Class::T%;
-  set lateGenericField1(generic-covariant-impl self::Class::T% #t4) → void;
+  set lateGenericField1(covariant-by-class self::Class::T% #t4) → void;
   get lateGenericField2() → self::Class::T%;
-  set lateGenericField2(generic-covariant-impl self::Class::T% #t5) → void;
-  method instanceMethod(generic-covariant-impl self::Class::T% value) → dynamic
+  set lateGenericField2(covariant-by-class self::Class::T% #t5) → void;
+  method instanceMethod(covariant-by-class self::Class::T% value) → dynamic
     ;
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {

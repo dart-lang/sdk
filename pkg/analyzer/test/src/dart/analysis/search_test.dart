@@ -344,21 +344,41 @@ export 'foo.dart'; // export
 
   test_searchReferences_ConstructorElement_named() async {
     await resolveTestCode('''
+/// [new A.named] 1
 class A {
   A.named() {}
+  A.other() : this.named(); // 2
 }
 
-void main() {
-  A.named();
-  A.named;
+class B extends A {
+  B() : super.named(); // 3
+  factory B.other() = A.named; // 4
+}
+
+void f() {
+  A.named(); // 5
+  A.named; // 6
 }
 ''');
     var element = findElement.constructor('named');
-    var main = findElement.function('main');
+    var f = findElement.function('f');
     var expected = [
-      _expectIdQ(main, SearchResultKind.REFERENCE, '.named();',
+      _expectIdQ(
+          findElement.class_('A'), SearchResultKind.REFERENCE, '.named] 1',
           length: '.named'.length),
-      _expectIdQ(main, SearchResultKind.REFERENCE, '.named;',
+      _expectIdQ(findElement.constructor('other', of: 'A'),
+          SearchResultKind.INVOCATION, '.named(); // 2',
+          length: '.named'.length),
+      _expectIdQ(findElement.unnamedConstructor('B'),
+          SearchResultKind.INVOCATION, '.named(); // 3',
+          length: '.named'.length),
+      _expectIdQ(findElement.constructor('other', of: 'B'),
+          SearchResultKind.REFERENCE, '.named; // 4',
+          length: '.named'.length),
+      _expectIdQ(f, SearchResultKind.INVOCATION, '.named(); // 5',
+          length: '.named'.length),
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.named; // 6',
           length: '.named'.length),
     ];
     await _verifyReferences(element, expected);
@@ -381,29 +401,49 @@ void f() {
     var element = findElement.constructor('named');
     var f = findElement.topFunction('f');
     await _verifyReferences(element, [
-      _expectIdQ(f, SearchResultKind.REFERENCE, '.named(); // ref',
+      _expectIdQ(f, SearchResultKind.INVOCATION, '.named(); // ref',
           length: '.named'.length),
-      _expectIdQ(f, SearchResultKind.REFERENCE, '.named;',
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.named;',
           length: '.named'.length),
     ]);
   }
 
-  test_searchReferences_ConstructorElement_unnamed() async {
+  test_searchReferences_ConstructorElement_unnamed_declared() async {
     await resolveTestCode('''
+/// [new A] 1
 class A {
   A() {}
+  A.other() : this(); // 2
 }
 
-void main() {
-  A();
-  A.new;
+class B extends A {
+  B() : super(); // 3
+  factory B.other() = A; // 4
+}
+
+void f() {
+  A(); // 5
+  A.new; // 6
 }
 ''');
     var element = findElement.unnamedConstructor('A');
-    var main = findElement.function('main');
+    var f = findElement.function('f');
     var expected = [
-      _expectIdQ(main, SearchResultKind.REFERENCE, '();', length: 0),
-      _expectIdQ(main, SearchResultKind.REFERENCE, '.new;',
+      _expectIdQ(findElement.class_('A'), SearchResultKind.REFERENCE, '] 1',
+          length: 0),
+      _expectIdQ(findElement.constructor('other', of: 'A'),
+          SearchResultKind.INVOCATION, '(); // 2',
+          length: 0),
+      _expectIdQ(findElement.unnamedConstructor('B'),
+          SearchResultKind.INVOCATION, '(); // 3',
+          length: 0),
+      _expectIdQ(findElement.constructor('other', of: 'B'),
+          SearchResultKind.REFERENCE, '; // 4',
+          length: 0),
+      _expectIdQ(f, SearchResultKind.INVOCATION, '(); // 5', length: 0),
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.new; // 6',
           length: '.new'.length),
     ];
     await _verifyReferences(element, expected);
@@ -432,7 +472,7 @@ class A {
     CompilationUnit otherUnit = otherUnitResult.unit;
     Element main = otherUnit.declaredElement!.functions[0];
     var expected = [
-      ExpectedResult(main, SearchResultKind.REFERENCE,
+      ExpectedResult(main, SearchResultKind.INVOCATION,
           otherCode.indexOf('(); // in other'), 0,
           isResolved: true, isQualified: true)
     ];
@@ -441,18 +481,33 @@ class A {
 
   test_searchReferences_ConstructorElement_unnamed_synthetic() async {
     await resolveTestCode('''
+/// [new A] 1
 class A {}
 
-void main() {
-  A();
-  A.new;
+class B extends A {
+  B() : super(); // 2
+  factory B.other() = A; // 3
+}
+
+void f() {
+  A(); // 4
+  A.new; // 5
 }
 ''');
     var element = findElement.unnamedConstructor('A');
-    var main = findElement.function('main');
+    var f = findElement.function('f');
     var expected = [
-      _expectIdQ(main, SearchResultKind.REFERENCE, '();', length: 0),
-      _expectIdQ(main, SearchResultKind.REFERENCE, '.new;',
+      _expectIdQ(findElement.class_('A'), SearchResultKind.REFERENCE, '] 1',
+          length: 0),
+      _expectIdQ(findElement.unnamedConstructor('B'),
+          SearchResultKind.INVOCATION, '(); // 2',
+          length: 0),
+      _expectIdQ(findElement.constructor('other', of: 'B'),
+          SearchResultKind.REFERENCE, '; // 3',
+          length: 0),
+      _expectIdQ(f, SearchResultKind.INVOCATION, '(); // 4', length: 0),
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.new; // 5',
           length: '.new'.length),
     ];
     await _verifyReferences(element, expected);

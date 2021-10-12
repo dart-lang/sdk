@@ -16,10 +16,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readList<E>(E f(), {bool emptyAsNull: false}) {
+  List<E> readList<E>(E f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = f();
     }
@@ -45,10 +45,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<String> readStrings({bool emptyAsNull: false}) {
+  List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<String> list = new List<String>.filled(count, null);
+    List<String> list = List<String>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readString();
     }
@@ -56,10 +56,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<DartType> readDartTypes({bool emptyAsNull: false}) {
+  List<DartType> readDartTypes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<DartType> list = new List<DartType>.filled(count, null);
+    List<DartType> list = List<DartType>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readDartType();
     }
@@ -67,11 +67,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull: false}) {
+  List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<ir.TypeParameter> list =
-        new List<ir.TypeParameter>.filled(count, null);
+    List<ir.TypeParameter> list = List<ir.TypeParameter>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readTypeParameterNode();
     }
@@ -79,10 +78,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readMembers<E extends MemberEntity>({bool emptyAsNull: false}) {
+  List<E> readMembers<E extends MemberEntity>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       MemberEntity member = readMember();
       list[i] = member;
@@ -91,10 +90,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readMemberNodes<E extends ir.Member>({bool emptyAsNull: false}) {
+  List<E> readMemberNodes<E extends ir.Member>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ir.Member value = readMemberNode();
       list[i] = value;
@@ -103,10 +102,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readClasses<E extends ClassEntity>({bool emptyAsNull: false}) {
+  List<E> readClasses<E extends ClassEntity>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ClassEntity cls = readClass();
       list[i] = cls;
@@ -116,7 +115,7 @@ abstract class DataSourceMixin implements DataSource {
 
   @override
   Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f(),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -130,7 +129,7 @@ abstract class DataSourceMixin implements DataSource {
 
   @override
   Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -144,7 +143,7 @@ abstract class DataSourceMixin implements DataSource {
 
   @override
   Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -158,7 +157,7 @@ abstract class DataSourceMixin implements DataSource {
 
   @override
   Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -172,7 +171,7 @@ abstract class DataSourceMixin implements DataSource {
 
   @override
   Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -186,7 +185,7 @@ abstract class DataSourceMixin implements DataSource {
 
   @override
   Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -199,10 +198,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readLocals<E extends Local>({bool emptyAsNull: false}) {
+  List<E> readLocals<E extends Local>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       Local local = readLocal();
       list[i] = local;
@@ -211,7 +210,8 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  Map<K, V> readLocalMap<K extends Local, V>(V f(), {bool emptyAsNull: false}) {
+  Map<K, V> readLocalMap<K extends Local, V>(V f(),
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -224,10 +224,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull: false}) {
+  List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ir.TreeNode node = readTreeNode();
       list[i] = node;
@@ -236,7 +236,7 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull: false}) {
+  Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<String, V> map = {};
@@ -294,10 +294,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readConstants<E extends ConstantValue>({bool emptyAsNull: false}) {
+  List<E> readConstants<E extends ConstantValue>({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ConstantValue value = readConstant();
       list[i] = value;
@@ -307,7 +307,7 @@ abstract class DataSourceMixin implements DataSource {
 
   @override
   Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -338,10 +338,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<ImportEntity> readImports({bool emptyAsNull: false}) {
+  List<ImportEntity> readImports({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<ImportEntity> list = new List<ImportEntity>.filled(count, null);
+    List<ImportEntity> list = List<ImportEntity>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readImport();
     }
@@ -349,7 +349,7 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull: false}) {
+  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<ImportEntity, V> map = {};
@@ -362,10 +362,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<ir.DartType> readDartTypeNodes({bool emptyAsNull: false}) {
+  List<ir.DartType> readDartTypeNodes({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<ir.DartType> list = new List<ir.DartType>.filled(count, null);
+    List<ir.DartType> list = List<ir.DartType>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readDartTypeNode();
     }
@@ -376,7 +376,7 @@ abstract class DataSourceMixin implements DataSource {
   ir.Name readName() {
     String text = readString();
     ir.Library library = readValueOrNull(readLibraryNode);
-    return new ir.Name(text, library);
+    return ir.Name(text, library);
   }
 
   @override
@@ -436,7 +436,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeClasses(Iterable<ClassEntity> values, {bool allowNull: false}) {
+  void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -449,7 +449,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull: false}) {
+  void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -462,7 +462,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeStrings(Iterable<String> values, {bool allowNull: false}) {
+  void writeStrings(Iterable<String> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -475,7 +475,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull: false}) {
+  void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -488,7 +488,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeDartTypes(Iterable<DartType> values, {bool allowNull: false}) {
+  void writeDartTypes(Iterable<DartType> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -502,7 +502,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeLibraryMap<V>(Map<LibraryEntity, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -517,7 +517,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -533,7 +533,7 @@ abstract class DataSinkMixin implements DataSink {
   @override
   void writeMemberMap<V>(
       Map<MemberEntity, V> map, void f(MemberEntity member, V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -548,7 +548,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeStringMap<V>(Map<String, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -562,7 +562,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeLocals(Iterable<Local> values, {bool allowNull: false}) {
+  void writeLocals(Iterable<Local> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -576,7 +576,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeLocalMap<V>(Map<Local, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -591,7 +591,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -606,7 +606,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -621,7 +621,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -636,7 +636,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeList<E>(Iterable<E> values, void f(E value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -671,7 +671,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeMembers(Iterable<MemberEntity> values, {bool allowNull: false}) {
+  void writeMembers(Iterable<MemberEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -685,7 +685,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeTypeParameterNodes(Iterable<ir.TypeParameter> values,
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -706,7 +706,8 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeConstants(Iterable<ConstantValue> values, {bool allowNull: false}) {
+  void writeConstants(Iterable<ConstantValue> values,
+      {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -720,7 +721,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -750,7 +751,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeImports(Iterable<ImportEntity> values, {bool allowNull: false}) {
+  void writeImports(Iterable<ImportEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -764,7 +765,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -779,7 +780,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeDartTypeNodes(Iterable<ir.DartType> values,
-      {bool allowNull: false}) {
+      {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);

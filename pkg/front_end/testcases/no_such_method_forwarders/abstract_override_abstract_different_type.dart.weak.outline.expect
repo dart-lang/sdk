@@ -7,7 +7,7 @@ class Base extends core::Object {
     ;
   no-such-method-forwarder set push(core::int* x) → void
     return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#push=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
-  no-such-method-forwarder set float(covariant core::int* x) → void
+  no-such-method-forwarder set float(covariant-by-declaration core::int* x) → void
     return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#float=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   method noSuchMethod(core::Invocation* i) → dynamic
     ;
@@ -30,7 +30,7 @@ class You extends self::Base {
     ;
   no-such-method-forwarder set push(core::num* x) → void
     return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#push=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
-  no-such-method-forwarder set float(covariant core::num* x) → void
+  no-such-method-forwarder set float(covariant-by-declaration core::num* x) → void
     return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#float=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
 }
 static method main() → dynamic
@@ -40,14 +40,14 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:8:7 -> SymbolConstant(#push=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:8:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:8:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:8:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:9:7 -> SymbolConstant(#float=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:9:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:9:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:9:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:16:7 -> SymbolConstant(#push=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:16:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:16:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:16:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> SymbolConstant(#float=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 40, effectively constant: 12

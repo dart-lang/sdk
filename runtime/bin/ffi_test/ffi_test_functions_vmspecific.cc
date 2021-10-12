@@ -1094,12 +1094,78 @@ intptr_t ReturnIntPtr(intptr_t x) {
   return x;
 }
 
-static void* FfiNativeResolver(const char* name) {
-  if (strcmp(name, "ReturnIntPtr") == 0) {
+intptr_t PassAsHandle(Dart_Handle handle) {
+  intptr_t result = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(handle, 0, &result)));
+  return result;
+}
+
+intptr_t PassAsPointer(void* ptr) {
+  return reinterpret_cast<intptr_t>(ptr);
+}
+
+intptr_t PassAsPointerAndValue(void* ptr, intptr_t value) {
+  return reinterpret_cast<intptr_t>(value);
+}
+
+intptr_t PassAsValueAndPointer(intptr_t value, void* ptr) {
+  return reinterpret_cast<intptr_t>(value);
+}
+
+intptr_t* AllocateResource(intptr_t value) {
+  return new intptr_t(value);
+}
+
+void DeleteResource(intptr_t* resource) {
+  delete resource;
+}
+
+intptr_t GetResourceValue(intptr_t* resource) {
+  return *resource;
+}
+
+void DummyResourceFinalizer(void* isolate_peer, void* peer) {
+  *reinterpret_cast<intptr_t*>(peer) = 0;
+}
+
+void SetResourceFinalizer(Dart_Handle handle, intptr_t* resource) {
+  Dart_NewFinalizableHandle(handle, resource, sizeof(Dart_FinalizableHandle),
+                            DummyResourceFinalizer);
+}
+
+static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
+  if (strcmp(name, "Dart_SetNativeInstanceField") == 0 && args_n == 3) {
+    return reinterpret_cast<void*>(Dart_SetNativeInstanceField);
+  }
+  if (strcmp(name, "IsThreadInGenerated") == 0 && args_n == 0) {
+    return reinterpret_cast<void*>(IsThreadInGenerated);
+  }
+  if (strcmp(name, "ReturnIntPtr") == 0 && args_n == 1) {
     return reinterpret_cast<void*>(ReturnIntPtr);
   }
-  if (strcmp(name, "IsThreadInGenerated") == 0) {
-    return reinterpret_cast<void*>(IsThreadInGenerated);
+  if (strcmp(name, "PassAsHandle") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(PassAsHandle);
+  }
+  if (strcmp(name, "PassAsPointer") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(PassAsPointer);
+  }
+  if (strcmp(name, "PassAsPointerAndValue") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(PassAsPointerAndValue);
+  }
+  if (strcmp(name, "PassAsValueAndPointer") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(PassAsValueAndPointer);
+  }
+  if (strcmp(name, "AllocateResource") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(AllocateResource);
+  }
+  if (strcmp(name, "DeleteResource") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(DeleteResource);
+  }
+  if (strcmp(name, "GetResourceValue") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(GetResourceValue);
+  }
+  if (strcmp(name, "SetResourceFinalizer") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(SetResourceFinalizer);
   }
   // This should be unreachable in tests.
   ENSURE(false);

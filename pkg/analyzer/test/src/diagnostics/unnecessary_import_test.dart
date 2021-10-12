@@ -9,8 +9,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Re-enable this check once Flutter engine path is clear.
-    // defineReflectiveTests(UnnecessaryImportTest);
+    defineReflectiveTests(UnnecessaryImportTest);
   });
 }
 

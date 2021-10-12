@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int> list1 = core::List::generate<core::int>(10, (core::int i) → core::int => i);
+static field core::List<core::int> list2 = core::List::generate<core::int>(10, (core::int i) → core::int => i, growable: true);
+static field core::List<core::int> list3 = core::List::generate<core::int>(10, (core::int i) → core::int => i, growable: false);
+static field core::List<core::int> list4 = core::List::generate<core::int>(10, (core::int i) → core::int => i, growable: self::someGrowable);
+static field core::bool someGrowable = true;
+static method main() → void {
+  self::someGrowable = !self::someGrowable;
+  core::print(<core::List<core::int>>[self::list1, self::list2, self::list3, self::list4]);
+}

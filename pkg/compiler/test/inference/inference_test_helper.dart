@@ -9,7 +9,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/inferrer/types.dart';
@@ -146,23 +145,19 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
         node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);
-    } else if (
-        node is ir.InstanceInvocation ||
+    } else if (node is ir.InstanceInvocation ||
         node is ir.InstanceGetterInvocation ||
         node is ir.DynamicInvocation ||
         node is ir.FunctionInvocation ||
         node is ir.EqualsNull ||
         node is ir.EqualsCall) {
       return getTypeMaskValue(result.typeOfReceiver(node));
-    } else if (
-        node is ir.InstanceGet ||
+    } else if (node is ir.InstanceGet ||
         node is ir.DynamicGet ||
         node is ir.InstanceTearOff ||
         node is ir.FunctionTearOff) {
       return getTypeMaskValue(result.typeOfReceiver(node));
-    } else if (
-        node is ir.InstanceSet ||
-        node is ir.DynamicSet) {
+    } else if (node is ir.InstanceSet || node is ir.DynamicSet) {
       return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.ForInStatement) {
       if (id.kind == IdKind.iterator) {

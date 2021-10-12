@@ -37,11 +37,10 @@ import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 
 import '../kernel/combined_member_signature.dart';
-import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show redirectingName;
-import '../kernel/type_algorithms.dart'
-    show Variance, computeTypeVariableBuilderVariance;
+import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
+import '../kernel/utils.dart' show compareProcedures;
 
 import '../names.dart' show equalsName, noSuchMethodName;
 
@@ -353,7 +352,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (fieldBuilder.isClassInstanceMember &&
           fieldBuilder.isAssignable &&
-          !fieldBuilder.isCovariant) {
+          !fieldBuilder.isCovariantByDeclaration) {
         fieldVariance = Variance.combine(Variance.contravariant, fieldVariance);
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
             fieldBuilder.fileUri, fieldBuilder.charOffset);
@@ -385,7 +384,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // ignore: unnecessary_null_comparison
     if (positionalParameters != null) {
       for (VariableDeclaration formal in positionalParameters) {
-        if (!formal.isCovariant) {
+        if (!formal.isCovariantByDeclaration) {
           for (TypeParameter typeParameter in typeParameters) {
             int formalVariance = Variance.combine(Variance.contravariant,
                 computeVariance(typeParameter, formal.type));
@@ -865,8 +864,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.stubTarget = null;
   }
 
-  void _addRedirectingConstructor(SourceFactoryBuilder constructorBuilder,
-      SourceLibraryBuilder library, Reference? getterReference) {
+  void _addRedirectingConstructor(
+      SourceFactoryBuilder constructorBuilder,
+      SourceLibraryBuilder library,
+      Reference? fieldReference,
+      Reference? getterReference) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
     // source code.
@@ -889,6 +891,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           isFinal: true,
           initializer: literal,
           fileUri: cls.fileUri,
+          fieldReference: fieldReference,
           getterReference: getterReference)
         ..fileOffset = cls.fileOffset;
       cls.addField(field);
@@ -931,11 +934,18 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                Reference? getterReference =
-                    referencesFromIndexed?.lookupGetterReference(new Name(
-                        "_redirecting#", referencesFromIndexed!.library));
+                Reference? fieldReference;
+                Reference? getterReference;
+                if (referencesFromIndexed != null) {
+                  Name name =
+                      new Name(redirectingName, referencesFromIndexed!.library);
+                  fieldReference =
+                      referencesFromIndexed!.lookupFieldReference(name);
+                  getterReference =
+                      referencesFromIndexed!.lookupGetterReference(name);
+                }
                 _addRedirectingConstructor(
-                    declaration, library, getterReference);
+                    declaration, library, fieldReference, getterReference);
               }
               Member? targetNode;
               if (targetBuilder is FunctionBuilder) {
@@ -1285,7 +1295,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
         TypeParameter interfaceParameter = interfaceFunction!.typeParameters[i];
-        if (!interfaceParameter.isGenericCovariantImpl) {
+        if (!interfaceParameter.isCovariantByClass) {
           DartType declaredBound = declaredParameter.bound;
           DartType interfaceBound = interfaceParameter.bound;
           if (interfaceSubstitution != null) {
@@ -1359,7 +1369,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMemberOrigin,
       DartType declaredType,
       DartType interfaceType,
-      bool isCovariant,
+      bool isCovariantByDeclaration,
       VariableDeclaration? declaredParameter,
       bool isInterfaceCheck,
       bool declaredNeedsLegacyErasure,
@@ -1386,7 +1396,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (types.isSubtypeOf(
         subtype, supertype, SubtypeCheckMode.withNullabilities)) {
       // No problem--the proper subtyping relation is satisfied.
-    } else if (isCovariant &&
+    } else if (isCovariantByDeclaration &&
         types.isSubtypeOf(
             supertype, subtype, SubtypeCheckMode.withNullabilities)) {
       // No problem--the overriding parameter is marked "covariant" and has
@@ -1398,7 +1408,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // Report an error.
       bool isErrorInNnbdOptedOutMode = !types.isSubtypeOf(
               subtype, supertype, SubtypeCheckMode.ignoringNullabilities) &&
-          (!isCovariant ||
+          (!isCovariantByDeclaration ||
               !types.isSubtypeOf(
                   supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
       if (isErrorInNnbdOptedOutMode || library.isNonNullableByDefault) {
@@ -1493,8 +1503,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         declaredFunction.returnType,
         interfaceFunction.returnType,
-        false,
-        null,
+        /* isCovariantByDeclaration = */ false,
+        /* declaredParameter = */ null,
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
     if (declaredFunction.positionalParameters.length <
@@ -1563,11 +1573,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           interfaceMemberOrigin,
           declaredParameter.type,
           interfaceParameter.type,
-          declaredParameter.isCovariant || interfaceParameter.isCovariant,
+          declaredParameter.isCovariantByDeclaration ||
+              interfaceParameter.isCovariantByDeclaration,
           declaredParameter,
           isInterfaceCheck,
           declaredNeedsLegacyErasure);
-      if (declaredParameter.isCovariant) seenCovariant = true;
+      if (declaredParameter.isCovariantByDeclaration) seenCovariant = true;
     }
     if (declaredFunction.namedParameters.isEmpty &&
         interfaceFunction.namedParameters.isEmpty) {
@@ -1643,7 +1654,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           interfaceMemberOrigin,
           declaredParameter.type,
           interfaceNamedParameters.current.type,
-          declaredParameter.isCovariant,
+          declaredParameter.isCovariantByDeclaration,
           declaredParameter,
           isInterfaceCheck,
           declaredNeedsLegacyErasure);
@@ -1670,7 +1681,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                       interfaceMemberOrigin.fileOffset, noLength)
             ]);
       }
-      if (declaredParameter.isCovariant) seenCovariant = true;
+      if (declaredParameter.isCovariantByDeclaration) seenCovariant = true;
     }
     return seenCovariant;
   }
@@ -1709,7 +1720,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         declaredType,
         interfaceType,
-        /* isCovariant = */ false,
+        /* isCovariantByDeclaration = */ false,
         /* declaredParameter = */ null,
         isInterfaceCheck,
         declaredNeedsLegacyErasure);
@@ -1745,12 +1756,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     DartType interfaceType = interfaceMember.setterType;
     VariableDeclaration? declaredParameter =
         declaredMember.function?.positionalParameters.elementAt(0);
-    bool isCovariant = declaredParameter?.isCovariant ?? false;
-    if (!isCovariant && declaredMember is Field) {
-      isCovariant = declaredMember.isCovariant;
+    bool isCovariantByDeclaration =
+        declaredParameter?.isCovariantByDeclaration ?? false;
+    if (!isCovariantByDeclaration && declaredMember is Field) {
+      isCovariantByDeclaration = declaredMember.isCovariantByDeclaration;
     }
-    if (!isCovariant && interfaceMember is Field) {
-      isCovariant = interfaceMember.isCovariant;
+    if (!isCovariantByDeclaration && interfaceMember is Field) {
+      isCovariantByDeclaration = interfaceMember.isCovariantByDeclaration;
     }
     _checkTypes(
         types,
@@ -1761,12 +1773,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         declaredType,
         interfaceType,
-        isCovariant,
+        isCovariantByDeclaration,
         declaredParameter,
         isInterfaceCheck,
         declaredNeedsLegacyErasure,
         asIfDeclaredParameter: true);
-    return isCovariant;
+    return isCovariantByDeclaration;
   }
 
   // When the overriding member is inherited, report the class containing

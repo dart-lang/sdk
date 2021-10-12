@@ -24,4 +24,5 @@ const o = C.fact;
 const p = C<int>.fact;
 const q = C.redirect;
 const r = C<int>.redirect;
+test() {}
 main() {}

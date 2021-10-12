@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -904,16 +903,16 @@ class C {
     expect(parameters[0], isSimpleFormalParameter);
     var required = parameters[0] as SimpleFormalParameter;
     expect(required.identifier, isNull);
-    expect(required.type, isTypeName);
-    expect((required.type as TypeName).name.name, 'A');
+    expect(required.type, isNamedType);
+    expect((required.type as NamedType).name.name, 'A');
 
     expect(parameters[1], isDefaultFormalParameter);
     var named = parameters[1] as DefaultFormalParameter;
     expect(named.identifier, isNotNull);
     expect(named.parameter, isSimpleFormalParameter);
     var simple = named.parameter as SimpleFormalParameter;
-    expect(simple.type, isTypeName);
-    expect((simple.type as TypeName).name.name, 'B');
+    expect(simple.type, isNamedType);
+    expect((simple.type as NamedType).name.name, 'B');
   }
 
   void test_parseFormalParameterList_normal_positional() {
@@ -1017,7 +1016,7 @@ class C {
     var parameter = list.parameters[0] as SimpleFormalParameter;
     expect(parameter.toSource(), 'io.File ');
     expect(parameter.identifier!.token.isSynthetic, isTrue);
-    var type = parameter.type as TypeName;
+    var type = parameter.type as NamedType;
     var typeName = type.name as PrefixedIdentifier;
     expect(typeName.prefix.token.isSynthetic, isFalse);
     expect(typeName.identifier.token.isSynthetic, isFalse);
@@ -1038,7 +1037,7 @@ class C {
     var parameter = list.parameters[0] as SimpleFormalParameter;
     expect(parameter.toSource(), 'io. ');
     expect(parameter.identifier!.token.isSynthetic, isTrue);
-    var type = parameter.type as TypeName;
+    var type = parameter.type as NamedType;
     var typeName = type.name as PrefixedIdentifier;
     expect(typeName.prefix.token.isSynthetic, isFalse);
     expect(typeName.identifier.token.isSynthetic, isTrue);

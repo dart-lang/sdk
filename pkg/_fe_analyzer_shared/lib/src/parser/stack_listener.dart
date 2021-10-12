@@ -48,6 +48,7 @@ enum NullValue {
   FunctionBody,
   FunctionBodyAsyncToken,
   FunctionBodyStarToken,
+  HideClause,
   Identifier,
   IdentifierList,
   Initializers,
@@ -55,8 +56,10 @@ enum NullValue {
   Metadata,
   Modifiers,
   Name,
+  OperatorList,
   ParameterDefaultValue,
   Prefix,
+  ShowClause,
   StringLiteral,
   SwitchScope,
   Token,
@@ -66,6 +69,7 @@ enum NullValue {
   TypeList,
   TypeVariable,
   TypeVariables,
+  UnresolvedType,
   VarFinalOrConstToken,
   WithClause,
 }
@@ -346,6 +350,12 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    debugEvent("ExtensionShow");
+  }
+
+  @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
     push(NullValue.TypeArguments);
@@ -365,7 +375,7 @@ abstract class StackListener extends Listener {
   @override
   void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
-    push(NullValue.Type);
+    push(NullValue.UnresolvedType);
   }
 
   @override

@@ -112,6 +112,10 @@ class ConstantsBackend {
   /// Number semantics to use for this backend.
   NumberSemantics get numberSemantics => NumberSemantics.vm;
 
+  /// If true, all constants are inlined. Otherwise [shouldInlineConstant] is
+  /// called to determine whether a constant expression should be inlined.
+  bool get alwaysInlineConstants => true;
+
   /// Inline control of constant variables. The given constant expression
   /// is the initializer of a [Field] or [VariableDeclaration] node.
   /// If this method returns `true`, the variable will be inlined at all
@@ -119,7 +123,11 @@ class ConstantsBackend {
   /// by the `keepFields` or `keepLocals` properties).
   /// This method must be deterministic, i.e. it must always return the same
   /// value for the same constant value and place in the AST.
-  bool shouldInlineConstant(ConstantExpression initializer) => true;
+  ///
+  /// This is only called if [alwaysInlineConstants] is `true`.
+  bool shouldInlineConstant(ConstantExpression initializer) =>
+      throw new UnsupportedError(
+          'Per-value constant inlining is not supported');
 
   /// Whether this target supports unevaluated constants.
   ///
@@ -438,12 +446,14 @@ abstract class Target {
 
   Class? concreteMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
 
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
-  ConstantsBackend constantsBackend(CoreTypes coreTypes);
+  ConstantsBackend get constantsBackend;
 }
 
 class NoneConstantsBackend extends ConstantsBackend {
@@ -515,7 +525,7 @@ class NoneTarget extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+  ConstantsBackend get constantsBackend =>
       // TODO(johnniwinther): Should this vary with the use case?
       const NoneConstantsBackend(supportsUnevaluatedConstants: true);
 }
@@ -761,9 +771,7 @@ class TargetWrapper extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) {
-    return _target.constantsBackend(coreTypes);
-  }
+  ConstantsBackend get constantsBackend => _target.constantsBackend;
 
   @override
   bool enableNative(Uri uri) {

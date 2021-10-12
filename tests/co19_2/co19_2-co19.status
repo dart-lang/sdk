@@ -8,8 +8,7 @@ Language/Generics/Superbounded_types/typedef2_A01_t04: SkipByDesign # https://gi
 Language/Generics/typedef_A08_t02: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
 Language/Generics/typedef_A08_t03: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
 Language/Generics/typedef_A08_t04: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Skip # https://github.com/dart-lang/co19/issues/1137
-Language/Libraries_and_Scripts/Scripts/top_level_main_t06: Skip # https://github.com/dart-lang/co19/issues/1137
+LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dart2js || $compiler == dartdevk ]
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # Uses dart:io.

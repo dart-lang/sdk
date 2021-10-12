@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:core';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -41,6 +40,7 @@ class OverlayResourceProvider implements ResourceProvider {
   Folder getFolder(String path) =>
       _OverlayFolder(this, baseProvider.getFolder(path));
 
+  @Deprecated('Not used by clients')
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
     return sources.map((source) {

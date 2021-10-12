@@ -69,7 +69,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Only the Allocator, Opaque and Struct class may be extended.
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      final TypeName superclass = extendsClause.superclass;
+      final NamedType superclass = extendsClause.superclass2;
       final ffiClass = superclass.ffiClass;
       if (ffiClass != null) {
         final className = ffiClass.name;
@@ -99,7 +99,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     // No classes from the FFI may be explicitly implemented.
-    void checkSupertype(TypeName typename, FfiCode subtypeOfFfiCode,
+    void checkSupertype(NamedType typename, FfiCode subtypeOfFfiCode,
         FfiCode subtypeOfStructCode) {
       final superName = typename.name.staticElement?.name;
       if (superName == _allocatorClassName) {
@@ -116,14 +116,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var implementsClause = node.implementsClause;
     if (implementsClause != null) {
-      for (TypeName type in implementsClause.interfaces) {
+      for (NamedType type in implementsClause.interfaces2) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS);
       }
     }
     var withClause = node.withClause;
     if (withClause != null) {
-      for (TypeName type in withClause.mixinTypes) {
+      for (NamedType type in withClause.mixinTypes2) {
         checkSupertype(type, FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH);
       }
@@ -701,8 +701,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else if (declaredType.isArray) {
         final typeArg = (declaredType as InterfaceType).typeArguments.single;
         if (!_isSized(typeArg)) {
+          AstNode errorNode = fieldType;
+          if (fieldType is NamedType) {
+            var typeArguments = fieldType.typeArguments?.arguments;
+            if (typeArguments != null && typeArguments.isNotEmpty) {
+              errorNode = typeArguments[0];
+            }
+          }
           _errorReporter.reportErrorForNode(FfiCode.NON_SIZED_TYPE_ARGUMENT,
-              fieldType, [_arrayClassName, typeArg.toString()]);
+              errorNode, [_arrayClassName, typeArg]);
         }
         final arrayDimensions = declaredType.arrayDimensions;
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
@@ -873,8 +880,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final annotation = ffiPackedAnnotations.first;
     final value = annotation.elementAnnotation?.packedMemberAlignment;
     if (![1, 2, 4, 8, 16].contains(value)) {
+      AstNode errorNode = annotation;
+      var arguments = annotation.arguments?.arguments;
+      if (arguments != null && arguments.isNotEmpty) {
+        errorNode = arguments[0];
+      }
       _errorReporter.reportErrorForNode(
-          FfiCode.PACKED_ANNOTATION_ALIGNMENT, annotation);
+          FfiCode.PACKED_ANNOTATION_ALIGNMENT, errorNode);
     }
   }
 
@@ -975,11 +987,28 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           FfiCode.SIZE_ANNOTATION_DIMENSIONS, annotation);
     }
-    // Check dimensions is positive
-    for (int dimension in dimensions) {
-      if (dimension <= 0) {
+
+    // Check dimensions are positive
+    List<AstNode>? getArgumentNodes() {
+      var arguments = annotation.arguments?.arguments;
+      if (arguments != null && arguments.length == 1) {
+        var firstArgument = arguments[0];
+        if (firstArgument is ListLiteral) {
+          return firstArgument.elements;
+        }
+      }
+      return arguments;
+    }
+
+    for (int i = 0; i < dimensions.length; i++) {
+      if (dimensions[i] <= 0) {
+        AstNode errorNode = annotation;
+        var argumentNodes = getArgumentNodes();
+        if (argumentNodes != null && argumentNodes.isNotEmpty) {
+          errorNode = argumentNodes[i];
+        }
         _errorReporter.reportErrorForNode(
-            FfiCode.NON_POSITIVE_ARRAY_DIMENSION, annotation);
+            FfiCode.NON_POSITIVE_ARRAY_DIMENSION, errorNode);
       }
     }
   }
@@ -1325,7 +1354,7 @@ extension on DartType {
   }
 }
 
-extension on TypeName {
+extension on NamedType {
   /// If this is a name of class from `dart:ffi`, return it.
   ClassElement? get ffiClass {
     return name.staticElement.ffiClass;

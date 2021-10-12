@@ -46,13 +46,13 @@ def _get_browser_compat_data():
         if 'api' in json_dict:
             # Get the interface name
             api_dict = json_dict['api']
-            interface_name = api_dict.keys()[0]
+            interface_name = next(iter(api_dict))
             return (interface_name, api_dict[interface_name])
         elif 'html' in json_dict:
             html_dict = json_dict['html']
             if 'elements' in html_dict:
                 elements_dict = html_dict['elements']
-                element_name = elements_dict.keys()[0]
+                element_name = next(iter(elements_dict))
                 # Convert to WebCore name
                 interface = str('HTML' + element_name + 'Element')
                 return (interface, elements_dict[element_name])
@@ -60,48 +60,11 @@ def _get_browser_compat_data():
             svg_dict = json_dict['svg']
             if 'elements' in svg_dict:
                 elements_dict = svg_dict['elements']
-                element_name = elements_dict.keys()[0]
+                element_name = next(iter(elements_dict))
                 # Convert to WebCore name
                 interface = str('SVG' + element_name + 'Element')
                 return (interface, elements_dict[element_name])
         return (None, None)
-
-    def visitor(arg, dir_path, names):
-
-        def should_process_dir(dir_path):
-            if os.path.abspath(dir_path) == browser_compat_folder:
-                return True
-            for dir in INCLUDE_DIRS:
-                if dir_path.startswith(dir):
-                    return True
-            return False
-
-        if should_process_dir(dir_path):
-            for name in names:
-                file_name = os.path.join(dir_path, name)
-                (interface_path, ext) = os.path.splitext(file_name)
-                if ext == '.json':
-                    with open(file_name) as src:
-                        json_dict = json.load(src)
-                        interface, metadata = process_json_dict(json_dict)
-                        if not interface is None:
-                            # Note: interface and member names do not
-                            # necessarily have the same capitalization as
-                            # WebCore, so we keep them all lowercase for easier
-                            # matching later.
-                            interface = interface.lower()
-                            metadata = {
-                                member.lower(): info
-                                for member, info in metadata.items()
-                            }
-
-                            if interface in browser_compat_data:
-                                _unify_metadata(browser_compat_data[interface],
-                                                metadata)
-                            else:
-                                browser_compat_data[interface] = metadata
-        else:
-            names[:] = []  # Do not go underneath
 
     # Attempts to unify two compatibility infos by taking the union of both, and
     # for conflicting information, taking the "stricter" of the two versions.
@@ -182,7 +145,42 @@ def _get_browser_compat_data():
             if not attr in a:
                 a[attr] = b[attr]
 
-    os.path.walk(browser_compat_folder, visitor, browser_compat_folder)
+    for (dir_path, dirs, files) in os.walk(browser_compat_folder):
+
+        def should_process_dir(dir_path):
+            if os.path.abspath(dir_path) == browser_compat_folder:
+                return True
+            for dir in INCLUDE_DIRS:
+                if dir_path.startswith(dir):
+                    return True
+            return False
+
+        if should_process_dir(dir_path):
+            for name in files:
+                file_name = os.path.join(dir_path, name)
+                (interface_path, ext) = os.path.splitext(file_name)
+                if ext == '.json':
+                    with open(file_name) as src:
+                        json_dict = json.load(src)
+                        interface, metadata = process_json_dict(json_dict)
+                        if not interface is None:
+                            # Note: interface and member names do not
+                            # necessarily have the same capitalization as
+                            # WebCore, so we keep them all lowercase for easier
+                            # matching later.
+                            interface = interface.lower()
+                            metadata = {
+                                member.lower(): info
+                                for member, info in metadata.items()
+                            }
+
+                            if interface in browser_compat_data:
+                                _unify_metadata(browser_compat_data[interface],
+                                                metadata)
+                            else:
+                                browser_compat_data[interface] = metadata
+        else:
+            dirs[:] = []  # Do not go underneath
 
     return browser_compat_data
 
@@ -192,8 +190,8 @@ def _unify_versions(version_a, version_b):
     # Given two valid version strings, compares parts of the version string
     # iteratively.
     def _greater_version(version_a, version_b):
-        version_a_split = map(int, version_a.split('.'))
-        version_b_split = map(int, version_b.split('.'))
+        version_a_split = list(map(int, version_a.split('.')))
+        version_b_split = list(map(int, version_b.split('.')))
         for i in range(min(len(version_a_split), len(version_b_split))):
             if version_a_split[i] > version_b_split[i]:
                 return version_a
@@ -208,7 +206,7 @@ def _unify_versions(version_a, version_b):
             return False
         if version is True:
             return True
-        if isinstance(version, str) or isinstance(version, unicode):
+        if isinstance(version, str):
             pattern = re.compile('^([0-9]+\.)*[0-9]+$')
             if not pattern.match(version):
                 # It's possible for version strings to look like '<35'. We don't

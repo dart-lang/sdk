@@ -356,9 +356,13 @@ typedef simd128_value_t fpu_register_t;
 
 // Determine whether we will be using the simulator.
 #if defined(TARGET_ARCH_IA32)
-// No simulator used.
+#if !defined(HOST_ARCH_IA32)
+#define USING_SIMULATOR 1
+#endif
 #elif defined(TARGET_ARCH_X64)
-// No simulator used.
+#if !defined(HOST_ARCH_X64)
+#define USING_SIMULATOR 1
+#endif
 #elif defined(TARGET_ARCH_ARM)
 #if !defined(HOST_ARCH_ARM)
 #define TARGET_HOST_MISMATCH 1

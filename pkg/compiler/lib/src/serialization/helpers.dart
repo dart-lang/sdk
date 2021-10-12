@@ -141,7 +141,7 @@ class DartTypeNodeWriter
   @override
   void defaultDartType(
       ir.DartType node, List<ir.TypeParameter> functionTypeVariables) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "Unexpected ir.DartType $node (${node.runtimeType}).");
   }
 
@@ -208,9 +208,8 @@ class DartTypeNodeWriter
       ir.FunctionType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.functionType);
     _sink.begin(functionTypeNodeTag);
-    functionTypeVariables =
-        new List<ir.TypeParameter>.from(functionTypeVariables)
-          ..addAll(node.typeParameters);
+    functionTypeVariables = List<ir.TypeParameter>.from(functionTypeVariables)
+      ..addAll(node.typeParameters);
     _sink.writeInt(node.typeParameters.length);
     for (ir.TypeParameter parameter in node.typeParameters) {
       _sink.writeString(parameter.name);
@@ -264,9 +263,12 @@ class DartTypeNodeWriter
 /// Data sink helper that canonicalizes [E] values using indices.
 class IndexedSink<E> {
   final AbstractDataSink _sink;
-  final Map<E, int> _cache = {null: 0}; // slot 0 is pre-allocated to `null`.
+  Map<E, int> cache;
 
-  IndexedSink(this._sink);
+  IndexedSink(this._sink, {this.cache}) {
+    // [cache] slot 0 is pre-allocated to `null`.
+    this.cache ??= {null: 0};
+  }
 
   /// Write a reference to [value] to the data sink.
   ///
@@ -274,13 +276,13 @@ class IndexedSink<E> {
   /// serialize the [value] itself.
   void write(E value, void writeValue(E value)) {
     const int pending = -1;
-    int index = _cache[value];
+    int index = cache[value];
     if (index == null) {
-      index = _cache.length;
+      index = cache.length;
       _sink._writeIntInternal(index);
-      _cache[value] = pending; // Increments length to allocate slot.
+      cache[value] = pending; // Increments length to allocate slot.
       writeValue(value);
-      _cache[value] = index;
+      cache[value] = index;
     } else if (index == pending) {
       throw ArgumentError("Cyclic dependency on cached value: $value");
     } else {
@@ -292,9 +294,12 @@ class IndexedSink<E> {
 /// Data source helper reads canonicalized [E] values through indices.
 class IndexedSource<E> {
   final AbstractDataSource _source;
-  final List<E> _cache = [null]; // slot 0 is pre-allocated to `null`.
+  List<E> cache;
 
-  IndexedSource(this._source);
+  IndexedSource(this._source, {this.cache}) {
+    // [cache] slot 0 is pre-allocated to `null`.
+    this.cache ??= [null];
+  }
 
   /// Reads a reference to an [E] value from the data source.
   ///
@@ -302,14 +307,14 @@ class IndexedSource<E> {
   /// the value itself.
   E read(E readValue()) {
     int index = _source._readIntInternal();
-    if (index >= _cache.length) {
-      assert(index == _cache.length);
-      _cache.add(null); // placeholder.
+    if (index >= cache.length) {
+      assert(index == cache.length);
+      cache.add(null); // placeholder.
       E value = readValue();
-      _cache[index] = value;
+      cache[index] = value;
       return value;
     } else {
-      E value = _cache[index];
+      E value = cache[index];
       if (value == null && index != 0) {
         throw StateError('Unfilled index $index of $E');
       }

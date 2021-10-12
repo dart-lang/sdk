@@ -1126,7 +1126,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
-    writeLibraryReference(node.targetLibrary, allowNull: true);
+    writeLibraryReference(node.targetLibrary, allowNull: false);
     writeStringReference(node.name ?? '');
     writeNodeList(node.combinators);
   }
@@ -1326,6 +1326,24 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitField(Field node) {
+    CanonicalName? fieldCanonicalName = node.fieldReference.canonicalName;
+    if (fieldCanonicalName == null) {
+      throw new ArgumentError('Missing canonical name for $node');
+    }
+    String? fieldOrphancy = node.fieldReference.getOrphancyDescription(node);
+    if (fieldOrphancy != null) {
+      throw new ArgumentError('Trying to serialize orphaned field reference.\n'
+          '${fieldOrphancy}');
+    }
+    fieldOrphancy =
+        fieldCanonicalName.getOrphancyDescription(node, node.fieldReference);
+    if (fieldOrphancy != null) {
+      throw new ArgumentError(
+          'Trying to serialize orphaned field canonical name.\n'
+          '(${node.runtimeType}:${node.hashCode})\n'
+          '${fieldOrphancy}');
+    }
+
     CanonicalName? getterCanonicalName = node.getterReference.canonicalName;
     if (getterCanonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
@@ -1367,6 +1385,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     enterScope(memberScope: true);
     writeByte(Tag.Field);
+    writeNonNullCanonicalNameReference(fieldCanonicalName);
     writeNonNullCanonicalNameReference(getterCanonicalName);
     writeNullAllowedCanonicalNameReference(setterCanonicalName);
     writeUriReference(node.fileUri);
@@ -2451,6 +2470,24 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeDartType(node.onType);
+
+    ExtensionTypeShowHideClause? showHideClause = node.showHideClause;
+    if (showHideClause == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeNodeList(showHideClause.shownSupertypes);
+      writeList(showHideClause.shownMethods, writeNonNullReference);
+      writeList(showHideClause.shownGetters, writeNonNullReference);
+      writeList(showHideClause.shownSetters, writeNonNullReference);
+      writeList(showHideClause.shownOperators, writeNonNullReference);
+      writeNodeList(showHideClause.hiddenSupertypes);
+      writeList(showHideClause.hiddenMethods, writeNonNullReference);
+      writeList(showHideClause.hiddenGetters, writeNonNullReference);
+      writeList(showHideClause.hiddenSetters, writeNonNullReference);
+      writeList(showHideClause.hiddenOperators, writeNonNullReference);
+    }
+
     leaveScope(typeParameters: node.typeParameters);
 
     final int len = node.members.length;

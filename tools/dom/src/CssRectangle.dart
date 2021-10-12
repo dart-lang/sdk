@@ -287,8 +287,7 @@ abstract class CssRect implements Rectangle<num> {
       right == other.right &&
       bottom == other.bottom;
 
-  int get hashCode => _JenkinsSmiHash.hash4(
-      left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);
+  int get hashCode => Object.hash(left, top, right, bottom);
 
   /**
    * Computes the intersection of `this` and [other].

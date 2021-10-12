@@ -36,7 +36,7 @@ class TypeGraphDump {
       <TypeInformation, Set<TypeInformation>>{};
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeTracing =
       <TypeInformation, Set<TypeInformation>>{};
-  final Set<String> usedFilenames = new Set<String>();
+  final Set<String> usedFilenames = Set<String>();
 
   TypeGraphDump(this.compilerOutput, this.inferrer);
 
@@ -80,7 +80,7 @@ class TypeGraphDump {
         String name = filenameFromElement(element);
         output = compilerOutput.createOutputSink(
             '$outputDir/$name', 'dot', OutputType.debug);
-        _GraphGenerator visitor = new _GraphGenerator(
+        _GraphGenerator visitor = _GraphGenerator(
             this, element, output, inferrer.abstractValueDomain.getCompactText);
         for (TypeInformation node in nodes[element]) {
           visitor.visit(node);
@@ -135,7 +135,7 @@ class TypeGraphDump {
 /// Builds the Graphviz Dot file for one function body.
 class _GraphGenerator extends TypeInformationVisitor {
   final TypeGraphDump global;
-  final Set<TypeInformation> seen = new Set<TypeInformation>();
+  final Set<TypeInformation> seen = Set<TypeInformation>();
   final List<TypeInformation> worklist = <TypeInformation>[];
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   final String Function(AbstractValue) formatType;
@@ -172,7 +172,9 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void append(String string) {
-    output..add(string)..add('\n');
+    output
+      ..add(string)
+      ..add('\n');
   }
 
   String shorten(String text) {
@@ -193,7 +195,7 @@ class _GraphGenerator extends TypeInformationVisitor {
     return '$id';
   }
 
-  final RegExp escapeRegexp = new RegExp('["{}<>|]');
+  final RegExp escapeRegexp = RegExp('["{}<>|]');
 
   /// Escapes characters in [text] so it can be used as part of a label.
   String escapeLabel(String text) {
@@ -205,7 +207,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   /// If [dst] is a record type node, [port] may refer to one of the fields
   /// defined in that record (e.g. `obj`, `arg0`, `arg1`, etc)
   void addEdge(TypeInformation src, TypeInformation dst,
-      {String port, String color: 'black'}) {
+      {String port, String color = 'black'}) {
     if (isExternal(src) && isExternal(dst)) {
       return; // Do not add edges between external nodes.
     }
@@ -268,7 +270,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   /// [inputs] specify named inputs to the node. If omitted, edges will be
   /// based on [node.inputs].
   void addNode(TypeInformation node, String text,
-      {String color: defaultNodeColor, Map<String, TypeInformation> inputs}) {
+      {String color = defaultNodeColor, Map<String, TypeInformation> inputs}) {
     seen.add(node);
     String style = getStyleForNode(node, color);
     text = appendDetails(node, text);

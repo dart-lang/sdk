@@ -5,7 +5,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     synthetic constructor •() → lib1::A<lib1::A::T*>*
       : super dart.core::Object::•()
       ;
-    method foo(generic-covariant-impl lib1::A::T* t) → dynamic {
+    method foo(covariant-by-class lib1::A::T* t) → dynamic {
       dart.core::print("foo T ${t}");
     }
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
@@ -46,7 +46,7 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor •() → main::C*
       : super lib1::B::•()
       ;
-    forwarding-stub method foo(generic-covariant-impl dart.core::int* t) → dynamic
+    forwarding-stub method foo(covariant-by-class dart.core::int* t) → dynamic
       return super.{lib1::B::foo}(t);
   }
   static method main() → dynamic {

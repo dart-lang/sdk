@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   synthetic constructor •() → self::C<self::C::X%, self::C::Y>
     ;
-  method test(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y? y) → dynamic
+  method test(covariant-by-class self::C::X% x, covariant-by-class self::C::Y? y) → dynamic
     ;
 }
 static method assertRightSubtype(dynamic x) → dynamic

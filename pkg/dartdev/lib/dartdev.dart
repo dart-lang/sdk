@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Do not call exit() directly. Use VmInteropHandler.exit() instead.
+import 'dart:async';
 import 'dart:io' as io hide exit;
 import 'dart:isolate';
 
@@ -10,20 +11,19 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
-import 'package:dartdev/src/commands/migrate.dart';
 import 'package:devtools_server/devtools_server.dart';
 import 'package:meta/meta.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
-
 import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
+import 'src/commands/debug_adapter.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/language_server.dart';
+import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
@@ -112,6 +112,7 @@ class DartdevRunner extends CommandRunner<int> {
 
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
+    addCommand(DebugAdapterCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
     addCommand(DevToolsCommand(
       verbose: verbose,

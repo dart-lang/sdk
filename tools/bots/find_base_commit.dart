@@ -22,7 +22,7 @@ void main(List<String> args) async {
   parser.addOption("branch",
       abbr: "B",
       help: "Select the builders building this branch",
-      defaultsTo: "master");
+      defaultsTo: "main");
   parser.addOption("count",
       abbr: "c", help: "List this many commits", defaultsTo: "1");
   parser.addFlag("help", help: "Show the program usage.", negatable: false);

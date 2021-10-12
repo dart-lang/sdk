@@ -273,7 +273,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_minus_int_double() async {
@@ -320,7 +320,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_mod_int_double() async {
@@ -421,7 +421,7 @@ h(double x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'double' : 'num']);
+        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
   }
 
   test_plus_int_context_int() async {
@@ -434,7 +434,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_plus_int_context_int_target_rewritten() async {
@@ -447,7 +447,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_plus_int_context_int_via_extension_explicit() async {
@@ -774,7 +774,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_star_int_double() async {

@@ -1046,8 +1046,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (name != '' || hasUnnamedSuper)
             _emitSuperConstructorCall(className, name, jsParams),
         ];
-        body.add(_addConstructorToClass(
-            c, className, name, js_ast.Fun(jsParams, js_ast.Block(ctorBody))));
+        // TODO(nshahan) Record the name for this constructor in memberNames.
+        body.add(_addConstructorToClass(c, className, _constructorName(name),
+            js_ast.Fun(jsParams, js_ast.Block(ctorBody))));
       }
     }
 
@@ -1197,14 +1198,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return body;
     }
 
-    void addConstructor(String name, js_ast.Expression jsCtor) {
+    void addConstructor(js_ast.LiteralString name, js_ast.Expression jsCtor) {
       body.add(_addConstructorToClass(c, className, name, jsCtor));
     }
 
     var fields = c.fields;
     for (var ctor in c.constructors) {
       if (ctor.isExternal) continue;
-      addConstructor(ctor.name.text, _emitConstructor(ctor, fields, className));
+      var constructorName = _constructorName(ctor.name.text);
+      memberNames[ctor] = constructorName.valueWithoutQuotes;
+      addConstructor(
+          constructorName, _emitConstructor(ctor, fields, className));
     }
 
     // If classElement has only factory constructors, and it can be mixed in,
@@ -1617,7 +1621,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  js_ast.Expression _constructorName(String name) {
+  js_ast.LiteralString _constructorName(String name) {
     if (name == '') {
       // Default constructors (factory or not) use `new` as their name.
       return propertyName('new');
@@ -1773,8 +1777,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Statement _addConstructorToClass(Class c, js_ast.Expression className,
-      String name, js_ast.Expression jsCtor) {
-    jsCtor = defineValueOnClass(c, className, _constructorName(name), jsCtor);
+      js_ast.LiteralString name, js_ast.Expression jsCtor) {
+    jsCtor = defineValueOnClass(c, className, name, jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
   }
 
@@ -2084,9 +2088,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// [_emitFunction] instead.
     var name = node.name.text;
     var jsBody = _emitSyncFunctionBody(function, name);
+    var jsName = _constructorName(name);
+    memberNames[node] = jsName.valueWithoutQuotes;
 
-    return js_ast.Method(
-        _constructorName(name), js_ast.Fun(_emitParameters(function), jsBody),
+    return js_ast.Method(jsName, js_ast.Fun(_emitParameters(function), jsBody),
         isStatic: true)
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
   }
@@ -3719,7 +3724,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   void _emitCovarianceBoundsCheck(
       List<TypeParameter> typeFormals, List<js_ast.Statement> body) {
     for (var t in typeFormals) {
-      if (t.isGenericCovariantImpl && !_types.isTop(t.bound)) {
+      if (t.isCovariantByClass && !_types.isTop(t.bound)) {
         body.add(runtimeStatement('checkTypeBound(#, #, #)', [
           _emitTypeParameterType(TypeParameterType(t, Nullability.undetermined),
               emitNullability: false),
@@ -4695,11 +4700,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitSuperPropertyGet(SuperPropertyGet node) {
     var target = node.interfaceTarget;
-    var jsTarget = _emitSuperTarget(target);
     if (_reifyTearoff(target)) {
-      return runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+      if (_superAllowed) {
+        var jsTarget = _emitSuperTarget(target);
+        return runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+      } else {
+        return _emitSuperTearoff(target);
+      }
     }
-    return jsTarget;
+    return _emitSuperTarget(target);
   }
 
   @override
@@ -5318,6 +5327,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // If we can't emit `super` in this context, generate a helper that does it
     // for us, and call the helper.
+    //
+    // NOTE: This is intended to help in the cases of calling a `super` getter,
+    // setter, or method. For the case of tearing off a `super` method in
+    // contexts where `super` isn't allowed, see [_emitSuperTearoff].
     var name = member.name.text;
     var jsMethod = _superHelpers.putIfAbsent(name, () {
       var isAccessor = member is Procedure ? member.isAccessor : true;
@@ -5349,6 +5362,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     });
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
+  }
+
+  /// Generates a helper method that is inserted into the class that binds a
+  /// tearoff of [member] from `super` and returns a call to the helper.
+  ///
+  /// This method assumes `super` is not allowed in the current context.
+  // TODO(nshahan) Replace with a kernel transform and synthetic method filters
+  // for devtools.
+  js_ast.Expression _emitSuperTearoff(Member member) {
+    var jsName = _emitMemberName(member.name.text, member: member);
+    var name = '_#super#tearOff#${member.name.text}';
+    var jsMethod = _superHelpers.putIfAbsent(name, () {
+      var jsReturnValue =
+          runtimeCall('bind(this, #, super[#])', [jsName, jsName]);
+      var fn = js.fun('function() { return #; }', [jsReturnValue]);
+      name = js_ast.friendlyNameForDartOperator[name] ?? name;
+      return js_ast.Method(_emitTemporaryId(name), fn);
+    });
+    return js_ast.Call(js_ast.PropertyAccess(js_ast.This(), jsMethod.name), []);
   }
 
   /// If [e] is a [TypeLiteral] or a [TypeLiteralConstant] expression, return

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
+
 /// A marker used in some test scripts/tests for where to set breakpoints.
 const breakpointMarker = '// BREAKPOINT';
 
@@ -17,6 +19,28 @@ const sdkStackFrameProgram = '''
     [0].where((i) {
       return i == 0; $breakpointMarker
     }).toList();
+  }
+''';
+
+/// A simple Dart script that registers a simple service extension that returns
+/// its params and waits until it is called before exiting.
+const serviceExtensionProgram = '''
+  import 'dart:async';
+  import 'dart:convert';
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    // Using a completer here causes the VM to quit when the extension is called
+    // so use a flag.
+    // https://github.com/dart-lang/sdk/issues/47279
+    var wasCalled = false;
+    registerExtension('ext.service.extension', (method, params) async {
+      wasCalled = true;
+      return ServiceExtensionResponse.result(jsonEncode(params));
+    });
+    while (!wasCalled) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
   }
 ''';
 
@@ -75,6 +99,41 @@ const simpleCaughtErrorProgram = r'''
     }
   }
 ''';
+
+/// A simple package:test script that has a single group named 'group' with
+/// tests named 'passing' and 'failing' respectively.
+///
+/// The 'passing' test contains a [breakpointMarker].
+const simpleTestProgram = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    group('group 1', () {
+      test('passing test', () {
+        expect(1, equals(1)); $breakpointMarker
+      });
+      test('failing test', () {
+        expect(1, equals(2));
+      });
+    });
+  }
+''';
+
+/// Matches for the expected output of [simpleTestProgram].
+final simpleTestProgramExpectedOutput = [
+  // First test
+  '✓ group 1 passing test',
+  // Second test
+  'Expected: <2>',
+  '  Actual: <1>',
+  // These lines contain paths, so just check the non-path parts.
+  allOf(startsWith('package:test_api'), endsWith('expect')),
+  endsWith('main.<fn>.<fn>'),
+  '✖ group 1 failing test',
+  // Exit
+  '',
+  'Exited (1).',
+];
 
 /// A simple Dart script that throws in user code.
 const simpleThrowingProgram = r'''

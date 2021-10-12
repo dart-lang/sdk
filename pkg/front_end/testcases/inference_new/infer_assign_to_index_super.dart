@@ -32,7 +32,7 @@ class Test extends Base {
 
     super /*@target=Base.[]*/ /*@target=Base.[]=*/ [
             /*@ typeArgs=Index* */ f()]
-        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+         ??= /*@ typeArgs=B* */ f();
 
     super /*@target=Base.[]*/ /*@target=Base.[]=*/ [
             /*@ typeArgs=Index* */ f()]
@@ -57,7 +57,7 @@ class Test extends Base {
 
     var /*@ type=B* */ v2 = super /*@target=Base.[]*/ /*@target=Base.[]=*/ [
             /*@ typeArgs=Index* */ f()]
-        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+         ??= /*@ typeArgs=B* */ f();
 
     var /*@ type=A* */ v3 = super /*@target=Base.[]*/ /*@target=Base.[]=*/ [
             /*@ typeArgs=Index* */ f()]

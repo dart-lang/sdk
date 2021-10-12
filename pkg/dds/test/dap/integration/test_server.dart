@@ -12,6 +12,9 @@ import 'package:dds/src/dap/server.dart';
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 
+/// Enable to run from local source (useful in development).
+const runFromSource = false;
+
 abstract class DapTestServer {
   Future<void> stop();
   StreamSink<List<int>> get sink;
@@ -39,6 +42,7 @@ class InProcessDapTestServer extends DapTestServer {
       enableDds: !args.contains('--no-dds'),
       ipv6: args.contains('--ipv6'),
       enableAuthCodes: !args.contains('--no-auth-codes'),
+      test: args.contains('--test'),
     );
   }
 
@@ -101,13 +105,18 @@ class OutOfProcessDapTestServer extends DapTestServer {
     final ddsEntryScript =
         await Isolate.resolvePackageUri(Uri.parse('package:dds/dds.dart'));
     final ddsLibFolder = path.dirname(ddsEntryScript!.toFilePath());
-    final dapServerScript =
-        path.join(ddsLibFolder, '../tool/dap/run_server.dart');
+    final dartdevScript = path
+        .normalize(path.join(ddsLibFolder, '../../dartdev/bin/dartdev.dart'));
 
-    final _process = await Process.start(
-      Platform.resolvedExecutable,
-      [dapServerScript, 'dap', ...?additionalArgs],
-    );
+    final args = [
+      // When running from source, run the script instead of directly using
+      // the "dart debug_adapter" command.
+      if (runFromSource) dartdevScript,
+      'debug_adapter',
+      ...?additionalArgs,
+    ];
+
+    final _process = await Process.start(Platform.resolvedExecutable, args);
 
     return OutOfProcessDapTestServer._(_process, logger);
   }

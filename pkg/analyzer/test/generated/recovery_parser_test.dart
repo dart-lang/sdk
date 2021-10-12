@@ -968,7 +968,7 @@ class C {
     VariableDeclaration field = fields[0];
     expect(field.name.name, 'f');
 // validate the type
-    var typeArguments = (fieldList.type as TypeName).typeArguments!;
+    var typeArguments = (fieldList.type as NamedType).typeArguments!;
     expect(typeArguments.arguments, hasLength(1));
 // synthetic '>'
     Token token = typeArguments.endToken;
@@ -1086,7 +1086,7 @@ class C {
     expect(expression.notOperator, isNotNull);
     TypeAnnotation type = expression.type;
     expect(type, isNotNull);
-    expect(type is TypeName && type.name.isSynthetic, isTrue);
+    expect(type is NamedType && type.name.isSynthetic, isTrue);
     var thenStatement = ifStatement.thenStatement as ExpressionStatement;
     expect(thenStatement.semicolon!.isSynthetic, isTrue);
     var simpleId = thenStatement.expression as SimpleIdentifier;
@@ -1468,7 +1468,7 @@ class C {
     var expression =
         parseExpression("x is", codes: [ParserErrorCode.EXPECTED_TYPE_NAME])
             as IsExpression;
-    expect(expression.type, isTypeName);
+    expect(expression.type, isNamedType);
     expect(expression.type.isSynthetic, isTrue);
   }
 

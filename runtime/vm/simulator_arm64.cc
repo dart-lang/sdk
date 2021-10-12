@@ -3350,11 +3350,24 @@ void Simulator::DecodeFPIntCvt(Instr* instr) {
       const int64_t rn_val = get_register(rn, R31IsZR);
       set_vregisterd(vd, 0, rn_val);
       set_vregisterd(vd, 1, 0);
-    } else if (instr->Bits(16, 5) == 24) {
-      // Format(instr, "fcvtzds'sf 'rd, 'vn");
+    } else if ((instr->Bits(16, 5) == 8) || (instr->Bits(16, 5) == 16) ||
+               (instr->Bits(16, 5) == 24)) {
       const intptr_t max = instr->Bit(31) == 1 ? INT64_MAX : INT32_MAX;
       const intptr_t min = instr->Bit(31) == 1 ? INT64_MIN : INT32_MIN;
-      const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
+      double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
+      switch (instr->Bits(16, 5)) {
+        case 8:
+          // Format(instr, "fcvtps'sf 'rd, 'vn");
+          vn_val = ceil(vn_val);
+          break;
+        case 16:
+          // Format(instr, "fcvtms'sf 'rd, 'vn");
+          vn_val = floor(vn_val);
+          break;
+        case 24:
+          // Format(instr, "fcvtzs'sf 'rd, 'vn");
+          break;
+      }
       int64_t result;
       if (vn_val >= static_cast<double>(max)) {
         result = max;

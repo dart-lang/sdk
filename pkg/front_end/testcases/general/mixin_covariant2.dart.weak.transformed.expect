@@ -10,9 +10,9 @@ class Superclass extends core::Object {
     return "Superclass";
   method method2(core::num* argument1, core::num* argument2) → core::String*
     return "Superclass";
-  method method3(core::num* argument1, covariant core::int* argument2) → core::String*
+  method method3(core::num* argument1, covariant-by-declaration core::int* argument2) → core::String*
     return "Superclass";
-  method method4(core::num* argument1, covariant core::num* argument2) → core::String*
+  method method4(core::num* argument1, covariant-by-declaration core::num* argument2) → core::String*
     return "Superclass";
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -31,11 +31,11 @@ class Mixin extends core::Object {
     ;
   method method1(core::num* argument1, core::num* argument2) → core::String*
     return "Mixin";
-  method method2(covariant core::int* argument1, core::num* argument2) → core::String*
+  method method2(covariant-by-declaration core::int* argument1, core::num* argument2) → core::String*
     return "Mixin";
   method method3(core::num* argument1, core::num* argument2) → core::String*
     return "Mixin";
-  method method4(covariant core::int* argument1, core::int* argument2) → core::String*
+  method method4(covariant-by-declaration core::int* argument1, core::int* argument2) → core::String*
     return "Mixin";
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -54,11 +54,11 @@ abstract class _Class&Superclass&Mixin extends self::Superclass implements self:
     ;
   method method1(core::num* argument1, core::num* argument2) → core::String*
     return "Mixin";
-  method method2(covariant core::int* argument1, core::num* argument2) → core::String*
+  method method2(covariant-by-declaration core::int* argument1, core::num* argument2) → core::String*
     return "Mixin";
-  method method3(core::num* argument1, covariant core::num* argument2) → core::String*
+  method method3(core::num* argument1, covariant-by-declaration core::num* argument2) → core::String*
     return "Mixin";
-  method method4(covariant core::int* argument1, covariant core::int* argument2) → core::String*
+  method method4(covariant-by-declaration core::int* argument1, covariant-by-declaration core::int* argument2) → core::String*
     return "Mixin";
 }
 class Class extends self::_Class&Superclass&Mixin {

@@ -11,8 +11,6 @@
 
 import "package:expect/expect.dart";
 
-import 'dart:core';
-
 int kMin = 0x8000000000000000;
 int kMax = 0x7fffffffffffffff;
 

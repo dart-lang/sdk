@@ -15,8 +15,8 @@ class Interface extends core::Object {
   synthetic constructor •() → self::Interface
     : super core::Object::•()
     ;
-  method extendedConcreteMixedInAbstractImplementedMethod(covariant core::num i) → void {}
-  method extendedConcreteMixedInConcreteImplementedMethod(covariant core::num i) → void {}
+  method extendedConcreteMixedInAbstractImplementedMethod(covariant-by-declaration core::num i) → void {}
+  method extendedConcreteMixedInConcreteImplementedMethod(covariant-by-declaration core::num i) → void {}
 }
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   abstract method extendedConcreteMixedInAbstractMethod() → void;
@@ -30,8 +30,9 @@ class Class extends self::Super implements self::Interface, self::Mixin /*isElim
     ;
   abstract method extendedConcreteMixedInAbstractMethod() → void;
   method extendedConcreteMixedInConcreteMethod() → void {}
-  abstract method extendedConcreteMixedInAbstractImplementedMethod(covariant core::int i) → void;
-  method extendedConcreteMixedInConcreteImplementedMethod(covariant core::int i) → void {}
+  method extendedConcreteMixedInAbstractImplementedMethod(covariant-by-declaration core::int i) → void
+    return super.{self::Super::extendedConcreteMixedInAbstractImplementedMethod}(i);
+  method extendedConcreteMixedInConcreteImplementedMethod(covariant-by-declaration core::int i) → void {}
 }
 class Sub extends self::Class {
   synthetic constructor •() → self::Sub

@@ -14,8 +14,6 @@ import 'package:kernel/transformations/mixin_full_resolution.dart'
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/vm/constants_native_effects.dart'
-    show VmConstantsBackend;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/lowering.dart' as lowering
@@ -34,8 +32,10 @@ class VmTarget extends Target {
 
   Class? _growableList;
   Class? _immutableList;
+  Class? _internalImmutableLinkedHashMap;
+  Class? _internalImmutableLinkedHashSet;
   Class? _internalLinkedHashMap;
-  Class? _immutableMap;
+  Class? _internalLinkedHashSet;
   Class? _oneByteString;
   Class? _twoByteString;
   Class? _smi;
@@ -439,8 +439,20 @@ class VmTarget extends Target {
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _immutableMap ??=
-        coreTypes.index.getClass('dart:core', '_ImmutableMap');
+    return _internalImmutableLinkedHashMap ??= coreTypes.index
+        .getClass('dart:collection', '_InternalImmutableLinkedHashMap');
+  }
+
+  @override
+  Class concreteSetLiteralClass(CoreTypes coreTypes) {
+    return _internalLinkedHashSet ??=
+        coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet');
+  }
+
+  @override
+  Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
+    return _internalImmutableLinkedHashSet ??= coreTypes.index
+        .getClass('dart:collection', '_CompactImmutableLinkedHashSet');
   }
 
   @override
@@ -476,8 +488,7 @@ class VmTarget extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new VmConstantsBackend(coreTypes);
+  ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {

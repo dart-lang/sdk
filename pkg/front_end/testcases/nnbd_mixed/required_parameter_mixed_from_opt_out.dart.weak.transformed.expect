@@ -9,13 +9,13 @@ class Super extends core::Object {
   synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
-  method method({required covariant core::int named = #C1}) → void {}
+  method method({required covariant-by-declaration core::int named = #C1}) → void {}
 }
 abstract class _Class&Super&Mixin extends self::Super implements req::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ method({covariant core::int* named = #C1}) → void {}
+  method /*isLegacy, from org-dartlang-testcase:///required_parameter_mixed_from_opt_out_lib.dart */ method({covariant-by-declaration core::int* named = #C1}) → void {}
   abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class Class extends self::_Class&Super&Mixin {
@@ -27,7 +27,7 @@ class SubClass extends self::Class {
   synthetic constructor •() → self::SubClass
     : super self::Class::•()
     ;
-  method method({required covariant core::int named = #C1}) → void {}
+  method method({required covariant-by-declaration core::int named = #C1}) → void {}
 }
 static method main() → dynamic {}
 

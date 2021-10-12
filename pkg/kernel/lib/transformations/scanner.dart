@@ -5,7 +5,6 @@
 library kernel.transformations.scanner;
 
 import '../ast.dart';
-import '../kernel.dart';
 
 abstract class Scanner<X extends TreeNode?, Y extends TreeNode?> {
   final Scanner<Y, TreeNode?>? next;

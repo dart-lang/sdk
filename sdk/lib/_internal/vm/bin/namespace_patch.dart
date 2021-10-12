@@ -6,11 +6,12 @@
 class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
   _NamespaceImpl._();
 
-  static _NamespaceImpl _create(_NamespaceImpl namespace, var n)
-      native "Namespace_Create";
-  static int _getPointer(_NamespaceImpl namespace)
-      native "Namespace_GetPointer";
-  static int _getDefault() native "Namespace_GetDefault";
+  @pragma("vm:external-name", "Namespace_Create")
+  external static _NamespaceImpl _create(_NamespaceImpl namespace, var n);
+  @pragma("vm:external-name", "Namespace_GetPointer")
+  external static int _getPointer(_NamespaceImpl namespace);
+  @pragma("vm:external-name", "Namespace_GetDefault")
+  external static int _getDefault();
 
   // If the platform supports "namespaces", this method is called by the
   // embedder with the platform-specific namespace information.

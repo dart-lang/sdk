@@ -26,8 +26,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -836,16 +834,16 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           in libraryBuilder.library.dependencies) {
         if (!dependency.isImport) continue;
 
-        List<Combinator>? combinators;
+        List<CombinatorBuilder>? combinators;
 
         for (kernel.Combinator combinator in dependency.combinators) {
-          combinators ??= <Combinator>[];
+          combinators ??= <CombinatorBuilder>[];
 
           combinators.add(combinator.isShow
-              ? new Combinator.show(combinator.names, combinator.fileOffset,
-                  libraryBuilder.fileUri)
-              : new Combinator.hide(combinator.names, combinator.fileOffset,
-                  libraryBuilder.fileUri));
+              ? new CombinatorBuilder.show(combinator.names,
+                  combinator.fileOffset, libraryBuilder.fileUri)
+              : new CombinatorBuilder.hide(combinator.names,
+                  combinator.fileOffset, libraryBuilder.fileUri));
         }
 
         dartDocTestLibrary.addImport(
@@ -885,7 +883,7 @@ class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
       Uri fileUri,
       Uri? packageUri,
       LanguageVersion packageLanguageVersion,
-      SourceLibraryBuilder origin,
+      SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
       bool? referenceIsPartOwner) {
     if (uri == DocTestIncrementalCompiler.dartDocTestUri) {

@@ -86,7 +86,7 @@ Future<void> compileEntryPoint(List<String> arguments) async {
   }
 }
 
-void outlineEntryPoint(List<String> arguments) async {
+Future<void> outlineEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
 
   for (int i = 0; i < iterations; i++) {
@@ -97,7 +97,7 @@ void outlineEntryPoint(List<String> arguments) async {
   }
 }
 
-void depsEntryPoint(List<String> arguments) async {
+Future<void> depsEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
 
   for (int i = 0; i < iterations; i++) {
@@ -108,7 +108,7 @@ void depsEntryPoint(List<String> arguments) async {
   }
 }
 
-void compilePlatformEntryPoint(List<String> arguments) async {
+Future<void> compilePlatformEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
@@ -118,7 +118,7 @@ void compilePlatformEntryPoint(List<String> arguments) async {
   }
 }
 
-void batchEntryPoint(List<String> arguments) {
+Future<void> batchEntryPoint(List<String> arguments) {
   installAdditionalTargets();
   return new BatchCompiler(
           stdin.transform(utf8.decoder).transform(new LineSplitter()))
@@ -136,7 +136,7 @@ class BatchCompiler {
 
   BatchCompiler(this.lines);
 
-  void run() async {
+  Future<void> run() async {
     await for (String line in lines) {
       try {
         if (await batchCompileArguments(
@@ -156,7 +156,7 @@ class BatchCompiler {
     }
   }
 
-  Future<bool> batchCompileArguments(List<String> arguments) async {
+  Future<bool> batchCompileArguments(List<String> arguments) {
     return runProtectedFromAbort<bool>(
         () => withGlobalOptions<bool>("compile", arguments, true,
             (CompilerContext c, _) => batchCompileImpl(c)),
@@ -207,7 +207,7 @@ class BatchCompiler {
   }
 }
 
-void incrementalEntryPoint(List<String> arguments) async {
+Future<void> incrementalEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
   await withGlobalOptions("incremental", arguments, true,
       (CompilerContext c, _) {
@@ -289,7 +289,7 @@ class CompileTask {
       CompilerContext.recordDependency(platform);
     }
     kernelTarget.setEntryPoints(c.options.inputs);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
 
     Uri? dFile;
@@ -328,7 +328,7 @@ class CompileTask {
     }
 
     kernelTarget.setEntryPoints(c.options.inputs);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
       printComponentText(outline,
@@ -448,7 +448,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   }
 }
 
-Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
+Future<List<Uri>> computeHostDependencies(Uri hostPlatform) {
   // Returns a list of source files that make up the Fasta compiler (the files
   // the Dart VM reads to run Fasta). Until Fasta is self-hosting (in strong
   // mode), this is only an approximation, albeit accurate.  Once Fasta is

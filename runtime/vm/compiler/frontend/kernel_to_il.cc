@@ -883,6 +883,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashBase_setUsedData:
     case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
     case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
+    case MethodRecognizer::kImmutableLinkedHashBase_getData:
+    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
+    case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
     case MethodRecognizer::kWeakProperty_getKey:
     case MethodRecognizer::kWeakProperty_setKey:
     case MethodRecognizer::kWeakProperty_getValue:
@@ -894,10 +897,10 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       return true;
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
-    case MethodRecognizer::kDoubleRound:
-    case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleRoundToDouble:
+    case MethodRecognizer::kDoubleTruncateToDouble:
+    case MethodRecognizer::kDoubleFloorToDouble:
+    case MethodRecognizer::kDoubleCeilToDouble:
     case MethodRecognizer::kMathDoublePow:
     case MethodRecognizer::kMathSin:
     case MethodRecognizer::kMathCos:
@@ -910,6 +913,16 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kMathLog:
     case MethodRecognizer::kMathSqrt:
       return FlowGraphCompiler::SupportsUnboxedDoubles();
+    case MethodRecognizer::kDoubleCeilToInt:
+    case MethodRecognizer::kDoubleFloorToInt:
+      if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+#if defined(TARGET_ARCH_X64)
+      return CompilerState::Current().is_aot();
+#elif defined(TARGET_ARCH_ARM64)
+      return true;
+#else
+      return false;
+#endif
     default:
       return false;
   }
@@ -1190,6 +1203,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashBase_index());
       break;
+    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::ImmutableLinkedHashBase_index());
+      break;
     case MethodRecognizer::kLinkedHashBase_setIndex:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1197,10 +1215,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += StoreNativeField(Slot::LinkedHashBase_index());
       body += NullConstant();
       break;
+    case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      // Uses a store-release barrier so that other isolates will see the
+      // contents of the index after seeing the index itself.
+      body +=
+          StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
+                           StoreInstanceFieldInstr::Kind::kOther,
+                           kEmitStoreBarrier, compiler::Assembler::kRelease);
+      body += NullConstant();
+      break;
     case MethodRecognizer::kLinkedHashBase_getData:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashBase_data());
+      break;
+    case MethodRecognizer::kImmutableLinkedHashBase_getData:
+      ASSERT(function.NumParameters() == 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::ImmutableLinkedHashBase_data());
       break;
     case MethodRecognizer::kLinkedHashBase_setData:
       ASSERT_EQUAL(function.NumParameters(), 2);
@@ -1346,9 +1381,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           Box(LoadIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
       if (kind == MethodRecognizer::kFfiLoadPointer) {
         const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+        ASSERT(class_table->HasValidClassAt(kPointerCid));
         const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
 
         // We find the reified type to use for the pointer allocation.
         //
@@ -1406,9 +1441,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       if (kind == MethodRecognizer::kFfiStorePointer) {
         // Do type check before anything untagged is on the stack.
         const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+        ASSERT(class_table->HasValidClassAt(kPointerCid));
         const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
         const auto& pointer_type_param =
             TypeParameter::ZoneHandle(pointer_class.TypeParameterAt(0));
 
@@ -1471,9 +1506,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     } break;
     case MethodRecognizer::kFfiFromAddress: {
       const auto class_table = thread_->isolate_group()->class_table();
-      ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+      ASSERT(class_table->HasValidClassAt(kPointerCid));
       const auto& pointer_class =
-          Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+          Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
 
       ASSERT(function.NumTypeParameters() == 1);
       ASSERT_EQUAL(function.NumParameters(), 1);
@@ -1515,15 +1550,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadIndexed(kIntPtrCid);
       body += Box(kUnboxedIntPtr);
     } break;
-    case MethodRecognizer::kDoubleToInteger: {
+    case MethodRecognizer::kDoubleToInteger:
+    case MethodRecognizer::kDoubleCeilToInt:
+    case MethodRecognizer::kDoubleFloorToInt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += DoubleToInteger();
+      body += DoubleToInteger(kind);
     } break;
     case MethodRecognizer::kDoubleMod:
-    case MethodRecognizer::kDoubleRound:
-    case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleRoundToDouble:
+    case MethodRecognizer::kDoubleTruncateToDouble:
+    case MethodRecognizer::kDoubleFloorToDouble:
+    case MethodRecognizer::kDoubleCeilToDouble:
     case MethodRecognizer::kMathDoublePow:
     case MethodRecognizer::kMathSin:
     case MethodRecognizer::kMathCos:
@@ -1539,9 +1576,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       }
       if (!CompilerState::Current().is_aot() &&
           TargetCPUFeatures::double_truncate_round_supported() &&
-          ((kind == MethodRecognizer::kDoubleTruncate) ||
-           (kind == MethodRecognizer::kDoubleFloor) ||
-           (kind == MethodRecognizer::kDoubleCeil))) {
+          ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
+           (kind == MethodRecognizer::kDoubleFloorToDouble) ||
+           (kind == MethodRecognizer::kDoubleCeilToDouble))) {
         body += DoubleToDouble(kind);
       } else {
         body += InvokeMathCFunction(kind, function.NumParameters());

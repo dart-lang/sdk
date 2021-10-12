@@ -75,6 +75,8 @@ class ValueKinds {
   static const ValueKind ModifiersOrNull =
       const SingleValueKind<List<type.Modifier>>(NullValue.Modifiers);
   static const ValueKind Name = const SingleValueKind<String>();
+  static const ValueKind NameListOrNull =
+      const SingleValueKind<List<String>>(NullValue.IdentifierList);
   static const ValueKind NameOrNull =
       const SingleValueKind<String>(NullValue.Name);
   static const ValueKind NameOrOperator =
@@ -87,6 +89,8 @@ class ValueKinds {
       const SingleValueKind<List<type.MetadataBuilder>>(NullValue.Metadata);
   static const ValueKind ObjectList = const SingleValueKind<List<Object>>();
   static const ValueKind Operator = const SingleValueKind<type.Operator>();
+  static const ValueKind OperatorListOrNull =
+      const SingleValueKind<List<type.Operator>>(NullValue.OperatorList);
   static const ValueKind ParserRecovery =
       const SingleValueKind<type.ParserRecovery>();
   static const ValueKind ProblemBuilder =
@@ -94,8 +98,7 @@ class ValueKinds {
   static const ValueKind QualifiedName =
       const SingleValueKind<type.QualifiedName>();
   static const ValueKind Scope = const SingleValueKind<type.Scope>();
-  static const ValueKind Selector =
-      const SingleValueKind<type.Selector>();
+  static const ValueKind Selector = const SingleValueKind<type.Selector>();
   static const ValueKind SwitchScopeOrNull =
       const SingleValueKind<type.Scope>(NullValue.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
@@ -105,7 +108,7 @@ class ValueKinds {
   static const ValueKind TokenOrNull =
       const SingleValueKind<type.Token>(NullValue.Token);
   static const ValueKind TypeOrNull =
-      const SingleValueKind<type.UnresolvedType>(NullValue.Type);
+      const SingleValueKind<type.UnresolvedType>(NullValue.UnresolvedType);
   static const ValueKind TypeArguments =
       const SingleValueKind<List<type.UnresolvedType>>();
   static const ValueKind TypeArgumentsOrNull =
@@ -113,7 +116,9 @@ class ValueKinds {
   static const ValueKind TypeBuilder =
       const SingleValueKind<type.TypeBuilder>();
   static const ValueKind TypeBuilderOrNull =
-      const SingleValueKind<type.TypeBuilder>(NullValue.Type);
+      const SingleValueKind<type.TypeBuilder>(NullValue.UnresolvedType);
+  static const ValueKind TypeBuilderListOrNull =
+      const SingleValueKind<List<type.TypeBuilder>>(NullValue.TypeBuilderList);
   static const ValueKind TypeVariableListOrNull =
       const SingleValueKind<List<type.TypeVariableBuilder>>(
           NullValue.TypeVariables);

@@ -469,6 +469,8 @@ abstract class AstVisitor<R> {
 
   R? visitGenericTypeAlias(GenericTypeAlias node);
 
+  R? visitHideClause(HideClause node);
+
   R? visitHideCombinator(HideCombinator node);
 
   R? visitIfElement(IfElement node);
@@ -511,6 +513,8 @@ abstract class AstVisitor<R> {
 
   R? visitNamedExpression(NamedExpression node);
 
+  R? visitNamedType(NamedType node);
+
   R? visitNativeClause(NativeClause node);
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
@@ -544,7 +548,11 @@ abstract class AstVisitor<R> {
 
   R? visitSetOrMapLiteral(SetOrMapLiteral node);
 
+  R? visitShowClause(ShowClause node);
+
   R? visitShowCombinator(ShowCombinator node);
+
+  R? visitShowHideElement(ShowHideElement node);
 
   R? visitSimpleFormalParameter(SimpleFormalParameter node);
 
@@ -580,6 +588,7 @@ abstract class AstVisitor<R> {
 
   R? visitTypeLiteral(TypeLiteral node);
 
+  @Deprecated('Override visitNamedType instead')
   R? visitTypeName(TypeName node);
 
   R? visitTypeParameter(TypeParameter node);
@@ -894,7 +903,11 @@ abstract class ClassTypeAlias implements TypeAlias {
   SimpleIdentifier get name;
 
   /// Return the name of the superclass of the class being declared.
+  @Deprecated('Use superclass2 instead')
   TypeName get superclass;
+
+  /// Return the name of the superclass of the class being declared.
+  NamedType get superclass2;
 
   /// Return the type parameters for the class, or `null` if the class does not
   /// have any type parameters.
@@ -1301,7 +1314,11 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   Token? get period;
 
   /// Return the name of the type defining the constructor.
+  @Deprecated('Use type2 instead')
   TypeName get type;
+
+  /// Return the name of the type defining the constructor.
+  NamedType get type2;
 }
 
 /// An expression representing a reference to a constructor, e.g. the expression
@@ -1676,14 +1693,19 @@ abstract class ExtendsClause implements AstNode {
   Token get extendsKeyword;
 
   /// Return the name of the class that is being extended.
+  @Deprecated('Use superclass2 instead')
   TypeName get superclass;
+
+  /// Return the name of the class that is being extended.
+  NamedType get superclass2;
 }
 
 /// The declaration of an extension of a type.
 ///
 ///    extension ::=
 ///        'extension' [SimpleIdentifier]? [TypeParameterList]?
-///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
+///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
+///        '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionDeclaration implements CompilationUnitMember {
@@ -1695,6 +1717,10 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 
   /// Return the token representing the 'extension' keyword.
   Token get extensionKeyword;
+
+  /// Return the hide clause, or `null` if the extension does not have a hide
+  /// clause.
+  HideClause? get hideClause;
 
   /// Return the left curly bracket.
   Token get leftBracket;
@@ -1711,6 +1737,10 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 
   /// Return the right curly bracket.
   Token get rightBracket;
+
+  /// Return the show clause, or `null` if the extension does not have a show
+  /// clause.
+  ShowClause? get showClause;
 
   /// Return the token representing the 'type' keyword.
   Token? get typeKeyword;
@@ -2437,6 +2467,20 @@ abstract class GenericTypeAlias implements TypeAlias {
   TypeParameterList? get typeParameters;
 }
 
+/// The "hide" clause in an extension declaration.
+///
+///    hideClause ::=
+///        'hide' [TypeName] (',' [TypeName])*
+///
+///  Clients may not extend, implement or mix-in this class.
+abstract class HideClause implements AstNode {
+  /// Return the list of the elements that are being shown.
+  NodeList<ShowHideClauseElement> get elements;
+
+  /// Return the token representing the 'hide' keyword.
+  Token get hideKeyword;
+}
+
 /// A combinator that restricts the names being imported to those that are not
 /// in a given list.
 ///
@@ -2548,7 +2592,11 @@ abstract class ImplementsClause implements AstNode {
   Token get implementsKeyword;
 
   /// Return the list of the interfaces that are being implemented.
+  @Deprecated('Use interfaces2 instead')
   NodeList<TypeName> get interfaces;
+
+  /// Return the list of the interfaces that are being implemented.
+  NodeList<NamedType> get interfaces2;
 }
 
 /// An import directive.
@@ -3203,7 +3251,7 @@ abstract class NamedExpression implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamedType implements TypeAnnotation {
+abstract class NamedType implements TypeAnnotation, ShowHideClauseElement {
   /// Return `true` if this type is a deferred type.
   ///
   /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
@@ -3373,7 +3421,11 @@ abstract class OnClause implements AstNode {
   Token get onKeyword;
 
   /// Return the list of the classes are superclass constraints for the mixin.
+  @Deprecated('Use superclassConstraints2 instead')
   NodeList<TypeName> get superclassConstraints;
+
+  /// Return the list of the classes are superclass constraints for the mixin.
+  NodeList<NamedType> get superclassConstraints2;
 }
 
 /// A parenthesized expression.
@@ -3667,6 +3719,20 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   Token get rightBracket;
 }
 
+/// The "show" clause in an extension declaration.
+///
+///    showClause ::=
+///        'show' [TypeName] (',' [TypeName])*
+///
+///  Clients may not extend, implement or mix-in this class.
+abstract class ShowClause implements AstNode {
+  /// Return the list of the elements that are being shown.
+  NodeList<ShowHideClauseElement> get elements;
+
+  /// Return the token representing the 'show' keyword.
+  Token get showKeyword;
+}
+
 /// A combinator that restricts the names being imported to those in a given list.
 ///
 ///    showCombinator ::=
@@ -3677,6 +3743,29 @@ abstract class ShowCombinator implements Combinator {
   /// Return the list of names from the library that are made visible by this
   /// combinator.
   NodeList<SimpleIdentifier> get shownNames;
+}
+
+/// A node that can appear in the show or hide clauses.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ShowHideClauseElement implements AstNode {}
+
+/// A potentially non-type element of a show or a hide clause.
+///
+///    showHideElement ::=
+///        'get' [SimpleIdentifier] |
+///        'set' [SimpleIdentifier] |
+///        'operator' [SimpleIdentifier] |
+///        [SimpleIdentifier]
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ShowHideElement implements AstNode, ShowHideClauseElement {
+  /// Return the 'get', 'set', or 'operator' modifier that appears before the
+  /// name, or `null` if there is no modifier.
+  Token? get modifier;
+
+  /// Return the name of the member the element refers to.
+  SimpleIdentifier get name;
 }
 
 /// A simple formal parameter.
@@ -4173,6 +4262,10 @@ abstract class TypedLiteral implements Literal {
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeLiteral implements Expression {
   /// The type represented by this literal.
+  NamedType get type;
+
+  /// The type represented by this literal.
+  @Deprecated('Use namedType instead')
   TypeName get typeName;
 }
 
@@ -4182,6 +4275,7 @@ abstract class TypeLiteral implements Expression {
 ///        [Identifier] typeArguments?
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use NamedType instead')
 abstract class TypeName implements NamedType {}
 
 /// A type parameter.
@@ -4384,7 +4478,11 @@ abstract class WhileStatement implements Statement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class WithClause implements AstNode {
   /// Return the names of the mixins that were specified.
+  @Deprecated('Use mixinTypes2 instead')
   NodeList<TypeName> get mixinTypes;
+
+  /// Return the names of the mixins that were specified.
+  NodeList<NamedType> get mixinTypes2;
 
   /// Return the token representing the 'with' keyword.
   Token get withKeyword;

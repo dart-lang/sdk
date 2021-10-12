@@ -4,14 +4,14 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
 /// The name and location of a diagnostic name in an ignore comment.
-class DiagnosticName {
+class DiagnosticName implements IgnoredElement {
   /// The name of the diagnostic being ignored.
   final String name;
 
-  /// The offset of the diagnostic in the source file.
   final int offset;
 
   /// Initialize a newly created diagnostic name to have the given [name] and
@@ -19,10 +19,40 @@ class DiagnosticName {
   DiagnosticName(this.name, this.offset);
 
   /// Return `true` if this diagnostic name matches the given error code.
-  bool matches(String errorCode) => name == errorCode;
+  @override
+  bool matches(ErrorCode errorCode) {
+    if (name == errorCode.name.toLowerCase()) {
+      return true;
+    }
+    var uniqueName = errorCode.uniqueName;
+    var period = uniqueName.indexOf('.');
+    if (period >= 0) {
+      uniqueName = uniqueName.substring(period + 1);
+    }
+    return name == uniqueName.toLowerCase();
+  }
 }
 
-/// Information about analysis `//ignore:` and `//ignore_for_file` comments
+class DiagnosticType implements IgnoredElement {
+  final String type;
+
+  final int offset;
+
+  final int length;
+
+  DiagnosticType(String type, this.offset, this.length)
+      : type = type.toLowerCase();
+
+  @override
+  bool matches(ErrorCode errorCode) =>
+      type == errorCode.type.name.toLowerCase();
+}
+
+abstract class IgnoredElement {
+  bool matches(ErrorCode errorCode);
+}
+
+/// Information about analysis `//ignore:` and `//ignore_for_file:` comments
 /// within a source file.
 class IgnoreInfo {
   /// A regular expression for matching 'ignore' comments.
@@ -36,13 +66,13 @@ class IgnoreInfo {
   static final RegExp IGNORE_FOR_FILE_MATCHER =
       RegExp(r'//[ ]*ignore_for_file:');
 
-  /// A table mapping line numbers to the diagnostics that are ignored on that
-  /// line.
-  final Map<int, List<DiagnosticName>> _ignoredOnLine = {};
+  /// A table mapping line numbers to the elements (diagnostics and diagnostic
+  /// types) that are ignored on that line.
+  final Map<int, List<IgnoredElement>> _ignoredOnLine = {};
 
-  /// A list containing all of the diagnostics that are ignored for the whole
-  /// file.
-  final List<DiagnosticName> _ignoredForFile = [];
+  /// A list containing all of the elements (diagnostics and diagnostic types)
+  /// that are ignored for the whole file.
+  final List<IgnoredElement> _ignoredForFile = [];
 
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
@@ -62,9 +92,9 @@ class IgnoreInfo {
         }
         _ignoredOnLine
             .putIfAbsent(lineNumber, () => [])
-            .addAll(comment.diagnosticNames);
+            .addAll(comment.ignoredElements);
       } else if (lexeme.contains('ignore_for_file:')) {
-        _ignoredForFile.addAll(comment.diagnosticNames);
+        _ignoredForFile.addAll(comment.ignoredElements);
       }
     }
   }
@@ -75,26 +105,24 @@ class IgnoreInfo {
 
   /// Return a list containing all of the diagnostics that are ignored for the
   /// whole file.
-  List<DiagnosticName> get ignoredForFile => _ignoredForFile.toList();
+  List<IgnoredElement> get ignoredForFile => _ignoredForFile.toList();
 
   /// Return a table mapping line numbers to the diagnostics that are ignored on
   /// that line.
-  Map<int, List<DiagnosticName>> get ignoredOnLine {
-    Map<int, List<DiagnosticName>> ignoredOnLine = {};
+  Map<int, List<IgnoredElement>> get ignoredOnLine {
+    Map<int, List<IgnoredElement>> ignoredOnLine = {};
     for (var entry in _ignoredOnLine.entries) {
       ignoredOnLine[entry.key] = entry.value.toList();
     }
     return ignoredOnLine;
   }
 
-  /// Return `true` if the [errorCode] (case-insensitive) is ignored at the
-  /// given [line].
-  bool ignoredAt(String errorCode, int line) {
+  /// Return `true` if the [errorCode] is ignored at the given [line].
+  bool ignoredAt(ErrorCode errorCode, int line) {
     var ignoredDiagnostics = _ignoredOnLine[line];
     if (ignoredForFile.isEmpty && ignoredDiagnostics == null) {
       return false;
     }
-    errorCode = errorCode.toLowerCase();
     if (ignoredForFile.any((name) => name.matches(errorCode))) {
       return true;
     }
@@ -135,21 +163,28 @@ extension on CommentToken {
   /// more restrictive in this test.
   static final _errorCodeNameRegExp = RegExp(r'^[a-zA-Z][_a-z0-9A-Z]*$');
 
+  static final _errorTypeRegExp =
+      RegExp(r'^type[ ]*=[ ]*lint', caseSensitive: false);
+
   /// Return the diagnostic names contained in this comment, assuming that it is
   /// a correctly formatted ignore comment.
-  Iterable<DiagnosticName> get diagnosticNames sync* {
-    bool isValidErrorCodeName(String text) {
-      return text.contains(_errorCodeNameRegExp);
-    }
-
+  Iterable<IgnoredElement> get ignoredElements sync* {
     int offset = lexeme.indexOf(':') + 1;
     var names = lexeme.substring(offset).split(',');
     offset += this.offset;
     for (var name in names) {
       var trimmedName = name.trim();
-      if (trimmedName.isNotEmpty && isValidErrorCodeName(trimmedName)) {
-        var innerOffset = name.indexOf(trimmedName);
-        yield DiagnosticName(trimmedName.toLowerCase(), offset + innerOffset);
+      if (trimmedName.isNotEmpty) {
+        if (trimmedName.contains(_errorCodeNameRegExp)) {
+          var innerOffset = name.indexOf(trimmedName);
+          yield DiagnosticName(trimmedName.toLowerCase(), offset + innerOffset);
+        } else {
+          var match = _errorTypeRegExp.matchAsPrefix(trimmedName);
+          if (match != null) {
+            var innerOffset = name.indexOf(trimmedName);
+            yield DiagnosticType('lint', offset + innerOffset, name.length);
+          }
+        }
       }
       offset += name.length + 1;
     }

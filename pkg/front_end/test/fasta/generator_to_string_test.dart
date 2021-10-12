@@ -46,8 +46,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show LoadLibraryBuilder;
+import 'package:front_end/src/fasta/kernel/load_library_builder.dart';
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -66,7 +65,7 @@ void check(String expected, Object generator) {
   Expect.stringEquals(expected, "$generator");
 }
 
-void main() async {
+Future<void> main() async {
   await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
     Token token = scanString("    myToken").tokens;
     Uri uri = Uri.parse("org-dartlang-test:my_library.dart");

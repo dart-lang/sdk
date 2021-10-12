@@ -5,6 +5,7 @@
 library fasta.expression_generator_helper;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -24,25 +25,6 @@ import '../type_inference/inference_helper.dart' show InferenceHelper;
 import 'constness.dart' show Constness;
 import 'forest.dart' show Forest;
 import 'internal_ast.dart';
-import 'kernel_ast_api.dart'
-    show
-        Arguments,
-        Constructor,
-        DartType,
-        Expression,
-        FunctionNode,
-        Initializer,
-        InterfaceType,
-        Library,
-        Member,
-        Name,
-        Procedure,
-        StaticGet,
-        TreeNode,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        VariableDeclaration;
 
 /// Alias for Expression | Generator
 typedef Expression_Generator = dynamic;
@@ -65,9 +47,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression toValue(Object? node);
 
   Member? lookupInstanceMember(Name name, {bool isSetter, bool isSuper});
-
-  /// `true` if we are in the type of an as expression.
-  bool get inIsOrAsOperatorType;
 
   bool get enableExtensionTypesInLibrary;
 
@@ -143,9 +122,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       TypeDeclarationBuilder? typeAliasBuilder,
       required UnresolvedKind unresolvedKind});
 
-  UnresolvedType validateTypeUse(UnresolvedType unresolved,
-      {required bool nonInstanceAccessIsError,
-      required bool allowPotentiallyConstantType});
+  UnresolvedType validateTypeVariableUse(UnresolvedType unresolved,
+      {required bool allowPotentiallyConstantType});
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -168,12 +146,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Arguments arguments, Expression expression);
 
   DartType buildDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError: false});
+      {required bool allowPotentiallyConstantType});
 
   DartType buildTypeLiteralDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError});
+      {required bool allowPotentiallyConstantType});
 
-  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes);
+  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes,
+      {required bool allowPotentiallyConstantType});
 
   void reportDuplicatedDeclaration(
       Builder existing, String name, int charOffset);

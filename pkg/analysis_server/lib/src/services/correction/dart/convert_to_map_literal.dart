@@ -51,7 +51,7 @@ class ConvertToMapLiteral extends CorrectionProducer {
     //
     // Extract the information needed to build the edit.
     //
-    var constructorTypeArguments = creation.constructorName.type.typeArguments;
+    var constructorTypeArguments = creation.constructorName.type2.typeArguments;
     //
     // Build the edit.
     //

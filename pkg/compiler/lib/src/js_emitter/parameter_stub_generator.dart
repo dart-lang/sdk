@@ -28,7 +28,7 @@ import 'code_emitter_task.dart' show Emitter;
 import 'native_emitter.dart';
 
 class ParameterStubGenerator {
-  static final Set<Selector> emptySelectorSet = new Set<Selector>();
+  static final Set<Selector> emptySelectorSet = {};
 
   final Emitter _emitter;
   final NativeEmitter _nativeEmitter;
@@ -112,13 +112,13 @@ class ParameterStubGenerator {
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<jsAst.Parameter> stubParameters = new List<jsAst.Parameter>.filled(
+    List<jsAst.Parameter> stubParameters = List<jsAst.Parameter>.filled(
         extraArgumentCount +
             selector.argumentCount +
             selector.typeArgumentCount,
         null);
     // The arguments that will be passed to the real method.
-    List<jsAst.Expression> targetArguments = new List<jsAst.Expression>.filled(
+    List<jsAst.Expression> targetArguments = List<jsAst.Expression>.filled(
         extraArgumentCount +
             parameterStructure.totalParameters +
             parameterStructure.typeParameters,
@@ -127,7 +127,7 @@ class ParameterStubGenerator {
     int count = 0;
     if (isInterceptedMethod) {
       count++;
-      stubParameters[0] = new jsAst.Parameter(receiverArgumentName);
+      stubParameters[0] = jsAst.Parameter(receiverArgumentName);
       targetArguments[0] = js('#', receiverArgumentName);
     }
 
@@ -140,7 +140,7 @@ class ParameterStubGenerator {
       String jsName = _namer.safeVariableName(name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
-        stubParameters[count] = new jsAst.Parameter(jsName);
+        stubParameters[count] = jsAst.Parameter(jsName);
         targetArguments[count] = js('#', jsName);
       } else {
         int index = names.indexOf(name);
@@ -150,11 +150,11 @@ class ParameterStubGenerator {
           // one in the real method (which is in Dart source order).
           targetArguments[count] = js('#', jsName);
           stubParameters[optionalParameterStart + index] =
-              new jsAst.Parameter(jsName);
+              jsAst.Parameter(jsName);
         } else {
           if (value == null) {
             targetArguments[count] =
-                _emitter.constantReference(new NullConstantValue());
+                _emitter.constantReference(NullConstantValue());
           } else {
             if (!value.isNull) {
               // If the value is the null constant, we should not pass it
@@ -181,7 +181,7 @@ class ParameterStubGenerator {
               TypeReference(TypeExpressionRecipe(defaultType));
         } else {
           String jsName = '\$${typeVariable.element.name}';
-          stubParameters[parameterIndex++] = new jsAst.Parameter(jsName);
+          stubParameters[parameterIndex++] = jsAst.Parameter(jsName);
           targetArguments[count++] = js('#', jsName);
         }
       }
@@ -229,7 +229,7 @@ class ParameterStubGenerator {
     jsAst.Name name = member.isStatic ? null : _namer.invocationName(selector);
     jsAst.Name callName =
         (callSelector != null) ? _namer.invocationName(callSelector) : null;
-    return new ParameterStubMethod(name, callName, function, element: member);
+    return ParameterStubMethod(name, callName, function, element: member);
   }
 
   DartType _eraseTypeVariablesToAny(DartType type) {
@@ -301,10 +301,10 @@ class ParameterStubGenerator {
     }
 
     assert(emptySelectorSet.isEmpty);
-    liveSelectors ??= const <Selector, SelectorConstraints>{};
-    callSelectors ??= const <Selector, SelectorConstraints>{};
+    liveSelectors ??= const {};
+    callSelectors ??= const {};
 
-    List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
+    List<ParameterStubMethod> stubs = [];
 
     if (liveSelectors.isEmpty &&
         callSelectors.isEmpty &&
@@ -318,9 +318,9 @@ class ParameterStubGenerator {
     //
     // For example, for the call-selector `call(x, y)` the renamed selector
     // for member `foo` would be `foo(x, y)`.
-    Set<Selector> renamedCallSelectors = new Set<Selector>();
+    Set<Selector> renamedCallSelectors = {};
 
-    Set<Selector> stubSelectors = new Set<Selector>();
+    Set<Selector> stubSelectors = {};
 
     // Start with closure-call selectors, since since they imply the generation
     // of the non-call version.
@@ -341,7 +341,7 @@ class ParameterStubGenerator {
 
     for (Selector selector in callSelectors.keys) {
       Selector renamedSelector =
-          new Selector.call(member.memberName, selector.callStructure);
+          Selector.call(member.memberName, selector.callStructure);
       renamedCallSelectors.add(renamedSelector);
 
       if (!renamedSelector.appliesUnnamed(member)) {
@@ -364,7 +364,7 @@ class ParameterStubGenerator {
       // This is basically the same logic as above, but with type arguments.
       if (selector.callStructure.typeArgumentCount == 0) {
         if (memberTypeParameters > 0) {
-          Selector renamedSelectorWithTypeArguments = new Selector.call(
+          Selector renamedSelectorWithTypeArguments = Selector.call(
               member.memberName,
               selector.callStructure
                   .withTypeArgumentCount(memberTypeParameters));
@@ -372,7 +372,7 @@ class ParameterStubGenerator {
 
           if (stubSelectors.add(renamedSelectorWithTypeArguments)) {
             Selector closureSelector =
-                new Selector.callClosureFrom(renamedSelectorWithTypeArguments);
+                Selector.callClosureFrom(renamedSelectorWithTypeArguments);
             ParameterStubMethod stub = generateParameterStub(
                 member, renamedSelectorWithTypeArguments, closureSelector);
             if (stub != null) {

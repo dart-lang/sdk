@@ -53,8 +53,8 @@ Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> SymbolConstant(#_x)
 Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> SymbolConstant(#_x=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_private_setter_lib.dart:8:7 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 19, effectively constant: 7

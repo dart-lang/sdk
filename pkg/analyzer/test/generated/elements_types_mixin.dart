@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -374,12 +373,7 @@ mixin ElementsTypesMixin {
       uriStr,
       -1,
       0,
-      FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
-        flags: typeSystem.isNonNullableByDefault
-            ? [EnableString.non_nullable]
-            : [],
-      ),
+      FeatureSet.latestLanguageVersion(),
     );
     library.typeSystem = typeSystem;
     library.typeProvider = typeSystem.typeProvider;
@@ -585,6 +579,16 @@ mixin ElementsTypesMixin {
     element.typeParameters = typeParameters;
     element.aliasedType = aliasedType;
     return element;
+  }
+
+  DartType typeAliasTypeNone(
+    TypeAliasElement element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   TypeParameterElementImpl typeParameter(String name,

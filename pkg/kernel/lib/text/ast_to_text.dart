@@ -1123,8 +1123,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeModifier(node.isLate, 'late');
     writeModifier(node.isStatic, 'static');
-    writeModifier(node.isCovariant, 'covariant');
-    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
+    writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -1351,10 +1351,67 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
     writeType(node.onType);
+
+    ExtensionTypeShowHideClause? showHideClause = node.showHideClause;
+    if (showHideClause != null) {
+      // 'Show' clause elements.
+      if (showHideClause.shownSupertypes.isNotEmpty) {
+        writeSpaced('show-types');
+        writeList(showHideClause.shownSupertypes, visitSupertype);
+      }
+      if (showHideClause.shownMethods.isNotEmpty) {
+        writeSpaced('show-methods');
+        writeList(
+            showHideClause.shownMethods, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.shownGetters.isNotEmpty) {
+        writeSpaced('show-getters');
+        writeList(
+            showHideClause.shownGetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.shownSetters.isNotEmpty) {
+        writeSpaced('show-setters');
+        writeList(
+            showHideClause.shownSetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.shownOperators.isNotEmpty) {
+        writeSpaced('show-operators');
+        writeList(
+            showHideClause.shownOperators, writeMemberReferenceFromReference);
+      }
+
+      // 'Hide' clause elements.
+      if (showHideClause.hiddenSupertypes.isNotEmpty) {
+        writeSpaced('hide-types');
+        writeList(showHideClause.hiddenSupertypes, visitSupertype);
+      }
+      if (showHideClause.hiddenMethods.isNotEmpty) {
+        writeSpaced('hide-methods');
+        writeList(
+            showHideClause.hiddenMethods, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.hiddenGetters.isNotEmpty) {
+        writeSpaced('hide-getters');
+        writeList(
+            showHideClause.hiddenGetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.hiddenSetters.isNotEmpty) {
+        writeSpaced('hide-setters');
+        writeList(
+            showHideClause.hiddenSetters, writeMemberReferenceFromReference);
+      }
+      if (showHideClause.hiddenOperators.isNotEmpty) {
+        writeSpaced('hide-operators');
+        writeList(
+            showHideClause.hiddenOperators, writeMemberReferenceFromReference);
+      }
+    }
+
     String endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
       endLineString += ' // from ${node.fileUri}';
     }
+
     endLine(endLineString);
     ++indentation;
     node.members.forEach((ExtensionMemberDescriptor descriptor) {
@@ -1884,7 +1941,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitInstantiation(Instantiation node) {
-    writeExpression(node.expression);
+    writeExpression(node.expression, Precedence.TYPE_LITERAL);
     writeSymbol('<');
     writeList(node.typeArguments, writeType);
     writeSymbol('>');
@@ -2404,8 +2461,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isLowered, 'lowered');
     writeModifier(node.isLate, 'late');
     writeModifier(node.isRequired, 'required');
-    writeModifier(node.isCovariant, 'covariant');
-    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
+    writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // ignore: unnecessary_null_comparison
@@ -2623,7 +2680,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
+    writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeAnnotationList(node.annotations, separateLines: false);
     if (node.variance != Variance.covariant) {
       writeWord(const <String>[
@@ -3090,7 +3147,7 @@ class Precedence implements ExpressionVisitor<int> {
   int visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => EXPRESSION;
 
   @override
-  int visitConstantExpression(ConstantExpression node) => EXPRESSION;
+  int visitConstantExpression(ConstantExpression node) => PRIMARY;
 
   @override
   int visitDynamicSet(DynamicSet node) => EXPRESSION;

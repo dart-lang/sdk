@@ -26,14 +26,14 @@ class OptimizationTestLog {
         return null;
       }
     }
-    Features features = new Features();
+    Features features = Features();
     f(features);
-    entries.add(new OptimizationLogEntry(tag, features));
+    entries.add(OptimizationLogEntry(tag, features));
     return features;
   }
 
   void registerNullCheck(HInstruction original, HNullCheck check) {
-    Features features = new Features();
+    Features features = Features();
     if (check.selector != null) {
       features['selector'] = check.selector.name;
     }
@@ -41,12 +41,12 @@ class OptimizationTestLog {
       features['field'] =
           '${check.field.enclosingClass.name}.${check.field.name}';
     }
-    entries.add(new OptimizationLogEntry('NullCheck', features));
+    entries.add(OptimizationLogEntry('NullCheck', features));
   }
 
   void registerConditionValue(
       HInstruction original, bool value, String where, int count) {
-    Features features = new Features();
+    Features features = Features();
     features['value'] = '$value';
     features['where'] = where;
     features['count'] = '$count';
@@ -54,52 +54,52 @@ class OptimizationTestLog {
   }
 
   void registerFieldGet(HInvokeDynamicGetter original, HFieldGet converted) {
-    Features features = new Features();
+    Features features = Features();
     if (converted.element != null) {
       features['name'] =
           '${converted.element.enclosingClass.name}.${converted.element.name}';
     } else {
       features['name'] = '<null-guard>';
     }
-    entries.add(new OptimizationLogEntry('FieldGet', features));
+    entries.add(OptimizationLogEntry('FieldGet', features));
   }
 
   void registerFieldSet(HInvokeDynamicSetter original, [HFieldSet converted]) {
-    Features features = new Features();
+    Features features = Features();
     if (converted != null) {
       features['name'] =
           '${converted.element.enclosingClass.name}.${converted.element.name}';
     } else {
       features['removed'] = original.selector.name;
     }
-    entries.add(new OptimizationLogEntry('FieldSet', features));
+    entries.add(OptimizationLogEntry('FieldSet', features));
   }
 
   void registerFieldCall(HInvokeDynamicMethod original, HFieldGet converted) {
-    Features features = new Features();
+    Features features = Features();
     if (converted.element != null) {
       features['name'] =
           '${converted.element.enclosingClass.name}.${converted.element.name}';
     } else {
       features['name'] = '<null-guard>';
     }
-    entries.add(new OptimizationLogEntry('FieldCall', features));
+    entries.add(OptimizationLogEntry('FieldCall', features));
   }
 
   void registerConstantFieldGet(
       HInvokeDynamicGetter original, FieldEntity field, HConstant converted) {
-    Features features = new Features();
+    Features features = Features();
     features['name'] = '${field.enclosingClass.name}.${field.name}';
     features['value'] = converted.constant.toStructuredText(_dartTypes);
-    entries.add(new OptimizationLogEntry('ConstantFieldGet', features));
+    entries.add(OptimizationLogEntry('ConstantFieldGet', features));
   }
 
   void registerConstantFieldCall(
       HInvokeDynamicMethod original, FieldEntity field, HConstant converted) {
-    Features features = new Features();
+    Features features = Features();
     features['name'] = '${field.enclosingClass.name}.${field.name}';
     features['value'] = converted.constant.toStructuredText(_dartTypes);
-    entries.add(new OptimizationLogEntry('ConstantFieldCall', features));
+    entries.add(OptimizationLogEntry('ConstantFieldCall', features));
   }
 
   Features _registerSpecializer(
@@ -218,17 +218,17 @@ class OptimizationTestLog {
   }
 
   void registerCodeUnitAt(HInvokeDynamic original) {
-    Features features = new Features();
+    Features features = Features();
     features['name'] = original.selector.name;
-    entries.add(new OptimizationLogEntry('CodeUnitAt', features));
+    entries.add(OptimizationLogEntry('CodeUnitAt', features));
   }
 
   void registerCompareTo(HInvokeDynamic original, [HConstant converted]) {
-    Features features = new Features();
+    Features features = Features();
     if (converted != null) {
       features['constant'] = converted.constant.toDartText(_dartTypes);
     }
-    entries.add(new OptimizationLogEntry('CompareTo', features));
+    entries.add(OptimizationLogEntry('CompareTo', features));
   }
 
   void registerSubstring(HInvokeDynamic original) {
@@ -252,7 +252,7 @@ class OptimizationTestLog {
   }
 
   void registerPrimitiveCheck(HInstruction original, HPrimitiveCheck check) {
-    Features features = new Features();
+    Features features = Features();
 
     if (check.isReceiverTypeCheck) {
       features['kind'] = 'receiver';
@@ -262,7 +262,7 @@ class OptimizationTestLog {
     if (check.typeExpression != null) {
       features['type'] = '${check.typeExpression}';
     }
-    entries.add(new OptimizationLogEntry('PrimitiveCheck', features));
+    entries.add(OptimizationLogEntry('PrimitiveCheck', features));
   }
 
   String getText() {

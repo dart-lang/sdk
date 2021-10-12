@@ -79,7 +79,7 @@ differently.
 
 This means that we will express the complete rules for being 'more
 interface-specific than' as a slight modification of
-[subtyping.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/subtyping.md)
+[subtyping.md](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/subtyping.md)
 and in particular, the rule 'Right Top' will need to be split in cases
 such that `Object` and `dynamic` are more interface-specific than `void` and
 mutually unrelated, and all other types are more interface-specific than
@@ -109,7 +109,7 @@ This compile-time error also arises if the type arguments are not given
 explicitly.
 
 *They might be obtained via
-[instantiate-to-bound](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
+[instantiate-to-bound](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/instantiate-to-bound.md)
 or, in case such a mechanism is introduced, they might be inferred.*
 
 *The language specification already contains verbiage to this effect, but we

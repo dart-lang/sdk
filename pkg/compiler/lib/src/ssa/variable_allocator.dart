@@ -26,7 +26,7 @@ class LiveInterval {
   /// The id where the instruction is defined.
   int start;
   final List<LiveRange> ranges;
-  LiveInterval() : ranges = <LiveRange>[];
+  LiveInterval() : ranges = [];
 
   // We want [HCheck] instructions to have the same name as the
   // instruction it checks, so both instructions should share the same
@@ -59,7 +59,7 @@ class LiveInterval {
 
   @override
   String toString() {
-    List<String> res = <String>[];
+    List<String> res = [];
     for (final interval in ranges) res.add(interval.toString());
     return '(${res.join(", ")})';
   }
@@ -80,30 +80,28 @@ class LiveEnvironment {
   /// visited. The liveIn set of the loop header will be merged into this
   /// environment. [loopMarkers] is a mapping from block header to the
   /// end instruction id of the loop exit block.
-  final Map<HBasicBlock, int> loopMarkers;
+  final Map<HBasicBlock, int> loopMarkers = {};
 
   /// The instructions that are live in this basic block. The values of
   /// the map contain the instruction ids where the instructions die.
   /// It will be used when adding a range to the live interval of an
   /// instruction.
-  final Map<HInstruction, int> liveInstructions;
+  final Map<HInstruction, int> liveInstructions = {};
 
   /// Map containing the live intervals of instructions.
   final Map<HInstruction, LiveInterval> liveIntervals;
 
-  LiveEnvironment(this.liveIntervals, this.endId)
-      : liveInstructions = new Map<HInstruction, int>(),
-        loopMarkers = new Map<HBasicBlock, int>();
+  LiveEnvironment(this.liveIntervals, this.endId);
 
   /// Remove an instruction from the liveIn set. This method also
   /// updates the live interval of [instruction] to contain the new
   /// range: [id, / id contained in [liveInstructions] /].
   void remove(HInstruction instruction, int id) {
     LiveInterval interval =
-        liveIntervals.putIfAbsent(instruction, () => new LiveInterval());
+        liveIntervals.putIfAbsent(instruction, () => LiveInterval());
     int lastId = liveInstructions[instruction];
     // If [lastId] is null, then this instruction is not being used.
-    interval.add(new LiveRange(id, lastId == null ? id : lastId));
+    interval.add(LiveRange(id, lastId ?? id));
     // The instruction is defined at [id].
     interval.start = id;
     liveInstructions.remove(instruction);
@@ -128,8 +126,8 @@ class LiveEnvironment {
       // being used in the join block and defined before the if/else.
       if (existingId == endId) return;
       LiveInterval range =
-          liveIntervals.putIfAbsent(instruction, () => new LiveInterval());
-      range.add(new LiveRange(other.startId, existingId));
+          liveIntervals.putIfAbsent(instruction, () => LiveInterval());
+      range.add(LiveRange(other.startId, existingId));
       liveInstructions[instruction] = endId;
     });
     other.loopMarkers.forEach((k, v) {
@@ -260,11 +258,11 @@ class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
       HCheck check = instruction;
       HInstruction checked = checkedInstructionOrNonGenerateAtUseSite(check);
       if (!generateAtUseSite.contains(checked)) {
-        liveIntervals.putIfAbsent(checked, () => new LiveInterval());
+        liveIntervals.putIfAbsent(checked, () => LiveInterval());
         // Unconditionally force the live ranges of the HCheck to
         // be the live ranges of the instruction it is checking.
         liveIntervals[instruction] =
-            new LiveInterval.forCheck(instructionId, liveIntervals[checked]);
+            LiveInterval.forCheck(instructionId, liveIntervals[checked]);
       }
     }
   }
@@ -330,7 +328,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
     // range that covers the loop.
     env.liveInstructions.forEach((HInstruction instruction, int id) {
       LiveInterval range =
-          env.liveIntervals.putIfAbsent(instruction, () => new LiveInterval());
+          env.liveIntervals.putIfAbsent(instruction, () => LiveInterval());
       range.loopUpdate(env.startId, lastId);
       env.liveInstructions[instruction] = lastId;
     });
@@ -369,22 +367,18 @@ class Copy<T> {
 /// after executing all its instructions.
 class CopyHandler {
   /// The copies from an instruction to a phi of the successor.
-  final List<Copy<HInstruction>> copies;
+  final List<Copy<HInstruction>> copies = [];
 
   /// Assignments from an instruction that does not need a name (e.g. a
   /// constant) to the phi of a successor.
-  final List<Copy<HInstruction>> assignments;
-
-  CopyHandler()
-      : copies = <Copy<HInstruction>>[],
-        assignments = <Copy<HInstruction>>[];
+  final List<Copy<HInstruction>> assignments = [];
 
   void addCopy(HInstruction source, HInstruction destination) {
-    copies.add(new Copy<HInstruction>(source, destination));
+    copies.add(Copy<HInstruction>(source, destination));
   }
 
   void addAssignment(HInstruction source, HInstruction destination) {
-    assignments.add(new Copy<HInstruction>(source, destination));
+    assignments.add(Copy<HInstruction>(source, destination));
   }
 
   @override
@@ -396,27 +390,21 @@ class CopyHandler {
 /// Contains the mapping between instructions and their names for code
 /// generation, as well as the [CopyHandler] for each basic block.
 class VariableNames {
-  final Map<HInstruction, String> ownName;
-  final Map<HBasicBlock, CopyHandler> copyHandlers;
+  final Map<HInstruction, String> ownName = {};
+  final Map<HBasicBlock, CopyHandler> copyHandlers = {};
 
   // Used to control heuristic that determines how local variables are declared.
-  final Set<String> allUsedNames;
+  final Set<String> allUsedNames = {};
 
-  /// Name that is used as a temporary to break cycles in
-  /// parallel copies. We make sure this name is not being used
-  /// anywhere by reserving it when we allocate names for instructions.
-  final String swapTemp;
+  /// Name that is used as a temporary to break cycles in parallel copies. We
+  /// make sure this name is not being used anywhere by reserving it when we
+  /// allocate names for instructions.
+  final String swapTemp = 't0';
 
   String getSwapTemp() {
     allUsedNames.add(swapTemp);
     return swapTemp;
   }
-
-  VariableNames()
-      : ownName = new Map<HInstruction, String>(),
-        copyHandlers = new Map<HBasicBlock, CopyHandler>(),
-        allUsedNames = new Set<String>(),
-        swapTemp = 't0';
 
   int get numberOfVariables => allUsedNames.length;
 
@@ -435,14 +423,12 @@ class VariableNames {
   bool hasName(HInstruction instruction) => ownName.containsKey(instruction);
 
   void addCopy(HBasicBlock block, HInstruction source, HPhi destination) {
-    CopyHandler handler =
-        copyHandlers.putIfAbsent(block, () => new CopyHandler());
+    CopyHandler handler = copyHandlers.putIfAbsent(block, () => CopyHandler());
     handler.addCopy(source, destination);
   }
 
   void addAssignment(HBasicBlock block, HInstruction source, HPhi destination) {
-    CopyHandler handler =
-        copyHandlers.putIfAbsent(block, () => new CopyHandler());
+    CopyHandler handler = copyHandlers.putIfAbsent(block, () => CopyHandler());
     handler.addAssignment(source, destination);
   }
 }
@@ -451,14 +437,12 @@ class VariableNames {
 class VariableNamer {
   final VariableNames names;
   final ModularNamer _namer;
-  final Set<String> usedNames;
-  final List<String> freeTemporaryNames;
+  final Set<String> usedNames = {};
+  final List<String> freeTemporaryNames = [];
   int temporaryIndex = 0;
-  static final RegExp regexp = new RegExp('t[0-9]+');
+  static final RegExp regexp = RegExp('t[0-9]+');
 
-  VariableNamer(LiveEnvironment environment, this.names, this._namer)
-      : usedNames = new Set<String>(),
-        freeTemporaryNames = <String>[] {
+  VariableNamer(LiveEnvironment environment, this.names, this._namer) {
     // [VariableNames.swapTemp] is used when there is a cycle in a copy handler.
     // Therefore we make sure no one uses it.
     usedNames.add(names.swapTemp);
@@ -579,7 +563,7 @@ class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
 
   SsaVariableAllocator(this._namer, this.liveInstructions, this.liveIntervals,
       this.generateAtUseSite)
-      : this.names = new VariableNames();
+      : this.names = VariableNames();
 
   @override
   void visitGraph(HGraph graph) {
@@ -589,7 +573,7 @@ class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
   @override
   void visitBasicBlock(HBasicBlock block) {
     VariableNamer variableNamer =
-        new VariableNamer(liveInstructions[block], names, _namer);
+        VariableNamer(liveInstructions[block], names, _namer);
 
     block.forEachPhi((HPhi phi) {
       handlePhi(phi, variableNamer);

@@ -1,0 +1,17 @@
+import 'main_lib1.dart';
+import 'main_lib2.dart' as lib;
+
+void main() {}
+var c = C();
+void testUninitializedNonFinalInstanceField() {}
+void testUninitializedFinalInstanceField() {}
+void testInitializedNonFinalInstanceField() {}
+void testInitializedFinalInstanceField() {}
+void testUninitializedNonFinalStaticField() {}
+void testUninitializedFinalStaticField() {}
+void testInitializedNonFinalStaticField() {}
+void testInitializedFinalStaticField() {}
+void testUninitializedNonFinalTopLevelField() {}
+void testUninitializedFinalTopLevelField() {}
+void testInitializedNonFinalTopLevelField() {}
+void testInitializedFinalTopLevelField() {}

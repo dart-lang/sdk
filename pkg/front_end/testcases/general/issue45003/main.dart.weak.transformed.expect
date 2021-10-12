@@ -5,7 +5,7 @@ import "foo_lib.dart" as foo;
 
 import "org-dartlang-testcase:///foo_lib.dart";
 
-static const field core::Set<foo::Foo> foo = #C5;
+static const field core::Set<foo::Foo> foo = #C2;
 static method main() → dynamic {}
 
 library /*isNonNullableByDefault*/;
@@ -41,10 +41,7 @@ class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstruc
 
 constants  {
   #C1 = bar::Bar<dynamic> {}
-  #C2 = null
-  #C3 = <dynamic>[#C1, #C2]
-  #C4 = core::_ImmutableMap<foo::Foo*, Null> {_kvPairs:#C3}
-  #C5 = col::_UnmodifiableSet<foo::Foo*> {_map:#C4}
+  #C2 = <foo::Foo*>{#C1}
 }
 
 

@@ -67,7 +67,7 @@ import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 import '../builder/void_type_declaration_builder.dart';
 
-import '../combinator.dart' show Combinator;
+import '../combinator.dart' show CombinatorBuilder;
 
 import '../configuration.dart' show Configuration;
 
@@ -81,15 +81,10 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 
 import '../import.dart' show Import;
 
+import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
-
-import '../kernel/kernel_builder.dart'
-    show
-        ImplicitFieldType,
-        LoadLibraryBuilder,
-        compareProcedures,
-        toKernelCombinators;
-
+import '../kernel/load_library_builder.dart';
 import '../kernel/type_algorithms.dart'
     show
         NonSimplicityIssue,
@@ -100,6 +95,7 @@ import '../kernel/type_algorithms.dart'
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
         pendingVariance;
+import '../kernel/utils.dart' show compareProcedures, toKernelCombinators;
 
 import '../modifier.dart'
     show
@@ -116,18 +112,18 @@ import '../modifier.dart'
 
 import '../names.dart' show indexSetName;
 
+import '../operator.dart';
+
 import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
 
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
+import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
-
-import 'source_extension_builder.dart' show SourceExtensionBuilder;
-
+import 'source_extension_builder.dart';
 import 'source_loader.dart' show SourceLoader;
-
 import 'source_type_alias_builder.dart';
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
@@ -650,7 +646,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder>? metadata,
       String uri,
       List<Configuration>? configurations,
-      List<Combinator>? combinators,
+      List<CombinatorBuilder>? combinators,
       int charOffset,
       int uriOffset) {
     if (configurations != null) {
@@ -695,7 +691,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String uri,
       List<Configuration>? configurations,
       String? prefix,
-      List<Combinator>? combinators,
+      List<CombinatorBuilder>? combinators,
       bool deferred,
       int charOffset,
       int prefixCharOffset,
@@ -894,7 +890,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // name is unique. Only the first of duplicate extensions is accessible
       // by name or by resolution and the remaining are dropped for the output.
       currentTypeParameterScopeBuilder.extensions!
-          .add(declaration as ExtensionBuilder);
+          .add(declaration as SourceExtensionBuilder);
     }
     if (declaration is PrefixBuilder) {
       _prefixBuilders ??= <PrefixBuilder>[];
@@ -1027,12 +1023,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     if (unserializableExports != null) {
       Name fieldName = new Name("_exports#", library);
+      Reference? fieldReference =
+          referencesFromIndexed?.lookupFieldReference(fieldName);
       Reference? getterReference =
           referencesFromIndexed?.lookupGetterReference(fieldName);
       library.addField(new Field.immutable(fieldName,
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
+          fieldReference: fieldReference,
           getterReference: getterReference,
           fileUri: library.fileUri));
     }
@@ -1065,6 +1064,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         export.exporter.addProblem(
             messagePartExport, export.charOffset, "export".length, null,
             context: context);
+        if (library != null) {
+          // Recovery: Export the main library instead.
+          export.exported = library;
+          SourceLibraryBuilder exporter =
+              export.exporter as SourceLibraryBuilder;
+          for (Export export2 in exporter.exports) {
+            if (export2.exported == this) {
+              export2.exported = library;
+            }
+          }
+        }
       }
     }
   }
@@ -1226,6 +1236,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.scope.becomePartOf(scope);
       // TODO(ahe): Include metadata from part?
 
+      // Recovery: Take on all exporters (i.e. if a library has erroneously
+      // exported the part it has (in validatePart) been recovered to import the
+      // main library (this) instead --- to make it complete (and set up scopes
+      // correctly) the exporters in this has to be updated too).
+      exporters.addAll(part.exporters);
+
       nativeMethods.addAll(part.nativeMethods);
       boundlessTypeVariables.addAll(part.boundlessTypeVariables);
       // Check that the targets are different. This is not normally a problem
@@ -1242,6 +1258,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         } else {
           _implicitlyTypedFields!.addAll(partImplicitlyTypedFields);
         }
+      }
+      if (library != part.library) {
+        // Mark the part library as synthetic as it's not an actual library
+        // (anymore).
+        part.library.isSynthetic = true;
       }
       return true;
     } else {
@@ -1271,15 +1292,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addImportsToScope() {
     bool explicitCoreImport = this == loader.coreLibrary;
     for (Import import in imports) {
-      if (import.imported == loader.coreLibrary) {
-        explicitCoreImport = true;
-      }
       if (import.imported?.isPart ?? false) {
         addProblem(
             templatePartOfInLibrary.withArguments(import.imported!.fileUri),
             import.charOffset,
             noLength,
             fileUri);
+        if (import.imported?.partOfLibrary != null) {
+          // Recovery: Rewrite to import the "part owner" library.
+          // Note that the part will not have a partOfLibrary if it claims to be
+          // a part, but isn't mentioned as a part by the (would-be) "parent".
+          import.imported = import.imported?.partOfLibrary;
+        }
+      }
+      if (import.imported == loader.coreLibrary) {
+        explicitCoreImport = true;
       }
       import.finalizeImports(this);
     }
@@ -1847,6 +1874,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String extensionName,
       List<TypeVariableBuilder>? typeVariables,
       TypeBuilder type,
+      ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder,
       bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
@@ -1879,6 +1907,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         extensionName,
         typeVariables,
         type,
+        extensionTypeShowHideClauseBuilder,
         classScope,
         this,
         isExtensionTypeDeclaration,
@@ -2220,14 +2249,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       extensionName = currentTypeParameterScopeBuilder.name;
     }
 
+    Reference? fieldReference;
     Reference? fieldGetterReference;
     Reference? fieldSetterReference;
+    Reference? lateIsSetFieldReference;
     Reference? lateIsSetGetterReference;
     Reference? lateIsSetSetterReference;
     Reference? lateGetterReference;
     Reference? lateSetterReference;
 
-    FieldNameScheme fieldNameScheme = new FieldNameScheme(
+    NameScheme nameScheme = new NameScheme(
         isInstanceMember: isInstanceMember,
         className: className,
         isExtensionMember: isExtensionMember,
@@ -2236,25 +2267,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (referencesFrom != null) {
       IndexedContainer indexedContainer =
           (_currentClassReferencesFromIndexed ?? referencesFromIndexed)!;
-      Name nameToLookupName = fieldNameScheme.getName(FieldNameType.Field, name,
+      Name nameToLookupName = nameScheme.getFieldName(FieldNameType.Field, name,
           isSynthesized: fieldIsLateWithLowering);
+      fieldReference = indexedContainer.lookupFieldReference(nameToLookupName);
       fieldGetterReference =
           indexedContainer.lookupGetterReference(nameToLookupName);
       fieldSetterReference =
           indexedContainer.lookupSetterReference(nameToLookupName);
       if (fieldIsLateWithLowering) {
-        Name lateIsSetNameName = fieldNameScheme.getName(
+        Name lateIsSetName = nameScheme.getFieldName(
             FieldNameType.IsSetField, name,
             isSynthesized: fieldIsLateWithLowering);
+        lateIsSetFieldReference =
+            indexedContainer.lookupFieldReference(lateIsSetName);
         lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetNameName);
+            indexedContainer.lookupGetterReference(lateIsSetName);
         lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetNameName);
+            indexedContainer.lookupSetterReference(lateIsSetName);
         lateGetterReference = indexedContainer.lookupGetterReference(
-            fieldNameScheme.getName(FieldNameType.Getter, name,
+            nameScheme.getFieldName(FieldNameType.Getter, name,
                 isSynthesized: fieldIsLateWithLowering));
         lateSetterReference = indexedContainer.lookupSetterReference(
-            fieldNameScheme.getName(FieldNameType.Setter, name,
+            nameScheme.getFieldName(FieldNameType.Setter, name,
                 isSynthesized: fieldIsLateWithLowering));
       }
     }
@@ -2268,10 +2302,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         this,
         charOffset,
         charEndOffset,
-        fieldNameScheme,
-        isInstanceMember: isInstanceMember,
+        nameScheme,
+        fieldReference: fieldReference,
         fieldGetterReference: fieldGetterReference,
         fieldSetterReference: fieldSetterReference,
+        lateIsSetFieldReference: lateIsSetFieldReference,
         lateIsSetGetterReference: lateIsSetGetterReference,
         lateIsSetSetterReference: lateIsSetSetterReference,
         lateGetterReference: lateGetterReference,
@@ -2318,7 +2353,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           new Name(
               constructorName, _currentClassReferencesFromIndexed!.library));
     }
-    ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
+    ConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
         metadata,
         modifiers & ~abstractMask,
         returnType,
@@ -2371,12 +2406,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
+    String? className = (isInstanceMember && !isExtensionMember)
+        ? currentTypeParameterScopeBuilder.name
+        : null;
     String? extensionName =
         isExtensionMember ? currentTypeParameterScopeBuilder.name : null;
-    ProcedureNameScheme procedureNameScheme = new ProcedureNameScheme(
+    NameScheme nameScheme = new NameScheme(
         isExtensionMember: isExtensionMember,
+        className: className,
         extensionName: extensionName,
-        isStatic: !isInstanceMember,
+        isInstanceMember: isInstanceMember,
         libraryReference: referencesFrom?.reference ?? library.reference);
 
     if (returnType == null) {
@@ -2390,7 +2429,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference? procedureReference;
     Reference? tearOffReference;
     if (referencesFrom != null) {
-      Name nameToLookup = procedureNameScheme.getName(kind, name);
+      Name nameToLookup = nameScheme.getProcedureName(kind, name);
       if (_currentClassReferencesFromIndexed != null) {
         if (kind == ProcedureKind.Setter) {
           procedureReference = _currentClassReferencesFromIndexed!
@@ -2411,7 +2450,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         if (isExtensionMember && kind == ProcedureKind.Method) {
           tearOffReference = referencesFromIndexed!.lookupGetterReference(
-              procedureNameScheme.getName(ProcedureKind.Getter, name));
+              nameScheme.getProcedureName(ProcedureKind.Getter, name));
         }
       }
     }
@@ -2431,7 +2470,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         procedureReference,
         tearOffReference,
         asyncModifier,
-        procedureNameScheme,
+        nameScheme,
         isExtensionMember: isExtensionMember,
         isInstanceMember: isInstanceMember,
         nativeMethodName: nativeMethodName);
@@ -2460,6 +2499,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         const NullabilityBuilder.omitted(),
         <TypeBuilder>[],
         charOffset);
+    if (currentTypeParameterScopeBuilder.parent?.kind ==
+        TypeParameterScopeKind.extensionDeclaration) {
+      // Make the synthesized return type invalid for extensions.
+      String name = currentTypeParameterScopeBuilder.parent!.name;
+      returnType.bind(new InvalidTypeDeclarationBuilder(
+          name,
+          messageExtensionDeclaresConstructor.withLocation(
+              fileUri, charOffset, name.length)));
+    }
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
         TypeParameterScopeKind.factoryMethod, "#factory_method");
@@ -2474,10 +2522,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name as String;
     }
 
-    ProcedureNameScheme procedureNameScheme = new ProcedureNameScheme(
+    NameScheme procedureNameScheme = new NameScheme(
         isExtensionMember: false,
+        className: null,
         extensionName: null,
-        isStatic: true,
+        isInstanceMember: false,
         libraryReference: referencesFrom != null
             ? (_currentClassReferencesFromIndexed ?? referencesFromIndexed)!
                 .library
@@ -4152,6 +4201,213 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     checkUncheckedTypedefTypes(typeEnvironment);
   }
 
+  void computeShowHideElements(ClassHierarchyBuilder hierarchy) {
+    assert(currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.library);
+    for (SourceExtensionBuilder extensionBuilder
+        in currentTypeParameterScopeBuilder.extensions!) {
+      DartType onType = extensionBuilder.extension.onType;
+      if (onType is InterfaceType) {
+        ExtensionTypeShowHideClause showHideClause =
+            extensionBuilder.extension.showHideClause ??
+                new ExtensionTypeShowHideClause();
+
+        // TODO(dmitryas): Handle private names.
+        List<Supertype> supertypes =
+            hierarchy.getNodeFromClass(onType.classNode).superclasses;
+        Map<String, Supertype> supertypesByName = <String, Supertype>{};
+        for (Supertype supertype in supertypes) {
+          // TODO(dmitryas): Should only non-generic supertypes be allowed?
+          supertypesByName[supertype.classNode.name] = supertype;
+        }
+
+        // Handling elements of the 'show' clause.
+        for (String memberOrTypeName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownMembersOrTypes) {
+          Member? getableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName));
+          if (getableMember != null) {
+            if (getableMember is Field) {
+              showHideClause.shownGetters.add(getableMember.getterReference);
+            } else if (getableMember.hasGetter) {
+              showHideClause.shownGetters.add(getableMember.reference);
+            }
+          }
+          if (getableMember is Procedure &&
+              getableMember.kind == ProcedureKind.Method) {
+            showHideClause.shownMethods.add(getableMember.reference);
+          }
+          Member? setableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName),
+              setter: true);
+          if (setableMember != null) {
+            if (setableMember is Field) {
+              if (setableMember.setterReference != null) {
+                showHideClause.shownSetters.add(setableMember.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (setableMember.hasSetter) {
+              showHideClause.shownSetters.add(setableMember.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+          if (getableMember == null && setableMember == null) {
+            if (supertypesByName.containsKey(memberOrTypeName)) {
+              showHideClause.shownSupertypes
+                  .add(supertypesByName[memberOrTypeName]!);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+        }
+        for (String getterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownGetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(getterName));
+          if (member != null) {
+            if (member is Field) {
+              showHideClause.shownGetters.add(member.getterReference);
+            } else if (member.hasGetter) {
+              showHideClause.shownGetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Handle the erroneous case.
+            }
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+        for (String setterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownSetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(setterName),
+              setter: true);
+          if (member != null) {
+            if (member is Field) {
+              if (member.setterReference != null) {
+                showHideClause.shownSetters.add(member.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (member.hasSetter) {
+              showHideClause.shownSetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          } else {
+            // TODO(dmitryas): Search for a non-setter and report an error.
+          }
+        }
+        for (Operator operator in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.shownOperators) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(operatorToString(operator)));
+          if (member != null) {
+            showHideClause.shownOperators.add(member.reference);
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+
+        // TODO(dmitryas): Add a helper function to share logic between
+        // handling the 'show' and 'hide' parts.
+
+        // Handling elements of the 'hide' clause.
+        for (String memberOrTypeName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenMembersOrTypes) {
+          Member? getableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName));
+          if (getableMember != null) {
+            if (getableMember is Field) {
+              showHideClause.hiddenGetters.add(getableMember.getterReference);
+            } else if (getableMember.hasGetter) {
+              showHideClause.hiddenGetters.add(getableMember.reference);
+            }
+          }
+          if (getableMember is Procedure &&
+              getableMember.kind == ProcedureKind.Method) {
+            showHideClause.hiddenMethods.add(getableMember.reference);
+          }
+          Member? setableMember = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(memberOrTypeName),
+              setter: true);
+          if (setableMember != null) {
+            if (setableMember is Field) {
+              if (setableMember.setterReference != null) {
+                showHideClause.hiddenSetters
+                    .add(setableMember.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (setableMember.hasSetter) {
+              showHideClause.hiddenSetters.add(setableMember.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+          if (getableMember == null && setableMember == null) {
+            if (supertypesByName.containsKey(memberOrTypeName)) {
+              showHideClause.hiddenSupertypes
+                  .add(supertypesByName[memberOrTypeName]!);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          }
+        }
+        for (String getterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenGetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(getterName));
+          if (member != null) {
+            if (member is Field) {
+              showHideClause.hiddenGetters.add(member.getterReference);
+            } else if (member.hasGetter) {
+              showHideClause.hiddenGetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Handle the erroneous case.
+            }
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+        for (String setterName in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenSetters) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(setterName),
+              setter: true);
+          if (member != null) {
+            if (member is Field) {
+              if (member.setterReference != null) {
+                showHideClause.hiddenSetters.add(member.setterReference!);
+              } else {
+                // TODO(dmitryas): Report an error.
+              }
+            } else if (member.hasSetter) {
+              showHideClause.hiddenSetters.add(member.reference);
+            } else {
+              // TODO(dmitryas): Report an error.
+            }
+          } else {
+            // TODO(dmitryas): Search for a non-setter and report an error.
+          }
+        }
+        for (Operator operator in extensionBuilder
+            .extensionTypeShowHideClauseBuilder.hiddenOperators) {
+          Member? member = hierarchy.getInterfaceMember(
+              onType.classNode, new Name(operatorToString(operator)));
+          if (member != null) {
+            showHideClause.hiddenOperators.add(member.reference);
+          } else {
+            // TODO(dmitryas): Handle the erroneous case.
+          }
+        }
+
+        extensionBuilder.extension.showHideClause ??= showHideClause;
+      }
+    }
+  }
+
   void registerImplicitlyTypedField(FieldBuilder fieldBuilder) {
     (_implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
   }
@@ -4277,7 +4533,7 @@ class TypeParameterScopeBuilder {
 
   final Map<String, MemberBuilder>? setters;
 
-  final Set<ExtensionBuilder>? extensions;
+  final Set<SourceExtensionBuilder>? extensions;
 
   final List<UnresolvedType> types = <UnresolvedType>[];
 
@@ -4318,7 +4574,7 @@ class TypeParameterScopeBuilder {
             <String, Builder>{},
             <String, MemberBuilder>{},
             null, // No support for constructors in library scopes.
-            <ExtensionBuilder>{},
+            <SourceExtensionBuilder>{},
             "<library>",
             -1,
             null);

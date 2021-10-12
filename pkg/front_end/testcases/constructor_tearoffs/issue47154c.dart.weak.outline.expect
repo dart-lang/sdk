@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::List<self::A::X%> x;
+  const constructor •(dynamic x) → self::A<self::A::X%>
+    : self::A::x = x is{ForNonNullableByDefault} core::List<self::A::X%> ?{core::List<self::A::X%>} x{core::List<self::A::X%>} : x as{ForNonNullableByDefault} core::List<self::A::X%>, super core::Object::•()
+    ;
+}
+class B<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field (self::B::X%) → void f;
+  const constructor •() → self::B<self::B::X%>
+    : self::B::f = self::m<self::B::X%>, super core::Object::•()
+    ;
+}
+class C<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field dynamic f;
+  const constructor •() → self::C<self::C::X%>
+    : self::C::f = self::m<self::C::X%>, super core::Object::•()
+    ;
+}
+static method m<X extends core::Object? = dynamic>(self::m::X% x) → void
+  ;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154c.dart:16:19 -> StaticTearOffConstant(m)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154c.dart:22:19 -> StaticTearOffConstant(m)
+Extra constant evaluation: evaluated: 10, effectively constant: 2

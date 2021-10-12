@@ -291,6 +291,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   late final SimpleIdentifierResolver _simpleIdentifierResolver =
       SimpleIdentifierResolver(this, flowAnalysis);
 
+  late final PropertyElementResolver _propertyElementResolver =
+      PropertyElementResolver(this);
+
+  late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -575,8 +580,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
                   computeMemberId(whyNotPromotedVisitor.propertyReference!);
               args.add('target: $id');
             }
-            if (whyNotPromotedVisitor.propertyType != null) {
-              args.add('type: ${whyNotPromotedVisitor.propertyType}');
+            var propertyType = whyNotPromotedVisitor.propertyType;
+            if (propertyType != null) {
+              var propertyTypeStr = propertyType.getDisplayString(
+                withNullability: true,
+              );
+              args.add('type: $propertyTypeStr');
             }
             if (args.isNotEmpty) {
               nonPromotionReasonText += '(${args.join(', ')})';
@@ -696,8 +705,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       node.target?.accept(this);
       startNullAwareIndexExpression(node);
 
-      var resolver = PropertyElementResolver(this);
-      var result = resolver.resolveIndexExpression(
+      var result = _propertyElementResolver.resolveIndexExpression(
         node: node,
         hasRead: hasRead,
         hasWrite: true,
@@ -717,8 +725,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     } else if (node is PrefixedIdentifier) {
       node.prefix.accept(this);
 
-      var resolver = PropertyElementResolver(this);
-      return resolver.resolvePrefixedIdentifier(
+      return _propertyElementResolver.resolvePrefixedIdentifier(
         node: node,
         hasRead: hasRead,
         hasWrite: true,
@@ -727,16 +734,14 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       node.target?.accept(this);
       startNullAwarePropertyAccess(node);
 
-      var resolver = PropertyElementResolver(this);
-      return resolver.resolvePropertyAccess(
+      return _propertyElementResolver.resolvePropertyAccess(
         node: node,
         hasRead: hasRead,
         hasWrite: true,
       );
-    } else if (node is SimpleIdentifier) {
-      var resolver = PropertyElementResolver(this);
-      var result = resolver.resolveSimpleIdentifier(
-        node: node as SimpleIdentifierImpl,
+    } else if (node is SimpleIdentifierImpl) {
+      var result = _propertyElementResolver.resolveSimpleIdentifier(
+        node: node,
         hasRead: hasRead,
         hasWrite: true,
       );
@@ -892,7 +897,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
-    AnnotationResolver(this).resolve(node, whyNotPromotedList);
+    _annotationResolver.resolve(node, whyNotPromotedList);
     var arguments = node.arguments;
     if (arguments != null) {
       checkForArgumentTypesNotAssignableInList(arguments, whyNotPromotedList);
@@ -1237,13 +1242,8 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    //
-    // We do not visit either the type name, because it won't be visited anyway,
-    // or the name, because it needs to be visited in the context of the
-    // constructor name.
-    //
+    node.type2.accept(this);
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
@@ -1428,15 +1428,17 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _enclosingFunction = outerFunction;
     }
 
-    // TODO(scheglov) encapsulate
-    var bodyContext = BodyInferenceContext.of(
-      node.functionExpression.body,
-    );
-    checkForBodyMayCompleteNormally(
-      returnType: bodyContext?.contextType,
-      body: node.functionExpression.body,
-      errorNode: node.name,
-    );
+    if (!node.isSetter) {
+      // TODO(scheglov) encapsulate
+      var bodyContext = BodyInferenceContext.of(
+        node.functionExpression.body,
+      );
+      checkForBodyMayCompleteNormally(
+        returnType: bodyContext?.contextType,
+        body: node.functionExpression.body,
+        errorNode: node.name,
+      );
+    }
     flowAnalysis.executableDeclaration_exit(
       node.functionExpression.body,
       isLocal,
@@ -1521,11 +1523,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     CollectionElement thenElement = node.thenElement;
     flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
     thenElement.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(thenElement);
 
     var elseElement = node.elseElement;
     if (elseElement != null) {
       flowAnalysis.flow?.ifStatement_elseBegin();
       elseElement.accept(this);
+      nullSafetyDeadCodeVerifier.flowEnd(elseElement);
     }
 
     flowAnalysis.flow?.ifStatement_end(elseElement != null);
@@ -1572,8 +1576,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     node.target?.accept(this);
     startNullAwareIndexExpression(node);
 
-    var resolver = PropertyElementResolver(this);
-    var result = resolver.resolveIndexExpression(
+    var result = _propertyElementResolver.resolveIndexExpression(
       node: node,
       hasRead: true,
       hasWrite: false,
@@ -1655,13 +1658,15 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _thisType = null;
     }
 
-    // TODO(scheglov) encapsulate
-    var bodyContext = BodyInferenceContext.of(node.body);
-    checkForBodyMayCompleteNormally(
-      returnType: bodyContext?.contextType,
-      body: node.body,
-      errorNode: node.name,
-    );
+    if (!node.isSetter) {
+      // TODO(scheglov) encapsulate
+      var bodyContext = BodyInferenceContext.of(node.body);
+      checkForBodyMayCompleteNormally(
+        returnType: bodyContext?.contextType,
+        body: node.body,
+        errorNode: node.name,
+      );
+    }
     flowAnalysis.executableDeclaration_exit(node.body, false);
     flowAnalysis.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
@@ -1734,6 +1739,15 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    // All TypeName(s) are already resolved, so we don't resolve it here.
+    // But there might be type arguments with Expression(s), such as default
+    // values for formal parameters of GenericFunctionType(s). These are
+    // invalid, but if they exist, they should be resolved.
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitNode(AstNode node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -1774,8 +1788,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     node.target?.accept(this);
     startNullAwarePropertyAccess(node);
 
-    var resolver = PropertyElementResolver(this);
-    var result = resolver.resolvePropertyAccess(
+    var result = _propertyElementResolver.resolvePropertyAccess(
       node: node,
       hasRead: true,
       hasWrite: false,
@@ -1999,9 +2012,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       flow.tryFinallyStatement_end();
     }
   }
-
-  @override
-  void visitTypeName(TypeName node) {}
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -2444,7 +2454,7 @@ class ScopeResolverVisitor extends ResolverBase {
     node.documentationComment?.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }
@@ -2924,6 +2934,14 @@ class ScopeResolverVisitor extends ResolverBase {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    // All TypeName(s) are already resolved, so we don't resolve it here.
+    // But there might be type arguments with Expression(s), such as
+    // annotations on formal parameters of GenericFunctionType(s).
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // Do not visit the identifier after the `.`, since it is not meant to be
     // looked up in the current scope.
@@ -3042,9 +3060,6 @@ class ScopeResolverVisitor extends ResolverBase {
   void visitSwitchStatementInScope(SwitchStatement node) {
     super.visitSwitchStatement(node);
   }
-
-  @override
-  void visitTypeName(TypeName node) {}
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {

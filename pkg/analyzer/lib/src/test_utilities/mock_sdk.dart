@@ -365,6 +365,7 @@ abstract class int extends num {
   int operator -();
   int operator <<(int shiftAmount);
   int operator >>(int shiftAmount);
+  int operator >>>(int shiftAmount);
   int operator ^(int other);
   int operator |(int other);
   int operator ~();
@@ -529,6 +530,10 @@ class Object {
 
 abstract class Enum {
   int get index;
+}
+
+abstract class _Enum extends Enum {
+  String _name;
 }
 
 abstract class Pattern {

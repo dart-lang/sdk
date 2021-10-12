@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
@@ -43,7 +42,8 @@ class GetterMethodConflict extends Conflict {
 
 /// Manages knowledge about interface types and their members.
 class InheritanceManager3 {
-  static final _noSuchMethodName = Name(null, 'noSuchMethod');
+  static final _noSuchMethodName =
+      Name(null, FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
 
   /// Cached instance interfaces for [ClassElement].
   final Map<ClassElement, Interface> _interfaces = {};
@@ -884,7 +884,7 @@ class Name {
 
   factory Name(Uri? libraryUri, String name) {
     if (name.startsWith('_')) {
-      var hashCode = JenkinsSmiHash.hash2(libraryUri.hashCode, name.hashCode);
+      var hashCode = Object.hash(libraryUri.hashCode, name.hashCode);
       return Name._internal(libraryUri, name, false, hashCode);
     } else {
       return Name._internal(null, name, true, name.hashCode);

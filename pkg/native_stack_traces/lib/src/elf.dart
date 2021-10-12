@@ -214,7 +214,10 @@ class ElfHeader {
   static const _ELFDATA2MSB = 0x02;
 
   void writeToStringBuffer(StringBuffer buffer) {
-    buffer..write('Format is ')..write(wordSize * 8)..write(' bits');
+    buffer
+      ..write('Format is ')
+      ..write(wordSize * 8)
+      ..write(' bits');
     switch (endian) {
       case Endian.little:
         buffer..writeln(' and little-endian');
@@ -342,6 +345,15 @@ class ProgramHeader {
   int get length => _entries.length;
   ProgramHeaderEntry operator [](int index) => _entries[index];
 
+  ProgramHeaderEntry? loadSegmentFor(int address) {
+    for (final entry in _entries) {
+      if (entry.vaddr <= address && address <= entry.vaddr + entry.memsz) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
   static ProgramHeader fromReader(Reader reader, ElfHeader header) {
     final programReader = reader.refocusedCopy(
         header.programHeaderOffset, header.programHeaderSize);
@@ -352,7 +364,10 @@ class ProgramHeader {
 
   void writeToStringBuffer(StringBuffer buffer) {
     for (var i = 0; i < length; i++) {
-      if (i != 0) buffer..writeln()..writeln();
+      if (i != 0)
+        buffer
+          ..writeln()
+          ..writeln();
       buffer
         ..write('Entry ')
         ..write(i)
@@ -421,6 +436,17 @@ class SectionHeaderEntry {
   static const _SHT_NOTE = 7;
   static const _SHT_NOBITS = 8;
   static const _SHT_DYNSYM = 11;
+
+  // sh_flags constants from ELF specification.
+  static const _SHF_WRITE = 0x1;
+  static const _SHF_ALLOC = 0x2;
+  static const _SHF_EXECINSTR = 0x4;
+
+  bool get isWritable => flags & _SHF_WRITE != 0;
+  bool get isAllocated => flags & _SHF_ALLOC != 0;
+  bool get isExecutable => flags & _SHF_EXECINSTR != 0;
+
+  bool get hasBits => type != _SHT_NOBITS;
 
   void setName(StringTable nameTable) {
     name = nameTable[nameIndex]!;
@@ -495,7 +521,10 @@ class SectionHeader {
 
   void writeToStringBuffer(StringBuffer buffer) {
     for (var i = 0; i < entries.length; i++) {
-      if (i != 0) buffer..writeln()..writeln();
+      if (i != 0)
+        buffer
+          ..writeln()
+          ..writeln();
       buffer
         ..write('Entry ')
         ..write(i)
@@ -536,6 +565,8 @@ class Section {
         return SymbolTable.fromReader(reader, entry);
       case SectionHeaderEntry._SHT_NOTE:
         return Note.fromReader(reader, entry);
+      case SectionHeaderEntry._SHT_DYNAMIC:
+        return DynamicTable.fromReader(reader, entry);
       default:
         return Section._(entry);
     }
@@ -713,7 +744,10 @@ class Symbol {
   SymbolVisibility get visibility => SymbolVisibility.values[other & 0x03];
 
   void writeToStringBuffer(StringBuffer buffer) {
-    buffer..write('"')..write(name)..write('" =>');
+    buffer
+      ..write('"')
+      ..write(name)
+      ..write('" =>');
     switch (bind) {
       case SymbolBinding.STB_GLOBAL:
         buffer..write(' a global');
@@ -794,6 +828,109 @@ class SymbolTable extends Section {
   }
 }
 
+/// Represents d_tag constants from ELF specification.
+enum DynamicTableTag {
+  DT_NULL,
+  DT_NEEDED,
+  DT_PLTRELSZ,
+  DT_PLTGOT,
+  DT_HASH,
+  DT_STRTAB,
+  DT_SYMTAB,
+  DT_RELA,
+  DT_RELASZ,
+  DT_RELAENT,
+  DT_STRSZ,
+  DT_SYMENT,
+  // Later d_tag values are not currently used in Dart ELF files.
+}
+
+/// The dynamic table, which contains entries pointing to various relocated
+/// addresses.
+class DynamicTable extends Section {
+  // We don't use DynamicTableTag for the key so that we can handle ELF files
+  // that may use unknown (to us) tags.
+  final Map<int, int> _entries;
+  final _wordSize;
+
+  DynamicTable._(SectionHeaderEntry entry, this._entries, this._wordSize)
+      : super._(entry);
+
+  static DynamicTable fromReader(Reader reader, SectionHeaderEntry entry) {
+    final sectionReader = reader.refocusedCopy(entry.offset, entry.size);
+    final entries = <int, int>{};
+    while (true) {
+      // Each entry is a tag and a value, both native word sized.
+      final tag = _readElfNative(sectionReader);
+      final value = _readElfNative(sectionReader);
+      // A DT_NULL entry signfies the end of entries.
+      if (tag == DynamicTableTag.DT_NULL.index) break;
+      entries[tag] = value;
+    }
+    return DynamicTable._(entry, entries, sectionReader.wordSize);
+  }
+
+  int? operator [](DynamicTableTag tag) => _entries[tag.index];
+  bool containsKey(DynamicTableTag tag) => _entries.containsKey(tag.index);
+
+  // To avoid depending on EnumName.name from 2.15.
+  static const _tagStrings = {
+    DynamicTableTag.DT_NULL: 'DT_NULL',
+    DynamicTableTag.DT_NEEDED: 'DT_NEEDED',
+    DynamicTableTag.DT_PLTRELSZ: 'DT_PLTRELSZ',
+    DynamicTableTag.DT_PLTGOT: 'DT_PLTGOT',
+    DynamicTableTag.DT_HASH: 'DT_HASH',
+    DynamicTableTag.DT_STRTAB: 'DT_STRTAB',
+    DynamicTableTag.DT_SYMTAB: 'DT_SYMTAB',
+    DynamicTableTag.DT_RELA: 'DT_RELA',
+    DynamicTableTag.DT_RELASZ: 'DT_RELASZ',
+    DynamicTableTag.DT_STRSZ: 'DT_STRSZ',
+    DynamicTableTag.DT_SYMENT: 'DT_SYMENT',
+  };
+  static final _maxTagStringLength = (_tagStrings.values.toList()
+        ..sort((s1, s2) => s2.length - s1.length))
+      .first
+      .length;
+
+  @override
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('Section "')
+      ..write(headerEntry.name)
+      ..writeln('" is a dynamic table:');
+    for (var kv in _entries.entries) {
+      buffer.write(' ');
+      if (kv.key < DynamicTableTag.values.length) {
+        final tag = DynamicTableTag.values[kv.key];
+        buffer
+          ..write(_tagStrings[tag]?.padRight(_maxTagStringLength))
+          ..write(' => ');
+        switch (tag) {
+          // These are relocated addresses.
+          case DynamicTableTag.DT_HASH:
+          case DynamicTableTag.DT_PLTGOT:
+          case DynamicTableTag.DT_SYMTAB:
+          case DynamicTableTag.DT_STRTAB:
+          case DynamicTableTag.DT_RELA:
+            buffer
+              ..write('0x')
+              ..writeln(paddedHex(kv.value, _wordSize));
+            break;
+          // Other entries are just values or offsets.
+          default:
+            buffer.writeln(kv.value);
+        }
+      } else {
+        buffer
+          ..write("Unknown tag ")
+          ..write(kv.key)
+          ..write(' => ')
+          ..writeln(kv.value);
+      }
+    }
+  }
+}
+
 /// Information parsed from an Executable and Linking Format (ELF) file.
 class Elf {
   final ElfHeader _header;
@@ -818,6 +955,21 @@ class Elf {
 
   Iterable<Section> namedSections(String name) =>
       _sectionsByName[name] ?? <Section>[];
+
+  /// Checks that the contents of a given section have valid addresses when the
+  /// file contents for the corresponding segment is loaded into memory.
+  ///
+  /// Returns false for sections that are not allocated or where the address
+  /// does not correspond to file contents (i.e., NOBITS sections).
+  bool sectionHasValidSegmentAddresses(Section section) {
+    final headerEntry = section.headerEntry;
+    if (!headerEntry.isAllocated || !headerEntry.hasBits) return false;
+    final segment = _programHeader.loadSegmentFor(headerEntry.addr);
+    if (segment == null) return false;
+    return (headerEntry.addr < (segment.vaddr + segment.filesz)) &&
+        (headerEntry.addr + headerEntry.size) <=
+            (segment.vaddr + segment.filesz);
+  }
 
   /// Lookup of a dynamic symbol by name.
   ///

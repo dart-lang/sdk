@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef Function2<contravariant S extends core::Object* = dynamic, T extends core::Object* = dynamic> = (S*) →* T*;
 class A<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field (self::A::T*) →* self::A::T* x;
+  covariant-by-class field (self::A::T*) →* self::A::T* x;
   constructor •((self::A::T*) →* self::A::T* x) → self::A<self::A::T*>*
     : self::A::x = x, super core::Object::•()
     ;

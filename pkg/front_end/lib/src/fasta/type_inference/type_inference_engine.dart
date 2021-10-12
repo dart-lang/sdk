@@ -17,9 +17,9 @@ import '../../base/instrumentation.dart' show Instrumentation;
 import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
+import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
-import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ImplicitFieldType;
+import '../kernel/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/kernel_helper.dart';
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;

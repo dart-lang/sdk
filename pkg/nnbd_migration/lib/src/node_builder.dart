@@ -67,6 +67,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final TypeProvider _typeProvider;
 
+  /// Indicates whether the declaration currently being visited is marked
+  /// `external`.
+  bool _visitingExternalDeclaration = false;
+
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
       this._typeProvider, this._getLineInfo,
       {this.instrumentation});
@@ -131,7 +135,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.nativeClause?.accept(this);
     node.members.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass,
+    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass2,
         node.withClause, node.implementsClause, null);
     var constructors = classElement.constructors;
     if (constructors.length == 1) {
@@ -157,7 +161,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.name.accept(this);
     node.typeParameters?.accept(this);
     var classElement = node.declaredElement!;
-    _handleSupertypeClauses(node, classElement, node.superclass,
+    _handleSupertypeClauses(node, classElement, node.superclass2,
         node.withClause, node.implementsClause, null);
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
@@ -196,14 +200,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node.parameters,
         node.initializers,
         node.body,
-        node.redirectedConstructor);
+        node.redirectedConstructor,
+        isExternal: node.externalKeyword != null);
     return null;
   }
 
   @override
   DecoratedType? visitConstructorName(ConstructorName node) {
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('constructed type'),
-        () => node.type.accept(this));
+        () => node.type2.accept(this));
     node.name?.accept(this);
     return null;
   }
@@ -340,14 +345,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node.functionExpression.parameters,
         null,
         node.functionExpression.body,
-        null);
+        null,
+        isExternal: node.externalKeyword != null);
     return null;
   }
 
   @override
   DecoratedType? visitFunctionExpression(FunctionExpression node) {
     _handleExecutableDeclaration(node, node.declaredElement!, null, null,
-        node.typeParameters, node.parameters, null, node.body, null);
+        node.typeParameters, node.parameters, null, node.body, null,
+        isExternal: false);
     return null;
   }
 
@@ -456,7 +463,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node.parameters,
         null,
         node.body,
-        null);
+        null,
+        isExternal: node.externalKeyword != null);
     if (declaredElement is PropertyAccessorElement) {
       // Store a decorated type for the synthetic field so that in case we try
       // to access it later we won't crash (this could happen due to errors in
@@ -499,6 +507,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitNamedType(NamedType node) {
+    namedTypeVisited(node); // Note this has been visited to NamedTypeTracker.
+    return visitTypeAnnotation(node);
+  }
+
+  @override
   DecoratedType? visitSetOrMapLiteral(SetOrMapLiteral node) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -531,6 +545,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
       _variables!.recordDecoratedTypeAnnotation(source, node, decoratedType);
+      if (_visitingExternalDeclaration) {
+        _graph.makeNullableUnion(
+            nullabilityNode, ExternalDynamicOrigin(source, node));
+      }
       return decoratedType;
     }
     var typeArguments = const <DecoratedType>[];
@@ -539,7 +557,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Map<String, DecoratedType?> namedParameters =
         const <String, DecoratedType>{};
     if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
-      if (node is TypeName) {
+      if (node is NamedType) {
         if (node.typeArguments == null) {
           int index = 0;
           typeArguments = type.typeArguments
@@ -601,7 +619,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     DecoratedType decoratedType;
     if (type is FunctionType && node is! GenericFunctionType) {
-      (node as TypeName).typeArguments?.accept(this);
+      (node as NamedType).typeArguments?.accept(this);
       // node is a reference to a typedef.  Treat it like an inferred type (we
       // synthesize new nodes for it).  These nodes will be unioned with the
       // typedef nodes by the edge builder.
@@ -617,12 +635,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _variables!.recordDecoratedTypeAnnotation(source, node, decoratedType);
     _handleNullabilityHint(node, decoratedType);
     return decoratedType;
-  }
-
-  @override
-  DecoratedType visitTypeName(TypeName node) {
-    typeNameVisited(node); // Note this has been visited to TypeNameTracker.
-    return visitTypeAnnotation(node);
   }
 
   @override
@@ -708,49 +720,62 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       FormalParameterList? parameters,
       NodeList<ConstructorInitializer>? initializers,
       FunctionBody body,
-      ConstructorName? redirectedConstructor) {
+      ConstructorName? redirectedConstructor,
+      {required bool isExternal}) {
     metadata?.accept(this);
-    var functionType = declaredElement.type;
-    DecoratedType? decoratedReturnType;
-    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
-    if (returnType != null) {
-      _pushNullabilityNodeTarget(target.returnType(), () {
-        decoratedReturnType = returnType.accept(this);
-      });
-    } else if (declaredElement is ConstructorElement) {
-      // Constructors have no explicit return type annotation, so use the
-      // implicit return type.
-      decoratedReturnType = _createDecoratedTypeForClass(
-          declaredElement.enclosingElement, parameters!.parent);
-      instrumentation?.implicitReturnType(source, node, decoratedReturnType);
-    } else {
-      // Inferred return type.
-      decoratedReturnType = DecoratedType.forImplicitType(
-          _typeProvider, functionType.returnType, _graph, target);
-      instrumentation?.implicitReturnType(source, node, decoratedReturnType);
-    }
-    var previousPositionalParameters = _positionalParameters;
-    var previousNamedParameters = _namedParameters;
-    _positionalParameters = [];
-    _namedParameters = {};
-    DecoratedType decoratedFunctionType;
+    var previouslyVisitingExternalDeclaration = _visitingExternalDeclaration;
     try {
-      typeParameters?.accept(this);
-      _pushNullabilityNodeTarget(target, () => parameters?.accept(this));
-      redirectedConstructor?.accept(this);
-      initializers?.accept(this);
-      decoratedFunctionType = DecoratedType(functionType, _graph.never,
-          returnType: decoratedReturnType,
-          positionalParameters: _positionalParameters,
-          namedParameters: _namedParameters);
-      body.accept(this);
+      if (isExternal) {
+        _visitingExternalDeclaration = true;
+      }
+      var functionType = declaredElement.type;
+      DecoratedType? decoratedReturnType;
+      var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
+      if (returnType != null) {
+        _pushNullabilityNodeTarget(target.returnType(), () {
+          decoratedReturnType = returnType.accept(this);
+        });
+      } else if (declaredElement is ConstructorElement) {
+        // Constructors have no explicit return type annotation, so use the
+        // implicit return type.
+        decoratedReturnType = _createDecoratedTypeForClass(
+            declaredElement.enclosingElement, parameters!.parent);
+        instrumentation?.implicitReturnType(source, node, decoratedReturnType);
+      } else {
+        // Inferred return type.
+        decoratedReturnType = DecoratedType.forImplicitType(
+            _typeProvider, functionType.returnType, _graph, target);
+        instrumentation?.implicitReturnType(source, node, decoratedReturnType);
+        if (isExternal && functionType.returnType.isDynamic) {
+          _graph.makeNullableUnion(
+              decoratedReturnType.node!, ExternalDynamicOrigin(source, node));
+        }
+      }
+      var previousPositionalParameters = _positionalParameters;
+      var previousNamedParameters = _namedParameters;
+      _positionalParameters = [];
+      _namedParameters = {};
+      DecoratedType decoratedFunctionType;
+      try {
+        typeParameters?.accept(this);
+        _pushNullabilityNodeTarget(target, () => parameters?.accept(this));
+        redirectedConstructor?.accept(this);
+        initializers?.accept(this);
+        decoratedFunctionType = DecoratedType(functionType, _graph.never,
+            returnType: decoratedReturnType,
+            positionalParameters: _positionalParameters,
+            namedParameters: _namedParameters);
+        body.accept(this);
+      } finally {
+        _positionalParameters = previousPositionalParameters;
+        _namedParameters = previousNamedParameters;
+      }
+      _variables!
+          .recordDecoratedElementType(declaredElement, decoratedFunctionType);
+      return decoratedFunctionType;
     } finally {
-      _positionalParameters = previousPositionalParameters;
-      _namedParameters = previousNamedParameters;
+      _visitingExternalDeclaration = previouslyVisitingExternalDeclaration;
     }
-    _variables!
-        .recordDecoratedElementType(declaredElement, decoratedFunctionType);
-    return decoratedFunctionType;
   }
 
   DecoratedType? _handleFormalParameter(
@@ -768,6 +793,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         decoratedType = DecoratedType.forImplicitType(
             _typeProvider, declaredElement.type, _graph, target);
+        if (_visitingExternalDeclaration) {
+          _graph.makeNullableUnion(
+              decoratedType.node!, ExternalDynamicOrigin(source, node));
+        }
         instrumentation?.implicitType(source, node, decoratedType);
       }
     } else {
@@ -776,6 +805,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedReturnType = DecoratedType.forImplicitType(_typeProvider,
             DynamicTypeImpl.instance, _graph, target.returnType());
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
+        if (_visitingExternalDeclaration) {
+          _graph.makeNullableUnion(
+              decoratedReturnType.node!, ExternalDynamicOrigin(source, node));
+        }
       } else {
         decoratedReturnType = type.accept(this);
       }
@@ -864,20 +897,20 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _handleSupertypeClauses(
       NamedCompilationUnitMember astNode,
       ClassElement declaredElement,
-      TypeName? superclass,
+      NamedType? superclass,
       WithClause? withClause,
       ImplementsClause? implementsClause,
       OnClause? onClause) {
-    var supertypes = <TypeName?>[];
+    var supertypes = <NamedType?>[];
     supertypes.add(superclass);
     if (withClause != null) {
-      supertypes.addAll(withClause.mixinTypes);
+      supertypes.addAll(withClause.mixinTypes2);
     }
     if (implementsClause != null) {
-      supertypes.addAll(implementsClause.interfaces);
+      supertypes.addAll(implementsClause.interfaces2);
     }
     if (onClause != null) {
-      supertypes.addAll(onClause.superclassConstraints);
+      supertypes.addAll(onClause.superclassConstraints2);
     }
     var decoratedSupertypes = <ClassElement, DecoratedType?>{};
     _pushNullabilityNodeTarget(

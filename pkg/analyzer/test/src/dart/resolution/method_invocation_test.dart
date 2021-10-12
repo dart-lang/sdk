@@ -33,9 +33,9 @@ h(double x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
-        [typeToStringWithNullability ? 'double' : 'num']);
+        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
     assertTypeArgumentTypes(findNode.methodInvocation('f())'),
-        [typeToStringWithNullability ? 'double' : 'num']);
+        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
   }
 
   test_clamp_double_context_int() async {
@@ -79,7 +79,8 @@ f(double a, double b, double c) {
         elementMatcher(numElement.getMethod('clamp'),
             isLegacy: isLegacyLibrary),
         'num Function(num, num)',
-        expectedType: typeToStringWithNullability ? 'double' : 'num');
+        expectedType:
+            typeStringByNullability(nullable: 'double', legacy: 'num'));
   }
 
   test_clamp_double_double_int() async {
@@ -154,9 +155,9 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
     assertTypeArgumentTypes(findNode.methodInvocation('f())'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_clamp_int_context_none() async {
@@ -288,7 +289,7 @@ f(int a, int b, int c) {
         elementMatcher(numElement.getMethod('clamp'),
             isLegacy: isLegacyLibrary),
         'num Function(num, num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_clamp_int_int_int_from_cascade() async {
@@ -307,7 +308,7 @@ f(int a, int b, int c) {
         elementMatcher(numElement.getMethod('clamp'),
             isLegacy: isLegacyLibrary),
         'num Function(num, num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_clamp_int_int_int_via_extension_explicit() async {
@@ -377,7 +378,8 @@ f(Never a, int b, int c) {
 
     assertMethodInvocation(
         findNode.methodInvocation('clamp'), isNull, 'dynamic',
-        expectedType: typeToStringWithNullability ? 'Never' : 'dynamic');
+        expectedType:
+            typeStringByNullability(nullable: 'Never', legacy: 'dynamic'));
   }
 
   test_clamp_other_context_int() async {
@@ -943,7 +945,7 @@ main() {
       'foo<int>();',
       expectedTypeArguments: ['int'],
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_error_undefinedMethod_hasTarget_class_typeParameter() async {
@@ -1296,7 +1298,7 @@ main() {
       findElement.topFunction('foo'),
       'void Function()',
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
@@ -1315,7 +1317,7 @@ main() {
       'Map<dynamic, dynamic> Function()',
       expectedTypeArguments: ['dynamic', 'dynamic'],
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_hasReceiver_class_staticGetter() async {
@@ -1559,6 +1561,39 @@ void f(C c) {
     assertType(foo, 'double Function(int)');
     assertElement(foo.propertyName, findElement.getter('foo'));
     assertType(foo.propertyName, 'double Function(int)');
+  }
+
+  /// It is important to use this expression as an initializer of a top-level
+  /// variable, because of the way top-level inference works, at the time of
+  /// writing this. We resolve initializers twice - first for dependencies,
+  /// then for resolution. This has its issues (for example we miss some
+  /// dependencies), but the important thing is that we rewrite `foo(0)` from
+  /// being a [MethodInvocation] to [FunctionExpressionInvocation]. So, during
+  /// the second pass we see [SimpleIdentifier] `foo` as a `function`. And
+  /// we should be aware that it is not a stand-alone identifier, but a
+  /// cascade section.
+  test_hasReceiver_instance_getter_cascade() async {
+    await resolveTestCode(r'''
+class C {
+  double Function(int) get foo => 0;
+}
+
+var v = C()..foo(0) = 0;
+''');
+
+    var invocation = findNode.functionExpressionInvocation('foo(0)');
+    assertFunctionExpressionInvocation(
+      invocation,
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'double Function(int)',
+      type: 'double',
+    );
+    assertSimpleIdentifier(
+      invocation.function,
+      element: findElement.getter('foo'),
+      type: 'double Function(int)',
+    );
   }
 
   test_hasReceiver_instance_getter_switchStatementExpression() async {
@@ -2184,7 +2219,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_remainder_int_context_int_target_rewritten() async {
@@ -2197,7 +2232,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_remainder_int_context_int_via_extension_explicit() async {
@@ -2240,7 +2275,8 @@ f(int a, double b) {
         elementMatcher(numElement.getMethod('remainder'),
             isLegacy: isLegacyLibrary),
         'num Function(num)',
-        expectedType: typeToStringWithNullability ? 'double' : 'num');
+        expectedType:
+            typeStringByNullability(nullable: 'double', legacy: 'num'));
   }
 
   test_remainder_int_int() async {
@@ -2255,7 +2291,7 @@ f(int a, int b) {
         elementMatcher(numElement.getMethod('remainder'),
             isLegacy: isLegacyLibrary),
         'num Function(num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_remainder_int_int_target_rewritten() async {
@@ -2270,7 +2306,7 @@ f(int Function() a, int b) {
         elementMatcher(numElement.getMethod('remainder'),
             isLegacy: isLegacyLibrary),
         'num Function(num)',
-        expectedType: typeToStringWithNullability ? 'int' : 'num');
+        expectedType: typeStringByNullability(nullable: 'int', legacy: 'num'));
   }
 
   test_remainder_other_context_int_via_extension_explicit() async {

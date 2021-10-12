@@ -8,15 +8,19 @@
 class _WeakProperty {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  get key native "WeakProperty_getKey";
+  @pragma("vm:external-name", "WeakProperty_getKey")
+  external get key;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  set key(k) native "WeakProperty_setKey";
+  @pragma("vm:external-name", "WeakProperty_setKey")
+  external set key(k);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  get value native "WeakProperty_getValue";
+  @pragma("vm:external-name", "WeakProperty_getValue")
+  external get value;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  set value(v) native "WeakProperty_setValue";
+  @pragma("vm:external-name", "WeakProperty_setValue")
+  external set value(v);
 }

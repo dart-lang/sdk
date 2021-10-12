@@ -465,23 +465,35 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
 
     switch (op_kind) {
       case Token::kEQ:
-      case Token::kNE:
-        if (left_type->IsNull() || left_type->IsNullableSmi() ||
-            right_type->IsNull() || right_type->IsNullableSmi()) {
+      case Token::kNE: {
+        // If both arguments are nullable Smi or one of the arguments is
+        // a null or Smi and the other argument is nullable then emit
+        // StrictCompare (all arguments are going to be boxed anyway).
+        // Otherwise prefer EqualityCompare to avoid redundant boxing.
+        const bool left_is_null_or_smi =
+            left_type->IsNull() || left_type->IsNullableSmi();
+        const bool right_is_null_or_smi =
+            right_type->IsNull() || right_type->IsNullableSmi();
+        const bool both_are_nullable_smis =
+            left_type->IsNullableSmi() && right_type->IsNullableSmi();
+        const bool either_can_be_null =
+            left_type->is_nullable() || right_type->is_nullable();
+        if (both_are_nullable_smis ||
+            ((left_is_null_or_smi || right_is_null_or_smi) &&
+             either_can_be_null)) {
           replacement = new (Z) StrictCompareInstr(
               instr->source(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
               left_value->CopyWithType(Z), right_value->CopyWithType(Z),
               /*needs_number_check=*/false, DeoptId::kNone);
         } else {
-          const bool null_aware =
-              left_type->is_nullable() || right_type->is_nullable();
           replacement = new (Z) EqualityCompareInstr(
               instr->source(), op_kind, left_value->CopyWithType(Z),
               right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
-              null_aware, Instruction::kNotSpeculative);
+              /*null_aware=*/either_can_be_null, Instruction::kNotSpeculative);
         }
         break;
+      }
       case Token::kLT:
       case Token::kLTE:
       case Token::kGT:
@@ -602,7 +614,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
       case Token::kNE: {
         // TODO(dartbug.com/32166): Support EQ, NE for nullable doubles.
         // (requires null-aware comparison instruction).
-        if (left_type->IsDouble() && right_type->IsDouble()) {
+        if (!left_type->is_nullable() && !right_type->is_nullable()) {
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) EqualityCompareInstr(

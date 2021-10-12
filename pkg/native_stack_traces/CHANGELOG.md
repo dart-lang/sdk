@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4
+
+- Added handling of dynamic tables for testing.
+
 ## 0.4.3
 
 - Exported some more of the ELF utilities for use in Dart tests.

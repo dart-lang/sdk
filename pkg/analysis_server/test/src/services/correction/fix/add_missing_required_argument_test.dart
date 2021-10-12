@@ -7,13 +7,11 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingRequiredArgumentTest);
-    defineReflectiveTests(AddMissingRequiredArgumentWithNullSafetyTest);
   });
 }
 
@@ -231,6 +229,91 @@ main() {
 ''');
   }
 
+  Future<void> test_constructor_single_closure_nnbd() async {
+    addSource('/home/test/lib/a.dart', r'''
+typedef int Callback(int? a);
+
+class A {
+  A({required Callback callback}) {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int? a) {  });
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_from_legacy() async {
+    addSource('/home/test/lib/a.dart', r'''
+// @dart = 2.8
+import 'package:meta/meta.dart';
+
+typedef int Callback(int a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == HintCode.MISSING_REQUIRED_PARAM);
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
+    addSource('/home/test/lib/a.dart', r'''
+typedef int Callback(int? a);
+
+class A {
+  A({required Callback callback}) {}
+}
+''');
+    await resolveTestCode('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''');
+  }
+
   Future<void> test_constructor_single_list() async {
     addSource('/home/test/lib/a.dart', r'''
 class A {
@@ -298,6 +381,36 @@ main() {
   test(bcd: null);
 }
 ''', errorFilter: (error) => error.message.contains("'bcd'"));
+  }
+
+  Future<void> test_nonNullable() async {
+    await resolveTestCode('''
+void f({required int x}) {}
+void g() {
+  f();
+}
+''');
+    await assertHasFix('''
+void f({required int x}) {}
+void g() {
+  f(x: null);
+}
+''');
+  }
+
+  Future<void> test_nullable() async {
+    await resolveTestCode('''
+void f({required int? x}) {}
+void g() {
+  f();
+}
+''');
+    await assertHasFix('''
+void f({required int? x}) {}
+void g() {
+  f(x: null);
+}
+''');
   }
 
   Future<void> test_param_child() async {
@@ -387,134 +500,6 @@ main() {
 test(String x, {required int abc}) {}
 main() {
   test("foo", abc: null);
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AddMissingRequiredArgumentWithNullSafetyTest extends FixProcessorTest
-    with WithNullSafetyMixin {
-  @override
-  FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
-
-  Future<void> test_constructor_single_closure_nnbd() async {
-    addSource('/home/test/lib/a.dart', r'''
-typedef int Callback(int? a);
-
-class A {
-  A({required Callback callback}) {}
-}
-''');
-    await resolveTestCode('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A();
-  print(a);
-}
-''');
-    await assertHasFix('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A(callback: (int? a) {  });
-  print(a);
-}
-''');
-  }
-
-  Future<void> test_constructor_single_closure_nnbd_from_legacy() async {
-    addSource('/home/test/lib/a.dart', r'''
-// @dart = 2.8
-import 'package:meta/meta.dart';
-
-typedef int Callback(int a);
-
-class A {
-  A({@required Callback callback}) {}
-}
-''');
-    await resolveTestCode('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A();
-  print(a);
-}
-''');
-    await assertHasFix('''
-import 'package:test/a.dart';
-
-main() {
-  A a = new A(callback: (int a) {  });
-  print(a);
-}
-''',
-        errorFilter: (error) =>
-            error.errorCode == HintCode.MISSING_REQUIRED_PARAM);
-  }
-
-  Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
-    addSource('/home/test/lib/a.dart', r'''
-typedef int Callback(int? a);
-
-class A {
-  A({required Callback callback}) {}
-}
-''');
-    await resolveTestCode('''
-// @dart = 2.8
-import 'package:test/a.dart';
-
-main() {
-  A a = new A();
-  print(a);
-}
-''');
-    await assertHasFix('''
-// @dart = 2.8
-import 'package:test/a.dart';
-
-main() {
-  A a = new A(callback: (int a) {  });
-  print(a);
-}
-''');
-  }
-
-  Future<void> test_nonNullable() async {
-    await resolveTestCode('''
-void f({required int x}) {}
-void g() {
-  f();
-}
-''');
-    await assertHasFix('''
-void f({required int x}) {}
-void g() {
-  f(x: null);
-}
-''');
-  }
-
-  Future<void> test_nullable() async {
-    await resolveTestCode('''
-void f({required int? x}) {}
-void g() {
-  f();
-}
-''');
-    await assertHasFix('''
-void f({required int? x}) {}
-void g() {
-  f(x: null);
 }
 ''');
   }

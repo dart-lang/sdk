@@ -245,9 +245,7 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
 DART_FORCE_INLINE
 ObjectPtr AllocateObject(intptr_t cid, intptr_t size) {
 #if defined(DART_COMPRESSED_POINTERS)
-  // TODO(rmacnak): Can be changed unconditionally to `true` once Contexts
-  // are compressed.
-  const bool compressed = cid != kContextCid;
+  const bool compressed = true;
 #else
   const bool compressed = false;
 #endif
@@ -593,8 +591,6 @@ class ObjectCopyBase {
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
       HANDLE_ILLEGAL_CASE(Pointer)
-      HANDLE_ILLEGAL_CASE(FfiDynamicLibrary)
-      HANDLE_ILLEGAL_CASE(FfiPointer)
       HANDLE_ILLEGAL_CASE(FunctionType)
       HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(ReceivePort)
@@ -666,13 +662,13 @@ class FastObjectCopyBase : public ObjectCopyBase {
     }
   }
 
-  void ForwardContextPointers(intptr_t context_length,
-                              ObjectPtr src,
-                              ObjectPtr dst,
-                              intptr_t offset,
-                              intptr_t end_offset) {
-    for (; offset < end_offset; offset += kWordSize) {
-      ForwardPointer(src, dst, offset);
+  void ForwardCompressedContextPointers(intptr_t context_length,
+                                        ObjectPtr src,
+                                        ObjectPtr dst,
+                                        intptr_t offset,
+                                        intptr_t end_offset) {
+    for (; offset < end_offset; offset += kCompressedWordSize) {
+      ForwardCompressedPointer(src, dst, offset);
     }
   }
 
@@ -705,36 +701,6 @@ class FastObjectCopyBase : public ObjectCopyBase {
 
     auto to = Forward(tags, value_decompressed);
     StoreCompressedPointerNoBarrier(dst, offset, to);
-  }
-
-  // TODO(rmacnak): Can be removed if Contexts are compressed.
-  DART_FORCE_INLINE
-  void ForwardPointer(ObjectPtr src, ObjectPtr dst, intptr_t offset) {
-    auto value = LoadPointer(src, offset);
-    if (!value.IsHeapObject()) {
-      StorePointerNoBarrier(dst, offset, value);
-      return;
-    }
-    const uword tags = TagsFromUntaggedObject(value.untag());
-    if (CanShareObject(value, tags)) {
-      StorePointerNoBarrier(dst, offset, value);
-      return;
-    }
-
-    ObjectPtr existing_to = fast_forward_map_.ForwardedObject(value);
-    if (existing_to != Marker()) {
-      StorePointerNoBarrier(dst, offset, existing_to);
-      return;
-    }
-
-    if (UNLIKELY(!CanCopyObject(tags, value))) {
-      ASSERT(exception_msg_ != nullptr);
-      StorePointerNoBarrier(dst, offset, Object::null());
-      return;
-    }
-
-    auto to = Forward(tags, value);
-    StorePointerNoBarrier(dst, offset, to);
   }
 
   ObjectPtr Forward(uword tags, ObjectPtr from) {
@@ -861,13 +827,13 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     }
   }
 
-  void ForwardContextPointers(intptr_t context_length,
-                              const Object& src,
-                              const Object& dst,
-                              intptr_t offset,
-                              intptr_t end_offset) {
-    for (; offset < end_offset; offset += kWordSize) {
-      ForwardPointer(src, dst, offset);
+  void ForwardCompressedContextPointers(intptr_t context_length,
+                                        const Object& src,
+                                        const Object& dst,
+                                        intptr_t offset,
+                                        intptr_t end_offset) {
+    for (; offset < end_offset; offset += kCompressedWordSize) {
+      ForwardCompressedPointer(src, dst, offset);
     }
   }
 
@@ -941,36 +907,6 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     StoreCompressedPointerBarrier(dst.ptr(), offset, tmp_.ptr());
   }
 
-  // TODO(rmacnak): Can be removed if Contexts are compressed.
-  DART_FORCE_INLINE
-  void ForwardPointer(const Object& src, const Object& dst, intptr_t offset) {
-    auto value = LoadPointer(src.ptr(), offset);
-    if (!value.IsHeapObject()) {
-      StorePointerNoBarrier(dst.ptr(), offset, value);
-      return;
-    }
-    const uword tags = TagsFromUntaggedObject(value.untag());
-    if (CanShareObject(value, tags)) {
-      StorePointerBarrier(dst.ptr(), offset, value);
-      return;
-    }
-
-    ObjectPtr existing_to = slow_forward_map_.ForwardedObject(value);
-    if (existing_to != Marker()) {
-      StorePointerBarrier(dst.ptr(), offset, existing_to);
-      return;
-    }
-
-    if (UNLIKELY(!CanCopyObject(tags, value))) {
-      ASSERT(exception_msg_ != nullptr);
-      StorePointerNoBarrier(dst.ptr(), offset, Object::null());
-      return;
-    }
-
-    tmp_ = value;
-    tmp_ = Forward(tags, tmp_);  // Only this can cause allocation.
-    StorePointerBarrier(dst.ptr(), offset, tmp_.ptr());
-  }
   ObjectPtr Forward(uword tags, const Object& from) {
     const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
     intptr_t size = UntaggedObject::SizeTag::decode(tags);
@@ -1163,12 +1099,11 @@ class ObjectCopy : public Base {
 
     UntagContext(to)->num_variables_ = UntagContext(from)->num_variables_;
 
-    // TODO(rmacnak): Should use ForwardCompressedPointer once contexts are
-    // compressed.
-    Base::ForwardPointer(from, to, OFFSET_OF(UntaggedContext, parent_));
-    Base::ForwardContextPointers(
+    Base::ForwardCompressedPointer(from, to,
+                                   OFFSET_OF(UntaggedContext, parent_));
+    Base::ForwardCompressedContextPointers(
         length, from, to, Context::variable_offset(0),
-        Context::variable_offset(0) + kWordSize * length);
+        Context::variable_offset(0) + Context::kBytesPerElement * length);
   }
 
   void CopyArray(typename Types::Array from, typename Types::Array to) {
@@ -1858,12 +1793,15 @@ class ObjectGraphCopier {
       auto to = fast_forward_map.raw_from_to_[i + 1];
       const uword tags = TagsFromUntaggedObject(from.untag());
       const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
-      const intptr_t size = UntaggedObject::SizeTag::decode(tags);
       // External typed data is already initialized.
       if (!IsExternalTypedDataClassId(cid) && !IsTypedDataViewClassId(cid)) {
-        memset(reinterpret_cast<void*>(to.untag()), 0,
-               from.untag()->HeapSize());
-        SetNewSpaceTaggingWord(to, cid, size);
+#if defined(DART_COMPRESSED_POINTERS)
+        const bool compressed = true;
+#else
+        const bool compressed = false;
+#endif
+        Object::InitializeObject(reinterpret_cast<uword>(to.untag()), cid,
+                                 from.untag()->HeapSize(), compressed);
         UpdateLengthField(cid, from, to);
       }
     }

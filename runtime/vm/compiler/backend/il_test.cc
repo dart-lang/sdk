@@ -469,7 +469,10 @@ ISOLATE_UNIT_TEST_CASE(HierarchyInfo_Object_Subtype) {
   GrowableArray<intptr_t> expected_abstract_cids;
   for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
     if (!class_table->HasValidClassAt(cid)) continue;
-    if (cid == kNullCid && is_nullable) continue;
+    if (cid == kNullCid) continue;
+    if (cid == kNeverCid) continue;
+    if (cid == kDynamicCid && !is_nullable) continue;
+    if (cid == kVoidCid && !is_nullable) continue;
     to_check = class_table->At(cid);
     // Only add concrete classes.
     if (to_check.is_abstract()) {
@@ -602,6 +605,35 @@ ISOLATE_UNIT_TEST_CASE(HierarchyInfo_String_Subtype) {
       cls, /*include_abstract=*/true, /*exclude_null=*/true);
   THR_Print("Checking concrete and abstract subtype ranges for String\n");
   RANGES_CONTAIN_EXPECTED_CIDS(abstract_range, expected_cids);
+}
+
+// This test verifies that double == Smi is recognized and
+// implemented using EqualityCompare.
+// Regression test for https://github.com/dart-lang/sdk/issues/47031.
+ISOLATE_UNIT_TEST_CASE(IRTest_DoubleEqualsSmi) {
+  const char* kScript = R"(
+    bool foo(double x) => (x + 0.5) == 0;
+    main() {
+      foo(-0.5);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveBinaryDoubleOp,
+      kMatchAndMoveEqualityCompare,
+      kMatchReturn,
+  }));
 }
 
 }  // namespace dart

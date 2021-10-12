@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
@@ -130,11 +129,6 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     ClassElementFlags.write(_sink, element);
 
-    _writeList(
-      element.macroExecutionErrors,
-      _sink._writeMacroExecutionError,
-    );
-
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
@@ -168,7 +162,6 @@ class BundleWriter {
 
     _resolutionSink.localElements.withElements(element.parameters, () {
       _writeList(element.parameters, _writeParameterElement);
-      _writeMacro(element.macro);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
     });
@@ -231,10 +224,6 @@ class BundleWriter {
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
-    _writeList(
-      element.macroExecutionErrors,
-      _sink._writeMacroExecutionError,
-    );
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.type);
     _resolutionSink._writeOptionalNode(element.constantInitializer);
@@ -285,10 +274,6 @@ class BundleWriter {
     }
   }
 
-  void _writeMacro(MacroGenerationData? macro) {
-    _sink.writeOptionalUInt30(macro?.id);
-  }
-
   void _writeMethodElement(MethodElement element) {
     element as MethodElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
@@ -302,8 +287,6 @@ class BundleWriter {
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType);
     });
-
-    _writeMacro(element.macro);
   }
 
   void _writeMixinElement(ClassElement element) {
@@ -378,9 +361,7 @@ class BundleWriter {
 
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
-
     _writeList(element.parameters, _writeParameterElement);
-    _writeMacro(element.macro);
   }
 
   void _writeReferences(List<Reference> references) {
@@ -449,9 +430,7 @@ class BundleWriter {
     _sink._writeStringReference('${unitElement.source.uri}');
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
-    _sink.writeOptionalStringUtf8(unitElement.sourceContent);
     _resolutionSink._writeAnnotationList(unitElement.metadata);
-    _writeUnitElementMacroGenerationDataList(unitElement);
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
@@ -469,18 +448,6 @@ class BundleWriter {
       unitElement.accessors.where((e) => !e.isSynthetic).toList(),
       _writePropertyAccessorElement,
     );
-  }
-
-  void _writeUnitElementMacroGenerationDataList(
-    CompilationUnitElementImpl unitElement,
-  ) {
-    var dataList = unitElement.macroGenerationDataList ?? [];
-    _writeList<MacroGenerationData>(dataList, (data) {
-      _sink.writeUInt30(data.id);
-      _sink.writeStringUtf8(data.code);
-      _sink.writeUint8List(data.informative);
-      _sink.writeOptionalUInt30(data.classDeclarationIndex);
-    });
   }
 
   static TypeParameterVarianceTag _encodeVariance(
@@ -982,12 +949,6 @@ class _SummaryDataWriter extends BufferedSink {
     } else {
       throw StateError('Unexpected parameter kind: $p');
     }
-  }
-
-  void _writeMacroExecutionError(macro.MacroExecutionError error) {
-    writeUInt30(error.annotationIndex);
-    _writeStringReference(error.macroName);
-    _writeStringReference(error.message);
   }
 
   void _writeOptionalStringReference(String? value) {

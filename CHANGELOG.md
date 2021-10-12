@@ -2,6 +2,201 @@
 
 ### Language
 
+- **[Constructor tearoffs][]**: **BETA PREVIEW**
+
+  Previous Dart versions allowed a method on an instance to be passed as a
+  closure, and similarly for static methods. This is commonly referred to as
+  "closurizing" or "tearing off" a method. Constructors were not previously
+  eligible for closurization, forcing users to explicitly write wrapper
+  functions when using constructors as first class functions, as in the calls to
+  `List.map` in the following example:
+
+  ```dart
+  class A {
+    int x;
+    A(this.x);
+    A.fromString(String s) : x = int.parse(s);
+  }
+
+  void main() {
+    var listOfInts = [1, 2, 3];
+    var listOfStrings = ["1", "2", "3"];
+    for(var a in listOfInts.map((x) => A(x))) {
+      print(a.x);
+    }
+    for(var a in listOfStrings.map((x) => A.fromString(x))) {
+      print(a.x);
+    }
+  }
+  ```
+
+  New in Dart 2.15, constructors are now allowed to be torn off. Named
+  constructors are closurized using their declared name (here `A.fromString`),
+  and unnamed closures are referred to for closurization using the keyword `new`
+  (here `A.new`). The example above may now be written as:
+
+  ```dart
+  class A {
+    int x;
+    A(this.x);
+    A.fromString(String s) : x = int.parse(s);
+  }
+
+  void main() {
+    var listOfInts = [1, 2, 3];
+    var listOfStrings = ["1", "2", "3"];
+    for(A a in listOfInts.map(A.new)) {
+      print(a.x);
+    }
+    for(A a in listOfStrings.map(A.fromString)) {
+      print(a.x);
+    }
+  }
+  ```
+
+  Constructors for generic classes may be torn off as generic functions, or
+  instantiated at the tear off site. So in the following code, the tear off
+  `G.new` used to initialize the variable `f` produces a generic function which
+  may be used to produce an instance of `G<T>` for any type `T` provided when
+  `f` is called. The tear off `G<String>.new` used to initialize the variable
+  `g` on the other hand produces a non-generic function which may only be used
+  to produce instances of type `G<String>`.
+
+  ```dart
+  class G<T> {
+    T x;
+    G(this.x);
+  }
+
+  void main() {
+    G<T> Function<T>(T x) f = G.new;
+    var x = f<int>(3);
+    G<String> Function(String y) g = G<String>.new;
+    var y = g("hello");
+  }
+  ```
+
+  The new constructor tearoff feature is currently in **BETA PREVIEW**. The
+  feature is enabled in beta releases only, and is still subject to breaking
+  changes. It is not fully supported by all tools and there may be known issues
+  with the tool support. Feedback on the feature is welcome, but it is not
+  recommended that production code use the feature until it has been released in
+  a stable version.
+
+  The new constructor tearoff feature is only available as part of the 2.15
+  [language version](https://dart.dev/guides/language/evolution). To use this
+  feature, you must set the lower bound on the sdk constraint for your package
+  to 2.15 or greater (if using a beta preview release, an sdk constraint of
+  `>=2.15.0-0` must be used).
+
+- **[Generic type literals][Explicit instantiation]**: **BETA PREVIEW**
+
+  Previous Dart versions allowed class names to be used as type literals. So
+  for example,`int` may be used as an expression, producing a value of type
+  `Type`. Generic classes (e.g. `List`) could be referred to by name as an
+  expression, but no type arguments could be provided and so only the `dynamic`
+  instantiation could be produced directly as an expression without using
+  indirect methods:
+
+  ```dart
+  // Workaround to capture generic type literals.
+  Type typeOf<T>() => T;
+
+  void main() {
+    var x = int; // The Type literal corresponding to `int`.
+    var y = List; // The Type literal corresponding to `List<dynamic>`.
+    // Use workaround to capture generic type literal.
+    var z = typeOf<List<int>>(); // The Type literal for `List<int>`.
+  }
+  ```
+
+  New in Dart 2.15, instantiations of generic classes may now be used as Type
+  literals:
+
+  ```dart
+  void main() {
+    var x = int; // The Type literal corresponding to `int`.
+    var y = List; // The Type literal corresponding to `List<dynamic>`.
+    var z = List<int>; // The Type literal corresponding to `List<int>`.
+  }
+  ```
+
+  The new generic type literal feature is currently in **BETA PREVIEW**. The
+  feature is enabled in beta releases only, and is still subject to breaking
+  changes. It is not fully supported by all tools and there may be known issues
+  with the tool support. Feedback on the feature is welcome, but it is not
+  recommended that production code use the feature until it has been released in
+  a stable version.
+
+  Generic type literals are only available as part of the 2.15 [language
+  version](https://dart.dev/guides/language/evolution). To use this feature, you
+  must set the lower bound on the sdk constraint for your package to 2.15 or
+  greater (if using a beta preview release, an sdk constraint of
+  `>=2.15.0-0` must be used).
+
+- **[Explicit generic method instantiations][Explicit instantiation]**: **BETA
+    PREVIEW**
+
+  Previous Dart versions allowed generic methods to be implicitly specialized
+  (or "instantiated") to non-generic versions when assigned to a location with a
+  compatible monomorphic type. Example:
+
+  ```dart
+  // The generic identity function.
+  T id<T>(T x) => x;
+
+  void main() {
+    // Initialize `intId` with a version of `id` implicitly specialized to
+    // `int`.
+    int Function(int) intId = id;
+    print(intId(3));
+    // Initialize `stringId` with a version of `id` implicitly specialized to
+    // `String`.
+    String Function(String) stringId = id;
+    print(stringId("hello"));
+  }
+  ```
+
+  New in Dart 2.15, generic methods may be explicitly instantiated using the
+  syntax `f<T>` where `f` is the generic method to specialize and `T` is the
+  type argument (in general, type arguments) to be used to specialize the
+  method. Example:
+
+  ```dart
+  // The generic identity function.
+  T id<T>(T x) => x;
+
+  void main() {
+    // Initialize `intId` with a version of `id` explicitly specialized to
+    // `int`.
+    var intId = id<int>;
+    print(intId(3));
+    // Initialize `stringId` with a version of `id` explicitly specialized to
+    // `String`.
+    var stringId = id<String>;
+    print(stringId("hello"));
+  }
+  ```
+
+  The new generic method instantation feature is currently in **BETA PREVIEW**.
+  The feature is enabled in beta releases only, and is still subject to breaking
+  changes. It is not fully supported by all tools and there may be known issues
+  with the tool support. Feedback on the feature is welcome, but it is not
+  recommended that production code use the feature until it has been released in
+  a stable version.
+
+  Explicit generic method instantiations are only available as part of the 2.15
+  [language version](https://dart.dev/guides/language/evolution). To use this
+  feature, you must set the lower bound on the sdk constraint for your package
+  to 2.15 or greater (if using a beta preview release, an sdk constraint of
+  `>=2.15.0-0` must be used).
+
+  [Constructor tearoffs]:
+        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md
+
+  [Explicit instantiation]:
+        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
+
 - Annotations on type parameters of classes can no longer refer to class members
   without a prefix.  For example, this used to be permitted:
 
@@ -31,7 +226,7 @@
     if (!iIsNull) {
       print(i + 1); // OK, because `i` is known to be non-null
     }
-  }
+  }<>
   ```
 
   Previously, the above program had a compile-time error because type promotion
@@ -71,6 +266,28 @@
   instance variable, and it brings the implementation behavior in line with
   the specification in all other cases.
 
+### Core libraries
+
+#### `dart:async`
+
+- Make the `unawaited` function's argument nullable, to allow calls like
+  `unawaited(foo?.bar())` too.
+
+#### `dart:cli`
+
+- The experimental `waitFor` functionality, and the library containing only that
+  function, are now deprecated.
+- When a script is `dart run` it will always be precompiled, but with
+  incremental precompilation for following runs.
+
+### `dart:core`
+
+- Add extension `name` getter on enum values.
+- Add `Enum.compareByIndex` helper function for comparing enum values by index.
+- Add `Enum.compareByName` helper function for comparing enum values by name.
+- Add extension methods on `Iterable<T extends Enum>`, intended for
+  `SomeEnumType.values` lists, to look up values by name.
+
 ### Tools
 
 #### Dart command line
@@ -82,11 +299,128 @@
 
 #### Dart VM
 
-- **Breaking Change** [#45451][]: Support for `dart-ext:`-style native
-  extensions has been removed as previously announced. Use `dart:ffi` to bind
-  to native libraries instead.
+- **Breaking Change** [#45451](https://github.com/dart-lang/sdk/issues/45451):
+  Support for `dart-ext:`-style native extensions has been removed as previously
+  announced. Use `dart:ffi` to bind to native libraries instead.
 
-## 2.14.0
+- **Breaking Change** [#46754](https://github.com/dart-lang/sdk/issues/46754):
+  Isolates spawned via the `Isolate.spawn()` API are now grouped, operate on the
+  same managed heap and can therefore share various VM-internal data structures.
+
+  This leads to ~100x faster isolate startup latency, ~10-100x lower
+  per-isolate base memory overhead and ~8x faster inter-isolate communication.
+
+  Making isolates operate on the same heap will also make them collaborate on
+  garbage collections, which changes performance characteristics for GC-heavy
+  applications that may - in rare cases - negatively affect pause times or
+  throughput.
+
+- Allow closures both in inter-isolate messages as well as as entrypoints in
+  `Isolate.spawn(<entrypoint>, ...)` calls. Closures and their enclosing context
+  may need to be copied in this process. The enclosing context is - as with
+  normal messages - verified to only contain objects that are sendable.
+
+  Note of caution: The Dart VM's current representation of enclosing variables
+  in closures can make closures hang on to more variables than strictly needed.
+  Using such closures in inter-isolate communication can therefore lead to
+  copying of larger transitive object graphs. If the extended transitive
+  closure includes objects that are illegal to send, the sending will fail.
+  See [#36983](https://github.com/dart-lang/sdk/issues/36983), which tracks this
+  existing memory leak issue.
+
+#### Linter
+
+Updated the Linter to `1.12.0`, which includes changes that
+- update `avoid_print` to allow `kDebugMode`-wrapped print calls.
+- fix handling of initializing formals in `prefer_final_parameters`.
+- fix `unnecessary_parenthesis` false positive with function expressions.
+- adds support for constructor tear-offs to `avoid_redundant_argument_values`,
+  `unnecessary_lambdas`, and `unnecessary_parenthesis`.
+- adds a new lint: `unnecessary_constructor_name` to flag unnecessary uses of
+  `.new`.
+- improves regular expression parsing performance for common checks
+  (`camel_case_types`, `file_names`, etc.).
+- (internal) migrates to analyzer 2.1.0 APIs.
+- fixes false positive in `use_build_context_synchronously` in awaits inside
+  anonymous functions.
+- fixes `overridden_fields` false positive w/ static fields.
+- fixes false positive in `avoid_null_checks_in_equality_operators` w/
+  non-nullable params.
+- fixes false positive for deferred imports in `prefer_const_constructors`.
+- marks `avoid_dynamic_calls` stable.
+- (internal) removes unused `MockPubVisitor` and `MockRule` classes.
+- fixes a `prefer_void_to_null` false positive w/ overridden properties.
+- (internal) removes references to `NodeLintRule` in lint rule declarations.
+- fixes `prefer_void_to_null` false positives on overriding returns.
+- fixes `prefer_generic_function_type_aliases` false positives w/ incomplete
+  statements.
+- fixes false positives for `prefer_initializing_formals` with factory
+  constructors.
+- fixes `void_checks` false positives with incomplete source.
+- updates `unnecessary_getters_setters` to only flag the getter.
+- improves messages for `avoid_renaming_method_parameters`.
+- fixes false positives in `prefer_void_to_null`.
+- fixes false positives in `omit_local_variable_types`.
+- fixes false positives in `use_rethrow_when_possible`.
+- improves performance for `annotate_overrides`, `prefer_contains`, and
+  `prefer_void_to_null`.
+
+### Pub
+
+- Adds support for token-based authorization to third party package-repositories
+  with the new command `dart pub token`.
+- Credentials are no longer stored in the pub-cache, but in a platform dependent
+  config directory:
+  * On Linux `$XDG_CONFIG_HOME/dart/pub-credentials.json` if `$XDG_CONFIG_HOME`
+    is defined, otherwise `$HOME/.config/dart/pub-credentials.json`
+  * On Mac OS: `$HOME/Library/Application Support/dart/pub-credentials.json`
+  * On Windows: `%APPDATA%/dart/pub-credentials.json`
+
+- Detect potential leaks in `dart pub publish`.
+  When publishing, pub will examine your files for potential secret keys, and
+  warn you.
+
+  To ignore a file that has a false positive, add it to a
+  [`false_secrets`](https://dart.dev/go/false-secrets) section of your
+  `pubspec.yaml`.
+- Fixes unicode terminal detection windows.
+- New flag `--example` to the commands
+  `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
+  folder dependencies to be updated after operating in the current directory.
+
+## 2.14.3 - 2021-09-30
+
+This is a patch release that fixes:
+
+- a code completion performance regression [flutter/flutter-intellij#5761][].
+- debug information emitted by the Dart VM [#47289][].
+
+[flutter/flutter-intellij#5761]:
+  https://github.com/flutter/flutter-intellij/issues/5761
+[#47289]: https://github.com/dart-lang/sdk/issues/47289
+
+## 2.14.2 - 2021-09-16
+
+This is a patch release that fixes:
+
+- two dartdoc crashes (issues [dart-lang/dartdoc#2740][] and
+  [dart-lang/dartdoc#2755][]).
+- error messages when using the `>>>` operator on older language versions
+  (issue [#46886][]).
+- invalid `pubspec.lock` paths on Windows (issue [dart-lang/pub#3012][]).
+
+[dart-lang/dartdoc#2740]: https://github.com/dart-lang/dartdoc/issues/2740
+[dart-lang/dartdoc#2755]: https://github.com/dart-lang/dartdoc/issues/2755
+[#46886]: https://github.com/dart-lang/sdk/issues/46886
+[#45767]: https://github.com/dart-lang/sdk/issues/45767
+[dart-lang/pub#3012]: https://github.com/dart-lang/pub/issues/3012
+
+## 2.14.1 - 2021-09-09
+
+- Fixed an issue specific to the macOS ARM64 (Apple Silicon) SDK, where the Dart
+  commandline tools did not have the expected startup performance.
+
+## 2.14.0 - 2021-09-09
 
 ### Language
 
@@ -144,11 +478,6 @@
 
 - Added `void unawaited(Future)` top-level function to deal with the
   `unawaited_futures` lint.
-
-#### `dart:cli`
-
-- The experimental `waitFor` functionality, and the library containing only that
-  function, are now deprecated.
 
 #### `dart:core`
 
@@ -254,32 +583,7 @@
 
 #### Linter
 
-Updated the Linter to `1.10.0`, which includes changes that
-- improves regular expression parsing performance for common checks
-  (`camel_case_types`, `file_names`, etc.).
-- (internal) migrates to analyzer 2.1.0 APIs.
-- fixes false positive in `use_build_context_synchronously` in awaits inside
-  anonymous functions.
-- fixes `overridden_fields` false positive w/ static fields.
-- fixes false positive in `avoid_null_checks_in_equality_operators` w/
-  non-nullable params.
-- fixes false positive for deferred imports in `prefer_const_constructors`.
-- marks `avoid_dynamic_calls` stable.
-- (internal) removes unused `MockPubVisitor` and `MockRule` classes.
-- fixes a `prefer_void_to_null` false positive w/ overridden properties.
-- (internal) removes references to `NodeLintRule` in lint rule declarations.
-- fixes `prefer_void_to_null` false positives on overriding returns.
-- fixes `prefer_generic_function_type_aliases` false positives w/ incomplete
-  statements.
-- fixes false positives for `prefer_initializing_formals` with factory constructors.
-- fixes `void_checks` false positives with incomplete source.
-- updates `unnecessary_getters_setters` to only flag the getter.
-- improves messages for `avoid_renaming_method_parameters`.
-- fixes false positives in `prefer_void_to_null`.
-- fixes false positives in `omit_local_variable_types`.
-- fixes false positives in `use_rethrow_when_possible`.
-- improves performance for `annotate_overrides`, `prefer_contains`, and
-  `prefer_void_to_null`.
+Updated the Linter to `1.8.0`, which includes changes that
 - improve performance for `prefer_is_not_empty`.
 - fix false positives in `no_logic_in_create_state`.
 - improve `package_names` to allow dart identifiers as package names.
@@ -640,6 +944,9 @@ This is a patch release that fixes:
 - Add `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
   constructors, a name which can be associated with the port and displayed in
   tooling.
+- Introduce `Isolate.exit([port, message])` which terminates current isolate
+  and, if `port` is specified, as a last action sends out the `message` out to
+  that `port`.
 
 #### `dart:html`
 
@@ -2123,7 +2430,7 @@ failing. This changes makes DDC behave more like dart2js with the default flags.
   throws in dart2js if the API is used directly without manually setting up a
   `defaultPackagesBase` hook.
 
-[1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
+[1]: https://github.com/dart-lang/sdk/blob/main/CHANGELOG.md#200---2018-08-07
 
 #### `dart:developer`
 
@@ -3738,7 +4045,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 
 - Dart `int` is now restricted to 64 bits. On overflow, arithmetic operations
   wrap around, and integer literals larger than 64 bits are not allowed. See
-  https://github.com/dart-lang/sdk/blob/master/docs/language/informal/int64.md
+  https://github.com/dart-lang/sdk/blob/main/docs/language/informal/int64.md
   for details.
 
 - The Dart VM no longer attempts to perform `packages/` directory resolution

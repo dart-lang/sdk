@@ -1327,7 +1327,7 @@ int _f({int x = 0}) => x + 1;
 int _f({int/*?*/ x}) => 1;
 ''');
     visitAll(
-        changes: {findNode.typeName('int/*?*/ x'): isMakeNullableDueToHint});
+        changes: {findNode.namedType('int/*?*/ x'): isMakeNullableDueToHint});
   }
 
   Future<void>
@@ -1367,7 +1367,7 @@ void _f({@required int/*?*/ x}) {}
 ''');
     visitAll(changes: {
       findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword,
-      findNode.typeName('int'): isMakeNullableDueToHint,
+      findNode.namedType('int'): isMakeNullableDueToHint,
     });
   }
 
@@ -1594,7 +1594,7 @@ void Function(int/*?*/) _f() {
 }
 void _g(int/*?*/ x) {}
 ''');
-    var intTypeAnnotation = findNode.typeName('int)');
+    var intTypeAnnotation = findNode.namedType('int)');
     var genericFunctionTypeAnnotation =
         findNode.genericFunctionType('Function(int)');
     visitTypeAnnotation(genericFunctionTypeAnnotation, 'void Function(int?)',
@@ -1608,7 +1608,7 @@ void _f() {
 }
 int/*?*/ _g() => null;
 ''');
-    var intTypeAnnotation = findNode.typeName('int Function');
+    var intTypeAnnotation = findNode.namedType('int Function');
     var genericFunctionTypeAnnotation =
         findNode.genericFunctionType('Function');
     visitTypeAnnotation(genericFunctionTypeAnnotation, 'int? Function()',
@@ -2305,6 +2305,22 @@ _f(bool/*?*/ x) => x && x;
     // promoted to `bool`.
     visitSubexpression(findNode.binary('&&'), 'bool',
         changes: {findNode.simple('x &&'): isNullCheck});
+  }
+
+  Future<void> test_nullExpression_noValidMigration() async {
+    await analyze('''
+int/*!*/ f() => g();
+Null g() => null;
+''');
+    var invocation = findNode.methodInvocation('g();');
+    // Note: in spite of the fact that we leave the method invocation alone, we
+    // analyze it as though it has type `Never`, because it's in a context where
+    // `null` doesn't work.
+    visitSubexpression(invocation, 'Never', changes: {
+      invocation: isNodeChangeForExpression.havingNoValidMigrationWithInfo(
+          isInfo(NullabilityFixDescription.noValidMigrationForNull,
+              {FixReasonTarget.root: TypeMatcher<NullabilityEdge>()}))
+    });
   }
 
   Future<void> test_nullLiteral() async {

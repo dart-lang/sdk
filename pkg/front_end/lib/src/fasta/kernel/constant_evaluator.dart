@@ -24,7 +24,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart';
 import 'package:kernel/src/const_canonical_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/norm.dart';
@@ -82,7 +81,7 @@ Component transformComponent(
   return component;
 }
 
-ConstantCoverage transformLibraries(
+ConstantEvaluationData transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
     Map<String, String>? environmentDefines,
@@ -118,7 +117,10 @@ ConstantCoverage transformLibraries(
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
-  return constantsTransformer.constantEvaluator.getConstantCoverage();
+
+  return new ConstantEvaluationData(
+      constantsTransformer.constantEvaluator.getConstantCoverage(),
+      constantsTransformer.constantEvaluator.visitedLibraries);
 }
 
 void transformProcedure(
@@ -688,6 +690,14 @@ class ConstantsTransformer extends RemovingTransformer {
     Instantiation result =
         super.visitInstantiation(node, removalSentinel) as Instantiation;
     Expression expression = result.expression;
+    if (expression is StaticGet && expression.target.isConst) {
+      // Handle [StaticGet] of constant fields also when these are not inlined.
+      expression = (expression.target as Field).initializer!;
+    } else if (expression is VariableGet && expression.variable.isConst) {
+      // Handle [VariableGet] of constant locals also when these are not
+      // inlined.
+      expression = expression.variable.initializer!;
+    }
     if (expression is ConstantExpression) {
       if (result.typeArguments.every(isInstantiated)) {
         return evaluateAndTransformWithContext(node, result);
@@ -879,6 +889,9 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   bool shouldInline(Expression initializer) {
+    if (backend.alwaysInlineConstants) {
+      return true;
+    }
     if (initializer is ConstantExpression) {
       return backend.shouldInlineConstant(initializer);
     }
@@ -910,6 +923,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final NullConstant nullConstant = new NullConstant();
   final BoolConstant trueConstant = new BoolConstant(true);
   final BoolConstant falseConstant = new BoolConstant(false);
+
+  final Set<Library> visitedLibraries = {};
 
   InstanceBuilder? instanceBuilder;
   EvaluationEnvironment env;
@@ -2835,6 +2850,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitStaticGet(StaticGet node) {
     return withNewEnvironment(() {
       final Member target = node.target;
+      visitedLibraries.add(target.enclosingLibrary);
       if (target is Field) {
         if (target.isConst) {
           return _evaluateExpressionInContext(target, target.initializer!);
@@ -4028,6 +4044,13 @@ class ConstantCoverage {
   ConstantCoverage(this.constructorCoverage);
 }
 
+class ConstantEvaluationData {
+  final ConstantCoverage coverage;
+  final Set<Library> visitedLibraries;
+
+  ConstantEvaluationData(this.coverage, this.visitedLibraries);
+}
+
 /// Holds the necessary information for a constant object, namely
 ///   * the [klass] being instantiated
 ///   * the [typeArguments] used for the instantiation
@@ -4060,7 +4083,7 @@ class InstanceBuilder {
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     fields.forEach((Field field, Constant value) {
       assert(value is! UnevaluatedConstant);
-      fieldValues[field.getterReference] = value;
+      fieldValues[field.fieldReference] = value;
     });
     assert(unusedArguments.isEmpty);
     return new InstanceConstant(klass.reference, typeArguments, fieldValues);
@@ -4069,7 +4092,7 @@ class InstanceBuilder {
   InstanceCreation buildUnevaluatedInstance() {
     final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     fields.forEach((Field field, Constant value) {
-      fieldValues[field.getterReference] = evaluator.extract(value);
+      fieldValues[field.fieldReference] = evaluator.extract(value);
     });
     return new InstanceCreation(
         klass.reference, typeArguments, fieldValues, asserts, unusedArguments);

@@ -77,8 +77,7 @@ class PositionSourceInformation extends SourceInformation {
 
   @override
   SourceSpan get sourceSpan {
-    SourceLocation location =
-        startPosition != null ? startPosition : innerPosition;
+    SourceLocation location = startPosition ?? innerPosition;
     Uri uri = location.sourceUri;
     int offset = location.offset;
     return SourceSpan(uri, offset, offset);
@@ -206,7 +205,7 @@ abstract class CodePositionMap {
 
 /// Registry for mapping [js.Node]s to their [CodePosition].
 class CodePositionRecorder implements CodePositionMap {
-  Map<js.Node, CodePosition> _codePositionMap =
+  final Map<js.Node, CodePosition> _codePositionMap =
       Map<js.Node, CodePosition>.identity();
 
   void registerPositions(
@@ -1339,12 +1338,12 @@ class JavaScriptTracer extends js.BaseVisitor {
 }
 
 class Coverage {
-  Set<js.Node> _nodesWithInfo = {};
+  final Set<js.Node> _nodesWithInfo = {};
   int _nodesWithInfoCount = 0;
-  Set<js.Node> _nodesWithoutInfo = {};
+  final Set<js.Node> _nodesWithoutInfo = {};
   int _nodesWithoutInfoCount = 0;
-  Map<Type, int> _nodesWithoutInfoCountByType = {};
-  Set<js.Node> _nodesWithoutOffset = {};
+  final Map<Type, int> _nodesWithoutInfoCountByType = {};
+  final Set<js.Node> _nodesWithoutOffset = {};
   int _nodesWithoutOffsetCount = 0;
 
   void registerNodeWithInfo(js.Node node) {
