@@ -1722,7 +1722,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Serialize the given [resolvedUnit] errors and index into bytes.
-  List<int> _serializeResolvedUnit(
+  Uint8List _serializeResolvedUnit(
       CompilationUnit resolvedUnit, List<AnalysisError> errors) {
     AnalysisDriverUnitIndexBuilder index = enableIndex
         ? indexUnit(resolvedUnit)
@@ -1755,7 +1755,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               exception: exception.toString(),
               stackTrace: stackTrace.toString(),
               files: contextFiles);
-      List<int> bytes = contextBuilder.toBuffer();
+      var bytes = contextBuilder.toBuffer();
 
       String _twoDigits(int n) {
         if (n >= 10) return '$n';

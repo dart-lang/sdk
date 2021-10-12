@@ -485,7 +485,7 @@ class _BuilderGenerator extends _BaseGenerator {
   void _generateToBuffer() {
     if (cls.isTopLevel) {
       out();
-      out('List<int> toBuffer() {');
+      out('typed_data.Uint8List toBuffer() {');
       indent(() {
         out('fb.Builder fbBuilder = fb.Builder();');
         var idOrNull = cls.fileIdentifier;
@@ -658,6 +658,7 @@ class _CodeGenerator {
     out('library analyzer.src.summary.format;');
     out();
     out("import 'dart:convert' as convert;");
+    out("import 'dart:typed_data' as typed_data;");
     out();
     out("import 'package:analyzer/src/summary/api_signature.dart' as api_sig;");
     out("import 'package:analyzer/src/summary/flat_buffers.dart' as fb;");
