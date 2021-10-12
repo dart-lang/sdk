@@ -20,8 +20,30 @@ class Classy {
   external static int returnIntPtrStatic(int x);
 }
 
+class NativeClassy extends NativeFieldWrapperClass1 {
+  @FfiNative<Void Function(Pointer<Void>, IntPtr)>('doesntmatter')
+  external void goodHasReceiverPointer(int v);
+
+  @FfiNative<Void Function(Handle, IntPtr)>('doesntmatter')
+  external void goodHasReceiverHandle(int v);
+
+  @FfiNative<Void Function(Handle, Pointer<Void>)>('doesntmatter')
+  external void goodHasReceiverHandleAndPtr(NativeClassy v);
+
+  @FfiNative<Void Function(Handle, Handle)>('doesntmatter')
+  external void goodHasReceiverHandleAndHandle(NativeClassy v);
+
+  @FfiNative<Void Function(Pointer<Void>, Handle)>('doesntmatter')
+  external void goodHasReceiverPtrAndHandle(NativeClassy v);
+}
+
 void main() {
   returnIntPtr(13);
   returnIntPtrLeaf(37);
   Classy.returnIntPtrStatic(0xDE);
+  NativeClassy().goodHasReceiverPointer(0xAF);
+  NativeClassy().goodHasReceiverHandle(0xAF);
+  NativeClassy().goodHasReceiverHandleAndPtr(NativeClassy());
+  NativeClassy().goodHasReceiverHandleAndHandle(NativeClassy());
+  NativeClassy().goodHasReceiverPtrAndHandle(NativeClassy());
 }

@@ -157,10 +157,15 @@ class VmTarget extends Target {
     if (!ffiHelper.importsFfi(component, libraries)) {
       logger?.call("Skipped ffi transformation");
     } else {
-      // Transform @FfiNative(..) functions into ffi native call functions.
-      transformFfiNative.transformLibraries(
-          component, libraries, diagnosticReporter, referenceFromIndex);
+      // Transform @FfiNative(..) functions into FFI native call functions.
+      // Pass instance method receivers as implicit first argument to the static
+      // native function.
+      // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
+      // the native function expects Pointer (to avoid Handle overhead).
+      transformFfiNative.transformLibraries(component, coreTypes, hierarchy,
+          libraries, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi natives");
+
       // TODO(jensj/dacoharkes): We can probably limit the transformations to
       // libraries that transitivley depend on dart:ffi.
       transformFfiDefinitions.transformLibraries(

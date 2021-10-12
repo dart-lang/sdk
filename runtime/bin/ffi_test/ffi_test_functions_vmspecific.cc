@@ -1133,6 +1133,44 @@ void SetResourceFinalizer(Dart_Handle handle, intptr_t* resource) {
                             DummyResourceFinalizer);
 }
 
+intptr_t AddPtrAndInt(void* self, intptr_t x) {
+  return reinterpret_cast<intptr_t>(self) + x;
+}
+
+intptr_t AddHandleFieldAndInt(Dart_Handle self, intptr_t x) {
+  intptr_t field = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(self, 0, &field)));
+  return field + x;
+}
+
+intptr_t AddPtrAndPtr(void* self, void* other) {
+  return reinterpret_cast<intptr_t>(self) + reinterpret_cast<intptr_t>(other);
+}
+
+intptr_t AddHandleFieldAndPtr(Dart_Handle self, void* other) {
+  intptr_t field = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(self, 0, &field)));
+  return field + reinterpret_cast<intptr_t>(other);
+}
+
+intptr_t AddHandleFieldAndHandleField(Dart_Handle self, Dart_Handle other) {
+  intptr_t field1 = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(self, 0, &field1)));
+  intptr_t field2 = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(other, 0, &field2)));
+  return field1 + field2;
+}
+
+intptr_t AddPtrAndHandleField(void* self, Dart_Handle other) {
+  intptr_t field = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(other, 0, &field)));
+  return reinterpret_cast<intptr_t>(self) + field;
+}
+
+intptr_t ReturnIntPtrMethod(Dart_Handle self, intptr_t value) {
+  return value;
+}
+
 static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   if (strcmp(name, "Dart_SetNativeInstanceField") == 0 && args_n == 3) {
     return reinterpret_cast<void*>(Dart_SetNativeInstanceField);
@@ -1166,6 +1204,27 @@ static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   }
   if (strcmp(name, "SetResourceFinalizer") == 0 && args_n == 2) {
     return reinterpret_cast<void*>(SetResourceFinalizer);
+  }
+  if (strcmp(name, "AddPtrAndInt") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddPtrAndInt);
+  }
+  if (strcmp(name, "AddHandleFieldAndInt") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddHandleFieldAndInt);
+  }
+  if (strcmp(name, "AddPtrAndPtr") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddPtrAndPtr);
+  }
+  if (strcmp(name, "AddHandleFieldAndPtr") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddHandleFieldAndPtr);
+  }
+  if (strcmp(name, "AddHandleFieldAndHandleField") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddHandleFieldAndHandleField);
+  }
+  if (strcmp(name, "AddPtrAndHandleField") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddPtrAndHandleField);
+  }
+  if (strcmp(name, "ReturnIntPtrMethod") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(ReturnIntPtrMethod);
   }
   // This should be unreachable in tests.
   ENSURE(false);

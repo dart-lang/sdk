@@ -131,20 +131,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return result;
   }
 
-  InstanceConstant? _tryGetFfiNativeAnnotation(Member node) {
-    for (final Expression annotation in node.annotations) {
-      if (annotation is ConstantExpression) {
-        if (annotation.constant is InstanceConstant) {
-          final instConst = annotation.constant as InstanceConstant;
-          if (instConst.classNode == ffiNativeClass) {
-            return instConst;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
   @override
   visitStaticInvocation(StaticInvocation node) {
     super.visitStaticInvocation(node);
@@ -365,88 +351,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                       allocateFunctionType.typeParameters, node.arguments.types)
                   .substituteType(allocateFunctionType
                       .withoutTypeParameters) as FunctionType);
-        }
-      } else if (target is Procedure) {
-        // FfiNative calls that pass objects extending NativeFieldWrapperClass1
-        // (NFWC1) should be passed as Pointer instead so we don't have the
-        // overhead of converting Handles.
-        // If we find an NFWC1 object being passed to an FfiNative signature
-        // taking a Pointer, we automatically wrap the argument in a call to
-        // `Pointer.fromAddress(_getNativeField(obj))`.
-        // Example:
-        //   passAsPointer(ClassWithNativeField());
-        // Becomes, roughly:
-        //   #t0 = PointerClassWithNativeField();
-        //   passAsPointer(Pointer.fromAddress(_getNativeField(#t0)));
-        //   reachabilityFence(#t0);
-        final ffiNativeAnn = _tryGetFfiNativeAnnotation(target);
-        if (ffiNativeAnn != null) {
-          final DartType ffiSignature = ffiNativeAnn.typeArguments[0];
-          if (ffiSignature is FunctionType) {
-            final List<DartType> ffiParams = ffiSignature.positionalParameters;
-            final List<VariableDeclaration> dartParams =
-                target.function.positionalParameters;
-
-            List<VariableDeclaration> tmpsArgs = [];
-            List<Expression> callArgs = [];
-            final origArgs = node.arguments.positional;
-            for (int i = 0; i < origArgs.length; i++) {
-              if (env.isSubtypeOf(
-                      dartParams[i].type,
-                      nativeFieldWrapperClassType,
-                      SubtypeCheckMode.ignoringNullabilities) &&
-                  env.isSubtypeOf(ffiParams[i], pointerType,
-                      SubtypeCheckMode.ignoringNullabilities)) {
-                // final NativeFieldWrapperClass1 #t1 = MyNFWC1();.
-                final tmpPtr = VariableDeclaration(null,
-                    initializer: origArgs[i],
-                    type: nativeFieldWrapperClassType,
-                    isFinal: true);
-                tmpsArgs.add(tmpPtr);
-
-                // Pointer.fromAddress(_getNativeField(#t1)).
-                final ptr = StaticInvocation(
-                    fromAddressInternal,
-                    Arguments([
-                      StaticInvocation(getNativeFieldFunction,
-                          Arguments([VariableGet(tmpPtr)]))
-                    ], types: [
-                      voidType
-                    ]));
-                callArgs.add(ptr);
-
-                continue;
-              }
-              // Note: We also evaluate, and assign temporaries for, non-wrapped
-              // arguments as we need to preserve the original evaluation order.
-              final tmpArg = VariableDeclaration(null,
-                  initializer: origArgs[i], isFinal: true);
-              tmpsArgs.add(tmpArg);
-              callArgs.add(VariableGet(tmpArg));
-            }
-
-            final targetCall = StaticInvocation(target, Arguments(callArgs));
-
-            // {
-            //   T #t0;
-            //   final NativeFieldWrapperClass1 #t1 = MyNFWC1();
-            //   #t0 = foo(Pointer.fromAddress(_getNativeField(#t1)));
-            //   reachabilityFence(#t1);
-            // } => #t0
-            final tmpResult =
-                VariableDeclaration(null, type: target.function.returnType);
-            return BlockExpression(
-              Block([
-                tmpResult,
-                ...tmpsArgs,
-                ExpressionStatement(VariableSet(tmpResult, targetCall)),
-                for (final ta in tmpsArgs)
-                  ExpressionStatement(StaticInvocation(
-                      reachabilityFenceFunction, Arguments([VariableGet(ta)])))
-              ]),
-              VariableGet(tmpResult),
-            );
-          }
         }
       }
     } on _FfiStaticTypeError {
@@ -809,22 +713,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return pointerType is InterfaceType ? pointerType.typeArguments[0] : null;
   }
 
-  // Replaces all NativeFieldWrapperClass1 parameters with Pointer.
-  FunctionType _pointerizeFunctionType(FunctionType dartType) {
-    List<DartType> parameters = [];
-    for (final parameter in dartType.positionalParameters) {
-      if (parameter is InterfaceType) {
-        if (env.isSubtypeOf(parameter, nativeFieldWrapperClassType,
-            SubtypeCheckMode.ignoringNullabilities)) {
-          parameters.add(pointerType);
-          continue;
-        }
-      }
-      parameters.add(parameter);
-    }
-    return FunctionType(parameters, dartType.returnType, dartType.nullability);
-  }
-
   void _ensureNativeTypeToDartType(
       DartType nativeType, DartType dartType, Expression node,
       {bool allowHandle: false}) {
@@ -836,15 +724,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
       return;
-    }
-    // We do automatic argument conversion from NativeFieldWrapperClass1 to
-    // Pointer, so we specifically allow for NFWC1 to be passed as Pointer.
-    if (dartType is FunctionType) {
-      final ptrDartType = _pointerizeFunctionType(dartType);
-      if (env.isSubtypeOf(correspondingDartType, ptrDartType,
-          SubtypeCheckMode.ignoringNullabilities)) {
-        return;
-      }
     }
     diagnosticReporter.report(
         templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,

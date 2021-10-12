@@ -4106,14 +4106,79 @@ const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
     problemMessage: r"""FFI leaf call must not have Handle argument types.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiNativeAnnotationMustAnnotateStatic =
-    messageFfiNativeAnnotationMustAnnotateStatic;
+const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeAnnotationMustAnnotateStatic =
-    const MessageCode("FfiNativeAnnotationMustAnnotateStatic",
+const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
+    "FfiNativeMustBeExternal",
+    problemMessage: r"""FfiNative functions must be marked external.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
+    messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
+    const MessageCode("FfiNativeOnlyNativeFieldWrapperClassCanBePointer",
         problemMessage:
-            r"""FfiNative annotations can only be used on static functions.""");
+            r"""Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count, int count2)>
+    templateFfiNativeUnexpectedNumberOfParameters =
+    const Template<Message Function(int count, int count2)>(
+        problemMessageTemplate:
+            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2.""",
+        withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeFfiNativeUnexpectedNumberOfParameters =
+    const Code<Message Function(int count, int count2)>(
+  "FfiNativeUnexpectedNumberOfParameters",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiNativeUnexpectedNumberOfParameters(
+    int count, int count2) {
+  // ignore: unnecessary_null_comparison
+  if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
+  if (count2 == null) throw 'No count provided';
+  return new Message(codeFfiNativeUnexpectedNumberOfParameters,
+      problemMessage:
+          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count, int count2)>
+    templateFfiNativeUnexpectedNumberOfParametersWithReceiver =
+    const Template<Message Function(int count, int count2)>(
+        problemMessageTemplate:
+            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument.""",
+        withArguments:
+            _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeFfiNativeUnexpectedNumberOfParametersWithReceiver =
+    const Code<Message Function(int count, int count2)>(
+  "FfiNativeUnexpectedNumberOfParametersWithReceiver",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
+    int count, int count2) {
+  // ignore: unnecessary_null_comparison
+  if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
+  if (count2 == null) throw 'No count provided';
+  return new Message(codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
+      problemMessage:
+          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}. FfiNative instance method annotation must have receiver as first argument.""",
+      arguments: {'count': count, 'count2': count2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

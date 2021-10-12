@@ -49,6 +49,7 @@ name.#name
 name.stack
 nameokempty
 native('native
+nativefieldwrapperclass
 natively
 nativetype
 nnbd

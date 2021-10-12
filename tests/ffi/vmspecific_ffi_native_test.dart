@@ -52,6 +52,36 @@ class ClassWithNativeField extends NativeFieldWrapperClass1 {
   ClassWithNativeField(int value) {
     setNativeInstanceField(this, 0, value);
   }
+
+  // Instance methods implicitly pass a 'self' reference as the first argument.
+  // Passed as Pointer if the native function takes that (and the class can be
+  // converted).
+  @FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('AddPtrAndInt')
+  external int addSelfPtrAndIntMethod(int x);
+
+  // Instance methods implicitly pass a 'self' reference as the first argument.
+  // Passed as Handle if the native function takes that.
+  @FfiNative<IntPtr Function(Handle, IntPtr)>('AddHandleFieldAndInt')
+  external int addSelfHandleFieldAndIntMethod(int x);
+
+  @FfiNative<IntPtr Function(Pointer<Void>, Pointer<Void>)>('AddPtrAndPtr')
+  external int addSelfPtrAndPtrMethod(ClassWithNativeField other);
+
+  @FfiNative<IntPtr Function(Handle, Pointer<Void>)>('AddHandleFieldAndPtr')
+  external int addSelfHandleFieldAndPtrMethod(ClassWithNativeField other);
+
+  @FfiNative<IntPtr Function(Handle, Handle)>('AddHandleFieldAndHandleField')
+  external int addSelfHandleFieldAndHandleFieldMethod(
+      ClassWithNativeField other);
+
+  @FfiNative<IntPtr Function(Pointer<Void>, Handle)>('AddPtrAndHandleField')
+  external int addselfPtrAndHandleFieldMethod(ClassWithNativeField other);
+}
+
+class ClassWithoutNativeField {
+  // Instance methods implicitly pass their handle as the first arg.
+  @FfiNative<IntPtr Function(Handle, IntPtr)>('ReturnIntPtrMethod')
+  external int returnIntPtrMethod(int x);
 }
 
 // Native function takes a Handle, so a Handle is passed as-is.
@@ -111,4 +141,26 @@ void main() {
   state = 0;
   passAsValueAndPointer(setState(7), StateSetter(3));
   Expect.equals(3, state);
+
+  // Test transforms of instance methods.
+  Expect.equals(234, ClassWithoutNativeField().returnIntPtrMethod(234));
+  Expect.equals(1012, ClassWithNativeField(12).addSelfPtrAndIntMethod(1000));
+  Expect.equals(
+      2021, ClassWithNativeField(21).addSelfHandleFieldAndIntMethod(2000));
+  Expect.equals(
+      3031,
+      ClassWithNativeField(31)
+          .addSelfPtrAndPtrMethod(ClassWithNativeField(3000)));
+  Expect.equals(
+      4041,
+      ClassWithNativeField(41)
+          .addSelfHandleFieldAndPtrMethod(ClassWithNativeField(4000)));
+  Expect.equals(
+      5051,
+      ClassWithNativeField(51)
+          .addSelfHandleFieldAndHandleFieldMethod(ClassWithNativeField(5000)));
+  Expect.equals(
+      6061,
+      ClassWithNativeField(61)
+          .addselfPtrAndHandleFieldMethod(ClassWithNativeField(6000)));
 }
