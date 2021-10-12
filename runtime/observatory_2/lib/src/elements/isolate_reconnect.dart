@@ -13,7 +13,6 @@ import 'package:observatory_2/src/elements/helpers/custom_element.dart';
 import 'package:observatory_2/src/elements/helpers/uris.dart';
 import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class IsolateReconnectElement extends CustomElement implements Renderable {
   RenderingScheduler<IsolateReconnectElement> _r;
@@ -104,7 +103,6 @@ class IsolateReconnectElement extends CustomElement implements Renderable {
                   new AnchorElement(href: Uris.vm())..text = 'isolates summary',
                 ]))
         ],
-      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 }

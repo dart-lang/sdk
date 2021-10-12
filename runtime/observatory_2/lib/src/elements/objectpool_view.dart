@@ -20,7 +20,6 @@ import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
 import 'package:observatory_2/src/elements/object_common.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class ObjectPoolViewElement extends CustomElement implements Renderable {
   RenderingScheduler<ObjectPoolViewElement> _r;
@@ -140,8 +139,6 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
                       ..children = _createEntry(entry)
                   ])
                 .toList(),
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

@@ -17,7 +17,6 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class ICDataViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<ICDataViewElement> _r;
@@ -182,7 +181,6 @@ class ICDataViewElement extends CustomElement implements Renderable {
                 ]
             ],
           new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

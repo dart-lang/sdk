@@ -16,7 +16,6 @@ import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class FlagListElement extends CustomElement implements Renderable {
   RenderingScheduler<FlagListElement> _r;
@@ -108,7 +107,6 @@ class FlagListElement extends CustomElement implements Renderable {
       new DivElement()
         ..classes = ['content-centered']
         ..children = content,
-      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

@@ -24,7 +24,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/source_link.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class FieldViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<FieldViewElement> _r;
@@ -162,7 +161,6 @@ class FieldViewElement extends CustomElement implements Renderable {
                             queue: _r.queue)
                         .element
                   ],
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

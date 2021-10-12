@@ -29,7 +29,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/source_link.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceViewElement extends CustomElement implements Renderable {
@@ -163,8 +162,6 @@ class InstanceViewElement extends CustomElement implements Renderable {
             .element
       ]);
     }
-    content.addAll(
-        [new HRElement(), new ViewFooterElement(queue: _r.queue).element]);
     children = <Element>[
       navBar(_createMenu()),
       new DivElement()

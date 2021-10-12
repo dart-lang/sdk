@@ -13,6 +13,7 @@
 library analyzer.src.summary.format;
 
 import 'dart:convert' as convert;
+import 'dart:typed_data' as typed_data;
 
 import 'package:analyzer/src/summary/api_signature.dart' as api_sig;
 import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
@@ -137,7 +138,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
     }
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADEC");
   }
@@ -438,7 +439,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
     this._index?.collectApiSignature(signatureSink);
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADRU");
   }
@@ -1360,7 +1361,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
     }
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADUI");
   }
@@ -2766,7 +2767,7 @@ class AvailableFileBuilder extends Object
     }
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UICF");
   }
@@ -3270,7 +3271,7 @@ class CiderUnitErrorsBuilder extends Object
     }
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "CUEr");
   }
@@ -3641,7 +3642,7 @@ class CiderUnlinkedUnitBuilder extends Object
     this._unlinkedUnit?.collectApiSignature(signatureSink);
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "CUUN");
   }
@@ -4106,7 +4107,7 @@ class PackageBundleBuilder extends Object
     signatureSink.addInt(this._fake ?? 0);
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "PBdl");
   }
@@ -4611,7 +4612,7 @@ class UnlinkedUnit2Builder extends Object
     signatureSink.addString(this._partOfName ?? '');
   }
 
-  List<int> toBuffer() {
+  typed_data.Uint8List toBuffer() {
     fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UUN2");
   }

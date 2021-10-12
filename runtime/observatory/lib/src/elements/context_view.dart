@@ -19,7 +19,6 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class ContextViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<ContextViewElement> _r;
@@ -187,9 +186,6 @@ class ContextViewElement extends CustomElement implements Renderable {
           ]
       ]);
     }
-    content.add(new DivElement()
-      ..classes = ['content-centered-big']
-      ..children = <Element>[new ViewFooterElement(queue: _r.queue).element]);
     children = content;
   }
 }

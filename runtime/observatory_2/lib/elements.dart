@@ -93,7 +93,6 @@ export 'package:observatory_2/src/elements/type_arguments_ref.dart';
 export 'package:observatory_2/src/elements/unknown_ref.dart';
 export 'package:observatory_2/src/elements/unlinkedcall_ref.dart';
 export 'package:observatory_2/src/elements/unlinkedcall_view.dart';
-export 'package:observatory_2/src/elements/view_footer.dart';
 export 'package:observatory_2/src/elements/vm_connect.dart';
 export 'package:observatory_2/src/elements/vm_connect_target.dart';
 export 'package:observatory_2/src/elements/vm_view.dart';
