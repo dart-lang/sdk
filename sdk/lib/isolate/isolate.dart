@@ -556,11 +556,12 @@ class Isolate {
 
   /// Terminates the current isolate synchronously.
   ///
-  /// This operations is potentially dangerous and should be used judiciously.
-  /// The isolate stops operating *immediately*. It throws if optional [message]
-  /// does not adhere to the limitation on what can be send from one isolate to
-  /// another. It also throws if a [finalMessagePort] is associated with an
-  /// isolate spawned outside of current isolate group, spawned via [spawnUri].
+  /// This operation is potentially dangerous and should be used judiciously.
+  /// The isolate stops operating *immediately*. It throws if the optional
+  /// [message] does not adhere to the limitations on what can be sent from one
+  /// isolate to another. It also throws if a [finalMessagePort] is associated
+  /// with an isolate spawned outside of current isolate group, spawned via
+  /// [spawnUri].
   ///
   /// If successful, a call to this method does not return. Pending `finally`
   /// blocks are not executed, control flow will not go back to the event loop,
@@ -574,10 +575,10 @@ class Isolate {
   /// the current isolate. The isolate terminates immediately after
   /// that [SendPort.send] call returns.
   ///
-  /// (If the port is a native port, one provided by [ReceivePort.sendPort]
-  /// or [RawReceivePort.sendPort], the system may be able to send this final
+  /// If the port is a native port -- one provided by [ReceivePort.sendPort] or
+  /// [RawReceivePort.sendPort] -- the system may be able to send this final
   /// message more efficiently than normal port communication between live
-  /// isolates.)
+  /// isolates.
   external static Never exit([SendPort? finalMessagePort, Object? message]);
 }
 
