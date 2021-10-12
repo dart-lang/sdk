@@ -15028,6 +15028,35 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
+  // The analyzer produces this diagnostic when a library is imported using the
+  // `dart-ext` scheme.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the native library `x`
+  // is being imported using a scheme of `dart-ext`:
+  //
+  // ```dart
+  // import [!'dart-ext:x'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
+  // native library.
+  static const CompileTimeErrorCode USE_OF_NATIVE_EXTENSION =
+      CompileTimeErrorCode(
+    'USE_OF_NATIVE_EXTENSION',
+    "Dart native extensions are deprecated and aren’t available in Dart 2.15.",
+    correctionMessage: "Try using dart:ffi for C interop.",
+    hasPublishedDocs: true,
+  );
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
   // The analyzer produces this diagnostic when it finds an expression whose
   // type is `void`, and the expression is used in a place where a value is
   // expected, such as before a member access or on the right-hand side of an

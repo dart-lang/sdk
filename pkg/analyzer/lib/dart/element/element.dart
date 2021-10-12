@@ -1331,6 +1331,7 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// Return `true` if the defining compilation unit of this library contains at
   /// least one import directive whose URI uses the "dart-ext" scheme.
+  @Deprecated('Support for dart-ext is replaced with FFI')
   bool get hasExtUri;
 
   /// Return `true` if this library defines a top-level function named

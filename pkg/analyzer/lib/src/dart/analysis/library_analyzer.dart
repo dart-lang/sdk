@@ -696,8 +696,6 @@ class LibraryAnalyzer {
         return null;
       }
       return _sourceFactory.resolveUri(file.source, uriContent);
-    } else if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
-      return null;
     } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
       _getErrorReporter(file).reportErrorForNode(
           CompileTimeErrorCode.URI_WITH_INTERPOLATION, uriLiteral);
@@ -783,13 +781,21 @@ class LibraryAnalyzer {
         return;
       }
     }
-    StringLiteral uriLiteral = directive.uri;
+
+    if (uriContent != null && uriContent.startsWith('dart-ext:')) {
+      _getErrorReporter(file).reportErrorForNode(
+        CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+        directive.uri,
+      );
+      return;
+    }
+
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
     if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
     _getErrorReporter(file)
-        .reportErrorForNode(errorCode, uriLiteral, [uriContent]);
+        .reportErrorForNode(errorCode, directive.uri, [uriContent]);
   }
 
   /// Check each directive in the given [unit] to see if the referenced source

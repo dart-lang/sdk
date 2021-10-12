@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -24,7 +23,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   final _imports = <ImportElement>[];
   var _isFirstLibraryDirective = true;
   var _hasCoreImport = false;
-  var _hasExtUri = false;
   var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
@@ -72,7 +70,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
     }
     _libraryElement.imports = _imports;
-    _libraryElement.hasExtUri = _hasExtUri;
 
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
@@ -619,8 +616,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     if (uriStr == 'dart:core') {
       _hasCoreImport = true;
-    } else if (DartUriResolver.isDartExtUri(uriStr)) {
-      _hasExtUri = true;
     }
   }
 

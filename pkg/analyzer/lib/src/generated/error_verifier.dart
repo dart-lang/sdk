@@ -208,10 +208,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// A flag indicating whether the visitor is currently within code in the SDK.
   bool _isInSystemLibrary = false;
 
-  /// A flag indicating whether the current library contains at least one import
-  /// directive with a URI that uses the "dart-ext" scheme.
-  bool _hasExtUri = false;
-
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   ClassElementImpl? _enclosingClass;
@@ -265,7 +261,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
     _isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
-    _hasExtUri = _currentLibrary.hasExtUri;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
@@ -3247,7 +3242,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
   void _checkForNativeFunctionBodyInNonSdkCode(NativeFunctionBody body) {
-    if (!_isInSystemLibrary && !_hasExtUri) {
+    if (!_isInSystemLibrary) {
       errorReporter.reportErrorForNode(
           ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, body);
     }

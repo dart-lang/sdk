@@ -10466,10 +10466,6 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
 ///      | [PartDirective]
 abstract class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
-  /// The prefix of a URI using the `dart-ext` scheme to reference a native code
-  /// library.
-  static const String _DART_EXT_SCHEME = "dart-ext:";
-
   /// The URI referenced by this directive.
   StringLiteralImpl _uri;
 
@@ -10518,9 +10514,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     if (uriContent.isEmpty) {
       return null;
     }
-    if (isImport && uriContent.startsWith(_DART_EXT_SCHEME)) {
-      return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
-    }
     Uri uri;
     try {
       uri = Uri.parse(Uri.encodeFull(uriContent));
@@ -10540,9 +10533,6 @@ class UriValidationCode {
 
   static const UriValidationCode URI_WITH_INTERPOLATION =
       UriValidationCode('URI_WITH_INTERPOLATION');
-
-  static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
   /// The name of the validation code.
   final String name;

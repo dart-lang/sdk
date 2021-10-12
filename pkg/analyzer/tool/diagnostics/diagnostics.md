@@ -15374,8 +15374,7 @@ The following code produces this diagnostic because the native library `x`
 is being imported using a scheme of `dart-ext`:
 
 {% prettify dart tag=pre+code %}
-[!import 'dart-ext:x';!]
-int f() native 'string';
+import [!'dart-ext:x'!];
 {% endprettify %}
 
 #### Common fixes
