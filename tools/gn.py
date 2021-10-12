@@ -212,6 +212,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
+                                    (gn_args['target_cpu'] != 'arm') and
                                     sanitizer == 'none')
 
     if gn_args['target_os'] == 'linux':
