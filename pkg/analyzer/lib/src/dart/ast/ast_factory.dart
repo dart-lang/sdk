@@ -6,6 +6,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -784,6 +786,18 @@ class AstFactoryImpl extends AstFactory {
   ImplementsClauseImpl implementsClause(
           Token implementsKeyword, List<NamedType> interfaces) =>
       ImplementsClauseImpl(implementsKeyword, interfaces);
+
+  @override
+  ImplicitCallReferenceImpl implicitCallReference({
+    required Expression expression,
+    required MethodElement staticElement,
+    required TypeArgumentList? typeArguments,
+    required List<DartType> typeArgumentTypes,
+  }) =>
+      ImplicitCallReferenceImpl(expression as ExpressionImpl,
+          staticElement: staticElement,
+          typeArguments: typeArguments as TypeArgumentListImpl?,
+          typeArgumentTypes: typeArgumentTypes);
 
   @override
   ImportDirectiveImpl importDirective(

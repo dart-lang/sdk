@@ -479,6 +479,8 @@ abstract class AstVisitor<R> {
 
   R? visitImplementsClause(ImplementsClause node);
 
+  R? visitImplicitCallReference(ImplicitCallReference node);
+
   R? visitImportDirective(ImportDirective node);
 
   R? visitIndexExpression(IndexExpression node);
@@ -2597,6 +2599,33 @@ abstract class ImplementsClause implements AstNode {
 
   /// Return the list of the interfaces that are being implemented.
   NodeList<NamedType> get interfaces2;
+}
+
+/// An expression representing an implicit 'call' method reference.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an expression refers to a callable type); they
+/// are produced at resolution time.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ImplicitCallReference implements MethodReferenceExpression {
+  /// Return the expression from which a `call` method is being referenced.
+  Expression get expression;
+
+  /// Return the element associated with the implicit 'call' reference based on
+  /// the static types.
+  @override
+  MethodElement get staticElement;
+
+  /// The type arguments being applied to the tear-off, or `null` if there are
+  /// no type arguments.
+  TypeArgumentList? get typeArguments;
+
+  /// The actual type arguments being applied to the tear-off, either explicitly
+  /// specified in [typeArguments], or inferred.
+  ///
+  /// Returns an empty list if the 'call' method does not have type parameters.
+  List<DartType> get typeArgumentTypes;
 }
 
 /// An import directive.

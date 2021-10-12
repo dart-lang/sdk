@@ -5803,6 +5803,69 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   }
 }
 
+class ImplicitCallReferenceImpl extends ExpressionImpl
+    implements ImplicitCallReference {
+  ExpressionImpl _expression;
+
+  TypeArgumentListImpl? _typeArguments;
+
+  @override
+  List<DartType> typeArgumentTypes;
+
+  @override
+  MethodElement staticElement;
+
+  ImplicitCallReferenceImpl(
+    this._expression, {
+    required this.staticElement,
+    required TypeArgumentListImpl? typeArguments,
+    required this.typeArgumentTypes,
+  }) : _typeArguments = typeArguments {
+    _becomeParentOf(_expression);
+    _becomeParentOf(_typeArguments);
+  }
+
+  @override
+  Token get beginToken => expression.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(expression)
+    ..add(typeArguments);
+
+  @override
+  Token get endToken => typeArguments?.endToken ?? expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl value) {
+    _expression = _becomeParentOf(value);
+  }
+
+  @override
+  Precedence get precedence =>
+      typeArguments == null ? expression.precedence : Precedence.postfix;
+
+  @override
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  set typeArguments(TypeArgumentListImpl? value) {
+    _typeArguments = _becomeParentOf(value);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitImplicitCallReference(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+    typeArguments?.accept(visitor);
+  }
+}
+
 /// An import directive.
 ///
 ///    importDirective ::=

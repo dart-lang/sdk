@@ -723,6 +723,13 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitImplicitCallReference(ImplicitCallReference node) {
+    ImplicitCallReference other = _other as ImplicitCallReference;
+    return isEqualNodes(node.expression, other.expression) &&
+        isEqualNodes(node.typeArguments, other.typeArguments);
+  }
+
+  @override
   bool visitImportDirective(ImportDirective node) {
     ImportDirective other = _other as ImportDirective;
     return isEqualNodes(
@@ -2339,6 +2346,18 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitImplementsClause(covariant ImplementsClauseImpl node) {
     if (_replaceInList(node.interfaces2)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitImplicitCallReference(covariant ImplicitCallReferenceImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);
