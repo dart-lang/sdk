@@ -46,7 +46,7 @@ template("compile_platform") {
     }
     script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
 
-    packages = "$_dart_root/.packages"
+    packages = "$_dart_root/.dart_tool/package_config.json"
 
     outputs = invoker.outputs
 
