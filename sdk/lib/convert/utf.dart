@@ -74,6 +74,14 @@ class Utf8Codec extends Encoding {
 
 /// This class converts strings to their UTF-8 code units (a list of
 /// unsigned 8-bit integers).
+///
+/// Example:
+/// ```dart
+/// const String sample = '"Îñţérñåţîöñåļîžåţîờñ"';
+/// const Utf8Encoder utf8encoder = Utf8Encoder();
+/// final List<int> encoded = utf8encoder.convert(sample);
+/// print(encoded);
+/// ```
 class Utf8Encoder extends Converter<String, List<int>> {
   const Utf8Encoder();
 
@@ -285,6 +293,32 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
 
 /// This class converts UTF-8 code units (lists of unsigned 8-bit integers)
 /// to a string.
+///
+/// Example:
+/// ```dart
+/// const Utf8Decoder utf8decoder = Utf8Decoder();
+/// const List<int> encodedBytes =
+/// [195, 142, 195, 177, 197, 163, 195, 169, 114, 195, 177, 195, 165, 197,
+///  163, 195, 174, 195, 182, 195, 177, 195, 165, 196, 188, 195, 174, 197,
+///  190, 195, 165, 197, 163, 195, 174, 225, 187, 157, 195, 177];
+///
+/// final String decoded = utf8decoder.convert(encodedBytes);
+/// print(decoded); // Îñţérñåţîöñåļîžåţîờñ
+/// ```
+/// If encoded data contains invalid values, the decoder
+/// throws a [FormatException]
+///
+/// If `allowMalformed` is set to true,
+/// the decoder replaces the invalid bytes with the character `U+FFFD` �.
+///
+/// Allow invalid byte value example:
+/// ```dart
+/// const Utf8Decoder utf8decoder = Utf8Decoder(allowMalformed: true);
+/// const List<int> encodedBytes = [0xFF];
+///
+/// final String decoded = utf8decoder.convert(encodedBytes);
+/// print(decoded); // �
+/// ```
 class Utf8Decoder extends Converter<List<int>, String> {
   final bool _allowMalformed;
 
