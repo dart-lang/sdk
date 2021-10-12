@@ -679,17 +679,6 @@ class LibraryAnalyzer {
 
     var unitElement = unit.declaredElement as CompilationUnitElementImpl;
 
-    // TODO(scheglov) Hack: set types for top-level variables
-    // Otherwise TypeResolverVisitor will set declared types, and because we
-    // don't run InferStaticVariableTypeTask, we will stuck with these declared
-    // types. And we don't need to run this task - resynthesized elements have
-    // inferred types.
-    for (var e in unitElement.topLevelVariables) {
-      if (!e.isSynthetic) {
-        e.type;
-      }
-    }
-
     unit.accept(
       ResolutionVisitor(
         unitElement: unitElement,
