@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -141,6 +142,7 @@ class ConstantEvaluationEngine {
         var result = evaluateConstructorCall(
             library,
             constNode,
+            element.returnType.typeArguments,
             constNode.arguments!.arguments,
             element,
             constantVisitor,
@@ -272,15 +274,26 @@ class ConstantEvaluationEngine {
   DartObjectImpl? evaluateConstructorCall(
     LibraryElementImpl library,
     AstNode node,
+    List<DartType>? typeArguments,
     List<Expression> arguments,
     ConstructorElement constructor,
     ConstantVisitor constantVisitor,
     ErrorReporter errorReporter, {
     ConstructorInvocation? invocation,
   }) {
-    return _InstanceCreationEvaluator.evaluate(this, _declaredVariables,
-        errorReporter, library, node, constructor, arguments, constantVisitor,
-        isNullSafe: _isNonNullableByDefault, invocation: invocation);
+    return _InstanceCreationEvaluator.evaluate(
+      this,
+      _declaredVariables,
+      errorReporter,
+      library,
+      node,
+      constructor,
+      typeArguments,
+      arguments,
+      constantVisitor,
+      isNullSafe: _isNonNullableByDefault,
+      invocation: invocation,
+    );
   }
 
   /// Generate an error indicating that the given [constant] is not a valid
@@ -430,7 +443,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// The library that contains the constant expression being evaluated.
   final LibraryElementImpl _library;
 
+  /// A mapping of variable names to runtime values.
   final Map<String, DartObjectImpl>? _lexicalEnvironment;
+
+  /// A mapping of type parameter names to runtime values (types).
+  final Map<String, DartType>? _lexicalTypeEnvironment;
+
   final Substitution? _substitution;
 
   /// Error reporter that we use to report errors accumulated while computing
@@ -453,8 +471,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     this._library,
     this._errorReporter, {
     Map<String, DartObjectImpl>? lexicalEnvironment,
+    Map<String, DartType>? lexicalTypeEnvironment,
     Substitution? substitution,
   })  : _lexicalEnvironment = lexicalEnvironment,
+        _lexicalTypeEnvironment = lexicalTypeEnvironment,
         _substitution = substitution {
     _dartObjectComputer = DartObjectComputer(
       typeSystem,
@@ -705,8 +725,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return null;
     }
 
-    return evaluationEngine.evaluateConstructorCall(_library, node,
-        node.argumentList.arguments, constructor, this, _errorReporter);
+    return evaluationEngine.evaluateConstructorCall(
+      _library,
+      node,
+      constructor.returnType.typeArguments,
+      node.argumentList.arguments,
+      constructor,
+      this,
+      _errorReporter,
+    );
   }
 
   @override
@@ -1253,7 +1280,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         TypeState(_typeProvider.neverType),
       );
     } else if (variableElement is TypeParameterElement) {
-      // Constants may not refer to type parameters.
+      // Constants may refer to type parameters only if the constructor-tearoffs
+      // feature is enabled.
+      if (_library.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+        var typeArgument = _lexicalTypeEnvironment?[identifier.name];
+        if (typeArgument != null) {
+          return DartObjectImpl(
+            typeSystem,
+            _typeProvider.typeType,
+            TypeState(typeArgument),
+          );
+        }
+      }
     }
 
     // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
@@ -1926,12 +1964,16 @@ class _InstanceCreationEvaluator {
     _constructor.library as LibraryElementImpl,
     _externalErrorReporter,
     lexicalEnvironment: _parameterMap,
+    lexicalTypeEnvironment: _typeParameterMap,
     substitution: Substitution.fromInterfaceType(definingType),
   );
 
-  final AstNode _node;
+  /// The node used for most error reporting.
+  final AstNode _errorNode;
 
   final ConstructorElement _constructor;
+
+  final List<DartType>? _typeArguments;
 
   final ConstructorInvocation _invocation;
 
@@ -1941,17 +1983,25 @@ class _InstanceCreationEvaluator {
 
   final List<DartObjectImpl> _argumentValues;
 
+  final Map<String, DartType> _typeParameterMap = HashMap();
+
   final Map<String, DartObjectImpl> _parameterMap = HashMap();
 
   final Map<String, DartObjectImpl> _fieldMap = HashMap();
 
-  _InstanceCreationEvaluator.generative(
+  /// Constructor for [_InstanceCreationEvaluator].
+  ///
+  /// This constructor is private, as the entry point for using a
+  /// [_InstanceCreationEvaluator] is the static method,
+  /// [_InstanceCreationEvaluator.evaluate].
+  _InstanceCreationEvaluator._(
     this._evaluationEngine,
     this._declaredVariables,
     this._errorReporter,
     this._library,
-    this._node,
-    this._constructor, {
+    this._errorNode,
+    this._constructor,
+    this._typeArguments, {
     required Map<String, NamedExpression> namedNodes,
     required Map<String, DartObjectImpl> namedValues,
     required List<DartObjectImpl> argumentValues,
@@ -1979,7 +2029,7 @@ class _InstanceCreationEvaluator {
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
         return null;
       }
       String? variableName =
@@ -2004,7 +2054,7 @@ class _InstanceCreationEvaluator {
         argumentCount == 1) {
       if (!_checkSymbolArguments(arguments, isNullSafe: isNullSafe)) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
         return null;
       }
       return DartObjectImpl(
@@ -2028,6 +2078,7 @@ class _InstanceCreationEvaluator {
     // Start with final fields that are initialized at their declaration site.
     _checkFields();
 
+    _checkTypeParameters();
     _checkParameters(arguments);
     var evaluationResult = _checkInitializers();
     if (evaluationResult.evaluationIsComplete) {
@@ -2038,7 +2089,7 @@ class _InstanceCreationEvaluator {
         superArguments: evaluationResult.superArguments);
     if (_externalErrorListener.errorReported) {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
     }
     return DartObjectImpl(
       typeSystem,
@@ -2049,8 +2100,7 @@ class _InstanceCreationEvaluator {
 
   void _checkFields() {
     var fields = _constructor.enclosingElement.fields;
-    for (var i = 0; i < fields.length; i++) {
-      var field = fields[i];
+    for (var field in fields) {
       if ((field.isFinal || field.isConst) &&
           !field.isStatic &&
           field is ConstFieldElementImpl) {
@@ -2067,7 +2117,7 @@ class _InstanceCreationEvaluator {
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-              _node,
+              _errorNode,
               [fieldValue.type, field.name, fieldType]);
         }
         _fieldMap[field.name] = fieldValue;
@@ -2130,7 +2180,7 @@ class _InstanceCreationEvaluator {
           var fieldName = initializer.fieldName.name;
           if (_fieldMap.containsKey(fieldName)) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
           }
           _fieldMap[fieldName] = evaluationResult;
           var getter = definingType.getGetter(fieldName);
@@ -2139,13 +2189,13 @@ class _InstanceCreationEvaluator {
             if (!typeSystem.runtimeTypeMatch(evaluationResult, field.type)) {
               _errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-                  _node,
+                  _errorNode,
                   [evaluationResult.type, fieldName, field.type]);
             }
           }
         } else {
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
         }
       } else if (initializer is SuperConstructorInvocation) {
         var name = initializer.constructorName;
@@ -2162,7 +2212,8 @@ class _InstanceCreationEvaluator {
           constructor = ConstructorMember.from(constructor, definingType);
           var result = _evaluationEngine.evaluateConstructorCall(
               _library,
-              _node,
+              _errorNode,
+              _typeArguments,
               initializer.argumentList.arguments,
               constructor,
               _initializerVisitor,
@@ -2170,7 +2221,7 @@ class _InstanceCreationEvaluator {
               invocation: _invocation);
           if (_externalErrorListener.errorReported) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
           }
           return _InitializersEvaluationResult(result,
               evaluationIsComplete: true);
@@ -2182,7 +2233,7 @@ class _InstanceCreationEvaluator {
             !evaluationResult.isBool ||
             evaluationResult.toBoolValue() == false) {
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
           return _InitializersEvaluationResult(null,
               evaluationIsComplete: true);
         }
@@ -2213,7 +2264,7 @@ class _InstanceCreationEvaluator {
       // No argument node that we can direct error messages to, because we
       // are handling an optional parameter that wasn't specified.  So just
       // direct error messages to the constructor call.
-      errorTarget ??= _node;
+      errorTarget ??= _errorNode;
       if (argumentValue == null && baseParameter is ParameterElementImpl) {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
@@ -2252,7 +2303,7 @@ class _InstanceCreationEvaluator {
             var fieldName = field.name;
             if (_fieldMap.containsKey(fieldName)) {
               _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _node);
+                  CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
             }
             _fieldMap[fieldName] = argumentValue;
           }
@@ -2288,8 +2339,9 @@ class _InstanceCreationEvaluator {
       if (superConstructor.isConst) {
         var evaluationResult = _evaluationEngine.evaluateConstructorCall(
           _library,
-          _node,
-          superArguments ?? astFactory.nodeList(_node),
+          _errorNode,
+          superclass.typeArguments,
+          superArguments ?? astFactory.nodeList(_errorNode),
           superConstructor,
           _initializerVisitor,
           _externalErrorReporter,
@@ -2328,6 +2380,20 @@ class _InstanceCreationEvaluator {
     return _isValidPublicSymbol(name);
   }
 
+  void _checkTypeParameters() {
+    var typeParameters = _constructor.enclosingElement.typeParameters;
+    var typeArguments = _typeArguments;
+    if (typeParameters.isNotEmpty &&
+        typeArguments != null &&
+        typeParameters.length == typeArguments.length) {
+      for (int i = 0; i < typeParameters.length; i++) {
+        var typeParameter = typeParameters[i];
+        var typeArgument = typeArguments[i];
+        _typeParameterMap[typeParameter.name] = typeArgument;
+      }
+    }
+  }
+
   /// Evaluates [node] as an instance creation expression using [constructor].
   static DartObjectImpl? evaluate(
     ConstantEvaluationEngine evaluationEngine,
@@ -2336,6 +2402,7 @@ class _InstanceCreationEvaluator {
     LibraryElementImpl library,
     AstNode node,
     ConstructorElement constructor,
+    List<DartType>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
     required bool isNullSafe,
@@ -2386,13 +2453,14 @@ class _InstanceCreationEvaluator {
 
     constructor = _followConstantRedirectionChain(constructor);
 
-    var evaluator = _InstanceCreationEvaluator.generative(
+    var evaluator = _InstanceCreationEvaluator._(
       evaluationEngine,
       declaredVariables,
       errorReporter,
       library,
       node,
       constructor,
+      typeArguments,
       namedNodes: namedNodes,
       namedValues: namedValues,
       argumentValues: argumentValues,
