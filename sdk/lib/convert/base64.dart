@@ -226,10 +226,10 @@ class Base64Codec extends Codec<List<int>, String> {
 ///
 /// Example:
 /// ```dart
-///  const Base64Encoder base64Encoder = Base64Encoder();
-///  const String sampleText = 'Dart is opensource';
-///  final String encodedSample = base64Encoder.convert(sampleText.codeUnits);
-///  print(encodedSample); // RGFydCBpcyBvcGVuc291cmNl
+/// const Base64Encoder base64Encoder = Base64Encoder();
+/// const String sampleText = 'Dart is opensource';
+/// final String encodedSample = base64Encoder.convert(sampleText.codeUnits);
+/// print(encodedSample); // RGFydCBpcyBvcGVuc291cmNl
 /// ```
 class Base64Encoder extends Converter<List<int>, String> {
   final bool _urlSafe;
