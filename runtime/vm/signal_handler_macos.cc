@@ -91,24 +91,11 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
 }
 
 void SignalHandler::Install(SignalAction action) {
-  struct sigaction act = {};
-  act.sa_handler = NULL;
-  act.sa_sigaction = action;
-  sigemptyset(&act.sa_mask);
-  act.sa_flags = SA_RESTART | SA_SIGINFO;
-  int r = sigaction(SIGPROF, &act, NULL);
-  ASSERT(r == 0);
+  // Nothing to do on MacOS.
 }
 
 void SignalHandler::Remove() {
-  // Ignore future SIGPROF signals because by default SIGPROF will terminate
-  // the process and we may have some signals in flight.
-  struct sigaction act = {};
-  act.sa_handler = SIG_IGN;
-  sigemptyset(&act.sa_mask);
-  act.sa_flags = 0;
-  int r = sigaction(SIGPROF, &act, NULL);
-  ASSERT(r == 0);
+  // Nothing to do on MacOS.
 }
 
 }  // namespace dart

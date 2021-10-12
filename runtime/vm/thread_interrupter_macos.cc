@@ -5,12 +5,15 @@
 #include "platform/globals.h"
 #if defined(DART_HOST_OS_MACOS)
 
-#include <assert.h>      // NOLINT
-#include <errno.h>       // NOLINT
-#include <stdbool.h>     // NOLINT
-#include <sys/sysctl.h>  // NOLINT
-#include <sys/types.h>   // NOLINT
-#include <unistd.h>      // NOLINT
+#include <assert.h>            // NOLINT
+#include <errno.h>             // NOLINT
+#include <mach/kern_return.h>  // NOLINT
+#include <mach/mach.h>         // NOLINT
+#include <mach/thread_act.h>   // NOLINT
+#include <stdbool.h>           // NOLINT
+#include <sys/sysctl.h>        // NOLINT
+#include <sys/types.h>         // NOLINT
+#include <unistd.h>            // NOLINT
 
 #include "vm/flags.h"
 #include "vm/os.h"
@@ -24,70 +27,110 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
-// Returns true if the current process is being debugged (either
-// running under the debugger or has a debugger attached post facto).
-// Code from https://developer.apple.com/library/content/qa/qa1361/_index.html
-bool ThreadInterrupter::IsDebuggerAttached() {
-  struct kinfo_proc info;
-  // Initialize the flags so that, if sysctl fails for some bizarre
-  // reason, we get a predictable result.
-  info.kp_proc.p_flag = 0;
-  // Initialize mib, which tells sysctl the info we want, in this case
-  // we're looking for information about a specific process ID.
-  int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
-  size_t size = sizeof(info);
+#if defined(HOST_ARCH_X64)
+#define THREAD_STATE_FLAVOR x86_THREAD_STATE64
+#define THREAD_STATE_FLAVOR_SIZE x86_THREAD_STATE64_COUNT
+typedef x86_thread_state64_t thread_state_flavor_t;
+#elif defined(HOST_ARCH_ARM64)
+#define THREAD_STATE_FLAVOR ARM_THREAD_STATE64
+#define THREAD_STATE_FLAVOR_SIZE ARM_THREAD_STATE64_COUNT
+typedef arm_thread_state64_t thread_state_flavor_t;
+#elif defined(HOST_ARCH_ARM)
+#define THREAD_STATE_FLAVOR ARM_THREAD_STATE32
+#define THREAD_STATE_FLAVOR_SIZE ARM_THREAD_STATE32_COUNT
+typedef arm_thread_state32_t thread_state_flavor_t;
+#else
+#error "Unsupported architecture."
+#endif  // HOST_ARCH_...
 
-  // Call sysctl.
-  size = sizeof(info);
-  int junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
-  ASSERT(junk == 0);
-  // We're being debugged if the P_TRACED flag is set.
-  return ((info.kp_proc.p_flag & P_TRACED) != 0);
-}
-
-class ThreadInterrupterMacOS : public AllStatic {
+class ThreadInterrupterMacOS {
  public:
-  static void ThreadInterruptSignalHandler(int signal,
-                                           siginfo_t* info,
-                                           void* context_) {
-    if (signal != SIGPROF) {
-      return;
-    }
-    Thread* thread = Thread::Current();
-    if (thread == NULL) {
-      return;
-    }
-    ThreadInterrupter::SampleBufferWriterScope scope;
-    if (!scope.CanSample()) {
-      return;
-    }
-    // Extract thread state.
-    ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
-    mcontext_t mcontext = context->uc_mcontext;
-    InterruptedThreadState its;
-    its.pc = SignalHandler::GetProgramCounter(mcontext);
-    its.fp = SignalHandler::GetFramePointer(mcontext);
-    its.csp = SignalHandler::GetCStackPointer(mcontext);
-    its.dsp = SignalHandler::GetDartStackPointer(mcontext);
-    its.lr = SignalHandler::GetLinkRegister(mcontext);
-    Profiler::SampleThread(thread, its);
+  explicit ThreadInterrupterMacOS(OSThread* os_thread) : os_thread_(os_thread) {
+    ASSERT(os_thread != nullptr);
+    mach_thread_ = pthread_mach_thread_np(os_thread->id());
+    ASSERT(reinterpret_cast<void*>(mach_thread_) != nullptr);
+    res = thread_suspend(mach_thread_);
   }
+
+  void CollectSample() {
+    if (res != KERN_SUCCESS) {
+      return;
+    }
+    auto count = static_cast<mach_msg_type_number_t>(THREAD_STATE_FLAVOR_SIZE);
+    thread_state_flavor_t state;
+    kern_return_t res =
+        thread_get_state(mach_thread_, THREAD_STATE_FLAVOR,
+                         reinterpret_cast<thread_state_t>(&state), &count);
+    ASSERT(res == KERN_SUCCESS);
+    Thread* thread = static_cast<Thread*>(os_thread_->thread());
+    if (thread == nullptr) {
+      return;
+    }
+    Profiler::SampleThread(thread, ProcessState(state));
+  }
+
+  ~ThreadInterrupterMacOS() {
+    if (res != KERN_SUCCESS) {
+      return;
+    }
+    res = thread_resume(mach_thread_);
+    ASSERT(res == KERN_SUCCESS);
+  }
+
+ private:
+  static InterruptedThreadState ProcessState(thread_state_flavor_t state) {
+    InterruptedThreadState its;
+#if defined(HOST_ARCH_X64)
+    its.pc = state.__rip;
+    its.fp = state.__rbp;
+    its.csp = state.__rsp;
+    its.dsp = state.__rsp;
+    its.lr = 0;
+#elif defined(HOST_ARCH_ARM64)
+    its.pc = state.__pc;
+    its.fp = state.__fp;
+    its.csp = state.__sp;
+    its.dsp = state.__sp;
+    its.lr = state.__lr;
+#elif defined(HOST_ARCH_ARM)
+    its.pc = state.__pc;
+    its.fp = state.__fp;
+    its.csp = state.__sp;
+    its.dsp = state.__sp;
+    its.lr = state.__lr;
+#endif  // HOST_ARCH_...
+
+#if defined(TARGET_ARCH_ARM64) && !defined(USING_SIMULATOR)
+    its.dsp = state.__x[SPREG];
+#endif
+    return its;
+  }
+
+  kern_return_t res;
+  OSThread* os_thread_;
+  mach_port_t mach_thread_;
 };
 
-void ThreadInterrupter::InterruptThread(OSThread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* os_thread) {
+  ASSERT(!OSThread::Compare(OSThread::GetCurrentThreadId(), os_thread->id()));
   if (FLAG_trace_thread_interrupter) {
-    OS::PrintErr("ThreadInterrupter interrupting %p\n", thread->id());
+    OS::PrintErr("ThreadInterrupter interrupting %p\n", os_thread->id());
   }
-  int result = pthread_kill(thread->id(), SIGPROF);
-  ASSERT((result == 0) || (result == ESRCH));
+
+  ThreadInterrupter::SampleBufferWriterScope scope;
+  if (!scope.CanSample()) {
+    return;
+  }
+  ThreadInterrupterMacOS interrupter(os_thread);
+  interrupter.CollectSample();
 }
 
 void ThreadInterrupter::InstallSignalHandler() {
-  SignalHandler::Install(&ThreadInterrupterMacOS::ThreadInterruptSignalHandler);
+  // Nothing to do on MacOS.
 }
 
 void ThreadInterrupter::RemoveSignalHandler() {
-  SignalHandler::Remove();
+  // Nothing to do on MacOS.
 }
 
 #endif  // !PRODUCT
