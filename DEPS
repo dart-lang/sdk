@@ -85,7 +85,7 @@ vars = {
   "characters_rev": "6ec389c4dfa8fce14820dc5cbf6e693202e7e052",
   "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
   "chrome_rev" : "19997",
-  "cli_util_rev" : "71ba36e2554f7b7717f3f12b5ddd33751a4e3ddd",
+  "cli_util_rev" : "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "a4c941ab94044d118b2086a3f261c30377604127",
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
