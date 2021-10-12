@@ -14,6 +14,7 @@ import 'missing_whitespace_between_adjacent_strings.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'non_constant_identifier_names.dart' as non_constant_identifier_names;
 import 'null_closures.dart' as null_closures;
+import 'omit_local_variable_types.dart' as omit_local_variable_types;
 import 'overridden_fields.dart' as overridden_fields;
 import 'prefer_asserts_in_initializer_lists.dart'
     as prefer_asserts_in_initializer_lists;
@@ -43,6 +44,7 @@ void main() {
   missing_whitespace_between_adjacent_strings.main();
   non_constant_identifier_names.main();
   null_closures.main();
+  omit_local_variable_types.main();
   overridden_fields.main();
   prefer_asserts_in_initializer_lists.main();
   prefer_collection_literals.main();

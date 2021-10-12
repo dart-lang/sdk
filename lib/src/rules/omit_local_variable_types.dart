@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -99,6 +100,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     _visitVariableDeclarationList(node.variables);
   }
 
+  bool _dependsOnDeclaredTypeForInference(Expression? initializer) {
+    if (initializer is MethodInvocation) {
+      if (initializer.typeArguments == null) {
+        var element = initializer.methodName.staticElement;
+        if (element is FunctionElement) {
+          if (element.returnType is TypeParameterType) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   void _visitVariableDeclarationList(VariableDeclarationList node) {
     var staticType = node.type?.type;
     if (staticType == null ||
@@ -107,7 +122,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     for (var child in node.variables) {
-      if (child.initializer?.staticType != staticType) {
+      var initializer = child.initializer;
+      if (initializer?.staticType != staticType) {
+        return;
+      }
+      if (_dependsOnDeclaredTypeForInference(initializer)) {
         return;
       }
     }
