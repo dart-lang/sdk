@@ -658,6 +658,7 @@ void FUNCTION_NAME(Socket_ReceiveMessage)(Dart_NativeArguments args) {
   int64_t buffer_num_bytes = 0;
   DartUtils::GetInt64Value(ThrowIfError(Dart_GetNativeArgument(args, 1)),
                            &buffer_num_bytes);
+  int64_t buffer_num_bytes_allocated = buffer_num_bytes;
   uint8_t* buffer = nullptr;
   Dart_Handle data = IOBuffer::Allocate(buffer_num_bytes, &buffer);
   if (Dart_IsNull(data)) {
@@ -665,16 +666,21 @@ void FUNCTION_NAME(Socket_ReceiveMessage)(Dart_NativeArguments args) {
   }
   ASSERT(buffer != nullptr);
 
-  OSError os_error;
+  // Can't rely on RAII since Dart_ThrowException won't call destructors.
+  OSError* os_error = new OSError();
   SocketControlMessage* control_messages;
   const intptr_t messages_read = SocketBase::ReceiveMessage(
       socket->fd(), buffer, &buffer_num_bytes, &control_messages,
-      SocketBase::kAsync, &os_error);
+      SocketBase::kAsync, os_error);
   if (messages_read < 0) {
     ASSERT(messages_read == -1);
-    Dart_ThrowException(DartUtils::NewDartOSError(&os_error));
+    Dart_Handle error = DartUtils::NewDartOSError(os_error);
+    delete os_error;
+    Dart_ThrowException(error);
   }
-  if (buffer_num_bytes > 0) {
+  delete os_error;
+  if (buffer_num_bytes > 0 && buffer_num_bytes != buffer_num_bytes_allocated) {
+    // If received fewer than allocated buffer size, truncate buffer.
     uint8_t* new_buffer = nullptr;
     Dart_Handle new_data = IOBuffer::Allocate(buffer_num_bytes, &new_buffer);
     if (Dart_IsNull(new_data)) {
@@ -789,7 +795,8 @@ void FUNCTION_NAME(Socket_SendMessage)(Dart_NativeArguments args) {
         SocketControlMessage(level, type, copied_data, data.size_in_bytes());
   }
 
-  OSError os_error;
+  // Can't rely on RAII since Dart_ThrowException won't call destructors.
+  OSError* os_error = new OSError();
   intptr_t bytes_written;
   {
     Dart_Handle buffer_dart = Dart_GetNativeArgument(args, 1);
@@ -800,12 +807,15 @@ void FUNCTION_NAME(Socket_SendMessage)(Dart_NativeArguments args) {
         reinterpret_cast<uint8_t*>(data.data()) + offset;
     bytes_written = SocketBase::SendMessage(
         socket->fd(), buffer_at_offset, length, control_messages,
-        num_control_messages, SocketBase::kAsync, &os_error);
+        num_control_messages, SocketBase::kAsync, os_error);
   }
 
   if (bytes_written < 0) {
-    Dart_ThrowException(DartUtils::NewDartOSError(&os_error));
+    Dart_Handle error = DartUtils::NewDartOSError(os_error);
+    delete os_error;
+    Dart_ThrowException(error);
   }
+  delete os_error;
 
   Dart_SetIntegerReturnValue(args, bytes_written);
 }

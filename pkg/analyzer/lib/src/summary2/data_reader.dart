@@ -85,6 +85,20 @@ class SummaryDataReader {
     return utf8.decode(bytes);
   }
 
+  List<String> readStringUtf8List() {
+    return readTypedList(readStringUtf8);
+  }
+
+  Set<String> readStringUtf8Set() {
+    var length = readUInt30();
+    var result = <String>{};
+    for (var i = 0; i < length; i++) {
+      var item = readStringUtf8();
+      result.add(item);
+    }
+    return result;
+  }
+
   List<T> readTypedList<T>(T Function() read) {
     var length = readUInt30();
     return List<T>.generate(length, (_) {

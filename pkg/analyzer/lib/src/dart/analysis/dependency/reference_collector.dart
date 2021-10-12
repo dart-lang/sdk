@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -52,7 +54,7 @@ class ReferenceCollector {
 
   /// Construct and return a new [Dependencies] with the given [tokenSignature]
   /// and all recorded references to external nodes in the given AST nodes.
-  Dependencies collect(List<int> tokenSignature,
+  Dependencies collect(Uint8List tokenSignature,
       {String? enclosingClassName,
       String? thisNodeName,
       List<ConstructorInitializer>? constructorInitializers,

@@ -108,13 +108,15 @@ class ApiSignature {
 
   /// For testing only: retrieve the internal representation of the data that
   /// has been collected.
-  List<int> getBytes_forDebug() {
-    return Uint8List.view(_data.buffer, 0, _offset).toList();
+  Uint8List getBytes_forDebug() {
+    return Uint8List.view(_data.buffer, 0, _offset);
   }
 
   /// Return the bytes of the MD5 hash of the data collected so far.
-  List<int> toByteList() {
-    return md5.convert(Uint8List.view(_data.buffer, 0, _offset)).bytes;
+  Uint8List toByteList() {
+    var data = _data.buffer.asUint8List(0, _offset);
+    var bytes = md5.convert(data).bytes;
+    return bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
   }
 
   /// Return a hex-encoded MD5 signature of the data collected so far.
@@ -125,7 +127,7 @@ class ApiSignature {
   /// Return the MD5 hash of the data collected so far as [Uint32List].
   Uint32List toUint32List() {
     var bytes = toByteList();
-    return Uint8List.fromList(bytes).buffer.asUint32List();
+    return bytes.buffer.asUint32List();
   }
 
   /// Ensure that [spaceNeeded] bytes can be added to [_data] at [_offset]

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -31,8 +32,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/either.dart';
@@ -123,13 +122,13 @@ class FileState {
   Set<String>? _definedClassMemberNames;
   Set<String>? _definedTopLevelNames;
   Set<String>? _referencedNames;
-  List<int>? _unlinkedSignature;
+  Uint8List? _unlinkedSignature;
   String? _unlinkedKey;
   String? _informativeKey;
   AnalysisDriverUnlinkedUnit? _driverUnlinkedUnit;
-  List<int>? _apiSignature;
+  Uint8List? _apiSignature;
 
-  UnlinkedUnit2? _unlinked2;
+  UnlinkedUnit? _unlinked2;
 
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
@@ -156,7 +155,7 @@ class FileState {
   );
 
   /// The unlinked API signature of the file.
-  List<int> get apiSignature => _apiSignature!;
+  Uint8List get apiSignature => _apiSignature!;
 
   /// The content of the file.
   String get content => _content!;
@@ -327,11 +326,11 @@ class FileState {
     return librarySignatureBuilder.toHex();
   }
 
-  /// The [UnlinkedUnit2] of the file.
-  UnlinkedUnit2 get unlinked2 => _unlinked2!;
+  /// The [UnlinkedUnit] of the file.
+  UnlinkedUnit get unlinked2 => _unlinked2!;
 
   /// The MD5 signature based on the content, feature sets, language version.
-  List<int> get unlinkedSignature => _unlinkedSignature!;
+  Uint8List get unlinkedSignature => _unlinkedSignature!;
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
@@ -409,12 +408,12 @@ class FileState {
     var bytes = _getUnlinkedBytes();
 
     // Read the unlinked bundle.
-    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _unlinked2 = _driverUnlinkedUnit!.unit2;
+    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBytes(bytes);
+    _unlinked2 = _driverUnlinkedUnit!.unit;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
     // Prepare API signature.
-    var newApiSignature = Uint8List.fromList(_unlinked2!.apiSignature);
+    var newApiSignature = _unlinked2!.apiSignature;
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
@@ -495,25 +494,25 @@ class FileState {
   }
 
   /// Return the bytes of the unlinked summary - existing or new.
-  List<int> _getUnlinkedBytes() {
+  Uint8List _getUnlinkedBytes() {
     var bytes = _fsState._byteStore.get(_unlinkedKey!);
     if (bytes != null && bytes.isNotEmpty) {
-      return bytes;
+      return bytes as Uint8List;
     }
 
     var unit = parse();
     return _fsState._logger.run('Create unlinked for $path', () {
       var unlinkedUnit = serializeAstUnlinked2(unit);
       var definedNames = computeDefinedNames(unit);
-      var referencedNames = computeReferencedNames(unit).toList();
-      var subtypedNames = computeSubtypedNames(unit).toList();
-      var bytes = AnalysisDriverUnlinkedUnitBuilder(
-        unit2: unlinkedUnit,
-        definedTopLevelNames: definedNames.topLevelNames.toList(),
-        definedClassMemberNames: definedNames.classMemberNames.toList(),
+      var referencedNames = computeReferencedNames(unit);
+      var subtypedNames = computeSubtypedNames(unit);
+      var bytes = AnalysisDriverUnlinkedUnit(
+        definedTopLevelNames: definedNames.topLevelNames,
+        definedClassMemberNames: definedNames.classMemberNames,
         referencedNames: referencedNames,
         subtypedNames: subtypedNames,
-      ).toBuffer();
+        unit: unlinkedUnit,
+      ).toBytes();
       _fsState._byteStore.put(_unlinkedKey!, bytes);
       counterUnlinkedBytes += bytes.length;
       counterUnlinkedLinkedBytes += bytes.length;
@@ -584,9 +583,9 @@ class FileState {
     return directive.uri;
   }
 
-  static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
-    var exports = <UnlinkedNamespaceDirectiveBuilder>[];
-    var imports = <UnlinkedNamespaceDirectiveBuilder>[];
+  static UnlinkedUnit serializeAstUnlinked2(CompilationUnit unit) {
+    var exports = <UnlinkedNamespaceDirective>[];
+    var imports = <UnlinkedNamespaceDirective>[];
     var parts = <String>[];
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
@@ -612,19 +611,22 @@ class FileState {
     }
     if (!hasDartCoreImport) {
       imports.add(
-        UnlinkedNamespaceDirectiveBuilder(
+        UnlinkedNamespaceDirective(
+          configurations: [],
           uri: 'dart:core',
         ),
       );
     }
-    return UnlinkedUnit2Builder(
-      apiSignature: computeUnlinkedApiSignature(unit),
+    return UnlinkedUnit(
+      apiSignature: Uint8List.fromList(computeUnlinkedApiSignature(unit)),
       exports: exports,
-      imports: imports,
-      parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
-      lineStarts: unit.lineInfo!.lineStarts,
+      imports: imports,
+      lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
+      partOfName: null,
+      partOfUri: null,
+      parts: parts,
     );
   }
 
@@ -646,13 +648,13 @@ class FileState {
     return true;
   }
 
-  static UnlinkedNamespaceDirectiveBuilder _serializeNamespaceDirective(
+  static UnlinkedNamespaceDirective _serializeNamespaceDirective(
       NamespaceDirective directive) {
-    return UnlinkedNamespaceDirectiveBuilder(
+    return UnlinkedNamespaceDirective(
       configurations: directive.configurations.map((configuration) {
         var name = configuration.name.components.join('.');
         var value = configuration.value?.stringValue ?? '';
-        return UnlinkedNamespaceDirectiveConfigurationBuilder(
+        return UnlinkedNamespaceDirectiveConfiguration(
           name: name,
           value: value,
           uri: configuration.uri.stringValue ?? '',
