@@ -2,54 +2,85 @@ library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
+import "dart:nativewrappers" as nat;
 import "dart:_internal" as _in;
 
 import "dart:ffi";
 import "dart:nativewrappers";
 
 class Classy extends core::Object {
-  static final field (core::int) → core::int _@FfiNative_returnIntPtrStatic = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (core::int) → core::int _returnIntPtrStatic$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
   synthetic constructor •() → self::Classy
     : super core::Object::•()
     ;
-  @#C5
   static method returnIntPtrStatic(core::int x) → core::int
-    return self::Classy::_@FfiNative_returnIntPtrStatic(x){(core::int) → core::int};
+    return self::Classy::_returnIntPtrStatic$FfiNative$Ptr(x){(core::int) → core::int};
 }
-static final field (core::int) → core::int _@FfiNative_returnIntPtr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-static final field (core::int) → core::int _@FfiNative_returnIntPtrLeaf = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
-@#C5
+class NativeClassy extends nat::NativeFieldWrapperClass1 {
+  static final field (ffi::Pointer<ffi::Void>, core::int) → void _goodHasReceiverPointer$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::int) → void, (ffi::Pointer<ffi::Void*>*, ffi::IntPtr*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*, ffi::IntPtr*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (self::NativeClassy, core::int) → void _goodHasReceiverHandle$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, core::int) → void, (ffi::Handle*, ffi::IntPtr*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle*, ffi::IntPtr*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (self::NativeClassy, ffi::Pointer<ffi::Void>) → void _goodHasReceiverHandleAndPtr$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, ffi::Pointer<ffi::Void>) → void, (ffi::Handle*, ffi::Pointer<ffi::Void*>*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle*, ffi::Pointer<ffi::Void*>*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (self::NativeClassy, self::NativeClassy) → void _goodHasReceiverHandleAndHandle$FfiNative$Ptr = ffi::_asFunctionInternal<(self::NativeClassy, self::NativeClassy) → void, (ffi::Handle*, ffi::Handle*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle*, ffi::Handle*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  static final field (ffi::Pointer<ffi::Void>, self::NativeClassy) → void _goodHasReceiverPtrAndHandle$FfiNative$Ptr = ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, self::NativeClassy) → void, (ffi::Pointer<ffi::Void*>*, ffi::Handle*) →* ffi::Void*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void*>*, ffi::Handle*) →* ffi::Void*>*>(ffi::_ffi_resolver(#C1, #C4, #C5){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+  synthetic constructor •() → self::NativeClassy
+    : super nat::NativeFieldWrapperClass1::•()
+    ;
+  method goodHasReceiverPointer(core::int v) → void
+    return self::NativeClassy::_goodHasReceiverPointer$FfiNative(this, v);
+  method goodHasReceiverHandle(core::int v) → void
+    return self::NativeClassy::_goodHasReceiverHandle$FfiNative(this, v);
+  method goodHasReceiverHandleAndPtr(self::NativeClassy v) → void
+    return self::NativeClassy::_goodHasReceiverHandleAndPtr$FfiNative(this, v);
+  method goodHasReceiverHandleAndHandle(self::NativeClassy v) → void
+    return self::NativeClassy::_goodHasReceiverHandleAndHandle$FfiNative(this, v);
+  method goodHasReceiverPtrAndHandle(self::NativeClassy v) → void
+    return self::NativeClassy::_goodHasReceiverPtrAndHandle$FfiNative(this, v);
+  static method /*isLegacy*/ _goodHasReceiverPointer$FfiNative(self::NativeClassy self, core::int v) → dynamic
+    return block {
+      final nat::NativeFieldWrapperClass1 #t1 = self;
+      final core::int #t2 = v;
+      final void #t3 = self::NativeClassy::_goodHasReceiverPointer$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t1)), #t2){(self::NativeClassy, core::int) → void};
+      _in::reachabilityFence(#t1);
+    } =>#t3;
+  static method /*isLegacy*/ _goodHasReceiverHandle$FfiNative(self::NativeClassy self, core::int v) → dynamic
+    return self::NativeClassy::_goodHasReceiverHandle$FfiNative$Ptr(self, v){(self::NativeClassy, core::int) → void};
+  static method /*isLegacy*/ _goodHasReceiverHandleAndPtr$FfiNative(self::NativeClassy self, self::NativeClassy v) → dynamic
+    return block {
+      final self::NativeClassy #t4 = self;
+      final nat::NativeFieldWrapperClass1 #t5 = v;
+      final void #t6 = self::NativeClassy::_goodHasReceiverHandleAndPtr$FfiNative$Ptr(#t4, ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t5))){(self::NativeClassy, self::NativeClassy) → void};
+      _in::reachabilityFence(#t5);
+    } =>#t6;
+  static method /*isLegacy*/ _goodHasReceiverHandleAndHandle$FfiNative(self::NativeClassy self, self::NativeClassy v) → dynamic
+    return self::NativeClassy::_goodHasReceiverHandleAndHandle$FfiNative$Ptr(self, v){(self::NativeClassy, self::NativeClassy) → void};
+  static method /*isLegacy*/ _goodHasReceiverPtrAndHandle$FfiNative(self::NativeClassy self, self::NativeClassy v) → dynamic
+    return block {
+      final nat::NativeFieldWrapperClass1 #t7 = self;
+      final self::NativeClassy #t8 = v;
+      final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t7)), #t8){(self::NativeClassy, self::NativeClassy) → void};
+      _in::reachabilityFence(#t7);
+    } =>#t9;
+}
+static final field (core::int) → core::int _returnIntPtr$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+static final field (core::int) → core::int _returnIntPtrLeaf$FfiNative$Ptr = ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr*) →* ffi::IntPtr*>(ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr*) →* ffi::IntPtr*>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
 static method returnIntPtr(core::int x) → core::int
-  return self::_@FfiNative_returnIntPtr(x){(core::int) → core::int};
-@#C7
+  return self::_returnIntPtr$FfiNative$Ptr(x){(core::int) → core::int};
 static method returnIntPtrLeaf(core::int x) → core::int
-  return self::_@FfiNative_returnIntPtrLeaf(x){(core::int) → core::int};
+  return self::_returnIntPtrLeaf$FfiNative$Ptr(x){(core::int) → core::int};
 static method main() → void {
-  block {
-    core::int #t1;
-    final dynamic #t2 = 13;
-    #t1 = self::returnIntPtr(#t2);
-    _in::reachabilityFence(#t2);
-  } =>#t1;
-  block {
-    core::int #t3;
-    final dynamic #t4 = 37;
-    #t3 = self::returnIntPtrLeaf(#t4);
-    _in::reachabilityFence(#t4);
-  } =>#t3;
-  block {
-    core::int #t5;
-    final dynamic #t6 = 222;
-    #t5 = self::Classy::returnIntPtrStatic(#t6);
-    _in::reachabilityFence(#t6);
-  } =>#t5;
+  self::returnIntPtr(13);
+  self::returnIntPtrLeaf(37);
+  self::Classy::returnIntPtrStatic(222);
+  new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverPointer}(175){(core::int) → void};
+  new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverHandle}(175){(core::int) → void};
+  new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverHandleAndPtr}(new self::NativeClassy::•()){(self::NativeClassy) → void};
+  new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverHandleAndHandle}(new self::NativeClassy::•()){(self::NativeClassy) → void};
+  new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverPtrAndHandle}(new self::NativeClassy::•()){(self::NativeClassy) → void};
 }
 constants  {
   #C1 = "#lib"
   #C2 = "ReturnIntPtr"
   #C3 = 1
-  #C4 = false
-  #C5 = ffi::FfiNative<(ffi::IntPtr*) →* ffi::IntPtr*> {nativeName:#C2, isLeaf:#C4}
-  #C6 = true
-  #C7 = ffi::FfiNative<(ffi::IntPtr*) →* ffi::IntPtr*> {nativeName:#C2, isLeaf:#C6}
+  #C4 = "doesntmatter"
+  #C5 = 2
 }

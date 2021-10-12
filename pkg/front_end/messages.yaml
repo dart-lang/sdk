@@ -4672,9 +4672,24 @@ FfiLeafCallMustNotReturnHandle:
   problemMessage: "FFI leaf call must not have Handle return type."
   external: test/ffi_test.dart
 
-FfiNativeAnnotationMustAnnotateStatic:
+FfiNativeUnexpectedNumberOfParametersWithReceiver:
   # Used by dart:ffi
-  problemMessage: "FfiNative annotations can only be used on static functions."
+  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument."
+  external: test/ffi_test.dart
+
+FfiNativeUnexpectedNumberOfParameters:
+  # Used by dart:ffi
+  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2."
+  external: test/ffi_test.dart
+
+FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
+  # Used by dart:ffi
+  problemMessage: "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer."
+  external: test/ffi_test.dart
+
+FfiNativeMustBeExternal:
+  # Used by dart:ffi
+  problemMessage: "FfiNative functions must be marked external."
   external: test/ffi_test.dart
 
 SpreadTypeMismatch:

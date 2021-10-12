@@ -5,8 +5,9 @@
 import 'dart:io';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 
@@ -30,11 +31,15 @@ runTestCase(Uri source) async {
   Component component = await compileTestCaseToKernelProgram(source,
       target: target, experimentalFlags: ['generic-metadata']);
 
-  final ReferenceFromIndex? referenceFromIndex = null;
-  final DiagnosticReporter diagnosticReporter = TestDiagnosticReporter();
+  final coreTypes = CoreTypes(component);
 
   transformLibraries(
-      component, component.libraries, diagnosticReporter, referenceFromIndex);
+      component,
+      coreTypes,
+      ClassHierarchy(component, coreTypes),
+      component.libraries,
+      TestDiagnosticReporter(),
+      /*referenceFromIndex=*/ null);
 
   verifyComponent(component);
 

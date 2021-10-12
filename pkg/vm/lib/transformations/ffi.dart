@@ -235,7 +235,7 @@ class FfiTransformer extends Transformer {
   final Class structClass;
   final Class unionClass;
   final Class ffiNativeClass;
-  final Class nativeFieldWrapperClass;
+  final Class nativeFieldWrapperClass1Class;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
   final Field ffiStructLayoutPackingField;
@@ -291,9 +291,9 @@ class FfiTransformer extends Transformer {
   final Procedure getNativeFieldFunction;
   final Procedure reachabilityFenceFunction;
 
-  late final DartType nativeFieldWrapperClassType;
-  late final DartType voidType;
-  late final DartType pointerType;
+  late final InterfaceType nativeFieldWrapperClass1Type;
+  late final InterfaceType voidType;
+  late final InterfaceType pointerVoidType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
@@ -355,7 +355,7 @@ class FfiTransformer extends Transformer {
         structClass = index.getClass('dart:ffi', 'Struct'),
         unionClass = index.getClass('dart:ffi', 'Union'),
         ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
-        nativeFieldWrapperClass =
+        nativeFieldWrapperClass1Class =
             index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
         ffiStructLayoutTypesField =
@@ -471,11 +471,11 @@ class FfiTransformer extends Transformer {
             'dart:nativewrappers', '_getNativeField'),
         reachabilityFenceFunction =
             index.getTopLevelProcedure('dart:_internal', 'reachabilityFence') {
-    nativeFieldWrapperClassType =
-        nativeFieldWrapperClass.getThisType(coreTypes, Nullability.nonNullable);
+    nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
+        coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid.index]
         .getThisType(coreTypes, Nullability.nonNullable);
-    pointerType =
+    pointerVoidType =
         InterfaceType(pointerClass, Nullability.nonNullable, [voidType]);
   }
 

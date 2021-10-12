@@ -13760,10 +13760,28 @@ FfiCode:
     problemMessage: "'Array's must have exactly one 'Array' annotation."
     correctionMessage: Try removing the extra annotation.
     comment: No parameters.
-  FFI_NATIVE_ONLY_STATIC:
-    problemMessage: FfiNative annotations can only be used on static functions.
-    correctionMessage: Change the method to static.
+  FFI_NATIVE_MUST_BE_EXTERNAL:
+    problemMessage: FfiNative functions must be declared external.
+    correctionMessage: Add the `external` keyword to the function.
     comment: No parameters.
+  FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
+    problemMessage: Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.
+    correctionMessage: Pass as Handle instead.
+    comment: No parameters.
+  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
+    problemMessage: Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}.
+    correctionMessage: Make sure parameters match the function annotated.
+    comment: |-
+      Parameters:
+      0: the expected number of parameters
+      1: the actual number of parameters
+  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
+    problemMessage: Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}. FfiNative instance method annotation must have receiver as first argument.
+    correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
+    comment: |-
+      Parameters:
+      0: the expected number of parameters
+      1: the actual number of parameters
   FIELD_INITIALIZER_IN_STRUCT:
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.

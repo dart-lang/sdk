@@ -276,29 +276,135 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (Annotation annotation in annotations) {
-      if (annotation.name.name == _ffiNativeName) {
-        // All FFI Natives must be static.
-        final isStatic = (node is FunctionDeclaration) ||
-            ((node is MethodDeclaration) && node.isStatic);
-        if (!isStatic) {
+      if (annotation.name.name != _ffiNativeName) {
+        continue;
+      }
+
+      final NodeList<Expression> arguments = annotation.arguments!.arguments;
+      final NodeList<TypeAnnotation> typeArguments =
+          annotation.typeArguments!.arguments;
+
+      final ffiSignature = typeArguments[0].type! as FunctionType;
+
+      // Leaf call FFI Natives can't use Handles.
+      _validateFfiLeafCallUsesNoHandles(arguments, ffiSignature, node);
+
+      if (node is MethodDeclaration) {
+        if (!node.declaredElement!.isExternal) {
           _errorReporter.reportErrorForNode(
-              FfiCode.FFI_NATIVE_ONLY_STATIC, node);
+              FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, node);
         }
-        // Leaf call FFI Natives can't use Handles.
-        ArgumentList? argumentList = annotation.arguments;
-        if (argumentList != null) {
-          NodeList<Expression> arguments = argumentList.arguments;
-          TypeArgumentList? typeArgumentList = annotation.typeArguments;
-          if (typeArgumentList != null) {
-            NodeList<TypeAnnotation> typeArguments = typeArgumentList.arguments;
-            if (typeArguments.isNotEmpty && typeArguments[0].type != null) {
-              _validateFfiLeafCallUsesNoHandles(
-                  arguments, typeArguments[0].type!, node);
+
+        List<DartType> ffiParameterTypes;
+        if (!node.isStatic) {
+          // Instance methods must have the receiver as an extra parameter in the
+          // FfiNative annotation.
+          if (node.parameters!.parameters.length + 1 !=
+              ffiSignature.parameters.length) {
+            _errorReporter.reportErrorForNode(
+                FfiCode
+                    .FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
+                node,
+                [
+                  node.parameters!.parameters.length + 1,
+                  ffiSignature.parameters.length
+                ]);
+            return;
+          }
+
+          // Receiver can only be Pointer if the class extends
+          // NativeFieldWrapperClass1.
+          if (ffiSignature.normalParameterTypes[0].isPointer) {
+            final cls = node.declaredElement!.enclosingElement as ClassElement;
+            if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
+              _errorReporter.reportErrorForNode(
+                  FfiCode
+                      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
+                  node);
+            }
+          }
+
+          ffiParameterTypes = ffiSignature.normalParameterTypes.sublist(1);
+        } else {
+          // Number of parameters in the FfiNative annotation must match the
+          // annotated declaration.
+          if (node.parameters!.parameters.length !=
+              ffiSignature.parameters.length) {
+            _errorReporter.reportErrorForNode(
+                FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, node, [
+              ffiSignature.parameters.length,
+              node.parameters!.parameters.length
+            ]);
+            return;
+          }
+
+          ffiParameterTypes = ffiSignature.normalParameterTypes;
+        }
+
+        // Arguments can only be Pointer if the class extends
+        // NativeFieldWrapperClass1.
+        for (var i = 0; i < node.parameters!.parameters.length; i++) {
+          if (ffiParameterTypes[i].isPointer) {
+            final type = node.parameters!.parameters[i].declaredElement!.type;
+            if (!_extendsNativeFieldWrapperClass1(type as InterfaceType)) {
+              _errorReporter.reportErrorForNode(
+                  FfiCode
+                      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
+                  node);
+            }
+          }
+        }
+
+        continue;
+      }
+
+      if (node is FunctionDeclaration) {
+        if (!node.declaredElement!.isExternal) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, node);
+        }
+
+        // Number of parameters in the FfiNative annotation must match the
+        // annotated declaration.
+        if (node.functionExpression.parameters!.parameters.length !=
+            ffiSignature.parameters.length) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, node, [
+            ffiSignature.parameters.length,
+            node.functionExpression.parameters!.parameters.length
+          ]);
+          return;
+        }
+
+        // Arguments can only be Pointer if the class extends
+        // NativeFieldWrapperClass1.
+        for (var i = 0;
+            i < node.functionExpression.parameters!.parameters.length;
+            i++) {
+          if (ffiSignature.normalParameterTypes[i].isPointer) {
+            final type = node.functionExpression.parameters!.parameters[i]
+                .declaredElement!.type;
+            if (!_extendsNativeFieldWrapperClass1(type as InterfaceType)) {
+              _errorReporter.reportErrorForNode(
+                  FfiCode
+                      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
+                  node);
             }
           }
         }
       }
     }
+  }
+
+  bool _extendsNativeFieldWrapperClass1(InterfaceType? type) {
+    while (type != null) {
+      if (type.getDisplayString(withNullability: false) ==
+          'NativeFieldWrapperClass1') {
+        return true;
+      }
+      type = type.element.supertype;
+    }
+    return false;
   }
 
   /// Returns `true` if [nativeType] is a C type that has a size.
@@ -639,27 +745,26 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   void _validateFfiLeafCallUsesNoHandles(
       NodeList<Expression> args, DartType nativeType, AstNode errorNode) {
-    if (args.isNotEmpty) {
-      for (final arg in args) {
-        if (arg is NamedExpression) {
-          if (arg.element?.name == _isLeafParamName) {
-            // Handles are ok for regular (non-leaf) calls. Check `isLeaf:true`.
-            final bool? isLeaf = _maybeGetBoolConstValue(arg.expression);
-            if (isLeaf != null && isLeaf) {
-              if (nativeType is FunctionType) {
-                if (_primitiveNativeType(nativeType.returnType) ==
-                    _PrimitiveDartType.handle) {
-                  _errorReporter.reportErrorForNode(
-                      FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, errorNode);
-                }
-                for (final param in nativeType.normalParameterTypes) {
-                  if (_primitiveNativeType(param) ==
-                      _PrimitiveDartType.handle) {
-                    _errorReporter.reportErrorForNode(
-                        FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
-                  }
-                }
-              }
+    if (args.isEmpty) {
+      return;
+    }
+    for (final arg in args) {
+      if (arg is! NamedExpression || arg.element?.name != _isLeafParamName) {
+        continue;
+      }
+      // Handles are ok for regular (non-leaf) calls. Check `isLeaf:true`.
+      final bool? isLeaf = _maybeGetBoolConstValue(arg.expression);
+      if (isLeaf != null && isLeaf) {
+        if (nativeType is FunctionType) {
+          if (_primitiveNativeType(nativeType.returnType) ==
+              _PrimitiveDartType.handle) {
+            _errorReporter.reportErrorForNode(
+                FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, errorNode);
+          }
+          for (final param in nativeType.normalParameterTypes) {
+            if (_primitiveNativeType(param) == _PrimitiveDartType.handle) {
+              _errorReporter.reportErrorForNode(
+                  FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
             }
           }
         }
