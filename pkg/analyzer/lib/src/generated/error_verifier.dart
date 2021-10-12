@@ -2269,10 +2269,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
+    // It is safe to assume that `directive.uri.stringValue` is non-`null`,
+    // because the only time it is `null` is if the URI contains a string
+    // interpolation, in which case the export would never have resolved in the
+    // first place.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
         directive,
-        [directive.uri]);
+        [directive.uri.stringValue!]);
   }
 
   /// See [CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL].

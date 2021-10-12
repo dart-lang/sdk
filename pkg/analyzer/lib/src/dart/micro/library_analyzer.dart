@@ -565,9 +565,13 @@ class LibraryAnalyzer {
             directive.prefix?.staticElement = importElement.prefix;
             var source = importElement.importedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
+              // It is safe to assume that `directive.uri.stringValue` is
+              // non-`null`, because the only time it is `null` is if the URI
+              // contains a string interpolation, in which case the import
+              // would never have resolved in the first place.
               ErrorCode errorCode = CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
               libraryErrorReporter.reportErrorForNode(
-                  errorCode, directive.uri, [directive.uri]);
+                  errorCode, directive.uri, [directive.uri.stringValue!]);
             }
           }
         }
@@ -577,10 +581,14 @@ class LibraryAnalyzer {
             directive.element = exportElement;
             var source = exportElement.exportedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
+              // It is safe to assume that `directive.uri.stringValue` is
+              // non-`null`, because the only time it is `null` is if the URI
+              // contains a string interpolation, in which case the export
+              // would never have resolved in the first place.
               libraryErrorReporter.reportErrorForNode(
                   CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
                   directive.uri,
-                  [directive.uri]);
+                  [directive.uri.stringValue!]);
             }
           }
         }
