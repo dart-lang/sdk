@@ -10,7 +10,12 @@ import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/types.dart' show Types;
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart'
+    show
+        FreshTypeParameters,
+        Substitution,
+        getFreshTypeParameters,
+        updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
@@ -1287,16 +1292,34 @@ class SourceClassBuilder extends ClassBuilderImpl
     } else if (declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
+
+      // Since the bound of `interfaceFunction!.parameter[i]` may have changed
+      // during substitution, it can affect the nullabilities of the types in
+      // the substitution map. The first parameter to
+      // [TypeParameterType.forAlphaRenaming] should be updated to account for
+      // the change.
+      List<TypeParameter> interfaceTypeParameters;
+      if (interfaceSubstitution == null) {
+        interfaceTypeParameters = interfaceFunction!.typeParameters;
+      } else {
+        FreshTypeParameters freshTypeParameters =
+            getFreshTypeParameters(interfaceFunction!.typeParameters);
+        interfaceTypeParameters = freshTypeParameters.freshTypeParameters;
+        for (TypeParameter parameter in interfaceTypeParameters) {
+          parameter.bound =
+              interfaceSubstitution.substituteType(parameter.bound);
+        }
+        updateBoundNullabilities(interfaceTypeParameters);
+      }
       for (int i = 0; i < declaredFunction!.typeParameters.length; ++i) {
-        substitutionMap[interfaceFunction!.typeParameters[i]] =
+        substitutionMap[interfaceFunction.typeParameters[i]] =
             new TypeParameterType.forAlphaRenaming(
-                interfaceFunction.typeParameters[i],
-                declaredFunction.typeParameters[i]);
+                interfaceTypeParameters[i], declaredFunction.typeParameters[i]);
       }
       Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
-        TypeParameter interfaceParameter = interfaceFunction!.typeParameters[i];
+        TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];
         if (!interfaceParameter.isCovariantByClass) {
           DartType declaredBound = declaredParameter.bound;
           DartType interfaceBound = interfaceParameter.bound;
