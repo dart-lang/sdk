@@ -602,6 +602,7 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
         ..onChange.listen((_) {
           _snapshotA = _loadedSnapshots[s.selectedIndex];
           selection = null;
+          diffSelection = null;
           _r.dirty();
         })
     ];
@@ -622,6 +623,7 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
         ..onChange.listen((_) {
           _snapshotB = _loadedSnapshots[s.selectedIndex];
           selection = null;
+          diffSelection = null;
           _r.dirty();
         })
     ];
