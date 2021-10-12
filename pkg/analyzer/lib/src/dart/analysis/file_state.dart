@@ -341,7 +341,7 @@ class FileState {
   }
 
   Uint8List getInformativeBytes({CompilationUnit? unit}) {
-    var bytes = _fsState._byteStore.get(_informativeKey!) as Uint8List?;
+    var bytes = _fsState._byteStore.get(_informativeKey!);
     if (bytes == null) {
       unit ??= parse();
       bytes = writeUnitInformative(unit);
@@ -497,7 +497,7 @@ class FileState {
   Uint8List _getUnlinkedBytes() {
     var bytes = _fsState._byteStore.get(_unlinkedKey!);
     if (bytes != null && bytes.isNotEmpty) {
-      return bytes as Uint8List;
+      return bytes;
     }
 
     var unit = parse();

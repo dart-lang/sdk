@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:collection/collection.dart';
 
 class CacheData {
   final int id;
-  final List<int> bytes;
+  final Uint8List bytes;
 
   CacheData(this.id, this.bytes);
 }
@@ -25,11 +27,11 @@ abstract class CiderByteStore {
   /// [signature].
   ///
   /// Return `null` if the association does not exist.
-  CacheData? get(String key, List<int> signature);
+  CacheData? get(String key, Uint8List signature);
 
   /// Associate the given [bytes] with the [key] and [signature]. Return the
   /// [CacheData].
-  CacheData putGet(String key, List<int> signature, List<int> bytes);
+  CacheData putGet(String key, Uint8List signature, Uint8List bytes);
 
   ///  Used to decrement reference count for the given ids, if implemented.
   void release(Iterable<int> ids);
@@ -51,7 +53,7 @@ class CiderCachedByteStore implements CiderByteStore {
             maxCacheSize, (v) => v.data.bytes.length);
 
   @override
-  CacheData? get(String key, List<int> signature) {
+  CacheData? get(String key, Uint8List signature) {
     var entry = _cache.get(key, () => null);
 
     if (entry != null &&
@@ -62,7 +64,7 @@ class CiderCachedByteStore implements CiderByteStore {
   }
 
   @override
-  CacheData putGet(String key, List<int> signature, List<int> bytes) {
+  CacheData putGet(String key, Uint8List signature, Uint8List bytes) {
     idCounter++;
     var entry = CiderCacheEntry(signature, CacheData(idCounter, bytes));
     _cache.put(key, entry);
@@ -78,7 +80,7 @@ class CiderCachedByteStore implements CiderByteStore {
 
 class CiderCacheEntry {
   final CacheData data;
-  final List<int> signature;
+  final Uint8List signature;
 
   CiderCacheEntry(this.signature, this.data);
 }

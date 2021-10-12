@@ -83,7 +83,7 @@ class FileState {
   final List<FileState> libraryFiles = [];
   FileState? partOfLibrary;
 
-  late List<int> _digest;
+  late Uint8List _digest;
   late bool _exists;
   late List<int> _apiSignature;
   late UnlinkedUnit2 unlinked2;
@@ -226,7 +226,7 @@ class FileState {
     performance.getDataInt('count').increment();
 
     performance.run('digest', (_) {
-      _digest = utf8.encode(_fsState.getFileDigest(path));
+      _digest = utf8.encode(_fsState.getFileDigest(path)) as Uint8List;
       _exists = _digest.isNotEmpty;
     });
 
@@ -235,8 +235,8 @@ class FileState {
 
     // Prepare bytes of the unlinked bundle - existing or new.
     // TODO(migration): should not be nullable
-    List<int>? unlinkedBytes;
-    List<int>? informativeBytes;
+    Uint8List? unlinkedBytes;
+    Uint8List? informativeBytes;
     {
       var unlinkedData = _fsState._byteStore.get(unlinkedKey, _digest);
       var informativeData = _fsState._byteStore.get(informativeKey, _digest);

@@ -1318,7 +1318,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         late CompilationUnit resolvedUnit;
         for (FileState unitFile in results.keys) {
           UnitAnalysisResult unitResult = results[unitFile]!;
-          List<int> unitBytes =
+          var unitBytes =
               _serializeResolvedUnit(unitResult.unit, unitResult.errors);
           String unitSignature = _getResolvedUnitSignature(library, unitFile);
           String unitKey = _getResolvedUnitKey(unitSignature);
