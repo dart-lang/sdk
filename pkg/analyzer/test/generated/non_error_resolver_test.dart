@@ -2358,28 +2358,6 @@ class B extends A {
 ''');
   }
 
-  test_nativeConstConstructor() async {
-    await assertErrorsInCode(r'''
-import 'dart-ext:x';
-class Foo {
-  const Foo() native 'Foo_Foo';
-  const factory Foo.foo() native 'Foo_Foo_foo';
-}
-''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
-      error(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 47, 6),
-    ]);
-  }
-
-  test_nativeFunctionBodyInNonSDKCode_function() async {
-    await assertErrorsInCode(r'''
-import 'dart-ext:x';
-int m(a) native 'string';
-''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
-    ]);
-  }
-
   test_newWithAbstractClass_factory() async {
     await assertNoErrorsInCode(r'''
 abstract class A {

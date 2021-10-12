@@ -619,7 +619,7 @@ class C {
     expect(file.unlinked2, isNotNull);
 
     // Make the unlinked unit in the byte store zero-length, damaged.
-    byteStore.put(file.test.unlinkedKey, <int>[]);
+    byteStore.put(file.test.unlinkedKey, Uint8List(0));
 
     // Refresh should not fail, zero bytes in the store are ignored.
     file.refresh();

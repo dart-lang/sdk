@@ -100,7 +100,9 @@ When `sendLogsToClient` in the launch/attach arguments is `true`, debug logging 
 {
 	"type": "event",
 	"event": "dart.log",
-	"body": "<log message or json string>"
+	"body": {
+		"message": "<log message or json string>"
+	}
 }
 ```
 

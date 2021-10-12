@@ -48,10 +48,6 @@ class DartUriResolver extends UriResolver {
   /// The name of the `dart` scheme.
   static String DART_SCHEME = "dart";
 
-  /// The prefix of a URI using the dart-ext scheme to reference a native code
-  /// library.
-  static const String _DART_EXT_SCHEME = "dart-ext:";
-
   /// The Dart SDK against which URI's are to be resolved.
   final DartSdk _sdk;
 
@@ -77,13 +73,6 @@ class DartUriResolver extends UriResolver {
     var dartSource = _sdk.fromFileUri(source.uri);
     return dartSource?.uri;
   }
-
-  /// Return `true` if the given URI is a `dart-ext:` URI.
-  ///
-  /// @param uriContent the textual representation of the URI being tested
-  /// @return `true` if the given URI is a `dart-ext:` URI
-  static bool isDartExtUri(String? uriContent) =>
-      uriContent != null && uriContent.startsWith(_DART_EXT_SCHEME);
 
   /// Return `true` if the given URI is a `dart:` URI.
   ///

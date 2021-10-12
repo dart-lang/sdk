@@ -122,7 +122,7 @@ class LibraryContext {
       }
 
       var resolutionKey = cycle.transitiveSignature + '.linked_bundle';
-      var resolutionBytes = byteStore.get(resolutionKey) as Uint8List?;
+      var resolutionBytes = byteStore.get(resolutionKey);
 
       if (resolutionBytes == null) {
         librariesLinkedTimer.start();

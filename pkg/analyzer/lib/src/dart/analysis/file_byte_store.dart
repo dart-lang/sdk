@@ -41,10 +41,10 @@ class EvictingFileByteStore implements ByteStore {
   }
 
   @override
-  List<int>? get(String key) => _fileByteStore.get(key);
+  Uint8List? get(String key) => _fileByteStore.get(key);
 
   @override
-  void put(String key, List<int> bytes) {
+  void put(String key, Uint8List bytes) {
     _fileByteStore.put(key, bytes);
     // Update the current size.
     _bytesWrittenSinceCleanup += bytes.length;
@@ -146,7 +146,7 @@ class FileByteStore implements ByteStore {
 
   final String _cachePath;
   final String _tempSuffix;
-  final Map<String, List<int>> _writeInProgress = {};
+  final Map<String, Uint8List> _writeInProgress = {};
   final FuturePool _pool = FuturePool(20);
 
   /// If the same cache path is used from more than one isolate of the same
@@ -156,7 +156,7 @@ class FileByteStore implements ByteStore {
             '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
   @override
-  List<int>? get(String key) {
+  Uint8List? get(String key) {
     if (!_canShard(key)) return null;
 
     var bytes = _writeInProgress[key];
@@ -176,7 +176,7 @@ class FileByteStore implements ByteStore {
   }
 
   @override
-  void put(String key, List<int> bytes) {
+  void put(String key, Uint8List bytes) {
     if (!_canShard(key)) return;
 
     _writeInProgress[key] = bytes;
@@ -225,7 +225,7 @@ class FileByteStoreValidator {
 
   /// If the [rawBytes] have the valid version and checksum, extract and
   /// return the data from it. Otherwise return `null`.
-  List<int>? getData(List<int> rawBytes) {
+  Uint8List? getData(Uint8List rawBytes) {
     // There must be at least the version and the checksum in the raw bytes.
     if (rawBytes.length < 4) {
       return null;
@@ -238,7 +238,7 @@ class FileByteStoreValidator {
     }
 
     // Check the checksum of the data.
-    List<int> data = rawBytes.sublist(0, len);
+    var data = rawBytes.sublist(0, len);
     int checksum = fletcher16(data);
     if (rawBytes[len + 2] != checksum & 0xFF ||
         rawBytes[len + 3] != (checksum >> 8) & 0xFF) {
@@ -251,7 +251,7 @@ class FileByteStoreValidator {
 
   /// Return bytes that include the given [data] plus the current version and
   /// the checksum of the [data].
-  List<int> wrapData(List<int> data) {
+  Uint8List wrapData(Uint8List data) {
     int len = data.length;
     var bytes = Uint8List(len + 4);
 

@@ -13204,6 +13204,30 @@ CompileTimeErrorCode:
 
       var zero = min(0, 0);
       ```
+  USE_OF_NATIVE_EXTENSION:
+    problemMessage: Dart native extensions are deprecated and aren’t available in Dart 2.15.
+    correctionMessage: "Try using dart:ffi for C interop."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library is imported using the
+      `dart-ext` scheme.
+
+      #### Example
+
+      The following code produces this diagnostic because the native library `x`
+      is being imported using a scheme of `dart-ext`:
+
+      ```dart
+      import [!'dart-ext:x'!];
+      ```
+
+      #### Common fixes
+
+      Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
+      native library.
   USE_OF_VOID_RESULT:
     problemMessage: "This expression has a type of 'void' so its value can't be used."
     correctionMessage: "Try checking to see if you're using the correct API; there might be a function or call that returns void you didn't expect. Also check type parameters and variables which might also be void."
@@ -17272,31 +17296,6 @@ HintCode:
 
       var x = min(0, 1);
       ```
-  USE_OF_NATIVE_EXTENSION:
-    problemMessage: Dart native extensions are deprecated and aren’t available in Dart 2.15.
-    correctionMessage: "Try using dart:ffi for C interop."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a library is imported using the
-      `dart-ext` scheme.
-
-      #### Example
-
-      The following code produces this diagnostic because the native library `x`
-      is being imported using a scheme of `dart-ext`:
-
-      ```dart
-      [!import 'dart-ext:x';!]
-      int f() native 'string';
-      ```
-
-      #### Common fixes
-
-      Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
-      native library.
 LanguageCode:
   IMPLICIT_DYNAMIC_FIELD:
     problemMessage: "Missing field type for '{0}'."

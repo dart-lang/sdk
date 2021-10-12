@@ -3866,35 +3866,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a library is imported using the
-  // `dart-ext` scheme.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the native library `x`
-  // is being imported using a scheme of `dart-ext`:
-  //
-  // ```dart
-  // [!import 'dart-ext:x';!]
-  // int f() native 'string';
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
-  // native library.
-  static const HintCode USE_OF_NATIVE_EXTENSION = HintCode(
-    'USE_OF_NATIVE_EXTENSION',
-    "Dart native extensions are deprecated and aren’t available in Dart 2.15.",
-    correctionMessage: "Try using dart:ffi for C interop.",
-    hasPublishedDocs: true,
-  );
-
   /// Initialize a newly created error code to have the given [name].
   const HintCode(
     String name,

@@ -1666,10 +1666,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  void _logTraffic(String data) {
-    logger?.call(data);
+  void _logTraffic(String message) {
+    logger?.call(message);
     if (sendLogsToClient) {
-      sendEvent(RawEventBody(data), eventType: 'dart.log');
+      sendEvent(RawEventBody({"message": message}), eventType: 'dart.log');
     }
   }
 

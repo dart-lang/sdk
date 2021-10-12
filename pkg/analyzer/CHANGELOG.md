@@ -1,6 +1,7 @@
 ## 2.6.0-dev
 * Deprecated `AnalysisResult.state`, check for specific valid or invalid subtypes.
 * Deprecated `ResultState`.
+* Deprecated `LibraryElement.hasExtUri`, FFI should be used instead.
 
 ## 2.5.0
 * Updated `MockSdk` to include more declarations.

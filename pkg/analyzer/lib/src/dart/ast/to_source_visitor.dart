@@ -604,6 +604,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    _visitNode(node.expression);
+    _visitNode(node.typeArguments);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('import ');

@@ -898,7 +898,7 @@ class _LibraryContext {
           BundleReader(
             elementFactory: elementFactory,
             unitsInformativeBytes: unitsInformativeBytes,
-            resolutionBytes: resolutionBytes as Uint8List,
+            resolutionBytes: resolutionBytes,
           ),
         );
       }

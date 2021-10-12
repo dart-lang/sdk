@@ -5803,6 +5803,69 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   }
 }
 
+class ImplicitCallReferenceImpl extends ExpressionImpl
+    implements ImplicitCallReference {
+  ExpressionImpl _expression;
+
+  TypeArgumentListImpl? _typeArguments;
+
+  @override
+  List<DartType> typeArgumentTypes;
+
+  @override
+  MethodElement staticElement;
+
+  ImplicitCallReferenceImpl(
+    this._expression, {
+    required this.staticElement,
+    required TypeArgumentListImpl? typeArguments,
+    required this.typeArgumentTypes,
+  }) : _typeArguments = typeArguments {
+    _becomeParentOf(_expression);
+    _becomeParentOf(_typeArguments);
+  }
+
+  @override
+  Token get beginToken => expression.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(expression)
+    ..add(typeArguments);
+
+  @override
+  Token get endToken => typeArguments?.endToken ?? expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl value) {
+    _expression = _becomeParentOf(value);
+  }
+
+  @override
+  Precedence get precedence =>
+      typeArguments == null ? expression.precedence : Precedence.postfix;
+
+  @override
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  set typeArguments(TypeArgumentListImpl? value) {
+    _typeArguments = _becomeParentOf(value);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitImplicitCallReference(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+    typeArguments?.accept(visitor);
+  }
+}
+
 /// An import directive.
 ///
 ///    importDirective ::=
@@ -10466,10 +10529,6 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
 ///      | [PartDirective]
 abstract class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
-  /// The prefix of a URI using the `dart-ext` scheme to reference a native code
-  /// library.
-  static const String _DART_EXT_SCHEME = "dart-ext:";
-
   /// The URI referenced by this directive.
   StringLiteralImpl _uri;
 
@@ -10518,9 +10577,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     if (uriContent.isEmpty) {
       return null;
     }
-    if (isImport && uriContent.startsWith(_DART_EXT_SCHEME)) {
-      return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
-    }
     Uri uri;
     try {
       uri = Uri.parse(Uri.encodeFull(uriContent));
@@ -10540,9 +10596,6 @@ class UriValidationCode {
 
   static const UriValidationCode URI_WITH_INTERPOLATION =
       UriValidationCode('URI_WITH_INTERPOLATION');
-
-  static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
   /// The name of the validation code.
   final String name;

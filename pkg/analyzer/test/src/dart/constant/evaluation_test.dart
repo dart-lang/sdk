@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -315,6 +316,137 @@ const c = identical(int, int);
       _evaluateConstant('c'),
       _boolValue(true),
     );
+  }
+
+  test_instanceCreationExpression_redirecting_typeParameter() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(): this.named(T);
+  const A.named(Object t): f = t;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a');
+    expect(result, isNotNull);
+  }
+
+  test_instanceCreationExpression_typeParameter() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(): f = T;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_instanceCreationExpression_typeParameter_implicitTypeArgs() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(): f = T;
+}
+const a = const A();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.dynamicType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_instanceCreationExpression_typeParameter_super() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(Object t): f = t;
+}
+class B<T> extends A<T> {
+  const B(): super(T);
+}
+const a = const B<int>();
+''');
+    var result = _evaluateConstant('a');
+    var bElement = findElement.class_('B');
+    var expectedType = bElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_instanceCreationExpression_typeParameter_superNonGeneric() async {
+    await resolveTestCode('''
+class A {
+  final Object f;
+  const A(Object t): f = t;
+}
+class B<T> extends A {
+  const B(): super(T);
+}
+const a = const B<int>();
+''');
+    var result = _evaluateConstant('a');
+    expect(result, isNotNull);
+  }
+
+  test_instanceCreationExpression_typeParameter_typeAlias() async {
+    await resolveTestCode('''
+class A<T, U> {
+  final Object f, g;
+  const A(): f = T, g = U;
+}
+typedef B<S> = A<int, S>;
+const a = const B<String>();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType, typeProvider.stringType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_instanceCreationExpression_typeParameter_withoutConstructorTearoffs() async {
+    await resolveTestCode('''
+// @dart=2.12
+class A<T> {
+  final Object f;
+  const A(): f = T;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a', errorCodes: [
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+    ]);
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_typeParameter() async {
+    await resolveTestCode('''
+class A<X> {
+  const A();
+  void m() {
+    const x = X;
+  }
+}
+''');
+    var result = _evaluateConstantLocal('x', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
   }
 
   test_visitAsExpression_potentialConstType() async {
