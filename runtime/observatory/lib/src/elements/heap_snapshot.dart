@@ -792,7 +792,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeDiff:
         var root = MergedDominatorDiff.from(
-            _snapshotA!.mergedRoot, _snapshotB!.mergedRoot);
+            _snapshotA!.extendedMergedRoot, _snapshotB!.extendedMergedRoot);
         _tree = new VirtualTreeElement(_createMergedDominatorDiff,
             _updateMergedDominatorDiff, _getChildrenMergedDominatorDiff,
             items: _getChildrenMergedDominatorDiff(root), queue: _r.queue);
@@ -816,7 +816,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       case HeapSnapshotTreeMode.mergedDominatorTreeMapDiff:
         if (mergedDiffSelection == null) {
           mergedDiffSelection = MergedDominatorDiff.from(
-              _snapshotA!.mergedRoot, _snapshotB!.mergedRoot);
+              _snapshotA!.extendedMergedRoot, _snapshotB!.extendedMergedRoot);
         }
         _createTreeMap(
             report, new MergedDominatorDiffTreeMap(this), mergedDiffSelection);
