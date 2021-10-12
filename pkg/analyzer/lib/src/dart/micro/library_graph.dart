@@ -155,16 +155,10 @@ class FileState {
   late Uint8List _digest;
   late bool _exists;
   late CiderUnlinkedUnit unlinked;
-  Uint8List? informativeBytes;
   LibraryCycle? _libraryCycle;
 
   /// id of the cache entry with unlinked data.
   late int unlinkedId;
-
-  /// id of the cache entry with informative data.
-  /// We use a separate entry because there is no good way to efficiently
-  /// store a raw byte array.
-  late int informativeId;
 
   FileState._(
     this._fsState,
@@ -298,22 +292,15 @@ class FileState {
     });
 
     String unlinkedKey = '$path.unlinked';
-    String informativeKey = '$path.informative';
 
     // Prepare bytes of the unlinked bundle - existing or new.
     // TODO(migration): should not be nullable
     Uint8List? unlinkedBytes;
-    Uint8List? informativeBytes;
     {
       var unlinkedData = _fsState._byteStore.get(unlinkedKey, _digest);
-      var informativeData = _fsState._byteStore.get(informativeKey, _digest);
       unlinkedBytes = unlinkedData?.bytes;
-      informativeBytes = informativeData?.bytes;
 
-      if (unlinkedBytes == null ||
-          unlinkedBytes.isEmpty ||
-          informativeBytes == null ||
-          informativeBytes.isEmpty) {
+      if (unlinkedBytes == null || unlinkedBytes.isEmpty) {
         var content = performance.run('content', (_) {
           return getContent();
         });
@@ -333,14 +320,6 @@ class FileState {
           unlinkedBytes = unlinkedData!.bytes;
         });
 
-        performance.run('informative', (performance) {
-          informativeBytes = writeUnitInformative(unit);
-          performance.getDataInt('length').add(informativeBytes!.length);
-          informativeData = _fsState._byteStore
-              .putGet(informativeKey, _digest, informativeBytes!);
-          informativeBytes = informativeData!.bytes;
-        });
-
         unlinked = CiderUnlinkedUnit.fromBytes(unlinkedBytes!);
 
         // TODO(scheglov) We decode above only because we call it here.
@@ -349,8 +328,6 @@ class FileState {
         });
       }
       unlinkedId = unlinkedData!.id;
-      informativeId = informativeData!.id;
-      this.informativeBytes = Uint8List.fromList(informativeBytes!);
     }
 
     // Read the unlinked bundle.
@@ -592,6 +569,7 @@ class FileState {
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
       imports: imports,
+      informativeBytes: writeUnitInformative(unit),
       lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
       partOfName: partOfName,
       partOfUri: partOfUriStr,
@@ -697,7 +675,6 @@ class FileSystemState {
     var result = <int>{};
     for (var file in _pathToFile.values) {
       result.add(file.unlinkedId);
-      result.add(file.informativeId);
     }
     return result;
   }

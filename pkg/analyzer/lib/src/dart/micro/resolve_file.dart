@@ -168,7 +168,6 @@ class FileResolver {
     // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
       removedCacheIds.add(removedFile.unlinkedId);
-      removedCacheIds.add(removedFile.informativeId);
     }
 
     // Remove libraries represented by removed files.
@@ -405,7 +404,6 @@ class FileResolver {
     var removedFiles = fsState!.removeUnusedFiles(files);
     for (var removedFile in removedFiles) {
       removedCacheIds.add(removedFile.unlinkedId);
-      removedCacheIds.add(removedFile.informativeId);
     }
   }
 
@@ -825,10 +823,8 @@ class _LibraryContext {
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
         for (var file in library.libraryFiles) {
-          var informativeBytes = file.informativeBytes;
-          if (informativeBytes != null) {
-            unitsInformativeBytes[file.uri] = informativeBytes;
-          }
+          var informativeBytes = file.unlinked.unit.informativeBytes;
+          unitsInformativeBytes[file.uri] = informativeBytes;
         }
       }
 

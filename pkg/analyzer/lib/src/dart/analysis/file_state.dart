@@ -121,7 +121,6 @@ class FileState {
   LineInfo? _lineInfo;
   Uint8List? _unlinkedSignature;
   String? _unlinkedKey;
-  String? _informativeKey;
   AnalysisDriverUnlinkedUnit? _driverUnlinkedUnit;
   Uint8List? _apiSignature;
 
@@ -335,16 +334,6 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
-  Uint8List getInformativeBytes({CompilationUnit? unit}) {
-    var bytes = _fsState._byteStore.get(_informativeKey!);
-    if (bytes == null) {
-      unit ??= parse();
-      bytes = writeUnitInformative(unit);
-      _fsState._byteStore.put(_informativeKey!, bytes);
-    }
-    return bytes;
-  }
-
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
   }
@@ -394,9 +383,8 @@ class FileState {
       signature.addBool(_exists!);
       _unlinkedSignature = signature.toByteList();
       var signatureHex = hex.encode(_unlinkedSignature!);
-      _unlinkedKey = '$signatureHex.unlinked2';
       // TODO(scheglov) Use the path as the key, and store the signature.
-      _informativeKey = '$signatureHex.ast';
+      _unlinkedKey = '$signatureHex.unlinked2';
     }
 
     // Prepare the unlinked unit.
@@ -611,6 +599,7 @@ class FileState {
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
       imports: imports,
+      informativeBytes: writeUnitInformative(unit),
       lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
       partOfName: null,
       partOfUri: null,
