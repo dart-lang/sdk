@@ -644,6 +644,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitTypeObjectField(TypeObjectField typeObjectField) {
+    if (typeObjectField.experimental) {
+      return;
+    }
     dt('field', () {
       b(() {
         if (typeObjectField.deprecated) {
@@ -748,6 +751,7 @@ class TypeVisitor extends HierarchicalApiVisitor
     writeln('{');
     indent(() {
       for (var field in typeObject.fields) {
+        if (field.experimental) continue;
         write('"');
         final fieldsToBold = this.fieldsToBold;
         if (fieldsToBold != null && fieldsToBold.contains(field.name)) {
