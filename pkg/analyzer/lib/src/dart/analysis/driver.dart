@@ -1281,7 +1281,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      List<int>? bytes = _byteStore.get(key);
+      var bytes = _byteStore.get(key);
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, signature, bytes);
       }
@@ -1314,7 +1314,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             testingData: testingData);
         Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
-        late List<int> bytes;
+        late Uint8List bytes;
         late CompilationUnit resolvedUnit;
         for (FileState unitFile in results.keys) {
           UnitAnalysisResult unitResult = results[unitFile]!;
@@ -1576,7 +1576,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set
   /// optional [content] and [resolvedUnit].
   AnalysisResult _getAnalysisResultFromBytes(
-      FileState file, String signature, List<int> bytes,
+      FileState file, String signature, Uint8List bytes,
       {String? content, CompilationUnit? resolvedUnit}) {
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);

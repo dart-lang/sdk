@@ -170,9 +170,9 @@ class FileState {
     this._packageLanguageVersion,
   );
 
-  List<int> get apiSignature => unlinked.unit.apiSignature;
+  Uint8List get apiSignature => unlinked.unit.apiSignature;
 
-  List<int> get digest => _digest;
+  Uint8List get digest => _digest;
 
   bool get exists => _exists;
 
