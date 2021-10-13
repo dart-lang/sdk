@@ -240,7 +240,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
               node,
-              [declaredElement.name]);
+              [declaredElement.name ?? '<unnamed>']);
         }
 
         if (parent is TopLevelVariableDeclaration) {
@@ -275,7 +275,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             reportInvalidVisibleForOverriding(declaredElement);
           }
 
-          if (Identifier.isPrivateName(declaredElement.name!)) {
+          var name = declaredElement.name;
+          if (name != null && Identifier.isPrivateName(name)) {
             reportInvalidAnnotation(declaredElement);
           }
         }

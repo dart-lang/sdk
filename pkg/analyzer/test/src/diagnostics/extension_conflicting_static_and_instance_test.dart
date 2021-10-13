@@ -86,6 +86,19 @@ extension E on String {
     ]);
   }
 
+  test_field_getter_unnamed() async {
+    await assertErrorsInCode('''
+extension on String {
+  static int foo = 0;
+  int get foo => 0;
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 35, 3),
+      error(_errorCode, 35, 3, messageContains: "Extension '<unnamed>'"),
+      error(HintCode.UNUSED_ELEMENT, 54, 3),
+    ]);
+  }
+
   test_field_method() async {
     await assertErrorsInCode('''
 extension E on String {
@@ -93,7 +106,7 @@ extension E on String {
   void foo() {}
 }
 ''', [
-      error(_errorCode, 37, 3),
+      error(_errorCode, 37, 3, messageContains: "Extension 'E'"),
     ]);
   }
 
@@ -115,7 +128,20 @@ extension E on String {
   int get foo => 0;
 }
 ''', [
-      error(_errorCode, 41, 3),
+      error(_errorCode, 41, 3, messageContains: "Extension 'E'"),
+    ]);
+  }
+
+  test_getter_getter_unnamed() async {
+    await assertErrorsInCode('''
+extension on String {
+  static int get foo => 0;
+  int get foo => 0;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 39, 3),
+      error(_errorCode, 39, 3, messageContains: "Extension '<unnamed>'"),
+      error(HintCode.UNUSED_ELEMENT, 59, 3),
     ]);
   }
 
