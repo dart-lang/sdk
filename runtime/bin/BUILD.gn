@@ -905,6 +905,7 @@ executable("run_vm_tests") {
     ":dart_snapshot_cc",
     ":standalone_dart_io",
     "..:libdart_precompiler",
+    "//third_party/boringssl",  # for secure_socket_utils_test
     "//third_party/zlib",
   ]
   include_dirs = [

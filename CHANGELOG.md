@@ -1,9 +1,22 @@
+## 2.14.4 - 2021-10-14
+
+This is a patch release that fixes:
+
+- a memory leak of analyzer plugins (issue [flutter/flutter#90868][]).
+- the Dart VM sometimes loading expired certificates on Windows (issues
+  [#46370][] and [#47420][]).
+
+[flutter/flutter#90868]: https://github.com/flutter/flutter/issues/90868
+[#46370]: https://github.com/dart-lang/sdk/issues/46370
+[#47420]: https://github.com/dart-lang/sdk/issues/47420
+
 ## 2.14.3 - 2021-09-30
 
 This is a patch release that fixes:
 
-- a code completion performance regression [flutter/flutter-intellij#5761][].
-- debug information emitted by the Dart VM [#47289][].
+- a code completion performance regression (issue
+  [flutter/flutter-intellij#5761][]).
+- debug information emitted by the Dart VM (issue [#47289][]).
 
 [flutter/flutter-intellij#5761]:
   https://github.com/flutter/flutter-intellij/issues/5761
@@ -203,7 +216,7 @@ Updated the Linter to `1.8.0`, which includes changes that
 - fix `curly_braces_in_flow_control_structures` to properly flag terminating `else-if`
   blocks.
 - improve `always_specify_types` to support type aliases.
-- fix a false positive in `unnecessary_string_interpolations` w/ nullable interpolated 
+- fix a false positive in `unnecessary_string_interpolations` w/ nullable interpolated
   strings
 - fix a false positive in `avoid_function_literals_in_foreach_calls` for nullable
   iterables.
@@ -291,7 +304,7 @@ Updated the Linter to `1.8.0`, which includes changes that
     `--legacy-javascript` flag will let you opt out of this update, but this
     flag will be removed in a future release. Modern browsers will not be
     affected, as Dart2JS continues to support [last two major releases][1] of
-    Edge, Safari, Firefox, and Chrome. 
+    Edge, Safari, Firefox, and Chrome.
 
 [#46545]: https://github.com/dart-lang/sdk/issues/46545
 [1]: https://dart.dev/faq#q-what-browsers-do-you-support-as-javascript-compilation-targets

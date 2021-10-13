@@ -111,6 +111,14 @@ static bool AddCertificatesFromNamedSystemStore(const wchar_t* name,
       Syslog::Print("\n");
     }
 
+    if (!SecureSocketUtils::IsCurrentTimeInsideCertValidDateRange(root_cert)) {
+      if (SSL_LOG_STATUS) {
+        Syslog::Print("...certificate is outside of its valid date range\n");
+      }
+      X509_free(root_cert);
+      continue;
+    }
+
     int status = X509_STORE_add_cert(store, root_cert);
     if (status == 0) {
       int error = ERR_get_error();

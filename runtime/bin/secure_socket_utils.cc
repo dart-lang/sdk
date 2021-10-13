@@ -89,6 +89,22 @@ void SecureSocketUtils::CheckStatus(int status,
   SecureSocketUtils::CheckStatusSSL(status, type, message, NULL);
 }
 
+bool SecureSocketUtils::IsCurrentTimeInsideCertValidDateRange(X509* root_cert) {
+  ASN1_TIME* not_before = X509_get_notBefore(root_cert);
+  ASN1_TIME* not_after = X509_get_notAfter(root_cert);
+  int days_since_valid = 0;
+  int secs_since_valid = 0;
+  int days_before_invalid = 0;
+  int secs_before_invalid = 0;
+  // nullptr indicates current date/time
+  ASN1_TIME_diff(&days_since_valid, &secs_since_valid, not_before,
+                 /*to=*/nullptr);
+  ASN1_TIME_diff(&days_before_invalid, &secs_before_invalid,
+                 /*from=*/nullptr, not_after);
+  return days_since_valid >= 0 && secs_since_valid >= 0 &&
+         days_before_invalid >= 0 && secs_before_invalid >= 0;
+}
+
 }  // namespace bin
 }  // namespace dart
 
