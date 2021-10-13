@@ -400,12 +400,25 @@ Updated the Linter to `1.12.0`, which includes changes that
   `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
   folder dependencies to be updated after operating in the current directory.
 
+## 2.14.4 - 2021-10-14
+
+This is a patch release that fixes:
+
+- a memory leak of analyzer plugins (issue [flutter/flutter#90868][]).
+- the Dart VM sometimes loading expired certificates on Windows (issues
+  [#46370][] and [#47420][]).
+
+[flutter/flutter#90868]: https://github.com/flutter/flutter/issues/90868
+[#46370]: https://github.com/dart-lang/sdk/issues/46370
+[#47420]: https://github.com/dart-lang/sdk/issues/47420
+
 ## 2.14.3 - 2021-09-30
 
 This is a patch release that fixes:
 
-- a code completion performance regression [flutter/flutter-intellij#5761][].
-- debug information emitted by the Dart VM [#47289][].
+- a code completion performance regression (issue
+  [flutter/flutter-intellij#5761][]).
+- debug information emitted by the Dart VM (issue [#47289][]).
 
 [flutter/flutter-intellij#5761]:
   https://github.com/flutter/flutter-intellij/issues/5761
