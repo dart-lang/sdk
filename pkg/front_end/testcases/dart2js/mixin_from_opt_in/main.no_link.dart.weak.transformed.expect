@@ -1,0 +1,87 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "test_lib.dart" as tes;
+
+import "org-dartlang-testcase:///test_lib.dart";
+
+static method main() → dynamic {
+  tes::test();
+}
+
+library /*isNonNullableByDefault*/;
+import self as tes;
+import "opt_out_lib.dart" as opt;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+static method test() → dynamic {
+  opt::SubClass sub = new opt::SubClass::•();
+  core::int i = sub.{opt::_SubClass&Class&Mixin::classMethod}(null){(core::int*) →* core::int*};
+  core::int j = sub.{opt::_SubClass&Class&Mixin::mixinMethod}(null){(core::int*) →* core::int*};
+  sub.{opt::_SubClass&Class&Mixin::classField2} = sub.{opt::_SubClass&Class&Mixin::classField1}{core::int*};
+  sub.{opt::_SubClass&Class&Mixin::mixinField2} = sub.{opt::_SubClass&Class&Mixin::mixinField1}{core::int*};
+}
+
+library;
+import self as opt;
+import "opt_in_lib.dart" as opt2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_in_lib.dart";
+
+abstract class _SubClass&Class&Mixin = opt2::Class with opt2::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → opt::_SubClass&Class&Mixin*
+    : super opt2::Class::•()
+    ;
+  mixin-super-stub get mixinField1() → core::int*
+    return super.{opt2::Mixin::mixinField1};
+  mixin-super-stub set mixinField1(core::int* value) → void
+    return super.{opt2::Mixin::mixinField1} = value;
+  mixin-super-stub get mixinField2() → core::int*
+    return super.{opt2::Mixin::mixinField2};
+  mixin-super-stub set mixinField2(core::int* value) → void
+    return super.{opt2::Mixin::mixinField2} = value;
+  abstract member-signature get classField1() → core::int*; -> opt2::Class::classField1
+  abstract member-signature set classField1(core::int* value) → void; -> opt2::Class::classField1
+  abstract member-signature get classField2() → core::int*; -> opt2::Class::classField2
+  abstract member-signature set classField2(core::int* value) → void; -> opt2::Class::classField2
+  abstract member-signature method classMethod(core::int* i) → core::int*; -> opt2::Class::classMethod
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */ mixinMethod(core::int i) → core::int? {
+    super.{core::Object::toString}();
+  }
+}
+class SubClass extends opt::_SubClass&Class&Mixin {
+  synthetic constructor •() → opt::SubClass*
+    : super opt::_SubClass&Class&Mixin::•()
+    ;
+  static method _#new#tearOff() → opt::SubClass*
+    return new opt::SubClass::•();
+}
+
+library /*isNonNullableByDefault*/;
+import self as opt2;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? classField1 = null;
+  field core::int classField2 = 0;
+  synthetic constructor •() → opt2::Class
+    : super core::Object::•()
+    ;
+  method classMethod(core::int i) → core::int? {}
+  static method _#new#tearOff() → opt2::Class
+    return new opt2::Class::•();
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  field core::int? mixinField1 = null;
+  field core::int mixinField2 = 0;
+  method mixinMethod(core::int i) → core::int? {
+    super.{core::Object::toString}();
+  }
+}

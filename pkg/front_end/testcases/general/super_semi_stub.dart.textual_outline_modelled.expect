@@ -1,0 +1,17 @@
+class Class extends Super {
+  void method(covariant int a);
+  void set setter(covariant int a);
+}
+
+class Subclass extends Class {
+  void method(int a) {}
+  void set setter(int a) {}
+}
+
+class Super {
+  void method(num a) {}
+  void set setter(num a) {}
+}
+
+main() {}
+test(Subclass sub) {}

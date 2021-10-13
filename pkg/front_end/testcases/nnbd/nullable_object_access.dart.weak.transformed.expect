@@ -62,9 +62,9 @@ abstract class Class extends core::Object {
     : super core::Object::•()
     ;
   abstract get runtimeType() → self::CustomType;
-  forwarding-stub forwarding-semi-stub method noSuchMethod(covariant-by-declaration self::CustomInvocation invocation) → core::String
+  forwarding-stub forwarding-semi-stub method /* signature-type: (self::CustomInvocation) → core::String */ noSuchMethod(covariant-by-declaration core::Invocation invocation) → core::String
     return super.{core::Object::noSuchMethod}(invocation);
-  forwarding-stub forwarding-semi-stub operator ==(covariant-by-declaration self::Class o) → core::bool
+  forwarding-stub forwarding-semi-stub operator /* signature-type: (self::Class) → core::bool */ ==(covariant-by-declaration core::Object o) → core::bool
     return super.{core::Object::==}(o);
   abstract method toString({core::Object o = #C1}) → core::String;
 }

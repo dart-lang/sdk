@@ -1504,7 +1504,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         declaredMember.kind == ProcedureKind.Operator);
     bool seenCovariant = false;
     FunctionNode declaredFunction = declaredMember.function;
+    FunctionType? declaredSignatureType = declaredMember.signatureType;
     FunctionNode interfaceFunction = interfaceMember.function;
+    FunctionType? interfaceSignatureType = interfaceMember.signatureType;
 
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
@@ -1578,9 +1580,17 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredFunction.positionalParameters[i];
       VariableDeclaration interfaceParameter =
           interfaceFunction.positionalParameters[i];
+      DartType declaredParameterType = declaredParameter.type;
+      if (declaredSignatureType != null) {
+        declaredParameterType = declaredSignatureType.positionalParameters[i];
+      }
+      DartType interfaceParameterType = interfaceParameter.type;
+      if (interfaceSignatureType != null) {
+        interfaceParameterType = interfaceSignatureType.positionalParameters[i];
+      }
       if (i == 0 &&
           declaredMember.name == equalsName &&
-          declaredParameter.type ==
+          declaredParameterType ==
               types.hierarchy.coreTypes.objectNonNullableRawType &&
           interfaceParameter.type is DynamicType) {
         // TODO(johnniwinther): Add check for opt-in overrides of operator ==.
@@ -1596,8 +1606,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredMember,
           interfaceMember,
           interfaceMemberOrigin,
-          declaredParameter.type,
-          interfaceParameter.type,
+          declaredParameterType,
+          interfaceParameterType,
           declaredParameter.isCovariantByDeclaration ||
               interfaceParameter.isCovariantByDeclaration,
           declaredParameter,

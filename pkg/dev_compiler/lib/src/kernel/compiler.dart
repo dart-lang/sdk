@@ -2006,7 +2006,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                   superMember.function.positionalParameters[0])) {
         return const [];
       }
-      var setterType = substituteType(superMember.setterType);
+      var setterType = substituteType(superMember.superSetterType);
       if (_types.isTop(setterType)) return const [];
       return [
         js_ast.Method(

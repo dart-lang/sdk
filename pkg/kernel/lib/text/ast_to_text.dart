@@ -1208,6 +1208,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
+    if (node.signatureType != null) {
+      writeWord('/* signature-type:');
+      writeType(node.signatureType!);
+      writeWord('*/');
+    }
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
