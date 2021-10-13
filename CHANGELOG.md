@@ -293,6 +293,8 @@
 - **Breaking Change** [#46875](https://github.com/dart-lang/sdk/issues/46875):
   The `SecurityContext` class in `dart:io` has been updated to set the minimum
   TLS protocol version to TLS1_2_VERSION (1.2) instead of TLS1_VERSION.
+- Add `RawSocket.sendMessage`, `RawSocket.receiveMessage` that allow passing of
+  file handle references via Unix domain sockets.
 
 ### Tools
 
