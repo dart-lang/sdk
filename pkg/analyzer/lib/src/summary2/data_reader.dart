@@ -73,7 +73,8 @@ class SummaryDataReader {
   }
 
   String readStringReference() {
-    return _stringTable[readUInt30()];
+    var index = readUInt30();
+    return stringOfIndex(index);
   }
 
   List<String> readStringReferenceList() {

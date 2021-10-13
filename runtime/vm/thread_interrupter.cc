@@ -66,6 +66,15 @@ void ThreadInterrupter::Init() {
 
 void ThreadInterrupter::Startup() {
   ASSERT(initialized_);
+  if (IsDebuggerAttached()) {
+    MonitorLocker shutdown_ml(monitor_);
+    shutdown_ = true;
+    if (FLAG_trace_thread_interrupter) {
+      OS::PrintErr(
+          "ThreadInterrupter disabled because a debugger is attached.\n");
+    }
+    return;
+  }
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter starting up.\n");
   }
