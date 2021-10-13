@@ -30,7 +30,7 @@ class HintCode extends AnalyzerErrorCode {
   // to have either a single parameter of type `Object` or two parameters of
   // type `Object` and `StackTrace`.
   //
-  // #### Example
+  // #### Examples
   //
   // The following code produces this diagnostic because the closure being
   // passed to `catchError` doesn't take any parameters, but the function is
@@ -109,7 +109,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when code is found that won't be
   // executed because execution will never reach the code.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the invocation of
   // `print` occurs after the function has returned:
@@ -173,7 +173,7 @@ class HintCode extends AnalyzerErrorCode {
   // the thrown object is selected, and both of those forms will match any
   // object, so no `catch` clauses that follow them will be selected.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic:
   //
@@ -235,7 +235,7 @@ class HintCode extends AnalyzerErrorCode {
   // matches anything matchable by the highlighted clause, so the highlighted
   // clause will never be selected.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic:
   //
@@ -343,7 +343,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when a deprecated library or class
   // member is used in a different package.
   //
-  // #### Examples
+  // #### Example
   //
   // If the method `m` in the class `C` is annotated with `@deprecated`, then
   // the following code produces this diagnostic:
@@ -375,7 +375,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when a deprecated library member or
   // class member is used in the same package in which it's declared.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `x` is deprecated:
   //
@@ -505,7 +505,7 @@ class HintCode extends AnalyzerErrorCode {
   // because it's already included in the same `ignore` comment or because it
   // appears in an `ignore-in-file` comment.
   //
-  // #### Example
+  // #### Examples
   //
   // The following code produces this diagnostic because the diagnostic named
   // `unused_local_variable` is already being ignored for the whole file so it
@@ -559,7 +559,7 @@ class HintCode extends AnalyzerErrorCode {
   // that is the same as an import before it in the file. The second import
   // doesn’t add value and should be removed.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic:
   //
@@ -1415,7 +1415,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when either the `@visibleForTemplate`
   // or `@visibleForTesting` annotation is applied to a non-public declaration.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic:
   //
@@ -1503,7 +1503,7 @@ class HintCode extends AnalyzerErrorCode {
   // named parameter that is annotated as being required is invoked without
   // providing a value for the parameter.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the named parameter `x`
   // is required:
@@ -1564,7 +1564,7 @@ class HintCode extends AnalyzerErrorCode {
   // throw implicitly returns `null`. This is rarely the desired behavior. The
   // analyzer produces this diagnostic when it finds an implicit return.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `f` doesn't end with a
   // return:
@@ -1604,7 +1604,7 @@ class HintCode extends AnalyzerErrorCode {
   // Classes that are sealed can't be extended, implemented, mixed in, or used
   // as a superclass constraint.
   //
-  // #### Examples
+  // #### Example
   //
   // If the package `p` defines a sealed class:
   //
@@ -1649,7 +1649,7 @@ class HintCode extends AnalyzerErrorCode {
   // marked as being immutable using the annotation `@immutable` or if it's a
   // subclass of an immutable class.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the field `x` isn't
   // final:
@@ -1708,7 +1708,7 @@ class HintCode extends AnalyzerErrorCode {
   // that is annotated as `@mustCallSuper` doesn't invoke the overridden method
   // as required.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the method `m` in `B`
   // doesn't invoke the overridden method `m` in `A`:
@@ -1767,7 +1767,7 @@ class HintCode extends AnalyzerErrorCode {
   // that the constructor should be used to create a constant value whenever
   // possible.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic:
   //
@@ -1980,7 +1980,7 @@ class HintCode extends AnalyzerErrorCode {
   // the `@override` annotation, but the member isn’t declared in any of the
   // supertypes of the class.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `m` isn't declared in
   // any of the supertypes of `C`:
@@ -2086,7 +2086,7 @@ class HintCode extends AnalyzerErrorCode {
   // `catchError` attempts to return the value from the callback as the result
   // of the future, which results in another exception being thrown.
   //
-  // #### Example
+  // #### Examples
   //
   // The following code produces this diagnostic because `future` is declared to
   // return an `int` while `callback` is declared to return a `String`, and
@@ -2157,7 +2157,7 @@ class HintCode extends AnalyzerErrorCode {
   // earlier versions, these classes weren't defined in `dart:core`, so the
   // import was necessary.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.1.0:
@@ -2212,7 +2212,7 @@ class HintCode extends AnalyzerErrorCode {
   // [constant context][] wasn't supported in earlier versions, so this code
   // won't be able to run against earlier versions of the SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.3.2:
@@ -2268,7 +2268,7 @@ class HintCode extends AnalyzerErrorCode {
   // versions, so this code won't be able to run against earlier versions of the
   // SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.3.2:
@@ -2384,7 +2384,7 @@ class HintCode extends AnalyzerErrorCode {
   // in a [constant context][] wasn't supported in earlier versions, so this
   // code won't be able to run against earlier versions of the SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.3.2:
@@ -2445,7 +2445,7 @@ class HintCode extends AnalyzerErrorCode {
   // versions, so this code won't be able to run against earlier versions of the
   // SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.6.0:
@@ -2504,7 +2504,7 @@ class HintCode extends AnalyzerErrorCode {
   // operator wasn't supported in earlier versions, so this code won't be able
   // to run against earlier versions of the SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.14.0:
@@ -2564,7 +2564,7 @@ class HintCode extends AnalyzerErrorCode {
   // [constant context][] wasn't supported in earlier versions, so this code
   // won't be able to run against earlier versions of the SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.3.2:
@@ -2619,7 +2619,7 @@ class HintCode extends AnalyzerErrorCode {
   // 2.12.0. This class wasn't defined in earlier versions, so this code won't
   // be able to run against earlier versions of the SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.12.0:
@@ -2671,7 +2671,7 @@ class HintCode extends AnalyzerErrorCode {
   // literals weren't supported in earlier versions, so this code won't be able
   // to run against earlier versions of the SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.2.0:
@@ -2723,7 +2723,7 @@ class HintCode extends AnalyzerErrorCode {
   // versions, so this code won't be able to run against earlier versions of the
   // SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.3.0:
@@ -2783,7 +2783,7 @@ class HintCode extends AnalyzerErrorCode {
   // [constant context][] wasn't supported in earlier versions, so this code
   // won't be able to run against earlier versions of the SDK.
   //
-  // #### Examples
+  // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
   // bound of less than 2.5.0:
@@ -2914,7 +2914,7 @@ class HintCode extends AnalyzerErrorCode {
   // is `Null`, so the code is both more readable and more performant when it
   // tests for `null` explicitly.
   //
-  // #### Example
+  // #### Examples
   //
   // The following code produces this diagnostic because the code is testing to
   // see whether the value of `s` is `null` by using a type check:
@@ -2981,7 +2981,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when a hide combinator includes a
   // name that isn't defined by the library being imported.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `dart:math` doesn't
   // define the name `String`:
@@ -3059,7 +3059,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when a show combinator includes a
   // name that isn't defined by the library being imported.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `dart:math` doesn't
   // define the name `String`:
@@ -3106,7 +3106,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when the value being cast is already
   // known to be of the type that it's being cast to.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `n` is already known to
   // be an `int` as a result of the `is` test:
@@ -3265,7 +3265,7 @@ class HintCode extends AnalyzerErrorCode {
   // can't be `null`. Such comparisons are always either `true` or `false`, so
   // they serve no purpose.
   //
-  // #### Example
+  // #### Examples
   //
   // The following code produces this diagnostic because `x` can never be
   // `null`, so the comparison always evaluates to `true`:
@@ -3424,7 +3424,7 @@ class HintCode extends AnalyzerErrorCode {
   // neither the exception parameter nor the optional stack trace parameter are
   // used in the `catch` block.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `e` isn't referenced:
   //
@@ -3467,7 +3467,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when the stack trace parameter in a
   // `catch` clause isn't referenced within the body of the `catch` block.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `stackTrace` isn't
   // referenced:
@@ -3518,7 +3518,7 @@ class HintCode extends AnalyzerErrorCode {
   // - Optional parameters of private functions for which a value is never
   //   passed, even when the parameter doesn't have a private name
   //
-  // #### Examples
+  // #### Example
   //
   // Assuming that no code in the library references `_C`, the following code
   // produces this diagnostic:
@@ -3580,7 +3580,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when a private field is declared but
   // never read, even if it's written in one or more places.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the field
   // `_originalValue` isn't read anywhere in the library:
@@ -3622,7 +3622,7 @@ class HintCode extends AnalyzerErrorCode {
   // none of the names that are imported are referenced within the importing
   // library.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because nothing defined in
   // `dart:async` is referenced in the library:
@@ -3655,7 +3655,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when a label that isn't used is
   // found.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the label `loop` isn't
   // referenced anywhere in the method:
@@ -3708,7 +3708,7 @@ class HintCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when a local variable is declared but
   // never read, even if it's written in one or more places.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the value of `count` is
   // never read:
@@ -3837,7 +3837,7 @@ class HintCode extends AnalyzerErrorCode {
   // name that isn't used within the library. Because it isn't referenced, the
   // name can be removed.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the function `max`
   // isn't used:
