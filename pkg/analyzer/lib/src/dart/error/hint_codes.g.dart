@@ -1232,12 +1232,11 @@ class HintCode extends AnalyzerErrorCode {
    * This hint is generated anywhere where `@nonVirtual` annotates something
    * other than a non-abstract instance member in a class or mixin.
    *
-   * Parameters:
-   * 0: the name of the member
+   * No Parameters.
    */
   static const HintCode INVALID_NON_VIRTUAL_ANNOTATION = HintCode(
     'INVALID_NON_VIRTUAL_ANNOTATION',
-    "The member '{0}' can't be '@nonVirtual' because it isn't a concrete instance member.",
+    "The annotation '@nonVirtual' can only be applied to a concrete instance member.",
     correctionMessage: "Try removing @nonVirtual.",
   );
 
@@ -1297,12 +1296,11 @@ class HintCode extends AnalyzerErrorCode {
    * This hint is generated anywhere where `@sealed` annotates something other
    * than a class.
    *
-   * Parameters:
-   * 0: the name of the member
+   * No parameters.
    */
   static const HintCode INVALID_SEALED_ANNOTATION = HintCode(
     'INVALID_SEALED_ANNOTATION',
-    "The member '{0}' is annotated with '@sealed' but only classes can be annotated with it.",
+    "The annotation '@sealed' can only be applied to classes.",
     correctionMessage: "Remove @sealed.",
   );
 
