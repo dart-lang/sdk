@@ -604,6 +604,16 @@ deps = {
   },
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
+  Var("dart_root") + "/third_party/fuchsia/sdk/mac": {
+    "packages": [
+      {
+      "package": "fuchsia/sdk/gn/mac-amd64",
+      "version": "git_revision:190502a955c482431c2edd0525e128423728b662"
+      }
+    ],
+    "condition": 'host_os == "mac" and host_cpu == "x64"',
+    "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
       {

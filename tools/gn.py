@@ -375,7 +375,7 @@ def ProcessOptions(args):
                     % (os_name, arch))
                 return False
         elif os_name == 'fuchsia':
-            if HOST_OS != 'linux':
+            if not HOST_OS in ['linux', 'macos']:
                 print(
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))

@@ -721,18 +721,6 @@ template("dart_executable") {
     } else {
       configs += [ "..:dart_maybe_product_config" ]
     }
-    if (target_os != current_os && target_os == "fuchsia") {
-      # We already have these in the standalone build, but Fuchsia doesn't
-      # have them. They are needed for running Fuchsia binaries built for the
-      # host.
-      if (is_linux) {
-        # TODO(liama): Commenting this line out because it causes problems for
-        # --os=fuchsia. If no one complains, remove it.
-        # configs += [ "../../build/config/gcc:executable_ldconfig" ]
-      } else if (is_mac) {
-        configs += [ "../../build/config/mac:mac_dynamic_flags" ]
-      }
-    }
 
     deps = [
       ":crashpad",
