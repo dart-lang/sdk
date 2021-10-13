@@ -90,6 +90,10 @@ class ThreadInterrupterWin : public AllStatic {
   }
 };
 
+bool ThreadInterrupter::IsDebuggerAttached() {
+  return false;
+}
+
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter suspending %p\n",
