@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef Bar = self::Foo;
+typedef BarGeneric<X extends core::Object? = dynamic> = self::FooGeneric<X%>;
+class Foo extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[self::Foo::namedFactory]/*isLegacy*/;
+  const constructor named() → self::Foo
+    : super core::Object::•()
+    ;
+  static factory namedFactory() → self::Foo
+    return new self::Foo::named();
+}
+class FooGeneric<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[self::FooGeneric::namedFactory]/*isLegacy*/;
+  const constructor named() → self::FooGeneric<self::FooGeneric::X%>
+    : super core::Object::•()
+    ;
+  static factory namedFactory<X extends core::Object? = dynamic>() → self::FooGeneric<self::FooGeneric::namedFactory::X%>
+    return new self::FooGeneric::named<self::FooGeneric::namedFactory::X%>();
+}
+static const field self::Foo bar = #C1;
+static const field self::Foo bar2 = #C1;
+static const field self::FooGeneric<core::int> barGeneric = #C2;
+static const field self::FooGeneric<core::int> barGeneric2 = #C2;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Foo {}
+  #C2 = self::FooGeneric<core::int*> {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue47339.dart:
+- Foo.named (from org-dartlang-testcase:///issue47339.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- FooGeneric.named (from org-dartlang-testcase:///issue47339.dart:17:9)
