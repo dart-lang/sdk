@@ -89,19 +89,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     return testFile;
   }
 
-  /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String>? experiments}) {
-    var buffer = StringBuffer();
-    if (experiments != null) {
-      buffer.writeln('analyzer:');
-      buffer.writeln('  enable-experiment:');
-      for (var experiment in experiments) {
-        buffer.writeln('    - $experiment');
-      }
-    }
-    newAnalysisOptionsYamlFile(projectPath, content: buffer.toString());
-  }
-
   AnalysisServer createAnalysisServer() {
     //
     // Create an SDK in the mock file system.
