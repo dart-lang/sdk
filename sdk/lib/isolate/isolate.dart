@@ -7,6 +7,10 @@
 /// but don't share memory,
 /// communicating only via messages.
 ///
+/// *NOTE*: The `dart:isolate` library is currently only supported by the
+/// [Dart Native](https://dart.dev/overview#platform) platform.
+
+///
 /// To use this library in your code:
 /// ```dart
 /// import 'dart:isolate';
@@ -608,9 +612,7 @@ abstract class SendPort implements Capability {
   /// In the special circumstances when two isolates share the same code and are
   /// running in the same process (e.g. isolates created via [Isolate.spawn]),
   /// it is also possible to send object instances (which would be copied in the
-  /// process). This is currently only supported by the
-  /// [Dart Native](https://dart.dev/platforms#dart-native-vm-jit-and-aot)
-  /// platform.
+  /// process).
   ///
   /// The send happens immediately and doesn't block.  The corresponding receive
   /// port can receive the message as soon as its isolate's event loop is ready
