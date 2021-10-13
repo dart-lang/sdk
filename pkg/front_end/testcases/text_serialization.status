@@ -76,6 +76,7 @@ general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
+general/implement_semi_stub: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
 general/invocations: RuntimeError
@@ -104,6 +105,7 @@ general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
 general/redirecting_factory_invocation_in_invalid: TypeCheckError
 general/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
+general/super_semi_stub: TypeCheckError
 general/type_parameter_type_named_int: RuntimeError
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
@@ -150,6 +152,7 @@ nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
+nnbd_mixed/mixin_from_opt_in/main: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

@@ -2953,7 +2953,7 @@ class Function : public Object {
   intptr_t ComputeClosureHash() const;
 
   FunctionPtr ForwardingTarget() const;
-  void SetForwardingChecks(const Array& checks) const;
+  void SetForwardingTarget(const Function& target) const;
 
   UntaggedFunction::Kind kind() const {
     return untag()->kind_tag_.Read<KindBits>();

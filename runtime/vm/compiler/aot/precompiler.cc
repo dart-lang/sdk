@@ -2128,6 +2128,7 @@ void Precompiler::DropFunctions() {
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
+  Function& target = Function::Handle(Z);
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
@@ -2135,6 +2136,24 @@ void Precompiler::DropFunctions() {
   auto& ref = Object::Handle(Z);
 
   auto trim_function = [&](const Function& function) {
+    if (function.IsDynamicInvocationForwarder()) {
+      // For dynamic invocation forwarders sever strong connection between the
+      // forwarder and the target function if we are not going to retain
+      // target function anyway. The only use of the forwarding target outside
+      // of compilation pipeline is in Function::script() and that should not
+      // be used when we are dropping functions (cause we are not going to
+      // emit symbolic stack traces anyway).
+      // Note that we still need Function::script() to work during snapshot
+      // generation to generate DWARF, that's why we are using WSR and not
+      // simply setting forwarding target to null.
+      target = function.ForwardingTarget();
+      if (!functions_to_retain_.ContainsKey(target)) {
+        ref =
+            WeakSerializationReference::New(target, Function::null_function());
+        function.set_data(ref);
+      }
+    }
+
     sig = function.signature();
     // In the AOT runtime, most calls are direct or through the dispatch table,
     // not resolved via dynamic lookup. Thus, we only need to retain the

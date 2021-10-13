@@ -3897,10 +3897,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   forwarder.set_optimized_call_site_count(0);
 
   forwarder.InheritKernelOffsetFrom(*this);
-
-  const Array& checks = Array::Handle(zone, Array::New(1));
-  checks.SetAt(0, *this);
-  forwarder.SetForwardingChecks(checks);
+  forwarder.SetForwardingTarget(*this);
 
   return forwarder.ptr();
 }
@@ -7623,16 +7620,12 @@ const char* Function::KindToCString(UntaggedFunction::Kind kind) {
 
 FunctionPtr Function::ForwardingTarget() const {
   ASSERT(kind() == UntaggedFunction::kDynamicInvocationForwarder);
-  Array& checks = Array::Handle();
-  checks ^= data();
-  return Function::RawCast(checks.At(0));
+  return Function::RawCast(WeakSerializationReference::Unwrap(data()));
 }
 
-void Function::SetForwardingChecks(const Array& checks) const {
+void Function::SetForwardingTarget(const Function& target) const {
   ASSERT(kind() == UntaggedFunction::kDynamicInvocationForwarder);
-  ASSERT(checks.Length() >= 1);
-  ASSERT(Object::Handle(checks.At(0)).IsFunction());
-  set_data(checks);
+  set_data(target);
 }
 
 // This field is heavily overloaded:
@@ -7654,8 +7647,9 @@ void Function::SetForwardingChecks(const Array& checks) const {
 //   regular function:        Function for implicit closure function
 //   constructor, factory:    Function for implicit closure function
 //   ffi trampoline function: FfiTrampolineData  (Dart->C)
-//   dyn inv forwarder:       Array[0] = Function target
-//                            Array[1] = TypeArguments default type args
+//   dyn inv forwarder:       Forwarding target, a WSR pointing to it or null
+//                            (null can only occur if forwarding target was
+//                            dropped)
 void Function::set_data(const Object& value) const {
   untag()->set_data<std::memory_order_release>(value.ptr());
 }
@@ -9652,15 +9646,15 @@ void Function::SetKernelDataAndScript(const Script& script,
 ScriptPtr Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  const Object& data = Object::Handle(this->data());
   if (IsDynamicInvocationForwarder()) {
-    const auto& forwarding_target = Function::Handle(ForwardingTarget());
-    return forwarding_target.script();
+    const Function& target = Function::Handle(ForwardingTarget());
+    return target.IsNull() ? Script::null() : target.script();
   }
   if (IsImplicitGetterOrSetter()) {
     const auto& field = Field::Handle(accessor_field());
     return field.Script();
   }
+  Object& data = Object::Handle(this->data());
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {

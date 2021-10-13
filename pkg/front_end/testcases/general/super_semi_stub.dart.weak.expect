@@ -1,0 +1,76 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/super_semi_stub.dart:17:37: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
+//     void Function(num) sup1 = super.method; // ok
+//                                     ^
+//
+// pkg/front_end/testcases/general/super_semi_stub.dart:19:39: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
+//     void Function(num) cls1 = Class().method; // error
+//                                       ^
+//
+// pkg/front_end/testcases/general/super_semi_stub.dart:34:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//   sub.method(0.5); // error
+//              ^
+//
+// pkg/front_end/testcases/general/super_semi_stub.dart:38:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//   cls.method(0.5); // error
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method method(core::num a) → void {}
+  set setter(core::num a) → void {}
+}
+class Class extends self::Super {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ method(covariant-by-declaration core::num a) → void
+    return super.{self::Super::method}(a);
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ setter(covariant-by-declaration core::num a) → void
+    return super.{self::Super::setter} = a;
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    : super self::Class::•()
+    ;
+  method method(covariant-by-declaration core::int a) → void {
+    (core::num) → void sup1 = invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:17:37: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
+    void Function(num) sup1 = super.method; // ok
+                                    ^" in super.{self::Class::method} as{TypeError,ForNonNullableByDefault} (core::num) → void;
+    (core::int) → void sup2 = super.{self::Class::method};
+    (core::num) → void cls1 = invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:19:39: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
+    void Function(num) cls1 = Class().method; // error
+                                      ^" in new self::Class::•().{self::Class::method}{(core::int) → void} as{TypeError,ForNonNullableByDefault} (core::num) → void;
+    (core::int) → void cls2 = new self::Class::•().{self::Class::method}{(core::int) → void};
+    (core::int) → void cls3 = new self::Class::•().{self::Class::method}{(core::int) → void};
+  }
+  set setter(covariant-by-declaration core::int a) → void {
+    super.{self::Class::setter} = 0;
+    super.{self::Class::setter} = 0.5;
+    new self::Class::•().{self::Class::setter} = 0;
+    new self::Class::•().{self::Class::setter} = 0.5;
+  }
+}
+static method test(self::Subclass sub) → dynamic {
+  sub.{self::Subclass::method}(0){(core::int) → void};
+  sub.{self::Subclass::method}(invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:34:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+  sub.method(0.5); // error
+             ^" in 0.5 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+  self::Class cls = sub;
+  cls.{self::Class::method}(0){(core::int) → void};
+  cls.{self::Class::method}(invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:38:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+  cls.method(0.5); // error
+             ^" in 0.5 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+  self::Super sup = sub;
+  sup.{self::Super::method}(0){(core::num) → void};
+  sup.{self::Super::method}(0.5){(core::num) → void};
+}
+static method main() → dynamic {}
