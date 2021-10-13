@@ -868,7 +868,6 @@ void f() {
   }
 
   Future<void> test_nonNullable() async {
-    createAnalysisOptionsFile(experiments: ['non-nullable']);
     addTestFile('''
 int? f(double? a) => null;
 
