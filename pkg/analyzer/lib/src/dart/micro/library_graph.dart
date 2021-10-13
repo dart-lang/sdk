@@ -15,6 +15,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -23,10 +24,10 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:analyzer/src/summary2/data_reader.dart';
+import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -40,6 +41,74 @@ import 'package:pub_semver/pub_semver.dart';
 void computeLibraryCycle(Uint32List linkedSalt, FileState file) {
   var libraryWalker = _LibraryWalker(linkedSalt);
   libraryWalker.walk(libraryWalker.getNode(file));
+}
+
+class CiderUnitTopLevelDeclarations {
+  final List<String> extensionNames;
+  final List<String> functionNames;
+  final List<String> typeNames;
+  final List<String> variableNames;
+
+  CiderUnitTopLevelDeclarations({
+    required this.extensionNames,
+    required this.functionNames,
+    required this.typeNames,
+    required this.variableNames,
+  });
+
+  factory CiderUnitTopLevelDeclarations.read(SummaryDataReader reader) {
+    return CiderUnitTopLevelDeclarations(
+      extensionNames: reader.readStringUtf8List(),
+      functionNames: reader.readStringUtf8List(),
+      typeNames: reader.readStringUtf8List(),
+      variableNames: reader.readStringUtf8List(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8Iterable(extensionNames);
+    sink.writeStringUtf8Iterable(functionNames);
+    sink.writeStringUtf8Iterable(typeNames);
+    sink.writeStringUtf8Iterable(variableNames);
+  }
+}
+
+class CiderUnlinkedUnit {
+  /// Top-level declarations of the unit.
+  final CiderUnitTopLevelDeclarations topLevelDeclarations;
+
+  /// Unlinked summary of the compilation unit.
+  final UnlinkedUnit unit;
+
+  CiderUnlinkedUnit({
+    required this.topLevelDeclarations,
+    required this.unit,
+  });
+
+  factory CiderUnlinkedUnit.fromBytes(Uint8List bytes) {
+    return CiderUnlinkedUnit.read(
+      SummaryDataReader(bytes),
+    );
+  }
+
+  factory CiderUnlinkedUnit.read(SummaryDataReader reader) {
+    return CiderUnlinkedUnit(
+      topLevelDeclarations: CiderUnitTopLevelDeclarations.read(reader),
+      unit: UnlinkedUnit.read(reader),
+    );
+  }
+
+  Uint8List toBytes() {
+    var byteSink = ByteSink();
+    var sink = BufferedSink(byteSink);
+    write(sink);
+    return sink.flushAndTake();
+  }
+
+  void write(BufferedSink sink) {
+    topLevelDeclarations.write(sink);
+    unit.write(sink);
+  }
 }
 
 class FileState {
@@ -85,19 +154,11 @@ class FileState {
 
   late Uint8List _digest;
   late bool _exists;
-  late List<int> _apiSignature;
-  late UnlinkedUnit2 unlinked2;
-  late TopLevelDeclarations topLevelDeclarations;
-  Uint8List? informativeBytes;
+  late CiderUnlinkedUnit unlinked;
   LibraryCycle? _libraryCycle;
 
   /// id of the cache entry with unlinked data.
   late int unlinkedId;
-
-  /// id of the cache entry with informative data.
-  /// We use a separate entry because there is no good way to efficiently
-  /// store a raw byte array.
-  late int informativeId;
 
   FileState._(
     this._fsState,
@@ -109,7 +170,7 @@ class FileState {
     this._packageLanguageVersion,
   );
 
-  List<int> get apiSignature => _apiSignature;
+  List<int> get apiSignature => unlinked.unit.apiSignature;
 
   List<int> get digest => _digest;
 
@@ -124,7 +185,7 @@ class FileState {
     return _libraryCycle!;
   }
 
-  LineInfo get lineInfo => LineInfo(unlinked2.lineStarts);
+  LineInfo get lineInfo => LineInfo(unlinked.unit.lineStarts);
 
   /// The resolved signature of the file, that depends on the [libraryCycle]
   /// signature, and the content of the file.
@@ -231,22 +292,15 @@ class FileState {
     });
 
     String unlinkedKey = '$path.unlinked';
-    String informativeKey = '$path.informative';
 
     // Prepare bytes of the unlinked bundle - existing or new.
     // TODO(migration): should not be nullable
     Uint8List? unlinkedBytes;
-    Uint8List? informativeBytes;
     {
       var unlinkedData = _fsState._byteStore.get(unlinkedKey, _digest);
-      var informativeData = _fsState._byteStore.get(informativeKey, _digest);
       unlinkedBytes = unlinkedData?.bytes;
-      informativeBytes = informativeData?.bytes;
 
-      if (unlinkedBytes == null ||
-          unlinkedBytes.isEmpty ||
-          informativeBytes == null ||
-          informativeBytes.isEmpty) {
+      if (unlinkedBytes == null || unlinkedBytes.isEmpty) {
         var content = performance.run('content', (_) {
           return getContent();
         });
@@ -258,48 +312,29 @@ class FileState {
         });
 
         performance.run('unlinked', (performance) {
-          var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
-          unlinkedBytes = unlinkedBuilder.toBuffer();
+          var unlinkedBuilder = serializeAstCiderUnlinked(unit);
+          unlinkedBytes = unlinkedBuilder.toBytes();
           performance.getDataInt('length').add(unlinkedBytes!.length);
           unlinkedData =
               _fsState._byteStore.putGet(unlinkedKey, _digest, unlinkedBytes!);
           unlinkedBytes = unlinkedData!.bytes;
         });
 
-        performance.run('informative', (performance) {
-          informativeBytes = writeUnitInformative(unit);
-          performance.getDataInt('length').add(informativeBytes!.length);
-          informativeData = _fsState._byteStore
-              .putGet(informativeKey, _digest, informativeBytes!);
-          informativeBytes = informativeData!.bytes;
-        });
+        unlinked = CiderUnlinkedUnit.fromBytes(unlinkedBytes!);
 
-        var decoded = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!);
-        unlinked2 = decoded.unlinkedUnit!;
-
-        var unitDeclarations = decoded.topLevelDeclarations!;
-        topLevelDeclarations = TopLevelDeclarations(
-          extensionNames: unitDeclarations.extensionNames.toList(),
-          functionNames: unitDeclarations.functionNames.toList(),
-          typeNames: unitDeclarations.typeNames.toList(),
-          variableNames: unitDeclarations.variableNames.toList(),
-        );
-
+        // TODO(scheglov) We decode above only because we call it here.
         performance.run('prefetch', (_) {
-          _prefetchDirectReferences(unlinked2);
+          _prefetchDirectReferences(unlinked.unit);
         });
       }
       unlinkedId = unlinkedData!.id;
-      informativeId = informativeData!.id;
-      this.informativeBytes = Uint8List.fromList(informativeBytes!);
     }
 
     // Read the unlinked bundle.
-    unlinked2 = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!).unlinkedUnit!;
-    _apiSignature = Uint8List.fromList(unlinked2.apiSignature);
+    unlinked = CiderUnlinkedUnit.fromBytes(unlinkedBytes!);
 
     // Build the graph.
-    for (var directive in unlinked2.imports) {
+    for (var directive in unlinked.unit.imports) {
       var file = _fileForRelativeUri(
         relativeUri: directive.uri,
         performance: performance,
@@ -308,7 +343,7 @@ class FileState {
         importedFiles.add(file);
       }
     }
-    for (var directive in unlinked2.exports) {
+    for (var directive in unlinked.unit.exports) {
       var file = _fileForRelativeUri(
         relativeUri: directive.uri,
         performance: performance,
@@ -317,7 +352,7 @@ class FileState {
         exportedFiles.add(file);
       }
     }
-    for (var uri in unlinked2.parts) {
+    for (var uri in unlinked.unit.parts) {
       var file = _fileForRelativeUri(
         containingLibrary: this,
         relativeUri: uri,
@@ -327,15 +362,15 @@ class FileState {
         partedFiles.add(file);
       }
     }
-    if (unlinked2.hasPartOfDirective) {
+    if (unlinked.unit.hasPartOfDirective) {
       if (containingLibrary == null) {
         _fsState.testView.partsDiscoveredLibraries.add(path);
-        var libraryName = unlinked2.partOfName;
-        var libraryUri = unlinked2.partOfUri;
+        var libraryName = unlinked.unit.partOfName;
+        var libraryUri = unlinked.unit.partOfUri;
         partOfLibrary = null;
-        if (libraryName.isNotEmpty) {
+        if (libraryName != null) {
           _findPartOfNameLibrary(performance: performance);
-        } else if (libraryUri.isNotEmpty) {
+        } else if (libraryUri != null) {
           partOfLibrary = _fileForRelativeUri(
             relativeUri: libraryUri,
             performance: performance,
@@ -424,7 +459,7 @@ class FileState {
     }
   }
 
-  void _prefetchDirectReferences(UnlinkedUnit2 unlinkedUnit2) {
+  void _prefetchDirectReferences(UnlinkedUnit unlinkedUnit2) {
     if (_fsState.prefetchFiles == null) {
       return;
     }
@@ -447,28 +482,27 @@ class FileState {
       }
     }
 
-    for (var directive in unlinked2.imports) {
+    for (var directive in unlinked.unit.imports) {
       findPathForUri(directive.uri);
     }
-    for (var directive in unlinked2.exports) {
+    for (var directive in unlinked.unit.exports) {
       findPathForUri(directive.uri);
     }
-    for (var uri in unlinked2.parts) {
+    for (var uri in unlinked.unit.parts) {
       findPathForUri(uri);
     }
     _fsState.prefetchFiles!(paths.toList());
   }
 
-  static CiderUnlinkedUnitBuilder serializeAstCiderUnlinked(
-      List<int> digest, CompilationUnit unit) {
-    var exports = <UnlinkedNamespaceDirectiveBuilder>[];
-    var imports = <UnlinkedNamespaceDirectiveBuilder>[];
+  static CiderUnlinkedUnit serializeAstCiderUnlinked(CompilationUnit unit) {
+    var exports = <UnlinkedNamespaceDirective>[];
+    var imports = <UnlinkedNamespaceDirective>[];
     var parts = <String>[];
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
-    var partOfUriStr = '';
-    var partOfName = '';
+    String? partOfName;
+    String? partOfUriStr;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
@@ -497,7 +531,8 @@ class FileState {
     }
     if (!hasDartCoreImport) {
       imports.add(
-        UnlinkedNamespaceDirectiveBuilder(
+        UnlinkedNamespaceDirective(
+          configurations: [],
           uri: 'dart:core',
         ),
       );
@@ -528,21 +563,22 @@ class FileState {
       }
     }
 
-    var unlinkedBuilder = UnlinkedUnit2Builder(
+    var unlinkedUnit = UnlinkedUnit(
       apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
-      imports: imports,
-      parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
+      imports: imports,
+      informativeBytes: writeUnitInformative(unit),
+      lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
       partOfName: partOfName,
       partOfUri: partOfUriStr,
-      lineStarts: unit.lineInfo!.lineStarts,
+      parts: parts,
     );
-    return CiderUnlinkedUnitBuilder(
-      contentDigest: digest,
-      unlinkedUnit: unlinkedBuilder,
-      topLevelDeclarations: CiderUnitTopLevelDeclarationsBuilder(
+
+    return CiderUnlinkedUnit(
+      unit: unlinkedUnit,
+      topLevelDeclarations: CiderUnitTopLevelDeclarations(
         extensionNames: declaredExtensions,
         functionNames: declaredFunctions,
         typeNames: declaredTypes,
@@ -551,13 +587,14 @@ class FileState {
     );
   }
 
-  static UnlinkedNamespaceDirectiveBuilder _serializeNamespaceDirective(
-      NamespaceDirective directive) {
-    return UnlinkedNamespaceDirectiveBuilder(
+  static UnlinkedNamespaceDirective _serializeNamespaceDirective(
+    NamespaceDirective directive,
+  ) {
+    return UnlinkedNamespaceDirective(
       configurations: directive.configurations.map((configuration) {
         var name = configuration.name.components.join('.');
         var value = configuration.value?.stringValue ?? '';
-        return UnlinkedNamespaceDirectiveConfigurationBuilder(
+        return UnlinkedNamespaceDirectiveConfiguration(
           name: name,
           value: value,
           uri: configuration.uri.stringValue ?? '',
@@ -638,7 +675,6 @@ class FileSystemState {
     var result = <int>{};
     for (var file in _pathToFile.values) {
       result.add(file.unlinkedId);
-      result.add(file.informativeId);
     }
     return result;
   }
@@ -771,20 +807,21 @@ class FileSystemState {
         }
       }
 
+      var topLevelDeclarations = file.unlinked.topLevelDeclarations;
       addDeclaration(
-        file.topLevelDeclarations.extensionNames,
+        topLevelDeclarations.extensionNames,
         FileTopLevelDeclarationKind.extension,
       );
       addDeclaration(
-        file.topLevelDeclarations.functionNames,
+        topLevelDeclarations.functionNames,
         FileTopLevelDeclarationKind.function,
       );
       addDeclaration(
-        file.topLevelDeclarations.typeNames,
+        topLevelDeclarations.typeNames,
         FileTopLevelDeclarationKind.type,
       );
       addDeclaration(
-        file.topLevelDeclarations.variableNames,
+        topLevelDeclarations.variableNames,
         FileTopLevelDeclarationKind.variable,
       );
     }
@@ -915,26 +952,6 @@ class LibraryCycle {
   String toString() {
     return '[' + libraries.join(', ') + ']';
   }
-}
-
-/// Kind of a top-level declaration.
-///
-/// We don't need it to be precise, just enough to support quick fixes.
-enum TopLevelDeclarationKind { type, extension, function, variable }
-
-/// Information about a single top-level declaration.
-class TopLevelDeclarations {
-  final List<String> extensionNames;
-  final List<String> functionNames;
-  final List<String> typeNames;
-  final List<String> variableNames;
-
-  TopLevelDeclarations({
-    required this.extensionNames,
-    required this.functionNames,
-    required this.typeNames,
-    required this.variableNames,
-  });
 }
 
 class _FakeSource implements Source {

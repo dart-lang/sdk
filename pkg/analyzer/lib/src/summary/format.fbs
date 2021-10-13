@@ -403,30 +403,6 @@ table CiderUnitErrors {
   signature:[uint] (id: 0);
 }
 
-/// Top-level declarations in a compilation unit.
-table CiderUnitTopLevelDeclarations {
-  extensionNames:[string] (id: 0);
-
-  functionNames:[string] (id: 1);
-
-  typeNames:[string] (id: 2);
-
-  variableNames:[string] (id: 3);
-}
-
-/// Information about a compilation unit, contains the content hash
-/// and unlinked summary.
-table CiderUnlinkedUnit {
-  /// The hash signature of the contents of the file.
-  contentDigest:[uint] (id: 0);
-
-  /// Top-level declarations of the unit.
-  topLevelDeclarations:CiderUnitTopLevelDeclarations (id: 1);
-
-  /// Unlinked summary of the compilation unit.
-  unlinkedUnit:UnlinkedUnit2 (id: 2);
-}
-
 table DiagnosticMessage {
   /// The absolute and normalized path of the file associated with this message.
   filePath:string (id: 0);
@@ -458,60 +434,6 @@ table DirectiveInfo {
 table PackageBundle {
   /// The version 2 of the summary.
   fake:uint (id: 0);
-}
-
-/// Unlinked summary information about a namespace directive.
-table UnlinkedNamespaceDirective {
-  /// The configurations that control which library will actually be used.
-  configurations:[UnlinkedNamespaceDirectiveConfiguration] (id: 0);
-
-  /// The URI referenced by this directive, nad used by default when none
-  /// of the [configurations] matches.
-  uri:string (id: 1);
-}
-
-/// Unlinked summary information about a namespace directive configuration.
-table UnlinkedNamespaceDirectiveConfiguration {
-  /// The name of the declared variable used in the condition.
-  name:string (id: 0);
-
-  /// The URI to be used if the condition is true.
-  uri:string (id: 2);
-
-  /// The value to which the value of the declared variable will be compared,
-  /// or the empty string if the condition does not include an equality test.
-  value:string (id: 1);
-}
-
-/// Unlinked summary information about a compilation unit.
-table UnlinkedUnit2 {
-  /// The MD5 hash signature of the API portion of this unit. It depends on all
-  /// tokens that might affect APIs of declarations in the unit.
-  apiSignature:[uint] (id: 0);
-
-  /// URIs of `export` directives.
-  exports:[UnlinkedNamespaceDirective] (id: 1);
-
-  /// Is `true` if the unit contains a `library` directive.
-  hasLibraryDirective:bool (id: 6);
-
-  /// Is `true` if the unit contains a `part of` directive.
-  hasPartOfDirective:bool (id: 3);
-
-  /// URIs of `import` directives.
-  imports:[UnlinkedNamespaceDirective] (id: 2);
-
-  /// Offsets of the first character of each line in the source code.
-  lineStarts:[uint] (id: 5);
-
-  /// The library name of the `part of my.name;` directive.
-  partOfName:string (id: 8);
-
-  /// URI of the `part of 'uri';` directive.
-  partOfUri:string (id: 7);
-
-  /// URIs of `part` directives.
-  parts:[string] (id: 4);
 }
 
 root_type PackageBundle;

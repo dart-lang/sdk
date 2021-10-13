@@ -136,7 +136,7 @@ abstract class AbstractClient {
     return response;
   }
 
-  File newFile(String path, String content, [int stamp]);
+  File newFile(String path, String content);
 
   Folder newFolder(String path);
 

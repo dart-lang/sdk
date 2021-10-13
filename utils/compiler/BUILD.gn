@@ -41,7 +41,7 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
 
   outputs = [ "$target_gen_dir/dart2js.dart" ]
 
-  packages = "../../.packages"
+  packages = "../../.dart_tool/package_config.json"
 
   args = [ "--output_dir=$output_dir" ]
 }
@@ -63,7 +63,7 @@ application_snapshot("dart2js") {
   vm_args = []
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
-    "--packages=" + rebase_path("../../.packages"),
+    "--packages=" + rebase_path("../../.dart_tool/package_config.json"),
     "--libraries-spec=" + rebase_path("$sdk_root/lib/libraries.json"),
 
     # Specifying the platform explicitly elides running the CFE on the sdk

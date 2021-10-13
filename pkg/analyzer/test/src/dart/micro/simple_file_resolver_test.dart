@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
+import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -741,6 +742,32 @@ var a = 4.2;
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
     expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
+  }
+
+  test_getFilesWithTopLevelDeclarations_cached() async {
+    await assertNoErrorsInCode(r'''
+int a = 0;
+var b = 1 + 2;
+''');
+
+    void assertHasOneVariable() {
+      var files = fileResolver.getFilesWithTopLevelDeclarations('a');
+      expect(files, hasLength(1));
+      var file = files.single;
+      expect(file.file.path, result.path);
+      expect(file.kind, FileTopLevelDeclarationKind.variable);
+    }
+
+    // Ask to check that it works when parsed.
+    assertHasOneVariable();
+
+    // Create a new resolved, but reuse the cache.
+    createFileResolver();
+
+    await resolveTestFile();
+
+    // Ask again, when unlinked information is read from the cache.
+    assertHasOneVariable();
   }
 
   test_getLibraryByUri() {

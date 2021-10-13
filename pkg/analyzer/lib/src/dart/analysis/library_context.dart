@@ -117,7 +117,7 @@ class LibraryContext {
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
         for (var file in library.libraryFiles) {
-          unitsInformativeBytes[file.uri] = file.getInformativeBytes();
+          unitsInformativeBytes[file.uri] = file.unlinked2.informativeBytes;
         }
       }
 

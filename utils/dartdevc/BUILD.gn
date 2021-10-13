@@ -59,7 +59,7 @@ template("dart2js_compile") {
 
     script = "../../pkg/compiler/lib/src/dart2js.dart"
 
-    packages = "../../.packages"
+    packages = "../../.dart_tool/package_config.json"
 
     vm_args = [ "-Dsdk_hash=$sdk_hash" ]
 

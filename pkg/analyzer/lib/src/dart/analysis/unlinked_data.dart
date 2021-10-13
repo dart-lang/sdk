@@ -153,6 +153,9 @@ class UnlinkedUnit {
   /// URIs of `import` directives.
   final List<UnlinkedNamespaceDirective> imports;
 
+  /// Encoded informative data.
+  final Uint8List informativeBytes;
+
   /// Offsets of the first character of each line in the source code.
   final Uint32List lineStarts;
 
@@ -171,6 +174,7 @@ class UnlinkedUnit {
     required this.hasLibraryDirective,
     required this.hasPartOfDirective,
     required this.imports,
+    required this.informativeBytes,
     required this.lineStarts,
     required this.partOfName,
     required this.partOfUri,
@@ -188,6 +192,7 @@ class UnlinkedUnit {
       imports: reader.readTypedList(
         () => UnlinkedNamespaceDirective.read(reader),
       ),
+      informativeBytes: reader.readUint8List(),
       lineStarts: reader.readUInt30List(),
       partOfName: reader.readOptionalStringUtf8(),
       partOfUri: reader.readOptionalStringUtf8(),
@@ -205,6 +210,7 @@ class UnlinkedUnit {
     sink.writeList<UnlinkedNamespaceDirective>(imports, (x) {
       x.write(sink);
     });
+    sink.writeUint8List(informativeBytes);
     sink.writeUint30List(lineStarts);
     sink.writeOptionalStringUtf8(partOfName);
     sink.writeOptionalStringUtf8(partOfUri);

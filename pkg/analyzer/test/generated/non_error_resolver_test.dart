@@ -13,46 +13,9 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonConstantValueInInitializer);
     defineReflectiveTests(NonErrorResolverTest);
     defineReflectiveTests(NonErrorResolverWithoutNullSafetyTest);
   });
-}
-
-@reflectiveTest
-class NonConstantValueInInitializer extends PubPackageResolutionTest {
-  test_intLiteralInDoubleContext_const_exact() async {
-    await assertNoErrorsInCode(r'''
-// @dart = 2.9
-const double x = 0;
-class C {
-  const C(double y) : assert(y is double), assert(x is double);
-}
-@C(0)
-@C(-0)
-@C(0x0)
-@C(-0x0)
-void main() {
-  const C(0);
-  const C(-0);
-  const C(0x0);
-  const C(-0x0);
-}
-''');
-  }
-
-  test_isCheckInConstAssert() async {
-    await assertNoErrorsInCode(r'''
-// @dart = 2.9
-class C {
-  const C() : assert(1 is int);
-}
-
-void main() {
-  const C();
-}
-''');
-  }
 }
 
 @reflectiveTest
@@ -1786,26 +1749,6 @@ void main() {
   takeDouble(-0);
   takeDouble(0x0);
   takeDouble(-0x0);
-}
-''');
-  }
-
-  test_intLiteralInDoubleContext_const() async {
-    await assertNoErrorsInCode(r'''
-class C {
-  const C(double x)
-    : assert((x + 3) / 2 == 1.5)
-    , assert(x == 0.0);
-}
-@C(0)
-@C(-0)
-@C(0x0)
-@C(-0x0)
-void main() {
-  const C(0);
-  const C(-0);
-  const C(0x0);
-  const C(-0x0);
 }
 ''');
   }

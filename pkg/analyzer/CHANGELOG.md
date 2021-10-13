@@ -1,4 +1,4 @@
-## 2.6.0-dev
+## 2.6.0
 * Deprecated `AnalysisResult.state`, check for specific valid or invalid subtypes.
 * Deprecated `ResultState`.
 * Deprecated `LibraryElement.hasExtUri`, FFI should be used instead.
