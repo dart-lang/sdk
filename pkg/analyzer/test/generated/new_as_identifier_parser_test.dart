@@ -256,6 +256,14 @@ class C {
     expect(methodInvocation.argumentList, isNotNull);
   }
 
+  void test_constructor_tearoff_in_comment_reference() {
+    createParser('');
+    var commentReference = parseCommentReference('C.new', 5)!;
+    var identifier = commentReference.identifier as PrefixedIdentifier;
+    expect(identifier.prefix.name, 'C');
+    expect(identifier.identifier.name, 'new');
+  }
+
   void test_constructor_tearoff_method_invocation() {
     var methodInvocation =
         parseExpression('C.new.toString()', featureSet: constructorTearoffs)
