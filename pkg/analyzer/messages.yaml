@@ -14959,14 +14959,13 @@ HintCode:
       var x;
       ```
   INVALID_NON_VIRTUAL_ANNOTATION:
-    problemMessage: "The member '{0}' can't be '@nonVirtual' because it isn't a concrete instance member."
+    problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
     correctionMessage: Try removing @nonVirtual.
     comment: |-
       This hint is generated anywhere where `@nonVirtual` annotates something
       other than a non-abstract instance member in a class or mixin.
 
-      Parameters:
-      0: the name of the member
+      No Parameters.
   INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
     problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
     comment: |-
@@ -15070,14 +15069,13 @@ HintCode:
       }
       ```
   INVALID_SEALED_ANNOTATION:
-    problemMessage: "The member '{0}' is annotated with '@sealed' but only classes can be annotated with it."
+    problemMessage: "The annotation '@sealed' can only be applied to classes."
     correctionMessage: Remove @sealed.
     comment: |-
       This hint is generated anywhere where `@sealed` annotates something other
       than a class.
 
-      Parameters:
-      0: the name of the member
+      No parameters.
   INVALID_USE_OF_INTERNAL_MEMBER:
     problemMessage: "The member '{0}' can only be used within its package."
     comment: |-

@@ -118,38 +118,21 @@ class A<T> {
 ''');
   }
 
-  test_typeParameter_ofExtension() async {
-    await _assertNeverConst(r'''
-extension E<T> on int {
-  void foo() {
-    T x;
-  }
-}
-''');
-  }
-
   test_typeParameter_ofFunction() async {
-    await _assertNeverConst(r'''
+    await _assertPotentiallyConst('''
 void foo<T>() {
   T x;
 }
 ''');
   }
 
-  test_typeParameter_ofMethod() async {
-    await _assertNeverConst(r'''
-class A {
-  void foo<T>() {
-    T x;
+  test_typeParameter_ofFunctionType() async {
+    await _assertPotentiallyConst('''
+class A<U> {
+  const A();
+  void foo() {
+    void Function<X>(X) x;
   }
-}
-''');
-  }
-
-  test_typeParameter_ofMixin() async {
-    await _assertNeverConst(r'''
-mixin M<T> {
-  T x;
 }
 ''');
   }

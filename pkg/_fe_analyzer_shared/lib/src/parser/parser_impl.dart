@@ -8257,6 +8257,16 @@ class Parser {
     if (token.isIdentifier && optional('.', token.next!)) {
       prefix = token;
       period = token.next!;
+      Token identifier = period.next!;
+      if (identifier.kind == KEYWORD_TOKEN && optional('new', identifier)) {
+        // Treat `new` after `.` is as an identifier so that it can represent an
+        // unnamed constructor. This support is separate from the
+        // constructor-tearoffs feature.
+        rewriter.replaceTokenFollowing(
+            period,
+            new StringToken(TokenType.IDENTIFIER, identifier.lexeme,
+                identifier.charOffset));
+      }
       token = period.next!;
     }
     if (token.isEof) {

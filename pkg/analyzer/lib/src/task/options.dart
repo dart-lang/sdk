@@ -385,7 +385,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                   k.span,
-                  [k.value?.toString()]);
+                  [k.value.toString()]);
             }
           }
           if (v is YamlScalar) {
@@ -397,7 +397,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
                   v.span,
                   [
                     AnalyzerOptions.errors,
-                    v.value?.toString(),
+                    v.value.toString(),
                     legalValueString
                   ]);
             }

@@ -836,6 +836,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           // The initializer was already compiled (e.g., if it appear in the
           // outline, like constant field initializers) so we do not need to
           // perform type inference or transformations.
+
+          // If the body is already built and it's a type aliased constructor or
+          // factory invocation, they shouldn't be checked or resolved the
+          // second time, so they are removed from the corresponding lists.
+          if (initializer is TypeAliasedConstructorInvocation) {
+            typeAliasedConstructorInvocations.remove(initializer);
+          }
+          if (initializer is TypeAliasedFactoryInvocation) {
+            typeAliasedFactoryInvocations.remove(initializer);
+          }
         } else {
           initializer = typeInferrer.inferFieldInitializer(
               this, fieldBuilder.builtType, initializer);

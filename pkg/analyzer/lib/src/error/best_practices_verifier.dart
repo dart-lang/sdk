@@ -201,29 +201,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (parent is FieldDeclaration) {
         if (parent.isStatic) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
-              node,
-              [node.element!.name]);
+              HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
         }
       } else if (parent is MethodDeclaration) {
         if (parent.parent is ExtensionDeclaration ||
             parent.isStatic ||
             parent.isAbstract) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
-              node,
-              [node.element!.name]);
+              HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
         }
       } else {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
-            node,
-            [node.element!.name]);
+            HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
       }
     } else if (element.isSealed == true) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_SEALED_ANNOTATION, node, [node.element!.name]);
+            HintCode.INVALID_SEALED_ANNOTATION, node);
       }
     } else if (element.isVisibleForTemplate == true ||
         element.isVisibleForTesting == true ||
@@ -240,7 +234,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
               node,
-              [declaredElement.name]);
+              [declaredElement.name ?? '<unnamed>']);
         }
 
         if (parent is TopLevelVariableDeclaration) {
@@ -275,7 +269,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             reportInvalidVisibleForOverriding(declaredElement);
           }
 
-          if (Identifier.isPrivateName(declaredElement.name!)) {
+          var name = declaredElement.name;
+          if (name != null && Identifier.isPrivateName(name)) {
             reportInvalidAnnotation(declaredElement);
           }
         }

@@ -1,42 +1,42 @@
 Problems reported:
 
-parser/general/new_as_identifier:15:44: Expected an identifier, but got 'new'.
+parser/general/new_as_identifier:16:44: Expected an identifier, but got 'new'.
   C.constructor_field_initializer() : this.new = null;
                                            ^^^
 
-parser/general/new_as_identifier:15:39: Expected an assignment after the field name.
+parser/general/new_as_identifier:16:39: Expected an assignment after the field name.
   C.constructor_field_initializer() : this.new = null;
                                       ^^^^
 
-parser/general/new_as_identifier:15:44: Expected a function body, but got 'new'.
+parser/general/new_as_identifier:16:44: Expected a function body, but got 'new'.
   C.constructor_field_initializer() : this.new = null;
                                            ^^^
 
-parser/general/new_as_identifier:15:44: Expected a class member, but got 'new'.
+parser/general/new_as_identifier:16:44: Expected a class member, but got 'new'.
   C.constructor_field_initializer() : this.new = null;
                                            ^^^
 
-parser/general/new_as_identifier:15:48: Operator declarations must be preceded by the keyword 'operator'.
+parser/general/new_as_identifier:16:48: Operator declarations must be preceded by the keyword 'operator'.
   C.constructor_field_initializer() : this.new = null;
                                                ^
 
-parser/general/new_as_identifier:15:48: The string '=' isn't a user-definable operator.
+parser/general/new_as_identifier:16:48: The string '=' isn't a user-definable operator.
   C.constructor_field_initializer() : this.new = null;
                                                ^
 
-parser/general/new_as_identifier:15:48: A method declaration needs an explicit list of parameters.
+parser/general/new_as_identifier:16:48: A method declaration needs an explicit list of parameters.
   C.constructor_field_initializer() : this.new = null;
                                                ^
 
-parser/general/new_as_identifier:15:50: Expected a function body, but got 'null'.
+parser/general/new_as_identifier:16:50: Expected a function body, but got 'null'.
   C.constructor_field_initializer() : this.new = null;
                                                  ^^^^
 
-parser/general/new_as_identifier:15:50: Expected a class member, but got 'null'.
+parser/general/new_as_identifier:16:50: Expected a class member, but got 'null'.
   C.constructor_field_initializer() : this.new = null;
                                                  ^^^^
 
-parser/general/new_as_identifier:15:54: Expected a class member, but got ';'.
+parser/general/new_as_identifier:16:54: Expected a class member, but got ';'.
   C.constructor_field_initializer() : this.new = null;
                                                      ^
 

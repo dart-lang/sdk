@@ -103,6 +103,18 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
   } while (size > 0);
 }
 
+DART_FORCE_INLINE
+static uword ReadHeaderRelaxed(ObjectPtr raw_obj) {
+  return reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
+      ->load(std::memory_order_relaxed);
+}
+
+DART_FORCE_INLINE
+static void WriteHeaderRelaxed(ObjectPtr raw_obj, uword header) {
+  reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
+      ->store(header, std::memory_order_relaxed);
+}
+
 template <bool parallel>
 class ScavengerVisitorBase : public ObjectPointerVisitor {
  public:
@@ -154,16 +166,14 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
 
     // Validate 'this' is a typed data view.
-    const uword view_header =
-        *reinterpret_cast<uword*>(UntaggedObject::ToAddr(view));
+    const uword view_header = ReadHeaderRelaxed(view);
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
     ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word.
     TypedDataBasePtr td = view->untag()->typed_data();
     ASSERT(td->IsHeapObject());
-    const uword td_header =
-        *reinterpret_cast<uword*>(UntaggedObject::ToAddr(td));
+    const uword td_header = ReadHeaderRelaxed(td);
     ASSERT(!IsForwarding(td_header) || td->IsOldObject());
 
     if (!parallel) {
@@ -356,8 +366,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT(from_->Contains(raw_addr));
     // Read the header word of the object and determine if the object has
     // already been copied.
-    uword header = reinterpret_cast<std::atomic<uword>*>(raw_addr)->load(
-        std::memory_order_relaxed);
+    uword header = ReadHeaderRelaxed(raw_obj);
     ObjectPtr new_obj;
     if (IsForwarding(header)) {
       // Get the new location of the object.
@@ -1306,7 +1315,7 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
     ASSERT(raw_key->IsNewObject());
     uword raw_addr = UntaggedObject::ToAddr(raw_key);
     ASSERT(from_->Contains(raw_addr));
-    uword header = *reinterpret_cast<uword*>(raw_addr);
+    uword header = ReadHeaderRelaxed(raw_key);
     // Reset the next pointer in the weak property.
     cur_weak->untag()->next_ = WeakProperty::null();
     if (IsForwarding(header)) {
@@ -1351,8 +1360,7 @@ void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
   ASSERT(raw_weak->IsNewObject());
   ASSERT(raw_weak->IsWeakProperty());
 #if defined(DEBUG)
-  uword raw_addr = UntaggedObject::ToAddr(raw_weak);
-  uword header = *reinterpret_cast<uword*>(raw_addr);
+  uword header = ReadHeaderRelaxed(raw_weak);
   ASSERT(!IsForwarding(header));
 #endif  // defined(DEBUG)
   ASSERT(raw_weak->untag()->next_ ==
@@ -1369,8 +1377,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
     // The fate of the weak property is determined by its key.
     ObjectPtr raw_key = raw_weak->untag()->key();
     if (raw_key->IsHeapObject() && raw_key->IsNewObject()) {
-      uword raw_addr = UntaggedObject::ToAddr(raw_key);
-      uword header = *reinterpret_cast<uword*>(raw_addr);
+      uword header = ReadHeaderRelaxed(raw_key);
       if (!IsForwarding(header)) {
         // Key is white.  Enqueue the weak property.
         EnqueueWeakProperty(raw_weak);
@@ -1714,20 +1721,11 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ReverseScavenge");
 
   class ReverseFromForwardingVisitor : public ObjectVisitor {
-    uword ReadHeader(ObjectPtr raw_obj) {
-      return reinterpret_cast<std::atomic<uword>*>(
-                 UntaggedObject::ToAddr(raw_obj))
-          ->load(std::memory_order_relaxed);
-    }
-    void WriteHeader(ObjectPtr raw_obj, uword header) {
-      reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
-          ->store(header, std::memory_order_relaxed);
-    }
     void VisitObject(ObjectPtr from_obj) {
-      uword from_header = ReadHeader(from_obj);
+      uword from_header = ReadHeaderRelaxed(from_obj);
       if (IsForwarding(from_header)) {
         ObjectPtr to_obj = ForwardedObj(from_header);
-        uword to_header = ReadHeader(to_obj);
+        uword to_header = ReadHeaderRelaxed(to_obj);
         intptr_t size = to_obj->untag()->HeapSize();
 
         // Reset the ages bits in case this was a promotion.
@@ -1739,7 +1737,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
         from_header =
             UntaggedObject::OldAndNotMarkedBit::update(false, from_header);
 
-        WriteHeader(from_obj, from_header);
+        WriteHeaderRelaxed(from_obj, from_header);
 
         ForwardingCorpse::AsForwarder(UntaggedObject::ToAddr(to_obj), size)
             ->set_target(from_obj);

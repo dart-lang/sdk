@@ -338,6 +338,23 @@ extension E on A {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
+  test_extensionMethod_unknown() async {
+    await assertErrorsInCode('''
+extension on double {
+  bar() {
+    foo<int>;
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3,
+          messageContains: "for the type 'double'"),
+    ]);
+
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
+  }
+
   test_function_call() async {
     await assertNoErrorsInCode('''
 void foo<T>(T a) {}
@@ -874,7 +891,8 @@ class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3,
+          messageContains: "for the type 'A'"),
     ]);
 
     assertFunctionReference(

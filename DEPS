@@ -603,11 +603,12 @@ deps = {
       "dep_type": "cipd",
   },
 
+  # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
       {
       "package": "fuchsia/sdk/gn/linux-amd64",
-      "version": "git_revision:e0a61431eb6e28d31d293cbb0c12f6b3a089bba4"
+      "version": "git_revision:190502a955c482431c2edd0525e128423728b662"
       }
     ],
     "condition": 'host_os == "linux" and host_cpu == "x64"',

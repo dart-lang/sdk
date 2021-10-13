@@ -595,7 +595,7 @@ class FunctionReferenceResolver {
         _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_METHOD,
           function,
-          [function.name, enclosingClass],
+          [function.name, receiverType],
         );
         function.staticType = DynamicTypeImpl.instance;
         node.staticType = DynamicTypeImpl.instance;
