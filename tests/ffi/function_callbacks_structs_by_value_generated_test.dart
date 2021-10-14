@@ -18,8 +18,12 @@ import "package:ffi/ffi.dart";
 
 import 'callback_tests_utils.dart';
 
-// Reuse the struct classes.
-import 'function_structs_by_value_generated_test.dart';
+import 'dylib_utils.dart';
+
+// Reuse the compound classes.
+import 'function_structs_by_value_generated_compounds.dart';
+
+final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 void main() {
   testCases.forEach((t) {
