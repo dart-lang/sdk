@@ -4,10 +4,18 @@
 
 part of dart.core;
 
-/// An arbitrarily large integer.
+/// An arbitrarily large integer value.
+///
+/// Big integers are signed and can have an arbitrary number of
+/// significant digits, only limited by memory.
 abstract class BigInt implements Comparable<BigInt> {
+  /// A big integer with the numerical value 0.
   external static BigInt get zero;
+
+  /// A big integer with the numerical value 1.
   external static BigInt get one;
+
+  /// A big integer with the numerical value 2.
   external static BigInt get two;
 
   /// Parses [source] as a, possibly signed, integer literal and returns its
@@ -54,19 +62,31 @@ abstract class BigInt implements Comparable<BigInt> {
   /// for zero, which is its own negation.
   BigInt operator -();
 
-  /// Addition operator.
+  /// Adds [other] to this big integer.
+  ///
+  /// The result is again a big integer.
   BigInt operator +(BigInt other);
 
-  /// Subtraction operator.
+  /// Subtracts [other] from this big integer.
+  ///
+  /// The result is again a big integer.
   BigInt operator -(BigInt other);
 
-  /// Multiplication operator.
+  /// Multiplies [other] by this big integer.
+  ///
+  /// The result is again a big integer.
   BigInt operator *(BigInt other);
 
-  /// Division operator.
+  /// Double division operator.
+  ///
+  /// Matching the similar operator on [int],
+  /// this operation first performs [toDouble] on both this big integer
+  /// and [other], then does [double.operator/] on those values and
+  /// returns the result.
+  /// The initial [toDouble] conversion may lose precision.
   double operator /(BigInt other);
 
-  /// Truncating division operator.
+  /// Truncating integer division operator.
   ///
   /// Performs a truncating integer division, where the remainder is discarded.
   ///
@@ -162,16 +182,16 @@ abstract class BigInt implements Comparable<BigInt> {
   /// This maps any integer `x` to `-x - 1`.
   BigInt operator ~();
 
-  /// Relational less than operator.
+  /// Whether this big integer is numerically smaller than [other].
   bool operator <(BigInt other);
 
-  /// Relational less than or equal operator.
+  /// Whether [other] is numerically greater than this big integer.
   bool operator <=(BigInt other);
 
-  /// Relational greater than operator.
+  /// Whether this big integer is numerically greater than [other].
   bool operator >(BigInt other);
 
-  /// Relational greater than or equal operator.
+  /// Whether [other] is numerically smaller than this big integer.
   bool operator >=(BigInt other);
 
   /// Compares this to `other`.
