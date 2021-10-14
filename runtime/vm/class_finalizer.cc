@@ -1731,7 +1731,6 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   auto const isolate_group = thread->isolate_group();
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
   auto const zone = thread->zone();
 
   class ClearCodeVisitor : public FunctionVisitor {
