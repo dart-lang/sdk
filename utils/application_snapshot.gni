@@ -148,7 +148,7 @@ template("_application_snapshot") {
 
     # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
     # snapshot (creating a circular dep. for kernel-service_snapshot).
-    dfe = "NEVER LOADED"
+    dfe = "NEVER_LOADED"
 
     abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output)
