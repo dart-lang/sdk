@@ -15,9 +15,11 @@ enum ExperimentalFlag {
   constantUpdate2018,
   constructorTearoffs,
   controlFlowCollections,
+  enhancedEnums,
   extensionMethods,
   extensionTypes,
   genericMetadata,
+  namedArgumentsAnywhere,
   nonNullable,
   nonfunctionTypeAliases,
   setLiterals,
@@ -34,9 +36,11 @@ const Version enableConstFunctionsVersion = const Version(2, 15);
 const Version enableConstantUpdate2018Version = const Version(2, 0);
 const Version enableConstructorTearoffsVersion = const Version(2, 15);
 const Version enableControlFlowCollectionsVersion = const Version(2, 0);
+const Version enableEnhancedEnumsVersion = const Version(2, 15);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
 const Version enableExtensionTypesVersion = const Version(2, 15);
 const Version enableGenericMetadataVersion = const Version(2, 14);
+const Version enableNamedArgumentsAnywhereVersion = const Version(2, 15);
 const Version enableNonNullableVersion = const Version(2, 12);
 const Version enableNonfunctionTypeAliasesVersion = const Version(2, 13);
 const Version enableSetLiteralsVersion = const Version(2, 0);
@@ -58,12 +62,16 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.constructorTearoffs;
     case "control-flow-collections":
       return ExperimentalFlag.controlFlowCollections;
+    case "enhanced-enums":
+      return ExperimentalFlag.enhancedEnums;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
     case "extension-types":
       return ExperimentalFlag.extensionTypes;
     case "generic-metadata":
       return ExperimentalFlag.genericMetadata;
+    case "named-arguments-anywhere":
+      return ExperimentalFlag.namedArgumentsAnywhere;
     case "non-nullable":
       return ExperimentalFlag.nonNullable;
     case "nonfunction-type-aliases":
@@ -90,9 +98,11 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.constructorTearoffs: true,
   ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.enhancedEnums: false,
   ExperimentalFlag.extensionMethods: true,
   ExperimentalFlag.extensionTypes: false,
   ExperimentalFlag.genericMetadata: true,
+  ExperimentalFlag.namedArgumentsAnywhere: false,
   ExperimentalFlag.nonNullable: true,
   ExperimentalFlag.nonfunctionTypeAliases: true,
   ExperimentalFlag.setLiterals: true,
@@ -109,9 +119,11 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.constructorTearoffs: false,
   ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.enhancedEnums: false,
   ExperimentalFlag.extensionMethods: false,
   ExperimentalFlag.extensionTypes: false,
   ExperimentalFlag.genericMetadata: false,
+  ExperimentalFlag.namedArgumentsAnywhere: false,
   ExperimentalFlag.nonNullable: false,
   ExperimentalFlag.nonfunctionTypeAliases: false,
   ExperimentalFlag.setLiterals: true,
@@ -128,9 +140,11 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.constructorTearoffs: const Version(2, 15),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
+  ExperimentalFlag.enhancedEnums: const Version(2, 15),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.extensionTypes: const Version(2, 15),
   ExperimentalFlag.genericMetadata: const Version(2, 14),
+  ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 15),
   ExperimentalFlag.nonNullable: const Version(2, 12),
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
@@ -147,9 +161,11 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.constructorTearoffs: const Version(2, 15),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
+  ExperimentalFlag.enhancedEnums: const Version(2, 15),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.extensionTypes: const Version(2, 15),
   ExperimentalFlag.genericMetadata: const Version(2, 14),
+  ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 15),
   ExperimentalFlag.nonNullable: const Version(2, 10),
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
