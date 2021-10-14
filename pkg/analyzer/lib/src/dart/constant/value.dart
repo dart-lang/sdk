@@ -184,7 +184,7 @@ class DartObjectImpl implements DartObject {
   Map<String, DartObjectImpl>? get fields => _state.fields;
 
   @override
-  int get hashCode => Object.hash(type.hashCode, _state.hashCode);
+  int get hashCode => Object.hash(type, _state);
 
   @override
   bool get hasKnownValue => !_state.isUnknown;

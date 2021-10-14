@@ -884,7 +884,7 @@ class Name {
 
   factory Name(Uri? libraryUri, String name) {
     if (name.startsWith('_')) {
-      var hashCode = Object.hash(libraryUri.hashCode, name.hashCode);
+      var hashCode = Object.hash(libraryUri, name);
       return Name._internal(libraryUri, name, false, hashCode);
     } else {
       return Name._internal(null, name, true, name.hashCode);

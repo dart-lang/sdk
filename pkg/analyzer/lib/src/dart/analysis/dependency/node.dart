@@ -22,7 +22,7 @@ class ClassMemberReference {
   final int hashCode;
 
   ClassMemberReference(this.target, this.name)
-      : hashCode = Object.hash(target.hashCode, name.hashCode);
+      : hashCode = Object.hash(target, name);
 
   @override
   bool operator ==(Object other) {
@@ -120,7 +120,7 @@ class LibraryQualifiedName {
 
   factory LibraryQualifiedName(Uri libraryUri, String name) {
     var isPrivate = name.startsWith('_');
-    var hashCode = Object.hash(libraryUri.hashCode, name.hashCode);
+    var hashCode = Object.hash(libraryUri, name);
     return LibraryQualifiedName._internal(
         libraryUri, name, isPrivate, hashCode);
   }
