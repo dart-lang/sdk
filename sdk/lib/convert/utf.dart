@@ -78,9 +78,9 @@ class Utf8Codec extends Encoding {
 /// Example:
 /// ```dart
 /// const String sample = '"Îñţérñåţîöñåļîžåţîờñ"';
-/// const Utf8Encoder utf8encoder = Utf8Encoder();
-/// final List<int> encoded = utf8encoder.convert(sample);
-/// print(encoded);
+/// const Utf8Encoder utf8Encoder = Utf8Encoder();
+/// final List<int> encodedSample = utf8Encoder.convert(sample);
+/// print(encodedSample);
 /// ```
 class Utf8Encoder extends Converter<String, List<int>> {
   const Utf8Encoder();
@@ -296,14 +296,14 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
 ///
 /// Example:
 /// ```dart
-/// const Utf8Decoder utf8decoder = Utf8Decoder();
+/// const Utf8Decoder utf8Decoder = Utf8Decoder();
 /// const List<int> encodedBytes =
 /// [195, 142, 195, 177, 197, 163, 195, 169, 114, 195, 177, 195, 165, 197,
 ///  163, 195, 174, 195, 182, 195, 177, 195, 165, 196, 188, 195, 174, 197,
 ///  190, 195, 165, 197, 163, 195, 174, 225, 187, 157, 195, 177];
 ///
-/// final String decoded = utf8decoder.convert(encodedBytes);
-/// print(decoded); // Îñţérñåţîöñåļîžåţîờñ
+/// final String decodedBytes = utf8Decoder.convert(encodedBytes);
+/// print(decodedBytes); // Îñţérñåţîöñåļîžåţîờñ
 /// ```
 /// If encoded data contains invalid values, the decoder
 /// throws a [FormatException]
@@ -313,11 +313,11 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
 ///
 /// Allow invalid byte value example:
 /// ```dart
-/// const Utf8Decoder utf8decoder = Utf8Decoder(allowMalformed: true);
+/// const Utf8Decoder utf8Decoder = Utf8Decoder(allowMalformed: true);
 /// const List<int> encodedBytes = [0xFF];
 ///
-/// final String decoded = utf8decoder.convert(encodedBytes);
-/// print(decoded); // �
+/// final String decodedBytes = utf8Decoder.convert(encodedBytes);
+/// print(decodedBytes); // �
 /// ```
 class Utf8Decoder extends Converter<List<int>, String> {
   final bool _allowMalformed;
