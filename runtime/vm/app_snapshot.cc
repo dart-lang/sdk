@@ -2381,6 +2381,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d, bool primary) {
     ASSERT(!is_canonical());  // Never canonical.
     fill_position_ = d->position();
+#if defined(DART_PRECOMPILED_RUNTIME)
     const uint8_t immediate_bits =
         ObjectPool::EncodeBits(ObjectPool::EntryType::kImmediate,
                                ObjectPool::Patchability::kPatchable);
@@ -2392,6 +2393,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
       megamorphic_call_entry_point =
           StubCode::MegamorphicCall().MonomorphicEntryPoint();
     }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       const intptr_t length = d->ReadUnsigned();
@@ -2416,6 +2418,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
             break;
           }
+#if defined(DART_PRECOMPILED_RUNTIME)
           case ObjectPool::EntryType::kSwitchableCallMissEntryPoint:
             ASSERT(FLAG_use_bare_instructions);
             pool->untag()->entry_bits()[j] = immediate_bits;
@@ -2428,6 +2431,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_value_ =
                 static_cast<intptr_t>(megamorphic_call_entry_point);
             break;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
           default:
             UNREACHABLE();
         }
