@@ -168,6 +168,7 @@ class NewPage {
 class SemiSpace {
  public:
   static void Init();
+  static void DrainCache();
   static void Cleanup();
   static intptr_t CachedSize();
 

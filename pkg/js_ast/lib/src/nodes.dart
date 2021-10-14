@@ -1516,8 +1516,13 @@ class ArrowFunction extends FunctionExpression {
   @override
   final AsyncModifier asyncModifier;
 
+  /// Indicates whether it is permissible to try to emit this arrow function
+  /// in a form with an implicit 'return'.
+  final bool implicitReturnAllowed;
+
   ArrowFunction(this.params, this.body,
-      {this.asyncModifier = AsyncModifier.sync});
+      {this.asyncModifier = AsyncModifier.sync,
+      this.implicitReturnAllowed = true});
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrowFunction(this);
 
@@ -1534,8 +1539,9 @@ class ArrowFunction extends FunctionExpression {
     body.accept1(visitor, arg);
   }
 
-  ArrowFunction _clone() =>
-      ArrowFunction(params, body, asyncModifier: asyncModifier);
+  ArrowFunction _clone() => ArrowFunction(params, body,
+      asyncModifier: asyncModifier,
+      implicitReturnAllowed: implicitReturnAllowed);
 
   int get precedenceLevel => ASSIGNMENT;
 }

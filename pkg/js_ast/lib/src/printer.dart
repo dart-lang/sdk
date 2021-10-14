@@ -1128,6 +1128,15 @@ class Printer implements NodeVisitor {
     spaceOut();
     int closingPosition;
     Node body = fun.body;
+    // Simplify arrow functions that return a single expression.
+    // Note that this can result in some sourcemapped positions disappearing
+    // around the elided Return. See http://dartbug.com/47354
+    if (fun.implicitReturnAllowed && body is Block) {
+      final statement = unwrapBlockIfSingleStatement(body);
+      if (statement is Return) {
+        body = statement.value;
+      }
+    }
     if (body is Block) {
       closingPosition =
           blockOut(body, shouldIndent: false, needsNewline: false);
@@ -1140,7 +1149,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(body, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
       if (needsParens) out(")");
-      closingPosition = _charCount - 1;
+      closingPosition = _charCount;
     }
     localNamer.leaveScope();
     return closingPosition;
