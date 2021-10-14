@@ -4,12 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'extensions/test_all.dart' as extensions;
 import 'flutter_test.dart' as flutter_test;
 import 'profiling_test.dart' as profiling_test;
 import 'strings_test.dart' as strings_test;
 
 void main() {
   defineReflectiveSuite(() {
+    extensions.main();
     flutter_test.main();
     profiling_test.main();
     strings_test.main();
