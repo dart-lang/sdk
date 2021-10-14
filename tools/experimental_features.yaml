@@ -125,6 +125,9 @@ features:
   enhanced-enums:
     help: "Enhanced Enums"
 
+  named-arguments-anywhere:
+    help: "Named Arguments Anywhere"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
