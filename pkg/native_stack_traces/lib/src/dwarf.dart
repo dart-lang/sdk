@@ -1066,20 +1066,6 @@ class LineNumberInfo {
   }
 }
 
-// TODO(11617): Replace calls to these functions with a general hashing solution
-// once available.
-int _hashCombine(int hash, int value) {
-  hash = 0x1fffffff & (hash + value);
-  hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-  return hash ^ (hash >> 6);
-}
-
-int _hashFinish(int hash) {
-  hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-  hash = hash ^ (hash >> 11);
-  return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-}
-
 /// Represents the information for a call site.
 abstract class CallInfo {
   /// Whether this call site is considered internal (i.e. not located in either
@@ -1108,16 +1094,14 @@ class DartCallInfo extends CallInfo {
   bool get isInternal => internal;
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = _hashCombine(hash, inlined.hashCode);
-    hash = _hashCombine(hash, internal.hashCode);
-    hash = _hashCombine(hash, function.hashCode);
-    hash = _hashCombine(hash, filename.hashCode);
-    hash = _hashCombine(hash, line.hashCode);
-    hash = _hashCombine(hash, column.hashCode);
-    return _hashFinish(hash);
-  }
+  int get hashCode => Object.hash(
+        inlined,
+        internal,
+        function,
+        filename,
+        line,
+        column,
+      );
 
   @override
   bool operator ==(Object other) {
@@ -1166,8 +1150,7 @@ class StubCallInfo extends CallInfo {
   StubCallInfo({required this.name, required this.offset});
 
   @override
-  int get hashCode => _hashFinish(
-      _hashCombine(_hashCombine(0, name.hashCode), offset.hashCode));
+  int get hashCode => Object.hash(name, offset);
 
   @override
   bool operator ==(Object other) {
@@ -1207,7 +1190,7 @@ class PCOffset {
           includeInternalFrames: includeInternalFrames);
 
   @override
-  int get hashCode => _hashFinish(_hashCombine(offset.hashCode, section.index));
+  int get hashCode => Object.hash(offset, section);
 
   @override
   bool operator ==(Object other) {

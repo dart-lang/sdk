@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-10-04T10:29:25.433041",
+  "generated": "2021-10-13T14:43:47.733371",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -470,7 +470,7 @@
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "nnbd_migration",
