@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:math';
+import 'dart:typed_data';
 
-String paddedHex(int value, [int bytes = 0]) {
-  return value.toRadixString(16).padLeft(2 * bytes, '0');
-}
+String paddedHex(int value, [int bytes = 0]) =>
+    value.toRadixString(16).padLeft(2 * bytes, '0');
 
 class Reader {
   final ByteData bdata;

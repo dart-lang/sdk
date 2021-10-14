@@ -18,24 +18,18 @@ int _readElfBytes(Reader reader, int bytes, int alignment) {
 }
 
 // Reads an Elf{32,64}_Addr.
-int _readElfAddress(Reader reader) {
-  return _readElfBytes(reader, reader.wordSize, reader.wordSize);
-}
+int _readElfAddress(Reader reader) =>
+    _readElfBytes(reader, reader.wordSize, reader.wordSize);
 
 // Reads an Elf{32,64}_Off.
-int _readElfOffset(Reader reader) {
-  return _readElfBytes(reader, reader.wordSize, reader.wordSize);
-}
+int _readElfOffset(Reader reader) =>
+    _readElfBytes(reader, reader.wordSize, reader.wordSize);
 
 // Reads an Elf{32,64}_Half.
-int _readElfHalf(Reader reader) {
-  return _readElfBytes(reader, 2, 2);
-}
+int _readElfHalf(Reader reader) => _readElfBytes(reader, 2, 2);
 
 // Reads an Elf{32,64}_Word.
-int _readElfWord(Reader reader) {
-  return _readElfBytes(reader, 4, 4);
-}
+int _readElfWord(Reader reader) => _readElfBytes(reader, 4, 4);
 
 // Reads an Elf64_Xword.
 int _readElfXword(Reader reader) {
@@ -50,9 +44,7 @@ int _readElfXword(Reader reader) {
 }
 
 // Reads an Elf{32,64}_Section.
-int _readElfSection(Reader reader) {
-  return _readElfBytes(reader, 2, 2);
-}
+int _readElfSection(Reader reader) => _readElfBytes(reader, 2, 2);
 
 // Used in cases where the value read for a given field is Elf32_Word on 32-bit
 // and Elf64_Xword on 64-bit.

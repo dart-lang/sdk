@@ -1104,17 +1104,14 @@ class DartCallInfo extends CallInfo {
       );
 
   @override
-  bool operator ==(Object other) {
-    if (other is DartCallInfo) {
-      return inlined == other.inlined &&
-          internal == other.internal &&
-          function == other.function &&
-          filename == other.filename &&
-          line == other.line &&
-          column == other.column;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is DartCallInfo &&
+      inlined == other.inlined &&
+      internal == other.internal &&
+      function == other.function &&
+      filename == other.filename &&
+      line == other.line &&
+      column == other.column;
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
@@ -1153,12 +1150,8 @@ class StubCallInfo extends CallInfo {
   int get hashCode => Object.hash(name, offset);
 
   @override
-  bool operator ==(Object other) {
-    if (other is StubCallInfo) {
-      return name == other.name && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is StubCallInfo && name == other.name && offset == other.offset;
 
   @override
   String toString() => '$name+0x${offset.toRadixString(16)}';
@@ -1193,11 +1186,8 @@ class PCOffset {
   int get hashCode => Object.hash(offset, section);
 
   @override
-  bool operator ==(Object other) {
-    return other is PCOffset &&
-        offset == other.offset &&
-        section == other.section;
-  }
+  bool operator ==(Object other) =>
+      other is PCOffset && offset == other.offset && section == other.section;
 
   @override
   String toString() => 'PCOffset($section, $offset)';

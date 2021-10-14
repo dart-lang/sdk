@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:path/path.dart' as path;
 import 'package:native_stack_traces/native_stack_traces.dart';
+import 'package:path/path.dart' as path;
 
 ArgParser _createBaseDebugParser(ArgParser parser) => parser
   ..addOption('debug',
@@ -230,7 +230,10 @@ void find(ArgResults options) {
   final header = StackTraceHeader(isolateStart, vmStart);
 
   final locations = <PCOffset>[];
-  for (final String s in options['location'] + options.rest) {
+  for (final String s in [
+    ...(options['location'] as List<String>),
+    ...options.rest,
+  ]) {
     final location = convertAddress(header, s);
     if (location == null) return usageError('could not parse PC address $s');
     locations.add(location);
