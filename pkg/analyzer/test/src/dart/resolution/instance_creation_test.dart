@@ -174,7 +174,8 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
-          5),
+          5,
+          messageContains: "The constructor 'Foo.bar'"),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -183,6 +184,31 @@ main() {
       findElement.class_('Foo'),
       'Foo<dynamic>',
       constructorName: 'bar',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'X': 'dynamic'},
+    );
+  }
+
+  test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_new() async {
+    await assertErrorsInCode(r'''
+class Foo<X> {
+  Foo.new();
+}
+
+main() {
+  new Foo.new<int>();
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+          5,
+          messageContains: "The constructor 'Foo.new'"),
+    ]);
+
+    var creation = findNode.instanceCreation('Foo.new<int>');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('Foo'),
+      'Foo<dynamic>',
       expectedConstructorMember: true,
       expectedSubstitution: {'X': 'dynamic'},
     );

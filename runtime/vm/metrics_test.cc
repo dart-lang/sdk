@@ -53,7 +53,6 @@ VM_UNIT_TEST_CASE(Metric_OnDemand) {
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     MyMetric metric;
 
     metric.InitInstance(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -63,6 +64,8 @@ void main(List<String> args) async {
 Future<bool> validateLibrary(Directory dir) async {
   final libName = path.basename(dir.path);
 
+  final analysisHelper = AnalysisHelper(libName);
+
   print('## dart:$libName');
   print('');
 
@@ -72,13 +75,18 @@ Future<bool> validateLibrary(Directory dir) async {
       .listSync(recursive: true)
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))) {
-    hadErrors |= await verifyFile(libName, file, dir);
+    hadErrors |= await verifyFile(analysisHelper, libName, file, dir);
   }
 
   return hadErrors;
 }
 
-Future<bool> verifyFile(String coreLibName, File file, Directory parent) async {
+Future<bool> verifyFile(
+  AnalysisHelper analysisHelper,
+  String coreLibName,
+  File file,
+  Directory parent,
+) async {
   final text = file.readAsStringSync();
   var parseResult = parseString(
     content: text,
@@ -96,6 +104,7 @@ Future<bool> verifyFile(String coreLibName, File file, Directory parent) async {
   }
 
   var visitor = ValidateCommentCodeSamplesVisitor(
+    analysisHelper,
     coreLibName,
     file.path,
     parseResult.lineInfo,
@@ -112,6 +121,7 @@ Future<bool> verifyFile(String coreLibName, File file, Directory parent) async {
 /// Visit a compilation unit and collect the list of code samples found in
 /// dartdoc comments.
 class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
+  final AnalysisHelper analysisHelper;
   final String coreLibName;
   final String filePath;
   final LineInfo lineInfo;
@@ -120,6 +130,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   final StringBuffer errors = StringBuffer();
 
   ValidateCommentCodeSamplesVisitor(
+    this.analysisHelper,
     this.coreLibName,
     this.filePath,
     this.lineInfo,
@@ -188,9 +199,6 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   }
 
   Future validateCodeSample(CodeSample sample) async {
-    final resourceProvider =
-        OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-
     var text = sample.text;
     final lines = sample.text.split('\n').map((l) => l.trim()).toList();
 
@@ -240,24 +248,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       }
     }
 
-    // Note: the file paths used below will currently only work on posix
-    // filesystems.
-    final sampleFilePath = '/sample.dart';
-
-    resourceProvider.setOverlay(
-      sampleFilePath,
-      content: text,
-      modificationStamp: 0,
-    );
-
-    // TODO(devoncarew): Refactor to use AnalysisContextCollection to avoid
-    // re-creating analysis contexts.
-    final result = await resolveFile2(
-      path: sampleFilePath,
-      resourceProvider: resourceProvider,
-    );
-
-    resourceProvider.removeOverlay(sampleFilePath);
+    final result = await analysisHelper.resolveFile(text);
 
     if (result is ResolvedUnitResult) {
       // Filter out unused imports, since we speculatively add imports to some
@@ -358,5 +349,33 @@ String _severity(Severity severity) {
       return 'warning';
     case Severity.error:
       return 'error';
+  }
+}
+
+class AnalysisHelper {
+  final String libraryName;
+  final resourceProvider =
+      OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+  late AnalysisContextCollection collection;
+  int index = 0;
+
+  AnalysisHelper(this.libraryName) {
+    collection = AnalysisContextCollection(
+      includedPaths: ['/$libraryName'],
+      resourceProvider: resourceProvider,
+    );
+  }
+
+  Future<SomeResolvedUnitResult> resolveFile(String contents) async {
+    final samplePath = '/$libraryName/sample_${index++}.dart';
+    resourceProvider.setOverlay(
+      samplePath,
+      content: contents,
+      modificationStamp: 0,
+    );
+
+    var analysisContext = collection.contextFor(samplePath);
+    var analysisSession = analysisContext.currentSession;
+    return await analysisSession.getResolvedUnit(samplePath);
   }
 }

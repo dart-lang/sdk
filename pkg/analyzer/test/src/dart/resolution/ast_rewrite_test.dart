@@ -189,7 +189,8 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 50,
-          5),
+          5,
+          messageContains: "The constructor 'A.named'"),
     ]);
 
     var importFind = findElement.importFind('package:test/a.dart');
@@ -200,6 +201,44 @@ f() {
       importFind.class_('A'),
       'A<int>',
       constructorName: 'named',
+      expectedPrefix: importFind.prefix,
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+    );
+    _assertTypeArgumentList(
+      creation.constructorName.type2.typeArguments,
+      ['int'],
+    );
+    expect((creation as InstanceCreationExpressionImpl).typeArguments, isNull);
+    _assertArgumentList(creation.argumentList, ['0']);
+  }
+
+  test_targetPrefixedIdentifier_prefix_class_constructor_typeArguments_new() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  A.new(int a);
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+f() {
+  prefix.A.new<int>(0);
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 48,
+          5,
+          messageContains: "The constructor 'A.'"),
+    ]);
+
+    var importFind = findElement.importFind('package:test/a.dart');
+
+    var creation = findNode.instanceCreation('new<int>(0);');
+    assertInstanceCreation(
+      creation,
+      importFind.class_('A'),
+      'A<int>',
       expectedPrefix: importFind.prefix,
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'int'},
@@ -304,7 +343,8 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
-          13),
+          13,
+          messageContains: "The constructor 'A.named'"),
     ]);
 
     var creation = findNode.instanceCreation('named<int, String>(0);');
@@ -315,6 +355,43 @@ f() {
       'A<dynamic, dynamic>',
 //      'A<int, String>',
       constructorName: 'named',
+      expectedConstructorMember: true,
+      // TODO(scheglov) Move type arguments
+      expectedSubstitution: {'T': 'dynamic', 'U': 'dynamic'},
+//      expectedSubstitution: {'T': 'int', 'U': 'String'},
+    );
+    // TODO(scheglov) Move type arguments
+//    _assertTypeArgumentList(
+//      creation.constructorName.type.typeArguments,
+//      ['int', 'String'],
+//    );
+    // TODO(scheglov) Fix and uncomment.
+//    expect((creation as InstanceCreationExpressionImpl).typeArguments, isNull);
+    _assertArgumentList(creation.argumentList, ['0']);
+  }
+
+  test_targetSimpleIdentifier_class_constructor_typeArguments_new() async {
+    await assertErrorsInCode(r'''
+class A<T, U> {
+  A.new(int a);
+}
+
+f() {
+  A.new<int, String>(0);
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 48,
+          13,
+          messageContains: "The constructor 'A.'"),
+    ]);
+
+    var creation = findNode.instanceCreation('new<int, String>(0);');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      // TODO(scheglov) Move type arguments
+      'A<dynamic, dynamic>',
+//      'A<int, String>',
       expectedConstructorMember: true,
       // TODO(scheglov) Move type arguments
       expectedSubstitution: {'T': 'dynamic', 'U': 'dynamic'},

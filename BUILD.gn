@@ -124,8 +124,8 @@ group("compressed_observatory_archive") {
 }
 
 if (is_fuchsia) {
-  import("third_party/fuchsia/sdk/linux/build/component.gni")
-  import("third_party/fuchsia/sdk/linux/build/package.gni")
+  import("third_party/fuchsia/sdk/${host_os}/build/component.gni")
+  import("third_party/fuchsia/sdk/${host_os}/build/package.gni")
 
   template("dart_fuchsia_test_package") {
     fuchsia_package(target_name) {

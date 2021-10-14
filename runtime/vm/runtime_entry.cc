@@ -3265,7 +3265,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   // All registers have been saved below last-fp as if they were locals.
   const uword last_fp =
@@ -3337,7 +3336,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   DeoptContext* deopt_context = isolate->deopt_context();
   DartFrameIterator iterator(last_fp, thread,

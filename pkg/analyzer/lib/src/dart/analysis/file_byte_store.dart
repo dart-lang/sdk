@@ -181,7 +181,7 @@ class FileByteStore implements ByteStore {
 
     _writeInProgress[key] = bytes;
 
-    final List<int> wrappedBytes = _validator.wrapData(bytes);
+    final wrappedBytes = _validator.wrapData(bytes);
 
     // We don't wait for the write and rename to complete.
     _pool.execute(() async {

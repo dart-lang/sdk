@@ -46,11 +46,11 @@ class ClassMemberReference {
 
 /// The dependencies of the API or implementation portion of a node.
 class Dependencies {
-  static final none = Dependencies([], [], [], [], [], []);
+  static final none = Dependencies(Uint8List(0), [], [], [], [], []);
 
   /// The token signature of this portion of the node. It depends on all
   /// tokens that might affect the node API or implementation resolution.
-  final List<int> tokenSignature;
+  final Uint8List tokenSignature;
 
   /// The names that appear unprefixed in this portion of the node, and are
   /// not defined locally in the node. Locally defined names themselves
@@ -87,7 +87,7 @@ class Dependencies {
   /// The transitive signature of this portion of the node, computed using
   /// the [tokenSignature] of this node, and API signatures of the
   /// [referencedNodes].
-  List<int>? transitiveSignature;
+  Uint8List? transitiveSignature;
 
   Dependencies(
       this.tokenSignature,

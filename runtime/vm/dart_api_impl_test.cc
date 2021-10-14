@@ -3128,7 +3128,6 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= PersistentHandle::Cast(handles[i])->ptr();
@@ -4551,7 +4550,6 @@ VM_UNIT_TEST_CASE(DartAPI_LocalHandles) {
   {
     TransitionNativeToVM transition1(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Smi& val = Smi::Handle();
     TransitionVMToNative transition2(thread);
 
@@ -4619,9 +4617,11 @@ VM_UNIT_TEST_CASE(DartAPI_LocalZoneMemory) {
   Thread* thread = Thread::Current();
   EXPECT(thread != NULL);
   ApiLocalScope* scope = thread->api_top_scope();
+  EXPECT_EQ(0, thread->ZoneSizeInBytes());
   {
     // Start a new scope and allocate some memory.
     Dart_EnterScope();
+    EXPECT_EQ(0, thread->ZoneSizeInBytes());
     for (int i = 0; i < 100; i++) {
       Dart_ScopeAllocate(16);
     }

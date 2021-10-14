@@ -844,7 +844,6 @@ void Service::PostError(const String& method_name,
                         const Error& error) {
   Thread* T = Thread::Current();
   StackZone zone(T);
-  HANDLESCOPE(T);
   JSONStream js;
   js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(), id, method_name,
            parameter_keys, parameter_values);
@@ -865,7 +864,6 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
 
   {
     StackZone zone(T);
-    HANDLESCOPE(T);
 
     Instance& reply_port = Instance::Handle(Z);
     Instance& seq = String::Handle(Z);
@@ -3227,7 +3225,6 @@ static void GetInstances(Thread* thread, JSONStream* js) {
 
   // Ensure the array and handles created below are promptly destroyed.
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
   GetInstancesVisitor visitor(&storage, limit);
@@ -3278,7 +3275,6 @@ static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
   Array& instances = Array::Handle();
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
 
     ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), 1024);
     GetInstancesVisitor visitor(&storage, kSmiMax);
@@ -3306,7 +3302,6 @@ static const MethodParameter* const get_ports_params[] = {
 static void GetPorts(Thread* thread, JSONStream* js) {
   // Ensure the array and handles created below are promptly destroyed.
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const GrowableObjectArray& ports = GrowableObjectArray::Handle(
       GrowableObjectArray::RawCast(DartLibraryCalls::LookupOpenPorts()));
   JSONObject jsobj(js);
@@ -4889,9 +4884,13 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("operatingSystem", OS::Name());
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("version", Version::String());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Snapshot::Kind kind = Snapshot::kFullAOT;
+#else
+  Snapshot::Kind kind = Snapshot::kFullJIT;
+#endif
+  jsobj.AddProperty("_features", Dart::FeaturesString(nullptr, true, kind));
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
-  jsobj.AddProperty64("_nativeZoneMemoryUsage",
-                      ApiNativeScope::current_memory_usage());
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());

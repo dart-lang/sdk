@@ -552,7 +552,7 @@ class ParserErrorCode extends ErrorCode {
   // The analyzer produces this diagnostic when an abstract declaration is
   // declared in an extension. Extensions can declare only concrete members.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because the method `a` doesn't
   // have a body:
@@ -584,7 +584,7 @@ class ParserErrorCode extends ErrorCode {
   // extensions aren't classes, and it isn't possible to create an instance of
   // an extension.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because there is a constructor
   // declaration in `E`:
@@ -614,7 +614,7 @@ class ParserErrorCode extends ErrorCode {
   // found in an extension. It isn't valid to define an instance field because
   // extensions can only add behavior, not state.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `s` is an instance
   // field:
@@ -996,7 +996,7 @@ class ParserErrorCode extends ErrorCode {
   // Extensions aren't classes and don't have subclasses, so the keyword serves
   // no purpose.
   //
-  // #### Examples
+  // #### Example
   //
   // The following code produces this diagnostic because `i` is marked as being
   // covariant:
