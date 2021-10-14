@@ -4889,6 +4889,12 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("operatingSystem", OS::Name());
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("version", Version::String());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Snapshot::Kind kind = Snapshot::kFullAOT;
+#else
+  Snapshot::Kind kind = Snapshot::kFullJIT;
+#endif
+  jsobj.AddProperty("_features", Dart::FeaturesString(nullptr, true, kind));
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("_nativeZoneMemoryUsage",
                       ApiNativeScope::current_memory_usage());

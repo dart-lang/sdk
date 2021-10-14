@@ -263,6 +263,16 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
+                  ..text = 'features',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.features
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
                   ..text = 'embedder',
                 new DivElement()
                   ..classes = ['memberValue']
