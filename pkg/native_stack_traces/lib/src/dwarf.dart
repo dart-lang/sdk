@@ -174,7 +174,7 @@ class _Attribute {
         final intValue = value as int;
         final unresolvedValue = paddedHex(intValue, 4);
         final name = unit?.nameOfOrigin(intValue) ?? '<unresolved>';
-        return '0x${unresolvedValue} (origin: ${name})';
+        return '0x$unresolvedValue (origin: $name)';
     }
   }
 }
@@ -188,8 +188,8 @@ class _Abbreviation {
   _Abbreviation._(this.code, this.tag, this.children, this.attributes);
 
   // Constants from the DWARF specification.
-  static const _DW_CHILDREN_no = 0x00;
-  static const _DW_CHILDREN_yes = 0x01;
+  static const _dwChildrenNo = 0x00;
+  static const _dwChildrenYes = 0x01;
 
   static _Abbreviation? fromReader(Reader reader) {
     final code = reader.readLEB128EncodedInteger();
@@ -200,11 +200,11 @@ class _Abbreviation {
     }
     final tag = _tags[tagInt]!;
     final childrenByte = reader.readByte();
-    if (childrenByte != _DW_CHILDREN_no && childrenByte != _DW_CHILDREN_yes) {
+    if (childrenByte != _dwChildrenNo && childrenByte != _dwChildrenYes) {
       throw FormatException('Expected DW_CHILDREN_no or DW_CHILDREN_yes: '
-          '${childrenByte}');
+          '$childrenByte');
     }
-    final children = childrenByte == _DW_CHILDREN_yes;
+    final children = childrenByte == _dwChildrenYes;
     final attributes = reader.readRepeated(_Attribute.fromReader).toList();
     return _Abbreviation._(code, tag, children, attributes);
   }
@@ -258,7 +258,7 @@ class _AbbreviationsTable {
         ..write(key)
         ..writeln(':');
       abbreviation.writeToStringBuffer(buffer);
-      buffer..writeln();
+      buffer.writeln();
     });
   }
 
@@ -703,7 +703,7 @@ class FileInfo {
 }
 
 class LineNumberState {
-  final defaultIsStatement;
+  final bool defaultIsStatement;
 
   late int address;
   late int fileIndex;
@@ -789,7 +789,7 @@ class LineNumberProgramHeader {
     final isStmtByte = reader.readByte();
     if (isStmtByte < 0 || isStmtByte > 1) {
       throw FormatException(
-          'Unexpected value for default_is_stmt: ${isStmtByte}');
+          'Unexpected value for default_is_stmt: $isStmtByte');
     }
     final defaultIsStatement = isStmtByte == 1;
     final lineBase = reader.readByte(signed: true);
@@ -938,7 +938,7 @@ class LineNumberProgram {
                   'DW_LNE_define_file instruction not handled');
             default:
               throw FormatException(
-                  'Extended opcode ${subOpcode} not in DWARF 2');
+                  'Extended opcode $subOpcode not in DWARF 2');
           }
           break;
         case 1: // DW_LNS_copy
@@ -971,7 +971,7 @@ class LineNumberProgram {
           state.address += reader.readBytes(2);
           break;
         default:
-          throw FormatException('Standard opcode ${opcode} not in DWARF 2');
+          throw FormatException('Standard opcode $opcode not in DWARF 2');
       }
     }
   }
@@ -1022,7 +1022,7 @@ class LineNumberProgram {
 
     buffer.writeln('Results of line number program:');
     for (final state in calculatedMatrix) {
-      buffer..writeln(state);
+      buffer.writeln(state);
     }
   }
 
@@ -1178,7 +1178,7 @@ class StubCallInfo extends CallInfo {
   }
 
   @override
-  String toString() => '${name}+0x${offset.toRadixString(16)}';
+  String toString() => '$name+0x${offset.toRadixString(16)}';
 }
 
 /// The instructions section in which a program counter address is located.

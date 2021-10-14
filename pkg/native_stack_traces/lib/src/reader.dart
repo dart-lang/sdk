@@ -58,7 +58,7 @@ class Reader {
 
   int readBytes(int size, {bool signed = false}) {
     if (_offset + size > length) {
-      throw ArgumentError('attempt to read ${size} bytes with only '
+      throw ArgumentError('attempt to read $size bytes with only '
           '${length - _offset} bytes remaining in the reader');
     }
     final start = _offset;
@@ -196,7 +196,7 @@ class Reader {
       ..write(' (')
       ..write(length)
       ..writeln(')');
-    buffer..writeln('Bytes around current position:');
+    buffer.writeln('Bytes around current position:');
     writeCurrentReaderPosition(buffer, maxSize: 256);
     return buffer.toString();
   }

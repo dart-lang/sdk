@@ -232,7 +232,7 @@ void find(ArgResults options) {
   final locations = <PCOffset>[];
   for (final String s in options['location'] + options.rest) {
     final location = convertAddress(header, s);
-    if (location == null) return usageError('could not parse PC address ${s}');
+    if (location == null) return usageError('could not parse PC address $s');
     locations.add(location);
   }
   if (locations.isEmpty) return usageError('no PC addresses to find');
@@ -244,7 +244,7 @@ void find(ArgResults options) {
         ?.map((CallInfo c) => '  ' + c.toString());
     final addrString =
         addr > 0 ? '0x' + addr.toRadixString(16) : addr.toString();
-    print('For virtual address ${addrString}:');
+    print('For virtual address $addrString:');
     if (frames == null) {
       print('  Invalid virtual address.');
     } else if (frames.isEmpty) {

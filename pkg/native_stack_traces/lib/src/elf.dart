@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: constant_identifier_names
+
 import 'dart:typed_data';
 
 import 'reader.dart';
@@ -119,7 +121,7 @@ class ElfHeader {
 
     if (fileSize < calculatedHeaderSize) {
       throw FormatException('ELF file too small for header: '
-          'file size ${fileSize} < '
+          'file size $fileSize < '
           'calculated header size $calculatedHeaderSize');
     }
 
@@ -168,11 +170,11 @@ class ElfHeader {
 
     if (reader.offset != headerSize) {
       throw FormatException('Only read ${reader.offset} bytes, not the '
-          'full header size ${headerSize}');
+          'full header size $headerSize');
     }
 
     if (headerSize != calculatedHeaderSize) {
-      throw FormatException('Stored ELF header size ${headerSize} != '
+      throw FormatException('Stored ELF header size $headerSize != '
           'calculated ELF header size $calculatedHeaderSize');
     }
     if (fileSize < programHeaderOffset) {
@@ -220,10 +222,10 @@ class ElfHeader {
       ..write(' bits');
     switch (endian) {
       case Endian.little:
-        buffer..writeln(' and little-endian');
+        buffer.writeln(' and little-endian');
         break;
       case Endian.big:
-        buffer..writeln(' and big-endian');
+        buffer.writeln(' and big-endian');
         break;
     }
     buffer
@@ -756,23 +758,23 @@ class Symbol {
       ..write('" =>');
     switch (bind) {
       case SymbolBinding.STB_GLOBAL:
-        buffer..write(' a global');
+        buffer.write(' a global');
         break;
       case SymbolBinding.STB_LOCAL:
-        buffer..write(' a local');
+        buffer.write(' a local');
         break;
     }
     switch (visibility) {
       case SymbolVisibility.STV_DEFAULT:
         break;
       case SymbolVisibility.STV_HIDDEN:
-        buffer..write(' hidden');
+        buffer.write(' hidden');
         break;
       case SymbolVisibility.STV_INTERNAL:
-        buffer..write(' internal');
+        buffer.write(' internal');
         break;
       case SymbolVisibility.STV_PROTECTED:
-        buffer..write(' protected');
+        buffer.write(' protected');
         break;
     }
     buffer
@@ -857,7 +859,7 @@ class DynamicTable extends Section {
   // We don't use DynamicTableTag for the key so that we can handle ELF files
   // that may use unknown (to us) tags.
   final Map<int, int> _entries;
-  final _wordSize;
+  final int _wordSize;
 
   DynamicTable._(SectionHeaderEntry entry, this._entries, this._wordSize)
       : super._(entry);
@@ -1040,13 +1042,13 @@ class Elf {
         sections[sectionHeaderStringTableEntry] as StringTable?;
     if (sectionHeaderStringTable == null) {
       throw FormatException(
-          'No section for entry ${sectionHeaderStringTableEntry}');
+          'No section for entry $sectionHeaderStringTableEntry');
     }
     final sectionsByName = <String, Set<Section>>{};
     for (final entry in sectionHeader.entries) {
       final section = sections[entry];
       if (section == null) {
-        throw FormatException('No section found for entry ${entry}');
+        throw FormatException('No section found for entry $entry');
       }
       entry.setName(sectionHeaderStringTable);
       sectionsByName.putIfAbsent(entry.name, () => {}).add(section);
@@ -1068,7 +1070,7 @@ class Elf {
         final stringTable = stringTableMap[entry];
         if (stringTable == null) {
           throw FormatException(
-              'String table not found at section header entry ${link}');
+              'String table not found at section header entry $link');
         }
         symbolTable._cacheNames(stringTable);
       }
