@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async";
-import "dart:convert";
-import "dart:io" as io;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io' as io;
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as path;
@@ -134,7 +134,7 @@ final _usages = <String?, String>{
 const int _badUsageExitCode = 1;
 
 void errorWithUsage(String message, {String? command}) {
-  print("Error: $message.\n");
+  print('Error: $message.\n');
   print(_usages[command]);
   io.exitCode = _badUsageExitCode;
 }
@@ -179,11 +179,11 @@ void find(ArgResults options) {
 
   void usageError(String message) => errorWithUsage(message, command: 'find');
   int? tryParseIntAddress(String s) {
-    if (!forceHexadecimal && !s.startsWith("0x")) {
+    if (!forceHexadecimal && !s.startsWith('0x')) {
       final decimal = int.tryParse(s);
       if (decimal != null) return decimal;
     }
-    return int.tryParse(s.startsWith("0x") ? s.substring(2) : s, radix: 16);
+    return int.tryParse(s.startsWith('0x') ? s.substring(2) : s, radix: 16);
   }
 
   PCOffset? convertAddress(StackTraceHeader header, String s) {
@@ -204,10 +204,10 @@ void find(ArgResults options) {
   }
 
   if ((options['vm_start'] == null) != (options['isolate_start'] == null)) {
-    return usageError("need both VM start and isolate start");
+    return usageError('need both VM start and isolate start');
   }
 
-  int vmStart = dwarf.vmStartAddress;
+  var vmStart = dwarf.vmStartAddress;
   if (options['vm_start'] != null) {
     final address = tryParseIntAddress(options['vm_start']);
     if (address == null) {
@@ -217,7 +217,7 @@ void find(ArgResults options) {
     vmStart = address;
   }
 
-  int isolateStart = dwarf.isolateStartAddress;
+  var isolateStart = dwarf.isolateStartAddress;
   if (options['isolate_start'] != null) {
     final address = tryParseIntAddress(options['isolate_start']);
     if (address == null) {
@@ -241,14 +241,14 @@ void find(ArgResults options) {
     final addr = dwarf.virtualAddressOf(offset);
     final frames = dwarf
         .callInfoFor(addr, includeInternalFrames: verbose)
-        ?.map((CallInfo c) => "  " + c.toString());
+        ?.map((CallInfo c) => '  ' + c.toString());
     final addrString =
-        addr > 0 ? "0x" + addr.toRadixString(16) : addr.toString();
-    print("For virtual address ${addrString}:");
+        addr > 0 ? '0x' + addr.toRadixString(16) : addr.toString();
+    print('For virtual address ${addrString}:');
     if (frames == null) {
-      print("  Invalid virtual address.");
+      print('  Invalid virtual address.');
     } else if (frames.isEmpty) {
-      print("  Not a call from user or library code.");
+      print('  Not a call from user or library code.');
     } else {
       frames.forEach(print);
     }
@@ -280,7 +280,7 @@ Future<void> translate(ArgResults options) async {
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .transform(DwarfStackTraceDecoder(dwarf, includeInternalFrames: verbose))
-      .map((s) => s + "\n")
+      .map((s) => s + '\n')
       .transform(utf8.encoder);
 
   await output.addStream(convertedStream);

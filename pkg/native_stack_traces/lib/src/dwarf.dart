@@ -13,9 +13,9 @@ import 'reader.dart';
 int _initialLengthValue(Reader reader) {
   final length = reader.readBytes(4);
   if (length == 0xffffffff) {
-    throw FormatException("64-bit DWARF format detected");
+    throw FormatException('64-bit DWARF format detected');
   } else if (length > 0xfffffff0) {
-    throw FormatException("Unrecognized reserved initial length value");
+    throw FormatException('Unrecognized reserved initial length value');
   }
   return length;
 }
@@ -33,9 +33,9 @@ const _tags = <int, _Tag>{
 };
 
 const _tagStrings = <_Tag, String>{
-  _Tag.compileUnit: "DW_TAG_compile_unit",
-  _Tag.inlinedSubroutine: "DW_TAG_inlined_subroutine",
-  _Tag.subprogram: "DW_TAG_subroutine",
+  _Tag.compileUnit: 'DW_TAG_compile_unit',
+  _Tag.inlinedSubroutine: 'DW_TAG_inlined_subroutine',
+  _Tag.subprogram: 'DW_TAG_subroutine',
 };
 
 enum _AttributeName {
@@ -77,22 +77,22 @@ const _attributeNames = <int, _AttributeName>{
 };
 
 const _attributeNameStrings = <_AttributeName, String>{
-  _AttributeName.sibling: "DW_AT_sibling",
-  _AttributeName.name: "DW_AT_name",
-  _AttributeName.statementList: "DW_AT_stmt_list",
-  _AttributeName.lowProgramCounter: "DW_AT_low_pc",
-  _AttributeName.highProgramCounter: "DW_AT_high_pc",
-  _AttributeName.compilationDirectory: "DW_AT_comp_dir",
-  _AttributeName.inline: "DW_AT_inline",
-  _AttributeName.producer: "DW_AT_producer",
-  _AttributeName.abstractOrigin: "DW_AT_abstract_origin",
-  _AttributeName.artificial: "DW_AT_artificial",
-  _AttributeName.declarationColumn: "DW_AT_decl_column",
-  _AttributeName.declarationFile: "DW_AT_decl_file",
-  _AttributeName.declarationLine: "DW_AT_decl_line",
-  _AttributeName.callColumn: "DW_AT_call_column",
-  _AttributeName.callFile: "DW_AT_call_file",
-  _AttributeName.callLine: "DW_AT_call_line",
+  _AttributeName.sibling: 'DW_AT_sibling',
+  _AttributeName.name: 'DW_AT_name',
+  _AttributeName.statementList: 'DW_AT_stmt_list',
+  _AttributeName.lowProgramCounter: 'DW_AT_low_pc',
+  _AttributeName.highProgramCounter: 'DW_AT_high_pc',
+  _AttributeName.compilationDirectory: 'DW_AT_comp_dir',
+  _AttributeName.inline: 'DW_AT_inline',
+  _AttributeName.producer: 'DW_AT_producer',
+  _AttributeName.abstractOrigin: 'DW_AT_abstract_origin',
+  _AttributeName.artificial: 'DW_AT_artificial',
+  _AttributeName.declarationColumn: 'DW_AT_decl_column',
+  _AttributeName.declarationFile: 'DW_AT_decl_file',
+  _AttributeName.declarationLine: 'DW_AT_decl_line',
+  _AttributeName.callColumn: 'DW_AT_call_column',
+  _AttributeName.callFile: 'DW_AT_call_file',
+  _AttributeName.callLine: 'DW_AT_call_line',
 };
 
 enum _AttributeForm {
@@ -114,12 +114,12 @@ const _attributeForms = <int, _AttributeForm>{
 };
 
 const _attributeFormStrings = <_AttributeForm, String>{
-  _AttributeForm.address: "DW_FORM_addr",
-  _AttributeForm.string: "DW_FORM_string",
-  _AttributeForm.flag: "DW_FORM_flag",
-  _AttributeForm.constant: "DW_FORM_udata",
-  _AttributeForm.reference4: "DW_FORM_ref4",
-  _AttributeForm.sectionOffset: "DW_FORM_sec_offset",
+  _AttributeForm.address: 'DW_FORM_addr',
+  _AttributeForm.string: 'DW_FORM_string',
+  _AttributeForm.flag: 'DW_FORM_flag',
+  _AttributeForm.constant: 'DW_FORM_udata',
+  _AttributeForm.reference4: 'DW_FORM_ref4',
+  _AttributeForm.sectionOffset: 'DW_FORM_sec_offset',
 };
 
 class _Attribute {
@@ -133,10 +133,10 @@ class _Attribute {
     final formInt = reader.readLEB128EncodedInteger();
     if (nameInt == 0 && formInt == 0) return null;
     if (!_attributeNames.containsKey(nameInt)) {
-      throw FormatException("Unexpected DW_AT value 0x${paddedHex(nameInt)}");
+      throw FormatException('Unexpected DW_AT value 0x${paddedHex(nameInt)}');
     }
     if (!_attributeForms.containsKey(formInt)) {
-      throw FormatException("Unexpected DW_FORM value 0x${paddedHex(formInt)}");
+      throw FormatException('Unexpected DW_FORM value 0x${paddedHex(formInt)}');
     }
     return _Attribute._(_attributeNames[nameInt]!, _attributeForms[formInt]!);
   }
@@ -173,7 +173,7 @@ class _Attribute {
       case _AttributeForm.reference4:
         final intValue = value as int;
         final unresolvedValue = paddedHex(intValue, 4);
-        final name = unit?.nameOfOrigin(intValue) ?? "<unresolved>";
+        final name = unit?.nameOfOrigin(intValue) ?? '<unresolved>';
         return '0x${unresolvedValue} (origin: ${name})';
     }
   }
@@ -196,13 +196,13 @@ class _Abbreviation {
     if (code == 0) return null;
     final tagInt = reader.readLEB128EncodedInteger();
     if (!_tags.containsKey(tagInt)) {
-      throw FormatException("Unexpected DW_TAG value 0x${paddedHex(tagInt)}");
+      throw FormatException('Unexpected DW_TAG value 0x${paddedHex(tagInt)}');
     }
     final tag = _tags[tagInt]!;
     final childrenByte = reader.readByte();
     if (childrenByte != _DW_CHILDREN_no && childrenByte != _DW_CHILDREN_yes) {
-      throw FormatException("Expected DW_CHILDREN_no or DW_CHILDREN_yes: "
-          "${childrenByte}");
+      throw FormatException('Expected DW_CHILDREN_no or DW_CHILDREN_yes: '
+          '${childrenByte}');
     }
     final children = childrenByte == _DW_CHILDREN_yes;
     final attributes = reader.readRepeated(_Attribute.fromReader).toList();
@@ -249,7 +249,9 @@ class _AbbreviationsTable {
   }
 
   void writeToStringBuffer(StringBuffer buffer) {
-    buffer..writeln('Abbreviations table:')..writeln();
+    buffer
+      ..writeln('Abbreviations table:')
+      ..writeln();
     _abbreviations.forEach((key, abbreviation) {
       buffer
         ..write('  ')
@@ -283,7 +285,7 @@ class DebugInformationEntry {
     // DIEs with an abbreviation table index of 0 are list end markers.
     if (code == 0) return null;
     if (!header.abbreviations.containsKey(code)) {
-      throw FormatException("Unknown abbreviation code 0x${paddedHex(code)}");
+      throw FormatException('Unknown abbreviation code 0x${paddedHex(code)}');
     }
     final abbreviation = header.abbreviations[code]!;
     final attributes = <_Attribute, Object>{};
@@ -396,7 +398,7 @@ class DebugInformationEntry {
         ..writeln('):');
       final sortedChildren = children.entries.toList()
         ..sort((kv1, kv2) => Comparable.compare(kv1.key, kv2.key));
-      for (int i = 0; i < sortedChildren.length; i++) {
+      for (var i = 0; i < sortedChildren.length; i++) {
         final offset = sortedChildren[i].key;
         final child = sortedChildren[i].value;
         buffer
@@ -411,6 +413,7 @@ class DebugInformationEntry {
     }
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     writeToStringBuffer(buffer);
@@ -435,13 +438,13 @@ class CompilationUnitHeader {
     if (size == 0) return null;
     final version = reader.readBytes(2);
     if (version != 2) {
-      throw FormatException("Expected DWARF version 2, got $version");
+      throw FormatException('Expected DWARF version 2, got $version');
     }
     final abbreviationsOffset = reader.readBytes(4);
     final abbreviationsTable = abbreviationsTables[abbreviationsOffset];
     if (abbreviationsTable == null) {
-      throw FormatException("No abbreviation table found for offset "
-          "0x${paddedHex(abbreviationsOffset, 4)}");
+      throw FormatException('No abbreviation table found for offset '
+          '0x${paddedHex(abbreviationsOffset, 4)}');
     }
     final addressSize = reader.readByte();
     return CompilationUnitHeader._(
@@ -518,7 +521,7 @@ class CompilationUnit {
     final origin = referenceTable[offset];
     if (origin == null) {
       throw ArgumentError(
-          "${paddedHex(offset)} is not the offset of an abbreviated unit");
+          '${paddedHex(offset)} is not the offset of an abbreviated unit');
     }
     return origin[_AttributeName.name] as String;
   }
@@ -573,6 +576,7 @@ class DebugInfo {
     }
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     writeToStringBuffer(buffer);
@@ -591,7 +595,7 @@ class FileEntry {
   static FileEntry? fromReader(Reader reader) {
     final name = reader.readNullTerminatedString();
     // An empty null-terminated string marks the table end.
-    if (name == "") return null;
+    if (name == '') return null;
     final directoryIndex = reader.readLEB128EncodedInteger();
     final lastModified = reader.readLEB128EncodedInteger();
     final size = reader.readLEB128EncodedInteger();
@@ -599,10 +603,10 @@ class FileEntry {
   }
 
   @override
-  String toString() => "File name: $name\n"
-      "  Directory index: $directoryIndex\n"
-      "  Last modified: $lastModified\n"
-      "  Size: $size\n";
+  String toString() => 'File name: $name\n'
+      '  Directory index: $directoryIndex\n'
+      '  Last modified: $lastModified\n'
+      '  Size: $size\n';
 }
 
 class FileInfo {
@@ -613,7 +617,7 @@ class FileInfo {
   static FileInfo fromReader(Reader reader) {
     final offsetFiles = reader.readRepeated(FileEntry.fromReader).toList();
     final files = <int, FileEntry>{};
-    for (int i = 0; i < offsetFiles.length; i++) {
+    for (var i = 0; i < offsetFiles.length; i++) {
       // File entries are one-based, not zero-based.
       files[i + 1] = offsetFiles[i];
     }
@@ -625,15 +629,15 @@ class FileInfo {
 
   void writeToStringBuffer(StringBuffer buffer) {
     if (_files.isEmpty) {
-      buffer.writeln("No file information.");
+      buffer.writeln('No file information.');
       return;
     }
 
-    final indexHeader = "Entry";
-    final dirIndexHeader = "Dir";
-    final modifiedHeader = "Time";
-    final sizeHeader = "Size";
-    final nameHeader = "Name";
+    final indexHeader = 'Entry';
+    final dirIndexHeader = 'Dir';
+    final modifiedHeader = 'Time';
+    final sizeHeader = 'Size';
+    final nameHeader = 'Name';
 
     final indexStrings = _files
         .map((int i, FileEntry f) => MapEntry<int, String>(i, i.toString()));
@@ -653,27 +657,39 @@ class FileInfo {
     final maxSizeLength = sizeStrings.values
         .fold(sizeHeader.length, (int acc, String s) => max(acc, s.length));
 
-    buffer.writeln("File information:");
+    buffer.writeln('File information:');
 
-    buffer..write(" ")..write(indexHeader.padRight(maxIndexLength));
-    buffer..write(" ")..write(dirIndexHeader.padRight(maxDirIndexLength));
-    buffer..write(" ")..write(modifiedHeader.padRight(maxModifiedLength));
-    buffer..write(" ")..write(sizeHeader.padRight(maxSizeLength));
     buffer
-      ..write(" ")
+      ..write(' ')
+      ..write(indexHeader.padRight(maxIndexLength));
+    buffer
+      ..write(' ')
+      ..write(dirIndexHeader.padRight(maxDirIndexLength));
+    buffer
+      ..write(' ')
+      ..write(modifiedHeader.padRight(maxModifiedLength));
+    buffer
+      ..write(' ')
+      ..write(sizeHeader.padRight(maxSizeLength));
+    buffer
+      ..write(' ')
       ..writeln(nameHeader);
 
     for (final index in _files.keys) {
-      buffer..write(" ")..write(indexStrings[index]!.padRight(maxIndexLength));
       buffer
-        ..write(" ")
+        ..write(' ')
+        ..write(indexStrings[index]!.padRight(maxIndexLength));
+      buffer
+        ..write(' ')
         ..write(dirIndexStrings[index]!.padRight(maxDirIndexLength));
       buffer
-        ..write(" ")
+        ..write(' ')
         ..write(modifiedStrings[index]!.padRight(maxModifiedLength));
-      buffer..write(" ")..write(sizeStrings[index]!.padRight(maxSizeLength));
       buffer
-        ..write(" ")
+        ..write(' ')
+        ..write(sizeStrings[index]!.padRight(maxSizeLength));
+      buffer
+        ..write(' ')
         ..writeln(_files[index]!.name);
     }
   }
@@ -723,11 +739,12 @@ class LineNumberState {
     return clone;
   }
 
-  String toString() => "Current line number state machine registers:\n"
-      "  Address: ${paddedHex(address)}\n"
-      "  File index: $fileIndex\n"
-      "  Line number: $line\n"
-      "  Column number: $column\n"
+  @override
+  String toString() => 'Current line number state machine registers:\n'
+      '  Address: ${paddedHex(address)}\n'
+      '  File index: $fileIndex\n'
+      '  Line number: $line\n'
+      '  Column number: $column\n'
       "  Is ${isStatement ? "" : "not "}a statement.\n"
       "  Is ${basicBlock ? "" : "not "}at the beginning of a basic block.\n"
       "  Is ${endSequence ? "" : "not "}just after the end of a sequence.";
@@ -772,7 +789,7 @@ class LineNumberProgramHeader {
     final isStmtByte = reader.readByte();
     if (isStmtByte < 0 || isStmtByte > 1) {
       throw FormatException(
-          "Unexpected value for default_is_stmt: ${isStmtByte}");
+          'Unexpected value for default_is_stmt: ${isStmtByte}');
     }
     final defaultIsStatement = isStmtByte == 1;
     final lineBase = reader.readByte(signed: true);
@@ -780,24 +797,24 @@ class LineNumberProgramHeader {
     final opcodeBase = reader.readByte();
     final standardOpcodeLengths = <int, int>{};
     // Standard opcode numbering starts at 1.
-    for (int i = 1; i < opcodeBase; i++) {
+    for (var i = 1; i < opcodeBase; i++) {
       standardOpcodeLengths[i] = reader.readLEB128EncodedInteger();
     }
     final includeDirectories = <String>[];
     while (!reader.done) {
       final directory = reader.readNullTerminatedString();
-      if (directory == "") break;
+      if (directory == '') break;
       includeDirectories.add(directory);
     }
     if (reader.done) {
-      throw FormatException("Unterminated directory entry");
+      throw FormatException('Unterminated directory entry');
     }
     final filesInfo = FileInfo.fromReader(reader);
 
     // Header length doesn't include the 2-byte version or 4-byte length fields.
     if (reader.offset != headerStart + headerLength) {
-      throw FormatException("At offset ${reader.offset} after header, "
-          "expected to be at offset ${headerStart + headerLength}");
+      throw FormatException('At offset ${reader.offset} after header, '
+          'expected to be at offset ${headerStart + headerLength}');
     }
 
     return LineNumberProgramHeader._(
@@ -833,7 +850,7 @@ class LineNumberProgramHeader {
       ..write('  Opcode base: ')
       ..writeln(opcodeBase)
       ..writeln('Standard opcode lengths:');
-    for (int i = 1; i < opcodeBase; i++) {
+    for (var i = 1; i < opcodeBase; i++) {
       buffer
         ..write('    Opcode ')
         ..write(i)
@@ -876,7 +893,7 @@ class LineNumberProgram {
     if (header == null) return null;
     final calculatedMatrix = _readOpcodes(reader, header).toList();
     if (calculatedMatrix.isEmpty) {
-      throw FormatException("No line number information generated by program");
+      throw FormatException('No line number information generated by program');
     }
     return LineNumberProgram._(header, calculatedMatrix);
   }
@@ -903,7 +920,7 @@ class LineNumberProgram {
           final subOpcode = reader.readByte();
           switch (subOpcode) {
             case 0:
-              throw FormatException("Attempted to execute extended opcode 0");
+              throw FormatException('Attempted to execute extended opcode 0');
             case 1: // DW_LNE_end_sequence
               state.endSequence = true;
               yield state.clone();
@@ -918,10 +935,10 @@ class LineNumberProgram {
               break;
             case 3: // DW_LNE_define_file
               throw FormatException(
-                  "DW_LNE_define_file instruction not handled");
+                  'DW_LNE_define_file instruction not handled');
             default:
               throw FormatException(
-                  "Extended opcode ${subOpcode} not in DWARF 2");
+                  'Extended opcode ${subOpcode} not in DWARF 2');
           }
           break;
         case 1: // DW_LNS_copy
@@ -954,7 +971,7 @@ class LineNumberProgram {
           state.address += reader.readBytes(2);
           break;
         default:
-          throw FormatException("Standard opcode ${opcode} not in DWARF 2");
+          throw FormatException('Standard opcode ${opcode} not in DWARF 2');
       }
     }
   }
@@ -1003,12 +1020,13 @@ class LineNumberProgram {
   void writeToStringBuffer(StringBuffer buffer) {
     header.writeToStringBuffer(buffer);
 
-    buffer.writeln("Results of line number program:");
+    buffer.writeln('Results of line number program:');
     for (final state in calculatedMatrix) {
       buffer..writeln(state);
     }
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     writeToStringBuffer(buffer);
@@ -1040,6 +1058,7 @@ class LineNumberInfo {
     });
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     writeToStringBuffer(buffer);
@@ -1090,7 +1109,7 @@ class DartCallInfo extends CallInfo {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = _hashCombine(hash, inlined.hashCode);
     hash = _hashCombine(hash, internal.hashCode);
     hash = _hashCombine(hash, function.hashCode);
@@ -1114,11 +1133,18 @@ class DartCallInfo extends CallInfo {
   }
 
   void writeToStringBuffer(StringBuffer buffer) {
-    buffer..write(function)..write(' (')..write(filename);
+    buffer
+      ..write(function)
+      ..write(' (')
+      ..write(filename);
     if (line > 0) {
-      buffer..write(':')..write(line);
+      buffer
+        ..write(':')
+        ..write(line);
       if (column > 0) {
-        buffer..write(':')..write(column);
+        buffer
+          ..write(':')
+          ..write(column);
       }
     }
     buffer.write(')');
@@ -1152,7 +1178,7 @@ class StubCallInfo extends CallInfo {
   }
 
   @override
-  String toString() => "${name}+0x${offset.toRadixString(16)}";
+  String toString() => '${name}+0x${offset.toRadixString(16)}';
 }
 
 /// The instructions section in which a program counter address is located.
@@ -1235,23 +1261,23 @@ class Dwarf {
       Dwarf.fromReader(Reader.fromFile(path));
 
   static Dwarf _loadSectionsFromElf(Reader reader, Elf elf) {
-    final abbrevSection = elf.namedSections(".debug_abbrev").single;
+    final abbrevSection = elf.namedSections('.debug_abbrev').single;
     final abbrevReader = abbrevSection.refocusedCopy(reader);
     final abbreviationsTables = Map.fromEntries(
         abbrevReader.readRepeatedWithOffsets(_AbbreviationsTable.fromReader));
 
-    final lineNumberSection = elf.namedSections(".debug_line").single;
+    final lineNumberSection = elf.namedSections('.debug_line').single;
     final lineNumberInfo =
         LineNumberInfo.fromReader(lineNumberSection.refocusedCopy(reader));
 
-    final infoSection = elf.namedSections(".debug_info").single;
+    final infoSection = elf.namedSections('.debug_info').single;
     final debugInfo = DebugInfo.fromReader(
         infoSection.refocusedCopy(reader), abbreviationsTables);
 
     final vmStartSymbol = elf.dynamicSymbolFor(constants.vmSymbolName);
     if (vmStartSymbol == null) {
       throw FormatException(
-          "Expected a dynamic symbol with name ${constants.vmSymbolName}");
+          'Expected a dynamic symbol with name ${constants.vmSymbolName}');
     }
     final vmStartAddress = vmStartSymbol.value;
 
@@ -1259,7 +1285,7 @@ class Dwarf {
         elf.dynamicSymbolFor(constants.isolateSymbolName);
     if (isolateStartSymbol == null) {
       throw FormatException(
-          "Expected a dynamic symbol with name ${constants.isolateSymbolName}");
+          'Expected a dynamic symbol with name ${constants.isolateSymbolName}');
     }
     final isolateStartAddress = isolateStartSymbol.value;
 
@@ -1316,7 +1342,7 @@ class Dwarf {
       case InstructionsSection.isolate:
         return pcOffset.offset + isolateStartAddress;
       default:
-        throw "Unexpected value for instructions section";
+        throw 'Unexpected value for instructions section';
     }
   }
 
@@ -1327,7 +1353,10 @@ class Dwarf {
       ..writeln('----------------------------------------')
       ..writeln();
     _abbreviationsTables.forEach((offset, table) {
-      buffer..write('(Offset ')..write(paddedHex(offset, 4))..write(') ');
+      buffer
+        ..write('(Offset ')
+        ..write(paddedHex(offset, 4))
+        ..write(') ');
       table.writeToStringBuffer(buffer);
     });
     buffer

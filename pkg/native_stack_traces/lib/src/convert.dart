@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async";
-import "dart:math";
+import 'dart:async';
+import 'dart:math';
 
 import 'constants.dart' as constants;
-import "dwarf.dart";
+import 'dwarf.dart';
 
 String _stackTracePiece(CallInfo call, int depth) =>
-    "#${depth.toString().padRight(6)} ${call}";
+    '#${depth.toString().padRight(6)} ${call}';
 
 // A pattern matching the last line of the non-symbolic stack trace header.
 //
@@ -45,7 +45,7 @@ class StackTraceHeader {
   /// The [PCOffset] for the given absolute program counter address.
   PCOffset offsetOf(int address) {
     final isolateOffset = address - _isolateStart;
-    int vmOffset = address - _vmStart;
+    var vmOffset = address - _vmStart;
     if (vmOffset > 0 && vmOffset == min(vmOffset, isolateOffset)) {
       return PCOffset(vmOffset, InstructionsSection.vm);
     } else {
@@ -87,11 +87,11 @@ PCOffset? tryParseSymbolOffset(String s, [bool forceHexadecimal = false]) {
   final symbolString = match.namedGroup('symbol')!;
   final offsetString = match.namedGroup('offset')!;
   int? offset;
-  if (!forceHexadecimal && !offsetString.startsWith("0x")) {
+  if (!forceHexadecimal && !offsetString.startsWith('0x')) {
     offset = int.tryParse(offsetString);
   }
   if (offset == null) {
-    final digits = offsetString.startsWith("0x")
+    final digits = offsetString.startsWith('0x')
         ? offsetString.substring(2)
         : offsetString;
     offset = int.tryParse(digits, radix: 16);
@@ -182,8 +182,9 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
   DwarfStackTraceDecoder(this._dwarf, {bool includeInternalFrames = false})
       : _includeInternalFrames = includeInternalFrames;
 
+  @override
   Stream<String> bind(Stream<String> stream) async* {
-    int depth = 0;
+    var depth = 0;
     StackTraceHeader? header;
     await for (final line in stream) {
       final parsedHeader = _parseInstructionsLine(line);
