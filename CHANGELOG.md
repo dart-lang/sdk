@@ -469,7 +469,12 @@
 
 #### Linter
 
-Updated the Linter to `1.12.0`, which includes changes that
+Updated the Linter to `1.13.0`, which includes changes that
+- allow `while (true) { ... }` in `literal_only_boolean_expressions`.
+- fix `file_names` to report at the start of the file (not the entire
+  compilation unit).
+- fix `prefer_collection_literals` named typed parameter false positives.
+- improve control flow analysis for `use_build_context_synchronously`.
 - update `avoid_print` to allow `kDebugMode`-wrapped print calls.
 - fix handling of initializing formals in `prefer_final_parameters`.
 - fix `unnecessary_parenthesis` false positive with function expressions.
