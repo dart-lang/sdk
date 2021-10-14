@@ -22,7 +22,7 @@ const int _CR = 13;
 /// ```dart
 /// const LineSplitter ls = LineSplitter();
 /// const String sampleText =
-///     'Dart is: \ran object-oriented \nclass-based \ngarbage-collected'
+///     'Dart is: \robject-oriented \nclass-based \ngarbage-collected'
 ///     '\r\nlanguage with C-style syntax\r\n';
 ///
 /// final List<String> sampleTextLines = ls.convert(sampleText);
@@ -30,7 +30,7 @@ const int _CR = 13;
 ///   print('$i: ${sampleTextLines[i]}');
 /// }
 /// // 0: Dart is:
-/// // 1: an object-oriented
+/// // 1: object-oriented
 /// // 2: class-based
 /// // 3: garbage-collected
 /// // 4: language with C-style syntax
