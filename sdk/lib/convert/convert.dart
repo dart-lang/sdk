@@ -41,7 +41,7 @@
 ///
 /// stream.transform(utf8.decoder)
 ///       .transform(const LineSplitter())
-///       .listen((line) {
+///       .forEach((line) {
 ///         if (showLineNumbers) {
 ///           stdout.write('${lineNumber++} ');
 ///         }
