@@ -21,8 +21,6 @@ Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # Uses d
 Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses dart:io.
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
-Language/Metadata/before*: SkipByDesign # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523
-Language/Metadata/syntax_t10: SkipByDesign # dart:mirrors is not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # External variables are not supported
