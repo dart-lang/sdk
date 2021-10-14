@@ -6209,7 +6209,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the static member
    * 1: the kind of the static member (field, getter, setter, or method)
-   * 2: the name of the defining class
+   * 2: the name of the static member's enclosing element
+   * 3: the kind of the static member's enclosing element (class, mixin, or extension)
    */
   // #### Description
   //
@@ -6247,8 +6248,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
       CompileTimeErrorCode(
     'INSTANCE_ACCESS_TO_STATIC_MEMBER',
-    "Static {1} '{0}' can't be accessed through an instance.",
-    correctionMessage: "Try using the class '{2}' to access the {1}.",
+    "The static {1} '{0}' can't be accessed through an instance.",
+    correctionMessage: "Try using the {3} '{2}' to access the {1}.",
     hasPublishedDocs: true,
   );
 
