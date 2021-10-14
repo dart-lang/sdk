@@ -22,18 +22,18 @@ const int _CR = 13;
 /// ```dart
 /// const LineSplitter ls = LineSplitter();
 /// const String sampleText =
-///     'Dart is: \robject-oriented \nclass-based \ngarbage-collected'
-///     '\r\nlanguage with C-style syntax\r\n';
+///     'Dart is: \r an object-oriented \n class-based \n garbage-collected '
+///     '\r\n language with C-style syntax \r\n';
 ///
 /// final List<String> sampleTextLines = ls.convert(sampleText);
 /// for (var i = 0; i < sampleTextLines.length; i++) {
 ///   print('$i: ${sampleTextLines[i]}');
 /// }
 /// // 0: Dart is:
-/// // 1: object-oriented
-/// // 2: class-based
-/// // 3: garbage-collected
-/// // 4: language with C-style syntax
+/// // 1:  object-oriented
+/// // 2:  class-based
+/// // 3:  garbage-collected
+/// // 4:  language with C-style syntax
 /// ```
 class LineSplitter extends StreamTransformerBase<String, String> {
   const LineSplitter();
