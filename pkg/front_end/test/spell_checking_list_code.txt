@@ -317,6 +317,7 @@ dep
 deps
 dereferenced
 dereferencing
+deregister
 descent
 deserializer
 deserializers

@@ -416,7 +416,7 @@ class ExpressionCompiler {
 
   Future<Library> _getLibrary(Uri libraryUri) async {
     return await _compiler.context.runInContext((_) async {
-      var builder = _compiler.userCode.loader.builders[libraryUri];
+      var builder = _compiler.userCode.loader.lookupLibraryBuilder(libraryUri);
       if (builder != null) {
         var library =
             _compiler.userCode.loader.read(libraryUri, -1, accessor: builder);
