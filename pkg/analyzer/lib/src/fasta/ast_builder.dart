@@ -26,6 +26,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
+        messagePositionalAfterNamedArgument,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -577,6 +578,18 @@ class AstBuilder extends StackListener {
     var expressions = popTypedList2<Expression>(count);
     ArgumentList arguments =
         ast.argumentList(leftParenthesis, expressions, rightParenthesis);
+
+    bool hasSeenNamedArgument = false;
+    for (Expression expression in expressions) {
+      if (expression is NamedExpression) {
+        hasSeenNamedArgument = true;
+      } else if (hasSeenNamedArgument) {
+        // Positional argument after named argument.
+        handleRecoverableError(messagePositionalAfterNamedArgument,
+            expression.beginToken, expression.endToken);
+      }
+    }
+
     push(ast.methodInvocation(
         null, null, _tmpSimpleIdentifier(), null, arguments));
   }

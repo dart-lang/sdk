@@ -6446,7 +6446,6 @@ class Parser {
     assert(optional('(', begin));
     listener.beginArguments(begin);
     int argumentCount = 0;
-    bool hasSeenNamedArgument = false;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
@@ -6461,10 +6460,6 @@ class Parser {
             ensureIdentifier(token, IdentifierContext.namedArgumentReference)
                 .next!;
         colon = token;
-        hasSeenNamedArgument = true;
-      } else if (hasSeenNamedArgument) {
-        // Positional argument after named argument.
-        reportRecoverableError(next, codes.messagePositionalAfterNamedArgument);
       }
       token = parseExpression(token);
       next = token.next!;
