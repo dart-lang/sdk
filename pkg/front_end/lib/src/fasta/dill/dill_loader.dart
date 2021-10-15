@@ -47,8 +47,7 @@ import 'dart:collection' show Queue;
 class DillLoader extends Loader {
   SourceLoader? currentSourceLoader;
 
-  @override
-  final Map<Uri, DillLibraryBuilder> builders = <Uri, DillLibraryBuilder>{};
+  final Map<Uri, DillLibraryBuilder> _builders = <Uri, DillLibraryBuilder>{};
 
   final Queue<DillLibraryBuilder> _unparsedLibraries =
       new Queue<DillLibraryBuilder>();
@@ -87,10 +86,6 @@ class DillLoader extends Loader {
   @override
   LibraryBuilder get coreLibrary => _coreLibrary!;
 
-  void set coreLibrary(LibraryBuilder value) {
-    _coreLibrary = value;
-  }
-
   Ticker get ticker => target.ticker;
 
   /// Look up a library builder by the [uri], or if such doesn't exist, create
@@ -105,7 +100,7 @@ class DillLoader extends Loader {
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
   DillLibraryBuilder read(Uri uri, int charOffset, {LibraryBuilder? accessor}) {
-    DillLibraryBuilder builder = builders.putIfAbsent(uri, () {
+    DillLibraryBuilder builder = _builders.putIfAbsent(uri, () {
       DillLibraryBuilder library = target.createLibraryBuilder(uri);
       assert(library.loader == this);
       if (uri.scheme == "dart") {
@@ -165,7 +160,7 @@ class DillLoader extends Loader {
   void _logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
-      for (DillLibraryBuilder library in builders.values) {
+      for (DillLibraryBuilder library in libraryBuilders) {
         assert(library.loader == this);
         libraryCount++;
       }
@@ -305,9 +300,8 @@ severity: $severity
   }
 
   void finalizeExports({bool suppressFinalizationErrors: false}) {
-    for (LibraryBuilder builder in builders.values) {
-      DillLibraryBuilder library = builder as DillLibraryBuilder;
-      library.markAsReadyToFinalizeExports(
+    for (DillLibraryBuilder builder in libraryBuilders) {
+      builder.markAsReadyToFinalizeExports(
           suppressFinalizationErrors: suppressFinalizationErrors);
     }
   }
@@ -315,9 +309,10 @@ severity: $severity
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
-    LibraryBuilder? library = builders[kernelLibrary.importUri];
+    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
-      library = currentSourceLoader?.builders[kernelLibrary.importUri];
+      library =
+          currentSourceLoader?.lookupLibraryBuilder(kernelLibrary.importUri);
     }
     return library!.lookupLocalMember(cls.name, required: true) as ClassBuilder;
   }
@@ -325,5 +320,29 @@ severity: $severity
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
+  }
+
+  bool containsLibraryBuilder(Uri importUri) =>
+      _builders.containsKey(importUri);
+
+  @override
+  DillLibraryBuilder? lookupLibraryBuilder(Uri importUri) =>
+      _builders[importUri];
+
+  Iterable<DillLibraryBuilder> get libraryBuilders => _builders.values;
+
+  Iterable<Uri> get libraryImportUris => _builders.keys;
+
+  void registerLibraryBuilder(DillLibraryBuilder libraryBuilder) {
+    Uri importUri = libraryBuilder.importUri;
+    libraryBuilder.loader = this;
+    if (importUri.scheme == "dart" && importUri.path == "core") {
+      _coreLibrary = libraryBuilder;
+    }
+    _builders[importUri] = libraryBuilder;
+  }
+
+  DillLibraryBuilder? deregisterLibraryBuilder(Uri importUri) {
+    return _builders.remove(importUri);
   }
 }

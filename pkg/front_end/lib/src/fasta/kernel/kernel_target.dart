@@ -401,7 +401,7 @@ class KernelTarget extends TargetImplementation {
       Library? referencesFrom,
       bool? referenceIsPartOwner) {
     if (dillTarget.isLoaded) {
-      DillLibraryBuilder? builder = dillTarget.loader.builders[uri];
+      DillLibraryBuilder? builder = dillTarget.loader.lookupLibraryBuilder(uri);
       if (builder != null) {
         if (!builder.isNonNullableByDefault &&
             (loader.nnbdMode == NnbdMode.Strong ||
@@ -455,7 +455,7 @@ class KernelTarget extends TargetImplementation {
   /// Returns classes defined in libraries in [loader].
   List<SourceClassBuilder> collectMyClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
-    for (LibraryBuilder library in loader.builders.values) {
+    for (LibraryBuilder library in loader.libraryBuilders) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -714,7 +714,7 @@ class KernelTarget extends TargetImplementation {
 
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    for (LibraryBuilder library in loader.builders.values) {
+    for (LibraryBuilder library in loader.libraryBuilders) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -1086,7 +1086,7 @@ class KernelTarget extends TargetImplementation {
       ...backendTarget.extraIndexedLibraries
     ]) {
       Uri uri = Uri.parse(platformLibrary);
-      LibraryBuilder? libraryBuilder = loader.builders[uri];
+      LibraryBuilder? libraryBuilder = loader.lookupLibraryBuilder(uri);
       if (libraryBuilder == null) {
         // TODO(ahe): This is working around a bug in kernel_driver_test or
         // kernel_driver.
