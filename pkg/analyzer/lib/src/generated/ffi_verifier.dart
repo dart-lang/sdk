@@ -407,6 +407,24 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
+  bool _isConst(Expression expr) {
+    if (expr is Literal) {
+      return true;
+    }
+    if (expr is Identifier) {
+      final staticElm = expr.staticElement;
+      if (staticElm is ConstVariableElement) {
+        return true;
+      }
+      if (staticElm is PropertyAccessorElementImpl) {
+        if (staticElm.variable is ConstVariableElement) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /// Returns `true` if [nativeType] is a C type that has a size.
   bool _isSized(DartType nativeType) {
     switch (_primitiveNativeType(nativeType)) {
@@ -510,12 +528,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  // Get the const bool value of `expr` if it exists.
-  // Return null if it isn't a const bool.
+  /// Get the const bool value of [expr] if it exists.
+  /// Return null if it isn't a const bool.
   bool? _maybeGetBoolConstValue(Expression expr) {
     if (expr is BooleanLiteral) {
       return expr.value;
-    } else if (expr is Identifier) {
+    }
+    if (expr is Identifier) {
       final staticElm = expr.staticElement;
       if (staticElm is ConstVariableElement) {
         return staticElm.computeConstantValue()?.toBoolValue();
@@ -897,23 +916,26 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           FfiCode.MISSING_EXCEPTION_VALUE, node.methodName);
     } else {
       Expression e = node.argumentList.arguments[1];
-      // TODO(brianwilkerson) Validate that `e` is a constant expression.
       if (!_validateCompatibleNativeType(e.typeOrThrow, R, true)) {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
       }
+      if (!_isConst(e)) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, e, ['exceptionalReturn']);
+      }
     }
   }
 
+  /// Ensure `isLeaf` is const as we need the value at compile time to know
+  /// which trampoline to generate.
   void _validateIsLeafIsConst(MethodInvocation node) {
-    // Ensure `isLeaf` is const as we need the value at compile time to know
-    // which trampoline to generate.
     final args = node.argumentList.arguments;
     if (args.isNotEmpty) {
       for (final arg in args) {
         if (arg is NamedExpression) {
           if (arg.element?.name == _isLeafParamName) {
-            if (_maybeGetBoolConstValue(arg.expression) == null) {
+            if (!_isConst(arg.expression)) {
               _errorReporter.reportErrorForNode(
                   FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
                   arg.expression,

@@ -31,7 +31,7 @@ enum NativeType {
   kUint8,
   kUint16,
   kUint32,
-  kUnit64,
+  kUint64,
   kIntptr,
   kFloat,
   kDouble,
@@ -41,59 +41,68 @@ enum NativeType {
   kHandle,
 }
 
-const NativeType kNativeTypeIntStart = NativeType.kInt8;
-const NativeType kNativeTypeIntEnd = NativeType.kIntptr;
+const Set<NativeType> nativeIntTypes = <NativeType>{
+  NativeType.kInt8,
+  NativeType.kInt16,
+  NativeType.kInt32,
+  NativeType.kInt64,
+  NativeType.kUint8,
+  NativeType.kUint16,
+  NativeType.kUint32,
+  NativeType.kUint64,
+  NativeType.kIntptr,
+};
 
-/// The [NativeType] class names, indexed by [NativeType].
-const List<String> nativeTypeClassNames = [
-  'NativeType',
-  '_NativeInteger',
-  '_NativeDouble',
-  'Pointer',
-  'NativeFunction',
-  'Int8',
-  'Int16',
-  'Int32',
-  'Int64',
-  'Uint8',
-  'Uint16',
-  'Uint32',
-  'Uint64',
-  'IntPtr',
-  'Float',
-  'Double',
-  'Void',
-  'Opaque',
-  'Struct',
-  'Handle'
-];
+/// The [NativeType] class names.
+const Map<NativeType, String> nativeTypeClassNames = <NativeType, String>{
+  NativeType.kNativeType: 'NativeType',
+  NativeType.kNativeInteger: '_NativeInteger',
+  NativeType.kNativeDouble: '_NativeDouble',
+  NativeType.kPointer: 'Pointer',
+  NativeType.kNativeFunction: 'NativeFunction',
+  NativeType.kInt8: 'Int8',
+  NativeType.kInt16: 'Int16',
+  NativeType.kInt32: 'Int32',
+  NativeType.kInt64: 'Int64',
+  NativeType.kUint8: 'Uint8',
+  NativeType.kUint16: 'Uint16',
+  NativeType.kUint32: 'Uint32',
+  NativeType.kUint64: 'Uint64',
+  NativeType.kIntptr: 'IntPtr',
+  NativeType.kFloat: 'Float',
+  NativeType.kDouble: 'Double',
+  NativeType.kVoid: 'Void',
+  NativeType.kOpaque: 'Opaque',
+  NativeType.kStruct: 'Struct',
+  NativeType.kHandle: 'Handle',
+};
 
 const int UNKNOWN = 0;
 const int WORD_SIZE = -1;
 
-/// The [NativeType] sizes in bytes, indexed by [NativeType].
-const List<int> nativeTypeSizes = [
-  UNKNOWN, // NativeType
-  UNKNOWN, // NativeInteger
-  UNKNOWN, // NativeDouble
-  WORD_SIZE, // Pointer
-  UNKNOWN, // NativeFunction
-  1, // Int8
-  2, // Int16
-  4, // Int32
-  8, // Int64
-  1, // Uint8
-  2, // Uint16
-  4, // Uint32
-  8, // Uint64
-  WORD_SIZE, // IntPtr
-  4, // Float
-  8, // Double
-  UNKNOWN, // Void
-  UNKNOWN, // Opaque
-  UNKNOWN, // Struct
-  WORD_SIZE, // Handle
-];
+/// The [NativeType] sizes in bytes.
+const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
+  NativeType.kNativeType: UNKNOWN,
+  NativeType.kNativeInteger: UNKNOWN,
+  NativeType.kNativeDouble: UNKNOWN,
+  NativeType.kPointer: WORD_SIZE,
+  NativeType.kNativeFunction: UNKNOWN,
+  NativeType.kInt8: 1,
+  NativeType.kInt16: 2,
+  NativeType.kInt32: 4,
+  NativeType.kInt64: 8,
+  NativeType.kUint8: 1,
+  NativeType.kUint16: 2,
+  NativeType.kUint32: 4,
+  NativeType.kUint64: 8,
+  NativeType.kIntptr: WORD_SIZE,
+  NativeType.kFloat: 4,
+  NativeType.kDouble: 8,
+  NativeType.kVoid: UNKNOWN,
+  NativeType.kOpaque: UNKNOWN,
+  NativeType.kStruct: UNKNOWN,
+  NativeType.kHandle: WORD_SIZE,
+};
 
 /// The struct layout in various ABIs.
 ///
@@ -145,7 +154,7 @@ const nonSizeAlignment = <Abi, Map<NativeType, int>>{
   Abi.wordSize32Align32: {
     NativeType.kDouble: 4,
     NativeType.kInt64: 4,
-    NativeType.kUnit64: 4
+    NativeType.kUint64: 4
   },
 
   // The default for MSVC x86:
@@ -176,7 +185,7 @@ const List<NativeType> optimizedTypes = [
   NativeType.kUint8,
   NativeType.kUint16,
   NativeType.kUint32,
-  NativeType.kUnit64,
+  NativeType.kUint64,
   NativeType.kIntptr,
   NativeType.kFloat,
   NativeType.kDouble,
@@ -296,7 +305,8 @@ class FfiTransformer extends Transformer {
   late final InterfaceType pointerVoidType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
-  final List<Class> nativeTypesClasses;
+  final Map<NativeType, Class> nativeTypesClasses;
+  final Map<Class, NativeType> classNativeTypes;
 
   Library? _currentLibrary;
   Library get currentLibrary => _currentLibrary!;
@@ -431,31 +441,32 @@ class FfiTransformer extends Transformer {
             index.getTopLevelProcedure('dart:ffi', '_pointerFromFunction'),
         nativeCallbackFunctionProcedure =
             index.getTopLevelProcedure('dart:ffi', '_nativeCallbackFunction'),
-        nativeTypesClasses = nativeTypeClassNames
-            .map((name) => index.getClass('dart:ffi', name))
-            .toList(),
+        nativeTypesClasses = nativeTypeClassNames.map((nativeType, name) =>
+            MapEntry(nativeType, index.getClass('dart:ffi', name))),
+        classNativeTypes = nativeTypeClassNames.map((nativeType, name) =>
+            MapEntry(index.getClass('dart:ffi', name), nativeType)),
         loadMethods = Map.fromIterable(optimizedTypes, value: (t) {
-          final name = nativeTypeClassNames[t.index];
+          final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure('dart:ffi', "_load$name");
         }),
         loadUnalignedMethods =
             Map.fromIterable(unalignedLoadsStores, value: (t) {
-          final name = nativeTypeClassNames[t.index];
+          final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure(
               'dart:ffi', "_load${name}Unaligned");
         }),
         storeMethods = Map.fromIterable(optimizedTypes, value: (t) {
-          final name = nativeTypeClassNames[t.index];
+          final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure('dart:ffi', "_store$name");
         }),
         storeUnalignedMethods =
             Map.fromIterable(unalignedLoadsStores, value: (t) {
-          final name = nativeTypeClassNames[t.index];
+          final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure(
               'dart:ffi', "_store${name}Unaligned");
         }),
         elementAtMethods = Map.fromIterable(optimizedTypes, value: (t) {
-          final name = nativeTypeClassNames[t.index];
+          final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure('dart:ffi', "_elementAt$name");
         }),
         memCopy = index.getTopLevelProcedure('dart:ffi', '_memCopy'),
@@ -473,7 +484,7 @@ class FfiTransformer extends Transformer {
             index.getTopLevelProcedure('dart:_internal', 'reachabilityFence') {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
-    voidType = nativeTypesClasses[NativeType.kVoid.index]
+    voidType = nativeTypesClasses[NativeType.kVoid]!
         .getThisType(coreTypes, Nullability.nonNullable);
     pointerVoidType =
         InterfaceType(pointerClass, Nullability.nonNullable, [voidType]);
@@ -538,8 +549,7 @@ class FfiTransformer extends Transformer {
     if (nativeType_ == NativeType.kPointer) {
       return nativeType;
     }
-    if (kNativeTypeIntStart.index <= nativeType_.index &&
-        nativeType_.index <= kNativeTypeIntEnd.index) {
+    if (nativeIntTypes.contains(nativeType_)) {
       return InterfaceType(intClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {
@@ -579,11 +589,7 @@ class FfiTransformer extends Transformer {
   /// The [NativeType] corresponding to [c]. Returns `null` for user-defined
   /// structs.
   NativeType? getType(Class c) {
-    final int index = nativeTypesClasses.indexOf(c);
-    if (index == -1) {
-      return null;
-    }
-    return NativeType.values[index];
+    return classNativeTypes[c];
   }
 
   InterfaceType _listOfIntType() => InterfaceType(
@@ -731,8 +737,8 @@ class FfiTransformer extends Transformer {
     }
     if (!env.isSubtypeOf(
         type,
-        InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
-            Nullability.legacy),
+        InterfaceType(
+            nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy),
         SubtypeCheckMode.ignoringNullabilities)) {
       return false;
     }
@@ -756,8 +762,8 @@ class FfiTransformer extends Transformer {
     return env.isSubtypeOf(
         type,
         InterfaceType(pointerClass, Nullability.legacy, [
-          InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
-              Nullability.legacy)
+          InterfaceType(
+              nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy)
         ]),
         SubtypeCheckMode.ignoringNullabilities);
   }
@@ -772,8 +778,8 @@ class FfiTransformer extends Transformer {
     return env.isSubtypeOf(
         type,
         InterfaceType(arrayClass, Nullability.legacy, [
-          InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
-              Nullability.legacy)
+          InterfaceType(
+              nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy)
         ]),
         SubtypeCheckMode.ignoringNullabilities);
   }

@@ -405,7 +405,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           .firstWhere((function) => function.name == Name('#sizeOf'));
       return StaticGet(sizeOfGetter);
     }
-    final int size = nativeTypeSizes[nt.index];
+    final int size = nativeTypeSizes[nt]!;
     if (size == WORD_SIZE) {
       return runtimeBranchOnLayout(wordSize);
     }
@@ -790,7 +790,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         klass == opaqueClass ||
         klass == structClass ||
         klass == unionClass ||
-        nativeTypesClasses.contains(klass)) {
+        classNativeTypes[klass] != null) {
       return null;
     }
 
@@ -809,7 +809,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       }
     }
 
-    for (final parent in nativeTypesClasses) {
+    for (final parent in nativeTypesClasses.values) {
       if (hierarchy.isSubtypeOf(klass, parent)) {
         return parent;
       }

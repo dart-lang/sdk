@@ -600,10 +600,6 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool.releaseDevice(device);
         }
       });
-    } else if (command is VMBatchCommand) {
-      var name = command.displayName;
-      return _getBatchRunner(command.displayName + command.dartFile)
-          .runCommand(name, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
         command.displayName == 'babel') {
       return RunningProcess(command, timeout,
