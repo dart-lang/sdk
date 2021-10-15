@@ -6000,7 +6000,7 @@ class C {
 
 ### instance_access_to_static_member
 
-_Static {1} '{0}' can't be accessed through an instance._
+_The static {1} '{0}' can't be accessed through an instance._
 
 #### Description
 

@@ -2659,9 +2659,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
-          name,
-          [name.name, _getKind(element), element.enclosingElement.name]);
+          CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, name, [
+        name.name,
+        _getKind(element),
+        enclosingElement.name ?? '<unnamed>',
+        enclosingElement is ClassElement && enclosingElement.isMixin
+            ? 'mixin'
+            : enclosingElement.kind.displayName
+      ]);
     }
   }
 

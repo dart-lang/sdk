@@ -1679,12 +1679,20 @@ class FragmentEmitter {
               ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
               : locals.find('_lazy', 'hunkHelpers.lazy')
           : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
+      js.Expression staticFieldCode = field.code;
+      if (!_options.features.legacyJavaScript.isEnabled &&
+          staticFieldCode is js.Fun) {
+        js.Fun fun = staticFieldCode;
+        staticFieldCode = js.ArrowFunction(fun.params, fun.body,
+                asyncModifier: fun.asyncModifier)
+            .withSourceInformation(fun.sourceInformation);
+      }
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
         helper,
         _namer.globalObjectForStaticState(),
         js.quoteName(field.name),
         js.quoteName(field.getterName),
-        field.code,
+        staticFieldCode,
       ]);
 
       registerEntityAst(field.element, statement,

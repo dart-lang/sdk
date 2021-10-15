@@ -148,18 +148,19 @@ class FunctionReferenceResolver {
     ExecutableElement element, {
     required bool implicitReceiver,
   }) {
+    var enclosingElement = element.enclosingElement;
     if (_resolver.enclosingExtension != null) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode
             .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
         nameNode,
-        [element.enclosingElement.displayName],
+        [enclosingElement.displayName],
       );
     } else if (implicitReceiver) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
         nameNode,
-        [element.enclosingElement.displayName],
+        [enclosingElement.displayName],
       );
     } else {
       _resolver.errorReporter.reportErrorForNode(
@@ -168,7 +169,10 @@ class FunctionReferenceResolver {
         [
           nameNode.name,
           element.kind.displayName,
-          element.enclosingElement.displayName,
+          enclosingElement.name ?? '<unnamed>',
+          enclosingElement is ClassElement && enclosingElement.isMixin
+              ? 'mixin'
+              : enclosingElement.kind.displayName,
         ],
       );
     }
