@@ -30,6 +30,73 @@ typedef _Hasher<K> = int Function(K object);
 /// Values are iterated in the same order as their associated keys,
 /// so iterating the [keys] and [values] in parallel
 /// will give matching key and value pairs.
+///
+/// Example:
+/// ```dart
+/// final HashMap<int, String> hashMap = HashMap();
+/// hashMap.addAll({10: 'A', 20: 'B', 30: 'C', 1: 'aa', 2: 'bb'});
+/// print(hashMap.isEmpty); // false
+/// print(hashMap.length); // 5
+/// print(hashMap); // {1: aa, 2: bb, 10: A, 20: B, 30: C}
+/// // Iterating items using [forEach]:
+/// hashMap.forEach((key, value) {
+///   print('key: $key ' ' value: $value');
+/// });
+/// // Check is key defined on map
+/// print(hashMap.containsKey(1)); // true
+/// print(hashMap.containsKey(3)); // false
+/// // Check is value defined
+/// print(hashMap.containsValue('b')); // false
+/// print(hashMap.containsValue('bb')); // true
+/// // Remove one item using key value
+/// hashMap.remove(1); // { 2: bb, 10: A, 20: B, 30: C}
+/// // Remove all items with provided statement
+/// hashMap.removeWhere((key, value) => key == 2); // {10: A, 20: B, 30: C}
+/// hashMap.removeWhere((key, value) => value == 'B'); // {10: A, 30: C}
+/// // Updating existing item on map
+/// final retVal1 = hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'D');
+/// print(hashMap); // {10: ABC, 30: C}
+/// // Update / insert value to map if key not exists
+/// final retVal2 = hashMap.update(4, (v) => 'abc', ifAbsent: () => 'D');
+/// print(hashMap); // {10: ABC, 4: D, 30: C}
+/// // Update all items
+/// hashMap.updateAll((int key, String value) => 'E');
+/// print(hashMap); // {10: E, 4: E, 30: E}
+/// // Remove all items
+/// hashMap.clear(); // {}
+/// ```
+///
+/// [HashMap.from] example:
+/// ```dart
+/// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
+/// final HashMap<int, String> fromBaseMap = HashMap.from(baseMap);
+/// ```
+///
+/// [HashMap.fromEntries] example:
+/// ```dart
+/// final Map baseMap = {3: 'A', 2: 'B', 1: 'C'};
+/// final HashMap mapFromEntries = HashMap.fromEntries(baseMap.entries);
+/// ```
+///
+/// [HashMap.fromIterable] example:
+/// ```dart
+/// final List<int> keyList = [11, 12, 13, 14];
+/// final HashMap mapFromIterable =
+///   HashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
+/// ```
+///
+/// [HashMap.fromIterables] example:
+/// ```dart
+/// final List<String> keys = ['1', '2', '3', '4'];
+/// final List<String> values = ['A', 'B', 'C', 'D'];
+/// final HashMap mapFromIterables = HashMap.fromIterables(keys, values);
+/// ```
+///
+/// [HashMap.of] example:
+/// ```dart
+/// final Map mapIntString = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
+/// final HashMap mapOf = HashMap.of(mapIntString);
+/// ```
 abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered hash-table based [Map].
   ///
