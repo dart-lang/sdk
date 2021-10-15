@@ -65,7 +65,7 @@ part 'test.dart';
 
     var directives = request.target.unit.directives;
 
-    var imports = request.libraryElement!.imports;
+    var imports = request.libraryElement.imports;
     expect(imports, hasLength(directives.length + 1));
 
     ImportElement importNamed(String expectedUri) {
