@@ -606,6 +606,7 @@ class SendReceiveTest extends SendReceiveTestBase {
   }
 
   Future testWeakProperty() async {
+    print('testWeakProperty');
     final key = Object();
     final expando1 = Expando();
     final expando2 = Expando();
