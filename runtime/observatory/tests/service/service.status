@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 # Flaky failures
+async_generator_breakpoint_test: Pass, Slow # Uses --stacktrace-every=...
 dds_log_history_size_gigantic_test: Pass, Slow # Involves processing lots of logs
 field_script_test: Pass, RuntimeError
 get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
@@ -21,10 +22,6 @@ process_service_test: Pass, Fail # Issue 24344
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
-
-# The _1 versions of this test can be slow due to stress testing flags.
-[ $mode == debug ]
-async_generator_breakpoint_test: Pass, Slow
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]
