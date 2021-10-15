@@ -115,6 +115,14 @@ class Platform {
   static String get operatingSystemVersion => _operatingSystemVersion;
 
   /// The local hostname for the system.
+  ///
+  /// For example:
+  ///   "mycomputer.corp.example.com"
+  ///   "mycomputer"
+  ///
+  /// Uses the platform
+  /// [`gethostname`](https://pubs.opengroup.org/onlinepubs/9699919799/)
+  /// implementation.
   static String get localHostname => _localHostname;
 
   /// Whether the operating system is a version of

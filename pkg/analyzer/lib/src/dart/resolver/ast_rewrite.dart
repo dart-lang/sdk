@@ -282,11 +282,6 @@ class AstRewriter {
       return node;
     }
     var receiver = node.target!;
-    var propertyName = node.propertyName;
-    if (propertyName.isSynthetic) {
-      // This isn't a constructor reference.
-      return node;
-    }
 
     Identifier receiverIdentifier;
     TypeArgumentList? typeArguments;

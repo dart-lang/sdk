@@ -186,8 +186,8 @@ class SourceToDillStep implements IOModularStep {
       // When no flags are passed, we can skip compilation and reuse the
       // platform.dill created by build.py.
       if (flags.isEmpty) {
-        var platform =
-            computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+        var platform = computePlatformBinariesLocation()
+            .resolve("dart2js_platform_unsound.dill");
         var destination = root.resolveUri(toUri(module, dillId));
         if (_options.verbose) {
           print('command:\ncp $platform $destination');

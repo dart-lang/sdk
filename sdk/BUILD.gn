@@ -68,9 +68,9 @@ declare_args() {
 # ......_internal/
 # ........strong.sum
 # ........dart2js_platform.dill
+# ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
-# ........dart2js_platform_strong.dill
-# ........dart2js_server_platform_strong.dill
+# ........dart2js_server_platform_unsound.dill
 # ........vm_platform_strong.dill
 # ........dev_compiler/
 # ......async/
@@ -513,16 +513,16 @@ copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/compiler:compile_dart2js_nnbd_strong_platform",
     "../utils/compiler:compile_dart2js_platform",
-    "../utils/compiler:compile_dart2js_server_nnbd_strong_platform",
+    "../utils/compiler:compile_dart2js_platform_unsound",
     "../utils/compiler:compile_dart2js_server_platform",
+    "../utils/compiler:compile_dart2js_server_platform_unsound",
   ]
   sources = [
-    "$root_out_dir/dart2js_nnbd_strong_platform.dill",
     "$root_out_dir/dart2js_platform.dill",
-    "$root_out_dir/dart2js_server_nnbd_strong_platform.dill",
+    "$root_out_dir/dart2js_platform_unsound.dill",
     "$root_out_dir/dart2js_server_platform.dill",
+    "$root_out_dir/dart2js_server_platform_unsound.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]

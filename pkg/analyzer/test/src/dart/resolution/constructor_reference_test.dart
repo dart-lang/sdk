@@ -307,6 +307,28 @@ void bar() {
     );
   }
 
+  test_class_generic_nothing_hasNamedConstructor() async {
+    await assertErrorsInCode('''
+class A<T> {
+  A.foo();
+}
+
+void bar() {
+  A<int>.;
+}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 49, 1),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.;'),
+      null,
+      classElement,
+      'dynamic',
+    );
+  }
+
   test_class_generic_unnamed() async {
     await assertNoErrorsInCode('''
 class A<T> {

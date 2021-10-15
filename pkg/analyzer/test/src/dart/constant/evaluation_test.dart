@@ -1393,6 +1393,22 @@ class C {}
         errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
+  test_visitConditionalExpression_lazy_unknown_int_invalid() async {
+    await resolveTestCode('''
+const c = identical(0, 0.0) ? 1 : new Object();
+''');
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+  }
+
+  test_visitConditionalExpression_lazy_unknown_invalid_int() async {
+    await resolveTestCode('''
+const c = identical(0, 0.0) ? 1 : new Object();
+''');
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+  }
+
   test_visitIntegerLiteral() async {
     await resolveTestCode('''
 const double d = 3;

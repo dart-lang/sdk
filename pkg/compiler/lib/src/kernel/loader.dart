@@ -90,12 +90,8 @@ class KernelLoaderTask extends CompilerTask {
       // We defer selecting the platform until we've resolved the null safety
       // mode.
       String getPlatformFilename() {
-        String platform = targetName;
-        if (!_options.useLegacySubtyping) {
-          platform += "_nnbd_strong";
-        }
-        platform += "_platform.dill";
-        return platform;
+        String unsoundMarker = _options.useLegacySubtyping ? "_unsound" : "";
+        return "${targetName}_platform$unsoundMarker.dill";
       }
 
       var resolvedUri = _options.compilationTarget;
