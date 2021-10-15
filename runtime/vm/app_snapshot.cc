@@ -6842,13 +6842,13 @@ void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
-  const char* expected_features =
+  char* expected_features =
       Dart::FeaturesString(IsolateGroup::Current(), is_vm_snapshot, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
              features_len + 1);
-  free(const_cast<char*>(expected_features));
+  free(expected_features);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
