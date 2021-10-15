@@ -66,7 +66,7 @@ const HtmlEscape htmlEscape = HtmlEscape();
 /// escaped = htmlEscape.convert(unescaped);
 /// print(escaped); // Double-quoted: "text"
 ///
-/// unescaped = 'Path: /system/ ';
+/// unescaped = 'Path: /system/';
 /// escaped = htmlEscape.convert(unescaped);
 /// print(escaped); // Path: /system/
 /// ```
@@ -189,7 +189,7 @@ class HtmlEscapeMode {
 /// escaped = htmlEscape.convert(unescaped);
 /// print(escaped); // Double-quoted: &quot;text&quot;
 ///
-/// unescaped = 'Path: /system/ ';
+/// unescaped = 'Path: /system/';
 /// escaped = htmlEscape.convert(unescaped);
 /// print(escaped); // Path: &#47;system&#47;
 /// ```
