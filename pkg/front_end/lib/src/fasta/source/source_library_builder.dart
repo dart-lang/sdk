@@ -317,6 +317,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Version? _enableNonNullableVersionInLibrary;
   Version? _enableConstructorTearoffsVersionInLibrary;
   Version? _enableExtensionTypesVersionInLibrary;
+  Version? _enableNamedArgumentsAnywhereVersionInLibrary;
   bool? _enableTripleShiftInLibrary;
   bool? _enableExtensionMethodsInLibrary;
   bool? _enableGenericMetadataInLibrary;
@@ -398,8 +399,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ExperimentalFlag.extensionTypes, _packageUri ?? importUri);
 
   bool get enableNamedArgumentsAnywhereInLibrary =>
-      _enableNamedArgumentsAnywhereInLibrary ??=
-          loader.enableUnscheduledExperiments;
+      _enableNamedArgumentsAnywhereInLibrary ??= loader.target
+          .isExperimentEnabledInLibraryByVersion(
+              ExperimentalFlag.namedArgumentsAnywhere,
+              _packageUri ?? importUri,
+              languageVersion.version);
+
+  Version get enableNamedArgumentsAnywhereVersionInLibrary =>
+      _enableNamedArgumentsAnywhereVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.namedArgumentsAnywhere,
+              _packageUri ?? importUri);
 
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
