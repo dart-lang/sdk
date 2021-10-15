@@ -13,13 +13,10 @@ import 'package:compiler/src/elements/entities.dart'
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/kernel/loader.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
+import 'package:front_end/src/api_unstable/dart2js.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;
@@ -35,8 +32,8 @@ main() {
         ['c2.dart'], {'c2.dart': sourceC, 'a.dill': aDill, 'b.dill': bDill},
         deps: ['a.dill', 'b.dill']);
 
-    DiagnosticCollector diagnostics = new DiagnosticCollector();
-    OutputCollector output = new OutputCollector();
+    DiagnosticCollector diagnostics = DiagnosticCollector();
+    OutputCollector output = OutputCollector();
     Uri entryPoint = Uri.parse('org-dartlang-test:///c2.dart');
     CompilerImpl compiler = compilerFor(
         entryPoint: entryPoint,
@@ -68,7 +65,7 @@ main() {
 /// Generate a component for a modular complation unit.
 Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     {List<String> deps: const []}) async {
-  var fs = new MemoryFileSystem(_defaultDir);
+  var fs = MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {
     var entity = fs.entityForUri(toTestUri(name));
     if (data is String) {
@@ -81,9 +78,10 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
   ]..addAll(deps.map(toTestUri));
   fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
-  var options = new CompilerOptions()
-    ..target = new Dart2jsTarget("dart2js", new TargetFlags())
-    ..fileSystem = new TestFileSystem(fs)
+  var options = CompilerOptions()
+    ..target = Dart2jsTarget("dart2js", TargetFlags(enableNullSafety: true))
+    ..fileSystem = TestFileSystem(fs)
+    ..nnbdMode = NnbdMode.Strong
     ..additionalDills = additionalDills
     ..packagesFileUri = toTestUri('.packages')
     ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
@@ -118,30 +116,27 @@ class TestFileSystem implements FileSystem {
 }
 
 const sourceA = '''
-// @dart=2.7
 class A0 {
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
 }
 ''';
 
 const sourceB = '''
-// @dart=2.7
 import 'a0.dart';
 
 class B1 extends A0 {
-  A0 get foo => null;
+  A0? get foo => null;
 }
 
-A0 createA0() => new A0();
+A0 createA0() => A0();
 ''';
 
 const sourceC = '''
-// @dart=2.7
 import 'b1.dart';
 
 class C2 extends B1 {
   final foo = createA0();
 }
 
-main() => print(new C2().foo.buffer.toString());
+main() => print(C2().foo.buffer.toString());
 ''';

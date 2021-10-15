@@ -102,10 +102,10 @@
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart",
       "out/ReleaseIA32/dart2js_platform.dill",
-      "out/ReleaseIA32/dart2js_platform_strong.dill",
+      "out/ReleaseIA32/dart2js_platform_unsound.dill",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
-      "out/ReleaseX64/dart2js_platform_strong.dill",
+      "out/ReleaseX64/dart2js_platform_unsound.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -143,18 +143,17 @@
       "tools/",
       "xcodebuild/ReleaseIA32/dart",
       "xcodebuild/ReleaseIA32/dart2js_platform.dill",
-      "xcodebuild/ReleaseIA32/dart2js_platform_strong.dill",
+      "xcodebuild/ReleaseIA32/dart2js_platform_unsound.dill",
       "xcodebuild/ReleaseX64/dart",
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
+      "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "web_platform_hostasserts_nnbd": [
       ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
-      "out/ReleaseX64/dart2js_nnbd_strong_platform.dill",
-      "out/ReleaseX64/dart2js_platform_strong.dill",
+      "out/ReleaseX64/dart2js_platform_unsound.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -184,8 +183,7 @@
       "tools/",
       "xcodebuild/ReleaseX64/dart",
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_nnbd_strong_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
+      "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "front-end": [
       ".packages",
@@ -3639,7 +3637,7 @@
             "create_sdk",
             "runtime",
             "dart2js_platform.dill",
-            "dart2js_nnbd_strong_platform.dill",
+            "dart2js_platform_unsound.dill",
             "kernel-service.dart.snapshot"
           ]
         },
@@ -3675,7 +3673,7 @@
             "gen_snapshot",
             "dart_precompiled_runtime",
             "dart2js_platform.dill",
-            "dart2js_nnbd_strong_platform.dill",
+            "dart2js_platform_unsound.dill",
             "kernel-service.dart.snapshot",
             "dartdevc_test"
           ]
