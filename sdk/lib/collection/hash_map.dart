@@ -38,7 +38,7 @@ typedef _Hasher<K> = int Function(K object);
 /// print(hashMap.isEmpty); // false
 /// print(hashMap.length); // 5
 /// print(hashMap); // {1: aa, 2: bb, 10: A, 20: B, 30: C}
-/// // Iterating items using [forEach]:
+/// // Iterating items
 /// hashMap.forEach((key, value) {
 ///   print('key: $key ' ' value: $value');
 /// });
