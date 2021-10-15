@@ -688,7 +688,7 @@ class Compiler extends NamedEnum {
         return const [Runtime.none];
       case Compiler.appJitk:
       case Compiler.dartk:
-        return const [Runtime.vm, Runtime.selfCheck];
+        return const [Runtime.vm];
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
       case Compiler.specParser:
@@ -805,7 +805,6 @@ class Runtime extends NamedEnum {
   static const ie11 = Runtime._('ie11');
   static const edge = Runtime._('edge');
   static const chromeOnAndroid = Runtime._('chromeOnAndroid');
-  static const selfCheck = Runtime._('self_check');
   static const none = Runtime._('none');
 
   static final List<String> names = _all.keys.toList();
@@ -824,7 +823,6 @@ class Runtime extends NamedEnum {
     ie11,
     edge,
     chromeOnAndroid,
-    selfCheck,
     none
   ], key: (runtime) => (runtime as Runtime).name);
 
@@ -880,9 +878,6 @@ class Runtime extends NamedEnum {
       case edge:
       case chromeOnAndroid:
         return Compiler.dart2js;
-
-      case selfCheck:
-        return Compiler.dartk;
 
       case none:
         // If we aren't running it, we probably just want to analyze it.

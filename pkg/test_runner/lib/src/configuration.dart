@@ -44,7 +44,6 @@ class TestConfiguration {
       this.reportFailures,
       this.reportInJson,
       this.resetBrowser,
-      this.skipCompilation,
       this.writeDebugLog,
       this.writeResults,
       this.writeLogs,
@@ -97,7 +96,6 @@ class TestConfiguration {
   final bool reportFailures;
   final bool reportInJson;
   final bool resetBrowser;
-  final bool skipCompilation;
   final bool writeDebugLog;
   final bool writeResults;
   final bool writeLogs;
