@@ -27,7 +27,6 @@ main() {
     Uri uri = Uri.base.resolve(filename);
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
-    Uri entryPoint = Uri.parse('memory:main.dill');
 
     var options = new CompilerOptions()
       ..target = new Dart2jsTarget("dart2js", new TargetFlags())
@@ -41,12 +40,12 @@ main() {
     List<int> kernelBinary =
         serializeComponent((await kernelForProgram(uri, options)).component);
     CompilerImpl compiler = compilerFor(
-        entryPoint: entryPoint,
+        entryPoint: uri,
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output);
     await compiler.setupSdk();
-    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    KernelResult result = await compiler.kernelLoader.load();
     compiler.frontendStrategy.registerLoadedLibraries(result);
 
     Expect.equals(0, diagnostics.errors.length);

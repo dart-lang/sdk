@@ -101,6 +101,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     {fe.InitializedCompilerState kernelInitializedCompilerState}) {
   Stopwatch wallclock = Stopwatch()..start();
   stackTraceFilePrefix = '${Uri.base}';
+  Uri entryUri;
+  Uri inputDillUri;
   Uri librariesSpecificationUri = Uri.base.resolve('lib/libraries.json');
   bool outputSpecified = false;
   Uri out;
@@ -145,13 +147,24 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough("--build-id=$BUILD_ID");
   }
 
+  Uri extractResolvedFileUri(String argument) {
+    return Uri.base.resolve(extractPath(argument, isDirectory: false));
+  }
+
+  void setEntryUri(String argument) {
+    entryUri = extractResolvedFileUri(argument);
+  }
+
+  void setInputDillUri(String argument) {
+    inputDillUri = extractResolvedFileUri(argument);
+  }
+
   void setLibrarySpecificationUri(String argument) {
-    librariesSpecificationUri =
-        Uri.base.resolve(extractPath(argument, isDirectory: false));
+    librariesSpecificationUri = extractResolvedFileUri(argument);
   }
 
   void setPackageConfig(String argument) {
-    packageConfig = Uri.base.resolve(extractPath(argument, isDirectory: false));
+    packageConfig = extractResolvedFileUri(argument);
   }
 
   void setOutput(Iterator<String> arguments) {
@@ -501,6 +514,8 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
+    OptionHandler('${Flags.entryUri}=.+', setEntryUri),
+    OptionHandler('${Flags.inputDill}=.+', setInputDillUri),
     OptionHandler('-[chvm?]+', handleShortOptions),
     OptionHandler('--throw-on-error(?:=[0-9]+)?', handleThrowOnError),
     OptionHandler(Flags.suppressWarnings, (String argument) {
@@ -725,9 +740,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
   }
 
-  if (arguments.isEmpty) {
+  if (arguments.isEmpty && entryUri == null && inputDillUri == null) {
     helpAndFail('No Dart file specified.');
   }
+
   if (arguments.length > 1) {
     var extra = arguments.sublist(1);
     helpAndFail('Extra arguments: ${extra.join(" ")}');
@@ -738,7 +754,20 @@ Future<api.CompilationResult> compile(List<String> argv,
         "checked mode.");
   }
 
-  String scriptName = arguments[0];
+  if (arguments.isNotEmpty) {
+    String sourceOrDill = arguments[0];
+    Uri file = Uri.base.resolve(fe.nativeToUriPath(sourceOrDill));
+    if (sourceOrDill.endsWith('.dart')) {
+      entryUri = file;
+    } else {
+      assert(sourceOrDill.endsWith('.dill'));
+      inputDillUri = file;
+    }
+  }
+
+  // Make [scriptName] a relative path..
+  String scriptName =
+      fe.relativizeUri(Uri.base, inputDillUri ?? entryUri, Platform.isWindows);
 
   switch (writeStrategy) {
     case WriteStrategy.toJs:
@@ -888,7 +917,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     writeString(
         Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
 
-    String input = fe.uriPathToNative(scriptName);
+    String input = scriptName;
     int inputSize;
     String processName;
     String inputName;
@@ -1037,8 +1066,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     return result;
   }
 
-  Uri script = Uri.base.resolve(scriptName);
-
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       featureOptions: features,
@@ -1046,7 +1073,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       platformBinaries: platformBinaries,
       onError: (String message) => fail(message),
       onWarning: (String message) => print(message))
-    ..entryPoint = script
+    ..entryUri = entryUri
+    ..inputDillUri = inputDillUri
     ..packageConfig = packageConfig
     ..environment = environment
     ..kernelInitializedCompilerState = kernelInitializedCompilerState

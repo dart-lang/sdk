@@ -8,6 +8,12 @@ library dart2js.cmdline.options;
 
 /// Commandline flags used in `dart2js.dart` and/or `apiimpl.dart`.
 class Flags {
+  // The uri of the main script file.
+  static const String entryUri = '--entry-uri';
+
+  // The uri of the main input dill.
+  static const String inputDill = '--input-dill';
+
   static const String allowMockCompilation = '--allow-mock-compilation';
   static const String allowNativeExtensions = '--allow-native-extensions';
   static const String disableInlining = '--disable-inlining';

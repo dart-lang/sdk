@@ -139,7 +139,13 @@ abstract class DiagnosticOptions {
 /// as few as possible.
 class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
-  Uri? entryPoint;
+  Uri? entryUri;
+
+  /// The input dill to compile.
+  Uri? inputDillUri;
+
+  /// Returns the compilation target specified by these options.
+  Uri? get compilationTarget => inputDillUri ?? entryUri;
 
   /// Location of the package configuration file.
   ///
@@ -168,7 +174,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Location from which serialized inference data is read.
   ///
-  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
   Uri? readDataUri;
 
@@ -184,7 +190,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Location from which the serialized closed world is read.
   ///
-  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
   Uri? readClosedWorldUri;
 
@@ -559,6 +565,8 @@ class CompilerOptions implements DiagnosticOptions {
     // sdk with the correct flags.
     platformBinaries ??= fe.computePlatformBinariesLocation();
     return CompilerOptions()
+      ..entryUri = _extractUriOption(options, '${Flags.entryUri}=')
+      ..inputDillUri = _extractUriOption(options, '${Flags.inputDill}=')
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =

@@ -59,8 +59,9 @@ run(Uri entryPoint, String allowedListPath,
         memorySourceFiles: memorySourceFiles,
         librariesSpecificationUri: librariesSpecificationUri,
         packageConfig: packageConfig,
+        entryPoint: entryPoint,
         options: options);
-    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    KernelResult result = await compiler.kernelLoader.load();
     new DynamicVisitor(compiler.reporter, result.component, allowedListPath,
             analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
