@@ -441,7 +441,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         success = false;
       } else {
         final DartType nativeType = InterfaceType(
-            nativeTypesClasses[_getFieldType(nativeTypeAnnos.first)!.index],
+            nativeTypesClasses[_getFieldType(nativeTypeAnnos.first)!]!,
             Nullability.legacy);
         final DartType? shouldBeDartType = convertNativeTypeToDartType(
             nativeType,
@@ -1075,7 +1075,7 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
 
   @override
   Map<Abi, int> get size {
-    final int size = nativeTypeSizes[nativeType.index];
+    final int size = nativeTypeSizes[nativeType]!;
     if (size == WORD_SIZE) {
       return wordSize;
     }
