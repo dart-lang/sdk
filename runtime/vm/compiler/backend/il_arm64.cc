@@ -3964,13 +3964,12 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (ValueFitsSmi()) {
       return;
     }
-    __ cmp(out, compiler::Operand(value, LSL, 1));
+    __ cmpw(value, compiler::Operand(out, ASR, 1));
     __ b(&done, EQ);  // Jump if the sbfiz instruction didn't lose info.
   } else {
     ASSERT(from_representation() == kUnboxedUint32);
     // A 32 bit positive Smi has one tag bit and one unused sign bit,
     // leaving only 30 bits for the payload.
-    // __ ubfiz(out, value, kSmiTagSize, compiler::target::kSmiBits);
     __ LslImmediate(out, value, kSmiTagSize, compiler::kFourBytes);
     if (ValueFitsSmi()) {
       return;
