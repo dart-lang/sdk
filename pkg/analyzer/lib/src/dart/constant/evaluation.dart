@@ -610,10 +610,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (conditionResult == null) {
       return conditionResult;
     }
-    if (conditionResult.toBoolValue() == true) {
+
+    var conditionResultBool = conditionResult.toBoolValue();
+    if (conditionResultBool == null) {
+      node.thenExpression.accept(this);
+      node.elseExpression.accept(this);
+    } else if (conditionResultBool == true) {
       _reportNotPotentialConstants(node.elseExpression);
       return node.thenExpression.accept(this);
-    } else if (conditionResult.toBoolValue() == false) {
+    } else if (conditionResultBool == false) {
       _reportNotPotentialConstants(node.thenExpression);
       return node.elseExpression.accept(this);
     }
