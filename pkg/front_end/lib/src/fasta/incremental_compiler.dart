@@ -1426,7 +1426,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         for (Library lib in module.libraries) {
           if (!dillLoadedData!.loader.containsLibraryBuilder(lib.importUri)) {
             dillLoadedData!.loader.libraries.add(lib);
-            dillLoadedData!.registerLibrary(lib);
+            dillLoadedData!.loader.registerKnownLibrary(lib);
             reusedLibraries.add(dillLoadedData!.loader.read(lib.importUri, -1));
             usedComponent = true;
           }

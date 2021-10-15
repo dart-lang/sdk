@@ -34,6 +34,7 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
+import '../dill/dill_library_builder.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -215,7 +216,7 @@ class SourceLoader extends Loader {
   void registerLibraryBuilder(LibraryBuilder libraryBuilder, [Uri? uri]) {
     uri ??= libraryBuilder.importUri;
     if (uri.scheme == "dart" && uri.path == "core") {
-      coreLibrary = libraryBuilder;
+      _coreLibrary = libraryBuilder;
     }
     _builders[uri] = libraryBuilder;
   }
@@ -231,11 +232,226 @@ class SourceLoader extends Loader {
   @override
   LibraryBuilder get coreLibrary => _coreLibrary!;
 
-  void set coreLibrary(LibraryBuilder value) {
-    _coreLibrary = value;
+  Ticker get ticker => target.ticker;
+
+  /// Creates a [SourceLibraryBuilder] corresponding to [uri], if one doesn't
+  /// exist already.
+  ///
+  /// [fileUri] must not be null and is a URI that can be passed to FileSystem
+  /// to locate the corresponding file.
+  ///
+  /// [origin] is non-null if the created library is a patch to [origin].
+  ///
+  /// [packageUri] is the base uri for the package which the library belongs to.
+  /// For instance 'package:foo'.
+  ///
+  /// This is used to associate libraries in for instance the 'bin' and 'test'
+  /// folders of a package source with the package uri of the 'lib' folder.
+  ///
+  /// If the [packageUri] is `null` the package association of this library is
+  /// based on its [importUri].
+  ///
+  /// For libraries with a 'package:' [importUri], the package path must match
+  /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
+  /// [packageUri] must be `null`.
+  ///
+  /// [packageLanguageVersion] is the language version defined by the package
+  /// which the library belongs to, or the current sdk version if the library
+  /// doesn't belong to a package.
+  SourceLibraryBuilder createLibraryBuilder(
+      Uri uri,
+      Uri fileUri,
+      Uri? packageUri,
+      LanguageVersion packageLanguageVersion,
+      SourceLibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner) {
+    return new SourceLibraryBuilder(
+        uri, fileUri, packageUri, packageLanguageVersion, this, origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
   }
 
-  Ticker get ticker => target.ticker;
+  SourceLibraryBuilder _createSourceLibraryBuilder(
+      Uri uri,
+      Uri? fileUri,
+      SourceLibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner) {
+    if (fileUri != null &&
+        (fileUri.scheme == "dart" ||
+            fileUri.scheme == "package" ||
+            fileUri.scheme == "dart-ext")) {
+      fileUri = null;
+    }
+    package_config.Package? packageForLanguageVersion;
+    if (fileUri == null) {
+      switch (uri.scheme) {
+        case "package":
+        case "dart":
+          fileUri = target.translateUri(uri) ??
+              new Uri(
+                  scheme: untranslatableUriScheme,
+                  path: Uri.encodeComponent("$uri"));
+          if (uri.scheme == "package") {
+            packageForLanguageVersion = target.uriTranslator.getPackage(uri);
+          } else {
+            packageForLanguageVersion =
+                target.uriTranslator.packages.packageOf(fileUri);
+          }
+          break;
+
+        default:
+          fileUri = uri;
+          packageForLanguageVersion =
+              target.uriTranslator.packages.packageOf(fileUri);
+          break;
+      }
+    } else {
+      packageForLanguageVersion =
+          target.uriTranslator.packages.packageOf(fileUri);
+    }
+    LanguageVersion? packageLanguageVersion;
+    Uri? packageUri;
+    Message? packageLanguageVersionProblem;
+    if (packageForLanguageVersion != null) {
+      Uri importUri = origin?.importUri ?? uri;
+      if (importUri.scheme != 'dart' &&
+          importUri.scheme != 'package' &&
+          // ignore: unnecessary_null_comparison
+          packageForLanguageVersion.name != null) {
+        packageUri =
+            new Uri(scheme: 'package', path: packageForLanguageVersion.name);
+      }
+      if (packageForLanguageVersion.languageVersion != null) {
+        if (packageForLanguageVersion.languageVersion
+            is package_config.InvalidLanguageVersion) {
+          packageLanguageVersionProblem =
+              messageLanguageVersionInvalidInDotPackages;
+          packageLanguageVersion = new InvalidLanguageVersion(
+              fileUri, 0, noLength, target.currentSdkVersion, false);
+        } else {
+          Version version = new Version(
+              packageForLanguageVersion.languageVersion!.major,
+              packageForLanguageVersion.languageVersion!.minor);
+          if (version > target.currentSdkVersion) {
+            packageLanguageVersionProblem =
+                templateLanguageVersionTooHigh.withArguments(
+                    target.currentSdkVersion.major,
+                    target.currentSdkVersion.minor);
+            packageLanguageVersion = new InvalidLanguageVersion(
+                fileUri, 0, noLength, target.currentSdkVersion, false);
+          } else {
+            packageLanguageVersion = new ImplicitLanguageVersion(version);
+          }
+        }
+      }
+    }
+    packageLanguageVersion ??=
+        new ImplicitLanguageVersion(target.currentSdkVersion);
+
+    SourceLibraryBuilder libraryBuilder = createLibraryBuilder(
+        uri,
+        fileUri,
+        packageUri,
+        packageLanguageVersion,
+        origin,
+        referencesFrom,
+        referenceIsPartOwner);
+    if (packageLanguageVersionProblem != null) {
+      libraryBuilder.addPostponedProblem(
+          packageLanguageVersionProblem, 0, noLength, libraryBuilder.fileUri);
+    }
+
+    // Add any additional logic after this block. Setting the
+    // firstSourceUri and first library should be done as early as
+    // possible.
+    firstSourceUri ??= uri;
+    first ??= libraryBuilder;
+
+    _checkForDartCore(uri, libraryBuilder);
+
+    Uri libraryUri = origin?.importUri ?? uri;
+    if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
+      libraryBuilder.mayImplementRestrictedTypes = true;
+    }
+    if (uri.scheme == "dart") {
+      target.readPatchFiles(libraryBuilder);
+    }
+    _unparsedLibraries.addLast(libraryBuilder);
+
+    return libraryBuilder;
+  }
+
+  DillLibraryBuilder? _lookupDillLibraryBuilder(Uri uri) {
+    DillLibraryBuilder? libraryBuilder =
+        target.dillTarget.loader.lookupLibraryBuilder(uri);
+    if (libraryBuilder != null) {
+      _checkDillLibraryBuilderNnbdMode(libraryBuilder);
+      _checkForDartCore(uri, libraryBuilder);
+    }
+    return libraryBuilder;
+  }
+
+  void _checkDillLibraryBuilderNnbdMode(DillLibraryBuilder libraryBuilder) {
+    if (!libraryBuilder.isNonNullableByDefault &&
+        (nnbdMode == NnbdMode.Strong || nnbdMode == NnbdMode.Agnostic)) {
+      registerStrongOptOutLibrary(libraryBuilder);
+    } else {
+      NonNullableByDefaultCompiledMode libraryMode =
+          libraryBuilder.library.nonNullableByDefaultCompiledMode;
+      if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
+        registerNnbdMismatchLibrary(
+            libraryBuilder, messageInvalidNnbdDillLibrary);
+      } else {
+        switch (nnbdMode) {
+          case NnbdMode.Weak:
+            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+              registerNnbdMismatchLibrary(
+                  libraryBuilder, messageWeakWithStrongDillLibrary);
+            }
+            break;
+          case NnbdMode.Strong:
+            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+              registerNnbdMismatchLibrary(
+                  libraryBuilder, messageStrongWithWeakDillLibrary);
+            }
+            break;
+          case NnbdMode.Agnostic:
+            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
+              if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
+                registerNnbdMismatchLibrary(
+                    libraryBuilder, messageAgnosticWithStrongDillLibrary);
+              } else {
+                registerNnbdMismatchLibrary(
+                    libraryBuilder, messageAgnosticWithWeakDillLibrary);
+              }
+            }
+            break;
+        }
+      }
+    }
+  }
+
+  void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
+    if (uri.scheme == "dart") {
+      if (uri.path == "core") {
+        _coreLibrary = libraryBuilder;
+      } else if (uri.path == "typed_data") {
+        typedDataLibrary = libraryBuilder;
+      }
+    }
+    // TODO(johnniwinther): If we save the created library in [_builders]
+    // here, i.e. before calling `target.loadExtraRequiredLibraries` below,
+    // the order of the libraries change, making `dart:core` come before the
+    // required arguments. Currently [DillLoader.appendLibrary] one works
+    // when this is not the case.
+    if (_coreLibrary == libraryBuilder) {
+      target.loadExtraRequiredLibraries(this);
+    }
+  }
 
   /// Look up a library builder by the [uri], or if such doesn't exist, create
   /// one. The canonical URI of the library is [uri], and its actual location is
@@ -254,135 +470,28 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner}) {
-    LibraryBuilder builder = _builders.putIfAbsent(uri, () {
-      if (fileUri != null &&
-          (fileUri!.scheme == "dart" ||
-              fileUri!.scheme == "package" ||
-              fileUri!.scheme == "dart-ext")) {
-        fileUri = null;
+    LibraryBuilder? libraryBuilder = _builders[uri];
+    if (libraryBuilder == null) {
+      if (target.dillTarget.isLoaded) {
+        libraryBuilder = _lookupDillLibraryBuilder(uri);
       }
-      package_config.Package? packageForLanguageVersion;
-      if (fileUri == null) {
-        switch (uri.scheme) {
-          case "package":
-          case "dart":
-            fileUri = target.translateUri(uri) ??
-                new Uri(
-                    scheme: untranslatableUriScheme,
-                    path: Uri.encodeComponent("$uri"));
-            if (uri.scheme == "package") {
-              packageForLanguageVersion = target.uriTranslator.getPackage(uri);
-            } else {
-              packageForLanguageVersion =
-                  target.uriTranslator.packages.packageOf(fileUri!);
-            }
-            break;
-
-          default:
-            fileUri = uri;
-            packageForLanguageVersion =
-                target.uriTranslator.packages.packageOf(fileUri!);
-            break;
-        }
-      } else {
-        packageForLanguageVersion =
-            target.uriTranslator.packages.packageOf(fileUri!);
-      }
-      LanguageVersion? packageLanguageVersion;
-      Uri? packageUri;
-      Message? packageLanguageVersionProblem;
-      if (packageForLanguageVersion != null) {
-        Uri importUri = origin?.importUri ?? uri;
-        if (importUri.scheme != 'dart' &&
-            importUri.scheme != 'package' &&
-            // ignore: unnecessary_null_comparison
-            packageForLanguageVersion.name != null) {
-          packageUri =
-              new Uri(scheme: 'package', path: packageForLanguageVersion.name);
-        }
-        if (packageForLanguageVersion.languageVersion != null) {
-          if (packageForLanguageVersion.languageVersion
-              is package_config.InvalidLanguageVersion) {
-            packageLanguageVersionProblem =
-                messageLanguageVersionInvalidInDotPackages;
-            packageLanguageVersion = new InvalidLanguageVersion(
-                fileUri!, 0, noLength, target.currentSdkVersion, false);
-          } else {
-            Version version = new Version(
-                packageForLanguageVersion.languageVersion!.major,
-                packageForLanguageVersion.languageVersion!.minor);
-            if (version > target.currentSdkVersion) {
-              packageLanguageVersionProblem =
-                  templateLanguageVersionTooHigh.withArguments(
-                      target.currentSdkVersion.major,
-                      target.currentSdkVersion.minor);
-              packageLanguageVersion = new InvalidLanguageVersion(
-                  fileUri!, 0, noLength, target.currentSdkVersion, false);
-            } else {
-              packageLanguageVersion = new ImplicitLanguageVersion(version);
-            }
-          }
-        }
-      }
-      packageLanguageVersion ??=
-          new ImplicitLanguageVersion(target.currentSdkVersion);
-
-      LibraryBuilder library = target.createLibraryBuilder(
-          uri,
-          fileUri!,
-          packageUri,
-          packageLanguageVersion,
-          origin as SourceLibraryBuilder?,
-          referencesFrom,
-          referenceIsPartOwner);
-      if (packageLanguageVersionProblem != null &&
-          library is SourceLibraryBuilder) {
-        library.addPostponedProblem(
-            packageLanguageVersionProblem, 0, noLength, library.fileUri);
+      if (libraryBuilder == null) {
+        libraryBuilder = _createSourceLibraryBuilder(
+            uri,
+            fileUri,
+            origin as SourceLibraryBuilder?,
+            referencesFrom,
+            referenceIsPartOwner);
       }
 
-      if (uri.scheme == "dart") {
-        if (uri.path == "core") {
-          _coreLibrary = library;
-        } else if (uri.path == "typed_data") {
-          typedDataLibrary = library;
-        }
-      }
-      if (library.loader != this) {
-        if (_coreLibrary == library) {
-          target.loadExtraRequiredLibraries(this);
-        }
-        // This library isn't owned by this loader, so no further processing
-        // should be attempted.
-        return library;
-      }
-
-      {
-        // Add any additional logic after this block. Setting the
-        // firstSourceUri and first library should be done as early as
-        // possible.
-        firstSourceUri ??= uri;
-        first ??= library;
-      }
-      if (_coreLibrary == library) {
-        target.loadExtraRequiredLibraries(this);
-      }
-      Uri libraryUri = origin?.importUri ?? uri;
-      if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
-        library.mayImplementRestrictedTypes = true;
-      }
-      if (uri.scheme == "dart") {
-        target.readPatchFiles(library as SourceLibraryBuilder);
-      }
-      _unparsedLibraries.addLast(library);
-      return library;
-    });
+      _builders[uri] = libraryBuilder;
+    }
     if (accessor == null) {
-      if (builder.loader == this && first != builder) {
+      if (libraryBuilder.loader == this && first != libraryBuilder) {
         unhandled("null", "accessor", charOffset, uri);
       }
     } else {
-      builder.recordAccess(charOffset, noLength, accessor.fileUri);
+      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
           !accessor.isPart &&
           !target.backendTarget
@@ -391,7 +500,7 @@ class SourceLoader extends Loader {
             noLength, accessor.fileUri);
       }
     }
-    return builder;
+    return libraryBuilder;
   }
 
   void _ensureCoreLibrary() {

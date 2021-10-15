@@ -47,6 +47,9 @@ import 'dart:collection' show Queue;
 class DillLoader extends Loader {
   SourceLoader? currentSourceLoader;
 
+  final Map<Uri, DillLibraryBuilder> _knownLibraryBuilders =
+      <Uri, DillLibraryBuilder>{};
+
   final Map<Uri, DillLibraryBuilder> _builders = <Uri, DillLibraryBuilder>{};
 
   final Queue<DillLibraryBuilder> _unparsedLibraries =
@@ -88,6 +91,16 @@ class DillLoader extends Loader {
 
   Ticker get ticker => target.ticker;
 
+  void registerKnownLibrary(Library library) {
+    _knownLibraryBuilders[library.importUri] =
+        new DillLibraryBuilder(library, this);
+  }
+
+  // TODO(johnniwinther): This is never called!?!
+  void releaseAncillaryResources() {
+    _knownLibraryBuilders.clear();
+  }
+
   /// Look up a library builder by the [uri], or if such doesn't exist, create
   /// one. The canonical URI of the library is [uri], and its actual location is
   /// [fileUri].
@@ -100,12 +113,16 @@ class DillLoader extends Loader {
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
   DillLibraryBuilder read(Uri uri, int charOffset, {LibraryBuilder? accessor}) {
-    DillLibraryBuilder builder = _builders.putIfAbsent(uri, () {
-      DillLibraryBuilder library = target.createLibraryBuilder(uri);
-      assert(library.loader == this);
+    DillLibraryBuilder? libraryBuilder = _builders[uri];
+    if (libraryBuilder == null) {
+      libraryBuilder = _knownLibraryBuilders.remove(uri);
+      // ignore: unnecessary_null_comparison
+      assert(libraryBuilder != null, "No library found for $uri.");
+      _builders[uri] = libraryBuilder!;
+      assert(libraryBuilder.loader == this);
       if (uri.scheme == "dart") {
         if (uri.path == "core") {
-          _coreLibrary = library;
+          _coreLibrary = libraryBuilder;
         }
       }
       {
@@ -113,19 +130,18 @@ class DillLoader extends Loader {
         // firstSourceUri and first library should be done as early as
         // possible.
         firstSourceUri ??= uri;
-        first ??= library;
+        first ??= libraryBuilder;
       }
-      if (_coreLibrary == library) {
+      if (_coreLibrary == libraryBuilder) {
         target.loadExtraRequiredLibraries(this);
       }
       if (target.backendTarget.mayDefineRestrictedType(uri)) {
-        library.mayImplementRestrictedTypes = true;
+        libraryBuilder.mayImplementRestrictedTypes = true;
       }
-      _unparsedLibraries.addLast(library);
-      return library;
-    });
+      _unparsedLibraries.addLast(libraryBuilder);
+    }
     if (accessor != null) {
-      builder.recordAccess(charOffset, noLength, accessor.fileUri);
+      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
           !accessor.isPart &&
           !target.backendTarget
@@ -134,7 +150,7 @@ class DillLoader extends Loader {
             noLength, accessor.fileUri);
       }
     }
-    return builder;
+    return libraryBuilder;
   }
 
   void _ensureCoreLibrary() {
@@ -259,7 +275,7 @@ severity: $severity
       Uri uri = library.importUri;
       if (filter == null || filter(library.importUri)) {
         libraries.add(library);
-        target.registerLibrary(library);
+        registerKnownLibrary(library);
         requestedLibraries.add(uri);
         requestedLibrariesFileUri.add(library.fileUri);
       }
@@ -285,7 +301,7 @@ severity: $severity
     //
     // Create dill library builder (adds it to a map where it's fetched
     // again momentarily).
-    target.registerLibrary(library);
+    registerKnownLibrary(library);
     // Set up the dill library builder (fetch it from the map again, add it to
     // another map and setup some auxiliary things).
     return read(library.importUri, -1);

@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Library, Source;
+import 'package:kernel/ast.dart' show Source;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -20,15 +20,10 @@ import '../uri_translator.dart' show UriTranslator;
 
 import '../target_implementation.dart' show TargetImplementation;
 
-import 'dill_library_builder.dart' show DillLibraryBuilder;
-
 import 'dill_loader.dart' show DillLoader;
 
 class DillTarget extends TargetImplementation {
   final Ticker ticker;
-
-  final Map<Uri, DillLibraryBuilder> _knownLibraryBuilders =
-      <Uri, DillLibraryBuilder>{};
 
   bool isLoaded = false;
 
@@ -91,24 +86,5 @@ class DillTarget extends TargetImplementation {
           suppressFinalizationErrors: suppressFinalizationErrors);
     }
     isLoaded = true;
-  }
-
-  /// Returns the [DillLibraryBuilder] corresponding to [uri].
-  ///
-  /// The [DillLibraryBuilder] is pulled from [_knownLibraryBuilders].
-  DillLibraryBuilder createLibraryBuilder(Uri uri) {
-    DillLibraryBuilder libraryBuilder = _knownLibraryBuilders.remove(uri)!;
-    // ignore: unnecessary_null_comparison
-    assert(libraryBuilder != null, "No library found for $uri.");
-    return libraryBuilder;
-  }
-
-  void registerLibrary(Library library) {
-    _knownLibraryBuilders[library.importUri] =
-        new DillLibraryBuilder(library, loader);
-  }
-
-  void releaseAncillaryResources() {
-    _knownLibraryBuilders.clear();
   }
 }
