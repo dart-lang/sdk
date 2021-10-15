@@ -37,15 +37,18 @@ main() {
 
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
-    Uri entryPoint = Uri.parse('memory:c.dill');
+    Uri entryPoint = Uri.parse('org-dartlang-test:///c2.dart');
     CompilerImpl compiler = compilerFor(
         entryPoint: entryPoint,
-        options: ['--dill-dependencies=memory:a.dill,memory:b.dill'],
+        options: [
+          '--input-dill=memory:c.dill',
+          '--dill-dependencies=memory:a.dill,memory:b.dill'
+        ],
         memorySourceFiles: {'a.dill': aDill, 'b.dill': bDill, 'c.dill': cDill},
         diagnosticHandler: diagnostics,
         outputProvider: output);
     await compiler.setupSdk();
-    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    KernelResult result = await compiler.kernelLoader.load();
     compiler.frontendStrategy.registerLoadedLibraries(result);
 
     Expect.equals(0, diagnostics.errors.length);

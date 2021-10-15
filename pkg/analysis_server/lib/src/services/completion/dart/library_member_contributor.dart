@@ -22,13 +22,8 @@ class LibraryMemberContributor extends DartCompletionContributor {
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       var elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
-        var containingLibrary = request.libraryElement;
-        // Gracefully degrade if the library or directives could not be
-        // determined (e.g. detached part file or source change).
-        if (containingLibrary != null) {
-          var imports = containingLibrary.imports;
-          _buildSuggestions(request, builder, elem, imports);
-        }
+        var imports = request.libraryElement.imports;
+        _buildSuggestions(request, builder, elem, imports);
       }
     }
   }

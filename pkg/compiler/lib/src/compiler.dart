@@ -218,16 +218,16 @@ abstract class Compiler {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
-  // Compiles the dart script at [uri].
+  // Compiles the dart program as specified in [options].
   //
   // The resulting future will complete with true if the compilation
   // succeeded.
-  Future<bool> run(Uri uri) => selfTask.measureSubtask("run", () {
+  Future<bool> run() => selfTask.measureSubtask("run", () {
         measurer.startWallClock();
 
-        return Future.sync(() => runInternal(uri))
+        return Future.sync(() => runInternal())
             .catchError((error, StackTrace stackTrace) =>
-                _reporter.onError(uri, error, stackTrace))
+                _reporter.onError(options.compilationTarget, error, stackTrace))
             .whenComplete(() {
           measurer.stopWallClock();
         }).then((_) {
@@ -245,10 +245,11 @@ abstract class Compiler {
     return options.readClosedWorldUri != null && options.readDataUri != null;
   }
 
-  Future runInternal(Uri uri) async {
+  Future runInternal() async {
     clearState();
-    assert(uri != null);
-    reporter.log('Compiling $uri (${options.buildId})');
+    var compilationTarget = options.compilationTarget;
+    assert(compilationTarget != null);
+    reporter.log('Compiling $compilationTarget (${options.buildId})');
 
     if (options.readProgramSplit != null) {
       var constraintParser = psc.Parser();
@@ -302,7 +303,7 @@ abstract class Compiler {
               environment, abstractValueStrategy);
       await generateJavaScriptCode(globalTypeInferenceResults);
     } else {
-      KernelResult result = await kernelLoader.load(uri);
+      KernelResult result = await kernelLoader.load();
       reporter.log("Kernel load complete");
       if (result == null) return;
       if (compilationFailed) {

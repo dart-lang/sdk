@@ -59,7 +59,7 @@ class RedirectingContributor extends DartCompletionContributor {
             parent.thisOrAncestorOfType<ClassOrMixinDeclaration>();
         var classElement = containingClass?.declaredElement;
         var libraryElement = request.libraryElement;
-        if (classElement == null || libraryElement == null) {
+        if (classElement == null) {
           return;
         }
         var typeSystem = libraryElement.typeSystem;

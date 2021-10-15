@@ -16,13 +16,6 @@ class StaticMemberContributor extends DartCompletionContributor {
   Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var library = request.libraryElement;
-    if (library == null) {
-      // Gracefully degrade if the library could not be determined, such as a
-      // detached part file or source change.
-      // TODO(brianwilkerson) Consider testing for this before invoking _any_ of
-      //  the contributors.
-      return;
-    }
     bool isVisible(Element element) => element.isAccessibleIn(library);
     var targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {

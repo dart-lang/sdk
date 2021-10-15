@@ -57,9 +57,8 @@ abstract class DartCompletionRequest extends CompletionRequest {
   bool get inConstantContext;
 
   /// Return the library element which contains the unit in which the completion
-  /// is occurring. This may return `null` if the library cannot be determined
-  /// (e.g. unlinked part file).
-  LibraryElement? get libraryElement;
+  /// is occurring.
+  LibraryElement get libraryElement;
 
   /// The source for the library containing the completion request.
   /// This may be different from the source in which the completion is requested

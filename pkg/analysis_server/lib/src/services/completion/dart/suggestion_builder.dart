@@ -214,7 +214,7 @@ class SuggestionBuilder {
   }
 
   bool get _isNonNullableByDefault =>
-      request.libraryElement?.isNonNullableByDefault ?? false;
+      request.libraryElement.isNonNullableByDefault;
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
@@ -1135,7 +1135,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 
@@ -1153,7 +1153,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 

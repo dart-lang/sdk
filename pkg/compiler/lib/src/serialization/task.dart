@@ -156,9 +156,9 @@ class SerializationTask extends CompilerTask {
 
   Future<ir.Component> deserializeComponent() async {
     return measureIoSubtask('deserialize dill', () async {
-      _reporter.log('Reading dill from ${_options.entryPoint}');
+      _reporter.log('Reading dill from ${_options.inputDillUri}');
       api.Input<List<int>> dillInput = await _provider
-          .readFromUri(_options.entryPoint, inputKind: api.InputKind.binary);
+          .readFromUri(_options.inputDillUri, inputKind: api.InputKind.binary);
       ir.Component component = ir.Component();
       // Not using growable lists saves memory.
       ir.BinaryBuilder(dillInput.data,
@@ -177,8 +177,9 @@ class SerializationTask extends CompilerTask {
       var dillMode = isStrongDill ? 'sound' : 'unsound';
       var option =
           isStrongDill ? Flags.noSoundNullSafety : Flags.soundNullSafety;
-      throw ArgumentError("${_options.entryPoint} was compiled with $dillMode "
-          "null safety and is incompatible with the '$option' option");
+      throw ArgumentError("${_options.inputDillUri} was compiled with "
+          "$dillMode null safety and is incompatible with the '$option' "
+          "option");
     }
 
     _options.nullSafetyMode =

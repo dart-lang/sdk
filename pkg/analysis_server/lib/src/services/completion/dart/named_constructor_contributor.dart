@@ -18,9 +18,6 @@ class NamedConstructorContributor extends DartCompletionContributor {
     var node = request.target.containingNode;
     if (node is ConstructorName) {
       var libraryElement = request.libraryElement;
-      if (libraryElement == null) {
-        return;
-      }
       var namedType = node.type2;
       var type = namedType.type;
       if (type != null) {

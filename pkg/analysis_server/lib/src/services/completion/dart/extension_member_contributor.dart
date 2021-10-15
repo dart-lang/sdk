@@ -20,12 +20,6 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var containingLibrary = request.libraryElement;
-    // Gracefully degrade if the library could not be determined, such as with a
-    // detached part file or source change.
-    if (containingLibrary == null) {
-      return;
-    }
-
     memberBuilder = MemberSuggestionBuilder(request, builder);
 
     var defaultKind = request.target.isFunctionalArgument()
