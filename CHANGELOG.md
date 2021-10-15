@@ -421,12 +421,6 @@
 - Add `RawSocket.sendMessage`, `RawSocket.receiveMessage` that allow passing of
   file handle references via Unix domain sockets.
 
-#### `dart:js_util`
-
-- The `js_util` methods `getProperty`, `setProperty`, `callMethod`,
-  `callConstructor`, and `newObject` now support a generic type argument
-  to specify the return type.
-
 ### Tools
 
 #### Dart command line
