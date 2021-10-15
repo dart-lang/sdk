@@ -4889,7 +4889,9 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
 #else
   Snapshot::Kind kind = Snapshot::kFullJIT;
 #endif
-  jsobj.AddProperty("_features", Dart::FeaturesString(nullptr, true, kind));
+  char* features_string = Dart::FeaturesString(nullptr, true, kind);
+  jsobj.AddProperty("_features", features_string);
+  free(features_string);
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(

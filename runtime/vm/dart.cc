@@ -1064,9 +1064,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   return Error::null();
 }
 
-const char* Dart::FeaturesString(IsolateGroup* isolate_group,
-                                 bool is_vm_isolate,
-                                 Snapshot::Kind kind) {
+char* Dart::FeaturesString(IsolateGroup* isolate_group,
+                           bool is_vm_isolate,
+                           Snapshot::Kind kind) {
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
