@@ -42,10 +42,10 @@ typedef _Hasher<K> = int Function(K object);
 /// hashMap.forEach((key, value) {
 ///   print('key: $key ' ' value: $value');
 /// });
-/// // Check is key defined on map
+/// // Check if key defined on map
 /// print(hashMap.containsKey(1)); // true
 /// print(hashMap.containsKey(3)); // false
-/// // Check is value defined
+/// // Check if value defined on map
 /// print(hashMap.containsValue('b')); // false
 /// print(hashMap.containsValue('bb')); // true
 /// // Remove one item using key value
@@ -53,7 +53,7 @@ typedef _Hasher<K> = int Function(K object);
 /// // Remove all items with provided statement
 /// hashMap.removeWhere((key, value) => key == 2); // {10: A, 20: B, 30: C}
 /// hashMap.removeWhere((key, value) => value == 'B'); // {10: A, 30: C}
-/// // Updating existing item on map
+/// // Update existing key value on map
 /// final retVal1 = hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'D');
 /// print(hashMap); // {10: ABC, 30: C}
 /// // Update / insert value to map if key not exists
