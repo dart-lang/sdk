@@ -30,7 +30,7 @@ const int _CR = 13;
 ///   print('$i: ${sampleTextLines[i]}');
 /// }
 /// // 0: Dart is:
-/// // 1:  object-oriented
+/// // 1:  an object-oriented
 /// // 2:  class-based
 /// // 3:  garbage-collected
 /// // 4:  language with C-style syntax
