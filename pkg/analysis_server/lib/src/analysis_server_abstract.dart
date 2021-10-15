@@ -418,7 +418,6 @@ abstract class AbstractAnalysisServer {
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((e, st) {
       instrumentationService.logException(e, st);
-      // ignore: invalid_return_type_for_catch_error
       return null;
     });
   }
