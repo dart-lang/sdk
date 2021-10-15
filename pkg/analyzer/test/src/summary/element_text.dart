@@ -786,7 +786,6 @@ class _ElementWriter {
       // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
       // TODO(scheglov) Remove it when we stop providing it everywhere.
       if (aliasedType is FunctionType) {
-        // ignore: deprecated_member_use_from_same_package
         expect(aliasedType.element, isNull);
       }
 
