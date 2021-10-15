@@ -54,10 +54,10 @@ typedef _Hasher<K> = int Function(K object);
 /// hashMap.removeWhere((key, value) => key == 2); // {10: A, 20: B, 30: C}
 /// hashMap.removeWhere((key, value) => value == 'B'); // {10: A, 30: C}
 /// // Update existing key value on map
-/// final retVal1 = hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'D');
+/// hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'D');
 /// print(hashMap); // {10: ABC, 30: C}
 /// // Update / insert value to map if key not exists
-/// final retVal2 = hashMap.update(4, (v) => 'abc', ifAbsent: () => 'D');
+/// hashMap.update(4, (v) => 'abc', ifAbsent: () => 'D');
 /// print(hashMap); // {10: ABC, 4: D, 30: C}
 /// // Update all items
 /// hashMap.updateAll((int key, String value) => 'E');
