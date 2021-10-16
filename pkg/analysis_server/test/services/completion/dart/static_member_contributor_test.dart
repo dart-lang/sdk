@@ -170,8 +170,8 @@ main() {
 ''');
     await computeSuggestions();
 
-    assertSuggestConstructor('foo', elementName: 'foo');
-    assertSuggestConstructor('bar', elementName: 'bar');
+    assertSuggestConstructor('foo', elementName: 'A.foo');
+    assertSuggestConstructor('bar', elementName: 'A.bar');
   }
 
   Future<void> test_keyword() async {
@@ -399,7 +399,7 @@ void f() {
     assertSuggestSetter('publicSetter');
     assertSuggestConstructor(
       'publicConstructor',
-      elementName: 'publicConstructor',
+      elementName: 'A.publicConstructor',
     );
   }
 

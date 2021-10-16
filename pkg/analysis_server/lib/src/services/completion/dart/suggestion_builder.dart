@@ -365,7 +365,7 @@ class SuggestionBuilder {
       return;
     }
 
-    var completion = constructor.displayName;
+    var completion = constructor.name;
     if (!hasClassName && className.isNotEmpty) {
       if (completion.isEmpty) {
         completion = className;

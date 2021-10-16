@@ -267,20 +267,19 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestConstructor(String name,
+  CompletionSuggestion assertSuggestConstructor(String suggestion,
       {String? elementName,
       int? elemOffset,
       String defaultArgListString = _UNCHECKED,
       List<int>? defaultArgumentListTextRanges}) {
-    var cs = assertSuggest(name,
+    elementName ??= suggestion;
+    var cs = assertSuggest(suggestion,
         elemKind: ElementKind.CONSTRUCTOR,
         elemOffset: elemOffset,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     var element = cs.element!;
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
-    var index = name.indexOf('.');
-    elementName ??= index >= 0 ? name.substring(index + 1) : '';
     expect(element.name, elementName);
     return cs;
   }
