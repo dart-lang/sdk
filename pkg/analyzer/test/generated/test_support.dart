@@ -188,8 +188,16 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(', ');
         buffer.write(expected.length);
         if (expected.message != null) {
-          buffer.write(', ');
-          buffer.write(expected.message);
+          buffer.write(', message: ');
+          buffer.write(json.encode(expected.message));
+        }
+        if (expected.messageContains != null) {
+          buffer.write(', messageContains: ');
+          buffer.write(json.encode(expected.messageContains.toString()));
+        }
+        if (expected.correctionContains != null) {
+          buffer.write(', correctionContains: ');
+          buffer.write(json.encode(expected.correctionContains.toString()));
         }
         buffer.writeln(']');
       }
