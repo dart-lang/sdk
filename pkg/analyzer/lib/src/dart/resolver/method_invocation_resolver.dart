@@ -219,19 +219,21 @@ class MethodInvocationResolver {
     bool nullReceiver,
   ) {
     var enclosingElement = element.enclosingElement;
-    if (_resolver.enclosingExtension != null) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-        nameNode,
-        [enclosingElement.displayName],
-      );
-    } else if (nullReceiver) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-        nameNode,
-        [enclosingElement.displayName],
-      );
+    if (nullReceiver) {
+      if (_resolver.enclosingExtension != null) {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+          nameNode,
+          [enclosingElement.displayName],
+        );
+      } else {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          nameNode,
+          [enclosingElement.displayName],
+        );
+      }
     } else {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
