@@ -16,7 +16,9 @@ import 'usage_exception.dart';
 
 /// Converts a dump-info file emitted by dart2js in binary format to JSON.
 class ToJsonCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "to_json";
+  @override
   final String description = "Convert any info file to JSON format.";
 
   ToJsonCommand() {
@@ -32,8 +34,9 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
             'available in the input file.');
   }
 
+  @override
   void run() async {
-    if (argResults.rest.length < 1) {
+    if (argResults.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
     }
 
@@ -45,10 +48,10 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
       injectText(info);
     }
 
-    var json = new AllInfoJsonCodec(isBackwardCompatible: isBackwardCompatible)
+    var json = AllInfoJsonCodec(isBackwardCompatible: isBackwardCompatible)
         .encode(info);
     String outputFilename = argResults['out'] ?? '$filename.json';
-    new File(outputFilename)
+    File(outputFilename)
         .writeAsStringSync(const JsonEncoder.withIndent("  ").convert(json));
   }
 }

@@ -16,12 +16,15 @@ import 'usage_exception.dart';
 
 /// This tool gives a breakdown of code size by deferred part in the program.
 class DeferredLibrarySize extends Command<void> with PrintUsageException {
+  @override
   final String name = "deferred_size";
+  @override
   final String description = "Show breakdown of codesize by deferred part.";
 
+  @override
   void run() async {
     var args = argResults.rest;
-    if (args.length < 1) {
+    if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
     // TODO(het): Would be faster to only parse the 'outputUnits' part
@@ -37,6 +40,7 @@ class ImportSize {
 
   const ImportSize(this.import, this.size);
 
+  @override
   String toString() {
     return '$import: $size';
   }
@@ -45,14 +49,14 @@ class ImportSize {
 void printSizes(Map<String, int> sizeByImport, int programSize) {
   var importSizes = <ImportSize>[];
   sizeByImport.forEach((import, size) {
-    importSizes.add(new ImportSize(import, size));
+    importSizes.add(ImportSize(import, size));
   });
   // Sort by size, largest first.
   importSizes.sort((a, b) => b.size - a.size);
   int longest = importSizes.fold('Percent of code deferred'.length,
       (longest, importSize) => max(longest, importSize.import.length));
 
-  _printRow(label, data, {int width: 15}) {
+  _printRow(label, data, {int width = 15}) {
     print('${label.toString().padRight(longest + 1)}'
         '${data.toString().padLeft(width)}');
   }

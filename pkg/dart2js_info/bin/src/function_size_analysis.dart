@@ -8,7 +8,6 @@ library compiler.tool.function_size_analysis;
 import 'dart:math' as math;
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/io.dart';
@@ -18,12 +17,15 @@ import 'usage_exception.dart';
 
 /// Command presenting how much each function contributes to the total code.
 class FunctionSizeCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "function_size";
+  @override
   final String description = "See breakdown of code size by function.";
 
+  @override
   void run() async {
     var args = argResults.rest;
-    if (args.length < 1) {
+    if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
     var info = await infoFromFile(args.first);
@@ -32,12 +34,13 @@ class FunctionSizeCommand extends Command<void> with PrintUsageException {
 }
 
 showCodeDistribution(AllInfo info,
-    {bool filter(Info info), bool showLibrarySizes: false}) {
+    {bool Function(Info info) filter, bool showLibrarySizes = false}) {
   var realTotal = info.program.size;
-  if (filter == null) filter = (i) => true;
-  var reported = <BasicInfo>[]
-    ..addAll(info.functions.where(filter))
-    ..addAll(info.fields.where(filter));
+  filter ??= (i) => true;
+  var reported = <BasicInfo>[
+    ...info.functions.where(filter),
+    ...info.fields.where(filter)
+  ];
 
   // Compute a graph from the dependencies in [info].
   Graph<Info> graph = graphFromInfo(info);
@@ -51,7 +54,7 @@ showCodeDistribution(AllInfo info,
   var minS = totalCount;
   var nodeData = {};
   for (var scc in components) {
-    var sccData = new _SccData();
+    var sccData = _SccData();
     maxS = math.max(maxS, scc.length);
     minS = math.min(minS, scc.length);
     for (var f in scc) {
@@ -85,7 +88,9 @@ showCodeDistribution(AllInfo info,
   }
 
   helper(mainMethod);
-  reported.forEach((n) => dominatedSize.putIfAbsent(n, () => n.size));
+  for (var n in reported) {
+    dominatedSize.putIfAbsent(n, () => n.size);
+  }
   reported.sort((a, b) =>
       (dominatedSize[b] + nodeData[b].maxSize) -
       (dominatedSize[a] + nodeData[a].maxSize));
@@ -94,7 +99,7 @@ showCodeDistribution(AllInfo info,
     print(' --- Results per library ---');
     var totals = <LibraryInfo, int>{};
     var longest = 0;
-    reported.forEach((info) {
+    for (var info in reported) {
       var size = info.size;
       while (info != null && info is! LibraryInfo) {
         info = info.parent;
@@ -104,31 +109,31 @@ showCodeDistribution(AllInfo info,
       totals.putIfAbsent(lib, () => 0);
       totals[lib] += size;
       longest = math.max(longest, '${lib.uri}'.length);
-    });
+    }
 
     _showLibHeader(longest + 1);
     var reportedByLibrary = totals.keys.toList();
     reportedByLibrary.sort((a, b) => totals[b] - totals[a]);
-    reportedByLibrary.forEach((info) {
+    for (var info in reportedByLibrary) {
       _showLib('${info.uri}', totals[info], realTotal, longest + 1);
-    });
+    }
   }
 
   print('\n --- Results per element (field or function) ---');
   _showElementHeader();
-  reported.forEach((info) {
+  for (var info in reported) {
     var size = info.size;
     var min = dominatedSize[info];
     var max = nodeData[info].maxSize;
     _showElement(
         longName(info, useLibraryUri: true), size, min, max, realTotal);
-  });
+  }
 }
 
 /// Data associated with an SCC. Used to compute the reachable code size.
 class _SccData {
   int size = 0;
-  Set deps = new Set();
+  Set deps = {};
   _SccData();
 
   int _maxSize;
@@ -140,7 +145,7 @@ class _SccData {
   void compute() {
     if (_maxSize != null) return;
     var max = 0;
-    var seen = new Set();
+    var seen = <dynamic>{};
     helper(n) {
       if (!seen.add(n)) return;
       max += n.size;

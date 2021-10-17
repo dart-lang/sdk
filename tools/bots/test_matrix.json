@@ -3248,6 +3248,15 @@
           ]
         },
         {
+          "name": "analyze pkg/dart2js_info",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/dart2js_info"
+          ]
+        },
+        {
           "name": "analyze pkg/dart2js_tools",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
