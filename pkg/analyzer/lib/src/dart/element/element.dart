@@ -1451,12 +1451,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   String get displayName {
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      return linkedData.reference.name;
+    var className = enclosingElement.name;
+    var name = this.name;
+    if (name.isNotEmpty) {
+      return '$className.$name';
+    } else {
+      return className;
     }
-
-    return super.displayName;
   }
 
   @override

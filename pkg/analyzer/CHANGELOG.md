@@ -1,3 +1,6 @@
+## 2.7.0-dev
+* Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.
+
 ## 2.6.0
 * Deprecated `AnalysisResult.state`, check for specific valid or invalid subtypes.
 * Deprecated `ResultState`.

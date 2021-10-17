@@ -98,6 +98,25 @@ f(C c) {
     );
   }
 
+  test_extension_referring_to_class_member() async {
+    await assertErrorsInCode('''
+class C {
+  static void m() {}
+}
+extension on int {
+  foo(C c) {
+    c.m(); // ERROR
+  }
+}
+test(int i) {
+  i.foo(C());
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 71, 1,
+          correctionContains: "class 'C'"),
+    ]);
+  }
+
   test_extension_setter() async {
     await assertErrorsInCode('''
 class C {}

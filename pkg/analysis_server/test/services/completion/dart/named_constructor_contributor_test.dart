@@ -19,12 +19,17 @@ void main() {
 @reflectiveTest
 class NamedConstructorContributorTest extends DartCompletionContributorTest {
   CompletionSuggestion assertSuggestNamedConstructor(
-      String name, String returnType,
-      [CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    var cs = assertSuggest(name, csKind: kind);
+    String completion,
+    String returnType, {
+    required String elementName,
+  }) {
+    var cs = assertSuggest(
+      completion,
+      csKind: CompletionSuggestionKind.INVOCATION,
+    );
     var element = cs.element!;
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
-    expect(element.name, equals(name));
+    expect(element.name, equals(elementName));
     var param = element.parameters!;
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
@@ -54,7 +59,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestNamedConstructor('c', 'X');
+    assertSuggestNamedConstructor('c', 'X', elementName: 'X.c');
     assertNotSuggested('F1');
     assertNotSuggested('T1');
     assertNotSuggested('_d');
@@ -79,7 +84,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestNamedConstructor('c', 'X');
+    assertSuggestNamedConstructor('c', 'X', elementName: 'X.c');
     assertNotSuggested('F1');
     assertNotSuggested('T1');
     assertNotSuggested('_d');
@@ -103,7 +108,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestNamedConstructor('c', 'X');
+    assertSuggestNamedConstructor('c', 'X', elementName: 'X.c');
     assertNotSuggested('F1');
     assertNotSuggested('T1');
     assertNotSuggested('_d');
@@ -119,7 +124,11 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 2);
     expect(replacementLength, 13);
-    assertSuggestNamedConstructor('fromCharCodes', 'String');
+    assertSuggestNamedConstructor(
+      'fromCharCodes',
+      'String',
+      elementName: 'String.fromCharCodes',
+    );
     assertNotSuggested('isEmpty');
     assertNotSuggested('isNotEmpty');
     assertNotSuggested('length');
@@ -138,8 +147,8 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestNamedConstructor('c', 'X');
-    assertSuggestNamedConstructor('_d', 'X');
+    assertSuggestNamedConstructor('c', 'X', elementName: 'X.c');
+    assertSuggestNamedConstructor('_d', 'X', elementName: 'X._d');
     assertNotSuggested('F1');
     assertNotSuggested('T1');
     assertNotSuggested('z');
@@ -157,8 +166,8 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestNamedConstructor('c', 'X');
-    assertSuggestNamedConstructor('_d', 'X');
+    assertSuggestNamedConstructor('c', 'X', elementName: 'X.c');
+    assertSuggestNamedConstructor('_d', 'X', elementName: 'X._d');
     assertNotSuggested('F1');
     assertNotSuggested('T1');
     assertNotSuggested('z');

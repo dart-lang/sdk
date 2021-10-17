@@ -238,7 +238,7 @@ class A {
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.CONSTRUCTOR);
-    expect(element.name, 'myConstructor');
+    expect(element.name, 'A.myConstructor');
     expect(element.typeParameters, isNull);
     {
       var location = element.location!;

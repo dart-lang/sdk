@@ -248,18 +248,6 @@ class PropertyElementResolver {
     );
   }
 
-  void _checkExtensionOverrideStaticMember(
-    SimpleIdentifier propertyName,
-    ExecutableElement? element,
-  ) {
-    if (element != null && element.isStatic) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-        propertyName,
-      );
-    }
-  }
-
   /// If the [element] is not static, report the error on the [identifier].
   void _checkForStaticAccessToInstanceMember(
     SimpleIdentifier identifier,
@@ -272,6 +260,33 @@ class PropertyElementResolver {
       identifier,
       [identifier.name],
     );
+  }
+
+  void _checkForStaticMember(
+    Expression target,
+    SimpleIdentifier propertyName,
+    ExecutableElement? element,
+  ) {
+    if (element != null && element.isStatic) {
+      if (target is ExtensionOverride) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          propertyName,
+        );
+      } else {
+        var enclosingElement = element.enclosingElement;
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+            propertyName, [
+          propertyName,
+          element.kind.displayName,
+          enclosingElement.name ?? '<unnamed>',
+          enclosingElement is ClassElement && enclosingElement.isMixin
+              ? 'mixin'
+              : enclosingElement.kind.displayName,
+        ]);
+      }
+    }
   }
 
   DartType? _computeIndexContextType({
@@ -417,21 +432,27 @@ class PropertyElementResolver {
         result.getter,
         result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType);
 
-    if (hasRead && result.needsGetterError) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_GETTER,
-        propertyName,
-        [propertyName.name, targetType],
-      );
+    if (hasRead) {
+      _checkForStaticMember(target, propertyName, result.getter);
+      if (result.needsGetterError) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_GETTER,
+          propertyName,
+          [propertyName.name, targetType],
+        );
+      }
     }
 
-    if (hasWrite && result.needsSetterError) {
-      AssignmentVerifier(_definingLibrary, _errorReporter).verify(
-        node: propertyName,
-        requested: null,
-        recovery: result.getter,
-        receiverTypeObject: targetType,
-      );
+    if (hasWrite) {
+      _checkForStaticMember(target, propertyName, result.setter);
+      if (result.needsSetterError) {
+        AssignmentVerifier(_definingLibrary, _errorReporter).verify(
+          node: propertyName,
+          requested: null,
+          recovery: result.getter,
+          receiverTypeObject: targetType,
+        );
+      }
     }
 
     return PropertyElementResolverResult(
@@ -591,7 +612,7 @@ class PropertyElementResolver {
           [memberName, element.name],
         );
       }
-      _checkExtensionOverrideStaticMember(propertyName, readElement);
+      _checkForStaticMember(target, propertyName, readElement);
     }
 
     ExecutableElement? writeElement;
@@ -604,7 +625,7 @@ class PropertyElementResolver {
           [memberName, element.name],
         );
       }
-      _checkExtensionOverrideStaticMember(propertyName, writeElement);
+      _checkForStaticMember(target, propertyName, writeElement);
     }
 
     return PropertyElementResolverResult(
@@ -670,6 +691,7 @@ class PropertyElementResolver {
 
         if (readElement != null) {
           readElement = _resolver.toLegacyElement(readElement);
+          _checkForStaticMember(target, propertyName, readElement);
         } else {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
@@ -708,6 +730,7 @@ class PropertyElementResolver {
 
         if (writeElement != null) {
           writeElement = _resolver.toLegacyElement(writeElement);
+          _checkForStaticMember(target, propertyName, writeElement);
         } else {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.

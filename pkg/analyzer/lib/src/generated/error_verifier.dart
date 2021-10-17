@@ -2658,15 +2658,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           return;
         }
       }
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, name, [
-        name.name,
-        _getKind(element),
-        enclosingElement.name ?? '<unnamed>',
-        enclosingElement is ClassElement && enclosingElement.isMixin
-            ? 'mixin'
-            : enclosingElement.kind.displayName
-      ]);
     }
   }
 
@@ -4854,30 +4845,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return expression.propertyName.name;
     }
     return null;
-  }
-
-  /// Return a human-readable representation of the kind of the [element].
-  String _getKind(ExecutableElement element) {
-    if (element is MethodElement) {
-      return 'method';
-    } else if (element is PropertyAccessorElement) {
-      if (element.isSynthetic) {
-        PropertyInducingElement variable = element.variable;
-        if (variable is FieldElement) {
-          return 'field';
-        }
-        return 'variable';
-      } else if (element.isGetter) {
-        return 'getter';
-      } else {
-        return 'setter';
-      }
-    } else if (element is ConstructorElement) {
-      return 'constructor';
-    } else if (element is FunctionElement) {
-      return 'function';
-    }
-    return 'member';
   }
 
   /// Return the name of the library that defines given [element].
