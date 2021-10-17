@@ -60,7 +60,7 @@ main() {
 ///   C
 /// ```
 Graph<String> makeTestGraph() {
-  var graph = new EdgeListGraph<String>();
+  var graph = EdgeListGraph<String>();
   graph.addEdge('A', 'B');
   graph.addEdge('A', 'D');
   graph.addEdge('A', 'E');

@@ -7,7 +7,6 @@
 library dart2js_info.bin.debug_info;
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/io.dart';
@@ -16,7 +15,9 @@ import 'package:dart2js_info/src/util.dart';
 import 'usage_exception.dart';
 
 class DebugCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "debug";
+  @override
   final String description = "Dart2js-team diagnostics on a dump-info file.";
 
   DebugCommand() {
@@ -24,9 +25,10 @@ class DebugCommand extends Command<void> with PrintUsageException {
         help: "Show detailed data for a library with the given name");
   }
 
+  @override
   void run() async {
     var args = argResults.rest;
-    if (args.length < 1) {
+    if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
 
@@ -43,24 +45,22 @@ class DebugCommand extends Command<void> with PrintUsageException {
 /// Validates that codesize of elements adds up to total codesize.
 validateSize(AllInfo info, String debugLibName) {
   // Gather data from visiting all info elements.
-  var tracker = new _SizeTracker(debugLibName);
+  var tracker = _SizeTracker(debugLibName);
   info.accept(tracker);
 
   // Validate that listed elements include elements of each library.
-  Set<Info> listed = new Set()
-    ..addAll(info.functions)
-    ..addAll(info.fields);
+  final listed = {...info.functions, ...info.fields};
   // For our sanity we do some validation of dump-info invariants
   var diff1 = listed.difference(tracker.discovered);
   var diff2 = tracker.discovered.difference(listed);
-  if (diff1.length == 0 || diff2.length == 0) {
+  if (diff1.isEmpty || diff2.isEmpty) {
     _pass('all fields and functions are covered');
   } else {
-    if (diff1.length > 0) {
+    if (diff1.isNotEmpty) {
       _fail("some elements where listed globally that weren't part of any "
           "library (non-zero ${diff1.where((f) => f.size > 0).length})");
     }
-    if (diff2.length > 0) {
+    if (diff2.isNotEmpty) {
       _fail("some elements found in libraries weren't part of the global list"
           " (non-zero ${diff2.where((f) => f.size > 0).length})");
     }
@@ -87,7 +87,7 @@ validateSize(AllInfo info, String debugLibName) {
 
 /// Validates that every element in the model has a parent (except libraries).
 validateParents(AllInfo info) {
-  final parentlessInfos = new Set<Info>();
+  final parentlessInfos = <Info>{};
 
   failIfNoParents(List<Info> infos) {
     for (var info in infos) {
@@ -118,7 +118,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
 
   /// [FunctionInfo]s and [FieldInfo]s transitively reachable from [LibraryInfo]
   /// elements.
-  final Set<Info> discovered = new Set<Info>();
+  final Set<Info> discovered = <Info>{};
 
   /// Total number of bytes missing if you look at the reported size compared
   /// to the sum of the nested infos (e.g. if a class size is smaller than the
@@ -131,13 +131,13 @@ class _SizeTracker extends RecursiveInfoVisitor {
   final List unused = [];
 
   /// Tracks the current state of this visitor.
-  List<_State> stack = [new _State()];
+  List<_State> stack = [_State()];
 
   /// Code discovered for a [LibraryInfo], only used for debugging.
-  final StringBuffer _debugCode = new StringBuffer();
+  final StringBuffer _debugCode = StringBuffer();
   int _indent = 2;
 
-  void _push() => stack.add(new _State());
+  void _push() => stack.add(_State());
 
   void _pop(info) {
     var last = stack.removeLast();
@@ -158,6 +158,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
   }
 
   bool _debug = false;
+  @override
   visitLibrary(LibraryInfo info) {
     if (_debugLibName != null) _debug = info.name.contains(_debugLibName);
     _push();
@@ -189,7 +190,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
         _debugCode.write('...\n');
       }
 
-      print('$info ${isClosureClass} \n${info.code}');
+      print('$info $isClosureClass \n${info.code}');
       _debugCode.write(' ' * _indent);
       var endsInNewLine = code.endsWith('\n');
       if (endsInNewLine) code = code.substring(0, code.length - 1);
@@ -206,22 +207,26 @@ class _SizeTracker extends RecursiveInfoVisitor {
     stack.last._count++;
   }
 
+  @override
   visitField(FieldInfo info) {
     _handleCodeInfo(info);
     super.visitField(info);
   }
 
+  @override
   visitFunction(FunctionInfo info) {
     _handleCodeInfo(info);
     super.visitFunction(info);
   }
 
+  @override
   visitTypedef(TypedefInfo info) {
     if (_debug) print('$info');
     stack.last._totalSize += info.size;
     super.visitTypedef(info);
   }
 
+  @override
   visitClass(ClassInfo info) {
     if (_debug) {
       print('$info');
@@ -239,6 +244,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
     }
   }
 
+  @override
   visitClassType(ClassTypeInfo info) {
     if (_debug) {
       print('$info');
@@ -265,8 +271,8 @@ class _State {
 
 /// Validates that both forms of dependency information match.
 void compareGraphs(AllInfo info) {
-  var g1 = new EdgeListGraph<Info>();
-  var g2 = new EdgeListGraph<Info>();
+  var g1 = EdgeListGraph<Info>();
+  var g2 = EdgeListGraph<Info>();
   for (var f in info.functions) {
     g1.addNode(f);
     for (var g in f.uses) {
@@ -320,11 +326,9 @@ void compareGraphs(AllInfo info) {
 verifyDeps(AllInfo info) {
   var graph = graphFromInfo(info);
   var entrypoint = info.program.entrypoint;
-  var reachables = new Set.from(graph.preOrder(entrypoint));
+  var reachables = Set.from(graph.preOrder(entrypoint));
 
-  var functionsAndFields = []
-    ..addAll(info.functions)
-    ..addAll(info.fields);
+  var functionsAndFields = <BasicInfo>[...info.functions, ...info.fields];
   var unreachables =
       functionsAndFields.where((func) => !reachables.contains(func));
   if (unreachables.isNotEmpty) {

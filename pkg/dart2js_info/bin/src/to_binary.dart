@@ -15,11 +15,14 @@ import 'usage_exception.dart';
 
 /// Converts a dump-info file emitted by dart2js in JSON to binary format.
 class ToBinaryCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "to_binary";
+  @override
   final String description = "Convert any info file to binary format.";
 
+  @override
   void run() async {
-    if (argResults.rest.length < 1) {
+    if (argResults.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
       exit(1);
     }
@@ -28,7 +31,7 @@ class ToBinaryCommand extends Command<void> with PrintUsageException {
     AllInfo info = await infoFromFile(filename);
     if (argResults['inject-text']) injectText(info);
     String outputFilename = argResults['out'] ?? '$filename.data';
-    var outstream = new File(outputFilename).openWrite();
+    var outstream = File(outputFilename).openWrite();
     binary.encode(info, outstream);
     await outstream.done;
   }

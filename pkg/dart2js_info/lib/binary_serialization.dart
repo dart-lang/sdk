@@ -13,11 +13,11 @@ import 'src/binary/source.dart';
 import 'info.dart';
 
 void encode(AllInfo info, Sink<List<int>> sink) {
-  new BinaryPrinter(new BinarySink(sink)).visitAll(info);
+  BinaryPrinter(BinarySink(sink)).visitAll(info);
 }
 
 AllInfo decode(List<int> data) {
-  return new BinaryReader(new BinarySource(data)).readAll();
+  return BinaryReader(BinarySource(data)).readAll();
 }
 
 class BinaryPrinter implements InfoVisitor<void> {
@@ -38,6 +38,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     info.accept(this);
   }
 
+  @override
   void visitAll(AllInfo info) {
     sink.writeInt(info.version);
     sink.writeInt(info.minorVersion);
@@ -70,6 +71,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     sink.close();
   }
 
+  @override
   void visitProgram(ProgramInfo info) {
     visitFunction(info.entrypoint);
     sink.writeInt(info.size);
@@ -94,6 +96,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     // Note: parent-pointers are not serialized, they get deduced during deserialization.
   }
 
+  @override
   void visitLibrary(LibraryInfo library) {
     sink.writeCached(library, (LibraryInfo info) {
       sink.writeUri(info.uri);
@@ -106,6 +109,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     });
   }
 
+  @override
   void visitClass(ClassInfo cls) {
     sink.writeCached(cls, (ClassInfo info) {
       _visitBasicInfo(info);
@@ -115,12 +119,14 @@ class BinaryPrinter implements InfoVisitor<void> {
     });
   }
 
+  @override
   void visitClassType(ClassTypeInfo cls) {
     sink.writeCached(cls, (ClassTypeInfo info) {
       _visitBasicInfo(info);
     });
   }
 
+  @override
   void visitField(FieldInfo field) {
     sink.writeCached(field, (FieldInfo info) {
       _visitBasicInfo(info);
@@ -148,6 +154,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     }
   }
 
+  @override
   void visitConstant(ConstantInfo constant) {
     sink.writeCached(constant, (ConstantInfo info) {
       _visitBasicInfo(info);
@@ -170,6 +177,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     sink.writeString(info.declaredType);
   }
 
+  @override
   void visitFunction(FunctionInfo function) {
     sink.writeCached(function, (FunctionInfo info) {
       _visitBasicInfo(info);
@@ -190,6 +198,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     sink.writeStringOrNull(info.mask);
   }
 
+  @override
   void visitClosure(ClosureInfo closure) {
     sink.writeCached(closure, (ClosureInfo info) {
       _visitBasicInfo(info);
@@ -197,6 +206,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     });
   }
 
+  @override
   void visitTypedef(TypedefInfo typedef) {
     sink.writeCached(typedef, (TypedefInfo info) {
       _visitBasicInfo(info);
@@ -211,6 +221,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     }
   }
 
+  @override
   void visitOutput(OutputUnitInfo output) {
     sink.writeCached(output, (OutputUnitInfo info) {
       _visitBasicInfo(info);
@@ -229,7 +240,7 @@ class BinaryReader {
   }
 
   Duration readDuration() {
-    return new Duration(microseconds: source.readInt());
+    return Duration(microseconds: source.readInt());
   }
 
   Info readInfoWithKind() {
@@ -258,7 +269,7 @@ class BinaryReader {
   }
 
   AllInfo readAll() {
-    var info = new AllInfo();
+    var info = AllInfo();
     int version = source.readInt();
     int minorVersion = source.readInt();
     if (info.version != version || info.minorVersion != minorVersion) {
@@ -311,13 +322,13 @@ class BinaryReader {
   }
 
   ProgramInfo readProgram() {
-    var info = new ProgramInfo();
+    var info = ProgramInfo();
     info.entrypoint = readFunction();
     info.size = source.readInt();
     info.dart2jsVersion = source.readStringOrNull();
     info.compilationMoment = readDate();
     info.compilationDuration = readDuration();
-    info.toJsonDuration = new Duration(microseconds: 0);
+    info.toJsonDuration = Duration(microseconds: 0);
     info.dumpInfoDuration = readDuration();
     info.noSuchMethodEnabled = source.readBool();
     info.isRuntimeTypeUsed = source.readBool();
@@ -337,7 +348,7 @@ class BinaryReader {
   }
 
   LibraryInfo readLibrary() => source.readCached<LibraryInfo>(() {
-        LibraryInfo info = new LibraryInfo.internal();
+        LibraryInfo info = LibraryInfo.internal();
         info.uri = source.readUri();
         _readBasicInfo(info);
         info.topLevelFunctions = source.readList(readFunction);
@@ -356,7 +367,7 @@ class BinaryReader {
       });
 
   ClassInfo readClass() => source.readCached<ClassInfo>(() {
-        ClassInfo info = new ClassInfo.internal();
+        ClassInfo info = ClassInfo.internal();
         _readBasicInfo(info);
         info.isAbstract = source.readBool();
         info.fields = source.readList(readField);
@@ -375,7 +386,7 @@ class BinaryReader {
       });
 
   FieldInfo readField() => source.readCached<FieldInfo>(() {
-        FieldInfo info = new FieldInfo.internal();
+        FieldInfo info = FieldInfo.internal();
         _readBasicInfo(info);
         info.closures = source.readList(readClosure);
         info.inferredType = source.readString();
@@ -385,12 +396,14 @@ class BinaryReader {
         if (info.isConst) {
           info.initializer = _readConstantOrNull();
         }
-        info.closures.forEach((c) => c.parent = info);
+        for (var c in info.closures) {
+          c.parent = info;
+        }
         return info;
       });
 
   CodeSpan _readCodeSpan() {
-    return new CodeSpan()
+    return CodeSpan()
       ..start = source.readIntOrNull()
       ..end = source.readIntOrNull()
       ..text = source.readStringOrNull();
@@ -403,7 +416,7 @@ class BinaryReader {
   }
 
   ConstantInfo readConstant() => source.readCached<ConstantInfo>(() {
-        ConstantInfo info = new ConstantInfo.internal();
+        ConstantInfo info = ConstantInfo.internal();
         _readBasicInfo(info);
         info.code = source.readList(_readCodeSpan);
         return info;
@@ -411,7 +424,7 @@ class BinaryReader {
 
   FunctionModifiers _readFunctionModifiers() {
     int value = source.readInt();
-    return new FunctionModifiers(
+    return FunctionModifiers(
         isStatic: value & _staticMask != 0,
         isConst: value & _constMask != 0,
         isFactory: value & _factoryMask != 0,
@@ -419,12 +432,12 @@ class BinaryReader {
   }
 
   ParameterInfo _readParameterInfo() {
-    return new ParameterInfo(
+    return ParameterInfo(
         source.readString(), source.readString(), source.readString());
   }
 
   FunctionInfo readFunction() => source.readCached<FunctionInfo>(() {
-        FunctionInfo info = new FunctionInfo.internal();
+        FunctionInfo info = FunctionInfo.internal();
         _readBasicInfo(info);
         info.closures = source.readList(readClosure);
         info.modifiers = _readFunctionModifiers();
@@ -435,15 +448,17 @@ class BinaryReader {
         info.inlinedCount = source.readIntOrNull();
         info.code = source.readList(_readCodeSpan);
         info.type = source.readString();
-        info.closures.forEach((c) => c.parent = info);
+        for (var c in info.closures) {
+          c.parent = info;
+        }
         return info;
       });
 
   DependencyInfo _readDependencyInfo() =>
-      new DependencyInfo(readInfoWithKind(), source.readStringOrNull());
+      DependencyInfo(readInfoWithKind(), source.readStringOrNull());
 
   ClosureInfo readClosure() => source.readCached<ClosureInfo>(() {
-        ClosureInfo info = new ClosureInfo.internal();
+        ClosureInfo info = ClosureInfo.internal();
         _readBasicInfo(info);
         info.function = readFunction();
         info.function.parent = info;
@@ -451,7 +466,7 @@ class BinaryReader {
       });
 
   TypedefInfo readTypedef() => source.readCached<TypedefInfo>(() {
-        TypedefInfo info = new TypedefInfo.internal();
+        TypedefInfo info = TypedefInfo.internal();
         _readBasicInfo(info);
         info.type = source.readString();
         return info;
@@ -464,7 +479,7 @@ class BinaryReader {
   }
 
   OutputUnitInfo readOutput() => source.readCached<OutputUnitInfo>(() {
-        OutputUnitInfo info = new OutputUnitInfo.internal();
+        OutputUnitInfo info = OutputUnitInfo.internal();
         _readBasicInfo(info);
         info.filename = source.readStringOrNull();
         info.imports = source.readList(source.readString);

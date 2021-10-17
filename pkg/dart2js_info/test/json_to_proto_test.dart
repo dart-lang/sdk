@@ -13,8 +13,7 @@ import 'package:test/test.dart';
 main() {
   group('json to proto conversion', () {
     test('hello_world', () {
-      var uri = Platform.script.resolve(
-          'hello_world/hello_world.js.info.json');
+      var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');
       final helloWorld = File.fromUri(uri);
       final json = jsonDecode(helloWorld.readAsStringSync());
       final decoded = AllInfoJsonCodec().decode(json);
@@ -33,8 +32,7 @@ main() {
     });
 
     test('has proper id format', () {
-      var uri = Platform.script.resolve(
-          'hello_world/hello_world.js.info.json');
+      var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');
       final helloWorld = File.fromUri(uri);
       final json = jsonDecode(helloWorld.readAsStringSync());
       final decoded = AllInfoJsonCodec().decode(json);
@@ -54,8 +52,8 @@ main() {
           expect(
               value.serializedId, startsWith(expectedPrefixes[InfoKind.clazz]));
         } else if (value.hasClassTypeInfo()) {
-          expect(
-              value.serializedId, startsWith(expectedPrefixes[InfoKind.classType]));
+          expect(value.serializedId,
+              startsWith(expectedPrefixes[InfoKind.classType]));
         } else if (value.hasFunctionInfo()) {
           expect(value.serializedId,
               startsWith(expectedPrefixes[InfoKind.function]));
