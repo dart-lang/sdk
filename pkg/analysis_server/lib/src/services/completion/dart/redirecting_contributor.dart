@@ -11,9 +11,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// expressions of the form `this.^` or `super.^` in a constructor's initializer
 /// list or after an `=` in a factory constructor.
 class RedirectingContributor extends DartCompletionContributor {
+  RedirectingContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var entity = request.target.entity;
     if (entity is SimpleIdentifier) {
       var parent = entity.parent;

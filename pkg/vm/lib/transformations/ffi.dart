@@ -39,6 +39,7 @@ enum NativeType {
   kOpaque,
   kStruct,
   kHandle,
+  kBool,
 }
 
 const Set<NativeType> nativeIntTypes = <NativeType>{
@@ -75,6 +76,7 @@ const Map<NativeType, String> nativeTypeClassNames = <NativeType, String>{
   NativeType.kOpaque: 'Opaque',
   NativeType.kStruct: 'Struct',
   NativeType.kHandle: 'Handle',
+  NativeType.kBool: 'Bool',
 };
 
 const int UNKNOWN = 0;
@@ -102,6 +104,7 @@ const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
   NativeType.kOpaque: UNKNOWN,
   NativeType.kStruct: UNKNOWN,
   NativeType.kHandle: WORD_SIZE,
+  NativeType.kBool: 1,
 };
 
 /// The struct layout in various ABIs.
@@ -178,6 +181,7 @@ const nonSizeAlignment = <Abi, Map<NativeType, int>>{
 
 /// Load, store, and elementAt are rewired to their static type for these types.
 const List<NativeType> optimizedTypes = [
+  NativeType.kBool,
   NativeType.kInt8,
   NativeType.kInt16,
   NativeType.kInt32,
@@ -210,6 +214,7 @@ class FfiTransformer extends Transformer {
   final Class objectClass;
   final Class intClass;
   final Class doubleClass;
+  final Class boolClass;
   final Class listClass;
   final Class typeClass;
   final Procedure unsafeCastMethod;
@@ -319,6 +324,7 @@ class FfiTransformer extends Transformer {
         objectClass = coreTypes.objectClass,
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
+        boolClass = coreTypes.boolClass,
         listClass = coreTypes.listClass,
         typeClass = coreTypes.typeClass,
         unsafeCastMethod =
@@ -514,6 +520,7 @@ class FfiTransformer extends Transformer {
   /// [IntPtr]                             -> [int]
   /// [Double]                             -> [double]
   /// [Float]                              -> [double]
+  /// [Bool]                               -> [bool]
   /// [Void]                               -> [void]
   /// [Pointer]<T>                         -> [Pointer]<T>
   /// T extends [Pointer]                  -> T
@@ -554,6 +561,9 @@ class FfiTransformer extends Transformer {
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {
       return InterfaceType(doubleClass, Nullability.legacy);
+    }
+    if (nativeType_ == NativeType.kBool) {
+      return InterfaceType(boolClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kVoid) {
       return VoidType();

@@ -755,12 +755,12 @@ Dart_Handle X509Helper::GetIssuer(Dart_NativeArguments args) {
 }
 
 static Dart_Handle ASN1TimeToMilliseconds(ASN1_TIME* aTime) {
-  ASN1_UTCTIME* epoch_start = M_ASN1_UTCTIME_new();
+  ASN1_UTCTIME* epoch_start = ASN1_UTCTIME_new();
   ASN1_UTCTIME_set_string(epoch_start, "700101000000Z");
   int days;
   int seconds;
   int result = ASN1_TIME_diff(&days, &seconds, epoch_start, aTime);
-  M_ASN1_UTCTIME_free(epoch_start);
+  ASN1_UTCTIME_free(epoch_start);
   if (result != 1) {
     // TODO(whesse): Propagate an error to Dart.
     Syslog::PrintErr("ASN1Time error %d\n", result);

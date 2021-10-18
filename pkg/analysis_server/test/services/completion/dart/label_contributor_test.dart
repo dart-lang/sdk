@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -33,8 +34,11 @@ class LabelContributorTest extends DartCompletionContributorTest {
   }
 
   @override
-  DartCompletionContributor createContributor() {
-    return LabelContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return LabelContributor(request, builder);
   }
 
   Future<void> test_break_ignores_outer_functions_using_closure() async {

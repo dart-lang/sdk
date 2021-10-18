@@ -12,9 +12,13 @@ import 'package:analyzer/dart/element/element.dart';
 /// already initialized. More concretely, this class produces suggestions for
 /// expressions of the form `this.^` in a constructor's parameter list.
 class FieldFormalContributor extends DartCompletionContributor {
+  FieldFormalContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var node = request.target.containingNode;
     // TODO(brianwilkerson) We should suggest field formal parameters even if
     //  the user hasn't already typed the `this.` prefix, by including the

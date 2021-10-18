@@ -12,9 +12,13 @@ import 'package:path/path.dart' show posix;
 /// A contributor that produces suggestions based on the content of the file
 /// system to complete within URIs in import, export and part directives.
 class UriContributor extends DartCompletionContributor {
+  UriContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var visitor = _UriSuggestionBuilder(request, builder);
     request.target.containingNode.accept(visitor);
   }

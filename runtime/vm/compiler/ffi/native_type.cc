@@ -357,6 +357,7 @@ static PrimitiveType TypeRepresentation(classid_t class_id) {
       return kInt16;
     case kFfiInt32Cid:
       return kInt32;
+    case kFfiBoolCid:
     case kFfiUint8Cid:
       return kUint8;
     case kFfiUint16Cid:

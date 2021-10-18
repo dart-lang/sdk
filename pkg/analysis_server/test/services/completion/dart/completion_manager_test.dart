@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -26,8 +27,11 @@ void main() {
 @reflectiveTest
 class CompletionManagerTest extends DartCompletionContributorTest {
   @override
-  DartCompletionContributor createContributor() {
-    return ImportedReferenceContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return ImportedReferenceContributor(request, builder);
   }
 
   Future<void> test_resolveDirectives() async {

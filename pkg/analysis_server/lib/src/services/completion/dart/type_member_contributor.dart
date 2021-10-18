@@ -17,9 +17,13 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 /// expressions of the form `o.^`, where `o` is an expression denoting an
 /// instance of a type.
 class TypeMemberContributor extends DartCompletionContributor {
+  TypeMemberContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     // Recompute the target because resolution might have changed it.
     var expression = request.dotTarget;
     if (expression == null ||

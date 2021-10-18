@@ -11,9 +11,13 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 /// A contributor that produces suggestions for variable names based on the
 /// static type of the variable.
 class VariableNameContributor extends DartCompletionContributor {
+  VariableNameContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var opType = request.opType;
 
     // Collect suggestions from the specific child [AstNode] that contains

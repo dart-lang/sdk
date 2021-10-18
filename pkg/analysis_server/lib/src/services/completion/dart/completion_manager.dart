@@ -126,30 +126,32 @@ class DartCompletionManager {
     // Request Dart specific completions from each contributor
     var builder = SuggestionBuilder(dartRequest, listener: listener);
     var contributors = <DartCompletionContributor>[
-      ArgListContributor(),
-      CombinatorContributor(),
-      ExtensionMemberContributor(),
-      FieldFormalContributor(),
-      KeywordContributor(),
-      LabelContributor(),
-      LibraryMemberContributor(),
-      LibraryPrefixContributor(),
-      LocalLibraryContributor(),
-      LocalReferenceContributor(),
-      NamedConstructorContributor(),
-      if (enableOverrideContributor) OverrideContributor(),
-      RedirectingContributor(),
-      StaticMemberContributor(),
-      TypeMemberContributor(),
-      if (enableUriContributor) UriContributor(),
-      VariableNameContributor()
+      ArgListContributor(dartRequest, builder),
+      CombinatorContributor(dartRequest, builder),
+      ExtensionMemberContributor(dartRequest, builder),
+      FieldFormalContributor(dartRequest, builder),
+      KeywordContributor(dartRequest, builder),
+      LabelContributor(dartRequest, builder),
+      LibraryMemberContributor(dartRequest, builder),
+      LibraryPrefixContributor(dartRequest, builder),
+      LocalLibraryContributor(dartRequest, builder),
+      LocalReferenceContributor(dartRequest, builder),
+      NamedConstructorContributor(dartRequest, builder),
+      if (enableOverrideContributor) OverrideContributor(dartRequest, builder),
+      RedirectingContributor(dartRequest, builder),
+      StaticMemberContributor(dartRequest, builder),
+      TypeMemberContributor(dartRequest, builder),
+      if (enableUriContributor) UriContributor(dartRequest, builder),
+      VariableNameContributor(dartRequest, builder),
     ];
 
     if (includedElementKinds != null) {
       _addIncludedElementKinds(dartRequest);
       _addIncludedSuggestionRelevanceTags(dartRequest);
     } else {
-      contributors.add(ImportedReferenceContributor());
+      contributors.add(
+        ImportedReferenceContributor(dartRequest, builder),
+      );
     }
 
     try {
@@ -157,7 +159,7 @@ class DartCompletionManager {
         await performance.runAsync(
           'DartCompletionManager - ${contributor.runtimeType}',
           (_) async {
-            await contributor.computeSuggestions(dartRequest, builder);
+            await contributor.computeSuggestions();
           },
         );
         request.checkAborted();

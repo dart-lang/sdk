@@ -8,9 +8,13 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 /// A contributor that produces suggestions based on the prefixes defined on
 /// import directives.
 class LibraryPrefixContributor extends DartCompletionContributor {
+  LibraryPrefixContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     if (!request.includeIdentifiers) {
       return;
     }

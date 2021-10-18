@@ -12,9 +12,13 @@ import 'package:analyzer/dart/element/element.dart';
 /// suggestions for expressions of the form `C.^`, where `C` is the name of a
 /// class, enum, or extension.
 class StaticMemberContributor extends DartCompletionContributor {
+  StaticMemberContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var library = request.libraryElement;
     bool isVisible(Element element) => element.isAccessibleIn(library);
     var targetId = request.dotTarget;

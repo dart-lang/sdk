@@ -206,6 +206,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
 #if defined(DEBUG)
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
+      // Recognized a new class, but forgot to add @pragma('vm:entrypoint')?
       ASSERT(cls.is_declaration_loaded());
     }
 #endif

@@ -10,9 +10,13 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A contributor for calculating suggestions for imported top level members.
 class ImportedReferenceContributor extends DartCompletionContributor {
+  ImportedReferenceContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     if (!request.includeIdentifiers) {
       return;
     }

@@ -42,6 +42,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     'Double',
   ];
 
+  static const _primitiveBoolNativeType = 'Bool';
+
   static const _structClassName = 'Struct';
 
   static const _unionClassName = 'Union';
@@ -432,6 +434,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       case _PrimitiveDartType.int:
         return true;
+      case _PrimitiveDartType.bool:
+        return true;
       case _PrimitiveDartType.void_:
         return false;
       case _PrimitiveDartType.handle:
@@ -490,6 +494,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           return allowHandle;
         case _PrimitiveDartType.double:
         case _PrimitiveDartType.int:
+        case _PrimitiveDartType.bool:
           return true;
         case _PrimitiveDartType.none:
           // These are the cases below.
@@ -560,6 +565,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (_primitiveDoubleNativeTypes.contains(name)) {
           return _PrimitiveDartType.double;
         }
+        if (name == _primitiveBoolNativeType) {
+          return _PrimitiveDartType.bool;
+        }
         if (name == 'Void') {
           return _PrimitiveDartType.void_;
         }
@@ -580,6 +588,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return _PrimitiveDartType.int;
       } else if (_primitiveDoubleNativeTypes.contains(name)) {
         return _PrimitiveDartType.double;
+      } else if (_primitiveBoolNativeType == name) {
+        return _PrimitiveDartType.bool;
       }
     }
     return _PrimitiveDartType.none;
@@ -738,6 +748,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return dartType.isDartCoreInt;
     } else if (nativeReturnType == _PrimitiveDartType.double) {
       return dartType.isDartCoreDouble;
+    } else if (nativeReturnType == _PrimitiveDartType.bool) {
+      return dartType.isDartCoreBool;
     } else if (nativeReturnType == _PrimitiveDartType.void_) {
       return dartType.isVoid;
     } else if (nativeReturnType == _PrimitiveDartType.handle) {
@@ -827,6 +839,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.int);
       } else if (declaredType.isDartCoreDouble) {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.double);
+      } else if (declaredType.isDartCoreBool) {
+        _validateAnnotations(fieldType, annotations, _PrimitiveDartType.bool);
       } else if (declaredType.isPointer) {
         _validateNoAnnotations(annotations);
       } else if (declaredType.isArray) {
@@ -1162,6 +1176,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 enum _PrimitiveDartType {
   double,
   int,
+  bool,
   void_,
   handle,
   none,
@@ -1336,6 +1351,8 @@ extension on ClassElement {
       if (declaredType.isDartCoreInt) {
         return false;
       } else if (declaredType.isDartCoreDouble) {
+        return false;
+      } else if (declaredType.isDartCoreBool) {
         return false;
       } else if (declaredType.isPointer) {
         return false;

@@ -3959,6 +3959,48 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
   return Fragment(unbox);
 }
 
+// TODO(http://dartbug.com/47487): Support unboxed output value.
+Fragment FlowGraphBuilder::BoolToInt() {
+  // TODO(http://dartbug.com/36855) Build IfThenElseInstr, instead of letting
+  // the optimizer turn this into that.
+
+  LocalVariable* expression_temp = parsed_function_->expression_temp_var();
+
+  Fragment instructions;
+  TargetEntryInstr* is_true;
+  TargetEntryInstr* is_false;
+
+  instructions += BranchIfTrue(&is_true, &is_false);
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  {
+    Fragment store_1(is_true);
+    store_1 += IntConstant(1);
+    store_1 += StoreLocal(TokenPosition::kNoSource, expression_temp);
+    store_1 += Drop();
+    store_1 += Goto(join);
+  }
+
+  {
+    Fragment store_0(is_false);
+    store_0 += IntConstant(0);
+    store_0 += StoreLocal(TokenPosition::kNoSource, expression_temp);
+    store_0 += Drop();
+    store_0 += Goto(join);
+  }
+
+  instructions = Fragment(instructions.entry, join);
+  instructions += LoadLocal(expression_temp);
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::IntToBool() {
+  Fragment body;
+  body += IntConstant(0);
+  body += StrictCompare(Token::kNE_STRICT);
+  return body;
+}
+
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
   auto* instr = new (Z)
@@ -4314,6 +4356,10 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
     }
 
     body += Box(marshaller.RepInDart(arg_index));
+
+    if (marshaller.IsBool(arg_index)) {
+      body += IntToBool();
+    }
   }
   return body;
 }
@@ -4332,6 +4378,10 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
   } else if (marshaller.IsHandle(arg_index)) {
     body += WrapHandle(api_local_scope);
   } else {
+    if (marshaller.IsBool(arg_index)) {
+      body += BoolToInt();
+    }
+
     body += UnboxTruncate(marshaller.RepInDart(arg_index));
   }
 
@@ -4388,6 +4438,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     }
     function_body += LoadLocal(
         parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
+    // TODO(http://dartbug.com/47486): Support entry without checking for null.
     // Check for 'null'.
     function_body += CheckNullOptimized(
         String::ZoneHandle(

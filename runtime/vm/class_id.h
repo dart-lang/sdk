@@ -156,7 +156,8 @@ typedef uint16_t ClassIdTagType;
 #define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
   CLASS_LIST_FFI_NUMERIC(V)                                                    \
   V(Void)                                                                      \
-  V(Handle)
+  V(Handle)                                                                    \
+  V(Bool)
 
 #define CLASS_LIST_FFI(V)                                                      \
   V(NativeFunction)                                                            \
@@ -404,9 +405,9 @@ inline bool IsFfiPredefinedClassId(classid_t class_id) {
     case kPointerCid:
     case kDynamicLibraryCid:
 #define CASE_FFI_CID(name) case kFfi##name##Cid:
-    CLASS_LIST_FFI(CASE_FFI_CID)
+      CLASS_LIST_FFI(CASE_FFI_CID)
 #undef CASE_FFI_CID
-    return true;
+      return true;
     default:
       return false;
   }

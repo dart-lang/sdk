@@ -16,9 +16,13 @@ import 'package:analyzer/dart/element/type.dart';
 class ExtensionMemberContributor extends DartCompletionContributor {
   late MemberSuggestionBuilder memberBuilder;
 
+  ExtensionMemberContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var containingLibrary = request.libraryElement;
     memberBuilder = MemberSuggestionBuilder(request, builder);
 
