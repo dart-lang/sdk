@@ -190,7 +190,7 @@ f() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 50,
           5,
-          messageContains: "The constructor 'A.named'"),
+          messageContains: "The constructor 'prefix.A.named'"),
     ]);
 
     var importFind = findElement.importFind('package:test/a.dart');
@@ -229,7 +229,7 @@ f() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 48,
           5,
-          messageContains: "The constructor 'A.'"),
+          messageContains: "The constructor 'prefix.A.new'"),
     ]);
 
     var importFind = findElement.importFind('package:test/a.dart');
@@ -382,7 +382,7 @@ f() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 48,
           13,
-          messageContains: "The constructor 'A.'"),
+          messageContains: "The constructor 'A.new'"),
     ]);
 
     var creation = findNode.instanceCreation('new<int, String>(0);');
