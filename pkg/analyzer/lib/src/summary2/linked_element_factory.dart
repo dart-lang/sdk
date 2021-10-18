@@ -15,8 +15,8 @@ class LinkedElementFactory {
   final AnalysisContextImpl analysisContext;
   final AnalysisSessionImpl analysisSession;
   final Reference rootReference;
-  final Map<String, LibraryReader> libraryReaders = {};
-  final _exportsOfLibrary = <String, List<Reference>>{};
+  final Map<String, LibraryReader> _libraryReaders = {};
+  final Map<String, List<Reference>> _exportsOfLibrary = {};
 
   bool isApplyingInformativeData = false;
 
@@ -34,7 +34,7 @@ class LinkedElementFactory {
   }
 
   bool get hasDartCore {
-    return libraryReaders.containsKey('dart:core');
+    return _libraryReaders.containsKey('dart:core');
   }
 
   void addBundle(BundleReader bundle) {
@@ -42,7 +42,7 @@ class LinkedElementFactory {
   }
 
   void addLibraries(Map<String, LibraryReader> libraries) {
-    libraryReaders.addAll(libraries);
+    _libraryReaders.addAll(libraries);
   }
 
   Namespace buildExportNamespace(Uri uri) {
@@ -73,11 +73,11 @@ class LinkedElementFactory {
     // The URI cannot be resolved, we don't know the library.
     if (librarySource == null) return null;
 
-    var reader = libraryReaders[uriStr];
+    var reader = _libraryReaders[uriStr];
     if (reader == null) {
       throw ArgumentError(
         'Missing library: $uriStr\n'
-        'Available libraries: ${libraryReaders.keys.toList()}',
+        'Available libraries: ${_libraryReaders.keys.toList()}',
       );
     }
 
@@ -154,14 +154,14 @@ class LinkedElementFactory {
     if (exports != null) return exports;
 
     // TODO(scheglov) Use [setExportsOfLibrary] instead
-    var library = libraryReaders[uriStr];
+    var library = _libraryReaders[uriStr];
     if (library == null) return const [];
 
     return library.exports;
   }
 
   bool hasLibrary(String uriStr) {
-    return libraryReaders[uriStr] != null;
+    return _libraryReaders[uriStr] != null;
   }
 
   /// We are about to discard this factory, mark all libraries invalid.
@@ -195,7 +195,7 @@ class LinkedElementFactory {
   void removeLibraries(Set<String> uriStrSet) {
     for (var uriStr in uriStrSet) {
       _exportsOfLibrary.remove(uriStr);
-      libraryReaders.remove(uriStr);
+      _libraryReaders.remove(uriStr);
       var libraryReference = rootReference.removeChild(uriStr);
       _invalidateLibrary(libraryReference);
     }
@@ -212,10 +212,10 @@ class LinkedElementFactory {
           '${uriStrSet.toList()}',
         );
       }
-      if (libraryReaders.isNotEmpty) {
+      if (_libraryReaders.isNotEmpty) {
         throw StateError(
           'Expected to link dart:core and dart:async first: '
-          '${libraryReaders.keys.toList()}',
+          '${_libraryReaders.keys.toList()}',
         );
       }
       analysisContext.clearTypeProvider();
