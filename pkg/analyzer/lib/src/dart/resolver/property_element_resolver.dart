@@ -275,16 +275,31 @@ class PropertyElementResolver {
         );
       } else {
         var enclosingElement = element.enclosingElement;
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
-            propertyName, [
-          propertyName,
-          element.kind.displayName,
-          enclosingElement.name ?? '<unnamed>',
-          enclosingElement is ClassElement && enclosingElement.isMixin
-              ? 'mixin'
-              : enclosingElement.kind.displayName,
-        ]);
+        if (enclosingElement is ExtensionElement &&
+            enclosingElement.name == null) {
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode
+                  .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+              propertyName,
+              [
+                propertyName.name,
+                element.kind.displayName,
+              ]);
+        } else {
+          // It is safe to assume that `enclosingElement.name` is non-`null`
+          // because it can only be `null` for extensions, and we handle that
+          // case above.
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+              propertyName, [
+            propertyName.name,
+            element.kind.displayName,
+            enclosingElement.name!,
+            enclosingElement is ClassElement && enclosingElement.isMixin
+                ? 'mixin'
+                : enclosingElement.kind.displayName,
+          ]);
+        }
       }
     }
   }

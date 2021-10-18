@@ -444,8 +444,11 @@ extension on Function {
   static void m<T>(T t) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 40, 1,
-          correctionContains: "extension '<unnamed>'"),
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          40,
+          1),
     ]);
 
     assertFunctionReference(findNode.functionReference('foo.m<int>;'),

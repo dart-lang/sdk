@@ -184,8 +184,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * Parameters:
    * 0: the name of the member
-   * 1: the name of the first declaring extension
-   * 2: the name of the second declaring extension
+   * 1: the names of the declaring extensions
    */
   // #### Description
   //
@@ -244,7 +243,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
       CompileTimeErrorCode(
     'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-    "A member named '{0}' is defined in extensions {1}, and none are more specific.",
+    "A member named '{0}' is defined in {1}, and none are more specific.",
     correctionMessage:
         "Try using an extension override to specify the extension you want to be chosen.",
     hasPublishedDocs: true,
@@ -6250,6 +6249,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The static {1} '{0}' can't be accessed through an instance.",
     correctionMessage: "Try using the {3} '{2}' to access the {1}.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the static member
+   * 1: the kind of the static member (field, getter, setter, or method)
+   */
+  static const CompileTimeErrorCode
+      INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION =
+      CompileTimeErrorCode(
+    'INSTANCE_ACCESS_TO_STATIC_MEMBER',
+    "The static {1} '{0}' can't be accessed through an instance.",
+    hasPublishedDocs: true,
+    uniqueName: 'INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
   );
 
   /**

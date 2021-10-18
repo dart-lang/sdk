@@ -164,14 +164,26 @@ class FunctionReferenceResolver {
           [enclosingElement.displayName],
         );
       }
+    } else if (enclosingElement is ExtensionElement &&
+        enclosingElement.name == null) {
+      _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          nameNode,
+          [
+            nameNode.name,
+            element.kind.displayName,
+          ]);
     } else {
+      // It is safe to assume that `enclosingElement.name` is non-`null` because
+      // it can only be `null` for extensions, and we handle that case above.
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
         nameNode,
         [
           nameNode.name,
           element.kind.displayName,
-          enclosingElement.name ?? '<unnamed>',
+          enclosingElement.name!,
           enclosingElement is ClassElement && enclosingElement.isMixin
               ? 'mixin'
               : enclosingElement.kind.displayName,

@@ -56,6 +56,31 @@ f(C c) {
     );
   }
 
+  test_extension_getter_unnamed() async {
+    await assertErrorsInCode('''
+class C {}
+
+extension on C {
+  static int get a => 0;
+}
+
+C g(C c) => C();
+f(C c) {
+  g(c).a;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          90,
+          1),
+    ]);
+    assertElement(
+      findNode.simple('a;'),
+      findElement.getter('a'),
+    );
+  }
+
   test_extension_method() async {
     await assertErrorsInCode('''
 class C {}
@@ -89,8 +114,11 @@ f(C c) {
   c.a();
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 66, 1,
-          correctionContains: "extension '<unnamed>'"),
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          66,
+          1),
     ]);
     assertElement(
       findNode.methodInvocation('a();'),
@@ -187,8 +215,11 @@ f(int a) {
   a.m<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 55, 1,
-          correctionContains: "extension '<unnamed>'"),
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          55,
+          1),
     ]);
   }
 

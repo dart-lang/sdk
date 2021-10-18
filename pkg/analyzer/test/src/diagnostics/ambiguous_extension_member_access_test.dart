@@ -106,7 +106,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: "'E1' and 'E2'"),
+          messageContains: "in extension 'E1' and extension 'E2',"),
     ]);
   }
 
@@ -131,7 +131,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: "'E1' and 'E2'"),
+          messageContains: "in extension 'E1' and extension 'E2',"),
     ]);
   }
 
@@ -177,7 +177,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: "'E1' and 'E2'"),
+          messageContains: "in extension 'E1' and extension 'E2',"),
     ]);
   }
 
@@ -192,7 +192,8 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 167, 3,
-          messageContains: "'E1', 'E2', and 'E3'"),
+          messageContains:
+              "in extension 'E1', extension 'E2', and extension 'E3',"),
     ]);
   }
 
@@ -345,5 +346,32 @@ f() {
     if (hasAssignmentLeftResolution) {
       assertTypeDynamic(access);
     }
+  }
+
+  test_unnamed_extensions() async {
+    await assertErrorsInCode('''
+class A {}
+class B {}
+class C extends A implements B {}
+
+extension on List<A> {
+  int call() => 0;
+}
+
+extension on List<B> {
+  int call() => 0;
+}
+
+int f(List<C> x) => x();
+
+// Additional calls to avoid UNUSED_ELEMENT
+int g(List<A> x) => x();
+int h(List<B> x) => x();
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 167, 1,
+          messageContains:
+              "in unnamed extension on 'List<A>' and unnamed extension on "
+              "'List<B>',"),
+    ]);
   }
 }
