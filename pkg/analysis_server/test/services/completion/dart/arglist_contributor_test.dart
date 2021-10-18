@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -109,8 +110,11 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   }
 
   @override
-  DartCompletionContributor createContributor() {
-    return ArgListContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return ArgListContributor(request, builder);
   }
 }
 

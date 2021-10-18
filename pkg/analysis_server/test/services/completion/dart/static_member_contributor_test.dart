@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,8 +19,11 @@ void main() {
 @reflectiveTest
 class StaticMemberContributorTest extends DartCompletionContributorTest {
   @override
-  DartCompletionContributor createContributor() {
-    return StaticMemberContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return StaticMemberContributor(request, builder);
   }
 
   Future<void> test_class_static_notPrivate() async {

@@ -12,9 +12,13 @@ import 'package:analyzer/dart/element/element.dart';
 /// for expressions of the form `C.^` or `C<E>.^`, where `C` is the name of a
 /// class.
 class NamedConstructorContributor extends DartCompletionContributor {
+  NamedConstructorContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var node = request.target.containingNode;
     if (node is ConstructorName) {
       var libraryElement = request.libraryElement;

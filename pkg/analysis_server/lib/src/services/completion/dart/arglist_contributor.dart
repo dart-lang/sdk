@@ -14,20 +14,18 @@ import 'package:analyzer/dart/element/type.dart';
 /// A contributor that produces suggestions for named expression labels that
 /// correspond to named parameters when completing in argument lists.
 class ArgListContributor extends DartCompletionContributor {
-  /// The request that is currently being handled.
-  late DartCompletionRequest request;
-
-  /// The suggestion builder used to build suggestions.
-  late SuggestionBuilder builder;
-
   /// The argument list that is the containing node of the target, or `null` if
   /// the containing node of the target is not an argument list (such as when
   /// it's a named expression).
   ArgumentList? argumentList;
 
+  ArgListContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var parameters = request.target.executableElement?.parameters ??
         request.target.functionType?.parameters;
     if (parameters == null) {
@@ -39,8 +37,6 @@ class ArgListContributor extends DartCompletionContributor {
       argumentList = node;
     }
 
-    this.request = request;
-    this.builder = builder;
     _addSuggestions(parameters);
   }
 

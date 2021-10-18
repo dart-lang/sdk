@@ -151,9 +151,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 /// the library in which the completion is requested but outside the file in
 /// which the completion is requested.
 class LocalLibraryContributor extends DartCompletionContributor {
+  LocalLibraryContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     if (!request.includeIdentifiers) {
       return;
     }

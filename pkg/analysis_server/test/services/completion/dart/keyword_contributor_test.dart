@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -443,8 +444,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   @override
-  DartCompletionContributor createContributor() {
-    return KeywordContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return KeywordContributor(request, builder);
   }
 
   /// Return `true` if the given [feature] is enabled.

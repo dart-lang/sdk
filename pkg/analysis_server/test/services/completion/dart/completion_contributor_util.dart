@@ -43,24 +43,20 @@ typedef SuggestionMatcher = bool Function(CompletionSuggestion suggestion);
 /// suggestions.
 abstract class DartCompletionContributorTest
     extends _BaseDartCompletionContributorTest {
-  late DartCompletionContributor contributor;
-
   @nonVirtual
   @override
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
     var builder = SuggestionBuilder(request);
-    await contributor.computeSuggestions(request, builder);
+    var contributor = createContributor(request, builder);
+    await contributor.computeSuggestions();
     return builder.suggestions.toList();
   }
 
-  DartCompletionContributor createContributor();
-
-  @override
-  void setUp() {
-    super.setUp();
-    contributor = createContributor();
-  }
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  );
 }
 
 abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {

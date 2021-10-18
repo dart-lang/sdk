@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -25,8 +26,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   String get testPackageTestPath => '$testPackageRootPath/test';
 
   @override
-  DartCompletionContributor createContributor() {
-    return UriContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return UriContributor(request, builder);
   }
 
   Future<void> test_after_import() async {
@@ -550,8 +554,11 @@ class UriContributorTest extends DartCompletionContributorTest {
 @reflectiveTest
 class UriContributorWindowsTest extends DartCompletionContributorTest {
   @override
-  DartCompletionContributor createContributor() {
-    return UriContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return UriContributor(request, builder);
   }
 
   @override

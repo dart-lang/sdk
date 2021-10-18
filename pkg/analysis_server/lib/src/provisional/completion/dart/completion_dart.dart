@@ -19,10 +19,14 @@ export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 /// An object that contributes results for the `completion.getSuggestions`
 /// request results.
 abstract class DartCompletionContributor {
+  final DartCompletionRequest request;
+  final SuggestionBuilder builder;
+
+  DartCompletionContributor(this.request, this.builder);
+
   /// Return a [Future] that completes when the suggestions appropriate for the
   /// given completion [request] have been added to the [builder].
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder);
+  Future<void> computeSuggestions();
 }
 
 /// The information about a requested list of completions within a Dart file.

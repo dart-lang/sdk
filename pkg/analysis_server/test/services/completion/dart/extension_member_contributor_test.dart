@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
@@ -17,8 +18,11 @@ void main() {
 @reflectiveTest
 class ExtensionMemberContributorTest extends DartCompletionContributorTest {
   @override
-  DartCompletionContributor createContributor() {
-    return ExtensionMemberContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return ExtensionMemberContributor(request, builder);
   }
 
   Future<void> test_extended_members_inExtension_field() async {

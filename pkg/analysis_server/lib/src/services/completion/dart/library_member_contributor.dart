@@ -14,9 +14,13 @@ import 'package:analyzer/dart/element/element.dart';
 /// produces suggestions for expressions of the form `p.^`, where `p` is a
 /// prefix.
 class LibraryMemberContributor extends DartCompletionContributor {
+  LibraryMemberContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     // Determine if the target looks like a library prefix.
     var targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
