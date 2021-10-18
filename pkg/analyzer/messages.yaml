@@ -13887,8 +13887,8 @@ FfiCode:
       Parameters:
       0: the name of the function, method, or constructor having type arguments
   NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
-    problemMessage: "The type argument for the pointer '{0}' must be a 'NativeFunction' in order to use 'asFunction'."
-    correctionMessage: "Try changing the type argument to be a 'NativeFunction'."
+    problemMessage: "The type argument for the pointer '{0}' must be a valid 'NativeFunction' in order to use 'asFunction'."
+    correctionMessage: "Try changing the function argument in 'NativeFunction' to only use NativeTypes."
     comment: |-
       Parameters:
       0: the type that should be a valid dart:ffi native type.

@@ -651,9 +651,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var targetType = target.staticType;
     if (targetType is InterfaceType && targetType.isPointer) {
       final DartType T = targetType.typeArguments[0];
-      if (!T.isNativeFunction ||
-          !_isValidFfiNativeFunctionType(
-              (T as InterfaceType).typeArguments.single)) {
+      if (!T.isNativeFunction) {
+        return;
+      }
+      final DartType pointerTypeArg = (T as InterfaceType).typeArguments.single;
+      if (pointerTypeArg is TypeParameterType) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.NON_CONSTANT_TYPE_ARGUMENT, target, ['asFunction']);
+        return;
+      }
+      if (!_isValidFfiNativeFunctionType(pointerTypeArg)) {
         final AstNode errorNode =
             typeArguments != null ? typeArguments[0] : node;
         _errorReporter.reportErrorForNode(
