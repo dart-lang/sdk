@@ -1231,19 +1231,11 @@ class MockSdk implements DartSdk {
 
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
-  ///
-  /// [nullSafePackages], if supplied, is a list of packages names that should
-  /// be included in the null safety allow list.
-  ///
-  /// [sdkVersion], if supplied will override the version stored in the mock
-  /// SDK's `version` file.
   MockSdk({
     required this.resourceProvider,
     List<MockSdkLibrary> additionalLibraries = const [],
-    List<String> nullSafePackages = const [],
-    String? sdkVersion,
   }) {
-    sdkVersion ??= '${ExperimentStatus.currentVersion.major}.'
+    var sdkVersion = '${ExperimentStatus.currentVersion.major}.'
         '${ExperimentStatus.currentVersion.minor}.0';
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
@@ -1308,16 +1300,13 @@ class MockSdk implements DartSdk {
       json.encode({
         'version': 1,
         'experimentSets': {
+          'sdkExperiments': <String>[],
           'nullSafety': ['non-nullable']
         },
         'sdk': {
-          'default': {'experimentSet': 'nullSafety'}
+          'default': {'experimentSet': 'sdkExperiments'},
         },
-        if (nullSafePackages.isNotEmpty)
-          'packages': {
-            for (var package in nullSafePackages)
-              package: {'experimentSet': 'nullSafety'}
-          }
+        'packages': <String, Object>{},
       }),
     );
   }
