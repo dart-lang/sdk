@@ -1354,6 +1354,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// arguments, attempts to find a compatible set of type arguments.
   ///
   /// Otherwise, calls [DartType.getLeastUpperBound].
+  @Deprecated('Use TypeSystem.leastUpperBound instead')
   static InterfaceType getSmartLeastUpperBound(
       InterfaceType first, InterfaceType second) {
     // TODO(paulberry): this needs to be deprecated and replaced with a method
