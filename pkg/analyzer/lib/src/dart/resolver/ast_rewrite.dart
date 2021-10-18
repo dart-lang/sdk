@@ -383,7 +383,7 @@ class AstRewriter {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
-          [classElement.name, constructorElement.name]);
+          [typeNameIdentifier.toString(), constructorIdentifier.name]);
     }
 
     var typeName = astFactory.namedType(
@@ -501,7 +501,7 @@ class AstRewriter {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
-          [classElement.name, constructorElement.name]);
+          [typeIdentifier.name, constructorIdentifier.name]);
     }
     var typeName = astFactory.namedType(name: typeIdentifier);
     var constructorName = astFactory.constructorName(

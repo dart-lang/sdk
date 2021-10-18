@@ -282,9 +282,9 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER = FfiCode(
     'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
-    "The type argument for the pointer '{0}' must be a 'NativeFunction' in order to use 'asFunction'.",
+    "The type argument for the pointer '{0}' must be a valid 'NativeFunction' in order to use 'asFunction'.",
     correctionMessage:
-        "Try changing the type argument to be a 'NativeFunction'.",
+        "Try changing the function argument in 'NativeFunction' to only use NativeTypes.",
   );
 
   /**
