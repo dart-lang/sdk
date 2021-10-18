@@ -27,10 +27,7 @@ class InvalidVisibleForOverridingAnnotationTest
 import 'package:meta/meta.dart';
 @visibleForOverriding
 class C {}
-''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21,
-          messageContains: "The declaration 'C'")
-    ]);
+''', [error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
   }
 
   test_invalid_constructor() async {
@@ -50,10 +47,7 @@ class C {
 import 'package:meta/meta.dart';
 @visibleForOverriding
 extension on double {}
-''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21,
-          messageContains: "The declaration '<unnamed>'")
-    ]);
+''', [error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
   }
 
   test_invalid_extensionMember() async {
@@ -103,7 +97,6 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForOverriding var a = 1, b;
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
       error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
     ]);
   }

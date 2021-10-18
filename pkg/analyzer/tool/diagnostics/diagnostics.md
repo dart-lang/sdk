@@ -4223,8 +4223,8 @@ var x = E.m();
 
 ### extension_conflicting_static_and_instance
 
-_Extension '{0}' can't define static member '{1}' and an instance member with
-the same name._
+_An extension can't define static member '{0}' and an instance member with the
+same name._
 
 #### Description
 
@@ -7422,8 +7422,8 @@ void f() => someFunction();
 
 ### invalid_visible_for_overriding_annotation
 
-_The declaration '{0}' is annotated with 'visibleForOverriding'. Because '{0}'
-isn't an interface member that could be overridden, the annotation is meaningless._
+_The annotation 'visibleForOverriding' can only be applied to a public instance
+member that can be overridden._
 
 #### Description
 

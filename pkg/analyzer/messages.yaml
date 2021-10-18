@@ -3717,13 +3717,12 @@ CompileTimeErrorCode:
       var x = E.m();
       ```
   EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
-    problemMessage: "Extension '{0}' can't define static member '{1}' and an instance member with the same name."
+    problemMessage: "An extension can't define static member '{0}' and an instance member with the same name."
     correctionMessage: "Try renaming the member to a name that doesn't conflict."
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the extension defining the conflicting member
-      1: the name of the conflicting static member
+      0: the name of the conflicting static member
     documentation: |-
       #### Description
 
@@ -15207,7 +15206,7 @@ HintCode:
       void f() => someFunction();
       ```
   INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-    problemMessage: "The declaration '{0}' is annotated with 'visibleForOverriding'. Because '{0}' isn't an interface member that could be overridden, the annotation is meaningless."
+    problemMessage: "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden."
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-

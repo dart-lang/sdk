@@ -232,9 +232,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
         void reportInvalidVisibleForOverriding(Element declaredElement) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
-              node,
-              [declaredElement.name ?? '<unnamed>']);
+              HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, node);
         }
 
         if (parent is TopLevelVariableDeclaration) {

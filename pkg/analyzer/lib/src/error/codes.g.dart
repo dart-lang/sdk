@@ -4157,8 +4157,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the extension defining the conflicting member
-   * 1: the name of the conflicting static member
+   * 0: the name of the conflicting static member
    */
   // #### Description
   //
@@ -4193,7 +4192,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXTENSION_CONFLICTING_STATIC_AND_INSTANCE =
       CompileTimeErrorCode(
     'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
-    "Extension '{0}' can't define static member '{1}' and an instance member with the same name.",
+    "An extension can't define static member '{0}' and an instance member with the same name.",
     correctionMessage:
         "Try renaming the member to a name that doesn't conflict.",
     hasPublishedDocs: true,

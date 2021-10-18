@@ -94,7 +94,7 @@ extension on String {
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 35, 3),
-      error(_errorCode, 35, 3, messageContains: "Extension '<unnamed>'"),
+      error(_errorCode, 35, 3),
       error(HintCode.UNUSED_ELEMENT, 54, 3),
     ]);
   }
@@ -106,7 +106,7 @@ extension E on String {
   void foo() {}
 }
 ''', [
-      error(_errorCode, 37, 3, messageContains: "Extension 'E'"),
+      error(_errorCode, 37, 3),
     ]);
   }
 
@@ -128,7 +128,7 @@ extension E on String {
   int get foo => 0;
 }
 ''', [
-      error(_errorCode, 41, 3, messageContains: "Extension 'E'"),
+      error(_errorCode, 41, 3),
     ]);
   }
 
@@ -140,7 +140,7 @@ extension on String {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 39, 3),
-      error(_errorCode, 39, 3, messageContains: "Extension '<unnamed>'"),
+      error(_errorCode, 39, 3),
       error(HintCode.UNUSED_ELEMENT, 59, 3),
     ]);
   }

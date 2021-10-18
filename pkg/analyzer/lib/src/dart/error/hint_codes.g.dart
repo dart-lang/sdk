@@ -1486,7 +1486,7 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION = HintCode(
     'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
-    "The declaration '{0}' is annotated with 'visibleForOverriding'. Because '{0}' isn't an interface member that could be overridden, the annotation is meaningless.",
+    "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden.",
     hasPublishedDocs: true,
   );
 
