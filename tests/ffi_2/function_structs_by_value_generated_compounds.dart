@@ -9,6 +9,13 @@
 
 import 'dart:ffi';
 
+class Struct1ByteBool extends Struct {
+  @Bool()
+  bool a0;
+
+  String toString() => "(${a0})";
+}
+
 class Struct1ByteInt extends Struct {
   @Int8()
   int a0;
@@ -177,6 +184,41 @@ class Struct9BytesInt4Or8ByteAligned extends Struct {
   int a1;
 
   String toString() => "(${a0}, ${a1})";
+}
+
+class Struct10BytesHomogeneousBool extends Struct {
+  @Bool()
+  bool a0;
+
+  @Bool()
+  bool a1;
+
+  @Bool()
+  bool a2;
+
+  @Bool()
+  bool a3;
+
+  @Bool()
+  bool a4;
+
+  @Bool()
+  bool a5;
+
+  @Bool()
+  bool a6;
+
+  @Bool()
+  bool a7;
+
+  @Bool()
+  bool a8;
+
+  @Bool()
+  bool a9;
+
+  String toString() =>
+      "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})";
 }
 
 class Struct12BytesHomogeneousFloat extends Struct {
@@ -938,6 +980,13 @@ class Struct8BytesInlineArrayInt extends Struct {
   Array<Uint8> a0;
 
   String toString() => "(${[for (var i0 = 0; i0 < 8; i0 += 1) a0[i0]]})";
+}
+
+class Struct10BytesInlineArrayBool extends Struct {
+  @Array(10)
+  Array<Bool> a0;
+
+  String toString() => "(${[for (var i0 = 0; i0 < 10; i0 += 1) a0[i0]]})";
 }
 
 class StructInlineArrayIrregular extends Struct {

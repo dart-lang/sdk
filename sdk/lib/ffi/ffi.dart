@@ -561,6 +561,20 @@ extension DoublePointer on Pointer<Double> {
   external Float64List asTypedList(int length);
 }
 
+/// Extension on [Pointer] specialized for the type argument [Bool].
+extension BoolPointer on Pointer<Bool> {
+  /// The bool at [address].
+  external bool get value;
+
+  external void set value(bool value);
+
+  /// The bool at `address + index`.
+  external bool operator [](int index);
+
+  /// The bool at `address + index`.
+  external void operator []=(int index, bool value);
+}
+
 /// Bounds checking indexing methods on [Array]s of [Int8].
 extension Int8Array on Array<Int8> {
   external int operator [](int index);
@@ -636,6 +650,13 @@ extension DoubleArray on Array<Double> {
   external double operator [](int index);
 
   external void operator []=(int index, double value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Bool].
+extension BoolArray on Array<Bool> {
+  external bool operator [](int index);
+
+  external void operator []=(int index, bool value);
 }
 
 //

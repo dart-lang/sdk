@@ -102,7 +102,9 @@ extension on CType {
   String addToResultStatements(String variableName) {
     switch (this.runtimeType) {
       case FundamentalType:
-        return "result += $variableName;\n";
+        final this_ = this as FundamentalType;
+        final boolToInt = this_.isBool ? ' ? 1 : 0' : '';
+        return "result += $variableName$boolToInt;\n";
 
       case StructType:
         final this_ = this as StructType;
@@ -214,15 +216,21 @@ class ArgumentValueAssigner {
   String nextValue(FundamentalType type) {
     int argumentValue = i;
     i++;
+    if (type.isBool) {
+      argumentValue = argumentValue % 2;
+    }
     if (type.isSigned && i % 2 == 0) {
       argumentValue = -argumentValue;
     }
     sum += argumentValue;
     if (type.isFloatingPoint) {
       return argumentValue.toDouble().toString();
-    } else {
+    } else if (type.isInteger) {
       return argumentValue.toString();
+    } else if (type.isBool) {
+      return argumentValue == 1 ? 'true' : 'false';
     }
+    throw 'Unknown type $type';
   }
 
   String sumValue(FundamentalType type) {
@@ -261,7 +269,13 @@ final ${dartType} ${variableName} = ${variableName}Pointer.ref;
         if (this_.isInteger) {
           return "${dartType} ${variableName} = 0;\n";
         }
-        return "${dartType} ${variableName} = 0.0;\n";
+        if (this_.isFloatingPoint) {
+          return "${dartType} ${variableName} = 0.0;\n";
+        }
+        if (this_.isBool) {
+          return "${dartType} ${variableName} = false;\n";
+        }
+        throw 'Unknown type $this_';
 
       case StructType:
       case UnionType:
@@ -345,8 +359,13 @@ extension on CType {
         if (this_.isInteger) {
           return "Expect.equals(${expected}, ${actual});";
         }
-        assert(this_.isFloatingPoint);
-        return "Expect.approxEquals(${expected}, ${actual});";
+        if (this_.isFloatingPoint) {
+          return "Expect.approxEquals(${expected}, ${actual});";
+        }
+        if (this_.isBool) {
+          return "Expect.equals(${expected} % 2 != 0, ${actual});";
+        }
+        throw 'Unexpected type $this_';
 
       case StructType:
         final this_ = this as StructType;
@@ -594,15 +613,24 @@ extension on FunctionType {
     bool structsAsPointers = false;
     String assignReturnGlobal = "";
     String buildReturnValue = "";
+    String returnValueType = returnValue.dartType;
+    String result = 'result';
+    if (returnValueType == 'bool') {
+      // We can't sum a bool;
+      returnValueType = 'int';
+      result = 'result % 2 != 0';
+    }
+
     switch (testType) {
       case TestType.structArguments:
         // Sum all input values.
+
         buildReturnValue = """
-        ${returnValue.dartType} result = 0;
+        $returnValueType result = 0;
 
         ${arguments.addToResultStatements('${dartName}_')}
         """;
-        assignReturnGlobal = "${dartName}Result = result;";
+        assignReturnGlobal = "${dartName}Result = $result;";
         break;
       case TestType.structReturn:
         // Allocate a struct.
@@ -675,7 +703,7 @@ extension on FunctionType {
 
       $assignReturnGlobal
 
-      return result;
+      return $result;
     }
 
     ${reason.makeDartDocComment()}
@@ -719,10 +747,15 @@ extension on FunctionType {
   String get dartCallbackTestConstructor {
     String exceptionalReturn = "";
     if (returnValue is FundamentalType) {
-      if ((returnValue as FundamentalType).isFloatingPoint) {
+      final returnValue_ = returnValue as FundamentalType;
+      if (returnValue_.isFloatingPoint) {
         exceptionalReturn = ", 0.0";
-      } else {
+      } else if (returnValue_.isInteger) {
         exceptionalReturn = ", 0";
+      } else if (returnValue_.isBool) {
+        exceptionalReturn = ", false";
+      } else {
+        throw 'Unexpected type $returnValue_';
       }
     }
     return """
@@ -734,24 +767,31 @@ extension on FunctionType {
 
   String get cCallCode {
     String body = "";
+    String returnValueType = returnValue.cType;
+    String returnStatement = 'return result;';
+    if (returnValueType == 'bool') {
+      // We can't sum in a bool.
+      returnValueType = 'uint64_t';
+      returnStatement = 'return result % 2 != 0;';
+    }
     switch (testType) {
       case TestType.structArguments:
         body = """
-        ${returnValue.cType} result = 0;
+        $returnValueType result = 0;
 
         ${arguments.addToResultStatements()}
         """;
         break;
       case TestType.structReturn:
         body = """
-        ${returnValue.cType} result = {};
+        $returnValueType result = {};
 
         ${arguments.copyValueStatements("", "result.")}
         """;
         break;
       case TestType.structReturnArgument:
         body = """
-        ${returnValue.cType} result = ${structReturnArgument.name};
+        $returnValueType result = ${structReturnArgument.name};
         """;
         break;
     }
@@ -769,7 +809,7 @@ extension on FunctionType {
 
       ${returnValue.coutStatement("result")}
 
-      return result;
+      $returnStatement
     }
 
     """;

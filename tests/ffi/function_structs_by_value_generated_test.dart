@@ -86,6 +86,9 @@ void main() {
     testPassUnion9BytesNestedIntx10();
     testPassUnion16BytesNestedInlineArrayFloatx10();
     testPassUnion16BytesNestedFloatx10();
+    testPassUint8Boolx9Struct10BytesHomogeneousBoolBool();
+    testPassUint8Boolx9Struct10BytesInlineArrayBoolBool();
+    testPassUint8Struct1ByteBool();
     testReturnStruct1ByteInt();
     testReturnStruct3BytesHomogeneousUint8();
     testReturnStruct3BytesInt2ByteAligned();
@@ -5222,6 +5225,164 @@ void testPassUnion16BytesNestedFloatx10() {
   calloc.free(a7Pointer);
   calloc.free(a8Pointer);
   calloc.free(a9Pointer);
+}
+
+final passUint8Boolx9Struct10BytesHomogeneousBoolBool =
+    ffiTestFunctions.lookupFunction<
+        Int32 Function(Uint8, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool,
+            Bool, Struct10BytesHomogeneousBool, Bool),
+        int Function(
+            int,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            Struct10BytesHomogeneousBool,
+            bool)>("PassUint8Boolx9Struct10BytesHomogeneousBoolBool");
+
+/// Passing bools and a struct with bools.
+/// Exhausts the registers to test bools and the bool struct alignment on the
+/// stack.
+void testPassUint8Boolx9Struct10BytesHomogeneousBoolBool() {
+  int a0;
+  bool a1;
+  bool a2;
+  bool a3;
+  bool a4;
+  bool a5;
+  bool a6;
+  bool a7;
+  bool a8;
+  bool a9;
+  final a10Pointer = calloc<Struct10BytesHomogeneousBool>();
+  final Struct10BytesHomogeneousBool a10 = a10Pointer.ref;
+  bool a11;
+
+  a0 = 1;
+  a1 = false;
+  a2 = true;
+  a3 = false;
+  a4 = true;
+  a5 = false;
+  a6 = true;
+  a7 = false;
+  a8 = true;
+  a9 = false;
+  a10.a0 = true;
+  a10.a1 = false;
+  a10.a2 = true;
+  a10.a3 = false;
+  a10.a4 = true;
+  a10.a5 = false;
+  a10.a6 = true;
+  a10.a7 = false;
+  a10.a8 = true;
+  a10.a9 = false;
+  a11 = true;
+
+  final result = passUint8Boolx9Struct10BytesHomogeneousBoolBool(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+  print("result = $result");
+
+  Expect.equals(11, result);
+
+  calloc.free(a10Pointer);
+}
+
+final passUint8Boolx9Struct10BytesInlineArrayBoolBool =
+    ffiTestFunctions.lookupFunction<
+        Int32 Function(Uint8, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool,
+            Bool, Struct10BytesInlineArrayBool, Bool),
+        int Function(
+            int,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            Struct10BytesInlineArrayBool,
+            bool)>("PassUint8Boolx9Struct10BytesInlineArrayBoolBool");
+
+/// Passing bools and a struct with bools.
+/// Exhausts the registers to test bools and the bool struct alignment on the
+/// stack.
+void testPassUint8Boolx9Struct10BytesInlineArrayBoolBool() {
+  int a0;
+  bool a1;
+  bool a2;
+  bool a3;
+  bool a4;
+  bool a5;
+  bool a6;
+  bool a7;
+  bool a8;
+  bool a9;
+  final a10Pointer = calloc<Struct10BytesInlineArrayBool>();
+  final Struct10BytesInlineArrayBool a10 = a10Pointer.ref;
+  bool a11;
+
+  a0 = 1;
+  a1 = false;
+  a2 = true;
+  a3 = false;
+  a4 = true;
+  a5 = false;
+  a6 = true;
+  a7 = false;
+  a8 = true;
+  a9 = false;
+  a10.a0[0] = true;
+  a10.a0[1] = false;
+  a10.a0[2] = true;
+  a10.a0[3] = false;
+  a10.a0[4] = true;
+  a10.a0[5] = false;
+  a10.a0[6] = true;
+  a10.a0[7] = false;
+  a10.a0[8] = true;
+  a10.a0[9] = false;
+  a11 = true;
+
+  final result = passUint8Boolx9Struct10BytesInlineArrayBoolBool(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+  print("result = $result");
+
+  Expect.equals(11, result);
+
+  calloc.free(a10Pointer);
+}
+
+final passUint8Struct1ByteBool = ffiTestFunctions.lookupFunction<
+    Bool Function(Uint8, Struct1ByteBool),
+    bool Function(int, Struct1ByteBool)>("PassUint8Struct1ByteBool");
+
+/// Returning a bool.
+void testPassUint8Struct1ByteBool() {
+  int a0;
+  final a1Pointer = calloc<Struct1ByteBool>();
+  final Struct1ByteBool a1 = a1Pointer.ref;
+
+  a0 = 1;
+  a1.a0 = false;
+
+  final result = passUint8Struct1ByteBool(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(1 % 2 != 0, result);
+
+  calloc.free(a1Pointer);
 }
 
 final returnStruct1ByteInt = ffiTestFunctions.lookupFunction<

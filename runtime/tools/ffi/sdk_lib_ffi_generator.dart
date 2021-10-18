@@ -27,6 +27,7 @@ const configuration = [
   Config("IntPtr", "int", kDoNotEmit, kIntPtrElementSize),
   Config("Float", "double", "Float32List", 4),
   Config("Double", "double", "Float64List", 8),
+  Config("Bool", "bool", kDoNotEmit, 1),
 ];
 
 //
@@ -92,8 +93,12 @@ void generatePublicExtension(
     }
   } else if (nativeType == "Float") {
     property = "float";
-  } else {
+  } else if (nativeType == "Double") {
     property = "double";
+  } else if (nativeType == "Bool") {
+    property = "bool";
+  } else {
+    throw "Unexpected type: $nativeType";
   }
 
   const platformIntPtr = """

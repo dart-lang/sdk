@@ -271,6 +271,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // target representation.
   Fragment UnboxTruncate(Representation to);
 
+  // Converts a true to 1 and false to 0.
+  Fragment BoolToInt();
+
+  // Converts 0 to false and the rest to true.
+  Fragment IntToBool();
+
   // Creates an ffi.Pointer holding a given address (TOS).
   Fragment FfiPointerFromAddress(const Type& result_type);
 
