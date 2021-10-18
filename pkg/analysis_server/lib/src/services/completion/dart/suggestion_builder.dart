@@ -352,10 +352,13 @@ class SuggestionBuilder {
   /// period, and hence should not include the name of the class. If the class
   /// can only be referenced using a prefix, and the class name is to be
   /// included in the completion, then the [prefix] should be provided.
-  void suggestConstructor(ConstructorElement constructor,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      bool hasClassName = false,
-      String? prefix}) {
+  void suggestConstructor(
+    ConstructorElement constructor, {
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    bool tearOff = false,
+    bool hasClassName = false,
+    String? prefix,
+  }) {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
@@ -366,7 +369,11 @@ class SuggestionBuilder {
     }
 
     var completion = constructor.name;
-    if (!hasClassName && className.isNotEmpty) {
+    if (tearOff && completion.isEmpty) {
+      completion = 'new';
+    }
+
+    if (!hasClassName) {
       if (completion.isEmpty) {
         completion = className;
       } else {

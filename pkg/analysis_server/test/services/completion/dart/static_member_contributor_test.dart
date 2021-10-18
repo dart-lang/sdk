@@ -178,6 +178,48 @@ main() {
     assertSuggestConstructor('bar', elementName: 'A.bar');
   }
 
+  Future<void>
+      test_implicitCreation_functionContextType_matchingReturnType() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  A.foo();
+  A.bar();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  A Function() v = A.^;
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo');
+    assertNotSuggested('bar');
+  }
+
+  Future<void>
+      test_implicitCreation_functionContextType_notMatchingReturnType() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  A.foo();
+  A.bar();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  int Function() v = A.^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('foo', elementName: 'A.foo');
+    assertSuggestConstructor('bar', elementName: 'A.bar');
+  }
+
   Future<void> test_keyword() async {
     addTestSource('class C { static C get instance => null; } main() {C.in^}');
     await computeSuggestions();

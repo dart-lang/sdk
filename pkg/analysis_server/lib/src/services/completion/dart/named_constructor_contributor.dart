@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// A contributor that produces suggestions based on the named constructors
 /// defined on a given class. More concretely, this class produces suggestions
@@ -21,28 +24,40 @@ class NamedConstructorContributor extends DartCompletionContributor {
   Future<void> computeSuggestions() async {
     var node = request.target.containingNode;
     if (node is ConstructorName) {
-      var libraryElement = request.libraryElement;
-      var namedType = node.type2;
-      var type = namedType.type;
-      if (type != null) {
-        var element = type.element;
+      if (node.parent is ConstructorReference) {
+        var element = node.type2.name.staticElement;
         if (element is ClassElement) {
-          _buildSuggestions(request, builder, libraryElement, element);
+          _buildSuggestions(element);
         }
+      } else {
+        var type = node.type2.type;
+        if (type is InterfaceType) {
+          var element = type.element;
+          _buildSuggestions(element);
+        }
+      }
+    } else if (node is PrefixedIdentifier) {
+      var element = node.prefix.staticElement;
+      if (element is ClassElement) {
+        _buildSuggestions(element);
       }
     }
   }
 
-  void _buildSuggestions(
-      DartCompletionRequest request,
-      SuggestionBuilder builder,
-      LibraryElement libElem,
-      ClassElement classElem) {
-    var isLocalClassDecl = classElem.library == libElem;
-    for (var constructor in classElem.constructors) {
+  void _buildSuggestions(ClassElement element) {
+    var tearOff = request.shouldSuggestTearOff(element);
+    var isLocalClassDecl = element.library == request.libraryElement;
+    for (var constructor in element.constructors) {
       if (isLocalClassDecl || !constructor.isPrivate) {
-        if (!classElem.isAbstract || constructor.isFactory) {
-          builder.suggestConstructor(constructor, hasClassName: true);
+        if (!element.isAbstract || constructor.isFactory) {
+          builder.suggestConstructor(
+            constructor,
+            hasClassName: true,
+            kind: tearOff
+                ? protocol.CompletionSuggestionKind.IDENTIFIER
+                : protocol.CompletionSuggestionKind.INVOCATION,
+            tearOff: tearOff,
+          );
         }
       }
     }
