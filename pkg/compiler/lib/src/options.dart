@@ -72,10 +72,14 @@ class FeatureOptions {
   FeatureOption useContentSecurityPolicy = FeatureOption('csp');
 
   /// [FeatureOption]s which default to enabled.
-  late final List<FeatureOption> shipping = [legacyJavaScript, newHolders];
+  late final List<FeatureOption> shipping = [
+    legacyJavaScript,
+    newHolders,
+    useContentSecurityPolicy
+  ];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [useContentSecurityPolicy];
+  late final List<FeatureOption> canary = [];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
