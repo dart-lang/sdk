@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -258,7 +257,7 @@ var x = 0;
 
   void _newSdkExperimentsFile(String content) {
     newFile(
-      '$sdkRoot/lib/_internal/allowed_experiments.json',
+      '${sdkRoot.path}/lib/_internal/allowed_experiments.json',
       content: content,
     );
   }

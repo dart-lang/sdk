@@ -35,8 +35,6 @@ abstract class AbstractClient {
   final String testFilePath;
   late String testCode;
 
-  late MockSdk sdk;
-
   final AnalysisServerOptions serverOptions;
 
   AbstractClient({
@@ -106,7 +104,10 @@ abstract class AbstractClient {
 
   /// Create an analysis server with the given [sdkPath].
   AnalysisServer createAnalysisServer(String sdkPath) {
-    sdk = MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: newFolder(sdkPath),
+    );
     return AnalysisServer(
         serverChannel,
         resourceProvider,

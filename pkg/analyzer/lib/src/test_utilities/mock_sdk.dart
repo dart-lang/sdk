@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
 
+@Deprecated('Use createMockSdk() instead')
 const String sdkRoot = '/sdk';
 
 final MockSdkLibrary _LIB_ASYNC = MockSdkLibrary('async', [
@@ -1206,10 +1207,9 @@ final List<MockSdkLibrary> _LIBRARIES = [
 /// but some libraries, classes, and methods are missing.
 void createMockSdk({
   required MemoryResourceProvider resourceProvider,
-  required String path,
+  required Folder root,
   @internal List<MockSdkLibrary> additionalLibraries = const [],
 }) {
-  var root = resourceProvider.getFolder(path);
   var lib = root.getChildAssumingFolder('lib');
   var libInternal = lib.getChildAssumingFolder('_internal');
 
@@ -1255,6 +1255,7 @@ void createMockSdk({
       );
 }
 
+@Deprecated('Use createMockSdk() and FolderBasedDartSdk instead.')
 class MockSdk extends FolderBasedDartSdk {
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
@@ -1267,7 +1268,7 @@ class MockSdk extends FolderBasedDartSdk {
     );
     createMockSdk(
       resourceProvider: resourceProvider,
-      path: sdkDirectory.path,
+      root: sdkDirectory,
       additionalLibraries: additionalLibraries,
     );
     return MockSdk._(resourceProvider, sdkDirectory);

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -15,10 +16,9 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -51,7 +51,6 @@ Future pumpEventQueue([int times = 5000]) {
 
 @reflectiveTest
 class AnalysisDriverSchedulerTest with ResourceProviderMixin {
-  late DartSdk sdk;
   final ByteStore byteStore = MemoryByteStore();
 
   final StringBuffer logBuffer = StringBuffer();
@@ -61,8 +60,10 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
   final List<AnalysisResultWithErrors> allResults = [];
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   AnalysisDriver newDriver() {
-    sdk = MockSdk(resourceProvider: resourceProvider);
+    var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
     AnalysisDriver driver = AnalysisDriver.tmp1(
       scheduler: scheduler,
       logger: logger,
@@ -83,7 +84,10 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    sdk = MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
     logger = PerformanceLog(logBuffer);
     scheduler = AnalysisDriverScheduler(logger);
     scheduler.start();

@@ -41,6 +41,8 @@ main() {
   });
 }
 
+const sdkRootPathPosix = '/sdk';
+
 /// Specialization of [InstrumentationListener] that generates artificial
 /// exceptions, so that we can test they are properly propagated to top level.
 class _ExceptionGeneratingInstrumentationListener
@@ -97,7 +99,7 @@ class _MigrationCli extends MigrationCli {
             binaryName: 'nnbd_migration',
             loggerFactory: (isVerbose) => _test.logger = TestLogger(isVerbose),
             defaultSdkPathOverride:
-                _test.resourceProvider.convertPath(mock_sdk.sdkRoot),
+                _test.resourceProvider.convertPath(sdkRootPathPosix),
             resourceProvider: _test.resourceProvider,
             environmentVariables: _test.environmentVariables);
 
@@ -450,7 +452,7 @@ int${migrated ? '?' : ''} f() => null;
     // the signature that was present prior to NNBD.  (This is what the
     // migration tool uses to detect an old SDK).
     var coreLib = resourceProvider.getFile(
-        resourceProvider.convertPath('${mock_sdk.sdkRoot}/lib/core/core.dart'));
+        resourceProvider.convertPath('$sdkRootPathPosix/lib/core/core.dart'));
     var oldCoreLibText = coreLib.readAsStringSync();
     var newCoreLibText = oldCoreLibText.replaceAll(
         'external bool operator ==(Object other)',
@@ -470,7 +472,7 @@ int${migrated ? '?' : ''} f() => null;
     // the signature that was present prior to NNBD.  (This is what the
     // migration tool uses to detect an old SDK).
     var coreLib = resourceProvider.getFile(
-        resourceProvider.convertPath('${mock_sdk.sdkRoot}/lib/core/core.dart'));
+        resourceProvider.convertPath('$sdkRootPathPosix/lib/core/core.dart'));
     var oldCoreLibText = coreLib.readAsStringSync();
     var newCoreLibText = oldCoreLibText.replaceAll(
         'external bool operator ==(Object other)',
@@ -2155,8 +2157,11 @@ dependencies:
   }
 
   _MigrationCli _createCli() {
-    mock_sdk.MockSdk(
+    mock_sdk.createMockSdk(
       resourceProvider: resourceProvider,
+      root: resourceProvider.newFolder(
+        resourceProvider.convertPath(sdkRootPathPosix),
+      ),
     );
     return _MigrationCli(this);
   }

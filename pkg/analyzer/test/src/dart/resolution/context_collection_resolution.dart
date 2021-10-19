@@ -138,6 +138,8 @@ abstract class ContextResolutionTest
 
   bool get retainDataForTesting => false;
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   void assertBasicWorkspaceFor(String path) {
     var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BasicWorkspace>());
@@ -200,8 +202,9 @@ abstract class ContextResolutionTest
       _lintRulesAreRegistered = true;
     }
 
-    MockSdk(
+    createMockSdk(
       resourceProvider: resourceProvider,
+      root: sdkRoot,
       additionalLibraries: additionalMockSdkLibraries,
     );
   }
@@ -234,7 +237,7 @@ abstract class ContextResolutionTest
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       retainDataForTesting: retainDataForTesting,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
 
     verifyCreatedCollection();

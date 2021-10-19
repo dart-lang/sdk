@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -128,7 +129,14 @@ Future<TestResult<T>> runTestForConfig<T>(
     resourceProvider.newFile(
         resourceProvider.convertPath(testUri.path), entry.value);
   }
-  var sdk = MockSdk(resourceProvider: resourceProvider);
+  var sdkRoot = resourceProvider.newFolder(
+    resourceProvider.convertPath('/sdk'),
+  );
+  createMockSdk(
+    resourceProvider: resourceProvider,
+    root: sdkRoot,
+  );
+  var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
   var logBuffer = StringBuffer();
   var logger = PerformanceLog(logBuffer);
   var scheduler = AnalysisDriverScheduler(logger);
