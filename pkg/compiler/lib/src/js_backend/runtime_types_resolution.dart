@@ -513,13 +513,27 @@ class TypeVariableTests {
     });
 
     for (GenericInstantiation instantiation in _genericInstantiations) {
+      ParameterStructure instantiationParameterStructure =
+          ParameterStructure.fromType(instantiation.functionType);
+      ClassEntity implementationClass = _commonElements
+          .getInstantiationClass(instantiation.typeArguments.length);
+
       void processEntity(Entity entity) {
         MethodNode node = _getMethodNode(entity);
-        if (node.parameterStructure ==
-            ParameterStructure.fromType(instantiation.functionType)) {
+        // TODO(sra,johnniwinther): Use more information from the instantiation
+        // site. At many sites the instantiated element known, and for other
+        // sites the static type could filter more entities.
+        if (node.parameterStructure == instantiationParameterStructure) {
           _instantiationMap.putIfAbsent(entity, () => {}).add(instantiation);
           for (DartType type in instantiation.typeArguments) {
             registerDependenciesForInstantiation(node, type);
+            // The instantiation is implemented by a generic class (a subclass
+            // of 'Closure'). The implementation of generic instantiation
+            // equality places a need on the type parameters of the generic
+            // class. Making the class a dependency on the instantiation's
+            // parameters allows the dependency to propagate back to the helper
+            // function that is called to create the instantiation.
+            registerDependencies(_getClassNode(implementationClass), type);
           }
         }
       }
@@ -1337,6 +1351,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       }
       if (neededOnAll) break;
     }
+
     Set<ClassEntity> allClassesNeedingRuntimeType;
     if (neededOnAll) {
       neededOnFunctions = true;
@@ -1399,13 +1414,19 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     Set<int> instantiationsNeedingTypeArguments = {};
     typeVariableTests.forEachInstantiatedEntity(
         (Entity target, Set<GenericInstantiation> instantiations) {
-      if (methodsNeedingTypeArguments.contains(target) ||
-          localFunctionsNeedingTypeArguments.contains(target)) {
-        // TODO(johnniwinther): Use the static type of the instantiated
-        // expression.
-        instantiationsNeedingTypeArguments
-            .add(instantiations.first.typeArguments.length);
-        if (retainDataForTesting) {
+      // An instantiation needs type arguments if the class implementing the
+      // instantiation needs type arguments.
+      int arity = instantiations.first.typeArguments.length;
+      if (!instantiationsNeedingTypeArguments.contains(arity)) {
+        if (classesNeedingTypeArguments
+            .contains(commonElements.getInstantiationClass(arity))) {
+          instantiationsNeedingTypeArguments.add(arity);
+        }
+      }
+
+      if (retainDataForTesting) {
+        if (methodsNeedingTypeArguments.contains(target) ||
+            localFunctionsNeedingTypeArguments.contains(target)) {
           _instantiatedEntitiesNeedingTypeArgumentsForTesting ??= {};
           _instantiatedEntitiesNeedingTypeArgumentsForTesting
               .putIfAbsent(target, () => {})

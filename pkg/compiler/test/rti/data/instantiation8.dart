@@ -14,6 +14,7 @@ equals(a, b) {
   if (a != b) throw '$a != $b';
 }
 
+/*member: test:needsArgs*/
 test<T>(f) {
   Class<T> Function() g = create;
   equals(f, g);
