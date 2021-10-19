@@ -88,7 +88,7 @@ class AssistProcessor extends BaseProcessor {
     AddDiagnosticPropertyReference.newInstance,
     AddNotNullAssert.newInstance,
     AddReturnType.newInstance,
-    AddTypeAnnotation.newInstance,
+    AddTypeAnnotation.newInstanceBulkFixable,
     AssignToLocalVariable.newInstance,
     ConvertAddAllToSpread.newInstance,
     ConvertClassToMixin.newInstance,

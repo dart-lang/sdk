@@ -334,8 +334,7 @@ class FixProcessor extends BaseProcessor {
       AddRequired.newInstance,
     ],
     LintNames.always_specify_types: [
-      // TODO(brianwilkerson) Consider applying in bulk.
-      AddTypeAnnotation.newInstance,
+      AddTypeAnnotation.newInstanceBulkFixable,
     ],
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
@@ -543,7 +542,7 @@ class FixProcessor extends BaseProcessor {
       ConvertAddAllToSpread.newInstance,
     ],
     LintNames.prefer_typing_uninitialized_variables: [
-      AddTypeAnnotation.newInstance,
+      AddTypeAnnotation.newInstanceBulkFixable,
     ],
     LintNames.prefer_void_to_null: [
       ReplaceNullWithVoid.newInstance,
@@ -561,8 +560,7 @@ class FixProcessor extends BaseProcessor {
       AddTrailingComma.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
-      // TODO(brianwilkerson) Consider applying in bulk.
-      AddTypeAnnotation.newInstance,
+      AddTypeAnnotation.newInstanceBulkFixable,
     ],
     LintNames.type_init_formals: [
       RemoveTypeAnnotation.newInstance,

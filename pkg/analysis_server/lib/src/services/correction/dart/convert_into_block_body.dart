@@ -6,11 +6,11 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 import '../fix.dart';
 
@@ -38,11 +38,10 @@ class ConvertIntoBlockBody extends CorrectionProducer {
     // prepare prefix
     var prefix = utils.getNodePrefix(body.parent!);
     var indent = utils.getIndent(1);
-    var start = body.beginToken.previous!.end;
-    var length = body.end - start;
+    var sourceRange = range.endEnd(body.beginToken.previous!, body);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addReplacement(SourceRange(start, length), (builder) {
+      builder.addReplacement(sourceRange, (builder) {
         builder.write(' ');
         if (body.isAsynchronous) {
           builder.write('async ');

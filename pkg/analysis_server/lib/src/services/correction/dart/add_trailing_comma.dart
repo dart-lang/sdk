@@ -25,8 +25,6 @@ class AddTrailingComma extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
     if (node is! ArgumentList) return;
-    final parent = node.parent;
-    if (parent == null) return;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.arguments.last.end, ',');
