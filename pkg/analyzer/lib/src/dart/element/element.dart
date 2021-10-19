@@ -4188,17 +4188,12 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
-  /// If this method is a synthetic element which is based on another method
-  /// with some modifications (such as making some parameters covariant),
-  /// this field contains the base method.
-  MethodElement? prototype;
-
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(String name, int offset) : super(name, offset);
 
   @override
-  MethodElement get declaration => prototype ?? this;
+  MethodElement get declaration => this;
 
   @override
   String get displayName {
@@ -4993,11 +4988,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   late PropertyInducingElement variable;
 
-  /// If this method is a synthetic element which is based on another method
-  /// with some modifications (such as making some parameters covariant),
-  /// this field contains the base method.
-  PropertyAccessorElement? prototype;
-
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
   PropertyAccessorElementImpl(String name, int offset) : super(name, offset);
@@ -5030,7 +5020,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  PropertyAccessorElement get declaration => prototype ?? this;
+  PropertyAccessorElement get declaration => this;
 
   @override
   String get identifier {

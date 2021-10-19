@@ -53,16 +53,12 @@ extension ElementExtension on Element {
 
 extension ParameterElementExtensions on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
-  ParameterElement copyWith({
-    DartType? type,
-    ParameterKind? kind,
-    bool? isCovariant,
-  }) {
+  ParameterElement copyWith({DartType? type, ParameterKind? kind}) {
     return ParameterElementImpl.synthetic(
       name,
       type ?? this.type,
       // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,
-    )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
+    )..isExplicitlyCovariant = isCovariant;
   }
 }
