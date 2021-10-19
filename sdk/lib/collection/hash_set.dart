@@ -21,6 +21,62 @@ part of dart.collection;
 /// the hashcodes of the provided elements. However, the order is stable:
 /// multiple iterations over the same set produce the same order, as long as
 /// the set is not modified.
+///
+/// Example:
+/// ```dart
+/// final HashSet hashSet = HashSet();
+/// hashSet.addAll({'A', 'B', 'C', 'D'});
+/// hashSet.isEmpty; // false
+/// hashSet.length; // 4
+/// print(hashSet); // {A, D, C, B}
+///
+/// hashSet.contains('B'); // true
+/// final String elementAt = hashSet.elementAt(1);
+/// print(elementAt); // B
+///
+/// // Convert set to list
+/// final toList = hashSet.toList();
+/// print(toList); // [A, B, C, D]
+/// // Make a copy of set
+/// final copyOfOriginal = hashSet.toSet();
+/// print(copyOfOriginal.runtimeType); // HashSet
+/// print(copyOfOriginal); // {A, B, C, D}
+///
+/// hashSet.remove('A'); // {D, C, B}
+/// print(hashSet);
+///
+/// hashSet.forEach((element) {
+///   print(element);
+/// });
+///
+/// hashSet.removeWhere((element) => element.contains('B'));
+/// print(hashSet); // {D, C}
+///
+/// hashSet.add('E');
+/// print(hashSet); // {D, C, E}
+///
+/// hashSet.retainWhere((element) => element.contains('C'));
+/// print(hashSet); // {C}
+/// hashSet.clear();
+/// print(hashSet); // {}
+/// ```
+/// ## Constructor options for initialization:
+///
+/// ```dart
+/// final HashSet<String> baseSet = HashSet()..addAll({'C', 'B', 'A'});
+///
+/// final HashSet<String> hashSetFrom = HashSet.from(baseSet);
+/// print(hashSetFrom); // {A, C, B}
+///
+/// // Notice! From causes runtime error if type not match
+/// final HashSet<int> hashSetFrom = HashSet.from(baseSet);
+///
+/// final HashSet hashSetOf = HashSet.of(baseSet);
+/// print(hashSetOf); // {A, C, B}
+///
+/// // Of causes build time error if type mismatch
+/// final HashSet<int> customSet = HashSet.of(baseSet);
+/// ```
 abstract class HashSet<E> implements Set<E> {
   /// Create a hash set using the provided [equals] as equality.
   ///
