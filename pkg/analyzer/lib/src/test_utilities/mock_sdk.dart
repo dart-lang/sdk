@@ -1124,7 +1124,7 @@ abstract class Process {
   ],
 );
 
-final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('dart:isolate', [
+final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
   MockSdkLibraryUnit(
     'isolate.dart',
     '''
@@ -1277,6 +1277,26 @@ class MockSdk extends FolderBasedDartSdk {
   /// [sdkDirectory].
   MockSdk._(ResourceProvider resourceProvider, Folder sdkDirectory)
       : super(resourceProvider, sdkDirectory);
+
+  @override
+  MemoryResourceProvider get resourceProvider {
+    return super.resourceProvider as MemoryResourceProvider;
+  }
+
+  @override
+  List<SdkLibraryImpl> get sdkLibraries {
+    return super.sdkLibraries.map((library) {
+      var pathContext = resourceProvider.pathContext;
+      var path = library.path;
+      if (pathContext.isAbsolute(path)) {
+        return library;
+      }
+      return SdkLibraryImpl(library.shortName)
+        ..path = pathContext.join(directory.path, 'lib', path)
+        ..category = library.category
+        ..documented = library.isDocumented;
+    }).toList();
+  }
 }
 
 class MockSdkLibrary implements SdkLibrary {
