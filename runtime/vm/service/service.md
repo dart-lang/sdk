@@ -40,6 +40,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
   - [getAllocationTraces](#getallocationtraces)
+  - [getClassList](#getclasslist)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
