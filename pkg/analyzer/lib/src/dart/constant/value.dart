@@ -1314,12 +1314,7 @@ class FunctionState extends InstanceState {
 
       var element = _element;
       var otherElement = rightOperand._element;
-      var elementsAreEqual = identical(element, otherElement) ||
-          (element != null &&
-              otherElement != null &&
-              otherElement.kind == element.kind &&
-              otherElement.location == element.location);
-      if (!elementsAreEqual) {
+      if (element?.declaration != otherElement?.declaration) {
         return BoolState.FALSE_STATE;
       }
       var typeArguments = _typeArguments;
@@ -1332,7 +1327,10 @@ class FunctionState extends InstanceState {
         return BoolState.FALSE_STATE;
       }
       for (var i = 0; i < typeArguments.length; i++) {
-        if (typeArguments[i] != otherTypeArguments[i]) {
+        if (!typeSystem.runtimeTypesEqual(
+          typeArguments[i],
+          otherTypeArguments[i],
+        )) {
           return BoolState.FALSE_STATE;
         }
       }

@@ -169,6 +169,18 @@ const g = identical(foo<int>, foo<int>);
     );
   }
 
+  test_identical_functionReference_explicitTypeArgs_sameElement_runtimeTypeEquality() async {
+    await resolveTestCode('''
+import 'dart:async';
+void foo<T>(T a) {}
+const g = identical(foo<Object>, foo<FutureOr<Object>>);
+''');
+    expect(
+      _evaluateConstant('g'),
+      _boolValue(true),
+    );
+  }
+
   test_identical_functionReference_implicitTypeArgs_differentTypes() async {
     await resolveTestCode('''
 void foo<T>(T a) {}
