@@ -451,7 +451,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            String get publicInstanceGetter() => 'Fosse';
+            String get publicInstanceGetter => 'Fosse';
           }
           ''';
         setUpAll(() async {
@@ -484,7 +484,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            String get _privateInstanceGetter() => 'Fosse';
+            String get _privateInstanceGetter => 'Fosse';
           }
           ''';
         setUpAll(() async {
@@ -517,7 +517,8 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            var _value
+            var _value;
+            A(this._value);
             set publicInstanceSetter(String v) => _value = v;
           }
           ''';
@@ -551,7 +552,8 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            var _value
+            var _value;
+            A(this._value);
             set _privateInstanceSetter(String v) => _value = v;
           }
           ''';
@@ -585,7 +587,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            static String get publicStaticGetter() => 'Fosse';
+            static String get publicStaticGetter => 'Fosse';
           }
           ''';
         setUpAll(() async {
@@ -618,7 +620,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            static String get _privateStaticGetter() => 'Fosse';
+            static String get _privateStaticGetter => 'Fosse';
           }
           ''';
         setUpAll(() async {
@@ -651,7 +653,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            var _value;
+            static String _value = 'Cello';
             static set publicStaticSetter(String v) => _value = v;
           }
           ''';
@@ -685,7 +687,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            var _value;
+            static String _value = 'Cello';
             static set _privateStaticSetter(String v) => _value = v;
           }
           ''';
