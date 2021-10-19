@@ -154,6 +154,8 @@ class UseResultVerifier {
     }
 
     return parent is ArgumentList ||
+        // Node should always be RHS so no need to check for a property assignment.
+        parent is AssignmentExpression ||
         parent is VariableDeclaration ||
         parent is MethodInvocation ||
         parent is PropertyAccess ||
