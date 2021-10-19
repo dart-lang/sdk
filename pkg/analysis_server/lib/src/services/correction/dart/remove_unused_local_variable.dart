@@ -14,6 +14,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedLocalVariable extends CorrectionProducer {
   @override
+  // Not predictably the correct action.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not predictably the correct action.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
 
   @override

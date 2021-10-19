@@ -18,11 +18,13 @@ Future<void> main() async {
   for (var hint in hintEntries) {
     var canBeAppliedInBulk = false;
     var missingExplanations = <String>[];
+    var hasOverride = false;
     for (var generator in hint.value) {
       var producer = generator();
       if (!producer.canBeAppliedInBulk) {
         var producerName = producer.runtimeType.toString();
         if (overrideDetails.containsKey(producerName)) {
+          hasOverride = true;
           var override = overrideDetails[producerName];
           var hasComment = override!.hasComment;
           if (!hasComment) {
@@ -35,6 +37,9 @@ Future<void> main() async {
     }
 
     print('${hint.key} bulk fixable: $canBeAppliedInBulk');
+    if (!canBeAppliedInBulk && !hasOverride) {
+      print('  => override missing');
+    }
     for (var producer in missingExplanations) {
       print('  => override explanation missing for: $producer');
     }
