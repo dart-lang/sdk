@@ -392,7 +392,7 @@
       "kind": "test_dart",
       "arch": "x64",
       "mode": "release",
-      "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
+      "common": "--time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
         "--checked dart2js",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
@@ -418,7 +418,7 @@
       "kind": "test_dart",
       "arch": "x64",
       "mode": "release",
-      "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
+      "common": "--time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
         "-t240 --checked pkg/(kernel|front_end|fasta) dart2js",
         "-cdartk -rvm",
@@ -432,7 +432,7 @@
       "kind": "test_dart",
       "arch": "x64",
       "mode": "release",
-      "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
+      "common": "--time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
         "-cdart2js -rd8 --use-sdk --minified language language_2 web_2 corelib corelib_2"
       ]

@@ -268,8 +268,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     await Future.wait(serverFutures);
   }
 
-  // [firstConf] is needed here, since the ProcessQueue needs to know the
-  // settings of 'noBatch' and 'local_ip'
+  // [firstConf] is needed here, because the ProcessQueue uses some settings.
   ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, testSuites,
       eventListener, allTestsFinished, verbose, adbDevicePool);
 }
