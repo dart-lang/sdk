@@ -1507,9 +1507,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the given [expression] is not final.
   ///
-  /// See [StaticWarningCode.ASSIGNMENT_TO_CONST],
-  /// [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
-  /// [StaticWarningCode.ASSIGNMENT_TO_METHOD].
+  /// See [CompileTimeErrorCode.ASSIGNMENT_TO_CONST],
+  /// [CompileTimeErrorCode.ASSIGNMENT_TO_FINAL], and
+  /// [CompileTimeErrorCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
     // TODO(scheglov) Check SimpleIdentifier(s) as all other nodes.
     if (expression is! SimpleIdentifier) return;
@@ -1650,7 +1650,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given [switchCase] is terminated with 'break', 'continue',
   /// 'return' or 'throw'.
   ///
-  /// see [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
+  /// see [CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED].
   void _checkForCaseBlockNotTerminated(SwitchCase switchCase) {
     NodeList<Statement> statements = switchCase.statements;
     if (statements.isEmpty) {
@@ -1692,7 +1692,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the switch cases in the given switch [statement] are
   /// terminated with 'break', 'continue', 'rethrow', 'return' or 'throw'.
   ///
-  /// See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
+  /// See [CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED].
   void _checkForCaseBlocksNotTerminated(SwitchStatement statement) {
     if (_isNonNullableByDefault) return;
 
@@ -2432,7 +2432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// variables if the list is final or const.
   ///
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-  /// [StaticWarningCode.FINAL_NOT_INITIALIZED].
+  /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitialized(VariableDeclarationList list) {
     if (_isInNativeClass || list.isSynthetic) {
       return;
@@ -2481,7 +2481,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// constructor are handled in [_checkForAllFinalInitializedErrorCodes].
   ///
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-  /// [StaticWarningCode.FINAL_NOT_INITIALIZED].
+  /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
     for (ClassMember classMember in members) {
       if (classMember is ConstructorDeclaration) {
@@ -2665,7 +2665,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// given [argument]. This is used for prefix and postfix expressions where
   /// the argument value is implicit.
   ///
-  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForIntNotAssignable(Expression argument) {
     var staticParameterElement = argument.staticParameterElement;
     var staticParameterType = staticParameterElement?.type;
@@ -2839,8 +2839,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the elements of the given list [literal] are subtypes of the
   /// list's static type.
   ///
-  /// See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForListElementTypeNotAssignable(ListLiteral literal) {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -3255,7 +3254,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// This method assumes that the instance creation was tested to be 'new'
   /// before being called.
   ///
-  /// See [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
+  /// See [CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
   void _checkForNewWithUndefinedConstructor(
       InstanceCreationExpression expression,
       ConstructorName constructorName,
@@ -3400,7 +3399,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given method [declaration] of operator `[]=`, has `void`
   /// return type.
   ///
-  /// See [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR].
+  /// See [CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR].
   void _checkForNonVoidReturnTypeForOperator(MethodDeclaration declaration) {
     // check that []= operator
     SimpleIdentifier name = declaration.name;
@@ -3421,7 +3420,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify the [namedType], used as the return type of a setter, is valid
   /// (either `null` or the type 'void').
   ///
-  /// See [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER].
+  /// See [CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER].
   void _checkForNonVoidReturnTypeForSetter(TypeAnnotation? namedType) {
     if (namedType != null) {
       DartType type = namedType.typeOrThrow;
@@ -3880,8 +3879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the elements in the given set [literal] are subtypes of the
   /// set's static type.
   ///
-  /// See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
     // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -3916,7 +3914,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check the given [typeReference] and that the [name] is not a reference to
   /// an instance member.
   ///
-  /// See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
+  /// See [CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
   void _checkForStaticAccessToInstanceMember(
       ClassElement? typeReference, SimpleIdentifier name) {
     // OK, in comment
@@ -3944,7 +3942,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check that the type of the expression in the given 'switch' [statement] is
   /// assignable to the type of the 'case' members.
   ///
-  /// See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
   void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
     // For NNBD we verify runtime types of values, and subtyping.
     if (_isNonNullableByDefault) {
@@ -4010,7 +4008,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the [type] is not a deferred type.
   ///
-  /// See [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS].
+  /// See [CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS].
   void _checkForTypeAnnotationDeferredClass(TypeAnnotation? type) {
     if (type is NamedType && type.isDeferred) {
       errorReporter.reportErrorForNode(
@@ -4077,7 +4075,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT],
   /// [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR], and
-  /// [StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
+  /// [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
   void _checkForUndefinedConstructorInInitializerImplicit(
       ConstructorDeclaration constructor) {
     if (_enclosingClass == null) {

@@ -84,7 +84,7 @@ class FunctionExpressionInvocationResolver {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   ///
   /// TODO(scheglov) this is duplicate
   bool _checkForUseOfVoidResult(Expression expression, DartType type) {
