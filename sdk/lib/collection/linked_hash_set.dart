@@ -25,6 +25,68 @@ part of dart.collection;
 /// Most simple operations on `HashSet` are done in (potentially amortized)
 /// constant time: [add], [contains], [remove], and [length], provided the hash
 /// codes of objects are well distributed..
+///
+/// Example:
+/// ```dart
+/// final LinkedHashSet linkedHashSet = LinkedHashSet();
+/// linkedHashSet.addAll({'A', 'B', 'C', 'D'});
+/// linkedHashSet.isEmpty; // false
+/// linkedHashSet.length; // 4
+/// print(linkedHashSet); // {A, B, C, D}
+///
+/// linkedHashSet.contains('B'); // true
+/// final String elementAt = linkedHashSet.elementAt(1);
+/// print(elementAt); // B
+///
+/// // Convert set to list
+/// final toList = linkedHashSet.toList();
+/// print(toList); // [A, B, C, D]
+/// // Make a copy of set
+/// final copyOfOriginal = linkedHashSet.toSet();
+/// print(copyOfOriginal.runtimeType); // LinkedHashSet
+/// print(copyOfOriginal); // {A, B, C, D}
+///
+/// // add single item to set
+/// linkedHashSet.add('E');
+/// print(linkedHashSet); // {A, B, C, D, E}
+///
+/// linkedHashSet.remove('A');
+/// print(linkedHashSet); // {B, C, D, E}
+///
+/// linkedHashSet.forEach((element) {
+///   print(element);
+/// });
+///
+/// linkedHashSet.removeWhere((element) =>
+///   element.contains('B') || element.contains('D'));
+/// print(linkedHashSet); // {C, E}
+///
+/// linkedHashSet.retainWhere((element) => element.contains('C'));
+/// print(linkedHashSet); // {C}
+///
+/// // Use clear to remove all items:
+/// linkedHashSet.clear();
+/// print(linkedHashSet); // {}
+/// ```
+///
+/// ## Constructor options for initialization:
+///
+/// ```dart
+/// final LinkedHashSet<String> baseSet = LinkedHashSet();
+/// baseSet.addAll({'C', 'B', 'A'});
+///
+/// final LinkedHashSet<String> hashSetFrom = LinkedHashSet.from(baseSet);
+/// print(hashSetFrom); // {C, B, A}
+///
+/// // Notice! LinkedHashSet.from() causes runtime error if type not match
+/// final LinkedHashSet<int> hashSetFrom = LinkedHashSet.from(baseSet);
+///
+/// final LinkedHashSet setOf = LinkedHashSet.of(baseSet);
+/// print(setOf); // {C, B, A}
+///
+/// // LinkedHashSet.of causes build time error if type mismatch
+/// final LinkedHashSet<int> customSet = LinkedHashSet.of(baseSet);
+/// ```
 abstract class LinkedHashSet<E> implements Set<E> {
   /// Create an insertion-ordered hash set using the provided
   /// [equals] and [hashCode].
