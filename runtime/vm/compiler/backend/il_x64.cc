@@ -6608,12 +6608,12 @@ void SpeculativeShiftUint32OpInstr::EmitNativeCode(
         compiler::Label* deopt =
             compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
 
-        __ testq(RCX, RCX);
+        __ OBJ(test)(RCX, RCX);
         __ j(LESS, deopt);
       }
 
       compiler::Label cont;
-      __ cmpq(RCX, compiler::Immediate(kUint32ShiftCountLimit));
+      __ OBJ(cmp)(RCX, compiler::Immediate(kUint32ShiftCountLimit));
       __ j(LESS_EQUAL, &cont);
 
       __ xorl(left, left);
