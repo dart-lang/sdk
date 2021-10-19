@@ -11,6 +11,6 @@ import "package:expect/expect.dart";
 import "truncdiv_test.dart" as truncdiv_test show foo, foo2;
 
 main() {
-  Expect.throws<IntegerDivisionByZeroException>(() => truncdiv_test.foo(12, 0));
-  Expect.throws<IntegerDivisionByZeroException>(() => truncdiv_test.foo2(0));
+  Expect.throws<UnsupportedError>(() => truncdiv_test.foo(12, 0));
+  Expect.throws<UnsupportedError>(() => truncdiv_test.foo2(0));
 }

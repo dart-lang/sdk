@@ -138,7 +138,7 @@ main() {
     bool threw = false;
     try {
       div0(i);
-    } on IntegerDivisionByZeroException catch (e) {
+    } on UnsupportedError catch (e) {
       threw = true;
     }
     Expect.isTrue(threw);
@@ -149,7 +149,7 @@ main() {
     bool threw = false;
     try {
       mod0(i);
-    } on IntegerDivisionByZeroException catch (e) {
+    } on UnsupportedError catch (e) {
       threw = true;
     }
     Expect.isTrue(threw);

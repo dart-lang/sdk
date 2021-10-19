@@ -412,6 +412,12 @@
 - Add `Enum.compareByName` helper function for comparing enum values by name.
 - Add extension methods on `Iterable<T extends Enum>`, intended for
   `SomeEnumType.values` lists, to look up values by name.
+- Deprecate `IntegerDivisionByZeroException`.
+  Makes the class also implement `Error`. Code throwing the exception will be
+  migrated to throwing an `Error` instead until the class is unused and
+  ready to be removed.
+  Code catching the class should move to catching `Error` instead
+  (or, for integers, check first for whether it's dividing by zero).
 
 #### `dart:io`
 
@@ -669,6 +675,7 @@ This is a patch release that fixes:
 
 - The `Symbol` constructor now accepts any string as argument. Symbols are equal
   if they were created from the same string.
+
 
 #### `dart:ffi`
 
