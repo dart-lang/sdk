@@ -51,7 +51,6 @@ import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart' as kernel
     show Combinator, Component, LibraryDependency, Library, Location, Source;
@@ -879,20 +878,7 @@ class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
       : super(fileSystem, includeComments, dillTarget, uriTranslator);
 
   @override
-  SourceLoader createLoader() {
-    return new DocTestSourceLoader(compiler, fileSystem, includeComments, this);
-  }
-}
-
-class DocTestSourceLoader extends SourceLoader {
-  final DocTestIncrementalCompiler compiler;
-
-  DocTestSourceLoader(this.compiler, FileSystem fileSystem,
-      bool includeComments, DocTestIncrementalKernelTarget target)
-      : super(fileSystem, includeComments, target);
-
-  @override
-  SourceLibraryBuilder createLibraryBuilder(
+  LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
       Uri? packageUri,

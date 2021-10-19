@@ -396,7 +396,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         } else {
           unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
         }
-        LibraryBuilder? library = loader.lookupLibraryBuilder(libraryUri);
+        LibraryBuilder? library = loader.builders[libraryUri];
         if (library == null) {
           internalProblem(
               templateUnspecified

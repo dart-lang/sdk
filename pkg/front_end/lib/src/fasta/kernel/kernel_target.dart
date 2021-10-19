@@ -40,6 +40,7 @@ import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../compiler_context.dart' show CompilerContext;
 import '../crash.dart' show withCrashReporting;
+import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -49,11 +50,16 @@ import '../messages.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
+        messageAgnosticWithStrongDillLibrary,
+        messageAgnosticWithWeakDillLibrary,
         messageConstConstructorLateFinalFieldCause,
         messageConstConstructorLateFinalFieldError,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
+        messageInvalidNnbdDillLibrary,
+        messageStrongWithWeakDillLibrary,
+        messageWeakWithStrongDillLibrary,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -66,7 +72,8 @@ import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart'
+    show LanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 import '../ticker.dart' show Ticker;
@@ -361,10 +368,94 @@ class KernelTarget extends TargetImplementation {
     return entryPoint;
   }
 
+  /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
+  /// already.
+  ///
+  /// [fileUri] must not be null and is a URI that can be passed to FileSystem
+  /// to locate the corresponding file.
+  ///
+  /// [origin] is non-null if the created library is a patch to [origin].
+  ///
+  /// [packageUri] is the base uri for the package which the library belongs to.
+  /// For instance 'package:foo'.
+  ///
+  /// This is used to associate libraries in for instance the 'bin' and 'test'
+  /// folders of a package source with the package uri of the 'lib' folder.
+  ///
+  /// If the [packageUri] is `null` the package association of this library is
+  /// based on its [importUri].
+  ///
+  /// For libraries with a 'package:' [importUri], the package path must match
+  /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
+  /// [packageUri] must be `null`.
+  ///
+  /// [packageLanguageVersion] is the language version defined by the package
+  /// which the library belongs to, or the current sdk version if the library
+  /// doesn't belong to a package.
+  LibraryBuilder createLibraryBuilder(
+      Uri uri,
+      Uri fileUri,
+      Uri? packageUri,
+      LanguageVersion packageLanguageVersion,
+      SourceLibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner) {
+    if (dillTarget.isLoaded) {
+      DillLibraryBuilder? builder = dillTarget.loader.builders[uri];
+      if (builder != null) {
+        if (!builder.isNonNullableByDefault &&
+            (loader.nnbdMode == NnbdMode.Strong ||
+                loader.nnbdMode == NnbdMode.Agnostic)) {
+          loader.registerStrongOptOutLibrary(builder);
+        } else {
+          NonNullableByDefaultCompiledMode libraryMode =
+              builder.library.nonNullableByDefaultCompiledMode;
+          if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
+            loader.registerNnbdMismatchLibrary(
+                builder, messageInvalidNnbdDillLibrary);
+          } else {
+            switch (loader.nnbdMode) {
+              case NnbdMode.Weak:
+                if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                    libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+                  loader.registerNnbdMismatchLibrary(
+                      builder, messageWeakWithStrongDillLibrary);
+                }
+                break;
+              case NnbdMode.Strong:
+                if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                    libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+                  loader.registerNnbdMismatchLibrary(
+                      builder, messageStrongWithWeakDillLibrary);
+                }
+                break;
+              case NnbdMode.Agnostic:
+                if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
+                  if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
+                    loader.registerNnbdMismatchLibrary(
+                        builder, messageAgnosticWithStrongDillLibrary);
+                  } else {
+                    loader.registerNnbdMismatchLibrary(
+                        builder, messageAgnosticWithWeakDillLibrary);
+                  }
+                }
+                break;
+            }
+          }
+        }
+        return builder;
+      }
+    }
+    return new SourceLibraryBuilder(
+        uri, fileUri, packageUri, packageLanguageVersion, loader, origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
+  }
+
   /// Returns classes defined in libraries in [loader].
   List<SourceClassBuilder> collectMyClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
-    for (LibraryBuilder library in loader.libraryBuilders) {
+    for (LibraryBuilder library in loader.builders.values) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -623,7 +714,7 @@ class KernelTarget extends TargetImplementation {
 
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    for (LibraryBuilder library in loader.libraryBuilders) {
+    for (LibraryBuilder library in loader.builders.values) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -1010,7 +1101,7 @@ class KernelTarget extends TargetImplementation {
       ...backendTarget.extraIndexedLibraries
     ]) {
       Uri uri = Uri.parse(platformLibrary);
-      LibraryBuilder? libraryBuilder = loader.lookupLibraryBuilder(uri);
+      LibraryBuilder? libraryBuilder = loader.builders[uri];
       if (libraryBuilder == null) {
         // TODO(ahe): This is working around a bug in kernel_driver_test or
         // kernel_driver.

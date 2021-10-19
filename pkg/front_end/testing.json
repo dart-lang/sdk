@@ -248,7 +248,7 @@
       "pattern": [
         "pkg/front_end/.*\\.dart$",
         "pkg/front_end/.*\\.crash_dart$",
-        "/tests/.*\\.dart$"
+        "tests/.*\\.dart$"
       ],
       "exclude": []
     },

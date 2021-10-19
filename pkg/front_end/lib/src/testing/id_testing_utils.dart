@@ -124,7 +124,7 @@ LibraryBuilder? lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting!.loader;
-  LibraryBuilder? builder = loader.lookupLibraryBuilder(library.importUri);
+  LibraryBuilder? builder = loader.builders[library.importUri];
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }

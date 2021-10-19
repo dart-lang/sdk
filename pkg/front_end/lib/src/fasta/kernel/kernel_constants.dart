@@ -20,9 +20,9 @@ class KernelConstantErrorReporter extends ErrorReporter {
   @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     // Try to find library.
-    LibraryBuilder? builder = loader.lookupLibraryBuilder(message.uri!);
+    LibraryBuilder? builder = loader.builders[message.uri];
     if (builder == null) {
-      for (LibraryBuilder candidate in loader.libraryBuilders) {
+      for (LibraryBuilder candidate in loader.builders.values) {
         if (candidate.fileUri == message.uri) {
           // Found it.
           builder = candidate;
