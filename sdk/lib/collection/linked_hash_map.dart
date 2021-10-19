@@ -6,7 +6,7 @@ part of dart.collection;
 
 /// A hash-table based implementation of [Map].
 ///
-/// The insertion order of keys is remembered,
+/// The __insertion order of keys is remembered__,
 /// and keys are iterated in the order they were inserted into the map.
 /// Values are iterated in their corresponding key's order.
 /// Changing a key's value, when the key is already in the map,
@@ -19,6 +19,107 @@ part of dart.collection;
 /// must define a stable equivalence relation on the keys (reflexive,
 /// symmetric, transitive, and consistent over time), and that `hashCode`
 /// must be the same for objects that are considered equal by `==`.
+///
+/// Example:
+///
+/// ```dart
+/// final LinkedHashMap<int, String> linkedHashMap =
+///   LinkedHashMap<int, String>();
+/// linkedHashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
+/// ```
+///
+/// Check is the map empty:
+/// ```dart
+/// print(linkedHashMap.isEmpty); // false
+/// print(linkedHashMap.length); // 4
+/// print(linkedHashMap); // {1: A, 4: D, 2: B, 3: C}
+/// ```
+/// The [forEach] iterates through all entries of a map.
+/// Manipulating item count in [forEach] is prohibited. Adding or
+/// deleting items during iteration causes an exception:
+/// _"Concurrent modification during iteration"_.
+/// ```dart
+/// linkedHashMap.forEach((key, value) {
+///   print('key: $key value: $value');
+///   // key: 1 value: A
+///   // key: 4 value: D
+///   // key: 2 value: B
+///   // key: 3 value: C
+/// });
+/// ```
+/// Check is key defined:
+/// ```dart
+/// print(linkedHashMap.containsKey(1)); // true
+/// print(linkedHashMap.containsKey(5)); // false
+/// ```
+/// Check is value defined:
+/// ```dart
+/// print(linkedHashMap.containsValue('B')); // true
+/// print(linkedHashMap.containsValue('b')); // false
+/// ```
+/// Remove item if provided key exists:
+/// ```dart
+/// linkedHashMap.remove(1);
+/// print(linkedHashMap); // {4: D, 2: B, 3: C}
+/// ```
+/// Remove item using [removeWhere] with a statement:
+/// ```dart
+///  linkedHashMap.removeWhere((key, value) => key == 2);
+///  linkedHashMap.removeWhere((key, value) => value == 'C');
+///  print(linkedHashMap); // {4: D}
+/// ```
+/// Update or insert (adding new key-value pair if not exists) value:
+/// ```dart
+/// linkedHashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
+/// print(linkedHashMap); // {4: D, 10: E}
+/// linkedHashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
+/// print(linkedHashMap); // {4: abc, 10: E}
+/// ```
+/// Update all items using [updateAll]:
+/// ```dart
+/// linkedHashMap.updateAll((int key, String value) => 'X');
+/// print(linkedHashMap); // {4: X, 1: X}
+/// ```
+/// Use [clear] to remove all items:
+/// ```dart
+/// linkedHashMap.clear(); // {}
+/// ```
+///
+/// ## Constructor options for initialization:
+///
+/// [LinkedHashMap.from] example:
+/// ```dart
+/// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
+/// final LinkedHashMap fromBaseMap = LinkedHashMap.from(baseMap);
+/// ```
+///
+/// [LinkedHashMap.fromEntries] example:
+/// ```dart
+/// final Map baseMap = {3: 'A', 2: 'B', 1: 'C'};
+/// final LinkedHashMap mapFromEntries =
+///   LinkedHashMap.fromEntries(baseMap.entries);
+/// ```
+///
+/// [LinkedHashMap.fromIterable] example:
+/// ```dart
+/// final List<int> keyList = [11, 12, 13, 14];
+/// final LinkedHashMap mapFromIterable =
+///   LinkedHashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
+/// ```
+///
+/// [LinkedHashMap.fromIterables] example:
+/// ```dart
+/// final List<String> keys = ['1', '2', '3', '4'];
+/// final List<String> values = ['A', 'B', 'C', 'D'];
+/// final LinkedHashMap mapFromIterables =
+///   LinkedHashMap.fromIterables(keys, values);
+/// ```
+///
+/// [LinkedHashMap.of] example:
+/// ```dart
+/// final Map mapIntString = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
+/// final LinkedHashMap mapOf = LinkedHashMap.of(mapIntString);
+/// ```
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered hash-table based [Map].
   ///
