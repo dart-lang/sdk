@@ -1407,8 +1407,8 @@ class KernelTarget extends TargetImplementation {
 
     if (loader.target.context.options
         .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
-      valueClass.transformComponent(
-          component!, loader.coreTypes, loader.hierarchy, environment);
+      valueClass.transformComponent(component!, loader.coreTypes,
+          loader.hierarchy, loader.referenceFromIndex, environment);
       ticker.logMs("Lowered value classes");
     }
 
