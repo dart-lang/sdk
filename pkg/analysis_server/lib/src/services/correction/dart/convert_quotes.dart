@@ -67,6 +67,18 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
+  FixKind get fixKind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING_MULTI;
+
+  @override
   bool get _fromDouble => false;
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

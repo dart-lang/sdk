@@ -344,6 +344,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Convert to using 'contains' everywhere in file",
   );
+  static const CONVERT_TO_DOUBLE_QUOTED_STRING = FixKind(
+    'dart.fix.convert.toDoubleQuotedString',
+    DartFixKindPriority.DEFAULT,
+    'Convert to double quoted string',
+  );
+  static const CONVERT_TO_DOUBLE_QUOTED_STRING_MULTI = FixKind(
+    'dart.fix.convert.toDoubleQuotedString.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to double quoted strings everywhere in file',
+  );
   static const CONVERT_TO_FOR_ELEMENT = FixKind(
     'dart.fix.convert.toForElement',
     DartFixKindPriority.DEFAULT,
