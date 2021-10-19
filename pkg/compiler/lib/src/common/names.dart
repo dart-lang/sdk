@@ -224,9 +224,6 @@ class Uris {
   /// The URI for 'dart:web_gl'.
   static final Uri dart_web_gl = Uri(scheme: 'dart', path: 'web_gl');
 
-  /// The URI for 'dart:web_sql'.
-  static final Uri dart_web_sql = Uri(scheme: 'dart', path: 'web_sql');
-
   /// The URI for 'dart:_js_helper'.
   static final Uri dart__js_helper = Uri(scheme: 'dart', path: '_js_helper');
 

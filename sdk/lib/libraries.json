@@ -231,9 +231,6 @@
       "web_gl": {
         "uri": "web_gl/dart2js/web_gl_dart2js.dart"
       },
-      "web_sql": {
-        "uri": "web_sql/dart2js/web_sql_dart2js.dart"
-      },
       "_dart2js_runtime_metrics": {
         "uri": "_internal/js_runtime/lib/dart2js_runtime_metrics.dart"
       },
@@ -476,9 +473,6 @@
       },
       "web_gl": {
         "uri": "web_gl/dart2js/web_gl_dart2js.dart"
-      },
-      "web_sql": {
-        "uri": "web_sql/dart2js/web_sql_dart2js.dart"
       }
     }
   }

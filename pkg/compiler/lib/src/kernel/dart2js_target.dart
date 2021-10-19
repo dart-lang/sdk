@@ -36,7 +36,6 @@ const Iterable<String> _allowedDartSchemePaths = [
   '_native_typed_data',
   'web_audio',
   'web_gl',
-  'web_sql'
 ];
 
 List<Pattern> _allowedNativeTestPatterns = [
@@ -246,7 +245,6 @@ const _requiredLibraries = <String, List<String>>{
     'dart:svg',
     'dart:web_audio',
     'dart:web_gl',
-    'dart:web_sql',
   ],
   'dart2js_server': [
     'dart:_dart2js_runtime_metrics',

@@ -427,6 +427,19 @@
   `callConstructor`, and `newObject` now support a generic type argument
   to specify the return type.
 
+#### `dart:web_sql`
+
+- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+  The WebSQL standard was abandoned more than 10
+  years ago and is not supported by many browsers. This release completely
+  deletes the `dart:web_sql` library.
+
+#### `dart:html`
+
+- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+  Related to the removal of `dart:web_sql` (see above), the
+  `window.openDatabase` has been removed as well.
+
 ### Tools
 
 #### Dart command line
