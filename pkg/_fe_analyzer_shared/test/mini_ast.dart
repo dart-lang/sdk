@@ -882,6 +882,7 @@ class _CheckReachable extends Statement {
 class _CheckUnassigned extends Statement {
   final Var variable;
   final bool expectedUnassignedState;
+  final StackTrace _creationTrace = StackTrace.current;
 
   _CheckUnassigned(this.variable, this.expectedUnassignedState) : super._();
 
@@ -896,7 +897,8 @@ class _CheckUnassigned extends Statement {
 
   @override
   void _visit(Harness h) {
-    expect(h._flow.isUnassigned(variable), expectedUnassignedState);
+    expect(h._flow.isUnassigned(variable), expectedUnassignedState,
+        reason: '$_creationTrace');
     h._irBuilder.atom('null');
   }
 }
