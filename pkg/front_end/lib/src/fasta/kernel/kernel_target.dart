@@ -767,8 +767,23 @@ class KernelTarget extends TargetImplementation {
           Reference? constructorReference;
           Reference? tearOffReference;
           if (indexedClass != null) {
-            constructorReference = indexedClass.lookupConstructorReference(
-                new Name(name, indexedClass.library));
+            constructorReference = indexedClass
+                // We use the name of the member builder here since it refers to
+                // the library of the original declaration when private. For
+                // instance:
+                //
+                //     // lib1:
+                //     class Super { Super._() }
+                //     class Subclass extends Class {
+                //       Subclass() : super._();
+                //     }
+                //     // lib2:
+                //     class Mixin {}
+                //     class Class = Super with Mixin;
+                //
+                // Here `super._()` in `Subclass` targets the forwarding stub
+                // added to `Class` whose name is `_` private to `lib1`.
+                .lookupConstructorReference(memberBuilder.member.name);
             tearOffReference = indexedClass.lookupGetterReference(
                 constructorTearOffName(name, indexedClass.library));
           }
