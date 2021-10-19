@@ -55,16 +55,11 @@ Statement checkUnassigned(Var variable, bool expectedUnassignedState) =>
 
 Statement continue_() => new _Continue();
 
-Statement declare(Var variable,
-        {required bool initialized,
-        bool isFinal = false,
-        bool isLate = false}) =>
-    new _Declare(variable, initialized ? expr(variable.type.type) : null,
-        isFinal, isLate);
+Statement declare(Var variable, {required bool initialized}) =>
+    new _Declare(variable, initialized ? expr(variable.type.type) : null);
 
-Statement declareInitialized(Var variable, Expression initializer,
-        {bool isFinal = false, bool isLate = false}) =>
-    new _Declare(variable, initializer, isFinal, isLate);
+Statement declareInitialized(Var variable, Expression initializer) =>
+    new _Declare(variable, initializer);
 
 Statement do_(List<Statement> body, Expression condition) =>
     _Do(block(body), condition);
@@ -664,9 +659,14 @@ abstract class TryStatement extends Statement implements TryBuilder {
 class Var {
   final String name;
   final Type type;
+  final bool isFinal;
   final bool isImplicitlyTyped;
+  final bool isLate;
 
-  Var(this.name, String typeStr, {this.isImplicitlyTyped = false})
+  Var(this.name, String typeStr,
+      {this.isFinal = false,
+      this.isImplicitlyTyped = false,
+      this.isLate = false})
       : type = Type(typeStr);
 
   /// Creates an L-value representing a reference to this variable.
@@ -948,16 +948,13 @@ class _Continue extends Statement {
 class _Declare extends Statement {
   final Var variable;
   final Expression? initializer;
-  final bool isFinal;
-  final bool isLate;
 
-  _Declare(this.variable, this.initializer, this.isFinal, this.isLate)
-      : super._();
+  _Declare(this.variable, this.initializer) : super._();
 
   @override
   String toString() {
-    var latePart = isLate ? 'late ' : '';
-    var finalPart = isFinal ? 'final ' : '';
+    var latePart = variable.isLate ? 'late ' : '';
+    var finalPart = variable.isFinal ? 'final ' : '';
     var initializerPart = initializer != null ? ' = $initializer' : '';
     return '$latePart$finalPart$variable${initializerPart};';
   }
@@ -972,9 +969,11 @@ class _Declare extends Statement {
     h._irBuilder.atom(variable.name);
     h._typeAnalyzer.analyzeVariableDeclaration(
         this, variable.type, variable, initializer,
-        isFinal: isFinal, isLate: isLate);
+        isFinal: variable.isFinal, isLate: variable.isLate);
     h._irBuilder.apply(
-        ['declare', if (isLate) 'late', if (isFinal) 'final'].join('_'), 2);
+        ['declare', if (variable.isLate) 'late', if (variable.isFinal) 'final']
+            .join('_'),
+        2);
   }
 }
 
