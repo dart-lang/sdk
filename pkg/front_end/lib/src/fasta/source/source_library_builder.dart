@@ -2259,10 +2259,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     bool isStatic = (modifiers & staticMask) != 0;
     bool isExternal = (modifiers & externalMask) != 0;
     final bool fieldIsLateWithLowering = isLate &&
-        loader.target.backendTarget.isLateFieldLoweringEnabled(
-            hasInitializer: hasInitializer,
-            isFinal: isFinal,
-            isStatic: isTopLevel || isStatic);
+        (loader.target.backendTarget.isLateFieldLoweringEnabled(
+                hasInitializer: hasInitializer,
+                isFinal: isFinal,
+                isStatic: isTopLevel || isStatic) ||
+            (loader.target.backendTarget.useStaticFieldLowering &&
+                (isStatic || isTopLevel)));
+
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
             TypeParameterScopeKind.library &&
         (modifiers & staticMask) == 0;
