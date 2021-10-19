@@ -32,39 +32,67 @@ typedef _Hasher<K> = int Function(K object);
 /// will give matching key and value pairs.
 ///
 /// Example:
+///
 /// ```dart
 /// final HashMap<int, String> hashMap = HashMap();
-/// hashMap.addAll({10: 'A', 20: 'B', 30: 'C', 1: 'aa', 2: 'bb'});
+/// hashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
+/// ```
+/// Check is the map empty:
+/// ```dart
 /// print(hashMap.isEmpty); // false
-/// print(hashMap.length); // 5
-/// print(hashMap); // {1: aa, 2: bb, 10: A, 20: B, 30: C}
-/// // Iterating items
+/// print(hashMap.length); // 4
+/// print(hashMap); // {1: A, 2: B, 3: C, 4: D}
+/// ```
+/// The [forEach] iterates through all entries of a map.
+/// Manipulating item count in [forEach] is prohibited. Adding or
+/// deleting items during iteration causes an exception:
+/// _"Concurrent modification during iteration"_.
+/// ```dart
 /// hashMap.forEach((key, value) {
-///   print('key: $key ' ' value: $value');
+///   print('key: $key value: $value');
+///   // key: 1 value: A
+///   // key: 2 value: B
+///   // key: 3 value: C
+///   // key: 4 value: D
 /// });
-/// // Check if key defined on map
+/// ```
+/// Check is key defined:
+/// ```dart
 /// print(hashMap.containsKey(1)); // true
-/// print(hashMap.containsKey(3)); // false
-/// // Check if value defined on map
+/// print(hashMap.containsKey(5)); // false
+/// ```
+/// Check is value defined:
+/// ```dart
+/// print(hashMap.containsValue('B')); // true
 /// print(hashMap.containsValue('b')); // false
-/// print(hashMap.containsValue('bb')); // true
-/// // Remove one item using key value
-/// hashMap.remove(1); // { 2: bb, 10: A, 20: B, 30: C}
-/// // Remove all items with provided statement
-/// hashMap.removeWhere((key, value) => key == 2); // {10: A, 20: B, 30: C}
-/// hashMap.removeWhere((key, value) => value == 'B'); // {10: A, 30: C}
-/// // Update existing key value on map
-/// hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'D');
-/// print(hashMap); // {10: ABC, 30: C}
-/// // Update / insert value to map if key not exists
-/// hashMap.update(4, (v) => 'abc', ifAbsent: () => 'D');
-/// print(hashMap); // {10: ABC, 4: D, 30: C}
-/// // Update all items
-/// hashMap.updateAll((int key, String value) => 'E');
-/// print(hashMap); // {10: E, 4: E, 30: E}
-/// // Remove all items
+/// ```
+/// Remove item if provided key exists:
+/// ```dart
+/// hashMap.remove(1);
+/// ```
+/// Remove item using [removeWhere] with a statement:
+/// ```dart
+/// hashMap.removeWhere((key, value) => key == 2);
+/// hashMap.removeWhere((key, value) => value == 'B');
+/// ```
+/// Update or insert (adding new key-value pair if not exists) value:
+/// ```dart
+/// hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
+/// print(hashMap); // {10: E, 3: C, 4: D}
+/// hashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
+/// print(hashMap); // {10: E, 3: C, 4: abc}
+/// ```
+/// Update all items using [updateAll]:
+/// ```dart
+/// hashMap.updateAll((int key, String value) => 'X');
+/// print(hashMap); // {10: X, 3: X, 4: X}
+/// ```
+/// Use [clear] to remove all items:
+/// ```dart
 /// hashMap.clear(); // {}
 /// ```
+///
+/// ## Constructor options for initialization:
 ///
 /// [HashMap.from] example:
 /// ```dart
