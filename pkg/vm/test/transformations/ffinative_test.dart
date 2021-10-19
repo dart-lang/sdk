@@ -13,7 +13,7 @@ import 'package:kernel/verifier.dart';
 
 import 'package:test/test.dart';
 
-import 'package:vm/transformations/ffi_native.dart' show transformLibraries;
+import 'package:vm/transformations/ffi/native.dart' show transformLibraries;
 
 import '../common_test_utils.dart';
 

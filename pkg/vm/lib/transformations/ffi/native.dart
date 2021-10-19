@@ -17,7 +17,7 @@ import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
-import 'ffi.dart' show FfiTransformer;
+import 'common.dart' show FfiTransformer;
 
 /// Transform @FfiNative annotated functions into FFI native function pointer
 /// functions.
