@@ -12,7 +12,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseEffectiveIntegerDivision extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

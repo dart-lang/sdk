@@ -1386,6 +1386,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Use effective integer division ~/',
   );
+  static const USE_EFFECTIVE_INTEGER_DIVISION_MULTI = FixKind(
+    'dart.fix.use.effectiveIntegerDivision.multi',
+    DartFixKindPriority.IN_FILE,
+    'Use effective integer division ~/ everywhere in file',
+  );
   static const USE_EQ_EQ_NULL = FixKind(
     'dart.fix.use.eqEqNull',
     DartFixKindPriority.DEFAULT,

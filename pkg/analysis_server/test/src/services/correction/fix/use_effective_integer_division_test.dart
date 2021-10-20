@@ -11,7 +11,28 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseEffectiveIntegerDivisionTest);
+    defineReflectiveTests(UseEffectiveIntegerDivisionMultiTest);
   });
+}
+
+@reflectiveTest
+class UseEffectiveIntegerDivisionMultiTest extends BulkFixProcessorTest {
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+main() {
+  var a = 5;
+  var b = 2;
+  print((a / ((a / b).toInt())).toInt());
+}
+''');
+    await assertHasFix('''
+main() {
+  var a = 5;
+  var b = 2;
+  print(a ~/ (a ~/ b));
+}
+''');
+  }
 }
 
 @reflectiveTest

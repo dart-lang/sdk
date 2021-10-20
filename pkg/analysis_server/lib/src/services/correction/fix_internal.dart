@@ -355,7 +355,7 @@ class FixProcessor extends BaseProcessor {
       RemoveInitializer.newInstance,
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
-      RemoveComparison.newInstanceBulkFixable,
+      RemoveComparison.newInstance,
     ],
     LintNames.avoid_print: [
       MakeConditionalOnDebugMode.newInstance,
