@@ -341,9 +341,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// @return `true` if given [Type] implements operator <i>==</i>, and it is
   ///         not <i>int</i> or <i>String</i>.
-  bool _implementsEqualsWhenNotAllowed(DartType? type) {
+  bool _implementsEqualsWhenNotAllowed(DartType type) {
     // ignore int or String
-    if (type == null || type.isDartCoreInt || type.isDartCoreString) {
+    if (type.isDartCoreInt || type.isDartCoreString) {
       return false;
     } else if (type.isDartCoreDouble) {
       return true;
@@ -373,7 +373,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///        consists of a reference to a deferred library
   void _reportErrorIfFromDeferredLibrary(
       Expression expression, ErrorCode errorCode,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     DeferredLibraryReferenceDetector referenceDetector =
         DeferredLibraryReferenceDetector();
     expression.accept(referenceDetector);
@@ -628,7 +628,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (_implementsEqualsWhenNotAllowed(firstType)) {
+    if (firstType != null && _implementsEqualsWhenNotAllowed(firstType)) {
       _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
         node.switchKeyword,

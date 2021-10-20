@@ -739,8 +739,12 @@ class LibraryAnalyzer {
           CompileTimeErrorCode.URI_WITH_INTERPOLATION, uriLiteral);
       return null;
     } else if (code == UriValidationCode.INVALID_URI) {
+      // It is safe to assume [uriContent] is non-null because the only way for
+      // it to be null is if the string literal contained an interpolation, and
+      // in that case the validation code would have been
+      // UriValidationCode.URI_WITH_INTERPOLATION.
       _getErrorReporter(file).reportErrorForNode(
-          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent]);
+          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent!]);
       return null;
     }
     return null;
@@ -808,8 +812,12 @@ class LibraryAnalyzer {
     if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
+    // It is safe to assume that `uriContent` is non-null because the only way
+    // for it to be null is if the string literal contained an interpolation,
+    // and in that case the call to `directive.validate()` above would have
+    // returned a non-null validation code.
     _getErrorReporter(file)
-        .reportErrorForNode(errorCode, uriLiteral, [uriContent]);
+        .reportErrorForNode(errorCode, uriLiteral, [uriContent!]);
   }
 
   /// Check each directive in the given [unit] to see if the referenced source

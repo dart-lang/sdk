@@ -3248,7 +3248,7 @@ class _WhyNotPromotedVisitor
   _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 
   @override
-  DiagnosticMessage? visitDemoteViaExplicitWrite(
+  DiagnosticMessage visitDemoteViaExplicitWrite(
       DemoteViaExplicitWrite<PromotableElement> reason) {
     var node = reason.node as AstNode;
     if (node is ForEachPartsWithIdentifier) {
@@ -3258,7 +3258,6 @@ class _WhyNotPromotedVisitor
       _dataForTesting!.nonPromotionReasonTargets[node] = reason.shortName;
     }
     var variableName = reason.variable.name;
-    if (variableName == null) return null;
     return _contextMessageForWrite(variableName, node, reason);
   }
 

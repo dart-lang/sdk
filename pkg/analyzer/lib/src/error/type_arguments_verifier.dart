@@ -251,15 +251,15 @@ class TypeArgumentsVerifier {
       // Type has explicit type arguments.
       return;
     }
-    if (_isMissingTypeArguments(
-        node, node.typeOrThrow, node.name.staticElement, null)) {
+    var type = node.typeOrThrow;
+    if (_isMissingTypeArguments(node, type, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
         // Do not report a "Strict raw type" error in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
-            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
+            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
       }
     }
   }

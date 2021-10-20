@@ -49,6 +49,7 @@ class LiteralElementVerifier {
   /// Check that the given [type] is assignable to the [elementType], otherwise
   /// report the list or set error on the [errorNode].
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
+    var elementType = this.elementType;
     if (!typeSystem.isAssignableTo(type, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -100,16 +101,18 @@ class LiteralElementVerifier {
   /// Verify that the [entry]'s key and value are assignable to [mapKeyType]
   /// and [mapValueType].
   void _verifyMapLiteralEntry(MapLiteralEntry entry) {
+    var mapKeyType = this.mapKeyType;
     if (!mapKeyType!.isVoid && checkForUseOfVoidResult(entry.key)) {
       return;
     }
 
+    var mapValueType = this.mapValueType;
     if (!mapValueType!.isVoid && checkForUseOfVoidResult(entry.value)) {
       return;
     }
 
     var keyType = entry.key.typeOrThrow;
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         entry.key,
@@ -118,7 +121,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = entry.value.typeOrThrow;
-    if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         entry.value,
@@ -172,6 +175,7 @@ class LiteralElementVerifier {
     }
 
     var iterableElementType = iterableType.typeArguments[0];
+    var elementType = this.elementType;
     if (!typeSystem.isAssignableTo(iterableElementType, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -229,6 +233,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = mapType.typeArguments[0];
+    var mapKeyType = this.mapKeyType;
     if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
@@ -238,6 +243,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = mapType.typeArguments[1];
+    var mapValueType = this.mapValueType;
     if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,

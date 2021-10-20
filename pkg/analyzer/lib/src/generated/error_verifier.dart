@@ -2555,7 +2555,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else {
         errorCode = LanguageCode.IMPLICIT_DYNAMIC_VARIABLE;
       }
-      errorReporter.reportErrorForNode(errorCode, node, [id]);
+      // Parameters associated with a variable always have a name, so we can
+      // safely rely on [id] being non-`null`.
+      errorReporter.reportErrorForNode(errorCode, node, [id!]);
     }
   }
 
@@ -2612,11 +2614,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (sdkLibrary == null || !sdkLibrary.isInternal) {
       return;
     }
-
+    // The only way an import URI's `stringValue` can be `null` is if the string
+    // contained interpolations, in which case the import would have failed to
+    // resolve, and we would never reach here.  So it is safe to assume that
+    // `directive.uri.stringValue` is non-`null`.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
         directive.uri,
-        [directive.uri.stringValue]);
+        [directive.uri.stringValue!]);
   }
 
   /// Check that the given [typeReference] is not a type reference and that then
@@ -3079,11 +3084,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
       if (!isSatisfied) {
+        // This error can only occur if [mixinName] resolved to an actual mixin,
+        // so we can safely rely on `mixinName.type` being non-`null`.
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
           mixinName.name,
           [
-            mixinName.type,
+            mixinName.type!,
             superType,
             constraint,
           ],
@@ -3168,11 +3175,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (Identifier.isPrivateName(name)) {
         Map<String, String> names =
             mixedInNames.putIfAbsent(library, () => <String, String>{});
-        if (names.containsKey(name)) {
+        var conflictingName = names[name];
+        if (conflictingName != null) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType,
-              [name, namedType.name.name, names[name]]);
+              [name, namedType.name.name, conflictingName]);
           return true;
         }
         names[name] = namedType.name.name;
@@ -3182,12 +3190,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           concrete: true,
         );
         if (inheritedMember != null) {
+          // Inherited members are always contained inside named elements, so we
+          // can safely assume `inheritedMember.enclosingElement.name` is
+          // non-`null`.
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType, [
             name,
             namedType.name.name,
-            inheritedMember.enclosingElement.name
+            inheritedMember.enclosingElement.name!
           ]);
           return true;
         }
@@ -4042,10 +4053,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           }
           if (step == parameters.length) {
             var element = parameter.declaredElement!;
+            // This error can only occur if there is a bound, so we can saefly
+            // assume `element.bound` is non-`null`.
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
               parameter.name,
-              [element.displayName, element.bound],
+              [element.displayName, element.bound!],
             );
             break;
           }

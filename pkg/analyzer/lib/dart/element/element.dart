@@ -1620,7 +1620,11 @@ abstract class PrefixElement implements _ExistingElement {
 /// variable or a parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PromotableElement implements LocalElement, VariableElement {}
+abstract class PromotableElement implements LocalElement, VariableElement {
+  // Promotable elements are guaranteed to have a name.
+  @override
+  String get name;
+}
 
 /// A getter or a setter. Note that explicitly defined property accessors
 /// implicitly define a synthetic field. Symmetrically, synthetic accessors are
@@ -1885,6 +1889,9 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// > declaration and includes the modifier static. A library variable is
   /// > implicitly static.
   bool get isStatic;
+
+  @override
+  String get name;
 
   /// Return the declared type of this variable.
   DartType get type;
