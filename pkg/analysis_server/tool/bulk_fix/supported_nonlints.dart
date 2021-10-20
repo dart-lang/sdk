@@ -13,8 +13,8 @@ Future<void> main() async {
 
   print('hints w/ correction producers:\n');
 
-  var hintEntries = FixProcessor.nonLintProducerMap.entries
-      .where((e) => e.key.type == ErrorType.HINT);
+  var hintEntries = FixProcessor.nonLintProducerMap.entries.where((e) =>
+      e.key.type == ErrorType.HINT || e.key.type == ErrorType.STATIC_WARNING);
   for (var hint in hintEntries) {
     var canBeAppliedInBulk = false;
     var missingExplanations = <String>[];

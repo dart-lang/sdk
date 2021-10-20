@@ -1380,12 +1380,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ j(NOT_EQUAL, normal_ir_body);
 
   // Check if types are syntactically equal.
-  __ LoadCompressedSmi(RDI,
-                       FieldAddress(RCX, target::Type::type_class_id_offset()));
-  __ SmiUntag(RDI);
-  __ LoadCompressedSmi(RSI,
-                       FieldAddress(RDX, target::Type::type_class_id_offset()));
-  __ SmiUntag(RSI);
+  __ LoadTypeClassId(RDI, RCX);
+  __ LoadTypeClassId(RSI, RDX);
   // We are not testing instance cids, but type class cids of Type instances.
   EquivalentClassIds(assembler, normal_ir_body, &equiv_cids_may_be_generic,
                      &equiv_cids, &not_equal, RDI, RSI, RAX,

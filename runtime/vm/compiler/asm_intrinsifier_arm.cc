@@ -1360,10 +1360,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ b(normal_ir_body, NE);
 
   // Check if types are syntactically equal.
-  __ ldr(R3, FieldAddress(R1, target::Type::type_class_id_offset()));
-  __ SmiUntag(R3);
-  __ ldr(R4, FieldAddress(R2, target::Type::type_class_id_offset()));
-  __ SmiUntag(R4);
+  __ LoadTypeClassId(R3, R1);
+  __ LoadTypeClassId(R4, R2);
   // We are not testing instance cids, but type class cids of Type instances.
   EquivalentClassIds(assembler, normal_ir_body, &equiv_cids_may_be_generic,
                      &equiv_cids, &not_equal, R3, R4, R0,

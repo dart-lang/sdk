@@ -1084,10 +1084,20 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Remove unused 'catch' clause",
   );
+  static const REMOVE_UNUSED_CATCH_CLAUSE_MULTI = FixKind(
+    'dart.fix.remove.unusedCatchClause.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unused 'catch' clauses in file",
+  );
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(
     'dart.fix.remove.unusedCatchStack',
     DartFixKindPriority.DEFAULT,
     'Remove unused stack trace variable',
+  );
+  static const REMOVE_UNUSED_CATCH_STACK_MULTI = FixKind(
+    'dart.fix.remove.unusedCatchStack.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unused stack trace variables in file',
   );
   static const REMOVE_UNUSED_ELEMENT = FixKind(
     'dart.fix.remove.unusedElement',

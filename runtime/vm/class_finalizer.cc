@@ -1498,11 +1498,7 @@ class CidRewriteVisitor : public ObjectVisitor {
           Map(param->untag()->parameterized_class_id_);
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
-      ObjectPtr id = type->untag()->type_class_id();
-      if (!id->IsHeapObject()) {
-        type->untag()->set_type_class_id(
-            Smi::New(Map(Smi::Value(Smi::RawCast(id)))));
-      }
+      type->untag()->type_class_id_ = Map(type->untag()->type_class_id_);
     } else {
       intptr_t old_cid = obj->GetClassId();
       intptr_t new_cid = Map(old_cid);

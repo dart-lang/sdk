@@ -111,14 +111,42 @@ String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
 /// two-level map of [ErrorCodeInfo], indexed first by class name and then by
 /// error name.
 Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
-    Map<Object?, Object?> yaml) {
+    Object? yaml) {
+  Never problem(String message) {
+    throw 'Problem in pkg/analyzer/messages.yaml: $message';
+  }
+
   var result = <String, Map<String, ErrorCodeInfo>>{};
+  if (yaml is! Map<Object?, Object?>) {
+    problem('root node is not a map');
+  }
   for (var classEntry in yaml.entries) {
-    var className = classEntry.key as String;
-    for (var errorEntry
-        in (classEntry.value as Map<Object?, Object?>).entries) {
-      (result[className] ??= {})[errorEntry.key as String] =
-          ErrorCodeInfo.fromYaml(errorEntry.value as Map<Object?, Object?>);
+    var className = classEntry.key;
+    if (className is! String) {
+      problem('non-string class key ${json.encode(className)}');
+    }
+    var classValue = classEntry.value;
+    if (classValue is! Map<Object?, Object?>) {
+      problem('value associated with class key $className is not a map');
+    }
+    for (var errorEntry in classValue.entries) {
+      var errorName = errorEntry.key;
+      if (errorName is! String) {
+        problem('in class $className, non-string error key '
+            '${json.encode(errorName)}');
+      }
+      var errorValue = errorEntry.value;
+      if (errorValue is! Map<Object?, Object?>) {
+        problem('value associated with error $className.$errorName is not a '
+            'map');
+      }
+      try {
+        (result[className] ??= {})[errorName] =
+            ErrorCodeInfo.fromYaml(errorValue);
+      } catch (e) {
+        problem('while processing '
+            '$className.$errorName, $e');
+      }
     }
   }
   return result;
@@ -126,25 +154,39 @@ Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
 
 /// Decodes a YAML object (obtained from `pkg/front_end/messages.yaml`) into a
 /// map from error name to [ErrorCodeInfo].
-Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Map<Object?, Object?> yaml) {
+Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
+  Never problem(String message) {
+    throw 'Problem in pkg/front_end/messages.yaml: $message';
+  }
+
   var result = <String, ErrorCodeInfo>{};
+  if (yaml is! Map<Object?, Object?>) {
+    problem('root node is not a map');
+  }
   for (var entry in yaml.entries) {
-    result[entry.key as String] =
-        ErrorCodeInfo.fromYaml(entry.value as Map<Object?, Object?>);
+    var errorName = entry.key;
+    if (errorName is! String) {
+      problem('non-string error key ${json.encode(errorName)}');
+    }
+    var errorValue = entry.value;
+    if (errorValue is! Map<Object?, Object?>) {
+      problem('value associated with error $errorName is not a map');
+    }
+    result[errorName] = ErrorCodeInfo.fromYaml(errorValue);
   }
   return result;
 }
 
 /// Loads analyzer messages from the analyzer's `messages.yaml` file.
 Map<String, Map<String, ErrorCodeInfo>> _loadAnalyzerMessages() {
-  Map<dynamic, dynamic> messagesYaml =
+  Object? messagesYaml =
       loadYaml(File(join(analyzerPkgPath, 'messages.yaml')).readAsStringSync());
   return decodeAnalyzerMessagesYaml(messagesYaml);
 }
 
 /// Loads front end messages from the front end's `messages.yaml` file.
 Map<String, ErrorCodeInfo> _loadFrontEndMessages() {
-  Map<dynamic, dynamic> messagesYaml =
+  Object? messagesYaml =
       loadYaml(File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
   return decodeCfeMessagesYaml(messagesYaml);
 }
