@@ -740,7 +740,16 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           connectionResult = socket.nativeCreateUnixDomainConnect(
               address.address, _Namespace._namespace);
         } else {
-          assert(source.type == InternetAddressType.unix);
+          if (source.type != InternetAddressType.unix) {
+            return SocketException(
+                // Use the same error message as used on Linux for better
+                // searchability...
+                "Address family not supported by protocol family, "
+                // ...and then add some details.
+                "sourceAddress.type must be ${InternetAddressType.unix} but was "
+                "${source.type}",
+                address: address);
+          }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
         }
@@ -753,6 +762,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           connectionResult = socket.nativeCreateConnect(
               address_._in_addr, port, address_._scope_id);
         } else {
+          if (source.type != InternetAddressType.IPv4 &&
+              source.type != InternetAddressType.IPv6) {
+            return SocketException(
+                // Use the same error message as used on Linux for better
+                // searchability...
+                "Address family not supported by protocol family, "
+                // ...and then add some details.
+                "sourceAddress.type must be ${InternetAddressType.IPv4} or "
+                "${InternetAddressType.IPv6} but was ${source.type}",
+                address: address);
+          }
           connectionResult = socket.nativeCreateBindConnect(
               address_._in_addr, port, source._in_addr, address_._scope_id);
         }
@@ -773,6 +793,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           return createError(
               connectionResult, "Connection failed", address, port);
         }
+      } else if (connectionResult is SocketException) {
+        return connectionResult;
       } else if (connectionResult is Error) {
         return connectionResult;
       }

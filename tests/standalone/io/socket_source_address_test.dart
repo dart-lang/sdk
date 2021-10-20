@@ -6,39 +6,83 @@
 import "dart:async";
 import "dart:io";
 
-import 'test_utils.dart' show retry, throws;
+import 'test_utils.dart' show retry, throws, withTempDir;
 
-Future testArguments(connectFunction) async {
+Future testArguments(connectFunction, String socketDir) async {
   var sourceAddress;
-  final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-  server.listen((_) {
+  final serverIPv4 = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+  serverIPv4.listen((_) {
+    throw 'Unexpected connection from address $sourceAddress';
+  });
+
+  final serverIPv6 = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
+  serverIPv6.listen((_) {
+    throw 'Unexpected connection from address $sourceAddress';
+  });
+
+  ServerSocket serverUnix = await ServerSocket.bind(
+      InternetAddress('$socketDir/sock', type: InternetAddressType.unix), 0);
+  serverUnix.listen((_) {
     throw 'Unexpected connection from address $sourceAddress';
   });
 
   // Illegal type for sourceAddress.
   for (sourceAddress in ['www.google.com', 'abc']) {
     await throws(
-        () => connectFunction('127.0.0.1', server.port,
+        () => connectFunction('127.0.0.1', serverIPv4.port,
             sourceAddress: sourceAddress),
         (e) => e is ArgumentError);
   }
   // Unsupported local address.
   for (sourceAddress in ['8.8.8.8', new InternetAddress('8.8.8.8')]) {
     await throws(
-        () => connectFunction('127.0.0.1', server.port,
+        () => connectFunction('127.0.0.1', serverIPv4.port,
             sourceAddress: sourceAddress),
         (e) =>
             e is SocketException &&
             e.address == new InternetAddress('8.8.8.8'));
   }
-  // Address family mismatch.
-  for (sourceAddress in ['::1', InternetAddress.loopbackIPv6]) {
+  // Address family mismatch for IPv4.
+  for (sourceAddress in [
+    '::1',
+    InternetAddress.loopbackIPv6,
+    InternetAddress('$socketDir/sock', type: InternetAddressType.unix)
+  ]) {
     await throws(
-        () => connectFunction('127.0.0.1', server.port,
+        () => connectFunction('127.0.0.1', serverIPv4.port,
             sourceAddress: sourceAddress),
         (e) => e is SocketException);
   }
-  await server.close();
+  // Address family mismatch for IPv6.
+  for (sourceAddress in [
+    '127.0.0.1',
+    InternetAddress.loopbackIPv4,
+    InternetAddress('$socketDir/sock', type: InternetAddressType.unix)
+  ]) {
+    await throws(
+        () => connectFunction('::1', serverIPv6.port,
+            sourceAddress: sourceAddress),
+        (e) => e is SocketException);
+  }
+  // Address family mismatch for Unix domain sockets.
+  for (sourceAddress in [
+    '127.0.0.1',
+    InternetAddress.loopbackIPv4,
+    '::1',
+    InternetAddress.loopbackIPv6,
+  ]) {
+    await throws(
+        () => connectFunction(
+            InternetAddress("$socketDir/sock", type: InternetAddressType.unix),
+            serverUnix.port,
+            sourceAddress: sourceAddress),
+        (e) =>
+            e is SocketException &&
+            e.toString().contains('Address family not supported'));
+  }
+  await serverIPv4.close();
+  await serverIPv6.close();
+  await serverUnix.close();
 }
 
 // IPv4 addresses to use as source address when connecting locally.
@@ -112,10 +156,14 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
 
 main() async {
   await retry(() async {
-    await testArguments(RawSocket.connect);
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testArguments(RawSocket.connect, "${dir.path}");
+    });
   });
   await retry(() async {
-    await testArguments(Socket.connect);
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testArguments(Socket.connect, "${dir.path}");
+    });
   });
 
   await retry(() async {

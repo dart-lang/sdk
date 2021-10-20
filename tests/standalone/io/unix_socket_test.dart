@@ -8,6 +8,8 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 
+import 'test_utils.dart' show withTempDir;
+
 Future testAddress(String name) async {
   var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
   var server = await ServerSocket.bind(address, 0);
@@ -819,27 +821,6 @@ Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
       socket.close();
     }
   });
-}
-
-// Create socket in temp directory
-Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
-  final tempDir = Directory.systemTemp.createTempSync(prefix);
-  try {
-    await runZonedGuarded(() => test(tempDir), (e, st) {
-      try {
-        tempDir.deleteSync(recursive: true);
-      } catch (_) {
-        // ignore errors
-      }
-      throw e;
-    });
-  } finally {
-    try {
-      tempDir.deleteSync(recursive: true);
-    } catch (_) {
-      // ignore errors
-    }
-  }
 }
 
 void main(List<String> args) async {
