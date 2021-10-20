@@ -172,7 +172,8 @@ class ExtensionMemberResolver {
       typeArgumentTypes,
     );
 
-    nodeImpl.extendedType = substitution.substituteType(element.extendedType);
+    var extendedType = nodeImpl.extendedType =
+        substitution.substituteType(element.extendedType);
 
     _checkTypeArgumentsMatchingBounds(
       typeParameters,
@@ -184,13 +185,13 @@ class ExtensionMemberResolver {
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
-    } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType!)) {
+    } else if (!_typeSystem.isAssignableTo(receiverType, extendedType)) {
       var whyNotPromoted =
           whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
-        [receiverType, node.extendedType],
+        [receiverType, extendedType],
         _resolver.computeWhyNotPromotedMessages(
             receiverExpression, whyNotPromoted?.call()),
       );
@@ -431,10 +432,13 @@ class ExtensionMemberResolver {
         }
         return arguments.map((a) => a.typeOrThrow).toList();
       } else {
+        // We can safely assume `element.name` is non-`null` because type
+        // arguments can only be applied to explicit extension overrides, and
+        // explicit extension overrides cannot refer to unnamed extensions.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
           typeArguments,
-          [element.name, typeParameters.length, arguments.length],
+          [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }

@@ -222,7 +222,7 @@ abstract class num implements Comparable<num> {
   /// a finite double or an infinite double ([double.infinity]
   /// or [double.negativeInfinity]).
   ///
-  /// All numbers satisfy exacly one of of [isInfinite], [isFinite]
+  /// All numbers satisfy exactly one of [isInfinite], [isFinite]
   /// and `isNaN`.
   bool get isNaN;
 
@@ -237,7 +237,7 @@ abstract class num implements Comparable<num> {
   ///
   /// Only satisfied by [double.infinity] and [double.negativeInfinity].
   ///
-  /// All numbers satisfy exacly one of of `isInfinite`, [isFinite]
+  /// All numbers satisfy exactly one of `isInfinite`, [isFinite]
   /// and [isNaN].
   bool get isInfinite;
 
@@ -246,7 +246,7 @@ abstract class num implements Comparable<num> {
   /// The only non-finite numbers are NaN values, positive infinity, and
   /// negative infinity. All integers are finite.
   ///
-  /// All numbers satisfy exacly one of of [isInfinite], `isFinite`
+  /// All numbers satisfy exactly one of [isInfinite], `isFinite`
   /// and [isNaN].
   bool get isFinite;
 
@@ -304,7 +304,7 @@ abstract class num implements Comparable<num> {
 
   /// The least integer no smaller than `this`.
   ///
-  /// Rounds fractional values towards positive infinitiy.
+  /// Rounds fractional values towards positive infinity.
   ///
   /// The number must be finite (see [isFinite]).
   ///

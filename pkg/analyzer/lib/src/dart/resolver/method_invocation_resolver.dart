@@ -393,10 +393,12 @@ class MethodInvocationResolver {
     }
 
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+    // This method is only called for named extensions, so we know that
+    // `extension.name` is non-`null`.
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
       nameNode,
-      [name, extension.name],
+      [name, extension.name!],
     );
   }
 
@@ -411,10 +413,12 @@ class MethodInvocationResolver {
 
     if (member == null) {
       _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+      // Extension overrides always refer to named extensions, so we can safely
+      // assume `override.staticElement!.name` is non-`null`.
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
         nameNode,
-        [name, override.staticElement!.name],
+        [name, override.staticElement!.name!],
       );
       return;
     }

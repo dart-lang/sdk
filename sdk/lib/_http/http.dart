@@ -1081,7 +1081,7 @@ abstract class Cookie {
 
   /**
    * Returns the formatted string representation of the cookie. The
-   * string representation can be used for for setting the Cookie or
+   * string representation can be used for setting the Cookie or
    * 'set-cookie' headers
    */
   String toString();
@@ -2064,7 +2064,7 @@ abstract class HttpClientRequest implements IOSink {
   /// the request has been aborted
   ///
   /// ```dart import:async
-  /// HttpClientRequst request = ...
+  /// HttpClientRequest request = ...
   /// request.write();
   /// Timer(Duration(seconds: 1), () {
   ///   request.abort();

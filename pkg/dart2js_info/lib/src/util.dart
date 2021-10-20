@@ -60,7 +60,7 @@ String longName(Info info, {bool useLibraryUri = false, bool forId = false}) {
     if (!first) sb.write('.');
     // TODO(sigmund): ensure that the first segment is a LibraryInfo.
     // assert(!first || segment is LibraryInfo);
-    // (today might not be true for for closure classes).
+    // (today might not be true for closure classes).
     if (segment is LibraryInfo) {
       // TODO(kevmoo): Remove this when dart2js can be invoked with an app-root
       // custom URI

@@ -225,7 +225,7 @@ class BreakpointLocation {
 // There may be more than one CodeBreakpoint for one BreakpointLocation,
 // e.g. when a function gets compiled as a regular function and as a closure.
 // There may be more than one BreakpointLocation associated with CodeBreakpoint,
-// one for for every isolate in a group that sets a breakpoint at particular
+// one for every isolate in a group that sets a breakpoint at particular
 // code location represented by the CodeBreakpoint.
 // Each BreakpointLocation might be enabled/disabled based on whether it has
 // any actual breakpoints associated with it.

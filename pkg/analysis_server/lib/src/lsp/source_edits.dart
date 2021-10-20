@@ -93,7 +93,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     }
     formattedResult = formatter.formatSource(code);
   } on FormatterException {
-    // If the document fails to parse, just return no edits to avoid the the
+    // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the
     // ability to pass a context to know if the format was manually invoked
     // we may wish to change this to return an error for that case).

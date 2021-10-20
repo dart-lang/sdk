@@ -4118,10 +4118,11 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
 }
 
 // Conventions:
-// * For throwing a NSM in a class klass we use its runtime type as receiver,
-//   i.e., klass.RareType().
-// * For throwing a NSM in a library, we just pass the null instance as
-//   receiver.
+// * For throwing a NSM in a library or top-level class (i.e., level is
+//   kTopLevel), if a method was found but was incompatible, we pass the
+//   signature of the found method as a string, otherwise the null instance.
+// * Otherwise, for throwing a NSM in a class klass we use its runtime type as
+//   receiver, i.e., klass.RareType().
 static ObjectPtr ThrowNoSuchMethod(const Instance& receiver,
                                    const String& function_name,
                                    const Array& arguments,
@@ -4131,6 +4132,8 @@ static ObjectPtr ThrowNoSuchMethod(const Instance& receiver,
   const Smi& invocation_type =
       Smi::Handle(Smi::New(InvocationMirror::EncodeType(level, kind)));
 
+  ASSERT(!receiver.IsNull() || level == InvocationMirror::Level::kTopLevel);
+  ASSERT(level != InvocationMirror::Level::kTopLevel || receiver.IsString());
   const Array& args = Array::Handle(Array::New(7));
   args.SetAt(0, receiver);
   args.SetAt(1, function_name);
@@ -13361,10 +13364,10 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
 
   if (getter.IsNull() || (respect_reflectable && !getter.is_reflectable())) {
     if (throw_nsm_if_absent) {
-      return ThrowNoSuchMethod(
-          AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
-          getter_name, Object::null_array(), Object::null_array(),
-          InvocationMirror::kTopLevel, InvocationMirror::kGetter);
+      return ThrowNoSuchMethod(Object::null_string(), getter_name,
+                               Object::null_array(), Object::null_array(),
+                               InvocationMirror::kTopLevel,
+                               InvocationMirror::kGetter);
     }
 
     // Fall through case: Indicate that we didn't find any function or field
@@ -13402,10 +13405,10 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
       const Array& args = Array::Handle(Array::New(kNumArgs));
       args.SetAt(0, value);
 
-      return ThrowNoSuchMethod(
-          AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
-          internal_setter_name, args, Object::null_array(),
-          InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+      return ThrowNoSuchMethod(Object::null_string(), internal_setter_name,
+                               args, Object::null_array(),
+                               InvocationMirror::kTopLevel,
+                               InvocationMirror::kSetter);
     }
     field.SetStaticValue(value);
     return value.ptr();
@@ -13425,10 +13428,9 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
   const Array& args = Array::Handle(Array::New(kNumArgs));
   args.SetAt(0, value);
   if (setter.IsNull() || (respect_reflectable && !setter.is_reflectable())) {
-    return ThrowNoSuchMethod(
-        AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
-        internal_setter_name, args, Object::null_array(),
-        InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+    return ThrowNoSuchMethod(Object::null_string(), internal_setter_name, args,
+                             Object::null_array(), InvocationMirror::kTopLevel,
+                             InvocationMirror::kSetter);
   }
 
   setter_type = setter.ParameterTypeAt(0);
@@ -13491,13 +13493,15 @@ ObjectPtr Library::Invoke(const String& function_name,
   }
 
   if (function.IsNull() ||
-      !function.AreValidArguments(args_descriptor, nullptr) ||
       (respect_reflectable && !function.is_reflectable())) {
+    return ThrowNoSuchMethod(Object::null_string(), function_name, args,
+                             arg_names, InvocationMirror::kTopLevel,
+                             InvocationMirror::kMethod);
+  }
+  if (!function.AreValidArguments(args_descriptor, nullptr)) {
     return ThrowNoSuchMethod(
-        AbstractType::Handle(zone,
-                             Class::Handle(zone, toplevel_class()).RareType()),
-        function_name, args, arg_names, InvocationMirror::kTopLevel,
-        InvocationMirror::kMethod);
+        String::Handle(function.UserVisibleSignature()), function_name, args,
+        arg_names, InvocationMirror::kTopLevel, InvocationMirror::kMethod);
   }
   // This is a static function, so we pass an empty instantiator tav.
   ASSERT(function.is_static());
@@ -21257,7 +21261,16 @@ uword FunctionType::ComputeHash() const {
 
 void Type::set_type_class(const Class& value) const {
   ASSERT(!value.IsNull());
-  untag()->set_type_class_id(Smi::New(value.id()));
+  const intptr_t id = value.id();
+  // We should never need a Type object for a top-level class.
+  ASSERT(!ClassTable::IsTopLevelCid(id));
+  ASSERT(id == kIllegalCid || !IsInternalOnlyClassId(id));
+  // We must allow Types with kIllegalCid type class ids, because the class
+  // used for evaluating expressions inside a instance method call context
+  // from the debugger is not registered (and thus has kIllegalCid as an id).
+  // Thus, we check id != kIllegalCid only if IsType(), not if and only if.
+  ASSERT(id == kIllegalCid || IsType());
+  untag()->set_type_class_id(Smi::New(id));
 }
 
 void Type::set_arguments(const TypeArguments& value) const {

@@ -181,7 +181,7 @@ class Flags {
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.
   // Shipping features default to on, but can be disabled individually. All
-  // shipping features can be disabled with the the [noShipping] flag.
+  // shipping features can be disabled with the [noShipping] flag.
   static const String noShipping = '--no-shipping';
 
   // Canary features default to off, but can still be enabled individually. All

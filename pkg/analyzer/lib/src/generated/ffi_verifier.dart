@@ -918,7 +918,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     DartType FT = f.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(FT, T)) {
       _errorReporter.reportErrorForNode(
-          FfiCode.MUST_BE_A_SUBTYPE, f, [f.staticType, T, 'fromFunction']);
+          FfiCode.MUST_BE_A_SUBTYPE, f, [FT, T, 'fromFunction']);
       return;
     }
 
@@ -937,9 +937,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           FfiCode.MISSING_EXCEPTION_VALUE, node.methodName);
     } else {
       Expression e = node.argumentList.arguments[1];
-      if (!_validateCompatibleNativeType(e.typeOrThrow, R, true)) {
+      var eType = e.typeOrThrow;
+      if (!_validateCompatibleNativeType(eType, R, true)) {
         _errorReporter.reportErrorForNode(
-            FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
+            FfiCode.MUST_BE_A_SUBTYPE, e, [eType, R, 'fromFunction']);
       }
       if (!_isConst(e)) {
         _errorReporter.reportErrorForNode(

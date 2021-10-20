@@ -13327,7 +13327,7 @@ class Element extends Node
   /**
    * Scrolls this element into view.
    *
-   * Only one of of the alignment options may be specified at a time.
+   * Only one of the alignment options may be specified at a time.
    *
    * If no options are specified then this will attempt to scroll the minimum
    * amount needed to bring the element into view.
@@ -18328,7 +18328,7 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Specify the desired `url`, and `method` to use in making the request.
    *
-   * By default the request is done asyncronously, with no user or password
+   * By default the request is done asynchronously, with no user or password
    * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *

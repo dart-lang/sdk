@@ -505,7 +505,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     ''';
 
     // Expect the correct tokens for the valid code before/after but don't
-    // check the the tokens for the invalid code as there are no concrete
+    // check the tokens for the invalid code as there are no concrete
     // expectations for them.
     final expected1 = [
       _Token('/// class docs', SemanticTokenTypes.comment,

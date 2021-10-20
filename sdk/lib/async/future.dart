@@ -60,7 +60,7 @@ abstract class FutureOr<T> {
 /// To perform an asynchronous computation, you use an `async` function
 /// which always produces a future.
 /// Inside such an asynchronous function, you can use the `await` operation
-/// to delay execution until another asyncronous computation has a result.
+/// to delay execution until another asynchronous computation has a result.
 /// While execution of the awaiting function is delayed,
 /// the program is not blocked, and can continue doing other things.
 ///

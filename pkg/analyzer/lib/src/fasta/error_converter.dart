@@ -341,7 +341,7 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-      ScannerErrorCode errorCode, int offset, List<Object?>? arguments) {
+      ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     errorReporter?.reportErrorForOffset(errorCode, offset, length, arguments);

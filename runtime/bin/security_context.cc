@@ -649,7 +649,7 @@ Dart_Handle X509Helper::GetDer(Dart_NativeArguments args) {
     Dart_PropagateError(status);
   }
 
-  // When the the second argument points to a non-NULL buffer address,
+  // When the second argument points to a non-NULL buffer address,
   // i2d_X509 fills that buffer with the DER encoded cert data and increments
   // the buffer pointer.
   unsigned char* tmp = static_cast<unsigned char*>(dart_cert_bytes);

@@ -3134,7 +3134,7 @@ class UriData {
   /// That is always either -1 or 4, depending on whether `_text` includes the
   /// `data:` scheme or not.
   ///
-  /// The first speparator ends the mime type. We don't bother with finding
+  /// The first separator ends the mime type. We don't bother with finding
   /// the '/' inside the mime type.
   ///
   /// Each two separators after that marks a parameter key and value.

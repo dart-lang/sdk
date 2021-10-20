@@ -45,18 +45,22 @@ class PropertyElementResolver {
 
       // TODO(scheglov) Change ExtensionResolver to set `needsGetterError`.
       if (hasRead && result.getter == null && !result.isAmbiguous) {
+        // Extension overrides can only refer to named extensions, so it is safe
+        // to assume that `target.staticElement!.name` is non-`null`.
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]', target.staticElement!.name],
+          ['[]', target.staticElement!.name!],
         );
       }
 
       if (hasWrite && result.setter == null && !result.isAmbiguous) {
+        // Extension overrides can only refer to named extensions, so it is safe
+        // to assume that `target.staticElement!.name` is non-`null`.
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]=', target.staticElement!.name],
+          ['[]=', target.staticElement!.name!],
         );
       }
 
@@ -325,7 +329,7 @@ class PropertyElementResolver {
   void _reportUnresolvedIndex(
     IndexExpression node,
     ErrorCode errorCode, [
-    List<Object?> arguments = const [],
+    List<Object> arguments = const [],
   ]) {
     var leftBracket = node.leftBracket;
     var rightBracket = node.rightBracket;
@@ -565,10 +569,13 @@ class PropertyElementResolver {
       readElement ??= extension.getMethod(memberName);
 
       if (readElement == null) {
+        // This method is only called for extension overrides, and extension
+        // overrides can only refer to named extensions.  So it is safe to
+        // assume that `extension.name` is non-`null`.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           propertyName,
-          [memberName, extension.name],
+          [memberName, extension.name!],
         );
       } else {
         readElement = _resolver.toLegacyElement(readElement);
@@ -582,9 +589,12 @@ class PropertyElementResolver {
 
       if (writeElement == null) {
         _errorReporter.reportErrorForNode(
+          // This method is only called for extension overrides, and extension
+          // overrides can only refer to named extensions.  So it is safe to
+          // assume that `extension.name` is non-`null`.
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           propertyName,
-          [memberName, extension.name],
+          [memberName, extension.name!],
         );
       } else {
         writeElement = _resolver.toLegacyElement(writeElement);
@@ -621,10 +631,13 @@ class PropertyElementResolver {
     if (hasRead) {
       readElement = result.getter;
       if (readElement == null) {
+        // This method is only called for extension overrides, and extension
+        // overrides can only refer to named extensions.  So it is safe to
+        // assume that `element.name` is non-`null`.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           propertyName,
-          [memberName, element.name],
+          [memberName, element.name!],
         );
       }
       _checkForStaticMember(target, propertyName, readElement);
@@ -634,10 +647,13 @@ class PropertyElementResolver {
     if (hasWrite) {
       writeElement = result.setter;
       if (writeElement == null) {
+        // This method is only called for extension overrides, and extension
+        // overrides can only refer to named extensions.  So it is safe to
+        // assume that `element.name` is non-`null`.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           propertyName,
-          [memberName, element.name],
+          [memberName, element.name!],
         );
       }
       _checkForStaticMember(target, propertyName, writeElement);

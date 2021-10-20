@@ -58,10 +58,13 @@ class FunctionReferenceResolver {
       if (typeArguments != null) {
         // Something like `List.filled<int>`.
         function.accept(_resolver);
+        // We can safely assume `function.constructorName.name` is non-null
+        // because if no name had been given, the construct would have been
+        // interpreted as a type literal (e.g. `List<int>`).
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
-          [function.constructorName.type2.name, function.constructorName.name],
+          [function.constructorName.type2.name, function.constructorName.name!],
         );
         _resolve(node: node, rawType: function.staticType);
       }
@@ -132,7 +135,7 @@ class FunctionReferenceResolver {
         _errorReporter.reportErrorForNode(
           errorCode,
           typeArgumentList,
-          [name, typeParameters.length, typeArgumentList.arguments.length],
+          [name!, typeParameters.length, typeArgumentList.arguments.length],
         );
       }
       return List.filled(typeParameters.length, DynamicTypeImpl.instance);

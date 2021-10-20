@@ -640,7 +640,7 @@ abstract class _StringBase implements String {
     if (replacement == null) throw new ArgumentError.notNull("replacement");
 
     int startIndex = 0;
-    // String fragments that replace the the prefix [this] up to [startIndex].
+    // String fragments that replace the prefix [this] up to [startIndex].
     List matches = [];
     int length = 0; // Length of all fragments.
     int replacementLength = replacement.length;

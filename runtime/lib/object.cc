@@ -571,6 +571,11 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   InvocationMirror::DecodeType(invocation_type.Value(), &level, &kind);
 
   Function& function = Function::Handle(zone);
+  if (level == InvocationMirror::Level::kTopLevel) {
+    if (receiver.IsString()) return receiver.ptr();
+    ASSERT(receiver.IsNull());
+    return String::null();
+  }
   if (receiver.IsType()) {
     const auto& cls = Class::Handle(zone, Type::Cast(receiver).type_class());
     const auto& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));

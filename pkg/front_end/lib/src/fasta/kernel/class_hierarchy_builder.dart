@@ -3106,7 +3106,7 @@ class ClassHierarchyNodeBuilder {
             new DelayedTypeComputation(this, classMember, overriddenMembers);
         hierarchy.registerDelayedTypeComputation(computation);
 
-        /// Declared members must be checked to validly override the the
+        /// Declared members must be checked to validly override the
         /// overridden members.
         hierarchy.registerOverrideCheck(
             classBuilder as SourceClassBuilder, classMember, overriddenMembers);

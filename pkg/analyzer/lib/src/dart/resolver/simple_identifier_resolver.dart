@@ -183,8 +183,8 @@ class SimpleIdentifierResolver {
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
-    } else if (element == null ||
-        (element is PrefixElement && !_isValidAsPrefix(node))) {
+    } else if ((element is PrefixElement?) &&
+        (element == null || !_isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (_isConstructorReturnType(node)) {
         _errorReporter.reportErrorForNode(

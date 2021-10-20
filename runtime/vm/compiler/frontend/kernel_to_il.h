@@ -226,7 +226,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
-  Fragment ThrowNoSuchMethodError(const Function& target);
+
+  // [incompatible_arguments] should be true if the NSM is due to a mismatch
+  // between the provided arguments and the function signature.
+  Fragment ThrowNoSuchMethodError(const Function& target,
+                                  bool incompatible_arguments);
   Fragment ThrowLateInitializationError(TokenPosition position,
                                         const char* throw_method_name,
                                         const String& name);

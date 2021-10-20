@@ -474,7 +474,7 @@ ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
   ASSERT(num_arguments >= 0);
   const intptr_t num_pos_args = num_arguments - num_named_args;
 
-  // Build the arguments descriptor array, which consists of the the type
+  // Build the arguments descriptor array, which consists of the type
   // argument vector length (0 if none); total argument count; the positional
   // argument count; a sequence of (name, position) pairs, sorted by name, for
   // each named optional argument; and a terminating null to simplify iterating

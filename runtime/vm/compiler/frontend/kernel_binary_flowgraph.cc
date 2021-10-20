@@ -725,7 +725,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   } else if (has_body) {
     body += BuildStatement();
   } else if (dart_function.is_external()) {
-    body += ThrowNoSuchMethodError(dart_function);
+    body +=
+        ThrowNoSuchMethodError(dart_function, /*incompatible_arguments=*/false);
   }
 
   if (body.is_open()) {
@@ -1535,8 +1536,10 @@ Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError(
-    const Function& target) {
-  return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    const Function& target,
+    bool incompatible_arguments) {
+  return flow_graph_builder_->ThrowNoSuchMethodError(target,
+                                                     incompatible_arguments);
 }
 
 Fragment StreamingFlowGraphBuilder::Constant(const Object& value) {
@@ -1571,7 +1574,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                intptr_t argument_count,
                                                ICData::RebindRule rebind_rule) {
   if (!target.AreValidArgumentCounts(0, argument_count, 0, nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    return flow_graph_builder_->ThrowNoSuchMethodError(
+        target,
+        /*incompatible_arguments=*/true);
   }
   return flow_graph_builder_->StaticCall(position, target, argument_count,
                                          rebind_rule);
@@ -1588,7 +1593,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     bool use_unchecked_entry) {
   if (!target.AreValidArguments(type_args_count, argument_count, argument_names,
                                 nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    return flow_graph_builder_->ThrowNoSuchMethodError(
+        target,
+        /*incompatible_arguments=*/true);
   }
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,

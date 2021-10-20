@@ -674,7 +674,8 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
+                                                  bool incompatible_arguments) {
   const Class& klass = Class::ZoneHandle(
       Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!klass.IsNull());
@@ -687,7 +688,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   Fragment instructions;
 
   const Class& owner = Class::Handle(Z, target.Owner());
-  AbstractType& receiver = AbstractType::ZoneHandle();
+  auto& receiver = Instance::ZoneHandle();
   InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
   if (target.IsImplicitGetterFunction() || target.IsGetterFunction()) {
     kind = InvocationMirror::kGetter;
@@ -696,6 +697,9 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   }
   InvocationMirror::Level level;
   if (owner.IsTopLevel()) {
+    if (incompatible_arguments) {
+      receiver = target.UserVisibleSignature();
+    }
     level = InvocationMirror::Level::kTopLevel;
   } else {
     receiver = owner.RareType();

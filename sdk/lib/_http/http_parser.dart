@@ -106,7 +106,7 @@ class _MessageType {
  *
  * It does so by overriding pause/resume, so that once the
  * _HttpDetachedStreamSubscription is resumed, it'll deliver the data before
- * resuming the underlaying subscription.
+ * resuming the underlying subscription.
  */
 class _HttpDetachedStreamSubscription implements StreamSubscription<Uint8List> {
   StreamSubscription<Uint8List> _subscription;
@@ -692,7 +692,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             const errorIfBothText = "Both Content-Length and Transfer-Encoding "
                 "are specified, at most one is allowed";
             if (headerField == HttpHeaders.contentLengthHeader) {
-              // Content Length header should not have more than one occurance
+              // Content Length header should not have more than one occurrence
               // or coexist with Transfer Encoding header.
               if (_contentLength) {
                 throw HttpException("The Content-Length header occurred "
@@ -777,7 +777,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.CHUNK_SIZE_EXTENSION;
           } else {
             int value = _expectHexDigit(byte);
-            // Checks whether (_remaingingContent * 16 + value) overflows.
+            // Checks whether (_remainingContent * 16 + value) overflows.
             if (_remainingContent > _chunkSizeLimit >> 4) {
               throw HttpException('Chunk size overflows the integer');
             }
