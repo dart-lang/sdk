@@ -27,9 +27,8 @@ var timerLinkingLinkingBundle = Stopwatch();
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
 LinkResult link(
   LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries, [
-  @Deprecated('Not used anymore') bool? withInformative,
-]) {
+  List<LinkInputLibrary> inputLibraries,
+) {
   var linker = Linker(elementFactory);
   linker.link(inputLibraries);
   return LinkResult(
