@@ -1089,6 +1089,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Remove unused stack trace variable',
   );
+  static const REMOVE_UNUSED_CATCH_STACK_MULTI = FixKind(
+    'dart.fix.remove.unusedCatchStack.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unused stack trace variables in file',
+  );
   static const REMOVE_UNUSED_ELEMENT = FixKind(
     'dart.fix.remove.unusedElement',
     DartFixKindPriority.DEFAULT,
