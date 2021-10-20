@@ -18328,7 +18328,7 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Specify the desired `url`, and `method` to use in making the request.
    *
-   * By default the request is done asyncronously, with no user or password
+   * By default the request is done asynchronously, with no user or password
    * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *
