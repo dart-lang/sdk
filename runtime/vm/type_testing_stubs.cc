@@ -996,18 +996,6 @@ static void UnwrapAbstractType(compiler::Assembler* assembler,
   }
 }
 
-// src must contain a TypePtr. Assumes dst != src. May affect flags.
-static void LoadTypeClassId(compiler::Assembler* assembler,
-                            Register dst,
-                            Register src) {
-  ASSERT(src != dst);
-  __ EnsureHasClassIdInDEBUG(kTypeCid, src, dst);
-  __ LoadCompressedSmi(
-      dst, compiler::FieldAddress(
-               src, compiler::target::Type::type_class_id_offset()));
-  __ SmiUntag(dst);
-}
-
 void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
     compiler::Assembler* assembler,
     HierarchyInfo* hi,
@@ -1052,8 +1040,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   UnwrapAbstractType(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
                      TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
                      &check_subtype_type_class_ids);
-  LoadTypeClassId(assembler, TTSInternalRegs::kScratchReg,
-                  TTSInternalRegs::kSuperTypeArgumentReg);
+  __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                     TTSInternalRegs::kSuperTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kDynamicCid);
   __ BranchIf(EQUAL, &is_subtype);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kVoidCid);
@@ -1090,8 +1078,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
                      TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
                      check_failed);
-  LoadTypeClassId(assembler, TTSInternalRegs::kScratchReg,
-                  TTSInternalRegs::kSubTypeArgumentReg);
+  __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                     TTSInternalRegs::kSubTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
   __ BranchIf(EQUAL, &is_subtype);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
@@ -1186,8 +1174,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
 
   // No further checks needed for non-nullable object.
   if (!type.IsObjectType()) {
-    LoadTypeClassId(assembler, TTSInternalRegs::kScratchReg,
-                    TTSInternalRegs::kSubTypeArgumentReg);
+    __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                       TTSInternalRegs::kSubTypeArgumentReg);
 
     const bool null_is_assignable = Instance::NullIsAssignableTo(type);
     // Check bottom types.

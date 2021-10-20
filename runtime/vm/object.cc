@@ -20690,7 +20690,7 @@ FunctionTypePtr FunctionType::ToNullability(Nullability value,
 }
 
 classid_t Type::type_class_id() const {
-  return Smi::Value(untag()->type_class_id());
+  return untag()->type_class_id_;
 }
 
 ClassPtr Type::type_class() const {
@@ -21261,16 +21261,7 @@ uword FunctionType::ComputeHash() const {
 
 void Type::set_type_class(const Class& value) const {
   ASSERT(!value.IsNull());
-  const intptr_t id = value.id();
-  // We should never need a Type object for a top-level class.
-  ASSERT(!ClassTable::IsTopLevelCid(id));
-  ASSERT(id == kIllegalCid || !IsInternalOnlyClassId(id));
-  // We must allow Types with kIllegalCid type class ids, because the class
-  // used for evaluating expressions inside a instance method call context
-  // from the debugger is not registered (and thus has kIllegalCid as an id).
-  // Thus, we check id != kIllegalCid only if IsType(), not if and only if.
-  ASSERT(id == kIllegalCid || IsType());
-  untag()->set_type_class_id(Smi::New(id));
+  set_type_class_id(value.id());
 }
 
 void Type::set_arguments(const TypeArguments& value) const {
@@ -21300,6 +21291,19 @@ TypePtr Type::New(const Class& clazz,
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
+}
+
+void Type::set_type_class_id(intptr_t id) const {
+  COMPILE_ASSERT(
+      std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
+  ASSERT(Utils::IsUint(sizeof(untag()->type_class_id_) * kBitsPerByte, id));
+  // We should never need a Type object for a top-level class.
+  ASSERT(!ClassTable::IsTopLevelCid(id));
+  // We must allow Types with kIllegalCid type class ids, because the class
+  // used for evaluating expressions inside a instance method call context
+  // from the debugger is not registered (and thus has kIllegalCid as an id).
+  ASSERT(id == kIllegalCid || !IsInternalOnlyClassId(id));
+  StoreNonPointer(&untag()->type_class_id_, id);
 }
 
 void Type::set_type_state(uint8_t state) const {

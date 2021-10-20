@@ -3844,14 +3844,9 @@ class TypeSerializationCluster
 
     PushFromTo(type);
 
-    if (type->untag()->type_class_id()->IsHeapObject()) {
-      // Type class is still an unresolved class.
-      UNREACHABLE();
-    }
-
-    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id());
+    ASSERT(type->untag()->type_class_id_ != kIllegalCid);
     ClassPtr type_class =
-        s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
+        s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
     s->Push(type_class);
   }
 
@@ -3883,9 +3878,8 @@ class TypeSerializationCluster
   // inserted into the canonical_types set.
   // Keep in sync with Type::Canonicalize.
   virtual bool IsInCanonicalSet(Serializer* s, TypePtr type) {
-    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id());
     ClassPtr type_class =
-        s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
+        s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
     if (type_class->untag()->declaration_type() != type) {
       return true;
     }
@@ -3898,6 +3892,9 @@ class TypeSerializationCluster
   void WriteType(Serializer* s, TypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
+    COMPILE_ASSERT(
+        std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
+    s->WriteUnsigned(type->untag()->type_class_id_);
     ASSERT(type->untag()->type_state_ < (1 << UntaggedType::kTypeStateBitSize));
     ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
     static_assert(UntaggedType::kTypeStateBitSize + kNullabilityBitSize <=
@@ -3934,6 +3931,9 @@ class TypeDeserializationCluster
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      primary && is_canonical());
       ReadFromTo(type);
+      COMPILE_ASSERT(
+          std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
+      type->untag()->type_class_id_ = d->ReadUnsigned();
       const uint8_t combined = d->Read<uint8_t>();
       type->untag()->type_state_ = combined >> kNullabilityBitSize;
       type->untag()->nullability_ = combined & kNullabilityBitMask;

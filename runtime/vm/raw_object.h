@@ -2520,15 +2520,16 @@ class UntaggedType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  COMPRESSED_POINTER_FIELD(SmiPtr, type_class_id)
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
+  ClassIdTagType type_class_id_;
   uint8_t type_state_;
   uint8_t nullability_;
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
+  friend class compiler::target::UntaggedType;
   friend class CidRewriteVisitor;
   friend class UntaggedTypeArguments;
 };

@@ -8417,6 +8417,10 @@ class Type : public AbstractType {
  private:
   void SetHash(intptr_t value) const;
 
+  // Takes an intptr_t since the cids of some classes are larger than will fit
+  // in ClassIdTagType. This allows us to guard against that case, instead of
+  // silently truncating the cid.
+  void set_type_class_id(intptr_t id) const;
   void set_type_state(uint8_t state) const;
   void set_nullability(Nullability value) const {
     ASSERT(!IsCanonical());
