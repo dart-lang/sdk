@@ -84,7 +84,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       Reference.root(),
     );
 
-    var sdkLinkResult = link(elementFactory, inputLibraries, true);
+    var sdkLinkResult = link(elementFactory, inputLibraries);
 
     return _sdkBundle = _SdkBundle(
       resolutionBytes: sdkLinkResult.resolutionBytes,
@@ -128,7 +128,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       ),
     );
 
-    var linkResult = link(elementFactory, inputLibraries, true);
+    var linkResult = link(elementFactory, inputLibraries);
 
     if (!keepLinkingLibraries) {
       elementFactory.removeBundle(

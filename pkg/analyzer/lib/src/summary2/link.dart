@@ -25,12 +25,10 @@ import 'package:analyzer/src/summary2/variance_builder.dart';
 var timerLinkingLinkingBundle = Stopwatch();
 
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
-///
-/// TODO(scheglov) deprecate `withInformative`.
 LinkResult link(
   LinkedElementFactory elementFactory,
   List<LinkInputLibrary> inputLibraries, [
-  bool? withInformative,
+  @Deprecated('Not used anymore') bool? withInformative,
 ]) {
   var linker = Linker(elementFactory);
   linker.link(inputLibraries);
