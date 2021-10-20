@@ -35,6 +35,12 @@ class NativeClassy extends NativeFieldWrapperClass1 {
 
   @FfiNative<Void Function(Pointer<Void>, Handle)>('doesntmatter')
   external void goodHasReceiverPtrAndHandle(NativeClassy v);
+
+  @FfiNative<Handle Function(Pointer<Void>, Bool)>('doesntmatter')
+  external String? meh(bool blah);
+
+  @FfiNative<Bool Function(Pointer<Void>)>('doesntmatter')
+  external bool blah();
 }
 
 void main() {
@@ -46,4 +52,6 @@ void main() {
   NativeClassy().goodHasReceiverHandleAndPtr(NativeClassy());
   NativeClassy().goodHasReceiverHandleAndHandle(NativeClassy());
   NativeClassy().goodHasReceiverPtrAndHandle(NativeClassy());
+  NativeClassy().meh(true);
+  NativeClassy().blah();
 }
