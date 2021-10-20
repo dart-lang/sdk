@@ -1201,7 +1201,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_INTERNAL,
 ];
 
-/// Create a reduced approximation of Dart SDK in the [path].
+/// Create a reduced approximation of Dart SDK in the [root].
 ///
 /// It has enough libraries to run analyzer and analysis server tests,
 /// but some libraries, classes, and methods are missing.
@@ -1300,6 +1300,7 @@ class MockSdk extends FolderBasedDartSdk {
   }
 }
 
+@internal
 class MockSdkLibrary implements SdkLibrary {
   final String name;
   final String categories;
