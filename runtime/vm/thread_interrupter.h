@@ -102,8 +102,6 @@ class ThreadInterrupter : public AllStatic {
   static std::atomic<intptr_t> sample_buffer_lock_;
   static std::atomic<intptr_t> sample_buffer_waiters_;
 
-  static bool IsDebuggerAttached();
-
   static bool InDeepSleep() {
     return current_wait_time_ == Monitor::kNoTimeout;
   }
