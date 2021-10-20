@@ -3004,11 +3004,15 @@ class NodeReplacer implements AstVisitor<bool> {
   ///
   /// Throws an [ArgumentError] if either node is `null`, if the old node does
   /// not have a parent node, or if the AST structure has been corrupted.
-  static bool replace(AstNode oldNode, AstNode newNode) {
+  ///
+  /// If [newNode] is the parent of [oldNode] already (because [newNode] became
+  /// the parent of [oldNode] in its constructor), this action will loop
+  /// infinitely; pass [oldNode]'s previous parent as [parent] to avoid this.
+  static bool replace(AstNode oldNode, AstNode newNode, {AstNode? parent}) {
     if (identical(oldNode, newNode)) {
       return true;
     }
-    var parent = oldNode.parent;
+    parent ??= oldNode.parent;
     if (parent == null) {
       throw ArgumentError("The old node is not a child of another node");
     }

@@ -71,6 +71,11 @@ class VariableDeclarationResolver {
       element.constantInitializer = initializer;
     }
 
+    var callReference = _resolver.insertImplicitCallReference(initializer);
+    if (callReference != initializer) {
+      initializer = callReference;
+    }
+
     _resolver.checkForInvalidAssignment(node.name, initializer,
         whyNotPromoted: whyNotPromoted);
   }

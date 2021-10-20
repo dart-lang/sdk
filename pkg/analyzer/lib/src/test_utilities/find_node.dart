@@ -203,6 +203,10 @@ class FindNode {
     return _node(search, (n) => n is IfStatement);
   }
 
+  ImplicitCallReference implicitCallReference(String search) {
+    return _node(search, (n) => n is ImplicitCallReference);
+  }
+
   ImportDirective import(String search) {
     return _node(search, (n) => n is ImportDirective);
   }

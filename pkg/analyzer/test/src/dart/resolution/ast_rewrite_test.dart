@@ -13,6 +13,7 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AstRewriteImplicitCallReferenceTest);
     defineReflectiveTests(AstRewriteMethodInvocationTest);
     defineReflectiveTests(AstRewritePrefixedIdentifierTest);
 
@@ -23,6 +24,254 @@ main() {
     // moving many test cases from ConstructorReferenceResolutionTest,
     // FunctionReferenceResolutionTest, and TypeLiteralResolutionTest.
   });
+}
+
+@reflectiveTest
+class AstRewriteImplicitCallReferenceTest extends PubPackageResolutionTest {
+  test_assignment_indexExpression() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+void Function(int) foo(C c) {
+  var map = <int, C>{};
+  return map[1] = c;
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('map[1] = c'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_explicitTypeArguments() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+void foo() {
+  var c = C();
+  c<int>;
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c<int>'),
+      findElement.method('call'),
+      'int Function(int)',
+    );
+  }
+
+  test_ifNull() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+void Function(int) foo(C? c1, C c2) {
+  return c1 ?? c2;
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c1 ?? c2'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_listLiteral_element() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+List<void Function(int)> foo(C c) {
+  return [c];
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c]'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_listLiteral_forElement() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+List<void Function(int)> foo(C c) {
+  return [
+    for (var _ in [1, 2, 3]) c,
+  ];
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c,'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_listLiteral_ifElement() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+List<void Function(int)> foo(C c) {
+  return [
+    if (1==2) c,
+  ];
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c,'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_listLiteral_ifElement_else() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+List<void Function(int)> foo(C c1, C c2) {
+  return [
+    if (1==2) c1
+    else c2,
+  ];
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c2,'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_prefixedIdentifier() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  C get c;
+  void call(int t) => t;
+}
+
+void Function(int) foo(C c) {
+  return c.c;
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c.c;'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_propertyAccess() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  C get c;
+  void call(int t) => t;
+}
+
+void Function(int) foo(C c) {
+  return c.c.c;
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c.c.c;'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_setOrMapLiteral_element() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+Set<void Function(int)> foo(C c) {
+  return {c};
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c}'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_setOrMapLiteral_mapLiteralEntry_key() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+Map<void Function(int), int> foo(C c) {
+  return {c: 1};
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c:'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_setOrMapLiteral_mapLiteralEntry_value() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+Map<int, void Function(int)> foo(C c) {
+  return {1: c};
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c}'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
+
+  test_simpleIdentifier() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void call(int t) => t;
+}
+
+void Function(int) foo(C c) {
+  return c;
+}
+''');
+
+    assertImplicitCallReference(
+      findNode.implicitCallReference('c;'),
+      findElement.method('call'),
+      'void Function(int)',
+    );
+  }
 }
 
 @reflectiveTest

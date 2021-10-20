@@ -3221,7 +3221,7 @@ abstract class MethodInvocation
 /// An expression that implicitly makes reference to a method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodReferenceExpression implements AstNode {
+abstract class MethodReferenceExpression implements Expression {
   /// Return the element associated with the expression based on the static
   /// types, or `null` if the AST structure has not been resolved, or there is
   /// no meaningful static element to return (e.g. because this is a

@@ -78,10 +78,10 @@ class FunctionReferenceResolver {
       } else if (functionType is FunctionType) {
         _resolve(node: node, rawType: functionType);
       } else {
-        var callMethodType =
-            _resolver.typeSystem.getCallMethodType(functionType);
-        if (callMethodType != null) {
-          _resolve(node: node, rawType: callMethodType);
+        var callMethod = _getCallMethod(node, function.staticType);
+        if (callMethod is MethodElement) {
+          _resolveAsImplicitCallReference(node, callMethod);
+          return;
         } else {
           _resolveDisallowedExpression(node, functionType);
         }
@@ -98,7 +98,7 @@ class FunctionReferenceResolver {
     if (prefixElement is VariableElement) {
       prefixType = prefixElement.type;
     } else if (prefixElement is PropertyAccessorElement) {
-      prefixType = prefixElement.returnType;
+      prefixType = prefixElement.variable.type;
     }
 
     if (prefixType != null && prefixType.isDynamic) {
@@ -144,6 +144,27 @@ class FunctionReferenceResolver {
           .map((typeAnnotation) => typeAnnotation.typeOrThrow)
           .toList();
     }
+  }
+
+  ExecutableElement? _getCallMethod(
+      FunctionReferenceImpl node, DartType? type) {
+    if (type is! InterfaceType) {
+      return null;
+    }
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      // If the interface type is nullable, only an applicable extension method
+      // applies.
+      return _extensionResolver
+          .findExtension(type, node, FunctionElement.CALL_METHOD_NAME)
+          .getter;
+    }
+    // Otherwise, a 'call' method on the interface, or on an applicable
+    // extension method applies.
+    return type.lookUpMethod2(
+            FunctionElement.CALL_METHOD_NAME, type.element.library) ??
+        _extensionResolver
+            .findExtension(type, node, FunctionElement.CALL_METHOD_NAME)
+            .getter;
   }
 
   void _reportInvalidAccessToStaticMember(
@@ -243,6 +264,27 @@ class FunctionReferenceResolver {
       }
       node.staticType = DynamicTypeImpl.instance;
     }
+  }
+
+  void _resolveAsImplicitCallReference(
+      FunctionReferenceImpl node, MethodElement callMethod) {
+    // `node<...>` is to be treated as `node.call<...>`.
+    var callMethodType = callMethod.type;
+    var typeArgumentTypes = _checkTypeArguments(
+      // `node.typeArguments`, coming from the parser, is never null.
+      node.typeArguments!, FunctionElement.CALL_METHOD_NAME,
+      callMethodType.typeFormals,
+      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+    );
+    var callReference = astFactory.implicitCallReference(
+      expression: node.function,
+      staticElement: callMethod,
+      typeArguments: node.typeArguments,
+      typeArgumentTypes: typeArgumentTypes,
+    );
+    NodeReplacer.replace(node, callReference);
+    var instantiatedType = callMethodType.instantiate(typeArgumentTypes);
+    callReference.staticType = instantiatedType;
   }
 
   void _resolveConstructorReference(FunctionReferenceImpl node) {
@@ -427,6 +469,11 @@ class FunctionReferenceResolver {
   void _resolvePropertyAccessFunction(
       FunctionReferenceImpl node, PropertyAccessImpl function) {
     function.accept(_resolver);
+    var callMethod = _getCallMethod(node, function.staticType);
+    if (callMethod is MethodElement) {
+      _resolveAsImplicitCallReference(node, callMethod);
+      return;
+    }
     var target = function.realTarget;
 
     DartType targetType;
@@ -439,7 +486,7 @@ class FunctionReferenceResolver {
       if (targetElement is VariableElement) {
         targetType = targetElement.type;
       } else if (targetElement is PropertyAccessorElement) {
-        targetType = targetElement.returnType;
+        targetType = targetElement.variable.type;
       } else {
         // TODO(srawlins): Can we get here?
         node.staticType = DynamicTypeImpl.instance;
@@ -540,6 +587,11 @@ class FunctionReferenceResolver {
       }
     } else if (element is ExecutableElement) {
       node.function.accept(_resolver);
+      var callMethod = _getCallMethod(node, node.function.staticType);
+      if (callMethod is MethodElement) {
+        _resolveAsImplicitCallReference(node, callMethod);
+        return;
+      }
       _resolve(
         node: node,
         rawType: node.function.typeOrThrow as FunctionType,
@@ -604,7 +656,7 @@ class FunctionReferenceResolver {
         }
 
         if (method is PropertyAccessorElement) {
-          _resolve(node: node, rawType: method.returnType);
+          _resolve(node: node, rawType: method.variable.type);
           return;
         }
 
@@ -661,7 +713,12 @@ class FunctionReferenceResolver {
       return;
     } else if (element is PropertyAccessorElement) {
       function.staticElement = element;
-      function.staticType = element.returnType;
+      function.staticType = element.variable.type;
+      var callMethod = _getCallMethod(node, element.variable.type);
+      if (callMethod is MethodElement) {
+        _resolveAsImplicitCallReference(node, callMethod);
+        return;
+      }
       _resolve(node: node, rawType: element.returnType);
       return;
     } else if (element is ExecutableElement) {
@@ -672,6 +729,11 @@ class FunctionReferenceResolver {
     } else if (element is VariableElement) {
       function.staticElement = element;
       function.staticType = element.type;
+      var callMethod = _getCallMethod(node, element.type);
+      if (callMethod is MethodElement) {
+        _resolveAsImplicitCallReference(node, callMethod);
+        return;
+      }
       _resolve(node: node, rawType: element.type);
       return;
     } else if (element is ExtensionElement) {

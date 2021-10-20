@@ -369,6 +369,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitImplicitCallReference(ImplicitCallReference node) {
+    return _nodeExits(node.expression);
+  }
+
+  @override
   bool visitIndexExpression(IndexExpression node) {
     Expression target = node.realTarget;
     if (_nodeExits(target)) {
