@@ -191,7 +191,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   js_ast.Expression emitConstructorAccess(InterfaceType type);
 
   /// When compiling the body of a `operator []=` method, this will be non-null
-  /// and will indicate the the value that should be returned from any `return;`
+  /// and will indicate the value that should be returned from any `return;`
   /// statements.
   js_ast.Identifier get _operatorSetResult {
     var stack = _operatorSetResultStack;

@@ -251,7 +251,7 @@ class InheritanceManager3 {
 
   /// Return the member with the given [name].
   ///
-  /// If [concrete] is `true`, the the concrete implementation is returned,
+  /// If [concrete] is `true`, the concrete implementation is returned,
   /// from the given [element], or its superclass.
   ///
   /// If [forSuper] is `true`, then [concrete] is implied, and only concrete

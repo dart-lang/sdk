@@ -497,7 +497,7 @@ class Object {
   /// }
   /// ```
   ///
-  /// The computed value will be be consistent when the function is called
+  /// The computed value will be consistent when the function is called
   /// again with objects that have the same hash codes in the same order
   /// during an execution of a single program.
   ///
@@ -535,7 +535,7 @@ class Object {
   /// }
   /// ```
   ///
-  /// The computed value will be be consistent when the function is called
+  /// The computed value will be consistent when the function is called
   /// again with objects that have the same hash codes
   /// during an execution of a single program,
   /// even if the objects are not necessarily in the same order,

@@ -8034,7 +8034,7 @@ _The element type '{0}' can't be assigned to the map value type '{1}'._
 #### Description
 
 The analyzer produces this diagnostic when a value of a key-value pair in a
-map literal has a type that isn't assignable to the the value type of the
+map literal has a type that isn't assignable to the value type of the
 map.
 
 #### Example

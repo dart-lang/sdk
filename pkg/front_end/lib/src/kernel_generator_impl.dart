@@ -77,7 +77,7 @@ Future<CompilerResult> generateKernelInternal(
     List<Component> loadedComponents = <Component>[];
 
     Component? sdkSummary = await options.loadSdkSummary(null);
-    // By using the nameRoot of the the summary, we enable sharing the
+    // By using the nameRoot of the summary, we enable sharing the
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
@@ -114,7 +114,7 @@ Future<CompilerResult> generateKernelInternal(
       // Create the requested component ("truncating" or not).
       //
       // Note: we don't pass the library argument to the constructor to
-      // preserve the the libraries parent pointer (it should continue to point
+      // preserve the libraries parent pointer (it should continue to point
       // to the component within KernelTarget).
       Component trimmedSummaryComponent =
           new Component(nameRoot: summaryComponent.root)

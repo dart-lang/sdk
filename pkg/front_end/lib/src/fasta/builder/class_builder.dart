@@ -233,7 +233,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter: false, bool isSuper: false});
 
-  /// Looks up the constructor by [name] on the the class built by this class
+  /// Looks up the constructor by [name] on the class built by this class
   /// builder.
   ///
   /// If [isSuper] is `true`, constructors in the superclass are searched.

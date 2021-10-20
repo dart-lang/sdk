@@ -13327,7 +13327,7 @@ class Element extends Node
   /**
    * Scrolls this element into view.
    *
-   * Only one of of the alignment options may be specified at a time.
+   * Only one of the alignment options may be specified at a time.
    *
    * If no options are specified then this will attempt to scroll the minimum
    * amount needed to bring the element into view.

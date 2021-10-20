@@ -59,7 +59,7 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
       bool requestDependenciesData: true});
 
   /// Create a step that applies [action] only on the main module [inputId] data
-  /// and the the [depId] data of transitive dependencies and finally emits a
+  /// and the [depId] data of transitive dependencies and finally emits a
   /// result with the given [resultId].
   ///
   /// [depId] may be the same as [inputId] but not [resultId] since this action

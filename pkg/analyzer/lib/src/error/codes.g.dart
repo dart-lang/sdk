@@ -5969,7 +5969,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * is a getter and `m'` is a method.
    *
    * Parameters:
-   * 0: the name of the the instance member with inconsistent inheritance.
+   * 0: the name of the instance member with inconsistent inheritance.
    * 1: the name of the superinterface that declares the name as a getter.
    * 2: the name of the superinterface that declares the name as a method.
    */
@@ -8257,7 +8257,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a value of a key-value pair in a
-  // map literal has a type that isn't assignable to the the value type of the
+  // map literal has a type that isn't assignable to the value type of the
   // map.
   //
   // #### Example

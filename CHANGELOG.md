@@ -1321,7 +1321,7 @@ Updated the Linter to `0.1.129`, which includes:
   and a corresponding `dart pub remove` that removes dependencies.
 
 - New option `dart pub upgrade --major-versions` will update constraints in your
-  `pubspec.yaml` to match the the _resolvable_ column reported in
+  `pubspec.yaml` to match the _resolvable_ column reported in
   `dart pub outdated`. This allows users to easily upgrade to latest version for
   all dependencies where this is possible, even if such upgrade requires an
   update to the version constraint in `pubspec.yaml`.

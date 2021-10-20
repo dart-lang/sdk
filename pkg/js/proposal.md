@@ -956,7 +956,7 @@ class Auth {
 }
 
 // Note: package:js will defined some helpers like this.
-// More research is needed to find all of the the common patterns.
+// More research is needed to find all of the common patterns.
 static Stream<T> CreateStream<T>(
     @JS() Func0 Function(Func1<T, void> nextOrObserver, [Func1 opt_error])
         subscribeToEvent) {

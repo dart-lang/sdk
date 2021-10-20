@@ -689,7 +689,7 @@ abstract class Element implements AnalysisTarget {
   /// presented to users.
   ///
   /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
-  /// [NullabilitySuffix.star] in types will be be represented as `?` and `*`.
+  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
   /// [NullabilitySuffix.none] does not have any explicit presentation.
   ///
   /// If [withNullability] is `false`, nullability suffixes will not be

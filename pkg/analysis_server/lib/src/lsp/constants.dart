@@ -118,7 +118,7 @@ abstract class CustomSemanticTokenModifiers {
   /// coloring it differently to the literal parts of the string.
   ///
   /// Many tokens within interpolation expressions will get their own semantic
-  /// tokens so this is mainly to account for the the surrounding `${}` and
+  /// tokens so this is mainly to account for the surrounding `${}` and
   /// tokens like parens and operators that may not get their own.
   ///
   /// This is useful for editors that supply their own basic coloring initially
