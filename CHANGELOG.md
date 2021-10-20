@@ -1,3 +1,8 @@
+# 1.14.0
+
+- fix `omit_local_variable_types` to not flag a local type that is 
+  required for inference
+
 # 1.13.0
 
 - allow `while (true) { ...}` in `literal_only_boolean_expressions`
