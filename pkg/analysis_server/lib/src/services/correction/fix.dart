@@ -1084,6 +1084,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Remove unused 'catch' clause",
   );
+  static const REMOVE_UNUSED_CATCH_CLAUSE_MULTI = FixKind(
+    'dart.fix.remove.unusedCatchClause.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unused 'catch' clauses in file",
+  );
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(
     'dart.fix.remove.unusedCatchStack',
     DartFixKindPriority.DEFAULT,
