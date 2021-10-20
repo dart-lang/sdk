@@ -18,12 +18,12 @@ import 'package:kernel/type_environment.dart';
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
-import '../transformations/ffi.dart' as ffiHelper show importsFfi;
-import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
+import '../transformations/ffi/common.dart' as ffiHelper show importsFfi;
+import '../transformations/ffi/definitions.dart' as transformFfiDefinitions
     show transformLibraries;
-import '../transformations/ffi_native.dart' as transformFfiNative
+import '../transformations/ffi/native.dart' as transformFfiNative
     show transformLibraries;
-import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
+import '../transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 
 /// Specializes the kernel IR to the Dart VM.

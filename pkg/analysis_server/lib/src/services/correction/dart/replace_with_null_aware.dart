@@ -16,6 +16,18 @@ class ReplaceWithNullAware extends CorrectionProducer {
   ReplaceWithNullAware(this.correctionKind);
 
   @override
+  // NNBD makes this obsolete in the "chain" application; for the "single"
+  // application, there are other options and a null-aware replacement is not
+  // predictably correct.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // NNBD makes this obsolete in the "chain" application; for the "single"
+  // application, there are other options and a null-aware replacement is not
+  // predictably correct.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NULL_AWARE;
 
   @override

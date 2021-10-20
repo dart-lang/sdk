@@ -51,7 +51,7 @@ mixin ErrorDetectionHelpers {
   /// This method corresponds to
   /// [BestPracticesVerifier.checkForArgumentTypeNotAssignableForArgument].
   ///
-  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
@@ -68,7 +68,7 @@ mixin ErrorDetectionHelpers {
   /// from the name in the [ConstructorFieldInitializer].
   ///
   /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
+  /// [CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
   void checkForFieldInitializerNotAssignable(
       ConstructorFieldInitializer initializer, FieldElement fieldElement,
       {required bool isConstConstructor,
@@ -169,7 +169,7 @@ mixin ErrorDetectionHelpers {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   bool checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
       return false;
@@ -265,13 +265,10 @@ mixin ErrorDetectionHelpers {
   /// Verify that the given [expression] can be assigned to its corresponding
   /// parameters.
   ///
-  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
+  /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
   /// [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-  /// [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-  /// [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
-  /// [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
-  /// [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
+  /// [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
+  /// [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
   void _checkForArgumentTypeNotAssignableWithExpectedTypes(
       Expression expression,
       DartType? expectedStaticType,

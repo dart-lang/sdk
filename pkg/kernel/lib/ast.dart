@@ -3181,6 +3181,9 @@ class Procedure extends Member {
       function = v.transform(function);
       function.parent = this;
     }
+    if (signatureType != null) {
+      signatureType = v.visitDartType(signatureType!) as FunctionType;
+    }
   }
 
   @override
@@ -3190,6 +3193,15 @@ class Procedure extends Member {
     if (function != null) {
       function = v.transform(function);
       function.parent = this;
+    }
+    if (signatureType != null) {
+      DartType newSignatureType =
+          v.visitDartType(signatureType!, dummyDartType);
+      if (identical(newSignatureType, dummyDartType)) {
+        signatureType = null;
+      } else {
+        signatureType = newSignatureType as FunctionType;
+      }
     }
   }
 

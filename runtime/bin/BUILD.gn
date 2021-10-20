@@ -203,6 +203,7 @@ template("build_gen_snapshot") {
       frameworks = [
         "CoreFoundation.framework",
         "CoreServices.framework",
+        "Foundation.framework",
       ]
     }
 
@@ -336,6 +337,12 @@ template("build_gen_snapshot_dart_io") {
       "io_natives.cc",
       "io_natives.h",
     ]
+    if (is_ios || is_mac) {
+      sources += [
+        "platform_macos_cocoa.h",
+        "platform_macos_cocoa.mm",
+      ]
+    }
 
     include_dirs = [
       "..",
@@ -412,6 +419,7 @@ template("dart_io") {
       frameworks = [
         "CoreFoundation.framework",
         "Security.framework",
+        "Foundation.framework",
       ]
 
       if (is_mac) {
@@ -437,6 +445,12 @@ template("dart_io") {
                  "io_natives.cc",
                  "io_natives.h",
                ] + extra_sources
+    if (is_ios || is_mac) {
+      sources += [
+        "platform_macos_cocoa.h",
+        "platform_macos_cocoa.mm",
+      ]
+    }
 
     if (is_linux || is_win || is_fuchsia) {
       if (dart_use_fallback_root_certificates) {

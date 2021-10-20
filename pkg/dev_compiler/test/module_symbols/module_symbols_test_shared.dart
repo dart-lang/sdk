@@ -23,6 +23,10 @@ class TestCompiler {
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
     var component = await compiler.computeDelta();
     component.computeCanonicalNames();
+    var errors = setup.errors.where((e) => e.contains('Error'));
+    if (errors.isNotEmpty) {
+      throw Exception('Compilation failed: \n${errors.join('\n')}');
+    }
 
     // Initialize DDC.
     var moduleName = 'foo.dart';
@@ -93,6 +97,7 @@ class TestDriver {
 
   void cleanUp() {
     tempDir.delete(recursive: true);
+    options.errors.clear();
   }
 }
 

@@ -1,5 +1,7 @@
 ## 2.7.0-dev
 * Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.
+* Deprecated `InterfaceType.getSmartLeastUpperBound`, use `TypeSystem.leastUpperBound` instead.
+* Deprecated `MockSdk`, use `createMockSdk` and `FolderBasedDartSdk` instead.
 
 ## 2.6.0
 * Deprecated `AnalysisResult.state`, check for specific valid or invalid subtypes.

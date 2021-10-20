@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -29,14 +30,19 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   DeclaredVariables declaredVariables = DeclaredVariables();
   late final SourceFactory sourceFactory;
-  late final MockSdk sdk;
+  late final FolderBasedDartSdk sdk;
 
   late String testFile;
   late Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
   AbstractResynthesizeTest() {
-    sdk = MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+    sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
     sourceFactory = SourceFactory(
       [

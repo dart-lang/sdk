@@ -93,7 +93,12 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     //
     // Create an SDK in the mock file system.
     //
-    MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     //
     // Create server
     //
@@ -102,7 +107,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         options,
-        DartSdkManager(resourceProvider.convertPath('/sdk')),
+        DartSdkManager(sdkRoot.path),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }

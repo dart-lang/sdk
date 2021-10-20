@@ -121,7 +121,7 @@ class Platform {
   ///   "mycomputer"
   ///
   /// Uses the platform
-  /// [`gethostname`](https://pubs.opengroup.org/onlinepubs/9699919799/)
+  /// [`gethostname`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/gethostname.html)
   /// implementation.
   static String get localHostname => _localHostname;
 

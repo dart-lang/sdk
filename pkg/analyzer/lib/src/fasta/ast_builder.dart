@@ -144,8 +144,11 @@ class AstBuilder extends StackListener {
   /// `true` if constructor tearoffs are enabled
   final bool enableConstructorTearoffs;
 
-  /// `true` if extension types are enabled;
+  /// `true` if extension types are enabled
   final bool enableExtensionTypes;
+
+  /// `true` if named arguments anywhere are enabled
+  final bool enableNamedArgumentsAnywhere;
 
   final FeatureSet _featureSet;
 
@@ -165,6 +168,8 @@ class AstBuilder extends StackListener {
         enableConstructorTearoffs =
             _featureSet.isEnabled(Feature.constructor_tearoffs),
         enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
+        enableNamedArgumentsAnywhere =
+            _featureSet.isEnabled(Feature.named_arguments_anywhere),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -579,14 +584,16 @@ class AstBuilder extends StackListener {
     ArgumentList arguments =
         ast.argumentList(leftParenthesis, expressions, rightParenthesis);
 
-    bool hasSeenNamedArgument = false;
-    for (Expression expression in expressions) {
-      if (expression is NamedExpression) {
-        hasSeenNamedArgument = true;
-      } else if (hasSeenNamedArgument) {
-        // Positional argument after named argument.
-        handleRecoverableError(messagePositionalAfterNamedArgument,
-            expression.beginToken, expression.endToken);
+    if (!enableNamedArgumentsAnywhere) {
+      bool hasSeenNamedArgument = false;
+      for (Expression expression in expressions) {
+        if (expression is NamedExpression) {
+          hasSeenNamedArgument = true;
+        } else if (hasSeenNamedArgument) {
+          // Positional argument after named argument.
+          handleRecoverableError(messagePositionalAfterNamedArgument,
+              expression.beginToken, expression.endToken);
+        }
       }
     }
 

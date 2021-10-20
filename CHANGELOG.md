@@ -412,6 +412,12 @@
 - Add `Enum.compareByName` helper function for comparing enum values by name.
 - Add extension methods on `Iterable<T extends Enum>`, intended for
   `SomeEnumType.values` lists, to look up values by name.
+- Deprecate `IntegerDivisionByZeroException`.
+  Makes the class also implement `Error`. Code throwing the exception will be
+  migrated to throwing an `Error` instead until the class is unused and
+  ready to be removed.
+  Code catching the class should move to catching `Error` instead
+  (or, for integers, check first for whether it's dividing by zero).
 
 #### `dart:io`
 
@@ -420,6 +426,25 @@
   TLS protocol version to TLS1_2_VERSION (1.2) instead of TLS1_VERSION.
 - Add `RawSocket.sendMessage`, `RawSocket.receiveMessage` that allow passing of
   file handle references via Unix domain sockets.
+
+#### `dart:js_util`
+
+- The `js_util` methods `getProperty`, `setProperty`, `callMethod`,
+  `callConstructor`, and `newObject` now support a generic type argument
+  to specify the return type.
+
+#### `dart:web_sql`
+
+- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+  The WebSQL standard was abandoned more than 10
+  years ago and is not supported by many browsers. This release completely
+  deletes the `dart:web_sql` library.
+
+#### `dart:html`
+
+- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+  Related to the removal of `dart:web_sql` (see above), the
+  `window.openDatabase` has been removed as well.
 
 ### Tools
 
@@ -650,6 +675,7 @@ This is a patch release that fixes:
 
 - The `Symbol` constructor now accepts any string as argument. Symbols are equal
   if they were created from the same string.
+
 
 #### `dart:ffi`
 

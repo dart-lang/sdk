@@ -141,7 +141,11 @@ class AnalysisSessionImplTest with ResourceProviderMixin {
   late final String testPath;
 
   void setUp() {
-    MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     testContextPath = newFolder('/home/test').path;
     aaaContextPath = newFolder('/home/aaa').path;
@@ -154,7 +158,7 @@ test:lib/
     contextCollection = AnalysisContextCollectionImpl(
       includedPaths: [testContextPath, aaaContextPath, bbbContextPath],
       resourceProvider: resourceProvider,
-      sdkPath: convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
     context = contextCollection.contextFor(testContextPath);
     session = context.currentSession as AnalysisSessionImpl;

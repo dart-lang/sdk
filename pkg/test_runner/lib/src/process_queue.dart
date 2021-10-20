@@ -568,16 +568,12 @@ class CommandExecutorImpl implements CommandExecutor {
       assert(name == 'vm_compile_to_kernel');
       return _getBatchRunner(name)
           .runCommand(name, command, timeout, command.arguments);
-    } else if (command is CompilationCommand &&
-        globalConfiguration.batchDart2JS &&
-        command.displayName == 'dart2js') {
-      return _getBatchRunner("dart2js")
-          .runCommand("dart2js", command, timeout, command.arguments);
     } else if (command is AnalysisCommand && globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
-        (command.displayName == 'dartdevc' ||
+        (command.displayName == 'dart2js' ||
+            command.displayName == 'dartdevc' ||
             command.displayName == 'dartdevk' ||
             command.displayName == 'fasta') &&
         globalConfiguration.batch) {

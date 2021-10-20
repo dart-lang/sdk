@@ -691,7 +691,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (!loader.target.uriTranslator.isLibrarySupported(dottedName)) return "";
 
     LibraryBuilder? imported =
-        loader.lookupLibraryBuilder(new Uri(scheme: "dart", path: dottedName));
+        loader.builders[new Uri(scheme: "dart", path: dottedName)];
 
     if (imported == null) {
       LibraryBuilder coreLibrary = loader.read(
@@ -699,8 +699,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               new Uri(scheme: "dart", path: "core").toString(), -1),
           -1,
           accessor: loader.first);
-      imported = coreLibrary.loader
-          .lookupLibraryBuilder(new Uri(scheme: 'dart', path: dottedName));
+      imported = coreLibrary
+          .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
     }
     return imported != null && !imported.isSynthetic ? "true" : "";
   }
@@ -2259,10 +2259,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     bool isStatic = (modifiers & staticMask) != 0;
     bool isExternal = (modifiers & externalMask) != 0;
     final bool fieldIsLateWithLowering = isLate &&
-        loader.target.backendTarget.isLateFieldLoweringEnabled(
-            hasInitializer: hasInitializer,
-            isFinal: isFinal,
-            isStatic: isTopLevel || isStatic);
+        (loader.target.backendTarget.isLateFieldLoweringEnabled(
+                hasInitializer: hasInitializer,
+                isFinal: isFinal,
+                isStatic: isTopLevel || isStatic) ||
+            (loader.target.backendTarget.useStaticFieldLowering &&
+                (isStatic || isTopLevel)));
+
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
             TypeParameterScopeKind.library &&
         (modifiers & staticMask) == 0;

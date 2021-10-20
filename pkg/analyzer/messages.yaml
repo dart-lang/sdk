@@ -305,14 +305,13 @@ CompileTimeErrorCode:
       export 'b.dart' hide C;
       ```
   AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
-    problemMessage: "A member named '{0}' is defined in extensions {1}, and none are more specific."
+    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
     correctionMessage: Try using an extension override to specify the extension you want to be chosen.
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
-      1: the name of the first declaring extension
-      2: the name of the second declaring extension
+      1: the names of the declaring extensions
     documentation: |-
       #### Description
 
@@ -3717,13 +3716,12 @@ CompileTimeErrorCode:
       var x = E.m();
       ```
   EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
-    problemMessage: "Extension '{0}' can't define static member '{1}' and an instance member with the same name."
+    problemMessage: "An extension can't define static member '{0}' and an instance member with the same name."
     correctionMessage: "Try renaming the member to a name that doesn't conflict."
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the extension defining the conflicting member
-      1: the name of the conflicting static member
+      0: the name of the conflicting static member
     documentation: |-
       #### Description
 
@@ -5543,6 +5541,14 @@ CompileTimeErrorCode:
         static int zero = 0;
       }
       ```
+  INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION:
+    sharedName: INSTANCE_ACCESS_TO_STATIC_MEMBER
+    problemMessage: "The static {1} '{0}' can't be accessed through an instance."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the static member
+      1: the kind of the static member (field, getter, setter, or method)
   INSTANCE_MEMBER_ACCESS_FROM_FACTORY:
     problemMessage: "Instance members can't be accessed from a factory constructor."
     correctionMessage: Try removing the reference to the instance member.
@@ -15207,7 +15213,7 @@ HintCode:
       void f() => someFunction();
       ```
   INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-    problemMessage: "The declaration '{0}' is annotated with 'visibleForOverriding'. Because '{0}' isn't an interface member that could be overridden, the annotation is meaningless."
+    problemMessage: "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden."
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-

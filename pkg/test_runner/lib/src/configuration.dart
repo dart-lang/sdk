@@ -31,7 +31,6 @@ class TestConfiguration {
       this.testList,
       this.repeat,
       this.batch,
-      this.batchDart2JS,
       this.copyCoreDumps,
       this.rr,
       this.isVerbose,
@@ -81,7 +80,6 @@ class TestConfiguration {
   // Boolean flags.
 
   final bool batch;
-  final bool batchDart2JS;
   final bool build;
   final bool copyCoreDumps;
   final bool rr;

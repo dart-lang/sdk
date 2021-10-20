@@ -1767,8 +1767,7 @@ worlds:
 
   bool _knownByCompiler(Uri uri) {
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .userCode!.loader
-        .lookupLibraryBuilder(_getImportUri(uri));
+        .userCode!.loader.builders[_getImportUri(uri)];
     if (libraryBuilder != null) {
       return true;
     }
@@ -1786,14 +1785,13 @@ worlds:
   bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .userCode!.loader
-        .lookupLibraryBuilder(asImportUri);
+        .userCode!.loader.builders[asImportUri];
     if (libraryBuilder != null) {
       return libraryBuilder.isNonNullableByDefault;
     }
     print("Couldn't lookup $uri");
     for (LibraryBuilder libraryBuilder in _latestCrashingIncrementalCompiler!
-        .userCode!.loader.libraryBuilders) {
+        .userCode!.loader.builders.values) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
         return libraryBuilder.isNonNullableByDefault;

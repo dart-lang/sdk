@@ -6082,14 +6082,14 @@ void SpeculativeShiftUint32OpInstr::EmitNativeCode(
       compiler::Label* deopt =
           compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
 
-      __ tbnz(deopt, right, kBitsPerWord - 1);
+      __ tbnz(deopt, right, compiler::target::kSmiBits + 1);
     }
 
     EmitShiftUint32ByRegister(compiler, op_kind(), out, left, right);
 
     if (!shift_count_in_range) {
       // If shift value is > 31, return zero.
-      __ CompareImmediate(right, 31);
+      __ CompareImmediate(right, 31, compiler::kObjectBytes);
       __ csel(out, out, ZR, LE);
     }
   }

@@ -17,7 +17,7 @@ import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
-import 'ffi.dart' show FfiTransformer;
+import 'common.dart' show FfiTransformer;
 
 /// Transform @FfiNative annotated functions into FFI native function pointer
 /// functions.
@@ -180,6 +180,13 @@ class FfiNativeTransformer extends FfiTransformer {
             named: [NamedExpression('isLeaf', BoolLiteral(isLeaf.value))]))
       ..fileOffset = fileOffset;
 
+    var fileUri = currentLibrary.fileUri;
+    if (parent is Class) {
+      fileUri = parent.fileUri;
+    } else if (parent is Library) {
+      fileUri = parent.fileUri;
+    }
+
     // static final _doXyz$FfiNative$Ptr = ...
     final fieldName =
         Name('_$dartFunctionName\$FfiNative\$Ptr', currentLibrary);
@@ -188,7 +195,7 @@ class FfiNativeTransformer extends FfiTransformer {
         initializer: asFunctionInvocation,
         isStatic: true,
         isFinal: true,
-        fileUri: currentLibrary.fileUri,
+        fileUri: fileUri,
         getterReference: currentLibraryIndex?.lookupGetterReference(fieldName))
       ..fileOffset = fileOffset;
 

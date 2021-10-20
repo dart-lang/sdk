@@ -71,8 +71,8 @@ class ExtensionMethodsDeclarationWithoutNullSafetyTest
     extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
-        MockSdkLibrary([
-          MockSdkLibraryUnit('dart:test1', 'test1/test1.dart', r'''
+        MockSdkLibrary('test1', [
+          MockSdkLibraryUnit('test1/test1.dart', r'''
 extension E on Object {
   int get a => 1;
 }
@@ -80,8 +80,8 @@ extension E on Object {
 class A {}
 '''),
         ]),
-        MockSdkLibrary([
-          MockSdkLibraryUnit('dart:test2', 'test2/test2.dart', r'''
+        MockSdkLibrary('test2', [
+          MockSdkLibraryUnit('test2/test2.dart', r'''
 extension E on Object {
   int get a => 1;
 }

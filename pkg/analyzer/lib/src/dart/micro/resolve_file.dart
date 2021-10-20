@@ -877,7 +877,7 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
-        var linkResult = link2.link(elementFactory, inputLibraries, true);
+        var linkResult = link2.link(elementFactory, inputLibraries);
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;

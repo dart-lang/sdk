@@ -31,7 +31,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 import 'package:kernel/util/graph.dart';
 
-import 'ffi.dart';
+import 'common.dart';
 
 /// Checks and elaborates the dart:ffi compounds and their fields.
 ///

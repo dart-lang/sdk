@@ -73,3 +73,17 @@ The three current templates are:
 
 For most code sample, the auto-detection code will select `template:main` or
 `template:expression`.
+
+### Including additional code for analysis
+
+You can declare code that should be included in the analysis but not shown in
+the API docs by adding a comment "// Examples can assume:" to the file (usually
+at the top of the file, after the imports), following by one or more
+commented-out lines of code. That code is included verbatim in the analysis. For
+example:
+
+```dart
+// Examples can assume:
+// final BuildContext context;
+// final String userAvatarUrl;
+```

@@ -1302,9 +1302,9 @@ main() {
 
     test('initialize() does not promote when final', () {
       var h = Harness();
-      var x = Var('x', 'int?');
+      var x = Var('x', 'int?', isFinal: true);
       h.run([
-        declareInitialized(x, expr('int'), isFinal: true),
+        declareInitialized(x, expr('int')),
         checkNotPromoted(x),
       ]);
     });
@@ -1326,9 +1326,9 @@ main() {
         var h = Harness()
           ..addSubtype('T&int', 'T', true)
           ..addFactor('T', 'T&int', 'T');
-        var x = Var('x', 'T', isImplicitlyTyped: true);
+        var x = Var('x', 'T', isFinal: true, isImplicitlyTyped: true);
         h.run([
-          declareInitialized(x, expr('T&int'), isFinal: true),
+          declareInitialized(x, expr('T&int')),
           checkPromoted(x, 'T&int'),
         ]);
       });
@@ -1348,9 +1348,9 @@ main() {
 
       test('when final', () {
         var h = Harness();
-        var x = Var('x', 'T');
+        var x = Var('x', 'T', isFinal: true);
         h.run([
-          declareInitialized(x, expr('T&int'), isFinal: true),
+          declareInitialized(x, expr('T&int')),
           checkNotPromoted(x),
         ]);
       });
@@ -1370,9 +1370,9 @@ main() {
 
       test('when final', () {
         var h = Harness();
-        var x = Var('x', 'dynamic', isImplicitlyTyped: true);
+        var x = Var('x', 'dynamic', isFinal: true, isImplicitlyTyped: true);
         h.run([
-          declareInitialized(x, expr('Null'), isFinal: true),
+          declareInitialized(x, expr('Null')),
           checkNotPromoted(x),
         ]);
       });
@@ -1398,10 +1398,10 @@ main() {
 
     test('initialize() does not store expressionInfo when late', () {
       var h = Harness();
-      var x = Var('x', 'Object');
+      var x = Var('x', 'Object', isLate: true);
       var y = Var('y', 'int?');
       h.run([
-        declareInitialized(x, y.expr.eq(nullLiteral), isLate: true),
+        declareInitialized(x, y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNull);
         }),

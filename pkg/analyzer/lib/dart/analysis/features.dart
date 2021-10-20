@@ -41,6 +41,10 @@ abstract class Feature {
   /// Feature information for the triple-shift operator.
   static final triple_shift = ExperimentalFeatures.triple_shift;
 
+  /// Feature information for named arguments anywhere.
+  static final named_arguments_anywhere =
+      ExperimentalFeatures.named_arguments_anywhere;
+
   /// Feature information for non-function type aliases.
   static final nonfunction_type_aliases =
       ExperimentalFeatures.nonfunction_type_aliases;

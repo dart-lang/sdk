@@ -10,4 +10,5 @@ main() {
   var version = Platform.operatingSystemVersion;
   Expect.isNotNull(version);
   Expect.isTrue(version is String);
+  Expect.notEquals("", version);
 }

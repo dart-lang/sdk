@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -36,10 +37,12 @@ class StaticMemberContributor extends DartCompletionContributor {
             builder.suggestAccessor(accessor, inheritanceDistance: 0.0);
           }
         }
-        for (var constructor in element.constructors) {
-          if (isVisible(constructor)) {
-            if (!element.isAbstract || constructor.isFactory) {
-              builder.suggestConstructor(constructor, hasClassName: true);
+        if (!request.shouldSuggestTearOff(element)) {
+          for (var constructor in element.constructors) {
+            if (isVisible(constructor)) {
+              if (!element.isAbstract || constructor.isFactory) {
+                builder.suggestConstructor(constructor, hasClassName: true);
+              }
             }
           }
         }

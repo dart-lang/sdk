@@ -611,6 +611,22 @@ void main() {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/47473
+  test_topLevelFunction_result_assigned_if() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String foo() => '';
+
+String f(bool b) {
+  var f = '';
+  if (b) f = foo();
+  return f;
+}
+''');
+  }
+
   test_topLevelFunction_result_optionNamedParam_unassigned_parameterDefined() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

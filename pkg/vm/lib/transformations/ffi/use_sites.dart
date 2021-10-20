@@ -26,7 +26,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
-import 'ffi.dart'
+import 'common.dart'
     show
         NativeType,
         FfiTransformer,

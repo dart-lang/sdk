@@ -451,10 +451,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// Verify that the arguments in the given [argumentList] can be assigned to
   /// their corresponding parameters.
   ///
-  /// This method corresponds to
-  /// [BestPracticesVerifier.checkForArgumentTypesNotAssignableInList].
-  ///
-  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = argumentList.arguments;

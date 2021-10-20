@@ -31,7 +31,7 @@ void main(List<String> args) async {
   print('To run this tool, run `dart tools/verify_docs/bin/verify_docs.dart`.');
   print('');
   print('For documentation about how to author dart: code samples,'
-      ' see tools/verify_docs/README.md');
+      ' see tools/verify_docs/README.md.');
   print('');
 
   final coreLibraries = args.isEmpty
@@ -103,11 +103,14 @@ Future<bool> verifyFile(
     throw Exception(syntacticErrors);
   }
 
+  final sampleAssumptions = findFileAssumptions(text);
+
   var visitor = ValidateCommentCodeSamplesVisitor(
     analysisHelper,
     coreLibName,
     file.path,
     parseResult.lineInfo,
+    sampleAssumptions,
   );
   await visitor.process(parseResult);
   if (visitor.errors.isNotEmpty) {
@@ -118,13 +121,14 @@ Future<bool> verifyFile(
   return visitor.errors.isEmpty;
 }
 
-/// Visit a compilation unit and collect the list of code samples found in
-/// dartdoc comments.
+/// Visit a compilation unit and validate the code samples found in dartdoc
+/// comments.
 class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   final AnalysisHelper analysisHelper;
   final String coreLibName;
   final String filePath;
   final LineInfo lineInfo;
+  final String? sampleAssumptions;
 
   final List<CodeSample> samples = [];
   final StringBuffer errors = StringBuffer();
@@ -134,6 +138,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     this.coreLibName,
     this.filePath,
     this.lineInfo,
+    this.sampleAssumptions,
   );
 
   Future process(ParseStringResult parseResult) async {
@@ -226,13 +231,15 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       }
     }
 
+    final assumptions = sampleAssumptions ?? '';
+
     if (!hasImports) {
       if (template == 'none') {
         // just use the sample text as is
       } else if (template == 'main') {
-        text = "main() async {\n${text.trimRight()}\n}\n";
+        text = "${assumptions}main() async {\n${text.trimRight()}\n}\n";
       } else if (template == 'expression') {
-        text = "main() async {\n${text.trimRight()}\n;\n}\n";
+        text = "${assumptions}main() async {\n${text.trimRight()}\n;\n}\n";
       } else {
         throw 'unexpected template directive: $template';
       }
@@ -339,6 +346,24 @@ class CodeSample {
         orElse: () => null);
     return match == null ? match : match.substring(prefix.length);
   }
+}
+
+/// Find and return any '// Examples can assume:' sample text.
+String? findFileAssumptions(String text) {
+  var inAssumptions = false;
+  var assumptions = <String>[];
+
+  for (final line in text.split('\n')) {
+    if (line == '// Examples can assume:') {
+      inAssumptions = true;
+    } else if (line.trim().isEmpty && inAssumptions) {
+      inAssumptions = false;
+    } else if (inAssumptions) {
+      assumptions.add(line.substring('// '.length));
+    }
+  }
+
+  return '${assumptions.join('\n')}\n';
 }
 
 String _severity(Severity severity) {

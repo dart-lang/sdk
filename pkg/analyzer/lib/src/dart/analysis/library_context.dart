@@ -175,7 +175,7 @@ class LibraryContext {
         link2.LinkResult linkResult;
         try {
           timerLinking.start();
-          linkResult = link2.link(elementFactory, inputLibraries, true);
+          linkResult = link2.link(elementFactory, inputLibraries);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();

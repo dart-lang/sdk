@@ -1109,8 +1109,10 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
 
   // TODO(rmacnak): Investigate collecting a history of idle period durations.
   intptr_t used_in_words = UsedInWords();
+  intptr_t external_in_words = ExternalInWords();
   // Normal reason: new space is getting full.
-  bool for_new_space = used_in_words >= idle_scavenge_threshold_in_words_;
+  bool for_new_space = (used_in_words >= idle_scavenge_threshold_in_words_) ||
+                       (external_in_words >= idle_scavenge_threshold_in_words_);
   // New-space objects are roots during old-space GC. This means that even
   // unreachable new-space objects prevent old-space objects they reference
   // from being collected during an old-space GC. Normally this is not an
