@@ -1925,7 +1925,7 @@ export 'foo.dart'
 
   void test_visitGenericTypeAlias() {
     _assertSource(
-        "typedef X<S> = S Function<T>(T)",
+        "typedef X<S> = S Function<T>(T);",
         AstTestFactory.genericTypeAlias(
             'X',
             AstTestFactory.typeParameterList2(['S']),
