@@ -481,7 +481,7 @@ luci.cq_group(
 
 luci.cq_group(
     name = "dart_ci",
-    watch = cq.refset(DART_GERRIT + "dart_ci", refs = ["refs/heads/master"]),
+    watch = cq.refset(DART_GERRIT + "dart_ci", refs = ["refs/heads/main"]),
     allow_submit_with_open_deps = True,
     tree_status_host = "dart-status.appspot.com",
     retry_config = cq.RETRY_NONE,
