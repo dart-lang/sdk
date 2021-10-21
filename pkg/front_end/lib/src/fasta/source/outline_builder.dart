@@ -2314,6 +2314,14 @@ class OutlineBuilder extends StackListenerImpl {
       } else {
         // TODO(ahe): Improve this error message.
         addProblem(messageTypedefNotFunction, equals.charOffset, equals.length);
+        aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+            new InvalidTypeDeclarationBuilder(
+                "${name}",
+                messageTypedefNotType.withLocation(
+                    uri, equals.charOffset, equals.length)),
+            const NullabilityBuilder.omitted(),
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Allowed);
       }
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
