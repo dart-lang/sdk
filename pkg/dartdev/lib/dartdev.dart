@@ -116,9 +116,6 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(CompileCommand(verbose: verbose));
     addCommand(DevToolsCommand(
       verbose: verbose,
-      // TODO(devoncarew): Un-hide this command after a stabilization period
-      // likely before the next stable release (before Dart 2.15).
-      hidden: !verbose,
       customDevToolsPath: sdk.devToolsBinaries,
     ));
     addCommand(FixCommand(verbose: verbose));
