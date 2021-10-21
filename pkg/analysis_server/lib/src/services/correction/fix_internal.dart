@@ -613,7 +613,6 @@ class FixProcessor extends BaseProcessor {
       RemoveThisExpression.newInstance,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithEightDigitHex.newInstance,
     ],
     LintNames.use_function_type_syntax_for_parameters: [
