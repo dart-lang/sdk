@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,6 +20,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show Member;
@@ -454,6 +456,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
+    for (var argument in argumentList.arguments) {
+      if (argument is NamedExpression) {
+        insertImplicitCallReference(argument.expression);
+      } else {
+        insertImplicitCallReference(argument);
+      }
+    }
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       checkForArgumentTypeNotAssignableForArgument(arguments[i],
@@ -617,6 +626,69 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       return element;
     }
     return null;
+  }
+
+  /// If `expression` should be treated as `expression.call`, inserts an
+  /// [ImplicitCallReferece] node which wraps [expression].
+  ///
+  /// If an [ImplicitCallReferece] is inserted, returns it; otherwise, returns
+  /// [expression].
+  ExpressionImpl insertImplicitCallReference(Expression expression) {
+    expression as ExpressionImpl;
+    if (!isConstructorTearoffsEnabled) {
+      // Temporarily, only create [ImplicitCallReference] nodes under the
+      // 'constructor-tearoffs' feature.
+      // TODO(srawlins): When we are ready to make a breaking change release to
+      // the analyzer package, remove this exception.
+      return expression;
+    }
+
+    var parent = expression.parent;
+    if (parent is CascadeExpression && parent.target == expression) {
+      // Do not perform an "implicit tear-off conversion" here. It should only
+      // be performed on [parent]. See
+      // https://github.com/dart-lang/language/issues/1873.
+      return expression;
+    }
+    var context = InferenceContext.getContext(expression);
+    var callMethod =
+        getImplicitCallMethod(expression.typeOrThrow, context, expression);
+    if (callMethod == null || context == null) {
+      return expression;
+    }
+
+    // `expression` is to be treated as `expression.call`.
+    context = typeSystem.flatten(context);
+    var callMethodType = callMethod.type;
+    List<DartType> typeArgumentTypes;
+    if (isConstructorTearoffsEnabled &&
+        callMethodType.typeFormals.isNotEmpty &&
+        context is FunctionType) {
+      typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
+        context,
+        callMethodType,
+        errorNode: expression,
+        // If the constructor-tearoffs feature is enabled, then so is
+        // generic-metadata.
+        genericMetadataIsEnabled: true,
+      )!;
+      if (typeArgumentTypes.isNotEmpty) {
+        callMethodType = callMethodType.instantiate(typeArgumentTypes);
+      }
+    } else {
+      typeArgumentTypes = [];
+    }
+    var callReference = astFactory.implicitCallReference(
+      expression: expression,
+      staticElement: callMethod,
+      typeArguments: null,
+      typeArgumentTypes: typeArgumentTypes,
+    ) as ImplicitCallReferenceImpl;
+    NodeReplacer.replace(expression, callReference, parent: parent);
+
+    callReference.staticType = callMethodType;
+
+    return callReference;
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
@@ -1224,13 +1296,22 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     // to be visited in the context of the constructor field initializer node.
     //
     var fieldElement = enclosingClass!.getField(node.fieldName.name);
-    InferenceContext.setType(node.expression, fieldElement?.type);
-    node.expression.accept(this);
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.expression);
+    var fieldType = fieldElement?.type;
+    var expression = node.expression;
+    InferenceContext.setType(expression, fieldType);
+    expression.accept(this);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-    var enclosingConstructor = enclosingFunction as ConstructorElement;
     if (fieldElement != null) {
+      if (fieldType != null && expression.staticType != null) {
+        var callReference = insertImplicitCallReference(expression);
+        if (expression != callReference) {
+          checkForInvalidAssignment(node.fieldName, callReference,
+              whyNotPromoted: whyNotPromoted);
+        }
+      }
+      var enclosingConstructor = enclosingFunction as ConstructorElement;
       checkForFieldInitializerNotAssignable(node, fieldElement,
           isConstConstructor: enclosingConstructor.isConst,
           whyNotPromoted: whyNotPromoted);
@@ -1337,6 +1418,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _thisAccessTracker.enterFunctionBody(node);
 
       super.visitExpressionFunctionBody(node);
+      insertImplicitCallReference(node.expression);
 
       flowAnalysis.flow?.handleExit();
 
@@ -1850,6 +1932,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
     inferenceContext.bodyContext?.addReturnExpression(node.expression);
     flowAnalysis.flow?.handleExit();
+
+    var expression = node.expression;
+    if (expression != null) {
+      insertImplicitCallReference(expression);
+    }
   }
 
   @override

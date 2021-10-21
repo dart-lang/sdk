@@ -466,12 +466,49 @@ foo() {
 }
 ''');
 
-    // TODO(srawlins): An arbitrary expression with a static type which is
-    // callable does not necessarily have an element. However, if we implement
-    // some "implicit call tearoff" node, it would have an element referring to
-    // the `call` method.
-    var functionReference = findNode.functionReference('C()<int>;');
-    assertType(functionReference, 'int Function(int)');
+    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
+        findElement.method('call'), 'int Function(int)');
+  }
+
+  test_implicitCallTearoff_extensionOnNullable() async {
+    await assertNoErrorsInCode('''
+Object? v = null;
+extension E on Object? {
+  void call<R, S>(R r, S s) {}
+}
+void foo() {
+  v<int, String>;
+}
+
+''');
+
+    assertImplicitCallReference(
+        findNode.implicitCallReference('v<int, String>;'),
+        findElement.method('call'),
+        'void Function(int, String)');
+  }
+
+  test_implicitCallTearoff_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class C {
+  T call<T>(T t) => t;
+}
+C c = C();
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.c<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    assertImplicitCallReference(
+        findNode.implicitCallReference('c<int>;'),
+        findElement.importFind('package:test/a.dart').method('call'),
+        'int Function(int)');
   }
 
   test_implicitCallTearoff_tooFewTypeArguments() async {
@@ -485,18 +522,11 @@ foo() {
 }
 ''', [
       error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
-          57,
-          5),
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 57, 5),
     ]);
 
-    // TODO(srawlins): An arbitrary expression with a static type which is
-    // callable does not necessarily have an element. However, if we implement
-    // some "implicit call tearoff" node, it would have an element referring to
-    // the `call` method.
-    var functionReference = findNode.functionReference('C()<int>;');
-    assertType(functionReference, 'void Function(dynamic, dynamic)');
+    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
+        findElement.method('call'), 'void Function(dynamic, dynamic)');
   }
 
   test_implicitCallTearoff_tooManyTypeArguments() async {
@@ -510,18 +540,11 @@ foo() {
 }
 ''', [
       error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
-          50,
-          5),
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 50, 5),
     ]);
 
-    // TODO(srawlins): An arbitrary expression with a static type which is
-    // callable does not necessarily have an element. However, if we implement
-    // some "implicit call tearoff" node, it would have an element referring to
-    // the `call` method.
-    var functionReference = findNode.functionReference('C()<int>;');
-    assertType(functionReference, 'int Function(int)');
+    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
+        findElement.method('call'), 'int Function(int)');
   }
 
   test_instanceGetter_explicitReceiver() async {
@@ -1346,6 +1369,26 @@ void bar() {
 
     assertFunctionReference(findNode.functionReference('foo<int>'),
         findElement.topFunction('foo'), 'void Function(int)');
+  }
+
+  test_topLevelVariable_prefix() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+void Function<T>(T) foo = <T>(T arg) {}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.foo<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'),
+        findElement.importFind('package:test/a.dart').topGet('foo'),
+        'void Function(int)');
   }
 
   test_topLevelVariable_prefix_unknownIdentifier() async {

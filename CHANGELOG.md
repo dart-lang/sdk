@@ -494,7 +494,9 @@
 
 #### Linter
 
-Updated the Linter to `1.13.0`, which includes changes that
+Updated the Linter to `1.14.0`, which includes changes that
+- fix `omit_local_variable_types` to not flag a local type that is 
+  required for inference.
 - allow `while (true) { ... }` in `literal_only_boolean_expressions`.
 - fix `file_names` to report at the start of the file (not the entire
   compilation unit).

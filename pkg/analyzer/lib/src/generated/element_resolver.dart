@@ -499,7 +499,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     _resolveAnnotations(node.metadata);
   }
 

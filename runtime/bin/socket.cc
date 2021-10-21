@@ -383,6 +383,11 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   }
 }
 
+// This function will abort if sourceAddr is a Unix domain socket.
+// The family ("sa_family") of the socket address is infered from the length
+// of the address. Unix domain sockets addresses are the bytes of their file
+// system path so they have variable length. They cannot, therefore, be
+// differentiated from other address types in this function.
 void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);

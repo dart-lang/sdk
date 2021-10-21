@@ -147,6 +147,18 @@ var x = g('Hello');
     ]);
   }
 
+  test_implicitCallReference_namedAndRequired() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+}
+void f({required void Function(int) a}) {}
+void g(A a) {
+  f(a: a);
+}
+''');
+  }
+
   test_invocation_functionTypes_optional() async {
     await assertErrorsInCode('''
 void acceptFunOptBool(void funNumOptBool([bool b])) {}
@@ -199,8 +211,8 @@ class A {
   const A.fromInt(int p);
 }
 @A.fromInt('0')
-main() {
-}''', [
+main() {}
+''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 3),
     ]);
   }
@@ -328,6 +340,44 @@ class A {
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 7),
     ]);
+  }
+
+  test_implicitCallReference() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+}
+void f(void Function(int) a) {}
+void g(A a) {
+  f(a);
+}
+''');
+  }
+
+  test_implicitCallReference_named() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+}
+void defaultFunc(int p) {}
+void f({void Function(int) a = defaultFunc}) {}
+void g(A a) {
+  f(a: a);
+}
+''');
+  }
+
+  test_implicitCallReference_this() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+
+  void f(void Function(int) a) {}
+  void g() {
+    f(this);
+  }
+}
+''');
   }
 
   test_index_invalidRead() async {

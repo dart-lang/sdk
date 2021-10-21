@@ -2190,9 +2190,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       awaitKeyword = parent.awaitKeyword;
     }
 
-    // Use an explicit string instead of [loopType] to remove the "<E>".
-    String loopNamedType = awaitKeyword != null ? "Stream" : "Iterable";
-
     // The object being iterated has to implement Iterable<T> for some T that
     // is assignable to the variable's type.
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
@@ -2207,6 +2204,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (!typeSystem.isAssignableTo(iterableType, requiredSequenceType)) {
+      // Use an explicit string instead of [loopType] to remove the "<E>".
+      String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2231,11 +2230,48 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (!typeSystem.isAssignableTo(sequenceElementType, variableType)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
-        node.iterable,
-        [iterableType, loopNamedType, variableType],
-      );
+      // Use an explicit string instead of [loopType] to remove the "<E>".
+      String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
+
+      // A for-in loop is specified to desugar to a different set of statements
+      // which include an assignment of the sequence element's `iterator`'s
+      // `current` value, at which point "implicit tear-off conversion" may be
+      // performed. We do not perform this desugaring; instead we allow a
+      // special assignability here.
+      var implicitCallMethod = getImplicitCallMethod(
+          sequenceElementType, variableType, node.iterable);
+      if (implicitCallMethod == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+          node.iterable,
+          [iterableType, loopNamedType, variableType],
+        );
+      } else {
+        var tearoffType = implicitCallMethod.type;
+        // An implicit tear-off conversion does occur on the values of the
+        // iterator, but this does not guarantee their assignability.
+
+        if (_featureSet?.isEnabled(Feature.constructor_tearoffs) ?? true) {
+          var typeArguments = typeSystem.inferFunctionTypeInstantiation(
+            variableType as FunctionType,
+            tearoffType,
+            errorReporter: errorReporter,
+            errorNode: node.iterable,
+            genericMetadataIsEnabled: true,
+          )!;
+          if (typeArguments.isNotEmpty) {
+            tearoffType = tearoffType.instantiate(typeArguments);
+          }
+        }
+
+        if (!typeSystem.isAssignableTo(tearoffType, variableType)) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+            node.iterable,
+            [iterableType, loopNamedType, variableType],
+          );
+        }
+      }
     }
 
     return true;
@@ -2674,8 +2710,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForIntNotAssignable(Expression argument) {
     var staticParameterElement = argument.staticParameterElement;
     var staticParameterType = staticParameterElement?.type;
-    checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    if (staticParameterType != null) {
+      checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    }
   }
 
   /// Verify that the given [annotation] isn't defined in a deferred library.
@@ -2863,7 +2901,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _typeProvider,
       typeSystem,
       errorReporter,
-      checkForUseOfVoidResult,
+      this,
       forList: true,
       elementType: listElementType,
       featureSet: _featureSet!,
@@ -2951,7 +2989,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _typeProvider,
         typeSystem,
         errorReporter,
-        checkForUseOfVoidResult,
+        this,
         forMap: true,
         mapKeyType: keyType,
         mapValueType: valueType,
@@ -3911,7 +3949,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _typeProvider,
         typeSystem,
         errorReporter,
-        checkForUseOfVoidResult,
+        this,
         forSet: true,
         elementType: setElementType,
         featureSet: _featureSet!,

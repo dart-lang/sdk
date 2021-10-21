@@ -128,7 +128,7 @@ class FfiNativeTransformer extends FfiTransformer {
   FunctionType _wrapFunctionType(
       FunctionType dartFunctionType, FunctionType ffiFunctionType) {
     return FunctionType(
-      [
+      <DartType>[
         for (var i = 0; i < dartFunctionType.positionalParameters.length; i++)
           _wrapArgumentType(dartFunctionType.positionalParameters[i],
               ffiFunctionType.positionalParameters[i]),
@@ -164,7 +164,7 @@ class FfiNativeTransformer extends FfiTransformer {
     final resolverInvocation = FunctionInvocation(
         FunctionAccessKind.FunctionType,
         StaticGet(resolverField),
-        Arguments([
+        Arguments(<Expression>[
           ConstantExpression(
               StringConstant(currentLibrary.importUri.toString())),
           ConstantExpression(nativeFunctionName),
@@ -176,11 +176,11 @@ class FfiNativeTransformer extends FfiTransformer {
     // _fromAddress<NativeFunction<Double Function(Double)>>(...)
     final fromAddressInvocation = StaticInvocation(
         fromAddressInternal,
-        Arguments([
+        Arguments(<Expression>[
           resolverInvocation
         ], types: [
-          InterfaceType(
-              nativeFunctionClass, Nullability.legacy, [ffiFunctionType])
+          InterfaceType(nativeFunctionClass, Nullability.legacy,
+              <DartType>[ffiFunctionType])
         ]))
       ..fileOffset = fileOffset;
 
@@ -188,9 +188,14 @@ class FfiNativeTransformer extends FfiTransformer {
     //     <Double Function(Double), double Function(double)>(..., isLeaf:true)
     final asFunctionInvocation = StaticInvocation(
         asFunctionMethod,
-        Arguments([fromAddressInvocation],
-            types: [ffiFunctionType, dartFunctionType],
-            named: [NamedExpression('isLeaf', BoolLiteral(isLeaf))]))
+        Arguments(<Expression>[
+          fromAddressInvocation
+        ], types: <DartType>[
+          ffiFunctionType,
+          dartFunctionType
+        ], named: <NamedExpression>[
+          NamedExpression('isLeaf', BoolLiteral(isLeaf))
+        ]))
       ..fileOffset = fileOffset;
 
     // static final _doXyz$FfiNative$Ptr = ...
@@ -234,10 +239,10 @@ class FfiNativeTransformer extends FfiTransformer {
       // Pointer.fromAddress(_getNativeField(#t0))
       return StaticInvocation(
           fromAddressInternal,
-          Arguments([
-            StaticInvocation(
-                getNativeFieldFunction, Arguments([VariableGet(temporary)]))
-          ], types: [
+          Arguments(<Expression>[
+            StaticInvocation(getNativeFieldFunction,
+                Arguments(<Expression>[VariableGet(temporary)]))
+          ], types: <DartType>[
             voidType
           ]));
     }
@@ -305,12 +310,12 @@ class FfiNativeTransformer extends FfiTransformer {
     //   reachabilityFence(#t0);
     // } => #t1
     final resultBlock = BlockExpression(
-      Block([
+      Block(<Statement>[
         ...temporariesForArguments,
         result,
         for (final argument in fencedArguments)
-          ExpressionStatement(StaticInvocation(
-              reachabilityFenceFunction, Arguments([VariableGet(argument)])))
+          ExpressionStatement(StaticInvocation(reachabilityFenceFunction,
+              Arguments(<Expression>[VariableGet(argument)])))
       ]),
       VariableGet(result),
     );
@@ -467,7 +472,7 @@ class FfiNativeTransformer extends FfiTransformer {
       for (final parameter in node.function.positionalParameters) parameter.type
     ], node.function.returnType, Nullability.nonNullable);
 
-    final argumentList = [
+    final argumentList = <Expression>[
       ThisExpression(),
       for (final parameter in node.function.positionalParameters)
         VariableGet(parameter)
@@ -495,7 +500,7 @@ class FfiNativeTransformer extends FfiTransformer {
     final dartFunctionType =
         node.function.computeThisFunctionType(Nullability.nonNullable);
 
-    final argumentList = [
+    final argumentList = <Expression>[
       for (final parameter in node.function.positionalParameters)
         VariableGet(parameter)
     ];
