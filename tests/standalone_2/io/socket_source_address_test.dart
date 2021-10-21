@@ -10,7 +10,7 @@ import "dart:io";
 
 import 'test_utils.dart' show retry, throws, withTempDir;
 
-Future testArguments(connectFunction, String socketDir) async {
+Future testArguments(connectFunction) async {
   var sourceAddress;
   final serverIPv4 = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   serverIPv4.listen((_) {
@@ -19,12 +19,6 @@ Future testArguments(connectFunction, String socketDir) async {
 
   final serverIPv6 = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
   serverIPv6.listen((_) {
-    throw 'Unexpected connection from address $sourceAddress';
-  });
-
-  ServerSocket serverUnix = await ServerSocket.bind(
-      InternetAddress('$socketDir/sock', type: InternetAddressType.unix), 0);
-  serverUnix.listen((_) {
     throw 'Unexpected connection from address $sourceAddress';
   });
 
@@ -48,7 +42,7 @@ Future testArguments(connectFunction, String socketDir) async {
   for (sourceAddress in [
     '::1',
     InternetAddress.loopbackIPv6,
-    InternetAddress('$socketDir/sock', type: InternetAddressType.unix)
+    InternetAddress('sock', type: InternetAddressType.unix)
   ]) {
     await throws(
         () => connectFunction('127.0.0.1', serverIPv4.port,
@@ -59,13 +53,26 @@ Future testArguments(connectFunction, String socketDir) async {
   for (sourceAddress in [
     '127.0.0.1',
     InternetAddress.loopbackIPv4,
-    InternetAddress('$socketDir/sock', type: InternetAddressType.unix)
+    InternetAddress('sock', type: InternetAddressType.unix)
   ]) {
     await throws(
         () => connectFunction('::1', serverIPv6.port,
             sourceAddress: sourceAddress),
         (e) => e is SocketException);
   }
+
+  await serverIPv4.close();
+  await serverIPv6.close();
+}
+
+Future testUnixDomainArguments(connectFunction, String socketDir) async {
+  var sourceAddress;
+  final serverUnix = await ServerSocket.bind(
+      InternetAddress('$socketDir/sock', type: InternetAddressType.unix), 0);
+  serverUnix.listen((_) {
+    throw 'Unexpected connection from address $sourceAddress';
+  });
+
   // Address family mismatch for Unix domain sockets.
   for (sourceAddress in [
     '127.0.0.1',
@@ -82,8 +89,6 @@ Future testArguments(connectFunction, String socketDir) async {
             e is SocketException &&
             e.toString().contains('Address family not supported'));
   }
-  await serverIPv4.close();
-  await serverIPv6.close();
   await serverUnix.close();
 }
 
@@ -158,16 +163,24 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
 
 main() async {
   await retry(() async {
-    await withTempDir('unix_socket_test', (Directory dir) async {
-      await testArguments(RawSocket.connect, "${dir.path}");
-    });
+    await testArguments(RawSocket.connect);
   });
   await retry(() async {
-    await withTempDir('unix_socket_test', (Directory dir) async {
-      await testArguments(Socket.connect, "${dir.path}");
-    });
+    await testArguments(Socket.connect);
   });
 
+  if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
+    await retry(() async {
+      await withTempDir('unix_socket_test', (Directory dir) async {
+        await testUnixDomainArguments(RawSocket.connect, "${dir.path}");
+      });
+    });
+    await retry(() async {
+      await withTempDir('unix_socket_test', (Directory dir) async {
+        await testUnixDomainArguments(Socket.connect, "${dir.path}");
+      });
+    });
+  }
   await retry(() async {
     await testConnect(
         InternetAddress.anyIPv4, false, RawSocket.connect, (s) => s.close());
