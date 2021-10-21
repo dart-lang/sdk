@@ -164,7 +164,8 @@ final Matcher isCompletionSuggestion =
           'requiredParameterCount': isInt,
           'hasNamedParameters': isBool,
           'parameterName': isString,
-          'parameterType': isString
+          'parameterType': isString,
+          'libraryUriToImportIndex': isInt
         }));
 
 /// CompletionSuggestionKind
