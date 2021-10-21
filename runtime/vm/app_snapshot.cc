@@ -5527,7 +5527,7 @@ class VMSerializationRoots : public SerializationRoots {
 
     if (!Snapshot::IncludesCode(s->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-        s->AddBaseObject(StubCode::EntryAt(i).ptr(), "Code", "<stub code>");
+        s->AddBaseObject(StubCode::EntryAt(i).ptr());
       }
     }
   }
