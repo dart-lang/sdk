@@ -295,7 +295,8 @@ final Matcher isCompletionSuggestion =
           'requiredParameterCount': isInt,
           'hasNamedParameters': isBool,
           'parameterName': isString,
-          'parameterType': isString
+          'parameterType': isString,
+          'libraryUriToImportIndex': isInt
         }));
 
 /// CompletionSuggestionKind
@@ -2080,6 +2081,32 @@ final Matcher isCompletionExistingImportsParams = LazyMatcher(() =>
     MatchesJsonObject('completion.existingImports params',
         {'file': isFilePath, 'imports': isExistingImports}));
 
+/// completion.getSuggestionDetails2 params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "completion": String
+///   "libraryUri": String
+/// }
+final Matcher isCompletionGetSuggestionDetails2Params = LazyMatcher(
+    () => MatchesJsonObject('completion.getSuggestionDetails2 params', {
+          'file': isFilePath,
+          'offset': isInt,
+          'completion': isString,
+          'libraryUri': isString
+        }));
+
+/// completion.getSuggestionDetails2 result
+///
+/// {
+///   "completion": String
+///   "change": SourceChange
+/// }
+final Matcher isCompletionGetSuggestionDetails2Result = LazyMatcher(() =>
+    MatchesJsonObject('completion.getSuggestionDetails2 result',
+        {'completion': isString, 'change': isSourceChange}));
+
 /// completion.getSuggestionDetails params
 ///
 /// {
@@ -2102,6 +2129,35 @@ final Matcher isCompletionGetSuggestionDetailsResult = LazyMatcher(() =>
     MatchesJsonObject(
         'completion.getSuggestionDetails result', {'completion': isString},
         optionalFields: {'change': isSourceChange}));
+
+/// completion.getSuggestions2 params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "maxResults": int
+/// }
+final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
+    MatchesJsonObject('completion.getSuggestions2 params',
+        {'file': isFilePath, 'offset': isInt, 'maxResults': isInt}));
+
+/// completion.getSuggestions2 result
+///
+/// {
+///   "replacementOffset": int
+///   "replacementLength": int
+///   "suggestions": List<CompletionSuggestion>
+///   "libraryUrisToImport": List<String>
+///   "isIncomplete": bool
+/// }
+final Matcher isCompletionGetSuggestions2Result =
+    LazyMatcher(() => MatchesJsonObject('completion.getSuggestions2 result', {
+          'replacementOffset': isInt,
+          'replacementLength': isInt,
+          'suggestions': isListOf(isCompletionSuggestion),
+          'libraryUrisToImport': isListOf(isString),
+          'isIncomplete': isBool
+        }));
 
 /// completion.getSuggestions params
 ///

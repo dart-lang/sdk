@@ -24,6 +24,7 @@ enum ExperimentalFlag {
   nonfunctionTypeAliases,
   setLiterals,
   spreadCollections,
+  superParameters,
   testExperiment,
   tripleShift,
   valueClass,
@@ -45,6 +46,7 @@ const Version enableNonNullableVersion = const Version(2, 12);
 const Version enableNonfunctionTypeAliasesVersion = const Version(2, 13);
 const Version enableSetLiteralsVersion = const Version(2, 0);
 const Version enableSpreadCollectionsVersion = const Version(2, 0);
+const Version enableSuperParametersVersion = const Version(2, 15);
 const Version enableTestExperimentVersion = const Version(2, 15);
 const Version enableTripleShiftVersion = const Version(2, 14);
 const Version enableValueClassVersion = const Version(2, 15);
@@ -80,6 +82,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.setLiterals;
     case "spread-collections":
       return ExperimentalFlag.spreadCollections;
+    case "super-parameters":
+      return ExperimentalFlag.superParameters;
     case "test-experiment":
       return ExperimentalFlag.testExperiment;
     case "triple-shift":
@@ -107,6 +111,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nonfunctionTypeAliases: true,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.superParameters: false,
   ExperimentalFlag.testExperiment: false,
   ExperimentalFlag.tripleShift: true,
   ExperimentalFlag.valueClass: false,
@@ -128,6 +133,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.nonfunctionTypeAliases: false,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.superParameters: false,
   ExperimentalFlag.testExperiment: false,
   ExperimentalFlag.tripleShift: false,
   ExperimentalFlag.valueClass: false,
@@ -149,6 +155,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
   ExperimentalFlag.spreadCollections: const Version(2, 0),
+  ExperimentalFlag.superParameters: const Version(2, 15),
   ExperimentalFlag.testExperiment: const Version(2, 15),
   ExperimentalFlag.tripleShift: const Version(2, 14),
   ExperimentalFlag.valueClass: const Version(2, 15),
@@ -170,6 +177,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
   ExperimentalFlag.spreadCollections: const Version(2, 0),
+  ExperimentalFlag.superParameters: const Version(2, 15),
   ExperimentalFlag.testExperiment: const Version(2, 15),
   ExperimentalFlag.tripleShift: const Version(2, 14),
   ExperimentalFlag.valueClass: const Version(2, 15),

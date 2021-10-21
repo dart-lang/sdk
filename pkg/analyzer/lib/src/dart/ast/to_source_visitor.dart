@@ -54,7 +54,7 @@ class ToSourceVisitor implements AstVisitor<void> {
       sink.write(', ');
       _visitNode(node.message);
     }
-    sink.write(');');
+    sink.write(')');
   }
 
   @override
@@ -565,6 +565,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.typeParameters);
     sink.write(' = ');
     _visitNode(node.type);
+    sink.write(';');
   }
 
   @override

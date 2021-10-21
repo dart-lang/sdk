@@ -28,6 +28,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
       ExperimentalFeatures.nonfunction_type_aliases,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
+  EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.value_class: ExperimentalFeatures.value_class,
@@ -75,6 +76,9 @@ class EnableString {
 
   /// String to enable the experiment "spread-collections"
   static const String spread_collections = 'spread-collections';
+
+  /// String to enable the experiment "super-parameters"
+  static const String super_parameters = 'super-parameters';
 
   /// String to enable the experiment "test-experiment"
   static const String test_experiment = 'test-experiment';
@@ -223,8 +227,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.0.0'),
   );
 
-  static final test_experiment = ExperimentalFeature(
+  static final super_parameters = ExperimentalFeature(
     index: 13,
+    enableString: EnableString.super_parameters,
+    isEnabledByDefault: IsEnabledByDefault.super_parameters,
+    isExpired: IsExpired.super_parameters,
+    documentation: 'Super-Initializer Parameters',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final test_experiment = ExperimentalFeature(
+    index: 14,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -235,7 +249,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 14,
+    index: 15,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -245,7 +259,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 15,
+    index: 16,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -255,7 +269,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 16,
+    index: 17,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -306,6 +320,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Default state of the experiment "super-parameters"
+  static const bool super_parameters = false;
 
   /// Default state of the experiment "test-experiment"
   static const bool test_experiment = false;
@@ -362,6 +379,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Expiration status of the experiment "super-parameters"
+  static const bool super_parameters = false;
 
   /// Expiration status of the experiment "test-experiment"
   static const bool test_experiment = false;
@@ -422,6 +442,9 @@ mixin _CurrentState {
   /// Current state for the flag "spread-collections"
   bool get spread_collections =>
       isEnabled(ExperimentalFeatures.spread_collections);
+
+  /// Current state for the flag "super-parameters"
+  bool get super_parameters => isEnabled(ExperimentalFeatures.super_parameters);
 
   /// Current state for the flag "test-experiment"
   bool get test_experiment => isEnabled(ExperimentalFeatures.test_experiment);

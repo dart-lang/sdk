@@ -21,7 +21,16 @@ class AddReturnType extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.ADD_RETURN_TYPE;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_RETURN_TYPE;
+
+  @override
+  FixKind? get multiFixKind => DartFixKind.ADD_RETURN_TYPE_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

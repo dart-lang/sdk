@@ -33,10 +33,6 @@ class LinkedElementFactory {
     return rootReference.getChild('dart:core').getChild('dynamic');
   }
 
-  bool get hasDartCore {
-    return _libraryReaders.containsKey('dart:core');
-  }
-
   void addBundle(BundleReader bundle) {
     addLibraries(bundle.libraryMap);
   }
@@ -161,6 +157,11 @@ class LinkedElementFactory {
   }
 
   bool hasLibrary(String uriStr) {
+    // We already have the element, linked or read.
+    if (rootReference[uriStr]?.element is LibraryElementImpl) {
+      return true;
+    }
+    // No element yet, but we know how to read it.
     return _libraryReaders[uriStr] != null;
   }
 

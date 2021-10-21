@@ -327,7 +327,6 @@ class FixProcessor extends BaseProcessor {
   /// are in the [nonLintProducerMap].
   static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       AddReturnType.newInstance,
     ],
     LintNames.always_require_non_null_named_parameters: [
@@ -393,7 +392,6 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_unused_constructor_parameters: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       RemoveUnusedParameter.newInstance,
     ],
     LintNames.avoid_unnecessary_containers: [
@@ -614,7 +612,6 @@ class FixProcessor extends BaseProcessor {
       RemoveThisExpression.newInstance,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithEightDigitHex.newInstance,
     ],
     LintNames.use_function_type_syntax_for_parameters: [

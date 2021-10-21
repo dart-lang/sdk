@@ -953,6 +953,81 @@ abstract class IntegrationTestMixin {
     return CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
   }
 
+  /// Request that completion suggestions for the given offset in the given
+  /// file be returned. The suggestions will be filtered using fuzzy matching
+  /// with the already existing prefix.
+  ///
+  /// Parameters
+  ///
+  /// file: FilePath
+  ///
+  ///   The file containing the point at which suggestions are to be made.
+  ///
+  /// offset: int
+  ///
+  ///   The offset within the file at which suggestions are to be made.
+  ///
+  /// maxResults: int
+  ///
+  ///   The maximum number of suggestions to return. If the number of
+  ///   suggestions after filtering is greater than the maxResults, then
+  ///   isIncomplete is set to true.
+  ///
+  /// Returns
+  ///
+  /// replacementOffset: int
+  ///
+  ///   The offset of the start of the text to be replaced. This will be
+  ///   different from the offset used to request the completion suggestions if
+  ///   there was a portion of an identifier before the original offset. In
+  ///   particular, the replacementOffset will be the offset of the beginning
+  ///   of said identifier.
+  ///
+  /// replacementLength: int
+  ///
+  ///   The length of the text to be replaced if the remainder of the
+  ///   identifier containing the cursor is to be replaced when the suggestion
+  ///   is applied (that is, the number of characters in the existing
+  ///   identifier).
+  ///
+  /// suggestions: List<CompletionSuggestion>
+  ///
+  ///   The completion suggestions being reported. This list is filtered by the
+  ///   already existing prefix, and sorted first by relevance, and (if the
+  ///   same) by the suggestion text. The list will have at most maxResults
+  ///   items. If the user types a new keystroke, the client is expected to
+  ///   either do local filtering (when the returned list was complete), or ask
+  ///   the server again (if isIncomplete was true).
+  ///
+  ///   This list contains suggestions from both imported, and not yet imported
+  ///   libraries. Items from not yet imported libraries will have
+  ///   libraryUriToImportIndex set, which is an index into the
+  ///   libraryUrisToImport in this response.
+  ///
+  /// libraryUrisToImport: List<String>
+  ///
+  ///   The list of libraries with declarations that are not yet available in
+  ///   the file where completion was requested, most often because the library
+  ///   is not yet imported. The declarations still might be included into the
+  ///   suggestions, and the client should use getSuggestionDetails2 on
+  ///   selection to make the library available in the file.
+  ///
+  ///   Each item is the URI of a library, such as package:foo/bar.dart or
+  ///   file:///home/me/workspace/foo/test/bar_test.dart.
+  ///
+  /// isIncomplete: bool
+  ///
+  ///   True if the number of suggestions after filtering was greater than the
+  ///   requested maxResults.
+  Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
+      String file, int offset, int maxResults) async {
+    var params =
+        CompletionGetSuggestions2Params(file, offset, maxResults).toJson();
+    var result = await server.send('completion.getSuggestions2', params);
+    var decoder = ResponseDecoder(null);
+    return CompletionGetSuggestions2Result.fromJson(decoder, 'result', result);
+  }
+
   /// Subscribe for completion services. All previous subscriptions are
   /// replaced by the given set of services.
   ///
@@ -1043,6 +1118,61 @@ abstract class IntegrationTestMixin {
     var result = await server.send('completion.getSuggestionDetails', params);
     var decoder = ResponseDecoder(null);
     return CompletionGetSuggestionDetailsResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /// Clients must make this request when the user has selected a completion
+  /// suggestion with the libraryUriToImportIndex field set. The server will
+  /// respond with the text to insert, as well as any SourceChange that needs
+  /// to be applied in case the completion requires an additional import to be
+  /// added. The text to insert might be different from the original suggestion
+  /// to include an import prefix if the library will be imported with a prefix
+  /// to avoid shadowing conflicts in the file.
+  ///
+  /// Parameters
+  ///
+  /// file: FilePath
+  ///
+  ///   The path of the file into which this completion is being inserted.
+  ///
+  /// offset: int
+  ///
+  ///   The offset in the file where the completion will be inserted.
+  ///
+  /// completion: String
+  ///
+  ///   The completion from the selected CompletionSuggestion. It could be a
+  ///   name of a class, or a name of a constructor in form
+  ///   "typeName.constructorName()", or an enumeration constant in form
+  ///   "enumName.constantName", etc.
+  ///
+  /// libraryUri: String
+  ///
+  ///   The URI of the library to import, so that the element referenced in the
+  ///   completion becomes accessible.
+  ///
+  /// Returns
+  ///
+  /// completion: String
+  ///
+  ///   The full text to insert, which possibly includes now an import prefix.
+  ///   The client should insert this text, not the completion from the
+  ///   selected CompletionSuggestion.
+  ///
+  /// change: SourceChange
+  ///
+  ///   A change for the client to apply to make the accepted completion
+  ///   suggestion available. In most cases the change is to add a new import
+  ///   directive to the file.
+  Future<CompletionGetSuggestionDetails2Result>
+      sendCompletionGetSuggestionDetails2(
+          String file, int offset, String completion, String libraryUri) async {
+    var params = CompletionGetSuggestionDetails2Params(
+            file, offset, completion, libraryUri)
+        .toJson();
+    var result = await server.send('completion.getSuggestionDetails2', params);
+    var decoder = ResponseDecoder(null);
+    return CompletionGetSuggestionDetails2Result.fromJson(
         decoder, 'result', result);
   }
 

@@ -445,7 +445,9 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     new_space_.Evacuate(reason);
     RecordAfterGC(GCType::kScavenge);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
+#if defined(SUPPORT_TIMELINE)
+    PrintStatsToTimeline(&tbes, reason);
+#endif
     last_gc_was_old_space_ = false;
   }
 }
@@ -473,7 +475,9 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       new_space_.Scavenge(reason);
       RecordAfterGC(GCType::kScavenge);
       PrintStats();
-      NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
+#if defined(SUPPORT_TIMELINE)
+      PrintStatsToTimeline(&tbes, reason);
+#endif
       last_gc_was_old_space_ = false;
     }
     if (reason == GCReason::kNewSpace) {
@@ -522,7 +526,9 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     old_space_.CollectGarbage(type == GCType::kMarkCompact, true /* finish */);
     RecordAfterGC(type);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
+#if defined(SUPPORT_TIMELINE)
+    PrintStatsToTimeline(&tbes, reason);
+#endif
 
     // Some Code objects may have been collected so invalidate handler cache.
     thread->isolate_group()->ForEachIsolate(
@@ -1176,7 +1182,7 @@ void Heap::PrintStats() {
 }
 
 void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
   if ((event == NULL) || !event->enabled()) {
     return;
   }
@@ -1209,7 +1215,7 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
                         RoundWordsToKB(stats_.before_.old_.external_in_words));
   event->FormatArgument(arguments + 12, "After.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.external_in_words));
-#endif  // !defined(PRODUCT)
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 Heap::Space Heap::SpaceForExternal(intptr_t size) const {
