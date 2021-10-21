@@ -392,7 +392,6 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_unused_constructor_parameters: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       RemoveUnusedParameter.newInstance,
     ],
     LintNames.avoid_unnecessary_containers: [
