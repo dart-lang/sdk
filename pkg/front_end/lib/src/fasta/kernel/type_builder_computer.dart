@@ -181,7 +181,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     } else if (kernelClassOrTypeDef is Typedef) {
       kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
     }
-    LibraryBuilder library = loader.builders[kernelLibrary!.importUri]!;
+    LibraryBuilder library =
+        loader.lookupLibraryBuilder(kernelLibrary!.importUri)!;
     return new NamedTypeBuilder(
         parameter.name!,
         new NullabilityBuilder.fromNullability(node.nullability),

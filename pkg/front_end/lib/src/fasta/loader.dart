@@ -21,7 +21,7 @@ const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 abstract class Loader {
   TargetImplementation get target;
 
-  Map<Uri, LibraryBuilder> get builders;
+  LibraryBuilder? lookupLibraryBuilder(Uri importUri);
 
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.

@@ -97,8 +97,7 @@ class DillTarget extends TargetImplementation {
   ///
   /// The [DillLibraryBuilder] is pulled from [_knownLibraryBuilders].
   DillLibraryBuilder createLibraryBuilder(Uri uri) {
-    DillLibraryBuilder libraryBuilder =
-        _knownLibraryBuilders.remove(uri) as DillLibraryBuilder;
+    DillLibraryBuilder libraryBuilder = _knownLibraryBuilders.remove(uri)!;
     // ignore: unnecessary_null_comparison
     assert(libraryBuilder != null, "No library found for $uri.");
     return libraryBuilder;

@@ -141,8 +141,7 @@ class SourceLoader extends Loader {
 
   final SourceLoaderDataForTesting? dataForTesting;
 
-  @override
-  final Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
+  final Map<Uri, LibraryBuilder> _builders = <Uri, LibraryBuilder>{};
 
   final Queue<LibraryBuilder> _unparsedLibraries = new Queue<LibraryBuilder>();
 
@@ -203,6 +202,32 @@ class SourceLoader extends Loader {
       : dataForTesting =
             retainDataForTesting ? new SourceLoaderDataForTesting() : null;
 
+  bool containsLibraryBuilder(Uri importUri) =>
+      _builders.containsKey(importUri);
+
+  @override
+  LibraryBuilder? lookupLibraryBuilder(Uri importUri) => _builders[importUri];
+
+  Iterable<LibraryBuilder> get libraryBuilders => _builders.values;
+
+  Iterable<Uri> get libraryImportUris => _builders.keys;
+
+  void registerLibraryBuilder(LibraryBuilder libraryBuilder, [Uri? uri]) {
+    uri ??= libraryBuilder.importUri;
+    if (uri.scheme == "dart" && uri.path == "core") {
+      coreLibrary = libraryBuilder;
+    }
+    _builders[uri] = libraryBuilder;
+  }
+
+  LibraryBuilder? deregisterLibraryBuilder(Uri importUri) {
+    return _builders.remove(importUri);
+  }
+
+  void clearLibraryBuilders() {
+    _builders.clear();
+  }
+
   @override
   LibraryBuilder get coreLibrary => _coreLibrary!;
 
@@ -229,7 +254,7 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner}) {
-    LibraryBuilder builder = builders.putIfAbsent(uri, () {
+    LibraryBuilder builder = _builders.putIfAbsent(uri, () {
       if (fileUri != null &&
           (fileUri!.scheme == "dart" ||
               fileUri!.scheme == "package" ||
@@ -382,7 +407,7 @@ class SourceLoader extends Loader {
 
   Future<Null> buildBodies() async {
     assert(_coreLibrary != null);
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         currentUriForCrashReporting = library.importUri;
         await buildBody(library);
@@ -395,7 +420,7 @@ class SourceLoader extends Loader {
   void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
-      for (LibraryBuilder library in builders.values) {
+      for (LibraryBuilder library in libraryBuilders) {
         if (library.loader == this) libraryCount++;
       }
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
@@ -912,7 +937,7 @@ severity: $severity
   void resolveParts() {
     List<Uri> parts = <Uri>[];
     List<SourceLibraryBuilder> libraries = <SourceLibraryBuilder>[];
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    _builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         if (library.isPart) {
           parts.add(uri);
@@ -927,16 +952,17 @@ severity: $severity
     }
     for (Uri uri in parts) {
       if (usedParts.contains(uri)) {
-        builders.remove(uri);
+        _builders.remove(uri);
       } else {
-        SourceLibraryBuilder part = builders[uri] as SourceLibraryBuilder;
+        SourceLibraryBuilder part =
+            lookupLibraryBuilder(uri) as SourceLibraryBuilder;
         part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
         part.validatePart(null, null);
       }
     }
     ticker.logMs("Resolved parts");
 
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         library.applyPatches();
       }
@@ -947,7 +973,7 @@ severity: $severity
   void computeLibraryScopes() {
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         sourceLibrary.buildInitialScopes();
@@ -981,7 +1007,7 @@ severity: $severity
         }
       }
     } while (wasChanged);
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         sourceLibrary.addImportsToScope();
@@ -1000,7 +1026,7 @@ severity: $severity
 
   void debugPrintExports() {
     // TODO(sigmund): should be `covariant SourceLibraryBuilder`.
-    builders.forEach((Uri uri, dynamic l) {
+    _builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
       Iterator<Builder> iterator = library.iterator;
@@ -1024,7 +1050,7 @@ severity: $severity
 
   void resolveTypes() {
     int typeCount = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         typeCount += sourceLibrary.resolveTypes();
@@ -1035,7 +1061,7 @@ severity: $severity
 
   void finishDeferredLoadTearoffs() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishDeferredLoadTearoffs();
       }
@@ -1045,7 +1071,7 @@ severity: $severity
 
   void finishNoSuchMethodForwarders() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishForwarders();
       }
@@ -1055,7 +1081,7 @@ severity: $severity
 
   void resolveConstructors() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.resolveConstructors(null);
       }
@@ -1065,7 +1091,7 @@ severity: $severity
 
   void installTypedefTearOffs() {
     if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
-      for (LibraryBuilder library in builders.values) {
+      for (LibraryBuilder library in libraryBuilders) {
         if (library.loader == this && library is SourceLibraryBuilder) {
           library.installTypedefTearOffs();
         }
@@ -1075,7 +1101,7 @@ severity: $severity
 
   void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishTypeVariables(object, dynamicType);
       }
@@ -1085,7 +1111,7 @@ severity: $severity
 
   void computeVariances() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.computeVariances();
       }
@@ -1096,7 +1122,7 @@ severity: $severity
   void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.computeDefaultTypes(
             dynamicType, nullType, bottomType, objectClass);
@@ -1107,7 +1133,7 @@ severity: $severity
 
   void finishNativeMethods() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishNativeMethods();
       }
@@ -1117,7 +1143,7 @@ severity: $severity
 
   void finishPatchMethods() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishPatchMethods();
       }
@@ -1156,7 +1182,7 @@ severity: $severity
   List<SourceClassBuilder> handleHierarchyCycles(ClassBuilder objectClass) {
     // Compute the initial work list of all classes declared in this loader.
     List<SourceClassBuilder> workList = <SourceClassBuilder>[];
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         Iterator<Builder> members = library.iterator;
         while (members.moveNext()) {
@@ -1355,7 +1381,7 @@ severity: $severity
 
   /// Builds the core AST structure needed for the outline of the component.
   void buildComponent() {
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         Library target = sourceLibrary.build(coreLibrary);
@@ -1375,7 +1401,7 @@ severity: $severity
   Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
-    for (LibraryBuilder libraryBuilder in builders.values) {
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
       if (!libraryBuilder.isPatch &&
           (libraryBuilder.loader == this ||
               libraryBuilder.importUri.scheme == "dart" ||
@@ -1422,7 +1448,7 @@ severity: $severity
   }
 
   void computeShowHideElements() {
-    for (LibraryBuilder libraryBuilder in builders.values) {
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
       if (libraryBuilder.loader == this &&
           libraryBuilder is SourceLibraryBuilder) {
         libraryBuilder.computeShowHideElements(_builderHierarchy!);
@@ -1470,7 +1496,7 @@ severity: $severity
   }
 
   void checkTypes() {
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library is SourceLibraryBuilder) {
         if (library.loader == this) {
           library
@@ -1551,7 +1577,7 @@ severity: $severity
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         (library as SourceLibraryBuilder).buildOutlineExpressions();
         Iterator<Builder> iterator = library.iterator;
@@ -1608,7 +1634,7 @@ severity: $severity
     builderHierarchy.computeTypes();
 
     List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         List<FieldBuilder>? implicitlyTypedFields =
             library.takeImplicitlyTypedFields();
@@ -1704,7 +1730,7 @@ severity: $severity
   void checkMainMethods() {
     DartType? listOfString;
 
-    for (LibraryBuilder libraryBuilder in builders.values) {
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
       if (libraryBuilder.loader == this &&
           libraryBuilder.isNonNullableByDefault) {
         Builder? mainBuilder =
@@ -1833,7 +1859,7 @@ severity: $severity
     hierarchy = null;
     _builderHierarchy = null;
     _typeInferenceEngine = null;
-    builders.clear();
+    _builders.clear();
     libraries.clear();
     first = null;
     sourceBytes.clear();
@@ -1847,7 +1873,7 @@ severity: $severity
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
-    LibraryBuilder? library = builders[kernelLibrary.importUri];
+    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
