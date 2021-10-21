@@ -31,16 +31,22 @@ typedef _Hasher<K> = int Function(K object);
 /// so iterating the [keys] and [values] in parallel
 /// will give matching key and value pairs.
 ///
-/// Example:
+/// Example of usage:
 ///
+/// To add data to map, call [addAll] or [addEntries]:
 /// ```dart
 /// final HashMap<int, String> hashMap = HashMap();
 /// hashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
+///
+/// final HashMap<int, String> anotherHasMap = HashMap();
+/// anotherHasMap.addEntries(hashMap.entries);
+/// print(anotherHasMap); // {1: A, 2: B, 3: C, 4: D}
 /// ```
-/// Check is the map empty:
+/// To check is the map empty, use [isEmpty] or [isNotEmpty].
+/// To check length of map data, use [length]:
 /// ```dart
-/// print(hashMap.isEmpty); // false
-/// print(hashMap.length); // 4
+/// final bool isEmpty = hashMap.isEmpty; // false
+/// final int length = hashMap.length; // 4
 /// print(hashMap); // {1: A, 2: B, 3: C, 4: D}
 /// ```
 /// The [forEach] iterates through all entries of a map.
@@ -56,42 +62,47 @@ typedef _Hasher<K> = int Function(K object);
 ///   // key: 4 value: D
 /// });
 /// ```
-/// Check is key defined:
+/// To check is there a defined key, call [containsKey]:
 /// ```dart
-/// print(hashMap.containsKey(1)); // true
-/// print(hashMap.containsKey(5)); // false
+/// final keyOneExists = hashMap.containsKey(1); // true
+/// final keyFiveExists = hashMap.containsKey(5); // false
 /// ```
-/// Check is value defined:
+/// To check is there a value item on map, call [containsValue]:
 /// ```dart
-/// print(hashMap.containsValue('B')); // true
-/// print(hashMap.containsValue('b')); // false
+/// final bExists = hashMap.containsValue('B'); // true
+/// final cExists =  hashMap.containsValue('c'); // false
 /// ```
-/// Remove item if provided key exists:
+/// To remove specific key-pair using key, call [remove]:
 /// ```dart
 /// hashMap.remove(1);
+/// print(hashMap); // {2: B, 3: C, 4: D}
 /// ```
-/// Remove item using [removeWhere] with a statement:
+/// To remove item(s) with a statement, call the [removeWhere]:
 /// ```dart
 /// hashMap.removeWhere((key, value) => key == 2);
 /// hashMap.removeWhere((key, value) => value == 'B');
+/// print(hashMap); // {3: C, 4: D}
 /// ```
-/// Update or insert (adding new key-value pair if not exists) value:
+/// To update or insert (adding new key-value pair if not exists) value,
+/// call [update] method with ifAbsent statement:
 /// ```dart
 /// hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
 /// print(hashMap); // {10: E, 3: C, 4: D}
 /// hashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
 /// print(hashMap); // {10: E, 3: C, 4: abc}
 /// ```
-/// Update all items using [updateAll]:
+/// To update all items, call [updateAll]:
 /// ```dart
 /// hashMap.updateAll((int key, String value) => 'X');
 /// print(hashMap); // {10: X, 3: X, 4: X}
 /// ```
-/// Use [clear] to remove all items:
+/// To clean up data, call the [clear]:
 /// ```dart
-/// hashMap.clear(); // {}
+/// hashMap.clear();
+/// print(hashMap); // {}
 /// ```
 ///
+/// 
 /// ## Constructor options for initialization:
 ///
 /// [HashMap.from] example:
@@ -125,6 +136,7 @@ typedef _Hasher<K> = int Function(K object);
 /// final Map mapIntString = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
 /// final HashMap mapOf = HashMap.of(mapIntString);
 /// ```
+///
 abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered hash-table based [Map].
   ///
