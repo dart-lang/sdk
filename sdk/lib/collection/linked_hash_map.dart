@@ -6,7 +6,7 @@ part of dart.collection;
 
 /// A hash-table based implementation of [Map].
 ///
-/// The __insertion order of keys is remembered__,
+/// __The insertion order of keys is remembered__,
 /// and keys are iterated in the order they were inserted into the map.
 /// Values are iterated in their corresponding key's order.
 /// Changing a key's value, when the key is already in the map,
@@ -20,18 +20,20 @@ part of dart.collection;
 /// symmetric, transitive, and consistent over time), and that `hashCode`
 /// must be the same for objects that are considered equal by `==`.
 ///
-/// Example:
+/// Example of usage:
 ///
+/// To add data to map, call [addAll] or [addEntries]
 /// ```dart
 /// final LinkedHashMap<int, String> linkedHashMap =
 ///   LinkedHashMap<int, String>();
 /// linkedHashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
 /// ```
 ///
-/// Check is the map empty:
+/// To check is the map empty, use [isEmpty] or [isNotEmpty].
+/// To check length of map data, use [length]:
 /// ```dart
-/// print(linkedHashMap.isEmpty); // false
-/// print(linkedHashMap.length); // 4
+/// linkedHashMap.isEmpty; // false
+/// linkedHashMap.length; // 4
 /// print(linkedHashMap); // {1: A, 4: D, 2: B, 3: C}
 /// ```
 /// The [forEach] iterates through all entries of a map.
@@ -47,42 +49,44 @@ part of dart.collection;
 ///   // key: 3 value: C
 /// });
 /// ```
-/// Check is key defined:
+/// To check is there a defined key, call [containsKey]:
 /// ```dart
-/// print(linkedHashMap.containsKey(1)); // true
-/// print(linkedHashMap.containsKey(5)); // false
+/// final keyOneExists = linkedHashMap.containsKey(1); // true
+/// final keyFiveExists = linkedHashMap.containsKey(5); // false
 /// ```
-/// Check is value defined:
+/// To check is there a value item on map, call [containsValue]:
 /// ```dart
-/// print(linkedHashMap.containsValue('B')); // true
-/// print(linkedHashMap.containsValue('b')); // false
+/// final bExists = linkedHashMap.containsValue('B'); // true
+/// final cExists =  linkedHashMap.containsValue('c'); // false
 /// ```
-/// Remove item if provided key exists:
+/// To remove specific key-pair using key, call [remove]
 /// ```dart
 /// linkedHashMap.remove(1);
 /// print(linkedHashMap); // {4: D, 2: B, 3: C}
 /// ```
-/// Remove item using [removeWhere] with a statement:
+/// To remove item(s) with a statement, call the [removeWhere]:
 /// ```dart
 ///  linkedHashMap.removeWhere((key, value) => key == 2);
 ///  linkedHashMap.removeWhere((key, value) => value == 'C');
 ///  print(linkedHashMap); // {4: D}
 /// ```
-/// Update or insert (adding new key-value pair if not exists) value:
+/// To update or insert (adding new key-value pair if not exists) value,
+/// call [update] with ifAbsent statement or call [putIfAbsent]:
 /// ```dart
 /// linkedHashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
 /// print(linkedHashMap); // {4: D, 10: E}
 /// linkedHashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
 /// print(linkedHashMap); // {4: abc, 10: E}
 /// ```
-/// Update all items using [updateAll]:
+/// To update all items, call [updateAll]:
 /// ```dart
 /// linkedHashMap.updateAll((int key, String value) => 'X');
 /// print(linkedHashMap); // {4: X, 1: X}
 /// ```
-/// Use [clear] to remove all items:
+/// To clean up data, call the [clear]:
 /// ```dart
-/// linkedHashMap.clear(); // {}
+/// linkedHashMap.clear();
+/// print(linkedHashMap); // {}
 /// ```
 ///
 /// ## Constructor options for initialization:
