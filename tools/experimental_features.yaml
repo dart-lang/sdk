@@ -128,6 +128,9 @@ features:
   named-arguments-anywhere:
     help: "Named Arguments Anywhere"
 
+  super-parameters:
+    help: "Super-Initializer Parameters"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
