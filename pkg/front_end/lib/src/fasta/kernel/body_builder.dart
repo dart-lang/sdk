@@ -1267,10 +1267,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void ensureLoaded(Member? member) {
     if (member == null) return;
     Library ensureLibraryLoaded = member.enclosingLibrary;
-    LibraryBuilder? builder =
-        libraryBuilder.loader.builders[ensureLibraryLoaded.importUri] ??
-            libraryBuilder.loader.target.dillTarget.loader
-                .builders[ensureLibraryLoaded.importUri];
+    LibraryBuilder? builder = libraryBuilder.loader
+            .lookupLibraryBuilder(ensureLibraryLoaded.importUri) ??
+        libraryBuilder.loader.target.dillTarget.loader
+            .lookupLibraryBuilder(ensureLibraryLoaded.importUri);
     if (builder is DillLibraryBuilder) {
       builder.ensureLoaded();
     }
@@ -1285,10 +1285,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   bool isLoaded(Member? member) {
     if (member == null) return true;
     Library ensureLibraryLoaded = member.enclosingLibrary;
-    LibraryBuilder? builder =
-        libraryBuilder.loader.builders[ensureLibraryLoaded.importUri] ??
-            libraryBuilder.loader.target.dillTarget.loader
-                .builders[ensureLibraryLoaded.importUri];
+    LibraryBuilder? builder = libraryBuilder.loader
+            .lookupLibraryBuilder(ensureLibraryLoaded.importUri) ??
+        libraryBuilder.loader.target.dillTarget.loader
+            .lookupLibraryBuilder(ensureLibraryLoaded.importUri);
     if (builder is DillLibraryBuilder) {
       return builder.isBuiltAndMarked;
     }
