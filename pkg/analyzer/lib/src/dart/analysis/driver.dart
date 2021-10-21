@@ -335,6 +335,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// not been processed yet, it might be missing.
   Set<String> get knownFiles => _fsState.knownFilePaths;
 
+  /// Return the context in which libraries should be analyzed.
+  LibraryContext get libraryContext {
+    return _libraryContext ??= LibraryContext(
+      testView: _testView.libraryContextTestView,
+      session: currentSession,
+      logger: _logger,
+      byteStore: _byteStore,
+      analysisOptions: _analysisOptions,
+      declaredVariables: declaredVariables,
+      sourceFactory: _sourceFactory,
+      externalSummaries: _externalSummaries,
+    );
+  }
+
   /// Return the path of the folder at the root of the context.
   String get name => analysisContext?.contextRoot.root.path ?? '';
 
@@ -684,7 +698,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return UnspecifiedInvalidResult();
       },
       (externalLibrary) async {
-        var libraryContext = _createLibraryContext(null);
         var element = libraryContext.getLibraryElement(externalLibrary.uri);
         return LibraryElementResultImpl(element);
       },
@@ -1301,7 +1314,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           return _newMissingDartLibraryResult(file, 'dart:async');
         }
 
-        var libraryContext = _createLibraryContext(library!);
+        libraryContext.load2(library!);
 
         LibraryAnalyzer analyzer = LibraryAnalyzer(
             analysisOptions as AnalysisOptionsImpl,
@@ -1373,7 +1386,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     return _logger.run('Compute resolved library $path', () {
       _testView.numOfAnalyzedLibraries++;
-      var libraryContext = _createLibraryContext(library);
+      libraryContext.load2(library);
 
       LibraryAnalyzer analyzer = LibraryAnalyzer(
           analysisOptions as AnalysisOptionsImpl,
@@ -1431,7 +1444,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     return _logger.run('Compute unit element for $path', () {
       _logger.writeln('Work in $name');
-      var libraryContext = _createLibraryContext(library!);
+      libraryContext.load2(library!);
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
         currentSession,
@@ -1476,36 +1489,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       fileContentCache: _fileContentCache,
     );
     _fileTracker = FileTracker(_logger, _fsState);
-  }
-
-  /// Return the context in which the [library] should be analyzed.
-  LibraryContext _createLibraryContext(FileState? library) {
-    {
-      var libraryContext = _libraryContext;
-      if (libraryContext != null) {
-        if (libraryContext.pack()) {
-          clearLibraryContext();
-        }
-      }
-    }
-
-    var libraryContext = _libraryContext;
-    libraryContext ??= _libraryContext = LibraryContext(
-      testView: _testView.libraryContextTestView,
-      session: currentSession,
-      logger: _logger,
-      byteStore: _byteStore,
-      analysisOptions: _analysisOptions,
-      declaredVariables: declaredVariables,
-      sourceFactory: _sourceFactory,
-      externalSummaries: _externalSummaries,
-    );
-
-    if (library != null) {
-      libraryContext.load2(library);
-    }
-
-    return libraryContext;
   }
 
   /// If this has not been done yet, schedule discovery of all files that are
