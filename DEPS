@@ -104,7 +104,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_rev": "14d9b6fd58cc4744676c12be3cc5eee2a779db82",
+  "dart_style_rev": "08b0294d0a500d5c02168ef57dcb8868d0c3cb48",
 
   "dartdoc_rev" : "c2f284f09bcc49025fe26e86b2d45e1b546f81a3",
   "devtools_rev" : "8881a7caa9067471008a8e00750b161f53cdb843",
