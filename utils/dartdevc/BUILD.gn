@@ -302,7 +302,10 @@ template("dartdevc_sdk_js") {
   }
 
   prebuilt_dart_action(target_name) {
-    deps = [ platform_dep ]
+    deps = [
+      ":dartdevc_files_stamp",
+      platform_dep,
+    ]
 
     inputs = [ platform_input ]
 
