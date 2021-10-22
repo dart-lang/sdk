@@ -318,11 +318,18 @@ class pragma {
 }
 
 abstract class double extends num {
+  // TODO: remove these old constants when no tests rely on them.
   static const double NAN = 0.0 / 0.0;
   static const double INFINITY = 1.0 / 0.0;
   static const double NEGATIVE_INFINITY = -INFINITY;
   static const double MIN_POSITIVE = 5e-324;
   static const double MAX_FINITE = 1.7976931348623157e+308;
+
+  static const double nan = 0.0 / 0.0;
+  static const double infinity = 1.0 / 0.0;
+  static const double negativeInfinity = -infinity;
+  static const double minPositive = 5e-324;
+  static const double maxFinite = 1.7976931348623157e+308;
 
   double get sign;
   double operator %(num other);

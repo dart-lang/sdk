@@ -88,6 +88,7 @@ class InSummarySource extends BasicSource {
 /// The [UriResolver] that knows about sources that are served from their
 /// summaries.
 class InSummaryUriResolver extends UriResolver {
+  /// TODO(scheglov) Remove it, we don't need it.
   ResourceProvider? resourceProvider;
   final SummaryDataStore _dataStore;
 
