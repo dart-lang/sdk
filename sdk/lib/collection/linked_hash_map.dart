@@ -20,7 +20,7 @@ part of dart.collection;
 /// symmetric, transitive, and consistent over time), and that `hashCode`
 /// must be the same for objects that are considered equal by `==`.
 ///
-/// Example of usage:
+/// Example:
 ///
 /// To add data to map, call [addAll] or [addEntries]
 /// ```dart
@@ -28,7 +28,6 @@ part of dart.collection;
 ///   LinkedHashMap<int, String>();
 /// linkedHashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
 /// ```
-///
 /// To check is the map empty, use [isEmpty] or [isNotEmpty].
 /// To check length of map data, use [length]:
 /// ```dart
@@ -96,21 +95,18 @@ part of dart.collection;
 /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
 /// final LinkedHashMap fromBaseMap = LinkedHashMap.from(baseMap);
 /// ```
-///
 /// [LinkedHashMap.fromEntries] example:
 /// ```dart
 /// final Map baseMap = {3: 'A', 2: 'B', 1: 'C'};
 /// final LinkedHashMap mapFromEntries =
 ///   LinkedHashMap.fromEntries(baseMap.entries);
 /// ```
-///
 /// [LinkedHashMap.fromIterable] example:
 /// ```dart
 /// final List<int> keyList = [11, 12, 13, 14];
 /// final LinkedHashMap mapFromIterable =
 ///   LinkedHashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
 /// ```
-///
 /// [LinkedHashMap.fromIterables] example:
 /// ```dart
 /// final List<String> keys = ['1', '2', '3', '4'];
@@ -118,7 +114,6 @@ part of dart.collection;
 /// final LinkedHashMap mapFromIterables =
 ///   LinkedHashMap.fromIterables(keys, values);
 /// ```
-///
 /// [LinkedHashMap.of] example:
 /// ```dart
 /// final Map mapIntString = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
