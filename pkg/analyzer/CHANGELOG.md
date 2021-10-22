@@ -1,4 +1,4 @@
-## 2.7.0-dev
+## 2.7.0
 * Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.
 * Deprecated `InterfaceType.getSmartLeastUpperBound`, use `TypeSystem.leastUpperBound` instead.
 * Deprecated `MockSdk`, use `createMockSdk` and `FolderBasedDartSdk` instead.
