@@ -656,6 +656,8 @@ class FunctionReferenceResolver {
         }
 
         if (method is PropertyAccessorElement) {
+          function.staticElement = method;
+          function.staticType = method.returnType;
           _resolve(node: node, rawType: method.variable.type);
           return;
         }
