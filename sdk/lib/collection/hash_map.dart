@@ -31,7 +31,7 @@ typedef _Hasher<K> = int Function(K object);
 /// so iterating the [keys] and [values] in parallel
 /// will give matching key and value pairs.
 ///
-/// Example of usage:
+/// Example:
 ///
 /// To add data to map, call [addAll] or [addEntries]:
 /// ```dart
@@ -101,7 +101,6 @@ typedef _Hasher<K> = int Function(K object);
 /// hashMap.clear();
 /// print(hashMap); // {}
 /// ```
-///
 /// 
 /// ## Constructor options for initialization:
 ///
@@ -110,27 +109,23 @@ typedef _Hasher<K> = int Function(K object);
 /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
 /// final HashMap<int, String> fromBaseMap = HashMap.from(baseMap);
 /// ```
-///
 /// [HashMap.fromEntries] example:
 /// ```dart
 /// final Map baseMap = {3: 'A', 2: 'B', 1: 'C'};
 /// final HashMap mapFromEntries = HashMap.fromEntries(baseMap.entries);
 /// ```
-///
 /// [HashMap.fromIterable] example:
 /// ```dart
 /// final List<int> keyList = [11, 12, 13, 14];
 /// final HashMap mapFromIterable =
 ///   HashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
 /// ```
-///
 /// [HashMap.fromIterables] example:
 /// ```dart
 /// final List<String> keys = ['1', '2', '3', '4'];
 /// final List<String> values = ['A', 'B', 'C', 'D'];
 /// final HashMap mapFromIterables = HashMap.fromIterables(keys, values);
 /// ```
-///
 /// [HashMap.of] example:
 /// ```dart
 /// final Map mapIntString = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
