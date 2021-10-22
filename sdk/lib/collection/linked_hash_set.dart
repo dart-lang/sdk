@@ -26,45 +26,65 @@ part of dart.collection;
 /// constant time: [add], [contains], [remove], and [length], provided the hash
 /// codes of objects are well distributed..
 ///
-/// Example:
+/// Example of usage:
 /// ```dart
 /// final LinkedHashSet linkedHashSet = LinkedHashSet();
 /// linkedHashSet.addAll({'A', 'B', 'C', 'D'});
 /// linkedHashSet.isEmpty; // false
 /// linkedHashSet.length; // 4
 /// print(linkedHashSet); // {A, B, C, D}
-///
+/// ```
+/// To check is there a value item on map, call [contains]:
+/// ```dart
 /// linkedHashSet.contains('B'); // true
+///  ```
+/// To get element value using index, call [elementAt]:
+/// ```dart
 /// final String elementAt = linkedHashSet.elementAt(1);
 /// print(elementAt); // B
-///
-/// // Convert set to list
-/// final toList = linkedHashSet.toList();
-/// print(toList); // [A, B, C, D]
-/// // Make a copy of set
-/// final copyOfOriginal = linkedHashSet.toSet();
-/// print(copyOfOriginal.runtimeType); // LinkedHashSet
-/// print(copyOfOriginal); // {A, B, C, D}
-///
-/// // add single item to set
-/// linkedHashSet.add('E');
-/// print(linkedHashSet); // {A, B, C, D, E}
-///
-/// linkedHashSet.remove('A');
-/// print(linkedHashSet); // {B, C, D, E}
-///
+/// ```
+/// The [forEach] iterates through all entries of a set.
+/// Manipulating item count in [forEach] is prohibited. Adding or
+/// deleting items during iteration causes an exception:
+/// _"Concurrent modification during iteration"_.
+/// ```dart
 /// linkedHashSet.forEach((element) {
 ///   print(element);
 /// });
-///
-/// linkedHashSet.removeWhere((element) =>
-///   element.contains('B') || element.contains('D'));
-/// print(linkedHashSet); // {C, E}
-///
+/// ```
+/// To convert set to list, call [toList]:
+/// ```dart
+/// final toList = linkedHashSet.toList();
+/// print(toList); // [A, B, C, D]
+/// ```
+/// To make a copy of set, call [toSet]:
+/// ```dart
+/// final copySet = linkedHashSet.toSet();
+/// print(copySet); // {A, B, C, D}
+/// ```
+/// To add item to set, call [add]
+/// ```dart
+/// linkedHashSet.add('E');
+/// print(linkedHashSet); // {A, B, C, D, E}
+/// ```
+/// To remove specific value, call [remove]:
+/// ```dart
+/// linkedHashSet.remove('A');
+/// print(linkedHashSet); // {B, C, D, E}
+/// ```
+
+/// To remove value(s) with a statement, call the [removeWhere]:
+/// ```dart
+/// linkedHashSet.removeWhere((element) => element.contains('B'));
+/// print(linkedHashSet); // {C, D, E}
+/// ```
+/// To remove other values than those which match statement
+/// ```dart
 /// linkedHashSet.retainWhere((element) => element.contains('C'));
 /// print(linkedHashSet); // {C}
-///
-/// // Use clear to remove all items:
+/// ```
+/// To clean up data, call the [clear]:
+/// ```dart
 /// linkedHashSet.clear();
 /// print(linkedHashSet); // {}
 /// ```
@@ -76,13 +96,12 @@ part of dart.collection;
 /// baseSet.addAll({'C', 'B', 'A'});
 ///
 /// final LinkedHashSet<String> hashSetFrom = LinkedHashSet.from(baseSet);
-/// print(hashSetFrom); // {C, B, A}
 ///
 /// // Notice! LinkedHashSet.from() causes runtime error if type not match
 /// final LinkedHashSet<int> hashSetFrom = LinkedHashSet.from(baseSet);
 ///
 /// final LinkedHashSet setOf = LinkedHashSet.of(baseSet);
-/// print(setOf); // {C, B, A}
+/// print(setOf); // {A, C, B}
 ///
 /// // LinkedHashSet.of causes build time error if type mismatch
 /// final LinkedHashSet<int> customSet = LinkedHashSet.of(baseSet);
