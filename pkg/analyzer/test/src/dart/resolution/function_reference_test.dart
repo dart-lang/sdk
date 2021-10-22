@@ -578,6 +578,23 @@ abstract class A {
         findElement.getter('foo'), 'void Function(int)');
   }
 
+  test_instanceGetter_functionTyped_inherited() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  late void Function<T>(T) foo;
+}
+abstract class B extends A {
+  bar() {
+    foo<int>;
+  }
+}
+
+''');
+
+    assertFunctionReference(findNode.functionReference('foo<int>;'),
+        findElement.getter('foo'), 'void Function(int)');
+  }
+
   test_instanceMethod() async {
     await assertNoErrorsInCode('''
 class A {
