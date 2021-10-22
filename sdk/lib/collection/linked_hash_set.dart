@@ -26,7 +26,7 @@ part of dart.collection;
 /// constant time: [add], [contains], [remove], and [length], provided the hash
 /// codes of objects are well distributed..
 ///
-/// Example of usage:
+/// Example:
 /// ```dart
 /// final LinkedHashSet linkedHashSet = LinkedHashSet();
 /// linkedHashSet.addAll({'A', 'B', 'C', 'D'});
@@ -72,7 +72,6 @@ part of dart.collection;
 /// linkedHashSet.remove('A');
 /// print(linkedHashSet); // {B, C, D, E}
 /// ```
-
 /// To remove value(s) with a statement, call the [removeWhere]:
 /// ```dart
 /// linkedHashSet.removeWhere((element) => element.contains('B'));
