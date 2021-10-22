@@ -22,41 +22,65 @@ part of dart.collection;
 /// multiple iterations over the same set produce the same order, as long as
 /// the set is not modified.
 ///
-/// Example:
+/// Example of usage:
 /// ```dart
 /// final HashSet hashSet = HashSet();
 /// hashSet.addAll({'A', 'B', 'C', 'D'});
 /// hashSet.isEmpty; // false
 /// hashSet.length; // 4
-/// print(hashSet); // {A, D, C, B}
-///
-/// hashSet.contains('B'); // true
+/// print(hashSet); / {A, D, C, B}
+/// ```
+/// To check is there a value item on map, call [contains]:
+/// ```dart
+/// final bool bExists = hashSet.contains('B'); // true
+///  ```
+/// To get element value using index, call [elementAt]:
+/// ```dart
 /// final String elementAt = hashSet.elementAt(1);
-/// print(elementAt); // B
+/// print(elementAt); // D
+///  ```
 ///
-/// // Convert set to list
-/// final toList = hashSet.toList();
-/// print(toList); // [A, B, C, D]
-/// // Make a copy of set
-/// final copyOfOriginal = hashSet.toSet();
-/// print(copyOfOriginal.runtimeType); // HashSet
-/// print(copyOfOriginal); // {A, B, C, D}
-///
-/// hashSet.remove('A'); // {D, C, B}
-/// print(hashSet);
-///
+/// The [forEach] iterates through all entries of a set.
+/// Manipulating item count in [forEach] is prohibited. Adding or
+/// deleting items during iteration causes an exception:
+/// _"Concurrent modification during iteration"_.
+/// ```dart
 /// hashSet.forEach((element) {
 ///   print(element);
 /// });
-///
-/// hashSet.removeWhere((element) => element.contains('B'));
-/// print(hashSet); // {D, C}
-///
+/// ```
+/// To convert set to list, call [toList]:
+/// ```dart
+/// final toList = hashSet.toList();
+/// print(toList); // [A, D, C, B]
+/// ```
+/// To make a copy of set, call [toSet]:
+/// ```dart
+/// final copyOfOriginal = hashSet.toSet();
+/// print(copyOfOriginal); // {A, C, D, B}
+/// ```
+/// To add item to set, call [add]
+/// ```dart
 /// hashSet.add('E');
+/// print(hashSet); // // {A, D, C, E, B}
+/// ```
+/// To remove specific value, call [remove]:
+/// ```dart
+/// hashSet.remove('A');
+/// print(hashSet); // // {D, C, E, B}
+/// ```
+/// To remove value(s) with a statement, call the [removeWhere]:
+/// ```dart
+/// hashSet.removeWhere((element) => element.contains('B'));
 /// print(hashSet); // {D, C, E}
-///
+/// ```
+/// To remove other values than those which match statement
+/// ```dart
 /// hashSet.retainWhere((element) => element.contains('C'));
 /// print(hashSet); // {C}
+/// ```
+/// To clean up data, call the [clear]:
+/// ```dart
 /// hashSet.clear();
 /// print(hashSet); // {}
 /// ```
