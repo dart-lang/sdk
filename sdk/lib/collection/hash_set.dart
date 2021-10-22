@@ -22,7 +22,7 @@ part of dart.collection;
 /// multiple iterations over the same set produce the same order, as long as
 /// the set is not modified.
 ///
-/// Example of usage:
+/// Example:
 /// ```dart
 /// final HashSet hashSet = HashSet();
 /// hashSet.addAll({'A', 'B', 'C', 'D'});
@@ -39,7 +39,6 @@ part of dart.collection;
 /// final String elementAt = hashSet.elementAt(1);
 /// print(elementAt); // D
 ///  ```
-///
 /// The [forEach] iterates through all entries of a set.
 /// Manipulating item count in [forEach] is prohibited. Adding or
 /// deleting items during iteration causes an exception:
