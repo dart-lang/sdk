@@ -340,8 +340,7 @@ abstract class SomeUnitElementResult {}
 /// The result of building the element model for a single file.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class UnitElementResult
-    implements SomeUnitElementResult, AnalysisResult {
+abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;
 

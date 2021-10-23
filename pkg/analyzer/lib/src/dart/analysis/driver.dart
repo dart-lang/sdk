@@ -1500,6 +1500,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         currentSession,
         path,
         file.uri,
+        file.lineInfo,
+        file.isPart,
         library.transitiveSignature,
         element,
       );
