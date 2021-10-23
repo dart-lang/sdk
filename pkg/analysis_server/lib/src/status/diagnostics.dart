@@ -243,7 +243,7 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult2(filePath);
+    var result = await driver.getResult(filePath);
     if (result is ResolvedUnitResult) {
       var writer = AstWriter(buf);
       result.unit.accept(writer);
@@ -833,7 +833,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult2(filePath);
+    var result = await driver.getResult(filePath);
     CompilationUnitElement? compilationUnitElement;
     if (result is ResolvedUnitResult) {
       compilationUnitElement = result.unit.declaredElement;

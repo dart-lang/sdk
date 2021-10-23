@@ -468,7 +468,7 @@ class A {
 ''');
     var element = findElement.unnamedConstructor('A');
 
-    var otherUnitResult = await driver.getResult2(other) as ResolvedUnitResult;
+    var otherUnitResult = await driver.getResult(other) as ResolvedUnitResult;
     CompilationUnit otherUnit = otherUnitResult.unit;
     Element main = otherUnit.declaredElement!.functions[0];
     var expected = [
@@ -1894,7 +1894,7 @@ class A {
 ''');
 
     var aLibraryResult =
-        await driver.getLibraryByUri2(aUri) as LibraryElementResult;
+        await driver.getLibraryByUri(aUri) as LibraryElementResult;
     ClassElement aClass = aLibraryResult.element.getType('A')!;
 
     // Search by 'type'.
@@ -1940,7 +1940,7 @@ class A {
     newFile(cccFilePath, content: 'class C implements List {}');
 
     var coreLibResult =
-        await driver.getLibraryByUri2('dart:core') as LibraryElementResult;
+        await driver.getLibraryByUri('dart:core') as LibraryElementResult;
     ClassElement listElement = coreLibResult.element.getType('List')!;
 
     var searchedFiles = SearchedFiles();

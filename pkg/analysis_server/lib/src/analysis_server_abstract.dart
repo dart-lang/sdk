@@ -331,7 +331,7 @@ abstract class AbstractAnalysisServer {
         return null;
       }
 
-      var unitElementResult = await driver.getUnitElement2(file);
+      var unitElementResult = await driver.getUnitElement(file);
       if (unitElementResult is! UnitElementResult) {
         return null;
       }
@@ -414,7 +414,7 @@ abstract class AbstractAnalysisServer {
     }
 
     return driver
-        .getResult2(path, sendCachedToStream: sendCachedToStream)
+        .getResult(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((e, st) {
       instrumentationService.logException(e, st);
