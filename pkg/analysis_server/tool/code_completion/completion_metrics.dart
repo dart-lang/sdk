@@ -1208,13 +1208,17 @@ class CompletionMetricsComputer {
           availableSuggestionsParams]) async {
     List<protocol.CompletionSuggestion> suggestions;
 
+    var dartRequest = await DartCompletionRequestImpl.from(
+      request,
+      dartdocDirectiveInfo: dartdocDirectiveInfo,
+      documentationCache: documentationCache,
+    );
+
     if (declarationsTracker == null) {
       // available suggestions == false
       suggestions = await DartCompletionManager(
-        dartdocDirectiveInfo: dartdocDirectiveInfo,
         listener: listener,
-      ).computeSuggestions(performance, request,
-          documentationCache: documentationCache);
+      ).computeSuggestions(dartRequest, performance);
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -1223,13 +1227,11 @@ class CompletionMetricsComputer {
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
-        dartdocDirectiveInfo: dartdocDirectiveInfo,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(performance, request,
-          documentationCache: documentationCache);
+      ).computeSuggestions(dartRequest, performance);
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);
@@ -1378,14 +1380,15 @@ class CompletionMetricsComputer {
             expectedCompletion.offset,
             CompletionPerformance(),
           );
-          var directiveInfo = DartdocDirectiveInfo();
 
           late OpType opType;
           late List<protocol.CompletionSuggestion> suggestions;
           await request.performance.runRequestOperation(
             (performance) async {
               var dartRequest = await DartCompletionRequestImpl.from(
-                  performance, request, directiveInfo);
+                request,
+                documentationCache: documentationCache,
+              );
               opType = OpType.forCompletion(dartRequest.target, request.offset);
               suggestions = await _computeCompletionSuggestions(
                 listener,

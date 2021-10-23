@@ -538,7 +538,9 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       (performance) async {
         // Build the request
         var request = await DartCompletionRequestImpl.from(
-            performance, baseRequest, dartdocInfo);
+          baseRequest,
+          dartdocDirectiveInfo: dartdocInfo,
+        );
 
         var range = request.target.computeReplacementRange(request.offset);
         replacementOffset = range.offset;

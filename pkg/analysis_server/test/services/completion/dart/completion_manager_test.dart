@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/completion/dart/imported_reference_
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -59,8 +58,7 @@ part 'test.dart';
         CompletionPerformance());
     await baseRequest.performance.runRequestOperation((performance) async {
       var requestCompleter = Completer<DartCompletionRequest>();
-      DartCompletionRequestImpl.from(
-              performance, baseRequest, DartdocDirectiveInfo())
+      DartCompletionRequestImpl.from(baseRequest)
           .then((DartCompletionRequest request) {
         requestCompleter.complete(request);
       });

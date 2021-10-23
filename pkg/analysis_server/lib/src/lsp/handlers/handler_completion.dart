@@ -214,7 +214,10 @@ class CompletionHandler
       final directiveInfo =
           server.getDartdocDirectiveInfoFor(completionRequest.result);
       final dartCompletionRequest = await DartCompletionRequestImpl.from(
-          perf, completionRequest, directiveInfo);
+        completionRequest,
+        dartdocDirectiveInfo: directiveInfo,
+        completionPreference: CompletionPreference.replace,
+      );
       final target = dartCompletionRequest.target;
 
       if (triggerCharacter != null) {
@@ -234,16 +237,14 @@ class CompletionHandler
 
       try {
         var contributor = DartCompletionManager(
-          dartdocDirectiveInfo: directiveInfo,
           includedElementKinds: includedElementKinds,
           includedElementNames: includedElementNames,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
         );
 
         final serverSuggestions = await contributor.computeSuggestions(
+          dartCompletionRequest,
           perf,
-          completionRequest,
-          completionPreference: CompletionPreference.replace,
         );
 
         final insertLength = _computeInsertLength(

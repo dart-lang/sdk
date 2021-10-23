@@ -70,20 +70,19 @@ class RuntimeCompletionComputer {
       return RuntimeCompletionResult([], []);
     }
 
-    var contributor = DartCompletionManager(
-        // dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(targetResult)
-        );
     var request = CompletionRequestImpl(
       targetResult,
       targetOffset,
       CompletionPerformance(),
     );
 
+    var dartRequest = await DartCompletionRequestImpl.from(request);
+
     var suggestions = await request.performance.runRequestOperation(
       (performance) async {
-        return await contributor.computeSuggestions(
+        return await DartCompletionManager().computeSuggestions(
+          dartRequest,
           performance,
-          request,
         );
       },
     );

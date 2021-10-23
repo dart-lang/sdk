@@ -13,7 +13,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
 
@@ -78,7 +77,10 @@ class CiderCompletionComputer {
         offset,
         CompletionPerformance(),
       );
-      var dartdocDirectiveInfo = DartdocDirectiveInfo();
+
+      _dartCompletionRequest = await DartCompletionRequestImpl.from(
+        completionRequest,
+      );
 
       var suggestions = await performance.runAsync(
         'suggestions',
@@ -90,15 +92,14 @@ class CiderCompletionComputer {
                 <IncludedSuggestionRelevanceTag>[];
 
             var manager = DartCompletionManager(
-              dartdocDirectiveInfo: dartdocDirectiveInfo,
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
               includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
             );
 
             return await manager.computeSuggestions(
+              _dartCompletionRequest,
               performance,
-              completionRequest,
               enableOverrideContributor: false,
               enableUriContributor: false,
             );
@@ -107,12 +108,6 @@ class CiderCompletionComputer {
           performance.getDataInt('count').add(result.length);
           return result.toList();
         },
-      );
-
-      _dartCompletionRequest = await DartCompletionRequestImpl.from(
-        performance,
-        completionRequest,
-        dartdocDirectiveInfo,
       );
 
       performance.run('imports', (performance) {
