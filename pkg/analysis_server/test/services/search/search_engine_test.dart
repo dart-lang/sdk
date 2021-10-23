@@ -328,7 +328,7 @@ int t;
 ''').path;
 
     var coreLibResult = await driverFor(testFilePath)
-        .getLibraryByUri2('dart:core') as LibraryElementResult;
+        .getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.getType('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
@@ -427,7 +427,7 @@ class B extends A {}
       var contextRoot = driver.analysisContext!.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {
         if (file.endsWith('.dart')) {
-          await driver.getUnitElement2(file);
+          await driver.getUnitElement(file);
         }
       }
     }

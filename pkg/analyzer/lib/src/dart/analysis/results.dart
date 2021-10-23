@@ -249,7 +249,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   TypeSystemImpl get typeSystem => libraryElement.typeSystem as TypeSystemImpl;
 }
 
-class UnitElementResultImpl extends AnalysisResultImpl
+class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
   final String signature;
@@ -258,8 +258,8 @@ class UnitElementResultImpl extends AnalysisResultImpl
   final CompilationUnitElement element;
 
   UnitElementResultImpl(AnalysisSession session, String path, Uri uri,
-      this.signature, this.element)
-      : super(session, path, uri);
+      LineInfo lineInfo, bool isPart, this.signature, this.element)
+      : super(session, path, uri, lineInfo, isPart);
 
   @Deprecated('Check for specific Result subtypes instead')
   @override

@@ -161,7 +161,7 @@ abstract class ServerPlugin {
       throw RequestFailure(
           RequestErrorFactory.pluginError('Failed to analyze $path', null));
     }
-    var result = await driver.getResult2(path);
+    var result = await driver.getResult(path);
     if (result is! ResolvedUnitResult) {
       // Return an error from the request.
       throw RequestFailure(

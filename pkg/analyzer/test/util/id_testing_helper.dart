@@ -171,7 +171,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   var results = <Uri, ResolvedUnitResult>{};
   for (var testUri in testUris) {
     var path = resourceProvider.convertPath(testUri.path);
-    var result = await driver.getResult2(path) as ResolvedUnitResult;
+    var result = await driver.getResult(path) as ResolvedUnitResult;
     var errors =
         result.errors.where((e) => e.severity == Severity.error).toList();
     if (errors.isNotEmpty) {

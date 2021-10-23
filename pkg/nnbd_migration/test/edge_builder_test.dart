@@ -590,9 +590,9 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
 
   Future<void> test_already_migrated_field() async {
     await analyze('''
-double f() => double.NAN;
+double f() => double.nan;
 ''');
-    var nanElement = typeProvider.doubleType.element.getField('NAN')!;
+    var nanElement = typeProvider.doubleType.element.getField('nan')!;
     assertEdge(variables!.decoratedElementType(nanElement).node,
         decoratedTypeAnnotation('double f').node,
         hard: false);
