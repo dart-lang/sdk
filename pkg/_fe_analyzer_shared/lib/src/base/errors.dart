@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'customized_codes.dart';
 
 /// An error code associated with an [AnalysisError].
@@ -9,6 +11,9 @@ import 'customized_codes.dart';
 /// Generally, messages should follow the [Guide for Writing
 /// Diagnostics](../fasta/diagnostics.md).
 abstract class ErrorCode {
+  /// Regular expression for identifying positional arguments in error messages.
+  static final RegExp _positionalArgumentRegExp = new RegExp(r'{(\d+)\}');
+
   /**
    * The name of the error code.
    */
@@ -81,6 +86,20 @@ abstract class ErrorCode {
    */
   String get problemMessage =>
       customizedMessages[uniqueName] ?? _problemMessage;
+
+  int get numParameters {
+    int result = 0;
+    String? correctionMessage = _correctionMessage;
+    for (String s in [
+      _problemMessage,
+      if (correctionMessage != null) correctionMessage
+    ]) {
+      for (RegExpMatch match in _positionalArgumentRegExp.allMatches(s)) {
+        result = max(result, int.parse(match.group(1)!) + 1);
+      }
+    }
+    return result;
+  }
 
   /**
    * The type of the error.

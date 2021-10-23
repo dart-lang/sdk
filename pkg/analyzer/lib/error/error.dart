@@ -986,6 +986,11 @@ class AnalysisError implements Diagnostic {
       [List<Object?>? arguments,
       List<DiagnosticMessage> contextMessages = const []])
       : _contextMessages = contextMessages {
+    assert(
+        (arguments ?? const []).length == errorCode.numParameters,
+        'Message $errorCode requires ${errorCode.numParameters} '
+        'argument(s), but ${(arguments ?? const []).length} argument(s) were '
+        'provided');
     String problemMessage = formatList(errorCode.problemMessage, arguments);
     String? correctionTemplate = errorCode.correctionMessage;
     if (correctionTemplate != null) {

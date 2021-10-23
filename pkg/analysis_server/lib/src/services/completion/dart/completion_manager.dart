@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
@@ -49,9 +48,6 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager {
-  /// The object used to resolve macros in Dartdoc comments.
-  final DartdocDirectiveInfo? dartdocDirectiveInfo;
-
   /// If not `null`, then instead of using [ImportedReferenceContributor],
   /// fill this set with kinds of elements that are applicable at the
   /// completion location, so should be suggested from available suggestion
@@ -77,8 +73,7 @@ class DartCompletionManager {
   /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
   /// non-`null`.
   DartCompletionManager(
-      {this.dartdocDirectiveInfo,
-      this.includedElementKinds,
+      {this.includedElementKinds,
       this.includedElementNames,
       this.includedSuggestionRelevanceTags,
       this.listener})
@@ -90,26 +85,17 @@ class DartCompletionManager {
                 includedSuggestionRelevanceTags == null));
 
   Future<List<CompletionSuggestion>> computeSuggestions(
-    OperationPerformanceImpl performance,
-    CompletionRequest request, {
+    DartCompletionRequestImpl dartRequest,
+    OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
-    CompletionPreference? completionPreference,
-    DocumentationCache? documentationCache,
   }) async {
+    final request = dartRequest.request;
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
     if (!file_paths.isDart(pathContext, request.result.path)) {
       return const <CompletionSuggestion>[];
     }
-
-    var dartRequest = await DartCompletionRequestImpl.from(
-      performance,
-      request,
-      dartdocDirectiveInfo,
-      completionPreference: completionPreference,
-      documentationCache: documentationCache,
-    );
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
@@ -258,6 +244,8 @@ class DartCompletionManager {
 
 /// The information about a requested list of completions within a Dart file.
 class DartCompletionRequestImpl implements DartCompletionRequest {
+  final CompletionRequest request;
+
   @override
   final ResolvedUnitResult result;
 
@@ -298,8 +286,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   final CompletionRequest _originalRequest;
 
-  final CompletionPerformance performance;
-
   SourceRange? _replacementRange;
 
   @override
@@ -308,6 +294,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final DocumentationCache? documentationCache;
 
   DartCompletionRequestImpl._(
+      this.request,
       this.result,
       this.resourceProvider,
       this.objectType,
@@ -317,7 +304,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       CompilationUnit unit,
       this.dartdocDirectiveInfo,
       this._originalRequest,
-      this.performance,
       {CompletionPreference? completionPreference,
       this.documentationCache})
       : featureComputer =
@@ -447,39 +433,34 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     }
   }
 
-  /// Return a [Future] that completes with a newly created completion request
-  /// based on the given [request]. This method will throw [AbortCompletion]
-  /// if the completion request has been aborted.
+  /// Return a newly created completion request based on the given [request].
+  /// This method will throw [AbortCompletion] if the completion request has
+  /// been aborted.
   static Future<DartCompletionRequestImpl> from(
-      OperationPerformanceImpl performance,
-      CompletionRequest request,
-      DartdocDirectiveInfo? dartdocDirectiveInfo,
-      {CompletionPreference? completionPreference,
-      DocumentationCache? documentationCache}) async {
+    CompletionRequest request, {
+    DartdocDirectiveInfo? dartdocDirectiveInfo,
+    CompletionPreference? completionPreference,
+    DocumentationCache? documentationCache,
+  }) async {
     request.checkAborted();
 
-    return performance.run(
-      'build DartCompletionRequest',
-      (_) {
-        var unit = request.result.unit;
-        var libSource = unit.declaredElement!.library.source;
-        var objectType = request.result.typeProvider.objectType;
+    var unit = request.result.unit;
+    var libSource = unit.declaredElement!.library.source;
+    var objectType = request.result.typeProvider.objectType;
 
-        return DartCompletionRequestImpl._(
-          request.result,
-          request.resourceProvider,
-          objectType,
-          libSource,
-          request.source,
-          request.offset,
-          unit,
-          dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
-          request,
-          (request as CompletionRequestImpl).performance,
-          completionPreference: completionPreference,
-          documentationCache: documentationCache,
-        );
-      },
+    return DartCompletionRequestImpl._(
+      request,
+      request.result,
+      request.resourceProvider,
+      objectType,
+      libSource,
+      request.source,
+      request.offset,
+      unit,
+      dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      request,
+      completionPreference: completionPreference,
+      documentationCache: documentationCache,
     );
   }
 }

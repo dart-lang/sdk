@@ -95,9 +95,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
     await perf.runAsync(COMPUTE_SUGGESTIONS_TAG, (perf) async {
       var manager = DartCompletionManager(
-        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
-          request.result,
-        ),
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
@@ -105,11 +102,16 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
       await perf.runAsync(contributorTag, (performance) async {
+        var dartRequest = await DartCompletionRequestImpl.from(
+          request,
+          dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
+            request.result,
+          ),
+          documentationCache: server.getDocumentationCacheFor(request.result),
+        );
         try {
           suggestions.addAll(
-            await manager.computeSuggestions(performance, request,
-                documentationCache:
-                    server.getDocumentationCacheFor(request.result)),
+            await manager.computeSuggestions(dartRequest, performance),
           );
         } on AbortCompletion {
           suggestions.clear();

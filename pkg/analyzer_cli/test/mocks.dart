@@ -114,6 +114,9 @@ class MockErrorCode implements ErrorCode {
   String get uniqueName {
     throw StateError('Unexpected invocation of uniqueName');
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockLineInfo implements LineInfo {

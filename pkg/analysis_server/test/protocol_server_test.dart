@@ -413,6 +413,9 @@ class MockErrorCode implements engine.ErrorCode {
   String get uniqueName {
     throw StateError('Unexpected invocation of uniqueName');
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
