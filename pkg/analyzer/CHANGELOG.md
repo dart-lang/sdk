@@ -1,5 +1,6 @@
 ## 2.8.0-dev
 * Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
+* Removed uppercase named constants from `double` in mock SDK.
 
 ## 2.7.0
 * Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.

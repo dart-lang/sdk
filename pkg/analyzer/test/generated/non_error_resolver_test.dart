@@ -1012,7 +1012,7 @@ class A {
   const A(x);
 }
 main() {
-  const A(double.INFINITY);
+  const A(double.infinity);
 }
 ''');
   }
@@ -2382,7 +2382,7 @@ bool f(dynamic left, right) {
 
   test_nonConstantDefaultValue_constField() async {
     await assertNoErrorsInCode(r'''
-f([a = double.INFINITY]) {
+f([a = double.infinity]) {
 }
 ''');
   }
@@ -2457,7 +2457,7 @@ class B extends A {
   test_nonConstListElement_constField() async {
     await assertNoErrorsInCode(r'''
 main() {
-  const [double.INFINITY];
+  const [double.infinity];
 }
 ''');
   }
@@ -2491,7 +2491,7 @@ f() {
   test_nonConstMapValue_constField() async {
     await assertNoErrorsInCode(r'''
 main() {
-  const {0: double.INFINITY};
+  const {0: double.infinity};
 }
 ''');
   }
