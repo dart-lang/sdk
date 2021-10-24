@@ -13,8 +13,8 @@ part of dart.core;
 /// elements are treated as being the same for any operation on the set.
 ///
 /// The default [Set] implementation, [LinkedHashSet], considers objects
-/// indistinguishable if they are equal with regard to
-/// operator [Object.==].
+/// indistinguishable if they are equal with regard to [Object.==] and
+/// [Object.hashCode].
 ///
 /// Iterating over elements of a set may be either unordered
 /// or ordered in some way. Examples:
