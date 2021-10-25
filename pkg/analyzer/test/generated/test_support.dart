@@ -59,9 +59,9 @@ class ExpectedError {
   /// The message text of the error or `null` if the message should not be checked.
   final String? message;
 
-  /// A pattern that should be contained in the error message or `null` if the message
-  /// contents should not be checked.
-  final Pattern? messageContains;
+  /// A list of patterns that should be contained in the error message; empty if
+  /// the message contents should not be checked.
+  final List<Pattern> messageContains;
 
   /// The list of context messages that are expected to be associated with the
   /// error.
@@ -71,7 +71,7 @@ class ExpectedError {
   ExpectedError(this.code, this.offset, this.length,
       {this.correctionContains,
       this.message,
-      this.messageContains,
+      this.messageContains = const [],
       this.expectedContextMessages = const <ExpectedContextMessage>[]});
 
   /// Return `true` if the [error] matches this description of what it's
@@ -85,9 +85,10 @@ class ExpectedError {
     if (message != null && error.message != message) {
       return false;
     }
-    if (messageContains != null &&
-        error.message.contains(messageContains!) != true) {
-      return false;
+    for (var pattern in messageContains) {
+      if (!error.message.contains(pattern)) {
+        return false;
+      }
     }
     if (correctionContains != null &&
         !(error.correctionMessage ?? '').contains(correctionContains!)) {
@@ -191,9 +192,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
           buffer.write(', message: ');
           buffer.write(json.encode(expected.message));
         }
-        if (expected.messageContains != null) {
+        if (expected.messageContains.isNotEmpty) {
           buffer.write(', messageContains: ');
-          buffer.write(json.encode(expected.messageContains.toString()));
+          buffer.write(json.encode([
+            for (var pattern in expected.messageContains) pattern.toString()
+          ]));
         }
         if (expected.correctionContains != null) {
           buffer.write(', correctionContains: ');

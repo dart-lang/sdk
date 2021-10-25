@@ -858,7 +858,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ExpectedError error(ErrorCode code, int offset, int length,
           {Pattern? correctionContains,
           String? text,
-          Pattern? messageContains,
+          List<Pattern> messageContains = const [],
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,

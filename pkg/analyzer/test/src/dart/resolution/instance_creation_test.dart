@@ -175,7 +175,7 @@ main() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
           5,
-          messageContains: "The constructor 'Foo.bar'"),
+          messageContains: ["The constructor 'Foo.bar'"]),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -201,7 +201,7 @@ main() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
           5,
-          messageContains: "The constructor 'Foo.new'"),
+          messageContains: ["The constructor 'Foo.new'"]),
     ]);
 
     var creation = findNode.instanceCreation('Foo.new<int>');

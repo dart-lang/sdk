@@ -20,7 +20,7 @@ class ExportInternalLibraryTest extends PubPackageResolutionTest {
 export 'dart:_internal';
 ''', [
       error(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, 0, 24,
-          messageContains: "library 'dart:_internal' "),
+          messageContains: ["library 'dart:_internal' "]),
     ]);
   }
 }
