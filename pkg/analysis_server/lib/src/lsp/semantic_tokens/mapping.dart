@@ -21,6 +21,9 @@ final highlightRegionTokenModifiers =
   HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION: {
     SemanticTokenModifiers.declaration
   },
+  HighlightRegionType.IMPORT_PREFIX: {
+    CustomSemanticTokenModifiers.importPrefix,
+  },
   HighlightRegionType.INSTANCE_FIELD_DECLARATION: {
     SemanticTokenModifiers.declaration
   },
@@ -142,9 +145,9 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE: SemanticTokenTypes.property,
-  HighlightRegionType.TOP_LEVEL_VARIABLE: SemanticTokenTypes.variable,
+  HighlightRegionType.TOP_LEVEL_VARIABLE: SemanticTokenTypes.property,
   HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION:
-      SemanticTokenTypes.variable,
+      SemanticTokenTypes.property,
   HighlightRegionType.TYPE_ALIAS: SemanticTokenTypes.type,
   HighlightRegionType.TYPE_NAME_DYNAMIC: SemanticTokenTypes.type,
   HighlightRegionType.TYPE_PARAMETER: SemanticTokenTypes.typeParameter,

@@ -102,6 +102,9 @@ abstract class CustomSemanticTokenModifiers {
   /// https://github.com/dart-lang/dart-syntax-highlight/blob/84a8e84f79bc917ebd959a4587349c865dc945e0/grammars/dart.json#L244-L261
   static const control = SemanticTokenModifiers('control');
 
+  /// A modifier applied to the identifier for an import prefix.
+  static const importPrefix = SemanticTokenModifiers('importPrefix');
+
   /// A modifier applied to parameter references to indicate they are the name/label
   /// to allow theming them differently to the values. For example in the code
   /// `foo({String a}) => foo(a: a)` the a's will be differentiated as:
@@ -143,6 +146,7 @@ abstract class CustomSemanticTokenModifiers {
   static const values = [
     annotation,
     control,
+    importPrefix,
     label,
     constructor,
     escape,
