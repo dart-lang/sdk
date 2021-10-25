@@ -104,10 +104,10 @@ class DartCompletionManager {
 
     request.checkAborted();
 
-    var range = dartRequest.replacementRange;
+    var replacementRange = dartRequest.replacementRange;
     (request as CompletionRequestImpl)
-      ..replacementOffset = range.offset
-      ..replacementLength = range.length;
+      ..replacementOffset = replacementRange.offset
+      ..replacementLength = replacementRange.length;
 
     // Request Dart specific completions from each contributor
     var builder = SuggestionBuilder(dartRequest, listener: listener);
@@ -244,87 +244,61 @@ class DartCompletionManager {
 
 /// The information about a requested list of completions within a Dart file.
 class DartCompletionRequestImpl implements DartCompletionRequest {
+  @override
+  final CompletionPreference completionPreference;
+
+  @override
+  final DartType? contextType;
+
+  @override
+  final DartdocDirectiveInfo dartdocDirectiveInfo;
+
+  final DocumentationCache? documentationCache;
+
+  @override
+  final Expression? dotTarget;
+
+  @override
+  final FeatureComputer featureComputer;
+
+  @override
+  final int offset;
+
+  @override
+  final OpType opType;
+
+  @override
+  final SourceRange replacementRange;
+
   final CompletionRequest request;
 
   @override
   final ResolvedUnitResult result;
 
   @override
-  final ResourceProvider resourceProvider;
-
-  @override
-  final InterfaceType objectType;
-
-  @override
   final Source source;
 
   @override
-  final int offset;
+  final CompletionTarget target;
+
+  DartCompletionRequestImpl._({
+    required this.completionPreference,
+    required this.contextType,
+    required this.dartdocDirectiveInfo,
+    required this.documentationCache,
+    required this.dotTarget,
+    required this.featureComputer,
+    required this.offset,
+    required this.opType,
+    required this.replacementRange,
+    required this.request,
+    required this.result,
+    required this.source,
+    required this.target,
+  });
 
   @override
-  Expression? dotTarget;
-
-  @override
-  final Source librarySource;
-
-  @override
-  late CompletionTarget target;
-
-  OpType? _opType;
-
-  @override
-  final FeatureComputer featureComputer;
-
-  @override
-  final DartdocDirectiveInfo dartdocDirectiveInfo;
-
-  /// A flag indicating whether the [_contextType] has been computed.
-  bool _hasComputedContextType = false;
-
-  /// The context type associated with the target's `containingNode`.
-  DartType? _contextType;
-
-  final CompletionRequest _originalRequest;
-
-  SourceRange? _replacementRange;
-
-  @override
-  final CompletionPreference completionPreference;
-
-  final DocumentationCache? documentationCache;
-
-  DartCompletionRequestImpl._(
-      this.request,
-      this.result,
-      this.resourceProvider,
-      this.objectType,
-      this.librarySource,
-      this.source,
-      this.offset,
-      CompilationUnit unit,
-      this.dartdocDirectiveInfo,
-      this._originalRequest,
-      {CompletionPreference? completionPreference,
-      this.documentationCache})
-      : featureComputer =
-            FeatureComputer(result.typeSystem, result.typeProvider),
-        completionPreference =
-            completionPreference ?? CompletionPreference.insert {
-    _updateTargets(unit);
-  }
-
-  @override
-  DartType? get contextType {
-    if (!_hasComputedContextType) {
-      _contextType = featureComputer.computeContextType(
-          target.containingNode, target.offset);
-      _hasComputedContextType = true;
-    }
-    return _contextType;
-  }
-
-  @override
-  FeatureSet get featureSet => result.libraryElement.featureSet;
+  FeatureSet get featureSet => libraryElement.featureSet;
 
   @override
   bool get includeIdentifiers {
@@ -341,28 +315,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   LibraryElement get libraryElement => result.libraryElement;
 
   @override
-  OpType get opType {
-    var opType = _opType;
-    if (opType == null) {
-      opType = OpType.forCompletion(target, offset);
-      var contextType = this.contextType;
-      if (contextType is FunctionType) {
-        contextType = contextType.returnType;
-      }
-      if (contextType != null && contextType.isVoid) {
-        opType.includeVoidReturnSuggestions = true;
-      }
-      _opType = opType;
-    }
-    return opType;
-  }
+  DartType get objectType => libraryElement.typeProvider.objectType;
 
-  /// The source range that represents the region of text that should be
-  /// replaced when a suggestion is selected.
   @override
-  SourceRange get replacementRange {
-    return _replacementRange ??= target.computeReplacementRange(offset);
-  }
+  ResourceProvider get resourceProvider => result.session.resourceProvider;
 
   @override
   String? get sourceContents => result.content;
@@ -402,35 +358,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /// Throw [AbortCompletion] if the completion request has been aborted.
   @override
   void checkAborted() {
-    _originalRequest.checkAborted();
-  }
-
-  /// Update the completion [target] and [dotTarget] based on the given [unit].
-  void _updateTargets(CompilationUnit unit) {
-    _opType = null;
-    dotTarget = null;
-    target = CompletionTarget.forOffset(unit, offset);
-    var node = target.containingNode;
-    if (node is MethodInvocation) {
-      if (identical(node.methodName, target.entity)) {
-        dotTarget = node.realTarget;
-      } else if (node.isCascaded &&
-          node.operator!.offset + 1 == target.offset) {
-        dotTarget = node.realTarget;
-      }
-    }
-    if (node is PropertyAccess) {
-      if (identical(node.propertyName, target.entity)) {
-        dotTarget = node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
-        dotTarget = node.realTarget;
-      }
-    }
-    if (node is PrefixedIdentifier) {
-      if (identical(node.identifier, target.entity)) {
-        dotTarget = node.prefix;
-      }
-    }
+    request.checkAborted();
   }
 
   /// Return a newly created completion request based on the given [request].
@@ -439,28 +367,71 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   static Future<DartCompletionRequestImpl> from(
     CompletionRequest request, {
     DartdocDirectiveInfo? dartdocDirectiveInfo,
-    CompletionPreference? completionPreference,
+    CompletionPreference completionPreference = CompletionPreference.insert,
     DocumentationCache? documentationCache,
   }) async {
     request.checkAborted();
 
-    var unit = request.result.unit;
-    var libSource = unit.declaredElement!.library.source;
-    var objectType = request.result.typeProvider.objectType;
+    var result = request.result;
+    var offset = request.offset;
+
+    var target = CompletionTarget.forOffset(result.unit, offset);
+    var dotTarget = _dotTarget(target);
+
+    var featureComputer = FeatureComputer(
+      result.typeSystem,
+      result.typeProvider,
+    );
+
+    var contextType = featureComputer.computeContextType(
+      target.containingNode,
+      offset,
+    );
+
+    var opType = OpType.forCompletion(target, offset);
+    if (contextType != null && contextType.isVoid) {
+      opType.includeVoidReturnSuggestions = true;
+    }
 
     return DartCompletionRequestImpl._(
-      request,
-      request.result,
-      request.resourceProvider,
-      objectType,
-      libSource,
-      request.source,
-      request.offset,
-      unit,
-      dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
-      request,
       completionPreference: completionPreference,
+      contextType: contextType,
+      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
       documentationCache: documentationCache,
+      dotTarget: dotTarget,
+      featureComputer: featureComputer,
+      offset: offset,
+      opType: opType,
+      replacementRange: target.computeReplacementRange(offset),
+      request: request,
+      result: request.result,
+      source: request.source,
+      target: target,
     );
+  }
+
+  /// TODO(scheglov) Should this be a property of [CompletionTarget]?
+  static Expression? _dotTarget(CompletionTarget target) {
+    var node = target.containingNode;
+    var offset = target.offset;
+    if (node is MethodInvocation) {
+      if (identical(node.methodName, target.entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator!.offset + 1 == offset) {
+        return node.realTarget;
+      }
+    }
+    if (node is PropertyAccess) {
+      if (identical(node.propertyName, target.entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator.offset + 1 == offset) {
+        return node.realTarget;
+      }
+    }
+    if (node is PrefixedIdentifier) {
+      if (identical(node.identifier, target.entity)) {
+        return node.prefix;
+      }
+    }
   }
 }
