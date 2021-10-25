@@ -1570,7 +1570,6 @@ class B {}
     var uri = Uri.parse('package:test/test.dart');
     var result = driver.getParsedLibraryByUri(uri);
     result as ParsedLibraryResult;
-    expect(result.uri, uri);
     expect(result.units, hasLength(1));
     expect(result.units[0].uri, uri);
     expect(result.units[0].path, testFile);
@@ -1621,7 +1620,6 @@ class B {}
     var uri = Uri.parse('package:test/test.dart');
     var result = await driver.getResolvedLibraryByUri(uri);
     result as ResolvedLibraryResult;
-    expect(result.uri, uri);
     expect(result.element.source.fullName, testFile);
     expect(result.units, hasLength(1));
     expect(result.units[0].uri, uri);

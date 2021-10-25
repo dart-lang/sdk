@@ -1166,8 +1166,9 @@ void func() {
 ''');
 
     var result = fileResolver.resolveLibrary(path: aPath);
-    expect(result.path, aPath);
     expect(result.units.length, 2);
+    expect(result.units[0].path, aPath);
+    expect(result.units[0].uri, Uri.parse('package:dart.test/a.dart'));
   }
 
   test_reuse_compatibleOptions() async {

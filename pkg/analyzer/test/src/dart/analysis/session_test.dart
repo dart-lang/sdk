@@ -228,8 +228,6 @@ class B {}
 
     var parsedLibrary = session.getParsedLibraryValid(testPath);
     expect(parsedLibrary.session, session);
-    expect(parsedLibrary.path, testPath);
-    expect(parsedLibrary.uri, Uri.parse('package:test/test.dart'));
 
     expect(parsedLibrary.units, hasLength(1));
     {
@@ -365,8 +363,6 @@ class C3 {}
     newFile(c, content: cContent);
 
     var parsedLibrary = session.getParsedLibraryValid(a);
-    expect(parsedLibrary.path, a);
-    expect(parsedLibrary.uri, Uri.parse('package:test/a.dart'));
     expect(parsedLibrary.units, hasLength(3));
 
     {
@@ -401,9 +397,14 @@ class C3 {}
 
     var parsedLibrary = session.getParsedLibraryByElementValid(element);
     expect(parsedLibrary.session, session);
-    expect(parsedLibrary.path, testPath);
-    expect(parsedLibrary.uri, Uri.parse('package:test/test.dart'));
     expect(parsedLibrary.units, hasLength(1));
+
+    {
+      var unit = parsedLibrary.units[0];
+      expect(unit.path, testPath);
+      expect(unit.uri, Uri.parse('package:test/test.dart'));
+      expect(unit.unit, isNotNull);
+    }
   }
 
   test_getParsedLibraryByElement_differentSession() async {
@@ -460,8 +461,6 @@ class B2 extends X {}
 
     var resolvedLibrary = await session.getResolvedLibraryValid(a);
     expect(resolvedLibrary.session, session);
-    expect(resolvedLibrary.path, a);
-    expect(resolvedLibrary.uri, Uri.parse('package:test/a.dart'));
 
     var typeProvider = resolvedLibrary.typeProvider;
     expect(typeProvider.intType.element.name, 'int');
@@ -586,9 +585,9 @@ part 'c.dart';
 
     var result = await session.getResolvedLibraryByElementValid(element);
     expect(result.session, session);
-    expect(result.path, testPath);
-    expect(result.uri, Uri.parse('package:test/test.dart'));
     expect(result.units, hasLength(1));
+    expect(result.units[0].path, testPath);
+    expect(result.units[0].uri, Uri.parse('package:test/test.dart'));
     expect(result.units[0].unit.declaredElement, isNotNull);
   }
 

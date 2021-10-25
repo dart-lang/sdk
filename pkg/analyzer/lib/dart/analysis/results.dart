@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResult {
   /// The absolute and normalized path of the file that was analyzed.
+  @Deprecated('Use FileResult.path instead')
   String get path;
 
   /// Return the session used to compute this result.
@@ -26,6 +27,7 @@ abstract class AnalysisResult {
   ResultState get state;
 
   /// The absolute URI of the file that was analyzed.
+  @Deprecated('Use FileResult.uri instead')
   Uri get uri;
 }
 
@@ -83,6 +85,14 @@ abstract class FileResult implements SomeFileResult, AnalysisResult {
 
   /// Information about lines in the content.
   LineInfo get lineInfo;
+
+  /// The absolute and normalized path of the file that was analyzed.
+  @override
+  String get path;
+
+  /// The absolute URI of the file that was analyzed.
+  @override
+  Uri get uri;
 }
 
 /// The type of [InvalidResult] returned when the given file path is invalid,
