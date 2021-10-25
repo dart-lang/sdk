@@ -24,7 +24,7 @@ library L;
 export 'lib1.dart';
 ''', [
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 18, 11,
-          messageContains: "library 'lib1.dart' "),
+          messageContains: ["library 'lib1.dart' "]),
     ]);
   }
 

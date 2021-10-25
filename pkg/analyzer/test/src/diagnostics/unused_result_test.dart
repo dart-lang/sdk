@@ -549,7 +549,7 @@ class C {
 }
 ''', [
       error(HintCode.UNUSED_RESULT, 131, 2,
-          messageContains: "'m1' should be used."),
+          messageContains: ["'m1' should be used."]),
     ]);
   }
 

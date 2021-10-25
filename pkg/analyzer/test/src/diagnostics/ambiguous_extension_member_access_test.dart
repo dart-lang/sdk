@@ -106,7 +106,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: "in extension 'E1' and extension 'E2',"),
+          messageContains: ["in extension 'E1' and extension 'E2',"]),
     ]);
   }
 
@@ -131,7 +131,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: "in extension 'E1' and extension 'E2',"),
+          messageContains: ["in extension 'E1' and extension 'E2',"]),
     ]);
   }
 
@@ -177,7 +177,7 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: "in extension 'E1' and extension 'E2',"),
+          messageContains: ["in extension 'E1' and extension 'E2',"]),
     ]);
   }
 
@@ -192,8 +192,9 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 167, 3,
-          messageContains:
-              "in extension 'E1', extension 'E2', and extension 'E3',"),
+          messageContains: [
+            "in extension 'E1', extension 'E2', and extension 'E3',"
+          ]),
     ]);
   }
 
@@ -369,9 +370,10 @@ int g(List<A> x) => x();
 int h(List<B> x) => x();
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 167, 1,
-          messageContains:
-              "in unnamed extension on 'List<A>' and unnamed extension on "
-              "'List<B>',"),
+          messageContains: [
+            "in unnamed extension on 'List<A>' and unnamed extension on "
+                "'List<B>',"
+          ]),
     ]);
   }
 }

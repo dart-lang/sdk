@@ -246,7 +246,7 @@ void bar() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
           5,
-          messageContains: "The constructor 'A.foo'"),
+          messageContains: ["The constructor 'A.foo'"]),
     ]);
 
     var classElement = findElement.class_('A');
@@ -271,7 +271,7 @@ void bar() {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
           5,
-          messageContains: "The constructor 'A.new'"),
+          messageContains: ["The constructor 'A.new'"]),
     ]);
 
     var classElement = findElement.class_('A');

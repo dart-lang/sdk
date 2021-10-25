@@ -348,7 +348,7 @@ extension on double {
 ''', [
       error(HintCode.UNUSED_ELEMENT, 24, 3),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3,
-          messageContains: "for the type 'double'"),
+          messageContains: ["for the type 'double'"]),
     ]);
 
     assertFunctionReference(
@@ -936,7 +936,7 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3,
-          messageContains: "for the type 'A'"),
+          messageContains: ["for the type 'A'"]),
     ]);
 
     assertFunctionReference(
