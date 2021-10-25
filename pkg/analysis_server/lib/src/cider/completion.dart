@@ -78,7 +78,7 @@ class CiderCompletionComputer {
         CompletionPerformance(),
       );
 
-      _dartCompletionRequest = await DartCompletionRequestImpl.from(
+      _dartCompletionRequest = DartCompletionRequestImpl.from(
         completionRequest,
       );
 

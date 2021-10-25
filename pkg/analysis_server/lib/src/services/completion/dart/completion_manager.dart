@@ -364,12 +364,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /// Return a newly created completion request based on the given [request].
   /// This method will throw [AbortCompletion] if the completion request has
   /// been aborted.
-  static Future<DartCompletionRequestImpl> from(
+  static DartCompletionRequestImpl from(
     CompletionRequest request, {
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
     DocumentationCache? documentationCache,
-  }) async {
+  }) {
     request.checkAborted();
 
     var result = request.result;

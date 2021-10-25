@@ -76,7 +76,7 @@ class RuntimeCompletionComputer {
       CompletionPerformance(),
     );
 
-    var dartRequest = await DartCompletionRequestImpl.from(request);
+    var dartRequest = DartCompletionRequestImpl.from(request);
 
     var suggestions = await request.performance.runRequestOperation(
       (performance) async {
