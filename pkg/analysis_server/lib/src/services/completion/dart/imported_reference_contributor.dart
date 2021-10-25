@@ -26,7 +26,7 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     for (var importElement in imports) {
       var libraryElement = importElement.importedLibrary;
       if (libraryElement != null) {
-        _buildSuggestions(request, builder, importElement.namespace,
+        _buildSuggestions(importElement.namespace,
             prefix: importElement.prefix?.name);
         if (libraryElement.isDartCore &&
             request.opType.includeTypeNameSuggestions) {
@@ -36,9 +36,7 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     }
   }
 
-  void _buildSuggestions(DartCompletionRequest request,
-      SuggestionBuilder builder, Namespace namespace,
-      {String? prefix}) {
+  void _buildSuggestions(Namespace namespace, {String? prefix}) {
     var visitor = LibraryElementSuggestionBuilder(request, builder, prefix);
     for (var elem in namespace.definedNames.values) {
       elem.accept(visitor);
