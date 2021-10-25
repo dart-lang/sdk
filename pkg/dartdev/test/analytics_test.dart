@@ -129,8 +129,12 @@ Future<void> main() async {
       ]);
     });
 
-    test('pub get', () {
-      final p = project(logAnalytics: true);
+    test('pub get dry run', () {
+      final p = project(logAnalytics: true, pubspec: {
+        'name': 'foo',
+        'environment': {'sdk': '>=2.10.0 <3.0.0'},
+        'dependencies': {'_dummy_pkg': '0.0.1'}
+      });
       final result = p.runSync(['pub', 'get', '--dry-run']);
       expect(extractAnalytics(result), [
         {
@@ -146,6 +150,60 @@ Future<void> main() async {
             'value': null,
             'cd1': '0',
             'cd3': ' dry-run '
+          }
+        },
+        {
+          'hitType': 'timing',
+          'message': {
+            'variableName': 'pub/get',
+            'time': isA<int>(),
+            'category': 'commands',
+            'label': null
+          }
+        }
+      ]);
+    });
+
+    test('pub get', () {
+      final p = project(logAnalytics: true, pubspec: {
+        'name': 'foo',
+        'environment': {'sdk': '>=2.10.0 <3.0.0'},
+        'dependencies': {'_dummy_pkg': '0.0.1'}
+      });
+      final result = p.runSync(['pub', 'get']);
+      expect(extractAnalytics(result), [
+        {
+          'hitType': 'screenView',
+          'message': {'viewName': 'pub/get'}
+        },
+        {
+          'hitType': 'event',
+          'message': {
+            'category': 'pub-get',
+            'action': '_dummy_pkg',
+            'label': '0.0.1',
+            'value': 1,
+            'ni': '1',
+            'cd4': 'direct'
+          }
+        },
+        {
+          'hitType': 'timing',
+          'message': {
+            'variableName': 'resolution',
+            'time': isA<int>(),
+            'category': 'pub-get',
+            'label': null
+          }
+        },
+        {
+          'hitType': 'event',
+          'message': {
+            'category': 'dartdev',
+            'action': 'pub/get',
+            'label': null,
+            'value': null,
+            'cd1': '0',
           }
         },
         {

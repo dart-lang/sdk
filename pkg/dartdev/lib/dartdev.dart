@@ -122,7 +122,14 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(FormatCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
-    addCommand(pubCommand());
+    addCommand(
+      pubCommand(
+        analytics: PubAnalytics(
+          () => analytics,
+          dependencyKindCustomDimensionName: dependencyKindCustomDimensionName,
+        ),
+      ),
+    );
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }
