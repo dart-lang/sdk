@@ -20,9 +20,13 @@ enum _CustomDimensions {
   commandExitCode, // cd1
   enabledExperiments, // cd2
   commandFlags, // cd3
+  dependencyKind, // cd4
 }
 
 String _cdKey(_CustomDimensions cd) => 'cd${cd.index + 1}';
+
+final String dependencyKindCustomDimensionName =
+    _cdKey(_CustomDimensions.dependencyKind);
 
 Map<String, String> _useCdKeys(Map<_CustomDimensions, String> parameters) {
   return parameters.map(
