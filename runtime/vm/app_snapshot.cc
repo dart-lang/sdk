@@ -7833,6 +7833,8 @@ class HeapLocker : public StackResource {
 };
 
 void Deserializer::Deserialize(DeserializationRoots* roots) {
+  const void* clustered_start = CurrentBufferAddress();
+
   Array& refs = Array::Handle(zone_);
   num_base_objects_ = ReadUnsigned();
   num_objects_ = ReadUnsigned();
@@ -7926,8 +7928,8 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 
   roots->PostLoad(this, refs);
 
-#if defined(DEBUG)
   auto isolate_group = thread()->isolate_group();
+#if defined(DEBUG)
   isolate_group->ValidateClassTable();
   if (isolate_group != Dart::vm_isolate()->group()) {
     isolate_group->heap()->Verify();
@@ -7940,6 +7942,13 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
       TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
       clusters_[i]->PostLoad(this, refs, primary);
     }
+  }
+
+  if (isolate_group->snapshot_is_dontneed_safe()) {
+    size_t clustered_length = reinterpret_cast<uword>(CurrentBufferAddress()) -
+                              reinterpret_cast<uword>(clustered_start);
+    VirtualMemory::DontNeed(const_cast<void*>(clustered_start),
+                            clustered_length);
   }
 }
 

@@ -161,7 +161,9 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     FLAG_use_field_guards)                                                     \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
     load_vmservice_library, false)                                             \
-  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)
+  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
+  V(NONPRODUCT, snapshot_is_dontneed_safe, SnapshotIsDontNeedSafe,             \
+    snapshot_is_dontneed_safe, false)
 
 #define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
@@ -786,7 +788,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
   V(UseFieldGuards)                                                            \
-  V(UseOsr)
+  V(UseOsr)                                                                    \
+  V(SnapshotIsDontNeedSafe)
 
   // Isolate group specific flags.
   enum FlagBits {
