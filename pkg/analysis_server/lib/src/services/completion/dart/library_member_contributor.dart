@@ -27,16 +27,12 @@ class LibraryMemberContributor extends DartCompletionContributor {
       var elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
         var imports = request.libraryElement.imports;
-        _buildSuggestions(request, builder, elem, imports);
+        _buildSuggestions(elem, imports);
       }
     }
   }
 
-  void _buildSuggestions(
-      DartCompletionRequest request,
-      SuggestionBuilder builder,
-      PrefixElement elem,
-      List<ImportElement> imports) {
+  void _buildSuggestions(PrefixElement elem, List<ImportElement> imports) {
     var parent = request.target.containingNode.parent;
     var typesOnly = parent is NamedType;
     var isConstructor = parent?.parent is ConstructorName;

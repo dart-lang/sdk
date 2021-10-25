@@ -430,7 +430,7 @@ class FileResolver {
       var libraryFile = file;
       var partOfLibrary = file.partOfLibrary;
       if (partOfLibrary != null) {
-        if (partOfLibrary.libraryFiles.contains(file)) {
+        if (partOfLibrary.files().ofLibrary.contains(file)) {
           libraryFile = partOfLibrary;
         }
       }
@@ -477,7 +477,7 @@ class FileResolver {
       var libraryFile = file;
       var partOfLibrary = file.partOfLibrary;
       if (partOfLibrary != null) {
-        if (partOfLibrary.libraryFiles.contains(file)) {
+        if (partOfLibrary.files().ofLibrary.contains(file)) {
           libraryFile = partOfLibrary;
         }
       }
@@ -509,7 +509,7 @@ class FileResolver {
           libraryContext!.elementFactory,
           contextObjects!.inheritanceManager,
           libraryFile,
-          (file) => file.getContentWithSameDigest(),
+          (file) => file.getContent(),
         );
 
         try {
@@ -522,7 +522,7 @@ class FileResolver {
           });
         } catch (exception, stackTrace) {
           var fileContentMap = <String, String>{};
-          for (var file in libraryFile.libraryFiles) {
+          for (var file in libraryFile.files().ofLibrary) {
             var path = file.path;
             fileContentMap[path] = _getFileContent(path);
           }
@@ -543,7 +543,7 @@ class FileResolver {
           file.exists,
           file.getContent(),
           file.lineInfo,
-          file.unlinked.unit.hasPartOfDirective,
+          file.unlinkedUnit.hasPartOfDirective,
           fileResult.unit,
           fileResult.errors,
         );
@@ -822,8 +822,8 @@ class _LibraryContext {
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
-        for (var file in library.libraryFiles) {
-          var informativeBytes = file.unlinked.unit.informativeBytes;
+        for (var file in library.files().ofLibrary) {
+          var informativeBytes = file.unlinkedUnit.informativeBytes;
           unitsInformativeBytes[file.uri] = informativeBytes;
         }
       }
@@ -838,10 +838,10 @@ class _LibraryContext {
 
           var inputUnits = <link2.LinkInputUnit>[];
           var partIndex = -1;
-          for (var file in libraryFile.libraryFiles) {
+          for (var file in libraryFile.files().ofLibrary) {
             var isSynthetic = !file.exists;
 
-            var content = file.getContentWithSameDigest();
+            var content = file.getContent();
             performance.getDataInt('parseCount').increment();
             performance.getDataInt('parseLength').add(content.length);
 
@@ -852,7 +852,7 @@ class _LibraryContext {
 
             String? partUriStr;
             if (partIndex >= 0) {
-              partUriStr = libraryFile.unlinked.unit.parts[partIndex];
+              partUriStr = libraryFile.unlinkedUnit.parts[partIndex];
             }
             partIndex++;
 

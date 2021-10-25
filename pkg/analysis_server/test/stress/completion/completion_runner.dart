@@ -100,7 +100,7 @@ class CompletionRunner {
 
           timer.start();
           var request = CompletionRequestImpl(result, offset, statistics);
-          var dartRequest = await DartCompletionRequestImpl.from(request);
+          var dartRequest = DartCompletionRequestImpl.from(request);
           var suggestions = await request.performance.runRequestOperation(
             (performance) async {
               return await contributor.computeSuggestions(

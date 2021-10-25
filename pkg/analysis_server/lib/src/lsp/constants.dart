@@ -92,11 +92,18 @@ abstract class CustomMethods {
 }
 
 abstract class CustomSemanticTokenModifiers {
+  /// A modifier applied to the identifier following the `@` annotation token to
+  /// allow users to color it differently (for example in the same way as `@`).
+  static const annotation = SemanticTokenModifiers('annotation');
+
   /// A modifier applied to control keywords like if/for/etc. so they can be
   /// colored differently to other keywords (void, import, etc), matching the
   /// original Dart textmate grammar.
   /// https://github.com/dart-lang/dart-syntax-highlight/blob/84a8e84f79bc917ebd959a4587349c865dc945e0/grammars/dart.json#L244-L261
   static const control = SemanticTokenModifiers('control');
+
+  /// A modifier applied to the identifier for an import prefix.
+  static const importPrefix = SemanticTokenModifiers('importPrefix');
 
   /// A modifier applied to parameter references to indicate they are the name/label
   /// to allow theming them differently to the values. For example in the code
@@ -127,8 +134,8 @@ abstract class CustomSemanticTokenModifiers {
   /// of the expression would show through the simple-colorings "string" colors.
   static const interpolation = SemanticTokenModifiers('interpolation');
 
-  /// A modifier applied to the void keyword to users to color it differently
-  /// (for example as a type).
+  /// A modifier applied to the void keyword to allow users to color it
+  /// differently (for example as a type).
   static const void_ = SemanticTokenModifiers('void');
 
   /// All custom semantic token modifiers, used to populate the LSP Legend.
@@ -137,7 +144,9 @@ abstract class CustomSemanticTokenModifiers {
   /// HighlightRegion mappings will be automatically included, but should still
   /// be listed here in case they are removed from mappings in the future.
   static const values = [
+    annotation,
     control,
+    importPrefix,
     label,
     constructor,
     escape,

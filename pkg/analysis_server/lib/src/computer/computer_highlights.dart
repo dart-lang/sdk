@@ -179,6 +179,12 @@ class DartUnitHighlightsComputer {
     } else {
       type = HighlightRegionType.CLASS;
     }
+
+    if (_isAnnotationIdentifier(node)) {
+      semanticModifiers ??= {};
+      semanticModifiers.add(CustomSemanticTokenModifiers.annotation);
+    }
+
     // add region
     return _addRegion_node(
       node,
@@ -199,7 +205,11 @@ class DartUnitHighlightsComputer {
       // For semantic tokens, constructor names are coloured like methods but
       // have a modifier applied.
       semanticTokenType: SemanticTokenTypes.method,
-      semanticTokenModifiers: {CustomSemanticTokenModifiers.constructor},
+      semanticTokenModifiers: {
+        CustomSemanticTokenModifiers.constructor,
+        if (_isAnnotationIdentifier(node))
+          CustomSemanticTokenModifiers.annotation,
+      },
     );
   }
 
@@ -293,7 +303,13 @@ class DartUnitHighlightsComputer {
     }
     // add region
     if (type != null) {
-      return _addRegion_node(node, type);
+      return _addRegion_node(
+        node,
+        type,
+        semanticTokenModifiers: _isAnnotationIdentifier(node)
+            ? {CustomSemanticTokenModifiers.annotation}
+            : null,
+      );
     }
     return false;
   }
@@ -573,6 +589,18 @@ class DartUnitHighlightsComputer {
     var offset = a.offset;
     var end = b.end;
     _addRegion(offset, end - offset, type);
+  }
+
+  /// Checks whether [node] is the identifier part of an annotation.
+  bool _isAnnotationIdentifier(AstNode node) {
+    if (node.parent is Annotation) {
+      return true;
+    } else if (node.parent is PrefixedIdentifier &&
+        node.parent?.parent is Annotation) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   void _reset() {

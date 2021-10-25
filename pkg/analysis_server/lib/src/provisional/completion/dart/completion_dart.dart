@@ -64,12 +64,6 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// is occurring.
   LibraryElement get libraryElement;
 
-  /// The source for the library containing the completion request.
-  /// This may be different from the source in which the completion is requested
-  /// if the completion is being requested in a part file.
-  /// This may be `null` if the library for a part file cannot be determined.
-  Source? get librarySource;
-
   /// Answer the [DartType] for Object in dart:core
   DartType get objectType;
 

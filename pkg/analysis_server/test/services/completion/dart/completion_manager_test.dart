@@ -57,12 +57,7 @@ part 'test.dart';
         completionOffset,
         CompletionPerformance());
     await baseRequest.performance.runRequestOperation((performance) async {
-      var requestCompleter = Completer<DartCompletionRequest>();
-      DartCompletionRequestImpl.from(baseRequest)
-          .then((DartCompletionRequest request) {
-        requestCompleter.complete(request);
-      });
-      request = await performAnalysis(200, requestCompleter);
+      request = DartCompletionRequestImpl.from(baseRequest);
     });
 
     var directives = request.target.unit.directives;
