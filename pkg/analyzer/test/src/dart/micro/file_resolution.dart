@@ -14,6 +14,7 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
@@ -71,8 +72,14 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    result = fileResolver.resolve(path: path);
+  Future<ResolvedUnitResult> resolveFile(
+    String path, {
+    OperationPerformanceImpl? performance,
+  }) async {
+    result = fileResolver.resolve(
+      path: path,
+      performance: performance,
+    );
     return result;
   }
 
