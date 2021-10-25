@@ -368,12 +368,12 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
 
   late ResolvedUnitResult result;
 
-  List<MockSdkLibrary> get additionalMockSdkLibraries => [];
-
   List<String> get collectionIncludedPaths;
 
   /// The analysis errors that were computed during analysis.
   List<AnalysisError> get errors => result.errors;
+
+  Folder get sdkRoot => newFolder('/sdk');
 
   String get testFilePath => '/test/lib/test.dart';
 
@@ -405,9 +405,9 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
       _lintRulesAreRegistered = true;
     }
 
-    MockSdk(
+    createMockSdk(
       resourceProvider: resourceProvider,
-      additionalLibraries: additionalMockSdkLibraries,
+      root: sdkRoot,
     );
   }
 
@@ -430,7 +430,7 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
   }
 
