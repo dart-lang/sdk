@@ -1395,16 +1395,26 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     void emitSignature(String name, List<js_ast.Property> elements) {
       if (elements.isEmpty) return;
 
+      js_ast.Statement setSignature;
       if (!name.startsWith('Static')) {
         var proto = c == _coreTypes.objectClass
             ? js.call('Object.create(null)')
             : runtimeCall('get${name}s(#.__proto__)', [className]);
         elements.insert(0, js_ast.Property(propertyName('__proto__'), proto));
+        setSignature = runtimeStatement('set${name}Signature(#, () => #)', [
+          className,
+          js_ast.ObjectInitializer(elements, multiline: elements.length > 1)
+        ]);
+      } else {
+        // TODO(40273) Only tagging with the names of static members until the
+        // debugger consumes signature information from symbol files.
+        setSignature = runtimeStatement('set${name}Signature(#, () => #)', [
+          className,
+          js_ast.ArrayInitializer(elements.map((e) => e.name).toList())
+        ]);
       }
-      body.add(runtimeStatement('set${name}Signature(#, () => #)', [
-        className,
-        js_ast.ObjectInitializer(elements, multiline: elements.length > 1)
-      ]));
+
+      body.add(setSignature);
     }
 
     var extMethods = _classProperties.extensionMethods;
@@ -1416,6 +1426,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var staticSetters = <js_ast.Property>[];
     var instanceSetters = <js_ast.Property>[];
     List<js_ast.Property> getSignatureList(Procedure p) {
+      // TODO(40273) Skip for all statics when the debugger consumes signature
+      // information from symbol files.
       if (p.isStatic) {
         if (p.isGetter) {
           return staticGetters;
@@ -1437,9 +1449,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var classProcedures = c.procedures.where((p) => !p.isAbstract).toList();
     for (var member in classProcedures) {
-      // Static getters/setters/methods cannot be called with dynamic dispatch,
-      // nor can they be torn off.
-      if (member.isStatic) continue;
+      // Static getters/setters cannot be called with dynamic dispatch or torn
+      // off. Static methods can't be called with dynamic dispatch and are
+      // tagged with a type when torn off. Most are implicitly const and
+      // canonicalized. Static signatures are only used by the debugger and are
+      // not needed for runtime correctness.
+      // TODO(40273) Skip for all statics when the debugger consumes signature
+      // information from symbol files.
+      if (isTearOffLowering(member)) continue;
 
       var name = member.name.text;
       var reifiedType = _memberRuntimeType(member, c) as FunctionType;
@@ -1478,6 +1495,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     emitSignature('Method', instanceMethods);
+    // TODO(40273) Skip for all statics when the debugger consumes signature
+    // information from symbol files.
     emitSignature('StaticMethod', staticMethods);
     emitSignature('Getter', instanceGetters);
     emitSignature('Setter', instanceSetters);
@@ -1491,16 +1510,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var classFields = c.fields.toList();
     for (var field in classFields) {
-      // Only instance fields need to be saved for dynamic dispatch.
-      var isStatic = field.isStatic;
-      if (isStatic) continue;
-
+      // Static fields cannot be called with dynamic dispatch or torn off. The
+      // signatures are only used by the debugger and are not needed for runtime
+      // correctness.
       var memberName = _declareMemberName(field);
       var fieldSig = _emitFieldSignature(field, c);
-      (isStatic ? staticFields : instanceFields)
+      // TODO(40273) Skip static fields when the debugger consumes signature
+      // information from symbol files.
+      (field.isStatic ? staticFields : instanceFields)
           .add(js_ast.Property(memberName, fieldSig));
     }
     emitSignature('Field', instanceFields);
+    // TODO(40273) Skip for all statics when the debugger consumes signature
+    // information from symbol files.
     emitSignature('StaticField', staticFields);
 
     // Add static property dart._runtimeType to Object.
@@ -2524,6 +2546,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // annotation.
       var exportName = _jsExportName(member);
       if (exportName != null) return propertyName(exportName);
+    }
+    if (member is Procedure && member.isFactory) {
+      return _constructorName(member.name.text);
     }
     switch (name) {
       // Reserved for the compiler to do `x as T`.
