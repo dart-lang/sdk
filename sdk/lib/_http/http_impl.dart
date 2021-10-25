@@ -2115,8 +2115,8 @@ class _HttpClientConnection {
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = _CryptoUtils.bytesToBase64(
-          utf8.encode("${proxy.username}:${proxy.password}"));
+      String auth =
+          base64Encode(utf8.encode("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.proxyAuthorizationHeader, "Basic $auth");
     } else if (!proxy.isDirect && _httpClient._proxyCredentials.isNotEmpty) {
       proxyCreds = _httpClient._findProxyCredentials(proxy);
@@ -2127,7 +2127,7 @@ class _HttpClientConnection {
     if (uri.userInfo != null && uri.userInfo.isNotEmpty) {
       // If the URL contains user information use that for basic
       // authorization.
-      String auth = _CryptoUtils.bytesToBase64(utf8.encode(uri.userInfo));
+      String auth = base64Encode(utf8.encode(uri.userInfo));
       request.headers.set(HttpHeaders.authorizationHeader, "Basic $auth");
     } else {
       // Look for credentials.
@@ -2278,8 +2278,8 @@ class _HttpClientConnection {
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = _CryptoUtils.bytesToBase64(
-          utf8.encode("${proxy.username}:${proxy.password}"));
+      String auth =
+          base64Encode(utf8.encode("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.proxyAuthorizationHeader, "Basic $auth");
     }
     return request.close().then((response) {
@@ -3640,8 +3640,7 @@ class _HttpClientBasicCredentials extends _HttpClientCredentials
     // Proxy-Authenticate headers, see
     // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
     // now always use UTF-8 encoding.
-    String auth =
-        _CryptoUtils.bytesToBase64(utf8.encode("$username:$password"));
+    String auth = base64Encode(utf8.encode("$username:$password"));
     return "Basic $auth";
   }
 

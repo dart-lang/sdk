@@ -463,7 +463,7 @@ class _WebSocketTransformerImpl
       String key = request.headers.value("Sec-WebSocket-Key")!;
       _SHA1 sha1 = _SHA1();
       sha1.add("$key$_webSocketGUID".codeUnits);
-      String accept = _CryptoUtils.bytesToBase64(sha1.close());
+      String accept = base64Encode(sha1.close());
       response.headers.add("Sec-WebSocket-Accept", accept);
       if (protocol != null) {
         response.headers.add("Sec-WebSocket-Protocol", protocol);
@@ -1006,7 +1006,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
-    String nonce = _CryptoUtils.bytesToBase64(nonceData);
+    String nonce = base64Encode(nonceData);
 
     final callerStackTrace = StackTrace.current;
 
@@ -1022,7 +1022,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       if (uri.userInfo != null && uri.userInfo.isNotEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
-        String auth = _CryptoUtils.bytesToBase64(utf8.encode(uri.userInfo));
+        String auth = base64Encode(utf8.encode(uri.userInfo));
         request.headers.set(HttpHeaders.authorizationHeader, "Basic $auth");
       }
       if (headers != null) {
@@ -1071,7 +1071,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _SHA1 sha1 = _SHA1();
       sha1.add("$nonce$_webSocketGUID".codeUnits);
       List<int> expectedAccept = sha1.close();
-      List<int> receivedAccept = _CryptoUtils.base64StringToBytes(accept);
+      List<int> receivedAccept = base64Decode(accept);
       if (expectedAccept.length != receivedAccept.length) {
         return error(
             "Response header 'Sec-WebSocket-Accept' is the wrong length");
