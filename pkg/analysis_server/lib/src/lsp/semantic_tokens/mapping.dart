@@ -81,6 +81,9 @@ final highlightRegionTokenModifiers =
 };
 
 /// A mapping from [HighlightRegionType] to [SemanticTokenTypes].
+///
+/// A description of the intended uses for each token type can be found here:
+/// https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#semantic-token-classification
 final highlightRegionTokenTypes = {
   HighlightRegionType.ANNOTATION: CustomSemanticTokenTypes.annotation,
   HighlightRegionType.BUILT_IN: SemanticTokenTypes.keyword,
@@ -100,8 +103,8 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.ENUM_CONSTANT: SemanticTokenTypes.enumMember,
   HighlightRegionType.FUNCTION_TYPE_ALIAS: SemanticTokenTypes.type,
   HighlightRegionType.IDENTIFIER_DEFAULT: CustomSemanticTokenTypes.source,
-  HighlightRegionType.INSTANCE_FIELD_DECLARATION: SemanticTokenTypes.variable,
-  HighlightRegionType.INSTANCE_FIELD_REFERENCE: SemanticTokenTypes.variable,
+  HighlightRegionType.INSTANCE_FIELD_DECLARATION: SemanticTokenTypes.property,
+  HighlightRegionType.INSTANCE_FIELD_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_GETTER_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_GETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_METHOD_DECLARATION: SemanticTokenTypes.method,
@@ -122,7 +125,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.LOCAL_VARIABLE_REFERENCE: SemanticTokenTypes.variable,
   HighlightRegionType.PARAMETER_DECLARATION: SemanticTokenTypes.parameter,
   HighlightRegionType.PARAMETER_REFERENCE: SemanticTokenTypes.parameter,
-  HighlightRegionType.STATIC_FIELD_DECLARATION: SemanticTokenTypes.variable,
+  HighlightRegionType.STATIC_FIELD_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.STATIC_GETTER_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.STATIC_GETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.STATIC_METHOD_DECLARATION: SemanticTokenTypes.method,
