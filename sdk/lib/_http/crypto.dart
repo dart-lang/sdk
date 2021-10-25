@@ -36,17 +36,17 @@ abstract class _HashBase {
   final bool _bigEndianWords;
   int _lengthInBytes = 0;
   List<int> _pendingData;
-  final List<int> _currentChunk;
-  final List<int> _h;
+  final Uint32List _currentChunk;
+  final Uint32List _h;
   bool _digestCalled = false;
 
   _HashBase(this._chunkSizeInWords, int digestSizeInWords, this._bigEndianWords)
       : _pendingData = [],
-        _currentChunk = List.filled(_chunkSizeInWords, 0),
-        _h = List.filled(digestSizeInWords, 0);
+        _currentChunk = Uint32List(_chunkSizeInWords),
+        _h = Uint32List(digestSizeInWords);
 
   // Update the hasher with more data.
-  add(List<int> data) {
+  void add(List<int> data) {
     if (_digestCalled) {
       throw StateError('Hash update method called after digest was retrieved');
     }
@@ -72,11 +72,8 @@ abstract class _HashBase {
     return _chunkSizeInWords * _BYTES_PER_WORD;
   }
 
-  // Create a fresh instance of this Hash.
-  newInstance();
-
   // One round of the hash computation.
-  _updateHash(List<int> m);
+  _updateHash(Uint32List m);
 
   // Helper methods.
   int _add32(int x, int y) => (x + y) & _MASK_32;
@@ -99,7 +96,7 @@ abstract class _HashBase {
   }
 
   // Converts a list of bytes to a chunk of 32-bit words.
-  _bytesToChunk(List<int> data, int dataIndex) {
+  void _bytesToChunk(List<int> data, int dataIndex) {
     assert((data.length - dataIndex) >= (_chunkSizeInWords * _BYTES_PER_WORD));
 
     for (var wordIndex = 0; wordIndex < _chunkSizeInWords; wordIndex++) {
@@ -128,7 +125,7 @@ abstract class _HashBase {
 
   // Iterate through data updating the hash computation for each
   // chunk.
-  _iterate() {
+  void _iterate() {
     var len = _pendingData.length;
     var chunkSizeInBytes = _chunkSizeInWords * _BYTES_PER_WORD;
     if (len >= chunkSizeInBytes) {
@@ -143,7 +140,7 @@ abstract class _HashBase {
 
   // Finalize the data. Add a 1 bit to the end of the message. Expand with
   // 0 bits and add the length of the message.
-  _finalizeData() {
+  void _finalizeData() {
     _pendingData.add(0x80);
     var contentsLength = _lengthInBytes + 9;
     var chunkSizeInBytes = _chunkSizeInWords * _BYTES_PER_WORD;
@@ -173,11 +170,6 @@ class _MD5 extends _HashBase {
     _h[3] = 0x10325476;
   }
 
-  // Returns a new instance of this Hash.
-  _MD5 newInstance() {
-    return _MD5();
-  }
-
   static const _k = [
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, //
     0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, //
@@ -201,7 +193,7 @@ class _MD5 extends _HashBase {
 
   // Compute one iteration of the MD5 algorithm with a chunk of
   // 16 32-bit pieces.
-  void _updateHash(List<int> m) {
+  void _updateHash(Uint32List m) {
     assert(m.length == 16);
 
     var a = _h[0];
@@ -257,14 +249,9 @@ class _SHA1 extends _HashBase {
     _h[4] = 0xC3D2E1F0;
   }
 
-  // Returns a new instance of this Hash.
-  _SHA1 newInstance() {
-    return _SHA1();
-  }
-
   // Compute one iteration of the SHA1 algorithm with a chunk of
   // 16 32-bit pieces.
-  void _updateHash(List<int> m) {
+  void _updateHash(Uint32List m) {
     assert(m.length == 16);
 
     var a = _h[0];
