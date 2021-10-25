@@ -93,14 +93,17 @@ part of dart.collection;
 /// ```dart
 /// final LinkedHashSet<String> baseSet = LinkedHashSet();
 /// baseSet.addAll({'C', 'B', 'A'});
-///
+/// ```
+/// [LinkedHashSet.from] example:
+/// ```dart
 /// final LinkedHashSet<String> hashSetFrom = LinkedHashSet.from(baseSet);
 ///
 /// // Notice! LinkedHashSet.from() causes runtime error if type not match
 /// final LinkedHashSet<int> hashSetFrom = LinkedHashSet.from(baseSet);
-///
+/// ```
+/// [LinkedHashSet.of] example:
+/// ```dart
 /// final LinkedHashSet setOf = LinkedHashSet.of(baseSet);
-/// print(setOf); // {A, C, B}
 ///
 /// // LinkedHashSet.of causes build time error if type mismatch
 /// final LinkedHashSet<int> customSet = LinkedHashSet.of(baseSet);
