@@ -87,15 +87,17 @@ part of dart.collection;
 ///
 /// ```dart
 /// final HashSet<String> baseSet = HashSet()..addAll({'C', 'B', 'A'});
-///
+/// ```
+/// [HashSet.from()] example:
+/// ```dart
 /// final HashSet<String> hashSetFrom = HashSet.from(baseSet);
-/// print(hashSetFrom); // {A, C, B}
 ///
 /// // Notice! From causes runtime error if type not match
 /// final HashSet<int> hashSetFrom = HashSet.from(baseSet);
-///
+/// ```
+/// [HashSet.of()] example:
+/// ```dart
 /// final HashSet hashSetOf = HashSet.of(baseSet);
-/// print(hashSetOf); // {A, C, B}
 ///
 /// // Of causes build time error if type mismatch
 /// final HashSet<int> customSet = HashSet.of(baseSet);
