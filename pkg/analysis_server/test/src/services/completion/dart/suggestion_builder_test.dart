@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:test/test.dart';
@@ -30,7 +28,8 @@ class ContextTypeTest extends AbstractSingleUnitTest {
 
   Future<CompletionSuggestion> forTopLevelFunction(String functionName) async {
     var request = DartCompletionRequest.from(
-      CompletionRequestImpl(testAnalysisResult, 0, CompletionPerformance()),
+      resolvedUnit: testAnalysisResult,
+      offset: 0,
     );
     var builder = SuggestionBuilder(request);
     builder.suggestTopLevelFunction(findElement.topFunction('f'));

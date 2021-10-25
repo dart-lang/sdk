@@ -14,7 +14,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
@@ -209,16 +208,13 @@ class CompletionHandler
     server.performanceStats.completion.add(performance);
 
     return await performance.runRequestOperation((perf) async {
-      final completionRequest =
-          CompletionRequestImpl(unit, offset, performance);
-      final directiveInfo =
-          server.getDartdocDirectiveInfoFor(completionRequest.result);
-      final dartCompletionRequest = DartCompletionRequest.from(
-        completionRequest,
-        dartdocDirectiveInfo: directiveInfo,
+      final completionRequest = DartCompletionRequest.from(
+        resolvedUnit: unit,
+        offset: offset,
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(unit),
         completionPreference: CompletionPreference.replace,
       );
-      final target = dartCompletionRequest.target;
+      final target = completionRequest.target;
 
       if (triggerCharacter != null) {
         if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
@@ -243,7 +239,7 @@ class CompletionHandler
         );
 
         final serverSuggestions = await contributor.computeSuggestions(
-          dartCompletionRequest,
+          completionRequest,
           perf,
         );
 
@@ -401,7 +397,7 @@ class CompletionHandler
 
         // Perform fuzzy matching based on the identifier in front of the caret to
         // reduce the size of the payload.
-        final fuzzyPattern = dartCompletionRequest.targetPrefix;
+        final fuzzyPattern = completionRequest.targetPrefix;
         final fuzzyMatcher =
             FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
 

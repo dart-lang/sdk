@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequest;
@@ -531,14 +530,12 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
 
   Future computeSuggestions({int times = 200}) async {
     result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
-    var baseRequest = CompletionRequestImpl(
-        result, completionOffset, CompletionPerformance());
-
-    return await baseRequest.performance.runRequestOperation(
+    return await CompletionPerformance().runRequestOperation(
       (performance) async {
         // Build the request
         var request = DartCompletionRequest.from(
-          baseRequest,
+          resolvedUnit: result,
+          offset: completionOffset,
           dartdocDirectiveInfo: dartdocInfo,
         );
 

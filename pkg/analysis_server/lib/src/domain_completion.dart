@@ -13,7 +13,6 @@ import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
@@ -51,7 +50,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       RecentBuffer<CompletionPerformance>(performanceListMaxLength);
 
   /// The current request being processed or `null` if none.
-  CompletionRequestImpl? _currentRequest;
+  DartCompletionRequest? _currentRequest;
 
   /// The identifiers of the latest `getSuggestionDetails` request.
   /// We use it to abort previous requests.
@@ -67,19 +66,19 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /// result to the [controller], and close the controller stream once complete.
   Future<CompletionResult> computeSuggestions(
     OperationPerformanceImpl perf,
-    CompletionRequestImpl request,
+    DartCompletionRequest request,
     CompletionGetSuggestionsParams params,
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
   ) async {
+    var file = params.file;
+    var offset = params.offset;
     //
     // Allow plugins to start computing fixes.
     //
     Map<PluginInfo, Future<plugin.Response>>? pluginFutures;
     plugin.CompletionGetSuggestionsParams? requestParams;
-    var file = params.file;
-    var offset = params.offset;
     var driver = server.getAnalysisDriver(file);
     if (driver != null) {
       requestParams = plugin.CompletionGetSuggestionsParams(file, offset);
@@ -102,16 +101,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
       await perf.runAsync(contributorTag, (performance) async {
-        var dartRequest = DartCompletionRequest.from(
-          request,
-          dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
-            request.result,
-          ),
-          documentationCache: server.getDocumentationCacheFor(request.result),
-        );
         try {
           suggestions.addAll(
-            await manager.computeSuggestions(dartRequest, performance),
+            await manager.computeSuggestions(request, performance),
           );
         } on AbortCompletion {
           suggestions.clear();
@@ -131,10 +123,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         var result =
             plugin.CompletionGetSuggestionsResult.fromResponse(response);
         if (result.results.isNotEmpty) {
-          if (suggestions.isEmpty) {
-            request.replacementOffset = result.replacementOffset;
-            request.replacementLength = result.replacementLength;
-          } else if (request.replacementOffset != result.replacementOffset &&
+          if (request.replacementOffset != result.replacementOffset &&
               request.replacementLength != result.replacementLength) {
             server.instrumentationService
                 .logError('Plugin completion-results dropped due to conflicting'
@@ -276,8 +265,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     });
   }
 
-  void ifMatchesRequestClear(CompletionRequest completionRequest) {
-    if (_currentRequest == completionRequest) {
+  void ifMatchesRequestClear(DartCompletionRequest request) {
+    if (_currentRequest == request) {
       _currentRequest = null;
     }
   }
@@ -349,8 +338,15 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             request.id, 'Completion is not enabled.'));
         return;
       }
-      var completionRequest =
-          CompletionRequestImpl(resolvedUnit, offset, performance);
+
+      var completionRequest = DartCompletionRequest.from(
+        resolvedUnit: resolvedUnit,
+        offset: offset,
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
+          resolvedUnit,
+        ),
+        documentationCache: server.getDocumentationCacheFor(resolvedUnit),
+      );
 
       var completionId = (_nextCompletionId++).toString();
 
@@ -455,9 +451,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     );
   }
 
-  void setNewRequest(CompletionRequestImpl completionRequest) {
+  void setNewRequest(DartCompletionRequest request) {
     _abortCurrentRequest();
-    _currentRequest = completionRequest;
+    _currentRequest = request;
   }
 
   /// Implement the 'completion.setSubscriptions' request.

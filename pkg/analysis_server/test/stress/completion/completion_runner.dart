@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -99,9 +98,11 @@ class CompletionRunner {
           }
 
           timer.start();
-          var request = CompletionRequestImpl(result, offset, statistics);
-          var dartRequest = DartCompletionRequest.from(request);
-          var suggestions = await request.performance.runRequestOperation(
+          var dartRequest = DartCompletionRequest.from(
+            resolvedUnit: result,
+            offset: offset,
+          );
+          var suggestions = await statistics.runRequestOperation(
             (performance) async {
               return await contributor.computeSuggestions(
                 dartRequest,

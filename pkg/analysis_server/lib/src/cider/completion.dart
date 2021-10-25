@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
@@ -72,14 +70,9 @@ class CiderCompletionComputer {
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
-      var completionRequest = CompletionRequestImpl(
-        resolvedUnit,
-        offset,
-        CompletionPerformance(),
-      );
-
       _dartCompletionRequest = DartCompletionRequest.from(
-        completionRequest,
+        resolvedUnit: resolvedUnit,
+        offset: offset,
       );
 
       var suggestions = await performance.runAsync(
