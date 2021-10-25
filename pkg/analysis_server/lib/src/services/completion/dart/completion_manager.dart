@@ -85,7 +85,7 @@ class DartCompletionManager {
                 includedSuggestionRelevanceTags == null));
 
   Future<List<CompletionSuggestion>> computeSuggestions(
-    DartCompletionRequestImpl dartRequest,
+    DartCompletionRequest dartRequest,
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
@@ -159,7 +159,7 @@ class DartCompletionManager {
     return builder.suggestions.toList();
   }
 
-  void _addIncludedElementKinds(DartCompletionRequestImpl request) {
+  void _addIncludedElementKinds(DartCompletionRequest request) {
     var opType = request.opType;
 
     if (!opType.includeIdentifiers) return;
@@ -192,7 +192,7 @@ class DartCompletionManager {
     }
   }
 
-  void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
+  void _addIncludedSuggestionRelevanceTags(DartCompletionRequest request) {
     final includedSuggestionRelevanceTags =
         this.includedSuggestionRelevanceTags!;
     var location = request.opType.completionLocation;
@@ -243,31 +243,35 @@ class DartCompletionManager {
 }
 
 /// The information about a requested list of completions within a Dart file.
-class DartCompletionRequestImpl implements DartCompletionRequest {
-  @override
+class DartCompletionRequest implements CompletionRequest {
   final CompletionPreference completionPreference;
 
-  @override
+  /// Return the type imposed on the target's `containingNode` based on its
+  /// context, or `null` if the context does not impose any type.
   final DartType? contextType;
 
-  @override
+  /// Return the object used to resolve macros in Dartdoc comments.
   final DartdocDirectiveInfo dartdocDirectiveInfo;
 
   final DocumentationCache? documentationCache;
 
-  @override
+  /// Return the expression to the right of the "dot" or "dot dot",
+  /// or `null` if this is not a "dot" completion (e.g. `foo.b`).
   final Expression? dotTarget;
 
-  @override
+  /// Return the object used to compute the values of the features used to
+  /// compute relevance scores for suggestions.
   final FeatureComputer featureComputer;
 
   @override
   final int offset;
 
-  @override
+  /// The [OpType] which describes which types of suggestions would fit the
+  /// request.
   final OpType opType;
 
-  @override
+  /// The source range that represents the region of text that should be
+  /// replaced when a suggestion is selected.
   final SourceRange replacementRange;
 
   final CompletionRequest request;
@@ -278,10 +282,13 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   final Source source;
 
-  @override
+  /// Return the completion target.  This determines what part of the parse tree
+  /// will receive the newly inserted text.
+  /// At a minimum, all declarations in the completion scope in [target.unit]
+  /// will be resolved if they can be resolved.
   final CompletionTarget target;
 
-  DartCompletionRequestImpl._({
+  DartCompletionRequest._({
     required this.completionPreference,
     required this.contextType,
     required this.dartdocDirectiveInfo,
@@ -297,24 +304,26 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     required this.target,
   });
 
-  @override
+  /// Return the feature set that was used to analyze the compilation unit in
+  /// which suggestions are being made.
   FeatureSet get featureSet => libraryElement.featureSet;
 
-  @override
+  /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
   }
 
-  @override
+  /// Return `true` if the completion is occurring in a constant context.
   bool get inConstantContext {
     var entity = target.entity;
     return entity is Expression && entity.inConstantContext;
   }
 
-  @override
+  /// Return the library element which contains the unit in which the completion
+  /// is occurring.
   LibraryElement get libraryElement => result.libraryElement;
 
-  @override
+  /// Answer the [DartType] for Object in dart:core
   DartType get objectType => libraryElement.typeProvider.objectType;
 
   @override
@@ -323,13 +332,15 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   String? get sourceContents => result.content;
 
-  @override
+  /// Return the [SourceFactory] of the request.
   SourceFactory get sourceFactory {
     var context = result.session.analysisContext as DriverBasedAnalysisContext;
     return context.driver.sourceFactory;
   }
 
-  @override
+  /// Return prefix that already exists in the document for [target] or empty
+  /// string if unavailable. This can be used to filter the completion list to
+  /// items that already match the text to the left of the caret.
   String get targetPrefix {
     var entity = target.entity;
 
@@ -364,7 +375,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /// Return a newly created completion request based on the given [request].
   /// This method will throw [AbortCompletion] if the completion request has
   /// been aborted.
-  static DartCompletionRequestImpl from(
+  static DartCompletionRequest from(
     CompletionRequest request, {
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
@@ -393,7 +404,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       opType.includeVoidReturnSuggestions = true;
     }
 
-    return DartCompletionRequestImpl._(
+    return DartCompletionRequest._(
       completionPreference: completionPreference,
       contextType: contextType,
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),

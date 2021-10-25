@@ -1208,7 +1208,7 @@ class CompletionMetricsComputer {
           availableSuggestionsParams]) async {
     List<protocol.CompletionSuggestion> suggestions;
 
-    var dartRequest = DartCompletionRequestImpl.from(
+    var dartRequest = DartCompletionRequest.from(
       request,
       dartdocDirectiveInfo: dartdocDirectiveInfo,
       documentationCache: documentationCache,
@@ -1385,7 +1385,7 @@ class CompletionMetricsComputer {
           late List<protocol.CompletionSuggestion> suggestions;
           await request.performance.runRequestOperation(
             (performance) async {
-              var dartRequest = DartCompletionRequestImpl.from(
+              var dartRequest = DartCompletionRequest.from(
                 request,
                 documentationCache: documentationCache,
               );

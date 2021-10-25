@@ -213,7 +213,7 @@ class CompletionHandler
           CompletionRequestImpl(unit, offset, performance);
       final directiveInfo =
           server.getDartdocDirectiveInfoFor(completionRequest.result);
-      final dartCompletionRequest = DartCompletionRequestImpl.from(
+      final dartCompletionRequest = DartCompletionRequest.from(
         completionRequest,
         dartdocDirectiveInfo: directiveInfo,
         completionPreference: CompletionPreference.replace,

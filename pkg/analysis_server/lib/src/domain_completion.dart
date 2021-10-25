@@ -102,7 +102,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
       await perf.runAsync(contributorTag, (performance) async {
-        var dartRequest = DartCompletionRequestImpl.from(
+        var dartRequest = DartCompletionRequest.from(
           request,
           dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
             request.result,

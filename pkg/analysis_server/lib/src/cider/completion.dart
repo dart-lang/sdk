@@ -32,7 +32,7 @@ class CiderCompletionComputer {
   final OperationPerformanceImpl _performanceRoot =
       OperationPerformanceImpl('<root>');
 
-  late DartCompletionRequestImpl _dartCompletionRequest;
+  late DartCompletionRequest _dartCompletionRequest;
 
   /// Paths of imported libraries for which suggestions were (re)computed
   /// during processing of this request. Does not include libraries that were
@@ -78,7 +78,7 @@ class CiderCompletionComputer {
         CompletionPerformance(),
       );
 
-      _dartCompletionRequest = DartCompletionRequestImpl.from(
+      _dartCompletionRequest = DartCompletionRequest.from(
         completionRequest,
       );
 

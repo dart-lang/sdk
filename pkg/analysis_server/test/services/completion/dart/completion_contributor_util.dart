@@ -8,7 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionRequestImpl;
+    show DartCompletionRequest;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -537,7 +537,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return await baseRequest.performance.runRequestOperation(
       (performance) async {
         // Build the request
-        var request = DartCompletionRequestImpl.from(
+        var request = DartCompletionRequest.from(
           baseRequest,
           dartdocDirectiveInfo: dartdocInfo,
         );

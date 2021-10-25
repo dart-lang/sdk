@@ -29,7 +29,7 @@ class ContextTypeTest extends AbstractSingleUnitTest {
   }
 
   Future<CompletionSuggestion> forTopLevelFunction(String functionName) async {
-    var request = DartCompletionRequestImpl.from(
+    var request = DartCompletionRequest.from(
       CompletionRequestImpl(testAnalysisResult, 0, CompletionPerformance()),
     );
     var builder = SuggestionBuilder(request);
