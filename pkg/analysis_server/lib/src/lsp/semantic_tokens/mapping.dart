@@ -103,6 +103,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.ENUM_CONSTANT: SemanticTokenTypes.enumMember,
   HighlightRegionType.FUNCTION_TYPE_ALIAS: SemanticTokenTypes.type,
   HighlightRegionType.IDENTIFIER_DEFAULT: CustomSemanticTokenTypes.source,
+  HighlightRegionType.IMPORT_PREFIX: SemanticTokenTypes.variable,
   HighlightRegionType.INSTANCE_FIELD_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_FIELD_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_GETTER_DECLARATION: SemanticTokenTypes.property,

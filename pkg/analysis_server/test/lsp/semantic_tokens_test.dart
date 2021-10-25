@@ -54,6 +54,110 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     return results;
   }
 
+  Future<void> test_annotation() async {
+    final content = '''
+    import 'other_file.dart' as other;
+
+    @a
+    @A()
+    @A.n()
+    @B(A())
+    @other.C()
+    @other.C.n()
+    void foo() {}
+
+    class A {
+      const A();
+      const A.n();
+    }
+
+    const a = A();
+
+    class B {
+      final A a;
+      const B(this.a);
+    }
+    ''';
+
+    final otherContent = '''
+    class C {
+      const C();
+      const C.n();
+    }
+    ''';
+
+    final expectedStart = [
+      _Token('import', SemanticTokenTypes.keyword),
+      _Token("'other_file.dart'", SemanticTokenTypes.string),
+      _Token('as', SemanticTokenTypes.keyword),
+      _Token('other', SemanticTokenTypes.variable),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('a', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('A', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('A', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('n', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        CustomSemanticTokenModifiers.annotation
+      ]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('B', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token('A', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('other', SemanticTokenTypes.variable),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('C', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('other', SemanticTokenTypes.variable),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('C', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('n', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        CustomSemanticTokenModifiers.annotation
+      ]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('foo', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static])
+    ];
+
+    final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
+    final otherFileUri = Uri.file(otherFilePath);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(otherFileUri, withoutMarkers(otherContent));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(
+      // Only check the first expectedStart.length items since the test code
+      // is mostly unrelated to the annotations.
+      decoded.sublist(0, expectedStart.length),
+      equals(expectedStart),
+    );
+  }
+
   Future<void> test_class() async {
     final content = '''
     /// class docs
@@ -305,7 +409,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('/// method docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('override', SemanticTokenTypes.property),
+      _Token('override', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.annotation]),
       _Token('void', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.void_]),
       _Token('myMethod', SemanticTokenTypes.method,

@@ -92,6 +92,10 @@ abstract class CustomMethods {
 }
 
 abstract class CustomSemanticTokenModifiers {
+  /// A modifier applied to the identifier following the `@` annotation token to
+  /// allow users to color it differently (for example in the same way as `@`).
+  static const annotation = SemanticTokenModifiers('annotation');
+
   /// A modifier applied to control keywords like if/for/etc. so they can be
   /// colored differently to other keywords (void, import, etc), matching the
   /// original Dart textmate grammar.
@@ -127,8 +131,8 @@ abstract class CustomSemanticTokenModifiers {
   /// of the expression would show through the simple-colorings "string" colors.
   static const interpolation = SemanticTokenModifiers('interpolation');
 
-  /// A modifier applied to the void keyword to users to color it differently
-  /// (for example as a type).
+  /// A modifier applied to the void keyword to allow users to color it
+  /// differently (for example as a type).
   static const void_ = SemanticTokenModifiers('void');
 
   /// All custom semantic token modifiers, used to populate the LSP Legend.
@@ -137,6 +141,7 @@ abstract class CustomSemanticTokenModifiers {
   /// HighlightRegion mappings will be automatically included, but should still
   /// be listed here in case they are removed from mappings in the future.
   static const values = [
+    annotation,
     control,
     label,
     constructor,
