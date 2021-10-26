@@ -100,7 +100,9 @@ void f(A a) {
 }
 ''', maxResults: 2);
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertIncomplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     suggestionsValidator.assertCompletions(['foo01', 'foo02']);
@@ -119,7 +121,9 @@ void f() {
 }
 ''', maxResults: 2);
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertIncomplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     suggestionsValidator.assertCompletions(['foo01', 'foo02']);
@@ -150,7 +154,9 @@ void f() {
 }
 ''', maxResults: 2);
 
-    responseValidator.assertEmptyReplacement();
+    responseValidator
+      ..assertIncomplete()
+      ..assertEmptyReplacement();
 
     var suggestionsValidator = responseValidator.suggestions;
     suggestionsValidator.assertCompletions(['foo01', 'foo02']);
@@ -170,7 +176,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestions = responseValidator.suggestions;
     suggestions.assertCompletions(['foo01', 'foo02']);
@@ -192,7 +200,9 @@ void f(A a) {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestions = responseValidator.suggestions;
     suggestions.assertCompletions(['foo01', 'foo02']);
@@ -214,7 +224,9 @@ void f(A a) {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestions = responseValidator.suggestions;
     suggestions.assertCompletions(['foo01', 'foo02']);
@@ -236,7 +248,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestions = responseValidator.suggestions;
     suggestions.assertCompletions(['foo01', 'foo02']);
@@ -263,7 +277,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     suggestionsValidator.assertCompletions(['foo01', 'foo02']);
@@ -296,7 +312,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     suggestionsValidator.assertCompletions(['foo01', 'foo02']);
@@ -319,7 +337,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     suggestionsValidator.assertCompletions(['foo01', 'foo02']);
@@ -356,7 +376,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(2);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2);
 
     var classes = responseValidator.suggestions.withElementClass();
     classes.assertCompletions(['A01', 'A02']);
@@ -384,7 +406,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     suggestionsValidator.assertCompletions(['foo01', 'foo02']);
@@ -410,7 +434,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     // `fooBB` has better score than `fooAB` - prefix match
@@ -429,7 +455,9 @@ void f() {
 }
 ''');
 
-    responseValidator.assertReplacementBack(4);
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
 
     var suggestionsValidator = responseValidator.suggestions;
     // `foo02` has better relevance, its type matches the context type
@@ -1388,8 +1416,16 @@ class CompletionGetSuggestions2ResponseValidator {
     return SuggestionsValidator(result.suggestions);
   }
 
+  void assertComplete() {
+    expect(result.isIncomplete, isFalse);
+  }
+
   void assertEmptyReplacement() {
     assertReplacement(completionOffset, 0);
+  }
+
+  void assertIncomplete() {
+    expect(result.isIncomplete, isTrue);
   }
 
   void assertReplacement(int offset, int length) {

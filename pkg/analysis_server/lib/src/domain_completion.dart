@@ -267,16 +267,17 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         performance.getDataInt('matchCount').add(suggestions.length);
       });
 
-      suggestions = suggestions.take(params.maxResults).toList();
-      completionPerformance.suggestionCount = suggestions.length;
+      var lengthRestricted = suggestions.take(params.maxResults).toList();
+      var isIncomplete = lengthRestricted.length < suggestions.length;
+      completionPerformance.suggestionCount = lengthRestricted.length;
 
       server.sendResponse(
         CompletionGetSuggestions2Result(
           completionRequest.replacementOffset,
           completionRequest.replacementLength,
-          suggestions,
+          lengthRestricted,
           [], // TODO(scheglov)
-          false, // TODO(scheglov)
+          isIncomplete,
         ).toResponse(request.id),
       );
     });
