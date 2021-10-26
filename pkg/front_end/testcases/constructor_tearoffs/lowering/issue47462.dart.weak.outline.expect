@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef MyList<T extends core::num> = core::List<T>;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#new#tearOff<T extends core::num>([core::int? length]) → core::List<self::_#MyList#new#tearOff::T>
+  return core::List::•<self::_#MyList#new#tearOff::T>(length);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#filled#tearOff<T extends core::num>(core::int length, self::_#MyList#filled#tearOff::T fill, {core::bool growable}) → core::List<self::_#MyList#filled#tearOff::T>
+  return core::List::filled<self::_#MyList#filled#tearOff::T>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#empty#tearOff<T extends core::num>({core::bool growable}) → core::List<self::_#MyList#empty#tearOff::T>
+  return core::List::empty<self::_#MyList#empty#tearOff::T>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#from#tearOff<T extends core::num>(core::Iterable<dynamic> elements, {core::bool growable}) → core::List<self::_#MyList#from#tearOff::T>
+  return core::List::from<self::_#MyList#from#tearOff::T>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#of#tearOff<T extends core::num>(core::Iterable<self::_#MyList#of#tearOff::T> elements, {core::bool growable}) → core::List<self::_#MyList#of#tearOff::T>
+  return core::List::of<self::_#MyList#of#tearOff::T>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#generate#tearOff<T extends core::num>(core::int length, (core::int) → self::_#MyList#generate#tearOff::T generator, {core::bool growable}) → core::List<self::_#MyList#generate#tearOff::T>
+  return core::List::generate<self::_#MyList#generate#tearOff::T>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#unmodifiable#tearOff<T extends core::num>(core::Iterable<dynamic> elements) → core::List<self::_#MyList#unmodifiable#tearOff::T>
+  return core::List::unmodifiable<self::_#MyList#unmodifiable#tearOff::T>(elements);

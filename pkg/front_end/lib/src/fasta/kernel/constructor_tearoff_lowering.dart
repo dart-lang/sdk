@@ -428,19 +428,18 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
 /// Reverse engineered typedef tear off information.
 class LoweredTypedefTearOff {
   Procedure typedefTearOff;
-  Constant targetTearOffConstant;
+  Expression targetTearOff;
   List<DartType> typeArguments;
 
   LoweredTypedefTearOff(
-      this.typedefTearOff, this.targetTearOffConstant, this.typeArguments);
+      this.typedefTearOff, this.targetTearOff, this.typeArguments);
 
-  /// Reverse engineers [constant] to a [LoweredTypedefTearOff] if [constant] is
-  /// the encoding of a lowered typedef tear off.
-  // TODO(johnniwinther): Check that this works with outlines.
-  static LoweredTypedefTearOff? fromConstant(Constant constant) {
-    if (constant is StaticTearOffConstant &&
-        isTypedefTearOffLowering(constant.target)) {
-      Procedure typedefTearOff = constant.target;
+  /// Reverse engineers [expression] to a [LoweredTypedefTearOff] if
+  /// [expression] is the encoding of a lowered typedef tear off.
+  static LoweredTypedefTearOff? fromExpression(Expression expression) {
+    if (expression is StaticTearOff &&
+        isTypedefTearOffLowering(expression.target)) {
+      Procedure typedefTearOff = expression.target;
       Statement? body = typedefTearOff.function.body;
       if (body is ReturnStatement) {
         Expression? constructorInvocation = body.expression;
@@ -463,15 +462,15 @@ class LoweredTypedefTearOff {
               break;
             }
           }
-          Constant tearOffConstant;
+          Expression targetTearOff;
           if (target is Constructor ||
               target is Procedure && target.isFactory) {
-            tearOffConstant = new ConstructorTearOffConstant(target!);
+            targetTearOff = new ConstructorTearOff(target!);
           } else {
-            tearOffConstant = new StaticTearOffConstant(target as Procedure);
+            targetTearOff = new StaticTearOff(target as Procedure);
           }
           return new LoweredTypedefTearOff(
-              typedefTearOff, tearOffConstant, typeArguments!);
+              typedefTearOff, targetTearOff, typeArguments!);
         }
       }
     }
