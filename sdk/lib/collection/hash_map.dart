@@ -38,9 +38,9 @@ typedef _Hasher<K> = int Function(K object);
 /// final HashMap<int, String> hashMap = HashMap();
 /// hashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
 ///
-/// final HashMap<int, String> anotherHasMap = HashMap();
-/// anotherHasMap.addEntries(hashMap.entries);
-/// print(anotherHasMap); // {1: A, 2: B, 3: C, 4: D}
+/// final HashMap<int, String> anotherHashMap = HashMap();
+/// anotherHashMap.addEntries(hashMap.entries);
+/// print(anotherHashMap); // {1: A, 2: B, 3: C, 4: D}
 /// ```
 /// To check is the map empty, use [isEmpty] or [isNotEmpty].
 /// To check length of map data, use [length]:
@@ -70,7 +70,7 @@ typedef _Hasher<K> = int Function(K object);
 /// To check is there a value item on map, call [containsValue]:
 /// ```dart
 /// final bExists = hashMap.containsValue('B'); // true
-/// final cExists =  hashMap.containsValue('c'); // false
+/// final gExists =  hashMap.containsValue('G'); // false
 /// ```
 /// To remove specific key-pair using key, call [remove]:
 /// ```dart
