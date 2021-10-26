@@ -331,41 +331,27 @@ class FileSystemState {
     required OperationPerformanceImpl performance,
   }) {
     var file = _pathToFile[path];
-    if (file == null) {
-      var fileUri = _resourceProvider.pathContext.toUri(path);
-      var uri = _sourceFactory.restoreUri(
-        _FakeSource(path, fileUri),
-      );
-      if (uri == null) {
-        throw StateError('Unable to convert path to URI: $path');
-      }
-
-      var source = _sourceFactory.forUri2(uri);
-      if (source == null) {
-        throw StateError('Unable to resolve URI: $uri, path: $path');
-      }
-
-      var workspacePackage = _workspace.findPackageFor(path);
-      var featureSet = contextFeatureSet(path, uri, workspacePackage);
-      var packageLanguageVersion =
-          contextLanguageVersion(path, uri, workspacePackage);
-
-      var location = _FileStateLocation._(this, path, uri, source,
-          workspacePackage, featureSet, packageLanguageVersion);
-      file = FileState._(
-        _FileStateUnlinked(
-          location: location,
-          partOfLibrary: null,
-          performance: performance,
-        ),
-      );
-      _pathToFile[path] = file;
-      _uriToFile[uri] = file;
-
-      // Recurse with recording performance.
-      file.files(performance: performance);
+    if (file != null) {
+      return file;
     }
-    return file;
+
+    var fileUri = _resourceProvider.pathContext.toUri(path);
+    var uri = _sourceFactory.restoreUri(
+      _FakeSource(path, fileUri),
+    );
+    if (uri == null) {
+      throw StateError('Unable to convert path to URI: $path');
+    }
+
+    var source = _sourceFactory.forUri2(uri);
+    if (source == null) {
+      throw StateError('Unable to resolve URI: $uri, path: $path');
+    }
+
+    return _newFile(
+      source: source,
+      performance: performance,
+    );
   }
 
   FileState? getFileForUri({
@@ -374,35 +360,19 @@ class FileSystemState {
     required OperationPerformanceImpl performance,
   }) {
     var file = _uriToFile[uri];
-    if (file == null) {
-      var source = _sourceFactory.forUri2(uri);
-      if (source == null) {
-        return null;
-      }
-      var path = source.fullName;
-
-      var workspacePackage = _workspace.findPackageFor(path);
-      var featureSet = contextFeatureSet(path, uri, workspacePackage);
-      var packageLanguageVersion =
-          contextLanguageVersion(path, uri, workspacePackage);
-
-      var location = _FileStateLocation._(this, path, uri, source,
-          workspacePackage, featureSet, packageLanguageVersion);
-      file = FileState._(
-        _FileStateUnlinked(
-          location: location,
-          partOfLibrary: containingLibrary,
-          performance: performance,
-        ),
-      );
-
-      _pathToFile[path] = file;
-      _uriToFile[uri] = file;
-
-      // Recurse with recording performance.
-      file.files(performance: performance);
+    if (file != null) {
+      return file;
     }
-    return file;
+
+    var source = _sourceFactory.forUri2(uri);
+    if (source == null) {
+      return null;
+    }
+
+    return _newFile(
+      source: source,
+      performance: performance,
+    );
   }
 
   /// Returns a list of files whose contents contains the given string.
@@ -487,6 +457,36 @@ class FileSystemState {
     }
 
     return removedFiles;
+  }
+
+  FileState _newFile({
+    required Source source,
+    required OperationPerformanceImpl performance,
+  }) {
+    var path = source.fullName;
+    var uri = source.uri;
+
+    var workspacePackage = _workspace.findPackageFor(path);
+    var featureSet = contextFeatureSet(path, uri, workspacePackage);
+    var packageLanguageVersion =
+        contextLanguageVersion(path, uri, workspacePackage);
+
+    var location = _FileStateLocation._(this, path, uri, source,
+        workspacePackage, featureSet, packageLanguageVersion);
+    var file = FileState._(
+      _FileStateUnlinked(
+        location: location,
+        partOfLibrary: null,
+        performance: performance,
+      ),
+    );
+    _pathToFile[path] = file;
+    _uriToFile[uri] = file;
+
+    // Recurse with recording performance.
+    file.files(performance: performance);
+
+    return file;
   }
 }
 
