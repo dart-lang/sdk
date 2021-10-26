@@ -601,7 +601,8 @@ class TypedLiteralResolver {
 
   void _insertImplicitCallReference(CollectionElement? node) {
     if (node is Expression) {
-      _resolver.insertImplicitCallReference(node);
+      var wrappingExpression = _resolver.insertImplicitCallReference(node);
+      _resolver.insertGenericFunctionInstantiation(wrappingExpression);
     } else if (node is MapLiteralEntry) {
       _insertImplicitCallReference(node.key);
       _insertImplicitCallReference(node.value);

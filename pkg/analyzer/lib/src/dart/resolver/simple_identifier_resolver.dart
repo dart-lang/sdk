@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -24,8 +23,6 @@ class SimpleIdentifierResolver {
   SimpleIdentifierResolver(this._resolver, this._flowAnalysis);
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
-
-  InvocationInferenceHelper get _inferenceHelper => _resolver.inferenceHelper;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -259,7 +256,17 @@ class SimpleIdentifierResolver {
     } else {
       staticType = DynamicTypeImpl.instance;
     }
-    staticType = _inferenceHelper.inferTearOff(node, node, staticType);
+
+    if (!_resolver.isConstructorTearoffsEnabled) {
+      // Only perform a generic function instantiation on a [PrefixedIdentifier]
+      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
+      // generic function instantiation is performed at assignability check
+      // sites.
+      // TODO(srawlins): Switch all resolution to use the latter method, in a
+      // breaking change release.
+      staticType =
+          _resolver.inferenceHelper.inferTearOff(node, node, staticType);
+    }
     _recordStaticType(node, staticType);
   }
 

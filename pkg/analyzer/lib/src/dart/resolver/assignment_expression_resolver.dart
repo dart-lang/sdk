@@ -242,9 +242,12 @@ class AssignmentExpressionResolver {
     }
 
     _inferenceHelper.recordStaticType(node, nodeType);
-    var callReference = _resolver.insertImplicitCallReference(rightHandSide);
-    if (callReference != rightHandSide) {
-      assignedType = callReference.typeOrThrow;
+    var wrappingExpression =
+        _resolver.insertImplicitCallReference(rightHandSide);
+    wrappingExpression =
+        _resolver.insertGenericFunctionInstantiation(wrappingExpression);
+    if (wrappingExpression != rightHandSide) {
+      assignedType = wrappingExpression.typeOrThrow;
     }
 
     // TODO(scheglov) Remove from ErrorVerifier?
