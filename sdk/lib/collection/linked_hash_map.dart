@@ -56,7 +56,7 @@ part of dart.collection;
 /// To check is there a value item on map, call [containsValue]:
 /// ```dart
 /// final bExists = linkedHashMap.containsValue('B'); // true
-/// final cExists =  linkedHashMap.containsValue('c'); // false
+/// final gExists =  linkedHashMap.containsValue('G'); // false
 /// ```
 /// To remove specific key-pair using key, call [remove]
 /// ```dart
