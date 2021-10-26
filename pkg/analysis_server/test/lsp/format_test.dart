@@ -210,6 +210,30 @@ void f()
     await expectRangeFormattedContents(mainFileUri, contents, expected);
   }
 
+  Future<void> test_formatRange_expandsLeadingWhitespaceToNearestLine() async {
+    const contents = '''
+void main()
+{
+
+[[        print('test'); // line 2
+        print('test'); // line 3
+        print('test'); // line 4]]
+}
+''';
+    const expected = '''
+void main()
+{
+
+  print('test'); // line 2
+  print('test'); // line 3
+  print('test'); // line 4
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    await expectRangeFormattedContents(mainFileUri, contents, expected);
+  }
+
   Future<void> test_formatRange_invalidRange() async {
     const contents = '''
 void f()
