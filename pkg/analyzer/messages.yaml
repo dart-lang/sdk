@@ -14293,6 +14293,10 @@ HintCode:
       Parameters:
       0: the name of the member
       1: message details
+  DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+    problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
+    correctionMessage: Try referring to a constructor by its name.
+    comment: No parameters.
   DEPRECATED_MIXIN_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Mixing in 'Function' is deprecated."
