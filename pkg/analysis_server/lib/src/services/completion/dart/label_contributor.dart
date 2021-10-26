@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionRequestImpl;
+    show DartCompletionRequest;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
@@ -21,7 +21,7 @@ class LabelContributor extends DartCompletionContributor {
 
   @override
   Future<void> computeSuggestions() async {
-    var optype = (request as DartCompletionRequestImpl).opType;
+    var optype = request.opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.

@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -52,13 +50,12 @@ part 'test.dart';
     await resolveFile('$testPackageLibPath/b.dart');
 
     // Build the request
-    var baseRequest = CompletionRequestImpl(
-        await session.getResolvedUnit(testFile) as ResolvedUnitResult,
-        completionOffset,
-        CompletionPerformance());
-    await baseRequest.performance.runRequestOperation((performance) async {
-      request = DartCompletionRequestImpl.from(baseRequest);
-    });
+    var resolvedUnit =
+        await session.getResolvedUnit(testFile) as ResolvedUnitResult;
+    request = DartCompletionRequest.from(
+      resolvedUnit: resolvedUnit,
+      offset: completionOffset,
+    );
 
     var directives = request.target.unit.directives;
 

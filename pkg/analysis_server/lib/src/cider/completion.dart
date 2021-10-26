@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
@@ -32,7 +30,7 @@ class CiderCompletionComputer {
   final OperationPerformanceImpl _performanceRoot =
       OperationPerformanceImpl('<root>');
 
-  late DartCompletionRequestImpl _dartCompletionRequest;
+  late DartCompletionRequest _dartCompletionRequest;
 
   /// Paths of imported libraries for which suggestions were (re)computed
   /// during processing of this request. Does not include libraries that were
@@ -72,14 +70,9 @@ class CiderCompletionComputer {
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
-      var completionRequest = CompletionRequestImpl(
-        resolvedUnit,
-        offset,
-        CompletionPerformance(),
-      );
-
-      _dartCompletionRequest = DartCompletionRequestImpl.from(
-        completionRequest,
+      _dartCompletionRequest = DartCompletionRequest.from(
+        resolvedUnit: resolvedUnit,
+        offset: offset,
       );
 
       var suggestions = await performance.runAsync(

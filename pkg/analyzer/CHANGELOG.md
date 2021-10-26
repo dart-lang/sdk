@@ -1,6 +1,7 @@
 ## 2.8.0-dev
 * Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
 * Removed uppercase named constants from `double` in mock SDK.
+* Deprecated `path` and `uri` from `AnalysisResult`.
 
 ## 2.7.0
 * Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.

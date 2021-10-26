@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
@@ -85,12 +84,11 @@ class DartCompletionManager {
                 includedSuggestionRelevanceTags == null));
 
   Future<List<CompletionSuggestion>> computeSuggestions(
-    DartCompletionRequestImpl dartRequest,
+    DartCompletionRequest request,
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
   }) async {
-    final request = dartRequest.request;
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
     if (!file_paths.isDart(pathContext, request.result.path)) {
@@ -98,45 +96,40 @@ class DartCompletionManager {
     }
 
     // Don't suggest in comments.
-    if (dartRequest.target.isCommentText) {
+    if (request.target.isCommentText) {
       return const <CompletionSuggestion>[];
     }
 
     request.checkAborted();
 
-    var replacementRange = dartRequest.replacementRange;
-    (request as CompletionRequestImpl)
-      ..replacementOffset = replacementRange.offset
-      ..replacementLength = replacementRange.length;
-
     // Request Dart specific completions from each contributor
-    var builder = SuggestionBuilder(dartRequest, listener: listener);
+    var builder = SuggestionBuilder(request, listener: listener);
     var contributors = <DartCompletionContributor>[
-      ArgListContributor(dartRequest, builder),
-      CombinatorContributor(dartRequest, builder),
-      ExtensionMemberContributor(dartRequest, builder),
-      FieldFormalContributor(dartRequest, builder),
-      KeywordContributor(dartRequest, builder),
-      LabelContributor(dartRequest, builder),
-      LibraryMemberContributor(dartRequest, builder),
-      LibraryPrefixContributor(dartRequest, builder),
-      LocalLibraryContributor(dartRequest, builder),
-      LocalReferenceContributor(dartRequest, builder),
-      NamedConstructorContributor(dartRequest, builder),
-      if (enableOverrideContributor) OverrideContributor(dartRequest, builder),
-      RedirectingContributor(dartRequest, builder),
-      StaticMemberContributor(dartRequest, builder),
-      TypeMemberContributor(dartRequest, builder),
-      if (enableUriContributor) UriContributor(dartRequest, builder),
-      VariableNameContributor(dartRequest, builder),
+      ArgListContributor(request, builder),
+      CombinatorContributor(request, builder),
+      ExtensionMemberContributor(request, builder),
+      FieldFormalContributor(request, builder),
+      KeywordContributor(request, builder),
+      LabelContributor(request, builder),
+      LibraryMemberContributor(request, builder),
+      LibraryPrefixContributor(request, builder),
+      LocalLibraryContributor(request, builder),
+      LocalReferenceContributor(request, builder),
+      NamedConstructorContributor(request, builder),
+      if (enableOverrideContributor) OverrideContributor(request, builder),
+      RedirectingContributor(request, builder),
+      StaticMemberContributor(request, builder),
+      TypeMemberContributor(request, builder),
+      if (enableUriContributor) UriContributor(request, builder),
+      VariableNameContributor(request, builder),
     ];
 
     if (includedElementKinds != null) {
-      _addIncludedElementKinds(dartRequest);
-      _addIncludedSuggestionRelevanceTags(dartRequest);
+      _addIncludedElementKinds(request);
+      _addIncludedSuggestionRelevanceTags(request);
     } else {
       contributors.add(
-        ImportedReferenceContributor(dartRequest, builder),
+        ImportedReferenceContributor(request, builder),
       );
     }
 
@@ -159,7 +152,7 @@ class DartCompletionManager {
     return builder.suggestions.toList();
   }
 
-  void _addIncludedElementKinds(DartCompletionRequestImpl request) {
+  void _addIncludedElementKinds(DartCompletionRequest request) {
     var opType = request.opType;
 
     if (!opType.includeIdentifiers) return;
@@ -192,7 +185,7 @@ class DartCompletionManager {
     }
   }
 
-  void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
+  void _addIncludedSuggestionRelevanceTags(DartCompletionRequest request) {
     final includedSuggestionRelevanceTags =
         this.includedSuggestionRelevanceTags!;
     var location = request.opType.completionLocation;
@@ -243,45 +236,54 @@ class DartCompletionManager {
 }
 
 /// The information about a requested list of completions within a Dart file.
-class DartCompletionRequestImpl implements DartCompletionRequest {
-  @override
+class DartCompletionRequest {
   final CompletionPreference completionPreference;
 
-  @override
+  /// Return the type imposed on the target's `containingNode` based on its
+  /// context, or `null` if the context does not impose any type.
   final DartType? contextType;
 
-  @override
+  /// Return the object used to resolve macros in Dartdoc comments.
   final DartdocDirectiveInfo dartdocDirectiveInfo;
 
   final DocumentationCache? documentationCache;
 
-  @override
+  /// Return the expression to the right of the "dot" or "dot dot",
+  /// or `null` if this is not a "dot" completion (e.g. `foo.b`).
   final Expression? dotTarget;
 
-  @override
+  /// Return the object used to compute the values of the features used to
+  /// compute relevance scores for suggestions.
   final FeatureComputer featureComputer;
 
-  @override
+  /// Return the offset within the source at which the completion is being
+  /// requested.
   final int offset;
 
-  @override
+  /// The [OpType] which describes which types of suggestions would fit the
+  /// request.
   final OpType opType;
 
-  @override
+  /// The source range that represents the region of text that should be
+  /// replaced when a suggestion is selected.
   final SourceRange replacementRange;
 
-  final CompletionRequest request;
-
-  @override
+  /// The analysis result for the file in which the completion is being
+  /// requested.
   final ResolvedUnitResult result;
 
-  @override
+  /// Return the source in which the completion is being requested.
   final Source source;
 
-  @override
+  /// Return the completion target.  This determines what part of the parse tree
+  /// will receive the newly inserted text.
+  /// At a minimum, all declarations in the completion scope in [target.unit]
+  /// will be resolved if they can be resolved.
   final CompletionTarget target;
 
-  DartCompletionRequestImpl._({
+  bool _aborted = false;
+
+  DartCompletionRequest._({
     required this.completionPreference,
     required this.contextType,
     required this.dartdocDirectiveInfo,
@@ -291,45 +293,65 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     required this.offset,
     required this.opType,
     required this.replacementRange,
-    required this.request,
     required this.result,
     required this.source,
     required this.target,
   });
 
-  @override
+  /// Return the feature set that was used to analyze the compilation unit in
+  /// which suggestions are being made.
   FeatureSet get featureSet => libraryElement.featureSet;
 
-  @override
+  /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
   }
 
-  @override
+  /// Return `true` if the completion is occurring in a constant context.
   bool get inConstantContext {
     var entity = target.entity;
     return entity is Expression && entity.inConstantContext;
   }
 
-  @override
+  /// Return the library element which contains the unit in which the completion
+  /// is occurring.
   LibraryElement get libraryElement => result.libraryElement;
 
-  @override
+  /// Answer the [DartType] for Object in dart:core
   DartType get objectType => libraryElement.typeProvider.objectType;
 
-  @override
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
+  /// This will be different than the [replacementOffset] - [offset]
+  /// if the [offset] is in the middle of an existing identifier.
+  /// TODO(scheglov) Switch to [replacementRange].
+  int get replacementLength => replacementRange.length;
+
+  /// The offset of the start of the text to be replaced.
+  /// This will be different than the [offset] used to request the completion
+  /// suggestions if there was a portion of an identifier before the original
+  /// [offset]. In particular, the [replacementOffset] will be the offset of the
+  /// beginning of said identifier.
+  /// TODO(scheglov) Switch to [replacementRange].
+  int get replacementOffset => replacementRange.offset;
+
+  /// Return the resource provider associated with this request.
   ResourceProvider get resourceProvider => result.session.resourceProvider;
 
-  @override
+  /// Return the content of the [source] in which the completion is being
+  /// requested, or `null` if the content could not be accessed.
   String? get sourceContents => result.content;
 
-  @override
+  /// Return the [SourceFactory] of the request.
   SourceFactory get sourceFactory {
     var context = result.session.analysisContext as DriverBasedAnalysisContext;
     return context.driver.sourceFactory;
   }
 
-  @override
+  /// Return prefix that already exists in the document for [target] or empty
+  /// string if unavailable. This can be used to filter the completion list to
+  /// items that already match the text to the left of the caret.
   String get targetPrefix {
     var entity = target.entity;
 
@@ -355,32 +377,32 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return '';
   }
 
-  /// Throw [AbortCompletion] if the completion request has been aborted.
-  @override
-  void checkAborted() {
-    request.checkAborted();
+  /// Abort the current completion request.
+  void abort() {
+    _aborted = true;
   }
 
-  /// Return a newly created completion request based on the given [request].
-  /// This method will throw [AbortCompletion] if the completion request has
-  /// been aborted.
-  static DartCompletionRequestImpl from(
-    CompletionRequest request, {
+  /// Throw [AbortCompletion] if the completion request has been aborted.
+  void checkAborted() {
+    if (_aborted) {
+      throw AbortCompletion();
+    }
+  }
+
+  /// Return a newly created completion request in [resolvedUnit] at [offset].
+  static DartCompletionRequest from({
+    required ResolvedUnitResult resolvedUnit,
+    required int offset,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
     DocumentationCache? documentationCache,
   }) {
-    request.checkAborted();
-
-    var result = request.result;
-    var offset = request.offset;
-
-    var target = CompletionTarget.forOffset(result.unit, offset);
+    var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
     var dotTarget = _dotTarget(target);
 
     var featureComputer = FeatureComputer(
-      result.typeSystem,
-      result.typeProvider,
+      resolvedUnit.typeSystem,
+      resolvedUnit.typeProvider,
     );
 
     var contextType = featureComputer.computeContextType(
@@ -393,7 +415,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       opType.includeVoidReturnSuggestions = true;
     }
 
-    return DartCompletionRequestImpl._(
+    return DartCompletionRequest._(
       completionPreference: completionPreference,
       contextType: contextType,
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
@@ -403,9 +425,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       offset: offset,
       opType: opType,
       replacementRange: target.computeReplacementRange(offset),
-      request: request,
-      result: request.result,
-      source: request.source,
+      result: resolvedUnit,
+      source: resolvedUnit.unit.declaredElement!.source,
       target: target,
     );
   }

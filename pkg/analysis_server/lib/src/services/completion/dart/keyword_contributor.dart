@@ -56,10 +56,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    if (request is DartCompletionRequestImpl) {
-      if (request.opType.includeOnlyNamedArgumentSuggestions) {
-        return;
-      }
+    if (request.opType.includeOnlyNamedArgumentSuggestions) {
+      return;
     }
     final entity = this.entity;
     if (entity == node.rightParenthesis) {

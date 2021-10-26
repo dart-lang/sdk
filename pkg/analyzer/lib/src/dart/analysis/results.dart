@@ -16,9 +16,11 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
+  @Deprecated('Use FileResult.path instead')
   @override
   final String path;
 
+  @Deprecated('Use FileResult.uri instead')
   @override
   final Uri uri;
 
@@ -62,9 +64,19 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
       AnalysisSession session, String path, Uri uri, this.lineInfo, this.isPart)
       : super(session, path, uri);
 
+  @override
+  // TODO(scheglov) Convert into a field.
+  // ignore: deprecated_member_use_from_same_package, unnecessary_overrides
+  String get path => super.path;
+
   @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state => ResultState.VALID;
+
+  @override
+  // TODO(scheglov) Convert into a field.
+  // ignore: deprecated_member_use_from_same_package, unnecessary_overrides
+  Uri get uri => super.uri;
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {

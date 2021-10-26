@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, RuntimeCompletionExpression, SourceEdit;
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class RuntimeCompletionComputer {
@@ -70,21 +69,14 @@ class RuntimeCompletionComputer {
       return RuntimeCompletionResult([], []);
     }
 
-    var request = CompletionRequestImpl(
-      targetResult,
-      targetOffset,
-      CompletionPerformance(),
+    var dartRequest = DartCompletionRequest.from(
+      resolvedUnit: targetResult,
+      offset: targetOffset,
     );
 
-    var dartRequest = DartCompletionRequestImpl.from(request);
-
-    var suggestions = await request.performance.runRequestOperation(
-      (performance) async {
-        return await DartCompletionManager().computeSuggestions(
-          dartRequest,
-          performance,
-        );
-      },
+    var suggestions = await DartCompletionManager().computeSuggestions(
+      dartRequest,
+      OperationPerformanceImpl('<root>'),
     );
 
     // Remove completions with synthetic import prefixes.
