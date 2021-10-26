@@ -47,6 +47,8 @@ part of dart.collection;
 /// Manipulating item count in [forEach] is prohibited. Adding or
 /// deleting items during iteration causes an exception:
 /// _"Concurrent modification during iteration"_.
+
+/// blah blah lbhaadsfsdfs
 /// ```dart
 /// linkedHashSet.forEach((element) {
 ///   print(element);
