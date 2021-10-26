@@ -81,7 +81,7 @@ static method main() → void {
 constants  {
   #C1 = 3
   #C2 = static-tearoff self::idFunction
-  #C3 = instantiation self::idFunction <core::int>
+  #C3 = instantiation #C2 <core::int>
   #C4 = true
   #C5 = self::Class<dynamic> {field:#C4}
   #C6 = self::Class<core::num> {field:#C4}

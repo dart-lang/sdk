@@ -56,3 +56,15 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalSame)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalFewer1)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalFewer2)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedSame)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedReorder)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer1)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer2)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer3)
+Extra constant evaluation: evaluated: 49, effectively constant: 8

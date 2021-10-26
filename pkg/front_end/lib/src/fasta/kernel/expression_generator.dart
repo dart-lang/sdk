@@ -1438,11 +1438,16 @@ class StaticAccessGenerator extends Generator {
 
   Expression _createRead() {
     Expression read;
+    Member? readTarget = this.readTarget;
     if (readTarget == null) {
       read = _makeInvalidRead(UnresolvedKind.Getter);
     } else {
       _reportNonNullableInNullAwareWarningIfNeeded();
-      read = _helper.makeStaticGet(readTarget!, token);
+      if (readTarget is Procedure && readTarget.kind == ProcedureKind.Method) {
+        read = _helper.forest.createStaticTearOff(fileOffset, readTarget);
+      } else {
+        read = _helper.forest.createStaticGet(fileOffset, readTarget);
+      }
     }
     return read;
   }
@@ -3221,6 +3226,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               if (tearOff.isRedirectingFactory) {
                 tearOffExpression = _helper.forest
                     .createRedirectingFactoryTearOff(token.charOffset, tearOff);
+              } else if (tearOff.isFactory) {
+                tearOffExpression = _helper.forest
+                    .createConstructorTearOff(token.charOffset, tearOff);
               } else {
                 tearOffExpression = _helper.forest
                     .createStaticTearOff(token.charOffset, tearOff);
@@ -3264,8 +3272,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     aliasBuilder.findConstructorOrFactory(
                         name.text, nameOffset, _uri, _helper.libraryBuilder);
                 if (tearOffLowering != null) {
-                  return _helper.forest
-                      .createStaticTearOff(token.charOffset, tearOffLowering);
+                  if (tearOffLowering.isFactory) {
+                    return _helper.forest.createConstructorTearOff(
+                        token.charOffset, tearOffLowering);
+                  } else {
+                    return _helper.forest
+                        .createStaticTearOff(token.charOffset, tearOffLowering);
+                  }
                 }
                 FreshTypeParameters freshTypeParameters =
                     getFreshTypeParameters(aliasBuilder.typedef.typeParameters);

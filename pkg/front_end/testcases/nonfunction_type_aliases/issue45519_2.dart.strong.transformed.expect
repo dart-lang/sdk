@@ -69,7 +69,7 @@ typedef G<invariant X extends core::Object? = dynamic> = (X%) → X%;
 typedef A<X extends (self::C<X>) → self::C<X> = (self::C<dynamic>) → self::C<dynamic>> = self::C<X>;
 typedef B<X extends (self::D<X>) → self::D<X> = (self::D<dynamic>) → self::D<dynamic>> = self::D<X>;
 class C<X extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::bar]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor foo() → self::C<self::C::X%>
     : super core::Object::•() {}
   static factory •<X extends core::Object? = dynamic>() → self::C<self::C::•::X%>
@@ -78,7 +78,7 @@ class C<X extends core::Object? = dynamic> extends core::Object {
     return self::C::•<self::C::bar::X%>();
 }
 class D<X extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::D::bar]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   constructor •() → self::D<self::D::X%>
     : super core::Object::•()
     ;
@@ -108,3 +108,8 @@ static method _#B#foo#tearOff<X extends (self::D<self::_#B#foo#tearOff::X>) → 
   return self::D::foo<self::_#B#foo#tearOff::X>();
 static method _#B#bar#tearOff<X extends (self::D<self::_#B#bar#tearOff::X>) → self::D<self::_#B#bar#tearOff::X> = (self::D<dynamic>) → self::D<dynamic>>() → self::D<self::_#B#bar#tearOff::X>
   return self::D::bar<self::_#B#bar#tearOff::X>();
+
+constants  {
+  #C1 = constructor-tearoff self::C::bar
+  #C2 = constructor-tearoff self::D::bar
+}

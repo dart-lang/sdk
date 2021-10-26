@@ -8,8 +8,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:math' show max, min;
 
-import 'package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart'
-    show isTearOffLowering;
+import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -1319,7 +1318,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// otherwise define them as lazy properties.
   void _emitStaticFields(Class c, List<js_ast.Statement> body) {
     var fields = c.fields
-        .where((f) => f.isStatic && getRedirectingFactories(f) == null)
+        .where((f) => f.isStatic && !isRedirectingFactoryField(f))
         .toList();
     if (c.isEnum) {
       // We know enum fields can be safely emitted as const fields, as long
@@ -1853,7 +1852,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     Set<Member> redirectingFactories;
     for (var m in c.fields) {
       if (m.isStatic) {
-        redirectingFactories ??= getRedirectingFactories(m)?.toSet();
+        if (isRedirectingFactoryField(m)) {
+          redirectingFactories = getRedirectingFactories(m).toSet();
+        }
       } else if (_extensionTypes.isNativeClass(c)) {
         jsMethods.addAll(_emitNativeFieldAccessors(m));
       } else if (virtualFields.containsKey(m)) {

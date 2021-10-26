@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef Bar = self::Foo;
 typedef BarGeneric<X extends core::Object? = dynamic> = self::FooGeneric<X%>;
 class Foo extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::Foo::namedFactory]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   const constructor named() → self::Foo
     : super core::Object::•()
     ;
@@ -13,22 +13,24 @@ class Foo extends core::Object /*hasConstConstructor*/  {
     return new self::Foo::named();
 }
 class FooGeneric<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::FooGeneric::namedFactory]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   const constructor named() → self::FooGeneric<self::FooGeneric::X%>
     : super core::Object::•()
     ;
   static factory namedFactory<X extends core::Object? = dynamic>() → self::FooGeneric<self::FooGeneric::namedFactory::X%>
     return new self::FooGeneric::named<self::FooGeneric::namedFactory::X%>();
 }
-static const field self::Foo bar = #C1;
-static const field self::Foo bar2 = #C1;
-static const field self::FooGeneric<core::int> barGeneric = #C2;
-static const field self::FooGeneric<core::int> barGeneric2 = #C2;
+static const field self::Foo bar = #C3;
+static const field self::Foo bar2 = #C3;
+static const field self::FooGeneric<core::int> barGeneric = #C4;
+static const field self::FooGeneric<core::int> barGeneric2 = #C4;
 static method main() → dynamic {}
 
 constants  {
-  #C1 = self::Foo {}
-  #C2 = self::FooGeneric<core::int*> {}
+  #C1 = constructor-tearoff self::Foo::namedFactory
+  #C2 = constructor-tearoff self::FooGeneric::namedFactory
+  #C3 = self::Foo {}
+  #C4 = self::FooGeneric<core::int*> {}
 }
 
 

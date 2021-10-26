@@ -60,5 +60,5 @@ static method main() → dynamic {}
 constants  {
   #C1 = constructor-tearoff self::A::foo
   #C2 = constructor-tearoff self::A::•
-  #C3 = static-tearoff self::A::bar
+  #C3 = constructor-tearoff self::A::bar
 }

@@ -107,8 +107,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters);
 
-  StaticGet makeStaticGet(Member readTarget, Token token);
-
   Expression wrapInDeferredCheck(
       Expression expression, PrefixBuilder prefix, int charOffset);
 

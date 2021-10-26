@@ -36,6 +36,7 @@ import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
 
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/inference_visitor.dart';
 import '../kernel/internal_ast.dart';
@@ -4065,14 +4066,33 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType tearOffType,
       Expression expression) {
     if (implicitInstantiation != null) {
+      List<DartType> typeArguments = implicitInstantiation.typeArguments;
       if (!isTopLevel) {
         checkBoundsInInstantiation(implicitInstantiation.functionType,
-            implicitInstantiation.typeArguments, expression.fileOffset,
+            typeArguments, expression.fileOffset,
             inferred: true);
       }
-      expression =
-          new Instantiation(expression, implicitInstantiation.typeArguments)
-            ..fileOffset = expression.fileOffset;
+      if (expression is TypedefTearOff) {
+        Substitution substitution =
+            Substitution.fromPairs(expression.typeParameters, typeArguments);
+        typeArguments =
+            expression.typeArguments.map(substitution.substituteType).toList();
+        expression = expression.expression;
+      } else {
+        LoweredTypedefTearOff? loweredTypedefTearOff =
+            LoweredTypedefTearOff.fromExpression(expression);
+        if (loweredTypedefTearOff != null) {
+          Substitution substitution = Substitution.fromPairs(
+              loweredTypedefTearOff.typedefTearOff.function.typeParameters,
+              typeArguments);
+          typeArguments = loweredTypedefTearOff.typeArguments
+              .map(substitution.substituteType)
+              .toList();
+          expression = loweredTypedefTearOff.targetTearOff;
+        }
+      }
+      expression = new Instantiation(expression, typeArguments)
+        ..fileOffset = expression.fileOffset;
       tearOffType = implicitInstantiation.instantiatedType;
     }
     return new ExpressionInferenceResult(tearOffType, expression);

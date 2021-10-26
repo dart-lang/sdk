@@ -29,7 +29,10 @@ import '../fasta_codes.dart'
 
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/redirecting_factory_body.dart'
-    show RedirectingFactoryBody, isRedirectingFactoryField;
+    show
+        RedirectingFactoryBody,
+        getRedirectingFactories,
+        isRedirectingFactoryField;
 
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
@@ -190,10 +193,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     }
     for (Field field in cls.fields) {
       if (isRedirectingFactoryField(field)) {
-        ListLiteral initializer = field.initializer as ListLiteral;
-        for (Expression expression in initializer.expressions) {
-          StaticGet get = expression as StaticGet;
-          RedirectingFactoryBody.restoreFromDill(get.target as Procedure);
+        for (Procedure target in getRedirectingFactories(field)) {
+          RedirectingFactoryBody.restoreFromDill(target);
         }
       } else {
         classBuilder.addField(field);

@@ -1,0 +1,4 @@
+typedef MyList<T extends num> = List<T>;
+main() {}
+test() {}
+expect(expected, actual) {}

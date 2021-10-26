@@ -187,3 +187,17 @@ class C extends core::Object implements self::B {
 }
 static method main() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory3)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory4)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory5)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory6)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory7)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory3)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory4)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory5)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory6)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory7)
+Extra constant evaluation: evaluated: 32, effectively constant: 10

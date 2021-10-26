@@ -4921,7 +4921,8 @@ class StaticGet extends Expression {
   Reference targetReference;
 
   StaticGet(Member target)
-      : this.byReference(getNonNullableMemberReferenceGetter(target));
+      : assert(target is Field || (target is Procedure && target.isGetter)),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticGet.byReference(this.targetReference);
 
@@ -4969,7 +4970,10 @@ class StaticTearOff extends Expression {
   Reference targetReference;
 
   StaticTearOff(Procedure target)
-      : this.byReference(getNonNullableMemberReferenceGetter(target));
+      : assert(target.isStatic, "Unexpected static tear off target: $target"),
+        assert(target.kind == ProcedureKind.Method,
+            "Unexpected static tear off target: $target"),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticTearOff.byReference(this.targetReference);
 
@@ -8619,8 +8623,9 @@ class ConstructorTearOff extends Expression {
   Reference targetReference;
 
   ConstructorTearOff(Member target)
-      : assert(target is Constructor ||
-            (target is Procedure && target.kind == ProcedureKind.Factory)),
+      : assert(
+            target is Constructor || (target is Procedure && target.isFactory),
+            "Unexpected constructor tear off target: $target"),
         this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOff.byReference(this.targetReference);
@@ -13170,10 +13175,11 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
   @override
   final Reference targetReference;
 
-  StaticTearOffConstant(Procedure procedure)
-      : targetReference = procedure.reference {
-    assert(procedure.isStatic);
-  }
+  StaticTearOffConstant(Procedure target)
+      : assert(target.isStatic),
+        assert(target.kind == ProcedureKind.Method,
+            "Unexpected static tear off target: $target"),
+        targetReference = target.reference;
 
   StaticTearOffConstant.byReference(this.targetReference);
 
@@ -13231,8 +13237,9 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   final Reference targetReference;
 
   ConstructorTearOffConstant(Member target)
-      : assert(target is Constructor ||
-            (target is Procedure && target.kind == ProcedureKind.Factory)),
+      : assert(
+            target is Constructor || (target is Procedure && target.isFactory),
+            "Unexpected constructor tear off target: $target"),
         this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOffConstant.byReference(this.targetReference);
