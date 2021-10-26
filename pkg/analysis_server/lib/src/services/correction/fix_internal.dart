@@ -475,7 +475,6 @@ class FixProcessor extends BaseProcessor {
       ReplaceColonWithEquals.newInstance,
     ],
     LintNames.prefer_expression_function_bodies: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
