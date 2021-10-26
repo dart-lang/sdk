@@ -104,6 +104,9 @@ abstract class _Invocation extends _DependencyTracker
 
   _Invocation(this.selector, this.args);
 
+  /// Initialize invocation before it is cached and processed.
+  void init() {}
+
   Type process(TypeFlowAnalysis typeFlowAnalysis);
 
   /// Returns result of this invocation if its available without
@@ -186,21 +189,29 @@ abstract class _Invocation extends _DependencyTracker
 
 class _DirectInvocation extends _Invocation {
   _DirectInvocation(DirectSelector selector, Args<Type> args)
-      : super(selector, args) {
+      : super(selector, args);
+
+  @override
+  void init() {
     // We don't emit [TypeCheck] statements for bounds checks of type
     // parameters, so if there are any type parameters, we must assume
     // they could fail bounds checks.
     //
     // TODO(sjindel): Use [TypeCheck] to avoid bounds checks.
-    final function = selector.member.function;
+    final function = selector.member!.function;
     if (function != null) {
-      typeChecksNeeded =
-          function.typeParameters.any((t) => t.isCovariantByClass);
+      for (TypeParameter tp in function.typeParameters) {
+        if (tp.isCovariantByClass) {
+          typeChecksNeeded = true;
+        }
+      }
     } else {
       Field field = selector.member as Field;
       if (selector.callKind == CallKind.PropertySet) {
         // TODO(dartbug.com/40615): Use TFA results to improve this criterion.
-        typeChecksNeeded = field.isCovariantByClass;
+        if (field.isCovariantByClass) {
+          typeChecksNeeded = true;
+        }
       }
     }
   }
@@ -791,6 +802,7 @@ class _InvocationsCache {
               _typeFlowAnalysis.summaryCollector.rawArguments(selector);
           sa.approximation =
               approximation = _DispatchableInvocation(selector, rawArgs);
+          approximation.init();
           Statistics.approximateInvocationsCreated++;
         }
         Statistics.approximateInvocationsUsed++;
@@ -802,6 +814,7 @@ class _InvocationsCache {
           max(Statistics.maxInvocationsCachedPerSelector, sa.count);
     }
 
+    invocation.init();
     bool added = _invocations.add(invocation);
     assert(added);
     ++Statistics.invocationsAddedToCache;
