@@ -80,21 +80,21 @@ typedef _Hasher<K> = int Function(K object);
 /// To remove item(s) with a statement, call the [removeWhere]:
 /// ```dart
 /// hashMap.removeWhere((key, value) => key == 2);
-/// hashMap.removeWhere((key, value) => value == 'B');
-/// print(hashMap); // {3: C, 4: D}
+/// hashMap.removeWhere((key, value) => value == 'C');
+/// print(hashMap); // {4: D}
 /// ```
 /// To update or insert (adding new key-value pair if not exists) value,
 /// call [update] method with ifAbsent statement:
 /// ```dart
 /// hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
-/// print(hashMap); // {10: E, 3: C, 4: D}
+/// print(hashMap); // {10: E, 4: D}
 /// hashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
-/// print(hashMap); // {10: E, 3: C, 4: abc}
+/// print(hashMap); // {10: E, 4: abc}
 /// ```
 /// To update all items, call [updateAll]:
 /// ```dart
 /// hashMap.updateAll((int key, String value) => 'X');
-/// print(hashMap); // {10: X, 3: X, 4: X}
+/// print(hashMap); // {10: X, 4: X}
 /// ```
 /// To clean up data, call the [clear]:
 /// ```dart
