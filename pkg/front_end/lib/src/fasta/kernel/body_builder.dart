@@ -6980,9 +6980,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false,
-      bool isNullAware: false,
-      bool isSuper: false}) {
+      {bool isConstantExpression: false, bool isNullAware: false}) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
         !enableConstFunctionsInLibrary) {
@@ -6992,31 +6990,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           offset,
           name.text.length);
     }
-    if (isSuper) {
-      // We can ignore [isNullAware] on super sends.
-      assert(forest.isThisExpression(receiver));
-      Member? target = lookupInstanceMember(name, isSuper: true);
-
-      if (target == null || (target is Procedure && !target.isAccessor)) {
-        if (target == null) {
-          warnUnresolvedMethod(name, offset, isSuper: true);
-        } else if (!areArgumentsCompatible(target.function!, arguments)) {
-          target = null;
-          addProblemErrorIfConst(
-              fasta.templateSuperclassMethodArgumentMismatch
-                  .withArguments(name.text),
-              offset,
-              name.text.length);
-        }
-        return new SuperMethodInvocation(name, arguments, target as Procedure?)
-          ..fileOffset = offset;
-      }
-
-      receiver = new SuperPropertyGet(name, target)..fileOffset = offset;
-      return forest.createExpressionInvocation(
-          arguments.fileOffset, receiver, arguments);
-    }
-
     if (isNullAware) {
       VariableDeclarationImpl variable =
           createVariableDeclarationForValue(receiver);
@@ -7030,6 +7003,47 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ..fileOffset = receiver.fileOffset;
     } else {
       return forest.createMethodInvocation(offset, receiver, name, arguments);
+    }
+  }
+
+  @override
+  Expression buildSuperInvocation(Name name, Arguments arguments, int offset,
+      {bool isConstantExpression: false,
+      bool isNullAware: false,
+      bool isImplicitCall: false}) {
+    if (constantContext != ConstantContext.none &&
+        !isConstantExpression &&
+        !enableConstFunctionsInLibrary) {
+      return buildProblem(
+          fasta.templateNotConstantExpression
+              .withArguments('Method invocation'),
+          offset,
+          name.text.length);
+    }
+    Member? target = lookupInstanceMember(name, isSuper: true);
+
+    if (target == null || (target is Procedure && !target.isAccessor)) {
+      if (target == null) {
+        warnUnresolvedMethod(name, offset, isSuper: true);
+      } else if (!areArgumentsCompatible(target.function!, arguments)) {
+        target = null;
+        addProblemErrorIfConst(
+            fasta.templateSuperclassMethodArgumentMismatch
+                .withArguments(name.text),
+            offset,
+            name.text.length);
+      }
+      return new SuperMethodInvocation(name, arguments, target as Procedure?)
+        ..fileOffset = offset;
+    }
+    if (isImplicitCall) {
+      return buildProblem(
+          fasta.messageImplicitSuperCallOfNonMethod, offset, noLength);
+    } else {
+      Expression receiver = new SuperPropertyGet(name, target)
+        ..fileOffset = offset;
+      return forest.createExpressionInvocation(
+          arguments.fileOffset, receiver, arguments);
     }
   }
 

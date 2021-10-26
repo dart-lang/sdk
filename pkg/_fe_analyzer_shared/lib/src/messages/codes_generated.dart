@@ -5059,6 +5059,19 @@ Message _withArgumentsImplicitMixinOverride(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplicitSuperCallOfNonMethod =
+    messageImplicitSuperCallOfNonMethod;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplicitSuperCallOfNonMethod = const MessageCode(
+    "ImplicitSuperCallOfNonMethod",
+    analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"],
+    problemMessage:
+        r"""Cannot invoke `super` because it declares 'call' to be something other than a method.""",
+    correctionMessage:
+        r"""Try changing 'call' to a method or explicitly invoke 'call'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

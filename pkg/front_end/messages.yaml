@@ -3922,6 +3922,17 @@ ImplicitCallOfNonMethod:
   problemMessage: "Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method."
   correctionMessage: "Try changing 'call' to a method or explicitly invoke 'call'."
   analyzerCode: IMPLICIT_CALL_OF_NON_METHOD
+  script: |
+    class Class { void Function() get call => () {}; }
+    method(Class c) => c();
+
+ImplicitSuperCallOfNonMethod:
+  problemMessage: "Cannot invoke `super` because it declares 'call' to be something other than a method."
+  correctionMessage: "Try changing 'call' to a method or explicitly invoke 'call'."
+  analyzerCode: IMPLICIT_CALL_OF_NON_METHOD
+  script: |
+    class Super { void Function() get call => () {}; }
+    class Class extends Super { void method() => super(); }
 
 ExpectedOneExpression:
   problemMessage: "Expected one expression, but found additional input."
