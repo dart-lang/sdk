@@ -258,42 +258,6 @@ void g2() {}
 ''');
   }
 
-  test_function_sync_block_genericFunction__to_genericFunction() async {
-    await assertNoErrorsInCode('''
-U Function<U>(U) foo(T Function<T>(T a) f) {
-  return f;
-}
-''');
-  }
-
-  test_function_sync_block_genericFunction__to_genericFunction_notAssignable() async {
-    await assertErrorsInCode('''
-U Function<U>(U, int) foo(T Function<T>(T a) f) {
-  return f;
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 59, 1),
-    ]);
-  }
-
-  test_function_sync_block_genericFunction__to_nonGenericFunction() async {
-    await assertNoErrorsInCode('''
-int Function(int) foo(T Function<T>(T a) f) {
-  return f;
-}
-''');
-  }
-
-  test_function_sync_block_genericFunction__to_nonGenericFunction_notAssignable() async {
-    await assertErrorsInCode('''
-int Function(int, int) foo(T Function<T>(T a) f) {
-  return f;
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 1),
-    ]);
-  }
-
   test_function_sync_block_int__to_num() async {
     await assertNoErrorsInCode(r'''
 num f(int a) {
@@ -386,34 +350,6 @@ void f(void a) {
   return a;
 }
 ''');
-  }
-
-  test_function_sync_expression_genericFunction__to_genericFunction() async {
-    await assertNoErrorsInCode('''
-U Function<U>(U) foo(T Function<T>(T a) f) => f;
-''');
-  }
-
-  test_function_sync_expression_genericFunction__to_genericFunction_notAssignable() async {
-    await assertErrorsInCode('''
-U Function<U>(U, int) foo(T Function<T>(T a) f) => f;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 51, 1),
-    ]);
-  }
-
-  test_function_sync_expression_genericFunction__to_nonGenericFunction() async {
-    await assertNoErrorsInCode('''
-int Function(int) foo(T Function<T>(T a) f) => f;
-''');
-  }
-
-  test_function_sync_expression_genericFunction__to_nonGenericFunction_notAssignable() async {
-    await assertErrorsInCode('''
-int Function(int, int) foo(T Function<T>(T a) f) => f;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 52, 1),
-    ]);
   }
 
   test_function_sync_expression_int__to_void() async {

@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -53,71 +50,6 @@ class ConstantInitializersResolver {
         unit.topLevelVariables.forEach(_resolveVariable);
       }
     }
-  }
-
-  /// If generic function instantiation should be performed on `expression`,
-  /// inserts a [FunctionReference] node which wraps [expression].
-  ///
-  /// If an [FunctionReference] is inserted, returns it; otherwise, returns
-  /// [expression].
-  ExpressionImpl _insertGenericFunctionInstantiation(
-    Expression expression, {
-    DartType? context,
-    required TypeSystemImpl typeSystem,
-  }) {
-    // TODO(srawlins): Combine this function with
-    // [ResolutionVisitor.insertGenericFunctionInstantiation], likely via a new
-    // class.
-    expression as ExpressionImpl;
-    var isConstructorTearoffsEnabled = expression
-        .thisOrAncestorOfType<CompilationUnit>()!
-        .featureSet
-        .isEnabled(Feature.constructor_tearoffs);
-    if (!isConstructorTearoffsEnabled) {
-      // Temporarily, only create [ImplicitCallReference] nodes under the
-      // 'constructor-tearoffs' feature.
-      // TODO(srawlins): When we are ready to make a breaking change release to
-      // the analyzer package, remove this exception.
-      return expression;
-    }
-
-    var staticType = expression.staticType;
-    if (context == null ||
-        staticType is! FunctionType ||
-        staticType.typeFormals.isEmpty) {
-      return expression;
-    }
-
-    context = typeSystem.flatten(context);
-    if (context is! FunctionType || context.typeFormals.isNotEmpty) {
-      return expression;
-    }
-
-    List<DartType> typeArgumentTypes =
-        typeSystem.inferFunctionTypeInstantiation(
-      context,
-      staticType,
-      errorNode: expression,
-      // If the constructor-tearoffs feature is enabled, then so is
-      // generic-metadata.
-      genericMetadataIsEnabled: true,
-    )!;
-    if (typeArgumentTypes.isNotEmpty) {
-      staticType = staticType.instantiate(typeArgumentTypes);
-    }
-
-    var parent = expression.parent;
-    var genericFunctionInstantiation = astFactory.functionReference(
-      function: expression,
-      typeArguments: null,
-    );
-    NodeReplacer.replace(expression, genericFunctionInstantiation,
-        parent: parent);
-
-    genericFunctionInstantiation.typeArgumentTypes = typeArgumentTypes;
-    genericFunctionInstantiation.staticType = staticType;
-
-    return genericFunctionInstantiation;
   }
 
   void _resolveClassFields(ClassElement class_) {
@@ -166,12 +98,6 @@ class ConstantInitializersResolver {
       astResolver.resolveExpression(() => variable.initializer!,
           contextType: contextType);
     }
-
-    _insertGenericFunctionInstantiation(
-      variable.initializer!,
-      typeSystem: _unitElement.library.typeSystem,
-      context: contextType,
-    );
 
     if (element is ConstVariableElement) {
       var constElement = element as ConstVariableElement;

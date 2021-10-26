@@ -416,7 +416,7 @@ mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
 
 mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
   @override
-  String? get testPackageLanguageVersion => '2.14';
+  String? get testPackageLanguageVersion => '2.13';
 }
 
 mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
