@@ -19,7 +19,7 @@ static method main() → void {
 constants  {
   #C1 = static-tearoff self::id
   #C2 = static-tearoff self::other
-  #C3 = instantiation self::id <core::int*>
+  #C3 = instantiation #C1 <core::int*>
   #C4 = self::A {x:#C3}
 }
 

@@ -65,7 +65,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::fact2];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::C*
     : super core::Object::•()
     ;
@@ -140,12 +140,12 @@ Change the type of the object being constructed or the context in which it is us
  - 'Object' is from 'dart:core'.
 Change the type of the method or the context in which it is used.
   void Function(Object) i = C.staticFunction;
-                              ^" in #C1;
+                              ^" in #C2;
   (core::Object*) →* void j = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:31:29: Error: The top level function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the function or the context in which it is used.
   void Function(Object) j = topLevelFunction;
-                            ^" in #C2;
+                            ^" in #C3;
   (core::Object*) →* void k = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:32:29: Error: The local function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the function or the context in which it is used.
@@ -162,13 +162,14 @@ static method ok() → dynamic {
   self::D* f = new self::D::•() as{TypeError} self::D*;
   self::C* g = new self::C::nonFact();
   self::C* h = new self::C::nonFact2();
-  (core::int*) →* void i = #C1;
-  (core::int*) →* void j = #C2;
+  (core::int*) →* void i = #C2;
+  (core::int*) →* void j = #C3;
   (core::int*) →* void k = localFunction;
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = static-tearoff self::C::staticFunction
-  #C2 = static-tearoff self::topLevelFunction
+  #C1 = constructor-tearoff self::C::fact2
+  #C2 = static-tearoff self::C::staticFunction
+  #C3 = static-tearoff self::topLevelFunction
 }

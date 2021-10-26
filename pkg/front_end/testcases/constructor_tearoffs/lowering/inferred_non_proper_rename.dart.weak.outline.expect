@@ -63,6 +63,7 @@ static method _#H#redirect#tearOff<X extends core::Object? = dynamic, unrelated 
 
 
 Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///inferred_non_proper_rename.dart:7:7 -> ConstructorTearOffConstant(A.redirect)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:17:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:18:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:31 -> InstantiationConstant(A._#new#tearOff<int*>)
@@ -78,4 +79,4 @@ Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.d
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:31:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:32:13 -> InstantiationConstant(A._#new#tearOff<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:33:31 -> InstantiationConstant(A._#new#tearOff<int*>)
-Extra constant evaluation: evaluated: 30, effectively constant: 15
+Extra constant evaluation: evaluated: 30, effectively constant: 16

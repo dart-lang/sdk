@@ -75,7 +75,7 @@ class C extends core::Object /*hasConstConstructor*/  {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class D extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::D::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   static factory •() → self::D*
     return invalid-expression "pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Redirection constructor target not found: 'Missing'
   factory D() = Missing;
@@ -98,4 +98,8 @@ static method main() → void {
   invalid-expression "pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Redirection constructor target not found: 'Missing'
   factory D() = Missing;
                 ^";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::D::•
 }

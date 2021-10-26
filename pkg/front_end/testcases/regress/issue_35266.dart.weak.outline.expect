@@ -44,3 +44,9 @@ class C<K extends core::Object* = dynamic> extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_35266.dart:5:7 -> ConstructorTearOffConstant(B.foo)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_35266.dart:11:7 -> ConstructorTearOffConstant(C.bar)
+Extra constant evaluation: evaluated: 5, effectively constant: 2

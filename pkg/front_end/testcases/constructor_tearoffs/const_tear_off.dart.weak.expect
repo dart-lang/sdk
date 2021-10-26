@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef B<T extends core::Object? = dynamic> = self::A<T%>;
 typedef C<unrelated T extends core::Object? = dynamic> = self::A<core::int>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → self::A<self::A::T%>
     : super core::Object::•()
     ;
@@ -14,54 +14,55 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%>
     return new self::A::•<self::A::redirect::T%>();
 }
-static const field <T extends core::Object? = dynamic>() → self::A<T%> a = #C1;
-static const field () → self::A<core::int> b = #C2;
-static const field <T extends core::Object? = dynamic>() → self::A<T%> c = #C3;
-static const field () → self::A<core::int> d = #C4;
-static const field <T extends core::Object? = dynamic>() → self::A<T%> e = #C5;
-static const field () → self::A<core::int> f = #C6;
-static const field <T extends core::Object? = dynamic>() → self::A<T%> g = #C1;
-static const field () → self::A<core::int> h = #C2;
-static const field <T extends core::Object? = dynamic>() → self::A<T%> i = #C3;
-static const field () → self::A<core::int> j = #C4;
-static const field <T extends core::Object? = dynamic>() → self::A<T%> k = #C5;
-static const field () → self::A<core::int> l = #C6;
-static const field <unrelated T extends core::Object? = dynamic>() → self::A<core::int> m = #C7;
-static const field () → self::A<core::int> n = #C2;
-static const field <unrelated T extends core::Object? = dynamic>() → self::A<core::int> o = #C8;
-static const field () → self::A<core::int> p = #C4;
-static const field <unrelated T extends core::Object? = dynamic>() → self::A<core::int> q = #C9;
-static const field () → self::A<core::int> r = #C6;
+static const field <T extends core::Object? = dynamic>() → self::A<T%> a = #C2;
+static const field () → self::A<core::int> b = #C3;
+static const field <T extends core::Object? = dynamic>() → self::A<T%> c = #C4;
+static const field () → self::A<core::int> d = #C5;
+static const field <T extends core::Object? = dynamic>() → self::A<T%> e = #C6;
+static const field () → self::A<core::int> f = #C7;
+static const field <T extends core::Object? = dynamic>() → self::A<T%> g = #C2;
+static const field () → self::A<core::int> h = #C3;
+static const field <T extends core::Object? = dynamic>() → self::A<T%> i = #C4;
+static const field () → self::A<core::int> j = #C5;
+static const field <T extends core::Object? = dynamic>() → self::A<T%> k = #C6;
+static const field () → self::A<core::int> l = #C7;
+static const field <unrelated T extends core::Object? = dynamic>() → self::A<core::int> m = #C8;
+static const field () → self::A<core::int> n = #C3;
+static const field <unrelated T extends core::Object? = dynamic>() → self::A<core::int> o = #C9;
+static const field () → self::A<core::int> p = #C5;
+static const field <unrelated T extends core::Object? = dynamic>() → self::A<core::int> q = #C10;
+static const field () → self::A<core::int> r = #C7;
 static method test() → dynamic {
-  <T extends core::Object? = dynamic>() → self::A<T%> a = #C1;
-  () → self::A<core::int> b = #C2;
-  <T extends core::Object? = dynamic>() → self::A<T%> c = #C3;
-  () → self::A<core::int> d = #C4;
-  <T extends core::Object? = dynamic>() → self::A<T%> e = #C5;
-  () → self::A<core::int> f = #C6;
-  <T extends core::Object? = dynamic>() → self::A<T%> g = #C1;
-  () → self::A<core::int> h = #C2;
-  <T extends core::Object? = dynamic>() → self::A<T%> i = #C3;
-  () → self::A<core::int> j = #C4;
-  <T extends core::Object? = dynamic>() → self::A<T%> k = #C5;
-  () → self::A<core::int> l = #C6;
-  <unrelated T extends core::Object? = dynamic>() → self::A<core::int> m = #C7;
-  () → self::A<core::int> n = #C2;
-  <unrelated T extends core::Object? = dynamic>() → self::A<core::int> o = #C8;
-  () → self::A<core::int> p = #C4;
-  <unrelated T extends core::Object? = dynamic>() → self::A<core::int> q = #C9;
-  () → self::A<core::int> r = #C6;
+  <T extends core::Object? = dynamic>() → self::A<T%> a = #C2;
+  () → self::A<core::int> b = #C3;
+  <T extends core::Object? = dynamic>() → self::A<T%> c = #C4;
+  () → self::A<core::int> d = #C5;
+  <T extends core::Object? = dynamic>() → self::A<T%> e = #C6;
+  () → self::A<core::int> f = #C7;
+  <T extends core::Object? = dynamic>() → self::A<T%> g = #C2;
+  () → self::A<core::int> h = #C3;
+  <T extends core::Object? = dynamic>() → self::A<T%> i = #C4;
+  () → self::A<core::int> j = #C5;
+  <T extends core::Object? = dynamic>() → self::A<T%> k = #C6;
+  () → self::A<core::int> l = #C7;
+  <unrelated T extends core::Object? = dynamic>() → self::A<core::int> m = #C8;
+  () → self::A<core::int> n = #C3;
+  <unrelated T extends core::Object? = dynamic>() → self::A<core::int> o = #C9;
+  () → self::A<core::int> p = #C5;
+  <unrelated T extends core::Object? = dynamic>() → self::A<core::int> q = #C10;
+  () → self::A<core::int> r = #C7;
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = constructor-tearoff self::A::•
-  #C2 = instantiation self::A::• <core::int*>
-  #C3 = static-tearoff self::A::fact
-  #C4 = instantiation self::A::fact <core::int*>
-  #C5 = redirecting-factory-tearoff self::A::redirect
-  #C6 = instantiation self::A::redirect <core::int*>
-  #C7 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C1<core::int>)
-  #C8 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C3<core::int>)
-  #C9 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C5<core::int>)
+  #C1 = constructor-tearoff self::A::redirect
+  #C2 = constructor-tearoff self::A::•
+  #C3 = instantiation #C2 <core::int*>
+  #C4 = constructor-tearoff self::A::fact
+  #C5 = instantiation #C4 <core::int*>
+  #C6 = redirecting-factory-tearoff self::A::redirect
+  #C7 = instantiation #C6 <core::int*>
+  #C8 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C2<core::int>)
+  #C9 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C4<core::int>)
+  #C10 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C6<core::int>)
 }

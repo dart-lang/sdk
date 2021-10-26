@@ -833,24 +833,36 @@ class Forest {
     return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
   }
 
-  ConstructorTearOff createConstructorTearOff(
-      int fileOffset, Constructor constructor) {
+  ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new ConstructorTearOff(constructor)..fileOffset = fileOffset;
+    assert(target is Constructor || (target is Procedure && target.isFactory),
+        "Unexpected constructor tear off target: $target");
+    return new ConstructorTearOff(target)..fileOffset = fileOffset;
   }
 
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    assert(!procedure.isRedirectingFactory);
+    assert(procedure.kind == ProcedureKind.Method,
+        "Unexpected static tear off target: $procedure");
+    assert(!procedure.isRedirectingFactory,
+        "Unexpected static tear off target: $procedure");
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
+  }
+
+  StaticGet createStaticGet(int fileOffset, Member target) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    assert(target is Field || (target is Procedure && target.isGetter));
+    return new StaticGet(target)..fileOffset = fileOffset;
   }
 
   RedirectingFactoryTearOff createRedirectingFactoryTearOff(
       int fileOffset, Procedure procedure) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
+    assert(procedure.isRedirectingFactory);
     return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
   }
 

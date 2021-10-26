@@ -68,3 +68,8 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///named_mixin_application.dart:9:7 -> ConstructorTearOffConstant(Class.redirectingFactory)
+Extra constant evaluation: evaluated: 26, effectively constant: 1

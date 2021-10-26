@@ -908,8 +908,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     Field field = constructorsField.field;
     ListLiteral literal = field.initializer as ListLiteral;
-    literal.expressions
-        .add(new StaticGet(constructorBuilder.member)..parent = literal);
+    literal.expressions.add(
+        new ConstructorTearOff(constructorBuilder.member)..parent = literal);
   }
 
   @override

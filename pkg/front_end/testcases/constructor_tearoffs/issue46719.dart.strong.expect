@@ -46,11 +46,11 @@ static method main() → void {
 constants  {
   #C1 = <core::Symbol, dynamic>{)
   #C2 = constructor-tearoff self::A::named
-  #C3 = instantiation self::A::named <core::int>
+  #C3 = instantiation #C2 <core::int>
   #C4 = static-tearoff self::A::n
-  #C5 = instantiation self::A::n <core::int>
-  #C6 = instantiation self::A::n <core::String>
+  #C5 = instantiation #C4 <core::int>
+  #C6 = instantiation #C4 <core::String>
   #C7 = static-tearoff self::m
-  #C8 = instantiation self::m <core::int>
-  #C9 = instantiation self::m <core::String>
+  #C8 = instantiation #C7 <core::int>
+  #C9 = instantiation #C7 <core::String>
 }

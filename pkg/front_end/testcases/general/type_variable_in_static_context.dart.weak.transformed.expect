@@ -617,9 +617,9 @@ constants  {
   #C4 = TypeLiteralConstant(invalid-type)
   #C5 = TypeLiteralConstant(self::Class<invalid-type>*)
   #C6 = constructor-tearoff self::Class::•
-  #C7 = instantiation self::Class::• <invalid-type>
+  #C7 = instantiation #C6 <invalid-type>
   #C8 = TypeLiteralConstant(self::Class<self::Class<invalid-type>*>*)
-  #C9 = instantiation self::Class::• <self::Class<invalid-type>*>
+  #C9 = instantiation #C6 <self::Class<invalid-type>*>
   #C10 = self::Class<<S extends invalid-type>() →* void> {instanceField:#C1}
 }
 

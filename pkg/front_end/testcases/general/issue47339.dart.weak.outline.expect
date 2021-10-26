@@ -29,8 +29,10 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47339.dart:5:7 -> ConstructorTearOffConstant(Foo.namedFactory)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47339.dart:16:7 -> ConstructorTearOffConstant(FooGeneric.namedFactory)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:12:11 -> InstanceConstant(const Foo{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:14:22 -> InstanceConstant(const Foo{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:23:23 -> InstanceConstant(const FooGeneric<int*>{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:25:48 -> InstanceConstant(const FooGeneric<int*>{})
-Extra constant evaluation: evaluated: 10, effectively constant: 4
+Extra constant evaluation: evaluated: 10, effectively constant: 6

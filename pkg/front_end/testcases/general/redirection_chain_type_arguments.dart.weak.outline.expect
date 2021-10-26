@@ -36,3 +36,9 @@ class C<V extends core::Object* = dynamic, S extends core::Object* = dynamic, R 
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirection_chain_type_arguments.dart:12:7 -> ConstructorTearOffConstant(A.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirection_chain_type_arguments.dart:17:7 -> ConstructorTearOffConstant(B.)
+Extra constant evaluation: evaluated: 6, effectively constant: 2

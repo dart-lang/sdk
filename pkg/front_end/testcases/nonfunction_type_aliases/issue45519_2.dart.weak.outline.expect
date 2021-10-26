@@ -39,3 +39,9 @@ static method _#B#foo#tearOff<X extends (self::D<self::_#B#foo#tearOff::X>) → 
   return self::D::foo<self::_#B#foo#tearOff::X>();
 static method _#B#bar#tearOff<X extends (self::D<self::_#B#bar#tearOff::X>) → self::D<self::_#B#bar#tearOff::X> = (self::D<dynamic>) → self::D<dynamic>>() → self::D<self::_#B#bar#tearOff::X>
   return self::D::bar<self::_#B#bar#tearOff::X>();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue45519_2.dart:5:7 -> ConstructorTearOffConstant(C.bar)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue45519_2.dart:10:7 -> ConstructorTearOffConstant(D.bar)
+Extra constant evaluation: evaluated: 12, effectively constant: 2

@@ -6851,7 +6851,7 @@ class InferenceVisitor
         inferrer.typeSchemaEnvironment
             .futureType(const DynamicType(), inferrer.library.nonNullable),
         inferrer.library.nonNullable);
-    Expression replacement = new StaticGet(node.target)
+    Expression replacement = new StaticTearOff(node.target)
       ..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(inferredType, replacement);
   }

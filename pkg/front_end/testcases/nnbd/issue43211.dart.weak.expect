@@ -221,7 +221,7 @@ class B<X extends self::A<Null>?> extends core::Object implements self::A<self::
   }
 }
 class C extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor internal(dynamic _) → self::C
     : super core::Object::•() {
     self::A<self::A<Null>>? a;
@@ -259,3 +259,7 @@ static method test() → dynamic {
   self::A<Null> a = new self::A::•<Null>();
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::C::redirect
+}

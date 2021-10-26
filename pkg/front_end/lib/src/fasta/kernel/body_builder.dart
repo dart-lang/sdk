@@ -7092,11 +7092,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  StaticGet makeStaticGet(Member readTarget, Token token) {
-    return new StaticGet(readTarget)..fileOffset = offsetForToken(token);
-  }
-
-  @override
   Expression wrapInDeferredCheck(
       Expression expression, PrefixBuilder prefix, int charOffset) {
     VariableDeclaration check = new VariableDeclaration.forValue(

@@ -23,6 +23,29 @@ bool isRedirectingFactoryField(Member member) {
       member.name.text == redirectingName;
 }
 
+/// Returns the redirecting factory constructors for the enclosing class from
+/// [field].
+///
+/// `isRedirectingFactoryField(field)` is assumed to be true.
+Iterable<Procedure> getRedirectingFactories(Field field) {
+  assert(isRedirectingFactoryField(field));
+  List<Procedure> redirectingFactories = [];
+  ListLiteral initializer = field.initializer as ListLiteral;
+  for (Expression expression in initializer.expressions) {
+    Procedure target;
+    if (expression is ConstantExpression) {
+      ConstructorTearOffConstant constant =
+          expression.constant as ConstructorTearOffConstant;
+      target = constant.target as Procedure;
+    } else {
+      ConstructorTearOff get = expression as ConstructorTearOff;
+      target = get.target as Procedure;
+    }
+    redirectingFactories.add(target);
+  }
+  return redirectingFactories;
+}
+
 /// Name used for a synthesized let variable used to encode redirecting factory
 /// information in a factory method body.
 const String letName = "#redirecting_factory";

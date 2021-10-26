@@ -38,3 +38,8 @@ class CImpl<T extends core::Object* = dynamic> extends core::Object implements s
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructors_infer_from_arguments_redirecting_factory_to_factory.dart:8:16 -> ConstructorTearOffConstant(C.)
+Extra constant evaluation: evaluated: 4, effectively constant: 1
