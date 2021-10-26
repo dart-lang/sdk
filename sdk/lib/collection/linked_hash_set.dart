@@ -50,6 +50,10 @@ part of dart.collection;
 /// ```dart
 /// linkedHashSet.forEach((element) {
 ///   print(element);
+///   // A
+///   // B
+///   // C
+///   // D
 /// });
 /// ```
 /// To convert set to list, call [toList]:
