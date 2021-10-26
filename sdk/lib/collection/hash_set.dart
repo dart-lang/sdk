@@ -17,8 +17,8 @@ part of dart.collection;
 /// constant time: [add], [contains], [remove], and [length], provided the hash
 /// codes of objects are well distributed.
 ///
-/// The iteration order of the set is not specified and depends on
-/// the hashcodes of the provided elements. However, the order is stable:
+/// **The iteration order of the set is not specified and depends on
+/// the hashcodes of the provided elements.** However, the order is stable:
 /// multiple iterations over the same set produce the same order, as long as
 /// the set is not modified.
 ///
@@ -28,7 +28,7 @@ part of dart.collection;
 /// hashSet.addAll({'A', 'B', 'C', 'D'});
 /// hashSet.isEmpty; // false
 /// hashSet.length; // 4
-/// print(hashSet); / {A, D, C, B}
+/// print(hashSet); // {A, D, C, B}
 /// ```
 /// To check is there a value item on map, call [contains]:
 /// ```dart
@@ -46,6 +46,10 @@ part of dart.collection;
 /// ```dart
 /// hashSet.forEach((element) {
 ///   print(element);
+///   // A
+///   // D
+///   // C
+///   // B
 /// });
 /// ```
 /// To convert set to list, call [toList]:
@@ -61,7 +65,7 @@ part of dart.collection;
 /// To add item to set, call [add]
 /// ```dart
 /// hashSet.add('E');
-/// print(hashSet); // // {A, D, C, E, B}
+/// print(hashSet); // {A, D, C, E, B}
 /// ```
 /// To remove specific value, call [remove]:
 /// ```dart
