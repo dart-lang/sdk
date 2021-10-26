@@ -510,18 +510,20 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 ///
 /// The structure is efficient for any queue or stack usage.
 ///
-///
 /// Example:
 /// ```dart
 /// final ListQueue queue = ListQueue();
-/// ```
-/// To add item(s) to queue, call [add], [addFirst], [addLast], [addAll]:
-/// ```dart
 /// queue.add(5);
 /// queue.addFirst(0);
 /// queue.addLast(10);
 /// queue.addAll([1, 2, 3]);
 /// print(queue); // {0, 5, 10, 1, 2, 3}
+/// ```
+/// To check is item empty, use [isEmpty], [isNotEmpty].
+/// To check size of queue, use [length]:
+/// ```dart
+/// final bool isEmpty = queue.isEmpty; // false
+/// final int queueSize = queue.length; // 6
 /// ```
 /// The [forEach] iterates through all entries of a queue.
 /// Manipulating item count in [forEach] is prohibited. Adding or
@@ -530,32 +532,46 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// ```dart
 /// queue.forEach((element) {
 ///   print(element);
+///   // 0
+///   // 5
+///   // 10
+///   // 1
+///   // 2
+///   // 3
 /// });
 /// ```
-/// To convert queue to list, call [toList]:
+/// To get first or last item from queue, use [first] [last]:
 /// ```dart
-/// final toList = queue.toList();
+/// final first = queue.first; // 0
+/// final last = queue.last; // 3
+/// ```
+/// To get item using queue index, call [elementAt]:
+/// ```dart
+/// final itemAt = queue.elementAt(2); // 10
+/// ```
+/// To convert queue to list type, call [toList]:
+/// ```dart
+/// final list = queue.toList();
 /// print(toList); // [0, 5, 10, 1, 2, 3]
 /// ```
-/// To remove item, call [remove], [removeFirst], [removeLast]:
+/// To remove items from queue, call [remove], [removeFirst], [removeLast]:
 /// ```dart
 /// queue.remove(10);
 /// queue.removeFirst();
 /// queue.removeLast();
 /// print(queue); // {5, 1, 2}
 /// ```
-/// To remove value(s) with a statement, call the [removeWhere]:
+/// To remove item(s) with a statement, call the [removeWhere]:
 /// ```dart
-/// queue.removeWhere((element) => element == 1 );
+/// queue.removeWhere((element) => element == 1);
 /// print(queue); // {5, 2}
 /// ```
 /// To remove other values than those which match statement,
-/// call [retainWhere]:
+/// call the [retainWhere]:
 /// ```dart
 /// queue.retainWhere((element) => element == 2);
 /// print(queue); // {2}
 /// ```
-
 /// To clean up data, call the [clear]:
 /// ```dart
 /// queue.clear();
@@ -566,13 +582,12 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// [ListQueue.from] example:
 /// ```dart
 /// final ListQueue baseQueue = ListQueue()..addAll([10, 20, 30]);
-/// final Queue queueFrom = Queue.from(baseQueue);
+/// final ListQueue queueFrom = ListQueue.from(baseQueue);
 /// ```
-///
 /// [ListQueue.of] example:
 /// ```dart
 /// final ListQueue baseQueue = ListQueue()..addAll([10, 20, 30]);
-/// final Queue queueFrom = Queue.of(baseQueue);
+/// final ListQueue queueOf = ListQueue.of(baseQueue);
 /// ```
 class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;
