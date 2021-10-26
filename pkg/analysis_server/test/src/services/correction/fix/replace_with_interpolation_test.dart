@@ -12,7 +12,31 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithInterpolationTest);
+    defineReflectiveTests(ReplaceWithInterpolationBulkTest);
   });
+}
+
+@reflectiveTest
+class ReplaceWithInterpolationBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_interpolation_to_compose_strings;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+String f() {
+  var a = 'a';
+  var c = a + 'b';
+  return c + 'and $s';
+}
+''');
+    await assertHasFix(r'''
+String f() {
+  var a = 'a';
+  var c = '${a}b';
+  return '${c}and $s';
+}
+''');
+  }
 }
 
 @reflectiveTest

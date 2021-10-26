@@ -518,7 +518,6 @@ class FixProcessor extends BaseProcessor {
       ConvertToIntLiteral.newInstance,
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithInterpolation.newInstance,
     ],
     LintNames.prefer_is_not_operator: [
