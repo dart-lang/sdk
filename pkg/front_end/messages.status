@@ -422,7 +422,6 @@ ImplementsNever/analyzerCode: Fail # Feature not yet in analyzer.
 ImplementsNever/example: Fail # Feature not yet enabled by default.
 ImplementsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ImplementsVoid/example: Fail # Feature not yet enabled by default.
-ImplicitCallOfNonMethod/example: Fail
 ImplicitMixinOverride/analyzerCode: Fail
 ImplicitMixinOverride/example: Fail
 ImplicitReturnNull/analyzerCode: Fail

@@ -79,6 +79,7 @@ general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
 general/implement_semi_stub: TypeCheckError
+general/implicit_super_call: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError

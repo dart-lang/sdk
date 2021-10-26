@@ -4480,12 +4480,16 @@ class ThisAccessGenerator extends Generator {
       if (isNullAware) {
         _reportNonNullableInNullAwareWarningIfNeeded();
       }
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          name,
-          selector.arguments,
-          offsetForToken(selector.token),
-          isSuper: isSuper);
+      if (isSuper) {
+        return _helper.buildSuperInvocation(
+            name, selector.arguments, offsetForToken(selector.token));
+      } else {
+        return _helper.buildMethodInvocation(
+            _forest.createThisExpression(fileOffset),
+            name,
+            selector.arguments,
+            offsetForToken(selector.token));
+      }
     } else {
       if (isSuper) {
         Member? getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
@@ -4517,7 +4521,8 @@ class ThisAccessGenerator extends Generator {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return _helper.buildProblem(messageSuperAsExpression, offset, noLength);
+      return _helper.buildSuperInvocation(Name.callName, arguments, offset,
+          isImplicitCall: true);
     } else {
       return _helper.forest.createExpressionInvocation(
           offset, _forest.createThisExpression(fileOffset), arguments);
@@ -4531,12 +4536,8 @@ class ThisAccessGenerator extends Generator {
     assert(isNot != null);
     if (isSuper) {
       int offset = offsetForToken(token);
-      Expression result = _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          equalsName,
-          _forest.createArguments(offset, <Expression>[right]),
-          offset,
-          isSuper: true);
+      Expression result = _helper.buildSuperInvocation(equalsName,
+          _forest.createArguments(offset, <Expression>[right]), offset);
       if (isNot) {
         result = _forest.createNot(offset, result);
       }
@@ -4550,12 +4551,8 @@ class ThisAccessGenerator extends Generator {
       Token token, Name binaryName, Expression right) {
     if (isSuper) {
       int offset = offsetForToken(token);
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          binaryName,
-          _forest.createArguments(offset, <Expression>[right]),
-          offset,
-          isSuper: true);
+      return _helper.buildSuperInvocation(binaryName,
+          _forest.createArguments(offset, <Expression>[right]), offset);
     }
     return super.buildBinaryOperation(token, binaryName, right);
   }
@@ -4564,12 +4561,8 @@ class ThisAccessGenerator extends Generator {
   Expression_Generator buildUnaryOperation(Token token, Name unaryName) {
     if (isSuper) {
       int offset = offsetForToken(token);
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          unaryName,
-          _forest.createArgumentsEmpty(offset),
-          offset,
-          isSuper: true);
+      return _helper.buildSuperInvocation(
+          unaryName, _forest.createArgumentsEmpty(offset), offset);
     }
     return super.buildUnaryOperation(token, unaryName);
   }

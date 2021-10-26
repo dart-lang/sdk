@@ -1,0 +1,103 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Super1 extends core::Object {
+  synthetic constructor •() → self::Super1
+    ;
+  method call() → void
+    ;
+}
+class Class1 extends self::Super1 {
+  synthetic constructor •() → self::Class1
+    ;
+  method method() → void
+    ;
+}
+class Super2 extends core::Object {
+  synthetic constructor •() → self::Super2
+    ;
+  method call(core::int a, [core::int? b]) → core::int
+    ;
+}
+class Class2 extends self::Super2 {
+  synthetic constructor •() → self::Class2
+    ;
+  method method() → void
+    ;
+}
+class Super3 extends core::Object {
+  synthetic constructor •() → self::Super3
+    ;
+  method call(core::int a, {core::int? b, core::int? c}) → core::int
+    ;
+}
+class Class3 extends self::Super3 {
+  synthetic constructor •() → self::Class3
+    ;
+  method method() → void
+    ;
+}
+class Super4 extends core::Object {
+  synthetic constructor •() → self::Super4
+    ;
+  method call<T extends core::Object? = dynamic>(self::Super4::call::T% a) → self::Super4::call::T%
+    ;
+}
+class Class4 extends self::Super4 {
+  synthetic constructor •() → self::Class4
+    ;
+  method method() → void
+    ;
+}
+class Super5 extends core::Object {
+  synthetic constructor •() → self::Super5
+    ;
+  get call() → (core::int) → core::int
+    ;
+}
+class Class5 extends self::Super5 {
+  synthetic constructor •() → self::Class5
+    ;
+  method test() → void
+    ;
+  method method() → void
+    ;
+}
+class Super6 extends core::Object {
+  field (core::int) → core::int call;
+  synthetic constructor •() → self::Super6
+    ;
+}
+class Class6 extends self::Super6 {
+  synthetic constructor •() → self::Class6
+    ;
+  method test() → void
+    ;
+  method method() → void
+    ;
+}
+class Super7 extends core::Object {
+  synthetic constructor •() → self::Super7
+    ;
+  set call((core::int) → core::int value) → void
+    ;
+}
+class Class7 extends self::Super7 {
+  synthetic constructor •() → self::Class7
+    ;
+  method test() → void
+    ;
+}
+class Super8 extends core::Object {
+  synthetic constructor •() → self::Super8
+    ;
+}
+class Class8 extends self::Super8 {
+  synthetic constructor •() → self::Class8
+    ;
+  method test() → void
+    ;
+}
+static method main() → dynamic
+  ;
