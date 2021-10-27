@@ -53,6 +53,8 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
 
   String get testPackageRootPath => '$workspaceRootPath/test';
 
+  String get testPackageTestPath => '$testPackageRootPath/test';
+
   String get workspaceRootPath => '/home';
 
   Future<void> setRoots({
@@ -89,6 +91,129 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
     );
+  }
+
+  Future<void> test_notImported_pub_dependencies_inLib() async {
+    // TODO(scheglov) Switch to PubspecYamlFileConfig
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+dependencies:
+  aaa: any
+dev_dependencies:
+  bbb: any
+''');
+
+    var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
+    newFile('${aaaRoot.path}/lib/f.dart', content: '''
+class A01 {}
+''');
+    newFile('${aaaRoot.path}/lib/src/f.dart', content: '''
+class A02 {}
+''');
+
+    var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
+    newFile('${bbbRoot.path}/lib/f.dart', content: '''
+class A03 {}
+''');
+    newFile('${bbbRoot.path}/lib/src/f.dart', content: '''
+class A04 {}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
+    );
+
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  A0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'package:aaa/f.dart',
+      ], excludes: [
+        'dart:core',
+        'package:bbb/f.dart',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:aaa/f.dart');
+  }
+
+  Future<void> test_notImported_pub_dependencies_inTest() async {
+    // TODO(scheglov) Switch to PubspecYamlFileConfig
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+dependencies:
+  aaa: any
+dev_dependencies:
+  bbb: any
+''');
+
+    var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
+    newFile('${aaaRoot.path}/lib/f.dart', content: '''
+class A01 {}
+''');
+    newFile('${aaaRoot.path}/lib/src/f.dart', content: '''
+class A02 {}
+''');
+
+    var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
+    newFile('${bbbRoot.path}/lib/f.dart', content: '''
+class A03 {}
+''');
+    newFile('${bbbRoot.path}/lib/src/f.dart', content: '''
+class A04 {}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
+    );
+
+    await _configureWithWorkspaceRoot();
+
+    var test_path = '$testPackageTestPath/test.dart';
+    var responseValidator = await _getCodeSuggestions(
+      path: test_path,
+      content: '''
+void f() {
+  A0^
+}
+''',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'package:aaa/f.dart',
+        'package:bbb/f.dart',
+      ], excludes: [
+        'dart:core',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01', 'A03']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:aaa/f.dart');
+    classes.withCompletion('A03').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:bbb/f.dart');
   }
 
   /// TODO(scheglov) Only lib/ libraries in lib/, no test/.
@@ -223,6 +348,184 @@ void f() {
     classes.withCompletion('A03').assertSingle()
       ..assertClass()
       ..assertLibraryToImport('package:test/b.dart');
+  }
+
+  Future<void> test_notImported_pub_this_inLib_excludesTest() async {
+    // TODO(scheglov) Switch to PubspecYamlFileConfig
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A01 {}
+''');
+
+    var b = newFile('$testPackageTestPath/b.dart', content: '''
+class A02 {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  A0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'package:test/a.dart',
+      ], excludes: [
+        'dart:core',
+        'package:test/test.dart',
+        toUriStr(b.path),
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/a.dart');
+  }
+
+  Future<void> test_notImported_pub_this_inLib_includesThisSrc() async {
+    // TODO(scheglov) Switch to PubspecYamlFileConfig
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/f.dart', content: '''
+class A01 {}
+''');
+
+    newFile('$testPackageLibPath/src/f.dart', content: '''
+class A02 {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  A0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'package:test/f.dart',
+        'package:test/src/f.dart',
+      ], excludes: [
+        'dart:core',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01', 'A02']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/f.dart');
+    classes.withCompletion('A02').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/src/f.dart');
+  }
+
+  Future<void> test_notImported_pub_this_inTest_includesTest() async {
+    // TODO(scheglov) Switch to PubspecYamlFileConfig
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A01 {}
+''');
+
+    var b = newFile('$testPackageTestPath/b.dart', content: '''
+class A02 {}
+''');
+    var b_uriStr = toUriStr(b.path);
+
+    await _configureWithWorkspaceRoot();
+
+    var test_path = '$testPackageTestPath/test.dart';
+    var responseValidator = await _getCodeSuggestions(
+      path: test_path,
+      content: '''
+void f() {
+  A0^
+}
+''',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'package:test/a.dart',
+        b_uriStr,
+      ], excludes: [
+        'dart:core',
+        toUriStr(test_path),
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01', 'A02']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/a.dart');
+    classes.withCompletion('A02').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport(b_uriStr);
+  }
+
+  Future<void> test_notImported_pub_this_inTest_includesThisSrc() async {
+    // TODO(scheglov) Switch to PubspecYamlFileConfig
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/f.dart', content: '''
+class A01 {}
+''');
+
+    newFile('$testPackageLibPath/src/f.dart', content: '''
+class A02 {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var test_path = '$testPackageTestPath/test.dart';
+    var responseValidator = await _getCodeSuggestions(
+      path: test_path,
+      content: '''
+void f() {
+  A0^
+}
+''',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'package:test/f.dart',
+        'package:test/src/f.dart',
+      ], excludes: [
+        'dart:core',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01', 'A02']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/f.dart');
+    classes.withCompletion('A02').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/src/f.dart');
   }
 
   Future<void> test_numResults_class_methods() async {
@@ -635,6 +938,28 @@ void f() {
     await server.onAnalysisComplete;
   }
 
+  Future<CompletionGetSuggestions2ResponseValidator> _getCodeSuggestions({
+    required String path,
+    required String content,
+    int maxResults = 1 << 10,
+  }) async {
+    var completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+
+    var nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+
+    newFile(path,
+        content: content.substring(0, completionOffset) +
+            content.substring(completionOffset + 1));
+
+    return await _getSuggestions(
+      path: path,
+      completionOffset: completionOffset,
+      maxResults: maxResults,
+    );
+  }
+
   Future<CompletionGetSuggestions2ResponseValidator> _getSuggestions({
     required String path,
     required int completionOffset,
@@ -655,19 +980,9 @@ void f() {
     String content, {
     int maxResults = 1 << 10,
   }) async {
-    var completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-
-    var testFile = newFile(testFilePath,
-        content: content.substring(0, completionOffset) +
-            content.substring(completionOffset + 1));
-
-    return await _getSuggestions(
-      path: testFile.path,
-      completionOffset: completionOffset,
+    return _getCodeSuggestions(
+      path: testFilePath,
+      content: content,
       maxResults: maxResults,
     );
   }
