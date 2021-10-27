@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,6 +18,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -628,6 +628,62 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     return null;
   }
 
+  /// If generic function instantiation should be performed on `expression`,
+  /// inserts a [FunctionReference] node which wraps [expression].
+  ///
+  /// If an [FunctionReference] is inserted, returns it; otherwise, returns
+  /// [expression].
+  ExpressionImpl insertGenericFunctionInstantiation(Expression expression) {
+    expression as ExpressionImpl;
+    if (!isConstructorTearoffsEnabled) {
+      // Temporarily, only create [ImplicitCallReference] nodes under the
+      // 'constructor-tearoffs' feature.
+      // TODO(srawlins): When we are ready to make a breaking change release to
+      // the analyzer package, remove this exception.
+      return expression;
+    }
+
+    var staticType = expression.staticType;
+    var context = InferenceContext.getContext(expression);
+    if (context == null ||
+        staticType is! FunctionType ||
+        staticType.typeFormals.isEmpty) {
+      return expression;
+    }
+
+    context = typeSystem.flatten(context);
+    if (context is! FunctionType || context.typeFormals.isNotEmpty) {
+      return expression;
+    }
+
+    List<DartType> typeArgumentTypes =
+        typeSystem.inferFunctionTypeInstantiation(
+      context,
+      staticType,
+      errorReporter: errorReporter,
+      errorNode: expression,
+      // If the constructor-tearoffs feature is enabled, then so is
+      // generic-metadata.
+      genericMetadataIsEnabled: true,
+    )!;
+    if (typeArgumentTypes.isNotEmpty) {
+      staticType = staticType.instantiate(typeArgumentTypes);
+    }
+
+    var parent = expression.parent;
+    var genericFunctionInstantiation = astFactory.functionReference(
+      function: expression,
+      typeArguments: null,
+    );
+    NodeReplacer.replace(expression, genericFunctionInstantiation,
+        parent: parent);
+
+    genericFunctionInstantiation.typeArgumentTypes = typeArgumentTypes;
+    genericFunctionInstantiation.staticType = staticType;
+
+    return genericFunctionInstantiation;
+  }
+
   /// If `expression` should be treated as `expression.call`, inserts an
   /// [ImplicitCallReferece] node which wraps [expression].
   ///
@@ -667,6 +723,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
         context,
         callMethodType,
+        errorReporter: errorReporter,
         errorNode: expression,
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
@@ -683,7 +740,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       staticElement: callMethod,
       typeArguments: null,
       typeArgumentTypes: typeArgumentTypes,
-    ) as ImplicitCallReferenceImpl;
+    );
     NodeReplacer.replace(expression, callReference, parent: parent);
 
     callReference.staticType = callMethodType;
@@ -1060,6 +1117,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     flowAnalysis.asExpression(node);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override
@@ -1095,6 +1153,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override
@@ -1105,11 +1164,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       InferenceContext.setType(node.expression, futureUnion);
     }
     super.visitAwaitExpression(node);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _binaryExpressionResolver.resolve(node as BinaryExpressionImpl);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override
@@ -1540,6 +1601,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     _enclosingFunction = node.declaredElement;
 
     _functionExpressionResolver.resolve(node);
+    insertGenericFunctionInstantiation(node);
 
     _enclosingFunction = outerFunction;
   }
@@ -1551,6 +1613,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     _functionExpressionInvocationResolver.resolve(
         node as FunctionExpressionInvocationImpl, whyNotPromotedList);
     nullShortingTermination(node);
+    insertGenericFunctionInstantiation(node);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -1681,6 +1744,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       type = DynamicTypeImpl.instance;
     }
     inferenceHelper.recordStaticType(node, type);
+    insertGenericFunctionInstantiation(node);
 
     nullShortingTermination(node);
   }
@@ -1786,6 +1850,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     } else {
       nullShortingTermination(node);
     }
+    insertGenericFunctionInstantiation(node);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -1849,16 +1914,19 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _postfixExpressionResolver.resolve(node as PostfixExpressionImpl);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     _prefixedIdentifierResolver.resolve(node);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
     _prefixExpressionResolver.resolve(node as PrefixExpressionImpl);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override
@@ -1888,10 +1956,19 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       type = DynamicTypeImpl.instance;
     }
 
-    type = inferenceHelper.inferTearOff(node, propertyName, type);
+    if (!isConstructorTearoffsEnabled) {
+      // Only perform a generic function instantiation on a [PrefixedIdentifier]
+      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
+      // generic function instantiation is performed at assignability check
+      // sites.
+      // TODO(srawlins): Switch all resolution to use the latter method, in a
+      // breaking change release.
+      type = inferenceHelper.inferTearOff(node, propertyName, type);
+    }
 
     inferenceHelper.recordStaticType(propertyName, type);
     inferenceHelper.recordStaticType(node, type);
+    insertGenericFunctionInstantiation(node);
 
     nullShortingTermination(node);
   }
@@ -1950,6 +2027,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     _simpleIdentifierResolver.resolve(node);
+    insertGenericFunctionInstantiation(node);
   }
 
   @override

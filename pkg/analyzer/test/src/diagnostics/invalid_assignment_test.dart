@@ -20,24 +20,14 @@ main() {
 class InvalidAssignment_ImplicitCallReferenceTest
     extends PubPackageResolutionTest {
   test_invalid_genericBoundedCall_nonGenericContext() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class C {
   T call<T extends num>(T t) => t;
 }
 
 String Function(String) f = C();
-''');
-  }
-
-  test_invalid_genericCall() async {
-    await assertErrorsInCode('''
-class C {
-  T call<T>(T t) => t;
-}
-
-void Function() f = C();
 ''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 56, 3),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 76, 3),
     ]);
   }
 
@@ -54,6 +44,18 @@ void Function(bool, String) f = C(7);
       // taken into account when evaluating the assignment of the implicit call
       // reference.
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 86, 4),
+    ]);
+  }
+
+  test_invalid_genericCall_nonGenericContext() async {
+    await assertErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+void Function() f = C();
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 56, 3),
     ]);
   }
 
@@ -349,6 +351,20 @@ C Function(String) g = C<int>.new;
     ]);
   }
 
+  test_functionTearoff_genericInstantiation() async {
+    await assertNoErrorsInCode('''
+int Function() foo(int Function<T extends int>() f) {
+  return f;
+}
+''');
+
+    assertFunctionReference(
+      findNode.functionReference('f;'),
+      findElement.parameter('f'),
+      'int Function()',
+    );
+  }
+
   test_functionTearoff_inferredTypeArgs() async {
     await assertNoErrorsInCode('''
 void f<T>(T a) {}
@@ -521,6 +537,38 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 11),
+    ]);
+  }
+
+  test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
+    await assertNoErrorsInCode('''
+T f<T>(T a) => a;
+U Function<U>(U) foo = f;
+''');
+  }
+
+  test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+T f<T>(T a) => a;
+U Function<U>(U, int) foo = f;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 1),
+    ]);
+  }
+
+  test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
+    await assertNoErrorsInCode('''
+T f<T>(T a) => a;
+int Function(int) foo = f;
+''');
+  }
+
+  test_functionInstantiation_topLevelVariable_nonGenericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+T f<T>(T a) => a;
+int Function(int, int) foo = f;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 1),
     ]);
   }
 
@@ -983,6 +1031,20 @@ void f(dynamic a) {
 @reflectiveTest
 class InvalidAssignmentWithoutNullSafetyTest extends PubPackageResolutionTest
     with InvalidAssignmentTestCases, WithoutNullSafetyMixin {
+  test_functionTearoff_genericInstantiation() async {
+    await assertNoErrorsInCode('''
+int Function() foo(int Function<T extends int>() f) {
+  return f;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('f;'),
+      element: findElement.parameter('f'),
+      type: 'int Function()',
+    );
+  }
+
   test_ifNullAssignment() async {
     await assertErrorsInCode('''
 void f(int i) {

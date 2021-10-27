@@ -682,27 +682,37 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (functionResult == null) {
       return functionResult;
     }
+
+    // Report an error if any of the _inferred_ type argument types refer to a
+    // type parameter. If, however, `node.typeArguments` is not `null`, then
+    // any type parameters contained therein are reported as non-constant in
+    // [ConstantVerifier].
+    if (node.typeArguments == null &&
+        (node.typeArgumentTypes?.any(hasTypeParameterReference) ?? false)) {
+      _error(node, null);
+    }
+
     var typeArgumentList = node.typeArguments;
     if (typeArgumentList == null) {
-      return functionResult;
-    } else {
-      var typeArguments = <DartType>[];
-      for (var typeArgument in typeArgumentList.arguments) {
-        var object = typeArgument.accept(this);
-        if (object == null) {
-          return null;
-        }
-        var typeArgumentType = object.toTypeValue();
-        if (typeArgumentType == null) {
-          return null;
-        }
-        // TODO(srawlins): Test type alias types (`typedef i = int`) used as
-        // type arguments. Possibly change implementation based on
-        // canonicalization rules.
-        typeArguments.add(typeArgumentType);
-      }
-      return _dartObjectComputer.typeInstantiate(functionResult, typeArguments);
+      return _instantiateFunctionType(node, functionResult);
     }
+
+    var typeArguments = <DartType>[];
+    for (var typeArgument in typeArgumentList.arguments) {
+      var object = typeArgument.accept(this);
+      if (object == null) {
+        return null;
+      }
+      var typeArgumentType = object.toTypeValue();
+      if (typeArgumentType == null) {
+        return null;
+      }
+      // TODO(srawlins): Test type alias types (`typedef i = int`) used as
+      // type arguments. Possibly change implementation based on
+      // canonicalization rules.
+      typeArguments.add(typeArgumentType);
+    }
+    return _dartObjectComputer.typeInstantiate(functionResult, typeArguments);
   }
 
   @override
@@ -1000,7 +1010,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl? visitSimpleIdentifier(SimpleIdentifier node) {
     var value = _lexicalEnvironment?[node.name];
     if (value != null) {
-      return _instantiateFunctionType(node, value);
+      return _instantiateFunctionTypeForSimpleIdentifier(node, value);
     }
 
     return _getConstantValue(node, node);
@@ -1212,6 +1222,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var variableElement =
         element is PropertyAccessorElement ? element.variable : element;
 
+    // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
+    // for generic function instantiation for pre-constructor-references code.
     if (node is SimpleIdentifier &&
         (node.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {
@@ -1230,7 +1242,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         if (value == null) {
           return value;
         }
-        return _instantiateFunctionType(identifier, value);
+        return _instantiateFunctionTypeForSimpleIdentifier(identifier, value);
       }
     } else if (variableElement is ConstructorElement) {
       return DartObjectImpl(
@@ -1246,7 +1258,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           function.type,
           FunctionState(function),
         );
-        return _instantiateFunctionType(identifier, rawType);
+        return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
     } else if (variableElement is ClassElement) {
       var type = variableElement.instantiate(
@@ -1305,12 +1317,41 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     return null;
   }
 
+  /// If the type of [value] is a generic [FunctionType], and [node] has type
+  /// argument types, returns [value] type-instantiated with those [node]'s
+  /// type argument types, otherwise returns [value].
+  DartObjectImpl? _instantiateFunctionType(
+      FunctionReference node, DartObjectImpl value) {
+    var functionElement = value.toFunctionValue();
+    if (functionElement is! ExecutableElement) {
+      return value;
+    }
+    var valueType = functionElement.type;
+    if (valueType.typeFormals.isNotEmpty) {
+      var typeArgumentTypes = node.typeArgumentTypes;
+      if (typeArgumentTypes != null && typeArgumentTypes.isNotEmpty) {
+        var instantiatedType =
+            functionElement.type.instantiate(typeArgumentTypes);
+        var substitution = _substitution;
+        if (substitution != null) {
+          instantiatedType =
+              substitution.substituteType(instantiatedType) as FunctionType;
+        }
+        return value.typeInstantiate(
+            typeSystem, instantiatedType, typeArgumentTypes);
+      }
+    }
+    return value;
+  }
+
   /// If the type of [value] is a generic [FunctionType], and [node] is a
   /// [SimpleIdentifier] with tear-off type argument types, returns [value]
   /// type-instantiated with those [node]'s tear-off type argument types,
   /// otherwise returns [value].
-  DartObjectImpl? _instantiateFunctionType(
+  DartObjectImpl? _instantiateFunctionTypeForSimpleIdentifier(
       SimpleIdentifier node, DartObjectImpl value) {
+    // TODO(srawlins): When all code uses [FunctionReference]s generated via
+    // generic function instantiation, remove this method and all call sites.
     var functionElement = value.toFunctionValue();
     if (functionElement is! ExecutableElement) {
       return value;

@@ -10,10 +10,268 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(
+        FunctionReferenceResolution_genericFunctionInstantiationTest);
     defineReflectiveTests(FunctionReferenceResolutionTest);
     defineReflectiveTests(
         FunctionReferenceResolutionWithoutConstructorTearoffsTest);
   });
+}
+
+@reflectiveTest
+class FunctionReferenceResolution_genericFunctionInstantiationTest
+    extends PubPackageResolutionTest {
+  test_asExpression() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) f) {
+  return (f as dynamic) as void Function<T>(T);
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('as void Function<T>(T);'),
+        null,
+        'void Function(int)');
+  }
+
+  test_assignmentExpression() async {
+    await assertNoErrorsInCode('''
+late void Function<T>(T) g;
+void Function(int) foo(void Function<T>(T) f) {
+  return g = f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('g = f;'), null, 'void Function(int)');
+  }
+
+  test_assignmentExpression_compound() async {
+    await assertNoErrorsInCode('''
+extension on void Function<T>(T) {
+  void Function<T>(T) operator +(int i) {
+    return this;
+  }
+}
+
+void Function(int) foo(void Function<T>(T) f) {
+  return f += 1;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f += 1'), null, 'void Function(int)');
+  }
+
+  test_awaitExpression() async {
+    await assertNoErrorsInCode('''
+Future<void Function(int)> foo(Future<void Function<T>(T)> f) async {
+  return await f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('await f'), null, 'void Function(int)');
+  }
+
+  test_binaryExpression() async {
+    await assertNoErrorsInCode('''
+class C {
+  void Function<T>(T) operator +(int i) {
+    return <T>(T a) {};
+  }
+}
+
+void Function(int) foo(C c) {
+  return c + 1;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('c + 1'), null, 'void Function(int)');
+  }
+
+  test_cascadeExpression() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) f) {
+  return f..toString();
+}
+''');
+
+    assertFunctionReference(findNode.functionReference('f..toString()'), null,
+        'void Function(int)');
+  }
+
+  test_constructorReference() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+C<int> Function(int) foo() {
+  return C.new;
+}
+''');
+
+    // TODO(srawlins): Leave the constructor reference uninstantiated, then
+    // perform generic function instantiation as a wrapping node.
+    assertConstructorReference(
+        findNode.constructorReference('C.new'),
+        findElement.unnamedConstructor('C'),
+        findElement.class_('C'),
+        'C<int> Function(int)');
+  }
+
+  test_functionExpression() async {
+    await assertNoErrorsInCode('''
+Null Function(int) foo() {
+  return <T>(T a) {};
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('<T>(T a) {};'), null, 'Null Function(int)');
+  }
+
+  test_functionExpressionInvocation() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) Function() f) {
+  return (f)();
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('(f)()'), null, 'void Function(int)');
+  }
+
+  test_functionReference() async {
+    await assertNoErrorsInCode('''
+typedef Fn = void Function<U>(U);
+
+void Function(int) foo(Fn f) {
+  return f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f;'), null, 'void Function(int)');
+  }
+
+  test_implicitCallReference() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call<T>(T a) {}
+}
+
+void Function(int) foo(C c) {
+  return c;
+}
+''');
+
+    assertImplicitCallReference(findNode.implicitCallReference('c;'),
+        findElement.method('call'), 'void Function(int)');
+  }
+
+  test_indexExpression() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(List<void Function<T>(T)> f) {
+  return f[0];
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f[0];'), null, 'void Function(int)');
+  }
+
+  test_methodInvocation() async {
+    await assertNoErrorsInCode('''
+class C {
+  late void Function<T>(T) f;
+  void Function<T>(T) m() => f;
+}
+
+void Function(int) foo(C c) {
+  return c.m();
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('c.m();'), null, 'void Function(int)');
+  }
+
+  test_postfixExpression_compound() async {
+    await assertNoErrorsInCode('''
+extension on void Function<T>(T) {
+  void Function<T>(T) operator +(int i) {
+    return this;
+  }
+}
+
+void Function(int) foo(void Function<T>(T) f) {
+  return f++;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f++'), null, 'void Function(int)');
+  }
+
+  test_prefixedIdentifier() async {
+    await assertNoErrorsInCode('''
+class C {
+  late void Function<T>(T) f;
+}
+
+void Function(int) foo(C c) {
+  return c.f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('c.f;'), null, 'void Function(int)');
+  }
+
+  test_prefixExpression_compound() async {
+    await assertNoErrorsInCode('''
+extension on void Function<T>(T) {
+  void Function<T>(T) operator +(int i) {
+    return this;
+  }
+}
+
+void Function(int) foo(void Function<T>(T) f) {
+  return ++f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('++f'), null, 'void Function(int)');
+  }
+
+  test_propertyAccess() async {
+    await assertNoErrorsInCode('''
+class C {
+  late void Function<T>(T) f;
+}
+
+void Function(int) foo(C c) {
+  return (c).f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('(c).f;'), null, 'void Function(int)');
+  }
+
+  test_simpleIdentifier() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) f) {
+  return f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f;'), null, 'void Function(int)');
+  }
 }
 
 @reflectiveTest
