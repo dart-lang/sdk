@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/completion/dart/library_prefix_cont
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/redirecting_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
@@ -67,16 +68,22 @@ class DartCompletionManager {
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
 
+  /// If specified, will be filled with URIs of libraries that are not yet
+  /// imported, but could be imported into the requested target. Corresponding
+  /// [CompletionSuggestion] will have the import index into this list.
+  final List<Uri>? librariesToImport;
+
   /// Initialize a newly created completion manager. The parameters
   /// [includedElementKinds], [includedElementNames], and
   /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
   /// non-`null`.
-  DartCompletionManager(
-      {this.includedElementKinds,
-      this.includedElementNames,
-      this.includedSuggestionRelevanceTags,
-      this.listener})
-      : assert((includedElementKinds != null &&
+  DartCompletionManager({
+    this.includedElementKinds,
+    this.includedElementNames,
+    this.includedSuggestionRelevanceTags,
+    this.listener,
+    this.librariesToImport,
+  }) : assert((includedElementKinds != null &&
                 includedElementNames != null &&
                 includedSuggestionRelevanceTags != null) ||
             (includedElementKinds == null &&
@@ -130,6 +137,13 @@ class DartCompletionManager {
     } else {
       contributors.add(
         ImportedReferenceContributor(request, builder),
+      );
+    }
+
+    final librariesToImport = this.librariesToImport;
+    if (librariesToImport != null) {
+      contributors.add(
+        NotImportedContributor(request, builder, librariesToImport),
       );
     }
 

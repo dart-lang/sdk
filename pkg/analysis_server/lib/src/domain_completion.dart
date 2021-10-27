@@ -71,6 +71,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
+    List<Uri>? librariesToImport,
   }) async {
     //
     // Allow plugins to start computing fixes.
@@ -88,6 +89,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+        librariesToImport: librariesToImport,
       );
 
       try {
@@ -253,9 +255,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         documentationCache: server.getDocumentationCacheFor(resolvedUnit),
       );
 
+      var librariesToImport = <Uri>[];
       var suggestions = await computeSuggestions(
         performance: performance,
         request: completionRequest,
+        librariesToImport: librariesToImport,
       );
 
       performance.run('filter', (performance) {
@@ -276,7 +280,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           completionRequest.replacementOffset,
           completionRequest.replacementLength,
           lengthRestricted,
-          [], // TODO(scheglov)
+          librariesToImport.map((e) => '$e').toList(),
           isIncomplete,
         ).toResponse(request.id),
       );

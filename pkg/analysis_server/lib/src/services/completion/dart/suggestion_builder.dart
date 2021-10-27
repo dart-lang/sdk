@@ -138,6 +138,54 @@ class MemberSuggestionBuilder {
   }
 }
 
+class NewSuggestionsProcessor {
+  final SuggestionBuilder _builder;
+  final Set<protocol.CompletionSuggestion> _current = Set.identity();
+
+  NewSuggestionsProcessor._(this._builder) {
+    _current.addAll(_builder._suggestionMap.values);
+  }
+
+  /// Update suggestions added since this marker was created.
+  void setLibraryUriToImportIndex(int Function() produce) {
+    int? libraryUriToImportIndex;
+    var suggestionMap = _builder._suggestionMap;
+    for (var entry in suggestionMap.entries.toList()) {
+      var suggestion = entry.value;
+      if (!_current.contains(suggestion)) {
+        libraryUriToImportIndex ??= produce();
+        suggestionMap[entry.key] = protocol.CompletionSuggestion(
+          suggestion.kind,
+          suggestion.relevance,
+          suggestion.completion,
+          suggestion.selectionOffset,
+          suggestion.selectionLength,
+          suggestion.isDeprecated,
+          suggestion.isPotential,
+          displayText: suggestion.displayText,
+          replacementOffset: suggestion.replacementOffset,
+          replacementLength: suggestion.replacementLength,
+          docSummary: suggestion.docSummary,
+          docComplete: suggestion.docComplete,
+          declaringType: suggestion.declaringType,
+          defaultArgumentListString: suggestion.defaultArgumentListString,
+          defaultArgumentListTextRanges:
+              suggestion.defaultArgumentListTextRanges,
+          element: suggestion.element,
+          returnType: suggestion.returnType,
+          parameterNames: suggestion.parameterNames,
+          parameterTypes: suggestion.parameterTypes,
+          requiredParameterCount: suggestion.requiredParameterCount,
+          hasNamedParameters: suggestion.hasNamedParameters,
+          parameterName: suggestion.parameterName,
+          parameterType: suggestion.parameterType,
+          libraryUriToImportIndex: libraryUriToImportIndex,
+        );
+      }
+    }
+  }
+}
+
 /// An object used to build a list of suggestions in response to a single
 /// completion request.
 class SuggestionBuilder {
@@ -215,6 +263,11 @@ class SuggestionBuilder {
 
   bool get _isNonNullableByDefault =>
       request.libraryElement.isNonNullableByDefault;
+
+  /// Return an object that knows which suggestions exist, and which are new.
+  NewSuggestionsProcessor markSuggestions() {
+    return NewSuggestionsProcessor._(this);
+  }
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the

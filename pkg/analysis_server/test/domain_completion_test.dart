@@ -10,9 +10,11 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -47,6 +49,8 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
+  Folder get testPackageRoot => getFolder(testPackageRootPath);
+
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get workspaceRootPath => '/home';
@@ -75,6 +79,8 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
       root: sdkRoot,
     );
 
+    writeTestPackageConfig();
+
     server = AnalysisServer(
       serverChannel,
       resourceProvider,
@@ -83,6 +89,140 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
     );
+  }
+
+  /// TODO(scheglov) Only lib/ libraries in lib/, no test/.
+  /// TODO(scheglov) Suggestions from available Pub packages.
+  Future<void> test_notImported_pub_this() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A01 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+class A02 {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  A0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'dart:async',
+        'dart:math',
+        'package:test/a.dart',
+        'package:test/b.dart',
+      ], excludes: [
+        'dart:core',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01', 'A02']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/a.dart');
+    classes.withCompletion('A02').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/b.dart');
+  }
+
+  Future<void> test_notImported_pub_this_hasImport() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A01 {}
+class A02 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+class A03 {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+import 'a.dart';
+
+void f() {
+  A0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'dart:async',
+        'dart:math',
+        'package:test/b.dart',
+      ], excludes: [
+        'dart:core',
+        'package:test/a.dart',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01', 'A02', 'A03']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport(isNull);
+    classes.withCompletion('A02').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport(isNull);
+    classes.withCompletion('A03').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/b.dart');
+  }
+
+  Future<void> test_notImported_pub_this_hasImport_hasShow() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A01 {}
+class A02 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+class A03 {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+import 'a.dart' show A01;
+
+void f() {
+  A0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(2)
+      ..assertLibrariesToImport(includes: [
+        'dart:async',
+        'dart:math',
+        'package:test/a.dart',
+        'package:test/b.dart',
+      ], excludes: [
+        'dart:core',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['A01', 'A02', 'A03']);
+    classes.withCompletion('A01').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport(isNull);
+    classes.withCompletion('A02').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/a.dart');
+    classes.withCompletion('A03').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('package:test/b.dart');
   }
 
   Future<void> test_numResults_class_methods() async {
@@ -462,6 +602,32 @@ void f() {
     var suggestionsValidator = responseValidator.suggestions;
     // `foo02` has better relevance, its type matches the context type
     suggestionsValidator.assertCompletions(['foo02', 'foo01']);
+  }
+
+  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
+    newPackageConfigJsonFile(
+      root.path,
+      content: config.toContent(toUriStr: toUriStr),
+    );
+  }
+
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootPath: testPackageRootPath,
+      languageVersion: languageVersion,
+    );
+
+    writePackageConfig(testPackageRoot, config);
   }
 
   Future<void> _configureWithWorkspaceRoot() async {
@@ -1413,7 +1579,10 @@ class CompletionGetSuggestions2ResponseValidator {
   );
 
   SuggestionsValidator get suggestions {
-    return SuggestionsValidator(result.suggestions);
+    return SuggestionsValidator(
+      result.suggestions,
+      libraryUrisToImport: result.libraryUrisToImport,
+    );
   }
 
   void assertComplete() {
@@ -1428,6 +1597,18 @@ class CompletionGetSuggestions2ResponseValidator {
     expect(result.isIncomplete, isTrue);
   }
 
+  void assertLibrariesToImport({
+    required List<String> includes,
+    List<String>? excludes,
+  }) {
+    expect(result.libraryUrisToImport, containsAll(includes));
+    if (excludes != null) {
+      for (var exclude in excludes) {
+        expect(result.libraryUrisToImport, isNot(contains(exclude)));
+      }
+    }
+  }
+
   void assertReplacement(int offset, int length) {
     expect(result.replacementOffset, offset);
     expect(result.replacementLength, length);
@@ -1440,8 +1621,12 @@ class CompletionGetSuggestions2ResponseValidator {
 
 class SingleSuggestionValidator {
   final CompletionSuggestion suggestion;
+  final List<String>? libraryUrisToImport;
 
-  SingleSuggestionValidator(this.suggestion);
+  SingleSuggestionValidator(
+    this.suggestion, {
+    this.libraryUrisToImport,
+  });
 
   void assertClass() {
     expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
@@ -1458,6 +1643,15 @@ class SingleSuggestionValidator {
     expect(suggestion.element?.kind, ElementKind.GETTER);
   }
 
+  void assertLibraryToImport(Object matcher) {
+    final libraryUrisToImport = this.libraryUrisToImport;
+    final index = suggestion.libraryUriToImportIndex;
+    var libraryUri = libraryUrisToImport != null && index != null
+        ? libraryUrisToImport[index]
+        : null;
+    expect(libraryUri, matcher);
+  }
+
   void assertMethod() {
     expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
     expect(suggestion.element?.kind, ElementKind.METHOD);
@@ -1471,8 +1665,12 @@ class SingleSuggestionValidator {
 
 class SuggestionsValidator {
   final List<CompletionSuggestion> suggestions;
+  final List<String>? libraryUrisToImport;
 
-  SuggestionsValidator(this.suggestions);
+  SuggestionsValidator(
+    this.suggestions, {
+    this.libraryUrisToImport,
+  });
 
   int get length => suggestions.length;
 
@@ -1495,7 +1693,10 @@ class SuggestionsValidator {
 
   SingleSuggestionValidator assertSingle() {
     assertLength(1);
-    return SingleSuggestionValidator(suggestions.single);
+    return SingleSuggestionValidator(
+      suggestions.single,
+      libraryUrisToImport: libraryUrisToImport,
+    );
   }
 
   SuggestionsValidator withCompletion(String completion) {
@@ -1503,6 +1704,7 @@ class SuggestionsValidator {
       suggestions.where((suggestion) {
         return suggestion.completion == completion;
       }).toList(),
+      libraryUrisToImport: libraryUrisToImport,
     );
   }
 
@@ -1519,6 +1721,7 @@ class SuggestionsValidator {
       suggestions.where((suggestion) {
         return suggestion.element?.kind == kind;
       }).toList(),
+      libraryUrisToImport: libraryUrisToImport,
     );
   }
 }
