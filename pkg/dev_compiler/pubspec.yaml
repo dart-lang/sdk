@@ -6,8 +6,7 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
+  _fe_analyzer_shared: any
   _js_interop_checks:
     path: ../_js_interop_checks
   args: any
@@ -21,8 +20,7 @@ dependencies:
     path: ../front_end
   kernel:
     path: ../kernel
-  meta:
-    path: ../meta
+  meta: any
   path: any
   pedantic: ^1.11.0
   source_maps: any
@@ -32,18 +30,15 @@ dev_dependencies:
   browser_launcher: ^1.0.0
   expect:
     path: ../expect
-  http_multi_server:
-    path: ../../third_party/pkg/http_multi_server
-  js:
-    path: ../js
+  http_multi_server: any
+  js: any
   modular_test:
     path: ../modular_test
   package_config: any
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any
-  shelf:
-    path: ../../third_party/pkg/shelf
+  shelf: any
   test: any
   testing:
     path: ../testing
@@ -51,3 +46,14 @@ dev_dependencies:
     path: ../vm
   webkit_inspection_protocol: ^1.0.0
 
+dependency_overrides:
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
+  js:
+    path: ../js
+  meta:
+    path: ../meta
+  shelf:
+    path: ../../third_party/pkg/shelf
+  http_multi_server:
+    path: ../../third_party/pkg/http_multi_server
