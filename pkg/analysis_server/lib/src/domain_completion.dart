@@ -246,7 +246,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     recordRequest(completionPerformance, file, resolvedUnit.content, offset);
 
     await completionPerformance.runRequestOperation((performance) async {
-      var completionRequest = DartCompletionRequest.from(
+      var completionRequest = DartCompletionRequest(
         resolvedUnit: resolvedUnit,
         offset: offset,
         dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
@@ -396,7 +396,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         return;
       }
 
-      var completionRequest = DartCompletionRequest.from(
+      var completionRequest = DartCompletionRequest(
         resolvedUnit: resolvedUnit,
         offset: offset,
         dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(

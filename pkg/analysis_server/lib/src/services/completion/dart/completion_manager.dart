@@ -297,6 +297,47 @@ class DartCompletionRequest {
 
   bool _aborted = false;
 
+  factory DartCompletionRequest({
+    required ResolvedUnitResult resolvedUnit,
+    required int offset,
+    DartdocDirectiveInfo? dartdocDirectiveInfo,
+    CompletionPreference completionPreference = CompletionPreference.insert,
+    DocumentationCache? documentationCache,
+  }) {
+    var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
+    var dotTarget = _dotTarget(target);
+
+    var featureComputer = FeatureComputer(
+      resolvedUnit.typeSystem,
+      resolvedUnit.typeProvider,
+    );
+
+    var contextType = featureComputer.computeContextType(
+      target.containingNode,
+      offset,
+    );
+
+    var opType = OpType.forCompletion(target, offset);
+    if (contextType != null && contextType.isVoid) {
+      opType.includeVoidReturnSuggestions = true;
+    }
+
+    return DartCompletionRequest._(
+      completionPreference: completionPreference,
+      contextType: contextType,
+      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      documentationCache: documentationCache,
+      dotTarget: dotTarget,
+      featureComputer: featureComputer,
+      offset: offset,
+      opType: opType,
+      replacementRange: target.computeReplacementRange(offset),
+      result: resolvedUnit,
+      source: resolvedUnit.unit.declaredElement!.source,
+      target: target,
+    );
+  }
+
   DartCompletionRequest._({
     required this.completionPreference,
     required this.contextType,
@@ -401,48 +442,6 @@ class DartCompletionRequest {
     if (_aborted) {
       throw AbortCompletion();
     }
-  }
-
-  /// Return a newly created completion request in [resolvedUnit] at [offset].
-  static DartCompletionRequest from({
-    required ResolvedUnitResult resolvedUnit,
-    required int offset,
-    DartdocDirectiveInfo? dartdocDirectiveInfo,
-    CompletionPreference completionPreference = CompletionPreference.insert,
-    DocumentationCache? documentationCache,
-  }) {
-    var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
-    var dotTarget = _dotTarget(target);
-
-    var featureComputer = FeatureComputer(
-      resolvedUnit.typeSystem,
-      resolvedUnit.typeProvider,
-    );
-
-    var contextType = featureComputer.computeContextType(
-      target.containingNode,
-      offset,
-    );
-
-    var opType = OpType.forCompletion(target, offset);
-    if (contextType != null && contextType.isVoid) {
-      opType.includeVoidReturnSuggestions = true;
-    }
-
-    return DartCompletionRequest._(
-      completionPreference: completionPreference,
-      contextType: contextType,
-      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
-      documentationCache: documentationCache,
-      dotTarget: dotTarget,
-      featureComputer: featureComputer,
-      offset: offset,
-      opType: opType,
-      replacementRange: target.computeReplacementRange(offset),
-      result: resolvedUnit,
-      source: resolvedUnit.unit.declaredElement!.source,
-      target: target,
-    );
   }
 
   /// TODO(scheglov) Should this be a property of [CompletionTarget]?

@@ -1366,7 +1366,7 @@ class CompletionMetricsComputer {
             {required MetricsSuggestionListener listener,
             required CompletionMetrics metrics}) async {
           var stopwatch = Stopwatch()..start();
-          var request = DartCompletionRequest.from(
+          var request = DartCompletionRequest(
             resolvedUnit: resolvedUnitResult,
             offset: expectedCompletion.offset,
             documentationCache: documentationCache,
