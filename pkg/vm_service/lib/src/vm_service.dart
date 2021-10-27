@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.52.0';
+const String vmServiceVersion = '3.51.0';
 
 /// @optional
 const String optional = 'optional';
@@ -186,7 +186,6 @@ Map<String, Function> _typeFactories = {
   'TypeArguments': TypeArguments.parse,
   'TypeParameters': TypeParameters.parse,
   'UnresolvedSourceLocation': UnresolvedSourceLocation.parse,
-  'UriList': UriList.parse,
   'Version': Version.parse,
   '@VM': VMRef.parse,
   'VM': VM.parse,
@@ -227,8 +226,6 @@ Map<String, List<String>> _methodReturnTypes = {
   'getVMTimelineMicros': const ['Timestamp'],
   'pause': const ['Success'],
   'kill': const ['Success'],
-  'lookupResolvedPackageUris': const ['UriList'],
-  'lookupPackageUris': const ['UriList'],
   'registerService': const ['Success'],
   'reloadSources': const ['ReloadReport'],
   'removeBreakpoint': const ['Success'],
@@ -923,37 +920,6 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> kill(String isolateId);
 
-  /// The `lookupResolvedPackageUris` RPC is used to convert a list of URIs to
-  /// their resolved (or absolute) paths. For example, URIs passed to this RPC
-  /// are mapped in the following ways:
-  ///
-  /// - `dart:io` -&gt; `org-dartlang-sdk:///sdk/lib/io/io.dart`
-  /// - `package:test/test.dart` -&gt;
-  /// `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart`
-  /// - `file:///foo/bar/bazz.dart` -&gt; `file:///foo/bar/bazz.dart`
-  ///
-  /// If a URI is not known, the corresponding entry in the [UriList] response
-  /// will be `null`.
-  ///
-  /// See [UriList].
-  Future<UriList> lookupResolvedPackageUris(
-      String isolateId, List<String> uris);
-
-  /// The `lookupPackageUris` RPC is used to convert a list of URIs to their
-  /// unresolved paths. For example, URIs passed to this RPC are mapped in the
-  /// following ways:
-  ///
-  /// - `org-dartlang-sdk:///sdk/lib/io/io.dart` -&gt; `dart:io`
-  /// - `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart` -&gt;
-  /// `package:test/test.dart`
-  /// - `file:///foo/bar/bazz.dart` -&gt; `file:///foo/bar/bazz.dart`
-  ///
-  /// If a URI is not known, the corresponding entry in the [UriList] response
-  /// will be `null`.
-  ///
-  /// See [UriList].
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris);
-
   /// Registers a service that can be invoked by other VM service clients, where
   /// `service` is the name of the service to advertise and `alias` is an
   /// alternative name for the registered service.
@@ -1502,18 +1468,6 @@ class VmServerConnection {
             params!['isolateId'],
           );
           break;
-        case 'lookupResolvedPackageUris':
-          response = await _serviceImplementation.lookupResolvedPackageUris(
-            params!['isolateId'],
-            List<String>.from(params['uris'] ?? []),
-          );
-          break;
-        case 'lookupPackageUris':
-          response = await _serviceImplementation.lookupPackageUris(
-            params!['isolateId'],
-            List<String>.from(params['uris'] ?? []),
-          );
-          break;
         case 'reloadSources':
           response = await _serviceImplementation.reloadSources(
             params!['isolateId'],
@@ -2023,16 +1977,6 @@ class VmService implements VmServiceInterface {
   @override
   Future<Success> kill(String isolateId) =>
       _call('kill', {'isolateId': isolateId});
-
-  @override
-  Future<UriList> lookupResolvedPackageUris(
-          String isolateId, List<String> uris) =>
-      _call(
-          'lookupResolvedPackageUris', {'isolateId': isolateId, 'uris': uris});
-
-  @override
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
-      _call('lookupPackageUris', {'isolateId': isolateId, 'uris': uris});
 
   @override
   Future<Success> registerService(String service, String alias) =>
@@ -6168,8 +6112,9 @@ class MemoryUsage extends Response {
   /// example, memory associated with Dart objects through APIs such as
   /// Dart_NewFinalizableHandle, Dart_NewWeakPersistentHandle and
   /// Dart_NewExternalTypedData.  This usage is only as accurate as the values
-  /// supplied to these APIs from the VM embedder. This external memory applies
-  /// GC pressure, but is separate from heapUsage and heapCapacity.
+  /// supplied to these APIs from the VM embedder or native extensions. This
+  /// external memory applies GC pressure, but is separate from heapUsage and
+  /// heapCapacity.
   int? externalUsage;
 
   /// The total capacity of the heap in bytes. This is the amount of memory used
@@ -7929,38 +7874,6 @@ class UnresolvedSourceLocation extends Response {
   }
 
   String toString() => '[UnresolvedSourceLocation]';
-}
-
-class UriList extends Response {
-  static UriList? parse(Map<String, dynamic>? json) =>
-      json == null ? null : UriList._fromJson(json);
-
-  /// A list of URIs.
-  List<dynamic>? uris;
-
-  UriList({
-    required this.uris,
-  });
-
-  UriList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    uris = List<dynamic>.from(
-        createServiceObject(json['uris'], const ['dynamic']) as List? ?? []);
-  }
-
-  @override
-  String get type => 'UriList';
-
-  @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'uris': uris?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
-
-  String toString() => '[UriList uris: ${uris}]';
 }
 
 /// See [Versioning].

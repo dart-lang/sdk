@@ -43,7 +43,6 @@ src/org/dartlang/vm/service/consumer/SuccessConsumer.java
 src/org/dartlang/vm/service/consumer/TimelineConsumer.java
 src/org/dartlang/vm/service/consumer/TimelineFlagsConsumer.java
 src/org/dartlang/vm/service/consumer/TimestampConsumer.java
-src/org/dartlang/vm/service/consumer/UriListConsumer.java
 src/org/dartlang/vm/service/consumer/VMConsumer.java
 src/org/dartlang/vm/service/consumer/VersionConsumer.java
 src/org/dartlang/vm/service/element/AllocationProfile.java
@@ -132,7 +131,6 @@ src/org/dartlang/vm/service/element/TypeArguments.java
 src/org/dartlang/vm/service/element/TypeArgumentsRef.java
 src/org/dartlang/vm/service/element/TypeParameters.java
 src/org/dartlang/vm/service/element/UnresolvedSourceLocation.java
-src/org/dartlang/vm/service/element/UriList.java
 src/org/dartlang/vm/service/element/VM.java
 src/org/dartlang/vm/service/element/VMRef.java
 src/org/dartlang/vm/service/element/Version.java

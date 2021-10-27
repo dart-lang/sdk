@@ -830,11 +830,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     success = false;
   }
 
-  Array& null_array = Array::Handle(Z);
-  // Invalidate the URI mapping caches.
-  IG->object_store()->set_uri_to_resolved_uri_map(null_array);
-  IG->object_store()->set_resolved_uri_to_uri_map(null_array);
-
   // Re-queue any shutdown requests so they can inform each isolate's own thread
   // to shut down.
   if (result.IsUnwindError()) {
