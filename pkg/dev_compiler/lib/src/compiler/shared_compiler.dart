@@ -28,7 +28,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Holds all top-level JS symbols (used for caching or indexing fields).
   final _symbolContainer = ModuleItemContainer<js_ast.Identifier>.asObject('S',
-      keyToString: (js_ast.Identifier i) => '${i.name}');
+      keyToString: (js_ast.Identifier i) => i.name);
 
   ModuleItemContainer<js_ast.Identifier> get symbolContainer =>
       _symbolContainer;

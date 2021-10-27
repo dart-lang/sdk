@@ -10,10 +10,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Code, Message, PlainAndColorizedString;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
-import 'package:dev_compiler/dev_compiler.dart';
-import 'package:dev_compiler/src/compiler/js_names.dart' as js_ast;
-import 'package:dev_compiler/src/compiler/module_builder.dart';
-import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart'
     show
@@ -35,6 +31,11 @@ import 'package:kernel/ast.dart'
         Visitor,
         VisitorNullMixin,
         VisitorVoidMixin;
+
+import '../../dev_compiler.dart';
+import '../compiler/js_names.dart' as js_ast;
+import '../compiler/module_builder.dart';
+import '../js_ast/js_ast.dart' as js_ast;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(Code<String>('Expression Compiler Internal error'),
@@ -453,7 +454,7 @@ class ExpressionCompiler {
 
     var imports = <js_ast.ModuleItem>[];
     var jsFun = _kernel2jsCompiler.emitFunctionIncremental(imports,
-        scope.library, scope.cls, procedure.function, '$debugProcedureName');
+        scope.library, scope.cls, procedure.function, debugProcedureName);
 
     _log('Generated JavaScript for expression');
 

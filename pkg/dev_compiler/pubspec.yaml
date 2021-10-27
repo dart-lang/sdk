@@ -22,7 +22,6 @@ dependencies:
     path: ../kernel
   meta: any
   path: any
-  pedantic: ^1.11.0
   source_maps: any
   source_span: any
 
@@ -32,6 +31,7 @@ dev_dependencies:
     path: ../expect
   http_multi_server: any
   js: any
+  lints: ^1.0.0
   modular_test:
     path: ../modular_test
   package_config: any

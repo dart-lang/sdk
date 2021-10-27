@@ -144,10 +144,10 @@ class ModuleMetadata {
     if (!libraries.containsKey(library.importUri)) {
       libraries[library.importUri] = library;
     } else {
-      throw ('Metadata creation error: '
+      throw 'Metadata creation error: '
           'Cannot add library $library with uri ${library.importUri}: '
           'another library "${libraries[library.importUri]}" is found '
-          'with the same uri');
+          'with the same uri';
     }
   }
 
