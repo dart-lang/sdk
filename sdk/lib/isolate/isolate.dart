@@ -582,7 +582,10 @@ class Isolate {
   /// If the port is a native port -- one provided by [ReceivePort.sendPort] or
   /// [RawReceivePort.sendPort] -- the system may be able to send this final
   /// message more efficiently than normal port communication between live
-  /// isolates.
+  /// isolates. In these cases this final message object graph will be
+  /// reassigned to the receiving isolate without copying. Further, the
+  /// receiving isolate will in most cases be able to receive the message
+  /// in constant time.
   external static Never exit([SendPort? finalMessagePort, Object? message]);
 }
 
