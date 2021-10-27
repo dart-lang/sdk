@@ -131,7 +131,3 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t15: Ski
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t17: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t19: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
-
-[ $compiler == dart2js || $compiler == dartdevk ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # Uses dart:io.
-Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses dart:io.

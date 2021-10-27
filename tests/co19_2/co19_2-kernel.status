@@ -6,8 +6,6 @@
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t04: SkipByDesign # Won't fix. See https://github.com/dart-lang/sdk/issues/46288
 
 [ $runtime == dart_precompiled ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Skip # https://github.com/dart-lang/co19/issues/1211
-Language/Libraries_and_Scripts/Scripts/top_level_main_t06: Skip # https://github.com/dart-lang/co19/issues/1211
 LibTest/io/RawDatagramSocket/join_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
 LibTest/io/RawDatagramSocket/join_A01_t02: Skip # https://github.com/dart-lang/co19/issues/195
 LibTest/io/RawDatagramSocket/join_A02_t01: Skip # https://github.com/dart-lang/co19/issues/195
