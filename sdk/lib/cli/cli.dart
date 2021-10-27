@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// {@category VM}
-/// {@nodoc}
 @Deprecated(
     "The functionality of this library is incomplete and may be removed in a later version")
 library dart.cli;
