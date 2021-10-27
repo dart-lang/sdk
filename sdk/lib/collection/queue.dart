@@ -519,7 +519,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// queue.addAll([1, 2, 3]);
 /// print(queue); // {0, 5, 10, 1, 2, 3}
 /// ```
-/// To check is item empty, use [isEmpty], [isNotEmpty].
+/// To check is queue empty, use [isEmpty] or [isNotEmpty].
 /// To check size of queue, use [length]:
 /// ```dart
 /// final bool isEmpty = queue.isEmpty; // false
@@ -540,7 +540,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 ///   // 3
 /// });
 /// ```
-/// To get first or last item from queue, use [first] [last]:
+/// To get first or last item from queue, use [first] or [last]:
 /// ```dart
 /// final first = queue.first; // 0
 /// final last = queue.last; // 3
@@ -577,6 +577,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// queue.clear();
 /// print(queue); // {}
 /// ```
+///
 /// ## Constructor options for initialization:
 ///
 /// [ListQueue.from] example:
