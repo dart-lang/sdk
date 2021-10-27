@@ -45,6 +45,19 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
+/// Class that tracks how much time budget we have left.
+class CompletionBudget {
+  final Duration _budget;
+  final Stopwatch _timer = Stopwatch()..start();
+
+  CompletionBudget(this._budget);
+
+  Duration get left {
+    var result = _budget - _timer.elapsed;
+    return result.isNegative ? Duration.zero : result;
+  }
+}
+
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager {
