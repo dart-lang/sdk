@@ -431,8 +431,9 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   AppSnapshot* app_snapshot = NULL;
   // Kernel isolate uses an app snapshot or uses the dill file.
   if ((kernel_snapshot_uri != NULL) &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(kernel_snapshot_uri)) !=
-          NULL) {
+      (app_snapshot = Snapshot::TryReadAppSnapshot(
+           kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
+           /*decode_uri=*/false)) != nullptr) {
     const uint8_t* isolate_snapshot_data = NULL;
     const uint8_t* isolate_snapshot_instructions = NULL;
     const uint8_t* ignore_vm_snapshot_data;
@@ -603,8 +604,9 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   AppSnapshot* app_snapshot = nullptr;
   bool isolate_run_app_snapshot = true;
   if (dartdev_path.get() != nullptr &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(dartdev_path.get())) !=
-          nullptr) {
+      (app_snapshot = Snapshot::TryReadAppSnapshot(
+           dartdev_path.get(), /*force_load_elf_from_memory=*/false,
+           /*decode_uri=*/false)) != nullptr) {
     const uint8_t* isolate_snapshot_data = NULL;
     const uint8_t* isolate_snapshot_instructions = NULL;
     const uint8_t* ignore_vm_snapshot_data;
@@ -613,8 +615,8 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
     isolate_group_data =
-        new IsolateGroupData(dartdev_path.get(), packages_config, app_snapshot,
-                             isolate_run_app_snapshot);
+        new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config,
+                             app_snapshot, isolate_run_app_snapshot);
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
@@ -642,7 +644,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
       uint8_t* application_kernel_buffer = NULL;
       intptr_t application_kernel_buffer_size = 0;
       dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
-                     &application_kernel_buffer_size);
+                     &application_kernel_buffer_size, /*decode_uri=*/false);
       isolate_group_data->SetKernelBufferNewlyOwned(
           application_kernel_buffer, application_kernel_buffer_size);
 
