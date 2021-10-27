@@ -118,7 +118,7 @@ class FfiNativeTransformer extends FfiTransformer {
         ffiReturnType,
         handleClass.getThisType(coreTypes, Nullability.nonNullable),
         SubtypeCheckMode.ignoringNullabilities)) {
-      return objectClass.getThisType(coreTypes, Nullability.nonNullable);
+      return objectClass.getThisType(coreTypes, dartReturnType.nullability);
     }
     return dartReturnType;
   }
