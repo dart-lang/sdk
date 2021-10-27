@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.51
+# Dart VM Service Protocol 3.52
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.51_ of the Dart VM Service Protocol. This
+This document describes of _version 3.52_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -62,6 +62,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getVMTimelineFlags](#getvmtimelineflags)
   - [getVMTimelineMicros](#getvmtimelinemicros)
   - [invoke](#invoke)
+  - [lookupResolvedPackageUris](#lookupresolvedpackageuris)
+  - [lookupPackageUris](#lookuppackageuris)
   - [pause](#pause)
   - [kill](#kill)
   - [registerService](#registerService)
@@ -142,7 +144,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Timestamp](#timestamp)
   - [TypeArguments](#typearguments)
   - [TypeParameters](#typeparameters)[
-  - [UresolvedSourceLocation](#unresolvedsourcelocation)
+  - [UnresolvedSourceLocation](#unresolvedsourcelocation)
+  - [UriList](#urilist)
   - [Version](#version)
   - [VM](#vm)
   - [WebSocketTarget](#websockettarget)
@@ -1206,6 +1209,44 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
+
+### lookupResolvedPackageUris
+
+```
+UriList lookupResolvedPackageUris(string isolateId, string[] uris)
+```
+
+The _lookupResolvedPackageUris_ RPC is used to convert a list of URIs to their
+resolved (or absolute) paths. For example, URIs passed to this RPC are mapped in
+the following ways:
+
+- `dart:io` -> `org-dartlang-sdk:///sdk/lib/io/io.dart`
+- `package:test/test.dart` -> `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart`
+- `file:///foo/bar/bazz.dart` -> `file:///foo/bar/bazz.dart`
+
+If a URI is not known, the corresponding entry in the [UriList] response will be
+`null`.
+
+See [UriList](#urilist).
+
+### lookupPackageUris
+
+```
+UriList lookupPackageUris(string isolateId, string[] uris)
+```
+
+The _lookupPackageUris_ RPC is used to convert a list of URIs to their
+unresolved paths. For example, URIs passed to this RPC are mapped in the
+following ways:
+
+- `org-dartlang-sdk:///sdk/lib/io/io.dart` -> `dart:io`
+- `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart` -> `package:test/test.dart`
+- `file:///foo/bar/bazz.dart` -> `file:///foo/bar/bazz.dart`
+
+If a URI is not known, the corresponding entry in the [UriList] response will be
+`null`.
+
+See [UriList](#urilist).
 
 ### registerService
 
@@ -4057,6 +4098,15 @@ Either the _tokenPos_ or the _line_ field will be present.
 The _column_ field will only be present when the breakpoint was
 specified with a specific column number.
 
+### UriList
+
+```
+class UriList extends Response {
+  // A list of URIs.
+  (string|Null)[] uris;
+}
+```
+
 ### Version
 
 ```
@@ -4184,5 +4234,5 @@ version | comments
 3.49 | Added `CpuSamples` event kind, and `cpuSamples` property to `Event`.
 3.50 | Added `returnType`, `parameters`, and `typeParameters` to `@Instance`, and `implicit` to `@Function`. Added `Parameter` type.
 3.51 | Added optional `reportLines` parameter to `getSourceReport` RPC.
-
+3.52 | Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList` type.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
