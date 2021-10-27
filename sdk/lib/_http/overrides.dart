@@ -26,7 +26,7 @@ const _asyncRunZoned = runZoned;
 ///     // Operations will use MyHttpClient instead of the real HttpClient
 ///     // implementation whenever HttpClient is used.
 ///     ...
-///   }, createHttpClient: (SecurityContext c) => new MyHttpClient(c));
+///   }, createHttpClient: (SecurityContext c) => MyHttpClient(c));
 /// }
 /// ```
 abstract class HttpOverrides {

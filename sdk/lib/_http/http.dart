@@ -4,6 +4,8 @@
 
 library dart._http;
 
+import 'dart:_internal'
+    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
 import 'dart:async';
 import 'dart:collection'
     show
@@ -15,11 +17,9 @@ import 'dart:collection'
         UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
-import 'dart:_internal'
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+import 'dart:io';
 import 'dart:isolate' show Isolate;
 import 'dart:math';
-import 'dart:io';
 import 'dart:typed_data';
 
 part 'crypto.dart';
@@ -35,35 +35,39 @@ part 'websocket_impl.dart';
 
 /// A server that delivers content, such as web pages, using the HTTP protocol.
 ///
-/// The HttpServer is a [Stream] that provides [HttpRequest] objects. Each
-/// HttpRequest has an associated [HttpResponse] object.
-/// The server responds to a request by writing to that HttpResponse object.
-/// The following example shows how to bind an HttpServer to an IPv6
+/// Note: [HttpServer] provides low-level HTTP functionality.
+/// We recommend users evaluate the high-level APIs discussed at
+/// [Write HTTP servers](https://dart.dev/tutorials/server/httpserver) on
+/// [dart.dev](https://dart.dev/).
+///
+/// `HttpServer` is a [Stream] that provides [HttpRequest] objects. Each
+/// `HttpRequest` has an associated [HttpResponse] object.
+/// The server responds to a request by writing to that [HttpResponse] object.
+/// The following example shows how to bind an `HttpServer` to an IPv6
 /// [InternetAddress] on port 80 (the standard port for HTTP servers)
 /// and how to listen for requests.
 /// Port 80 is the default HTTP port. However, on most systems accessing
 /// this requires super-user privileges. For local testing consider
 /// using a non-reserved port (1024 and above).
 ///
-///     import 'dart:io';
+/// ```dart
+/// import 'dart:io';
 ///
-///     main() {
-///       HttpServer
-///           .bind(InternetAddress.anyIPv6, 80)
-///           .then((server) {
-///             server.listen((HttpRequest request) {
-///               request.response.write('Hello, world!');
-///               request.response.close();
-///             });
-///           });
-///     }
+/// Future<void> main() async {
+///   var server = await HttpServer.bind(InternetAddress.anyIPv6, 80);
+///   await server.forEach((HttpRequest request) {
+///     request.response.write('Hello, world!');
+///     request.response.close();
+///   });
+/// }
+/// ```
 ///
 /// Incomplete requests, in which all or part of the header is missing, are
-/// ignored, and no exceptions or HttpRequest objects are generated for them.
-/// Likewise, when writing to an HttpResponse, any [Socket] exceptions are
+/// ignored, and no exceptions or [HttpRequest] objects are generated for them.
+/// Likewise, when writing to an [HttpResponse], any [Socket] exceptions are
 /// ignored and any future writes are ignored.
 ///
-/// The HttpRequest exposes the request headers and provides the request body,
+/// The [HttpRequest] exposes the request headers and provides the request body,
 /// if it exists, as a Stream of data. If the body is unread, it is drained
 /// when the server writes to the HttpResponse or closes it.
 ///
@@ -75,62 +79,27 @@ part 'websocket_impl.dart';
 /// chain and the private key are set in the [SecurityContext]
 /// object that is passed to [bindSecure].
 ///
-///     import 'dart:io';
-///     import "dart:isolate";
+/// ```dart
+/// import 'dart:io';
 ///
-///     main() {
-///       SecurityContext context = new SecurityContext();
-///       var chain =
-///           Platform.script.resolve('certificates/server_chain.pem')
-///           .toFilePath();
-///       var key =
-///           Platform.script.resolve('certificates/server_key.pem')
-///           .toFilePath();
-///       context.useCertificateChain(chain);
-///       context.usePrivateKey(key, password: 'dartdart');
+/// Future<void> main() async {
+///   var chain =
+///       Platform.script.resolve('certificates/server_chain.pem').toFilePath();
+///   var key = Platform.script.resolve('certificates/server_key.pem').toFilePath();
+///   var context = SecurityContext()
+///     ..useCertificateChain(chain)
+///     ..usePrivateKey(key, password: 'dartdart');
+///   var server =
+///       await HttpServer.bindSecure(InternetAddress.anyIPv6, 443, context);
+///   await server.forEach((HttpRequest request) {
+///     request.response.write('Hello, world!');
+///     request.response.close();
+///   });
+/// }
+/// ```
 ///
-///       HttpServer
-///           .bindSecure(InternetAddress.anyIPv6,
-///                       443,
-///                       context)
-///           .then((server) {
-///             server.listen((HttpRequest request) {
-///               request.response.write('Hello, world!');
-///               request.response.close();
-///             });
-///           });
-///     }
-///
-///  The certificates and keys are PEM files, which can be created and
-///  managed with the tools in OpenSSL.
-///
-/// ## Connect to a server socket
-///
-/// You can use the [listenOn] constructor to attach an HTTP server to
-/// a [ServerSocket].
-///
-///     import 'dart:io';
-///
-///     main() {
-///       ServerSocket.bind(InternetAddress.anyIPv6, 80)
-///         .then((serverSocket) {
-///           HttpServer httpserver = new HttpServer.listenOn(serverSocket);
-///           serverSocket.listen((Socket socket) {
-///             socket.write('Hello, client.');
-///           });
-///         });
-///     }
-///
-/// ## Other resources
-///
-/// * HttpServer is a Stream. Refer to the [Stream] class for information
-/// about the streaming qualities of an HttpServer.
-/// Pausing the subscription of the stream, pauses at the OS level.
-///
-/// * The [shelf](https://pub.dev/packages/shelf)
-/// package on pub.dev contains a set of high-level classes that,
-/// together with this class, makes it easy to provide content through HTTP
-/// servers.
+/// The certificates and keys are PEM files, which can be created and
+/// managed with the tools in OpenSSL.
 abstract class HttpServer implements Stream<HttpRequest> {
   /// Gets and sets the default value of the `Server` header for all responses
   /// generated by this [HttpServer].
@@ -206,7 +175,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
   /// value of 0 (the default) a reasonable value will be chosen by
   /// the system.
   ///
-  /// The optional argument [shared] specifies whether additional HttpServer
+  /// The optional argument [shared] specifies whether additional `HttpServer`
   /// objects can bind to the same combination of `address`, `port` and `v6Only`.
   /// If `shared` is `true` and more `HttpServer`s from this isolate or other
   /// isolates are bound to the port, then the incoming connections will be
@@ -247,7 +216,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
   /// certificates, getting them from a [SecurityContext], where they have been
   /// set using [SecurityContext.setClientAuthorities].
   ///
-  /// The optional argument [shared] specifies whether additional HttpServer
+  /// The optional argument [shared] specifies whether additional `HttpServer`
   /// objects can bind to the same combination of `address`, `port` and `v6Only`.
   /// If `shared` is `true` and more `HttpServer`s from this isolate or other
   /// isolates are bound to the port, then the incoming connections will be
@@ -727,7 +696,7 @@ abstract class HttpHeaders {
 /// use code like this:
 ///
 ///     HttpClientRequest request = ...;
-///     var v = new HeaderValue("text/plain", {"q": "0.3"});
+///     var v = HeaderValue("text/plain", {"q": "0.3"});
 ///     request.headers.add(HttpHeaders.acceptHeader, v);
 ///     request.headers.add(HttpHeaders.acceptHeader, "text/html");
 ///
@@ -775,6 +744,7 @@ abstract class HeaderValue {
   String toString();
 }
 
+/// The [session][HttpRequest.session] of an [HttpRequest].
 abstract class HttpSession implements Map {
   /// The id of the current session.
   String get id;
@@ -949,11 +919,6 @@ abstract class Cookie {
 /// A server-side object
 /// that contains the content of and information about an HTTP request.
 ///
-/// __Note__: Check out the
-/// [http_server](https://pub.dev/packages/http_server)
-/// package, which makes working with the low-level
-/// dart:io HTTP server subsystem easier.
-///
 /// `HttpRequest` objects are generated by an [HttpServer],
 /// which listens for HTTP requests on a specific host and port.
 /// For each request received, the HttpServer, which is a [Stream],
@@ -1100,7 +1065,7 @@ abstract class HttpRequest implements Stream<Uint8List> {
 ///
 ///     HttpResponse response = ...
 ///     response.headers.contentType
-///         = new ContentType("application", "json", charset: "utf-8");
+///         = ContentType("application", "json", charset: "utf-8");
 ///     response.write(...);  // Strings written will be UTF-8 encoded.
 ///
 /// If no charset is provided the default of ISO-8859-1 (Latin 1) will
@@ -1202,8 +1167,15 @@ abstract class HttpResponse implements IOSink {
   HttpConnectionInfo? get connectionInfo;
 }
 
-/// A client that receives content, such as web pages, from
-/// a server using the HTTP protocol.
+/// An HTTP client for communicating with an HTTP server.
+///
+/// Sends HTTP requests to an HTTP server and receives responses.
+/// Maintains state, including session cookies and other cookies,
+/// between multiple requests to the same server.
+///
+/// Note: [HttpClient] provides low-level HTTP functionality.
+/// We recommend users start with more developer-friendly and composable APIs
+/// found in [`package:http`](https://pub.dev/packages/http).
 ///
 /// HttpClient contains a number of methods to send an [HttpClientRequest]
 /// to an Http server and receive an [HttpClientResponse] back.
@@ -1223,30 +1195,31 @@ abstract class HttpResponse implements IOSink {
 /// the second future, which is returned by close,
 /// completes with an [HttpClientResponse] object.
 /// This object provides access to the headers and body of the response.
-/// The body is available as a stream implemented by HttpClientResponse.
+/// The body is available as a stream implemented by `HttpClientResponse`.
 /// If a body is present, it must be read. Otherwise, it leads to resource
 /// leaks. Consider using [HttpClientResponse.drain] if the body is unused.
 ///
-///     HttpClient client = new HttpClient();
-///     client.getUrl(Uri.parse("http://www.example.com/"))
-///         .then((HttpClientRequest request) {
-///           // Optionally set up headers...
-///           // Optionally write to the request object...
-///           // Then call close.
-///           ...
-///           return request.close();
-///         })
-///         .then((HttpClientResponse response) {
-///           // Process the response.
-///           ...
-///         });
+/// ```dart
+/// var client = HttpClient();
+/// try {
+///   HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
+///   // Optionally set up headers...
+///   // Optionally write to the request object...
+///   HttpClientResponse response = await request.close();
+///   // Process the response
+///   final stringData = await response.transform(utf8.decoder).join();
+///   print(stringData);
+/// } finally {
+///   client.close();
+/// }
+/// ```
 ///
 /// The future for [HttpClientRequest] is created by methods such as
 /// [getUrl] and [open].
 ///
 /// ## HTTPS connections
 ///
-/// An HttpClient can make HTTPS requests, connecting to a server using
+/// An `HttpClient` can make HTTPS requests, connecting to a server using
 /// the TLS (SSL) secure networking protocol. Calling [getUrl] with an
 /// https: scheme will work automatically, if the server's certificate is
 /// signed by a root CA (certificate authority) on the default list of
@@ -1259,7 +1232,7 @@ abstract class HttpResponse implements IOSink {
 ///
 /// ## Headers
 ///
-/// All HttpClient requests set the following header by default:
+/// All `HttpClient` requests set the following header by default:
 ///
 ///     Accept-Encoding: gzip
 ///
@@ -1270,23 +1243,22 @@ abstract class HttpResponse implements IOSink {
 ///
 ///      request.headers.removeAll(HttpHeaders.acceptEncodingHeader)
 ///
-/// ## Closing the HttpClient
+/// ## Closing the `HttpClient`
 ///
-/// The HttpClient supports persistent connections and caches network
+/// `HttpClient` supports persistent connections and caches network
 /// connections to reuse them for multiple requests whenever
 /// possible. This means that network connections can be kept open for
-/// some time after a request has completed. Use HttpClient.close
-/// to force the HttpClient object to shut down and to close the idle
+/// some time after a request has completed. Use [HttpClient.close]
+/// to force the `HttpClient` object to shut down and to close the idle
 /// network connections.
 ///
 /// ## Turning proxies on and off
 ///
-/// By default the HttpClient uses the proxy configuration available
+/// By default the `HttpClient` uses the proxy configuration available
 /// from the environment, see [findProxyFromEnvironment]. To turn off
-/// the use of proxies set the [findProxy] property to
-/// `null`.
+/// the use of proxies set the [findProxy] property to `null`.
 ///
-///     HttpClient client = new HttpClient();
+///     HttpClient client = HttpClient();
 ///     client.findProxy = null;
 abstract class HttpClient {
   static const int defaultHttpPort = 80;
@@ -1601,13 +1573,13 @@ abstract class HttpClient {
   /// To activate this way of resolving proxies assign this function to
   /// the [findProxy] property on the [HttpClient].
   ///
-  ///     HttpClient client = new HttpClient();
+  ///     HttpClient client = HttpClient();
   ///     client.findProxy = HttpClient.findProxyFromEnvironment;
   ///
   /// If you don't want to use the system environment you can use a
   /// different one by wrapping the function.
   ///
-  ///     HttpClient client = new HttpClient();
+  ///     HttpClient client = HttpClient();
   ///     client.findProxy = (url) {
   ///       return HttpClient.findProxyFromEnvironment(
   ///           url, environment: {"http_proxy": ..., "no_proxy": ...});
@@ -1665,9 +1637,9 @@ abstract class HttpClient {
   /// returned `false`
   ///
   /// If the callback returns true, the secure connection is accepted and the
-  /// [:Future<HttpClientRequest>:] that was returned from the call making the
+  /// `Future<HttpClientRequest>` that was returned from the call making the
   /// request completes with a valid HttpRequest object. If the callback returns
-  /// false, the [:Future<HttpClientRequest>:] completes with an exception.
+  /// false, the `Future<HttpClientRequest>` completes with an exception.
   ///
   /// If a bad certificate is received on a connection attempt, the library calls
   /// the function that was the value of badCertificateCallback at the time
@@ -1691,8 +1663,8 @@ abstract class HttpClient {
 ///
 /// To set up a request, set the headers using the headers property
 /// provided in this class and write the data to the body of the request.
-/// HttpClientRequest is an [IOSink]. Use the methods from IOSink,
-/// such as writeCharCode(), to write the body of the HTTP
+/// `HttpClientRequest` is an [IOSink]. Use the methods from IOSink,
+/// such as `writeCharCode()`, to write the body of the HTTP
 /// request. When one of the IOSink methods is used for the first
 /// time, the request header is sent. Calling any methods that
 /// change the header after it is sent throws an exception.
@@ -1701,17 +1673,20 @@ abstract class HttpClient {
 /// encoding used is determined from the "charset" parameter of
 /// the "Content-Type" header.
 ///
-///     HttpClientRequest request = ...
-///     request.headers.contentType
-///         = new ContentType("application", "json", charset: "utf-8");
-///     request.write(...);  // Strings written will be UTF-8 encoded.
+/// ```dart
+/// HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
+/// request.headers.contentType =
+///     ContentType('application', 'json', charset: 'utf-8');
+/// request.write('text content👍🎯'); // Strings written will be UTF-8 encoded.
+/// ```
 ///
-/// If no charset is provided the default of ISO-8859-1 (Latin 1) is
-/// be used.
+/// If no charset is provided the default of ISO-8859-1 (Latin 1) is used.
 ///
-///     HttpClientRequest request = ...
-///     request.headers.add(HttpHeaders.contentTypeHeader, "text/plain");
-///     request.write(...);  // Strings written will be ISO-8859-1 encoded.
+/// ```dart
+/// HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
+/// request.headers.add(HttpHeaders.contentTypeHeader, "text/plain");
+/// request.write('blåbærgrød'); // Strings written will be ISO-8859-1 encoded
+/// ```
 ///
 /// An exception is thrown if you use an unsupported encoding and the
 /// `write()` method being used takes a string parameter.
@@ -1825,17 +1800,21 @@ abstract class HttpClientRequest implements IOSink {
 
 /// HTTP response for a client connection.
 ///
-/// The body of a [HttpClientResponse] object is a
-/// [Stream] of data from the server. Listen to the body to handle
-/// the data and be notified when the entire body is received.
+/// The body of a [HttpClientResponse] object is a [Stream] of data from the
+/// server. Use [Stream] methods like [`transform`][Stream.transform] and
+/// [`join`][Stream.join] to access the data.
 ///
-///     new HttpClient().get('localhost', 80, '/file.txt')
-///          .then((HttpClientRequest request) => request.close())
-///          .then((HttpClientResponse response) {
-///            response.transform(utf8.decoder).listen((contents) {
-///              // handle data
-///            });
-///          });
+/// ```dart
+/// var client = HttpClient();
+/// try {
+///   HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
+///   HttpClientResponse response = await request.close();
+///   final stringData = await response.transform(utf8.decoder).join();
+///   print(stringData);
+/// } finally {
+///   client.close();
+/// }
+/// ```
 abstract class HttpClientResponse implements Stream<List<int>> {
   /// Returns the status code.
   ///
@@ -2006,16 +1985,6 @@ abstract class RedirectInfo {
 
   /// Returns the location for the redirect.
   Uri get location;
-}
-
-/// When detaching a socket from either the [:HttpServer:] or the
-/// [:HttpClient:] due to a HTTP connection upgrade there might be
-/// unparsed data already read from the socket. This unparsed data
-/// together with the detached socket is returned in an instance of
-/// this class.
-abstract class DetachedSocket {
-  Socket get socket;
-  List<int> get unparsedData;
 }
 
 class HttpException implements IOException {

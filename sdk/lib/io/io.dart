@@ -62,16 +62,17 @@
 /// ```
 /// ## HttpServer and HttpClient
 ///
-/// The classes [HttpServer] and [HttpClient]
-/// provide HTTP server and HTTP client functionality.
+/// The classes [HttpClient] and [HttpServer] provide low-level HTTP
+/// functionality.
 ///
-/// The [HttpServer] class provides the basic functionality for
-/// implementing an HTTP server.
-/// For some higher-level building-blocks, we recommend that you try
-/// the [shelf](https://pub.dev/packages/shelf)
-/// pub package, which contains
-/// a set of high-level classes that, together with the [HttpServer] class
-/// in this library, make it easier to implement HTTP servers.
+/// Instead of using these classes directly, consider using more
+/// developer-friendly and composable APIs found in packages.
+///
+/// For HTTP clients, look at [`package:http`](https://pub.dev/packages/http).
+///
+/// For HTTP servers, look at
+/// [Write HTTP servers](https://dart.dev/tutorials/server/httpserver) on
+/// [dart.dev](https://dart.dev/).
 ///
 /// ## Process
 ///
