@@ -56,7 +56,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t10 = this;
       final core::bool #t11 = blah;
-      final core::String? #t12 = self::NativeClassy::_meh$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t10)), #t11){(ffi::Pointer<ffi::Void>, core::bool) → core::Object?} as core::String?;
+      final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t10)), #t11){(ffi::Pointer<ffi::Void>, core::bool) → core::Object?});
       _in::reachabilityFence(#t10);
     } =>#t12;
   method blah() → core::bool
