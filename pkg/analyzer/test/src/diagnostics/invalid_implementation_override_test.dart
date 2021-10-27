@@ -120,6 +120,26 @@ class B	extends A with M {}
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
     ]);
   }
+
+  test_method_covariant_inheritance_merge() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+
+class C {
+  /// Not covariant-by-declaration here.
+  void foo(B b) {}
+}
+
+abstract class I {
+  /// Is covariant-by-declaration here.
+  void foo(covariant A a);
+}
+
+/// Is covariant-by-declaration here.
+class D extends C implements I {}
+''');
+  }
 }
 
 @reflectiveTest
