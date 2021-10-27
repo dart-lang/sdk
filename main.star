@@ -14,7 +14,7 @@ Generates the Luci configuration for the Dart project.
 
 load("//defaults.star", "defaults")
 
-lucicfg.check_version("1.21.5")
+lucicfg.check_version("1.29.1")
 
 # Enable LUCI Realms support.
 lucicfg.enable_experiment("crbug.com/1085650")
@@ -1794,7 +1794,7 @@ def chromium_infra_recipe(name):
         name = name,
         cipd_package =
             "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
-        cipd_version = "git_revision:ea071f071a42ea43d0064e3eea77d1daaaee0ecf",
+        cipd_version = "git_revision:bc0c2fb9082bc82a2d972b5cca8fc17afa55d34e",
         use_bbagent = True,
     )
 
@@ -1821,7 +1821,7 @@ dart_infra_builder(
     properties = {
         # This property controls the version of the recipe_bundler go tool:
         #   https://chromium.googlesource.com/infra/infra/+/main/go/src/infra/tools/recipe_bundler
-        "recipe_bundler_vers": "git_revision:ea071f071a42ea43d0064e3eea77d1daaaee0ecf",
+        "recipe_bundler_vers": "git_revision:bc0c2fb9082bc82a2d972b5cca8fc17afa55d34e",
         # These control the prefix of the CIPD package names that the tool
         # will create.
         "package_name_prefix": "dart/recipe_bundles",
