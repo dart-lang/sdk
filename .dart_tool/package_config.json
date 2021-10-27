@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-10-15T13:46:59.969883",
+  "generated": "2021-10-26T10:20:01.277340",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -515,7 +515,7 @@
     {
       "name": "package_deps",
       "rootUri": "../tools/package_deps",
-      "languageVersion": "2.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "path",

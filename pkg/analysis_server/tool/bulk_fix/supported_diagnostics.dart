@@ -7,19 +7,22 @@ import 'package:analyzer/error/error.dart';
 
 import 'parse_utils.dart';
 
-/// Print hint bulk-fix info.
+/// Print diagnostic bulk-fix info.
 Future<void> main() async {
   var overrideDetails = await BulkFixDetails().collectOverrides();
 
-  print('hints w/ correction producers:\n');
+  print('diagnostics w/ correction producers:\n');
 
   var hintEntries = FixProcessor.nonLintProducerMap.entries.where((e) =>
       e.key.type == ErrorType.HINT || e.key.type == ErrorType.STATIC_WARNING);
-  for (var hint in hintEntries) {
+
+  var diagnostics = List.from(hintEntries)
+    ..addAll(FixProcessor.lintProducerMap.entries);
+  for (var diagnostic in diagnostics) {
     var canBeAppliedInBulk = false;
     var missingExplanations = <String>[];
     var hasOverride = false;
-    for (var generator in hint.value) {
+    for (var generator in diagnostic.value) {
       var producer = generator();
       if (!producer.canBeAppliedInBulk) {
         var producerName = producer.runtimeType.toString();
@@ -36,7 +39,7 @@ Future<void> main() async {
       }
     }
 
-    print('${hint.key} bulk fixable: $canBeAppliedInBulk');
+    print('${diagnostic.key} bulk fixable: $canBeAppliedInBulk');
     if (!canBeAppliedInBulk && !hasOverride) {
       print('  => override missing');
     }

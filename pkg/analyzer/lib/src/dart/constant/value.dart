@@ -487,15 +487,7 @@ class DartObjectImpl implements DartObject {
     _assertType(testedType);
     var typeType = (testedType._state as TypeState)._type;
     BoolState state;
-    if (isNull) {
-      if (typeType == typeSystem.typeProvider.objectType ||
-          typeType == typeSystem.typeProvider.dynamicType ||
-          typeType == typeSystem.typeProvider.nullType) {
-        state = BoolState.TRUE_STATE;
-      } else {
-        state = BoolState.FALSE_STATE;
-      }
-    } else if (typeType == null) {
+    if (typeType == null) {
       state = BoolState.TRUE_STATE;
     } else {
       state = BoolState.from(typeSystem.isSubtypeOf(type, typeType));

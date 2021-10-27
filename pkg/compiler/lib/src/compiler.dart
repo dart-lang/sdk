@@ -44,6 +44,7 @@ import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
+import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
@@ -90,6 +91,7 @@ abstract class Compiler {
 
   final List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
+  ir.Component componentForTesting;
   JClosedWorld backendClosedWorldForTesting;
   DataSourceIndices closedWorldIndicesForTesting;
 
@@ -252,9 +254,12 @@ abstract class Compiler {
     reporter.log('Compiling $compilationTarget (${options.buildId})');
 
     if (options.readProgramSplit != null) {
+      var constraintUri = options.readProgramSplit;
       var constraintParser = psc.Parser();
-      programSplitConstraintsData =
-          await constraintParser.read(provider, options.readProgramSplit);
+      var programSplitJson = await CompilerFileSystem(provider)
+          .entityForUri(constraintUri)
+          .readAsString();
+      programSplitConstraintsData = constraintParser.read(programSplitJson);
     }
 
     if (onlyPerformGlobalTypeInference) {
@@ -308,6 +313,9 @@ abstract class Compiler {
       if (result == null) return;
       if (compilationFailed) {
         return;
+      }
+      if (retainDataForTesting) {
+        componentForTesting = result.component;
       }
       if (options.cfeOnly) return;
 

@@ -128,6 +128,8 @@ import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_deprecated_new_in_comment_reference_test.dart'
+    as remove_deprecated_new_in_comment_reference;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
@@ -321,6 +323,7 @@ void main() {
     remove_const.main();
     remove_constructor_name.main();
     remove_dead_code.main();
+    remove_deprecated_new_in_comment_reference.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -390,6 +391,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkForImmutable(node);
     _checkForInvalidSealedSuperclass(node);
     super.visitClassTypeAlias(node);
+  }
+
+  @override
+  void visitCommentReference(CommentReference node) {
+    var newKeyword = node.newKeyword;
+    if (newKeyword != null &&
+        _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+      _errorReporter.reportErrorForToken(
+          HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
+    }
+    super.visitCommentReference(node);
   }
 
   @override

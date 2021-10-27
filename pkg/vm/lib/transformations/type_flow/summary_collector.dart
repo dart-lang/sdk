@@ -1669,23 +1669,35 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitEqualsCall(EqualsCall node) {
-    final left = _visit(node.left);
-    final right = _visit(node.right);
+    _addUse(_visit(node.left));
+    _addUse(_visit(node.right));
     final target = node.interfaceTarget;
+    // 'operator==' is a very popular method which can be called
+    // with a huge number of combinations of argument types.
+    // These invocations can be sensitive to changes in the set of allocated
+    // classes, causing a large number of invalidated invocations.
+    // In order to speed up the analysis, arguments of 'operator=='
+    // are approximated eagerly to static types during summary construction.
     return _makeCall(
         node,
         (node.left is ThisExpression)
             ? new VirtualSelector(target)
             : new InterfaceSelector(target),
-        Args<TypeExpr>([left, right]));
+        Args<TypeExpr>([_staticType(node.left), _staticType(node.right)]));
   }
 
   @override
   TypeExpr visitEqualsNull(EqualsNull node) {
     final arg = _visit(node.expression);
     _makeNarrowNotNull(node, arg);
+    // 'operator==' is a very popular method which can be called
+    // with a huge number of combinations of argument types.
+    // These invocations can be sensitive to changes in the set of allocated
+    // classes, causing a large number of invalidated invocations.
+    // In order to speed up the analysis, arguments of 'operator=='
+    // are approximated eagerly to static types during summary construction.
     _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
-        Args<TypeExpr>([arg, _nullType]));
+        Args<TypeExpr>([_staticType(node.expression), _nullType]));
     return _boolType;
   }
 
@@ -1838,6 +1850,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         passTypeArguments: node.target.isFactory);
     final target = node.target;
     assert((target is! Field) && !target.isGetter && !target.isSetter);
+    if (target == _environment.coreTypes.identicalProcedure) {
+      assert(args.values.length == 2 && args.names.isEmpty);
+      // 'identical' is a very popular method which can be called
+      // with a huge number of combinations of argument types.
+      // Those invocations can be sensitive to changes in the set of allocated
+      // classes, causing a large number of invalidated invocations.
+      // In order to speed up the analysis, invocations of 'identical'
+      // are approximated eagerly during summary construction.
+      _makeCall(node, new DirectSelector(target),
+          Args<TypeExpr>([Type.nullableAny(), Type.nullableAny()]));
+      return _boolType;
+    }
     TypeExpr result = _makeCall(node, new DirectSelector(target), args);
     if (target == unsafeCast) {
       // Async transformation inserts unsafeCasts to make sure

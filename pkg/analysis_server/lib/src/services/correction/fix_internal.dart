@@ -105,6 +105,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
@@ -474,7 +475,6 @@ class FixProcessor extends BaseProcessor {
       ReplaceColonWithEquals.newInstance,
     ],
     LintNames.prefer_expression_function_bodies: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
@@ -518,7 +518,6 @@ class FixProcessor extends BaseProcessor {
       ConvertToIntLiteral.newInstance,
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithInterpolation.newInstance,
     ],
     LintNames.prefer_is_not_operator: [
@@ -1096,6 +1095,9 @@ class FixProcessor extends BaseProcessor {
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
       RemoveDeadCode.newInstance,
+    ],
+    HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
+      RemoveDeprecatedNewInCommentReference.newInstance,
     ],
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.newInstance,

@@ -439,6 +439,15 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
+   * No parameters.
+   */
+  static const HintCode DEPRECATED_NEW_IN_COMMENT_REFERENCE = HintCode(
+    'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
+    "Using the 'new' keyword in a comment reference is deprecated.",
+    correctionMessage: "Try referring to a constructor by its name.",
+  );
+
+  /**
    * Hint to use the ~/ operator.
    */
   static const HintCode DIVISION_OPTIMIZATION = HintCode(

@@ -15,6 +15,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
@@ -64,13 +65,13 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /// automatically called when a client listens to the stream returned by
   /// [results]. Subclasses should override this method, append at least one
   /// result to the [controller], and close the controller stream once complete.
-  Future<List<CompletionSuggestion>> computeSuggestions(
-    OperationPerformanceImpl performance,
-    DartCompletionRequest request,
+  Future<List<CompletionSuggestion>> computeSuggestions({
+    required OperationPerformanceImpl performance,
+    required DartCompletionRequest request,
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
-  ) async {
+  }) async {
     //
     // Allow plugins to start computing fixes.
     //
@@ -204,6 +205,84 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     );
   }
 
+  /// Implement the 'completion.getSuggestions2' request.
+  void getSuggestions2(Request request) async {
+    var params = CompletionGetSuggestions2Params.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
+
+    var provider = server.resourceProvider;
+    var pathContext = provider.pathContext;
+
+    // TODO(scheglov) Support non-Dart files.
+    if (!file_paths.isDart(pathContext, file)) {
+      server.sendResponse(
+        CompletionGetSuggestions2Result(offset, 0, [], [], false)
+            .toResponse(request.id),
+      );
+      return;
+    }
+
+    var resolvedUnit = await server.getResolvedUnit(file);
+    if (resolvedUnit == null) {
+      server.sendResponse(Response.fileNotAnalyzed(request, file));
+      return;
+    }
+
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+
+    if (offset < 0 || offset > resolvedUnit.content.length) {
+      server.sendResponse(Response.invalidParameter(
+          request,
+          'params.offset',
+          'Expected offset between 0 and source length inclusive,'
+              ' but found $offset'));
+      return;
+    }
+
+    final completionPerformance = CompletionPerformance();
+    recordRequest(completionPerformance, file, resolvedUnit.content, offset);
+
+    await completionPerformance.runRequestOperation((performance) async {
+      var completionRequest = DartCompletionRequest.from(
+        resolvedUnit: resolvedUnit,
+        offset: offset,
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
+          resolvedUnit,
+        ),
+        documentationCache: server.getDocumentationCacheFor(resolvedUnit),
+      );
+
+      var suggestions = await computeSuggestions(
+        performance: performance,
+        request: completionRequest,
+      );
+
+      performance.run('filter', (performance) {
+        performance.getDataInt('count').add(suggestions.length);
+        suggestions = fuzzyFilterSort(
+          pattern: completionRequest.targetPrefix,
+          suggestions: suggestions,
+        );
+        performance.getDataInt('matchCount').add(suggestions.length);
+      });
+
+      var lengthRestricted = suggestions.take(params.maxResults).toList();
+      var isIncomplete = lengthRestricted.length < suggestions.length;
+      completionPerformance.suggestionCount = lengthRestricted.length;
+
+      server.sendResponse(
+        CompletionGetSuggestions2Result(
+          completionRequest.replacementOffset,
+          completionRequest.replacementLength,
+          lengthRestricted,
+          [], // TODO(scheglov)
+          isIncomplete,
+        ).toResponse(request.id),
+      );
+    });
+  }
+
   @override
   Response? handleRequest(Request request) {
     if (!server.options.featureSet.completion) {
@@ -222,6 +301,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS2) {
+        getSuggestions2(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
@@ -341,11 +423,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       // Compute suggestions in the background
       try {
         var suggestions = await computeSuggestions(
-          perf,
-          completionRequest,
-          includedElementKinds,
-          includedElementNames,
-          includedSuggestionRelevanceTags,
+          performance: perf,
+          request: completionRequest,
+          includedElementKinds: includedElementKinds,
+          includedElementNames: includedElementNames,
+          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
         );
         String? libraryFile;
         var includedSuggestionSets = <IncludedSuggestionSet>[];

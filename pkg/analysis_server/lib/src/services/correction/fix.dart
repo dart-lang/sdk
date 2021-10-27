@@ -825,6 +825,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Remove dead code',
   );
+  static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
+    'dart.fix.remove.deprecatedNewInCommentReference',
+    DartFixKindPriority.DEFAULT,
+    'Remove deprecated new keyword',
+  );
+  static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE_MULTI = FixKind(
+    'dart.fix.remove.deprecatedNewInCommentReference.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove deprecated new keyword in file',
+  );
   static const REMOVE_DUPLICATE_CASE = FixKind(
     'dart.fix.remove.duplicateCase',
     DartFixKindPriority.DEFAULT,
