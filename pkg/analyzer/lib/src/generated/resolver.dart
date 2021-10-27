@@ -1224,21 +1224,20 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     boolExpressionVerifier.checkForNonBoolCondition(condition,
         whyNotPromoted: whyNotPromoted);
 
-    Expression thenExpression = node.thenExpression;
-    InferenceContext.setTypeFromNode(thenExpression, node);
+    InferenceContext.setTypeFromNode(node.thenExpression, node);
 
     if (flow != null) {
       flow.conditional_thenBegin(condition, node);
-      checkUnreachableNode(thenExpression);
+      checkUnreachableNode(node.thenExpression);
     }
-    thenExpression.accept(this);
-    nullSafetyDeadCodeVerifier.flowEnd(thenExpression);
+    node.thenExpression.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(node.thenExpression);
 
     Expression elseExpression = node.elseExpression;
     InferenceContext.setTypeFromNode(elseExpression, node);
 
     if (flow != null) {
-      flow.conditional_elseBegin(thenExpression);
+      flow.conditional_elseBegin(node.thenExpression);
       checkUnreachableNode(elseExpression);
       elseExpression.accept(this);
       flow.conditional_end(node, elseExpression);
@@ -1246,6 +1245,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     } else {
       elseExpression.accept(this);
     }
+    elseExpression = node.elseExpression;
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1300,6 +1300,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var expression = node.expression;
     InferenceContext.setType(expression, fieldType);
     expression.accept(this);
+    expression = node.expression;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1356,11 +1357,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   void visitDoStatement(DoStatement node) {
     checkUnreachableNode(node);
 
-    var body = node.body;
     var condition = node.condition;
 
     flowAnalysis.flow?.doStatement_bodyBegin(node);
-    body.accept(this);
+    node.body.accept(this);
 
     flowAnalysis.flow?.doStatement_conditionBegin();
     InferenceContext.setType(condition, typeProvider.boolType);
@@ -1599,10 +1599,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     boolExpressionVerifier.checkForNonBoolCondition(condition,
         whyNotPromoted: whyNotPromoted);
 
-    CollectionElement thenElement = node.thenElement;
     flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-    thenElement.accept(this);
-    nullSafetyDeadCodeVerifier.flowEnd(thenElement);
+    node.thenElement.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(node.thenElement);
 
     var elseElement = node.elseElement;
     if (elseElement != null) {
@@ -1632,10 +1631,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     boolExpressionVerifier.checkForNonBoolCondition(condition,
         whyNotPromoted: whyNotPromoted);
 
-    Statement thenStatement = node.thenStatement;
     flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-    thenStatement.accept(this);
-    nullSafetyDeadCodeVerifier.flowEnd(thenStatement);
+    node.thenStatement.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(node.thenStatement);
 
     var elseStatement = node.elseStatement;
     if (elseStatement != null) {
@@ -1760,6 +1758,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     var target = node.target;
     target?.accept(this);
+    target = node.target;
 
     if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
       var flow = flowAnalysis.flow;
@@ -2141,9 +2140,8 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     boolExpressionVerifier.checkForNonBoolCondition(node.condition,
         whyNotPromoted: whyNotPromoted);
 
-    Statement body = node.body;
     flowAnalysis.flow?.whileStatement_bodyBegin(node, condition);
-    body.accept(this);
+    node.body.accept(this);
     flowAnalysis.flow?.whileStatement_end();
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
     // TODO(brianwilkerson) If the loop can only be exited because the condition
