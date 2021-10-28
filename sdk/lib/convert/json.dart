@@ -84,7 +84,6 @@ const JsonCodec json = JsonCodec();
 /// final String jsonString = jsonEncode(data);
 /// print(jsonString); // {"text":"foo","value":2,"status":false,"extra":null}
 /// ```
-///
 String jsonEncode(Object? object,
         {Object? toEncodable(Object? nonEncodable)?}) =>
     json.encode(object, toEncodable: toEncodable);
@@ -126,7 +125,6 @@ String jsonEncode(Object? object,
 /// print(item['value']); // 1
 /// print(item['status']); // false
 /// ```
-///
 dynamic jsonDecode(String source,
         {Object? reviver(Object? key, Object? value)?}) =>
     json.decode(source, reviver: reviver);
@@ -232,7 +230,7 @@ class JsonCodec extends Codec<Object?, String> {
 /// print(jsonString); // {"text":"foo","value":"2"}
 /// ```
 ///
-/// Multiline example:
+/// Example of pretty-printed output:
 ///
 /// ```dart
 /// const JsonEncoder encoder = JsonEncoder.withIndent('  ');
@@ -245,7 +243,6 @@ class JsonCodec extends Codec<Object?, String> {
 /// //   "value": "2"
 /// // }
 /// ```
-///
 class JsonEncoder extends Converter<Object?, String> {
   /// The string used for indention.
   ///
