@@ -133,7 +133,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Example:
   /// ```dart
   /// LinkedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
-  ///                        hashCode: (int e) => e % 5)
+  ///                        hashCode: (int e) => e % 5);
   /// ```
   /// This example map does not need an `isValidKey` function to be passed.
   /// The default function accepts only `int` values, which can safely be
@@ -164,7 +164,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered identity-based map.
   ///
   /// Effectively a shorthand for:
-  /// ```dart
+  /// ```
   /// LinkedHashMap<K, V>(equals: identical,
   ///                     hashCode: identityHashCode)
   /// ```
