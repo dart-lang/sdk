@@ -366,11 +366,6 @@ class Scavenger {
     kIterateStoreBuffers = 3,
     kProcessToSpace = 4,
     kIterateWeaks = 5,
-    // Data
-    kStoreBufferEntries = 0,
-    kDataUnused1 = 1,
-    kDataUnused2 = 2,
-    kToKBAfterStoreBuffer = 3
   };
 
   uword TryAllocateFromTLAB(Thread* thread, intptr_t size) {

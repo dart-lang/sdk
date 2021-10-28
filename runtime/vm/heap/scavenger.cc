@@ -1148,13 +1148,10 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   // Grab the deduplication sets out of the isolate's consolidated store buffer.
   StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   StoreBufferBlock* pending = blocks_;
-  intptr_t total_count = 0;
   while (pending != nullptr) {
     StoreBufferBlock* next = pending->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(pending, sizeof(*pending));
-    intptr_t count = pending->Count();
-    total_count += count;
     while (!pending->IsEmpty()) {
       ObjectPtr raw_object = pending->Pop();
       ASSERT(!raw_object->IsForwardingCorpse());
@@ -1172,10 +1169,6 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   }
   // Done iterating through old objects remembered in the store buffers.
   visitor->VisitingOldObject(nullptr);
-
-  heap_->RecordData(kStoreBufferEntries, total_count);
-  heap_->RecordData(kDataUnused1, 0);
-  heap_->RecordData(kDataUnused2, 0);
 }
 
 template <bool parallel>

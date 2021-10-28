@@ -31,6 +31,7 @@ class SpaceUsage {
 
 enum class GCType {
   kScavenge,
+  kStartConcurrentMark,
   kMarkSweep,
   kMarkCompact,
 };
