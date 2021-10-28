@@ -242,15 +242,21 @@ class FunctionReferenceResolver {
       if (node.function is ConstructorReference) {
         node.staticType = DynamicTypeImpl.instance;
       } else {
-        var typeArguments = _checkTypeArguments(
-          // `node.typeArguments`, coming from the parser, is never null.
-          node.typeArguments!, name, rawType.typeFormals,
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-        );
+        var typeArguments = node.typeArguments;
+        if (typeArguments == null) {
+          node.staticType = rawType;
+        } else {
+          var typeArgumentTypes = _checkTypeArguments(
+            typeArguments,
+            name,
+            rawType.typeFormals,
+            CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+          );
 
-        var invokeType = rawType.instantiate(typeArguments);
-        node.typeArgumentTypes = typeArguments;
-        node.staticType = invokeType;
+          var invokeType = rawType.instantiate(typeArgumentTypes);
+          node.typeArgumentTypes = typeArgumentTypes;
+          node.staticType = invokeType;
+        }
       }
     } else {
       if (_resolver.isConstructorTearoffsEnabled) {

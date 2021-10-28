@@ -2278,11 +2278,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       // Helper functions to test if a constructor invocation is internal and
       // should be eagerly evaluated.
-      var isInternalConstructor = (ConstructorInvocation node) {
+      bool isInternalConstructor(ConstructorInvocation node) {
         var type = node.getStaticType(_staticTypeContext) as InterfaceType;
         var library = type.classNode.enclosingLibrary;
         return isSdkInternalRuntime(library);
-      };
+      }
+
       for (var field in fields) {
         _staticTypeContext.enterMember(field);
         var init = field.initializer;
@@ -2824,9 +2825,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // type arguments are applied.
       if (type.typeParameters.isNotEmpty) return true;
 
-      return (_canEmitTypeAtTopLevel(type.returnType) &&
+      return _canEmitTypeAtTopLevel(type.returnType) &&
           type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
-          type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type)));
+          type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type));
     }
     if (type is TypedefType) {
       return type.typeArguments.every(_canEmitTypeAtTopLevel);
@@ -3667,6 +3668,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _cacheUri(location?.file?.toString()),
             js.number(location?.line ?? -1),
             js.number(location?.column ?? -1),
+            // ignore: unnecessary_string_interpolations
             js.escapedString('${p.name}')
           ])
         ]);
@@ -5082,10 +5084,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (parent.name.text == '&' && parent.arguments.positional.length == 1) {
         var left = getInvocationReceiver(parent);
         var right = parent.arguments.positional[0];
-        final MAX = (1 << width) - 1;
+        final max = (1 << width) - 1;
         if (left != null) {
-          if (_asIntInRange(right, 0, MAX) != null) return true;
-          if (_asIntInRange(left, 0, MAX) != null) return true;
+          if (_asIntInRange(right, 0, max) != null) return true;
+          if (_asIntInRange(left, 0, max) != null) return true;
         }
       }
       return _parentMasksToWidth(parent, width);

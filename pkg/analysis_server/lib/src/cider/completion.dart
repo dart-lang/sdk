@@ -70,7 +70,7 @@ class CiderCompletionComputer {
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
-      _dartCompletionRequest = DartCompletionRequest.from(
+      _dartCompletionRequest = DartCompletionRequest(
         resolvedUnit: resolvedUnit,
         offset: offset,
       );

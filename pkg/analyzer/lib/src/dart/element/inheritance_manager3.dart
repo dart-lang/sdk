@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -626,6 +627,11 @@ class InheritanceManager3 {
       }
     }
 
+    implemented = implemented.map<Name, ExecutableElement>((key, value) {
+      var result = _inheritCovariance(element, namedCandidates, key, value);
+      return MapEntry(key, result);
+    });
+
     return Interface._(
       interface,
       declared,
@@ -695,6 +701,102 @@ class InheritanceManager3 {
       [superInterface],
       <Conflict>[...superConflicts, ...interfaceConflicts],
     );
+  }
+
+  /// If a candidate from [namedCandidates] has covariant parameters, return
+  /// a copy of the [executable] with the corresponding parameters marked
+  /// covariant. If there are no covariant parameters, or parameters to
+  /// update are already covariant, return the [executable] itself.
+  ExecutableElement _inheritCovariance(
+    ClassElement class_,
+    Map<Name, List<ExecutableElement>> namedCandidates,
+    Name name,
+    ExecutableElement executable,
+  ) {
+    if (executable.enclosingElement == class_) {
+      return executable;
+    }
+
+    var parameters = executable.parameters;
+    if (parameters.isEmpty) {
+      return executable;
+    }
+
+    var candidates = namedCandidates[name];
+    if (candidates == null) {
+      return executable;
+    }
+
+    // Find parameters that are covariant (by declaration) in any overridden.
+    Set<_ParameterDesc>? covariantParameters;
+    for (var candidate in candidates) {
+      var parameters = candidate.parameters;
+      for (var i = 0; i < parameters.length; i++) {
+        var parameter = parameters[i];
+        if (parameter.isCovariant) {
+          covariantParameters ??= {};
+          covariantParameters.add(
+            _ParameterDesc(i, parameter),
+          );
+        }
+      }
+    }
+
+    if (covariantParameters == null) {
+      return executable;
+    }
+
+    // Update covariance of the parameters of the chosen executable.
+    List<ParameterElement>? transformedParameters;
+    for (var index = 0; index < parameters.length; index++) {
+      var parameter = parameters[index];
+      var shouldBeCovariant = covariantParameters.contains(
+        _ParameterDesc(index, parameter),
+      );
+      if (parameter.isCovariant != shouldBeCovariant) {
+        transformedParameters ??= parameters.toList();
+        transformedParameters[index] = parameter.copyWith(
+          isCovariant: shouldBeCovariant,
+        );
+      }
+    }
+
+    if (transformedParameters == null) {
+      return executable;
+    }
+
+    if (executable is MethodElement) {
+      var result = MethodElementImpl(executable.name, -1);
+      result.enclosingElement = class_;
+      result.isSynthetic = true;
+      result.parameters = transformedParameters;
+      result.prototype = executable;
+      result.returnType = executable.returnType;
+      result.typeParameters = executable.typeParameters;
+      return result;
+    }
+
+    if (executable is PropertyAccessorElement) {
+      assert(executable.isSetter);
+      var result = PropertyAccessorElementImpl(executable.name, -1);
+      result.enclosingElement = class_;
+      result.isSynthetic = true;
+      result.parameters = transformedParameters;
+      result.prototype = executable;
+      result.returnType = executable.returnType;
+
+      var field = executable.variable;
+      var resultField = FieldElementImpl(field.name, -1);
+      resultField.enclosingElement = class_;
+      resultField.getter = field.getter;
+      resultField.setter = executable;
+      resultField.type = executable.parameters[0].type;
+      result.variable = resultField;
+
+      return result;
+    }
+
+    return executable;
   }
 
   /// Given one or more [validOverrides], merge them into a single resulting
@@ -906,4 +1008,35 @@ class Name {
 
   @override
   String toString() => libraryUri != null ? '$libraryUri::$name' : name;
+}
+
+class _ParameterDesc {
+  final int? index;
+  final String? name;
+
+  factory _ParameterDesc(int index, ParameterElement element) {
+    return element.isNamed
+        ? _ParameterDesc.name(element.name)
+        : _ParameterDesc.index(index);
+  }
+
+  _ParameterDesc.index(int index)
+      : index = index,
+        name = null;
+
+  _ParameterDesc.name(String name)
+      : index = null,
+        name = name;
+
+  @override
+  int get hashCode {
+    return index?.hashCode ?? name?.hashCode ?? 0;
+  }
+
+  @override
+  bool operator ==(other) {
+    return other is _ParameterDesc &&
+        other.index == index &&
+        other.name == name;
+  }
 }

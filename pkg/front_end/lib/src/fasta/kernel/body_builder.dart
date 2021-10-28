@@ -112,7 +112,7 @@ import '../source/stack_listener_impl.dart' show offsetForToken;
 import '../source/value_kinds.dart';
 
 import '../type_inference/type_inferrer.dart'
-    show TypeInferrer, InferredFunctionBody;
+    show TypeInferrer, InferredFunctionBody, InitializerInferenceResult;
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import '../util/helpers.dart' show DelayedActionPerformer;
@@ -960,7 +960,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   formal: formal);
             }
             for (Initializer initializer in initializers) {
-              member.addInitializer(initializer, this);
+              member.addInitializer(initializer, this, inferenceResult: null);
             }
           }
         }
@@ -1648,12 +1648,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (_initializers != null) {
+      Map<Initializer, InitializerInferenceResult> inferenceResults =
+          <Initializer, InitializerInferenceResult>{};
       for (Initializer initializer in _initializers!) {
-        typeInferrer.inferInitializer(this, initializer);
+        inferenceResults[initializer] =
+            typeInferrer.inferInitializer(this, initializer);
       }
       if (!builder.isExternal) {
         for (Initializer initializer in _initializers!) {
-          builder.addInitializer(initializer, this);
+          builder.addInitializer(initializer, this,
+              inferenceResult: inferenceResults[initializer]!);
         }
       }
     }

@@ -461,11 +461,10 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       }
     }
   } else {  // not optimized.
-    if (function.ic_data_array() == Array::null()) {
-      function.SaveICDataMap(
-          graph_compiler->deopt_id_to_ic_data(),
-          Array::Handle(zone, graph_compiler->edge_counters_array()));
-    }
+    function.SaveICDataMap(
+        graph_compiler->deopt_id_to_ic_data(),
+        Array::Handle(zone, graph_compiler->edge_counters_array()),
+        flow_graph->coverage_array());
     function.set_unoptimized_code(code);
     function.AttachCode(code);
     function.SetWasCompiled(true);

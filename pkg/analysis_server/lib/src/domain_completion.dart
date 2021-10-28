@@ -33,6 +33,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
 class CompletionDomainHandler extends AbstractRequestHandler {
+  /// The time budget for a completion request.
+  static const Duration _budgetDuration = Duration(milliseconds: 100);
+
   /// The maximum number of performance measurements to keep.
   static const int performanceListMaxLength = 50;
 
@@ -66,11 +69,13 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /// [results]. Subclasses should override this method, append at least one
   /// result to the [controller], and close the controller stream once complete.
   Future<List<CompletionSuggestion>> computeSuggestions({
+    required CompletionBudget budget,
     required OperationPerformanceImpl performance,
     required DartCompletionRequest request,
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
+    List<Uri>? librariesToImport,
   }) async {
     //
     // Allow plugins to start computing fixes.
@@ -88,6 +93,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+        librariesToImport: librariesToImport,
       );
 
       try {
@@ -106,7 +112,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     //
     if (requestToPlugins != null) {
       await performance.runAsync('waitForPlugins', (_) async {
-        await _addPluginSuggestions(requestToPlugins, suggestions);
+        await _addPluginSuggestions(budget, requestToPlugins, suggestions);
       });
     }
 
@@ -207,6 +213,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Implement the 'completion.getSuggestions2' request.
   void getSuggestions2(Request request) async {
+    var budget = CompletionBudget(_budgetDuration);
+
     var params = CompletionGetSuggestions2Params.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
@@ -244,7 +252,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     recordRequest(completionPerformance, file, resolvedUnit.content, offset);
 
     await completionPerformance.runRequestOperation((performance) async {
-      var completionRequest = DartCompletionRequest.from(
+      var completionRequest = DartCompletionRequest(
         resolvedUnit: resolvedUnit,
         offset: offset,
         dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
@@ -253,9 +261,12 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         documentationCache: server.getDocumentationCacheFor(resolvedUnit),
       );
 
+      var librariesToImport = <Uri>[];
       var suggestions = await computeSuggestions(
+        budget: budget,
         performance: performance,
         request: completionRequest,
+        librariesToImport: librariesToImport,
       );
 
       performance.run('filter', (performance) {
@@ -276,7 +287,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           completionRequest.replacementOffset,
           completionRequest.replacementLength,
           lengthRestricted,
-          [], // TODO(scheglov)
+          librariesToImport.map((e) => '$e').toList(),
           isIncomplete,
         ).toResponse(request.id),
       );
@@ -326,6 +337,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Process a `completion.getSuggestions` request.
   Future<void> processRequest(Request request) async {
+    var budget = CompletionBudget(_budgetDuration);
+
     final performance = this.performance = CompletionPerformance();
 
     await performance.runRequestOperation((perf) async {
@@ -392,7 +405,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         return;
       }
 
-      var completionRequest = DartCompletionRequest.from(
+      var completionRequest = DartCompletionRequest(
         resolvedUnit: resolvedUnit,
         offset: offset,
         dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
@@ -423,6 +436,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       // Compute suggestions in the background
       try {
         var suggestions = await computeSuggestions(
+          budget: budget,
           performance: perf,
           request: completionRequest,
           includedElementKinds: includedElementKinds,
@@ -550,13 +564,15 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Add the completions produced by plugins to the server-generated list.
   Future<void> _addPluginSuggestions(
+    CompletionBudget budget,
     _RequestToPlugins requestToPlugins,
     List<CompletionSuggestion> suggestions,
   ) async {
     var responses = await waitForResponses(
       requestToPlugins.futures,
       requestParameters: requestToPlugins.parameters,
-      timeout: 100,
+      // TODO(scheglov) pass Duration
+      timeout: budget.left.inMilliseconds,
     );
     for (var response in responses) {
       var result = plugin.CompletionGetSuggestionsResult.fromResponse(response);

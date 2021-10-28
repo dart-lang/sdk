@@ -145,7 +145,8 @@ abstract class TypeInferrer {
       DartType returnType, AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  void inferInitializer(InferenceHelper helper, Initializer initializer);
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper, Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
   void inferMetadata(
@@ -410,19 +411,22 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  void inferInitializer(InferenceHelper helper, Initializer initializer) {
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper, Initializer initializer) {
     this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
+    InitializerInferenceResult inferenceResult;
     if (initializer is InitializerJudgment) {
-      initializer.acceptInference(new InferenceVisitor(this));
+      inferenceResult = initializer.acceptInference(new InferenceVisitor(this));
     } else {
-      initializer.accept(new InferenceVisitor(this));
+      inferenceResult = initializer.accept(new InferenceVisitor(this));
     }
     this.helper = null;
+    return inferenceResult;
   }
 
   bool isDoubleContext(DartType typeContext) {
@@ -4905,11 +4909,9 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
       if (expression is FactoryConstructorInvocation) {
         return _insertHoistedExpressions(expression, hoistedArguments);
       } else if (expression is TypeAliasedConstructorInvocation) {
-        // Should be unaliased at this point, the code is for completeness.
         return _insertHoistedExpressions(expression, hoistedArguments);
       } else if (expression is TypeAliasedFactoryInvocation) {
-        // Should be unaliased at this point, the code is for completeness.
-        return expression;
+        return _insertHoistedExpressions(expression, hoistedArguments);
       } else if (expression is ConstructorInvocation) {
         return _insertHoistedExpressions(expression, hoistedArguments);
       } else if (expression is DynamicInvocation) {
@@ -4980,6 +4982,78 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   Expression applyResult(Expression expression) {
     return helper.wrapInProblem(expression, message, fileOffset, length);
   }
+}
+
+abstract class InitializerInferenceResult {
+  /// Modifies list of initializers in-place to apply the inference result.
+  void applyResult(List<Initializer> initializers, TreeNode? parent);
+
+  factory InitializerInferenceResult.fromInvocationInferenceResult(
+      InvocationInferenceResult invocationInferenceResult) {
+    if (invocationInferenceResult is SuccessfulInferenceResult) {
+      return new SuccessfulInitializerInvocationInferenceResult
+          .fromSuccessfulInferenceResult(invocationInferenceResult);
+    } else {
+      return new WrapInProblemInitializerInferenceResult
+              .fromWrapInProblemInferenceResult(
+          invocationInferenceResult as WrapInProblemInferenceResult);
+    }
+  }
+}
+
+class SuccessfulInitializerInferenceResult
+    implements InitializerInferenceResult {
+  const SuccessfulInitializerInferenceResult();
+
+  @override
+  void applyResult(List<Initializer> initializers, TreeNode? parent) {}
+}
+
+class SuccessfulInitializerInvocationInferenceResult
+    implements InitializerInferenceResult {
+  final DartType inferredType;
+
+  final FunctionType functionType;
+
+  final List<VariableDeclaration>? hoistedArguments;
+
+  final DartType? inferredReceiverType;
+
+  SuccessfulInitializerInvocationInferenceResult(
+      {required this.inferredType,
+      required this.functionType,
+      required this.hoistedArguments,
+      required this.inferredReceiverType});
+
+  SuccessfulInitializerInvocationInferenceResult.fromSuccessfulInferenceResult(
+      SuccessfulInferenceResult successfulInferenceResult)
+      : this(
+            inferredType: successfulInferenceResult.inferredType,
+            functionType: successfulInferenceResult.functionType,
+            hoistedArguments: successfulInferenceResult.hoistedArguments,
+            inferredReceiverType:
+                successfulInferenceResult.inferredReceiverType);
+
+  @override
+  void applyResult(List<Initializer> initializers, TreeNode? parent) {
+    List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
+    if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
+      for (VariableDeclaration hoistedArgument in hoistedArguments) {
+        initializers.add(new LocalInitializer(hoistedArgument)
+          ..parent = parent
+          ..fileOffset = hoistedArgument.fileOffset);
+      }
+    }
+  }
+}
+
+class WrapInProblemInitializerInferenceResult
+    implements InitializerInferenceResult {
+  WrapInProblemInitializerInferenceResult.fromWrapInProblemInferenceResult(
+      WrapInProblemInferenceResult wrapInProblemInferenceResult);
+
+  @override
+  void applyResult(List<Initializer> initializers, TreeNode? parent) {}
 }
 
 /// The result of inference of a property get expression.

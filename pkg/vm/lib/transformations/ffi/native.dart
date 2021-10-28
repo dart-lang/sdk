@@ -118,7 +118,7 @@ class FfiNativeTransformer extends FfiTransformer {
         ffiReturnType,
         handleClass.getThisType(coreTypes, Nullability.nonNullable),
         SubtypeCheckMode.ignoringNullabilities)) {
-      return objectClass.getThisType(coreTypes, Nullability.nonNullable);
+      return objectClass.getThisType(coreTypes, dartReturnType.nullability);
     }
     return dartReturnType;
   }
@@ -293,7 +293,8 @@ class FfiNativeTransformer extends FfiTransformer {
         ffiFunctionType.returnType,
         handleClass.getThisType(coreTypes, Nullability.nonNullable),
         SubtypeCheckMode.ignoringNullabilities)) {
-      resultInitializer = AsExpression(invocation, dartFunctionType.returnType);
+      resultInitializer = StaticInvocation(unsafeCastMethod,
+          Arguments([invocation], types: [dartFunctionType.returnType]));
     }
 
     //   final T #t1 = foo(Pointer.fromAddress(_getNativeField(#t0)));

@@ -333,6 +333,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
     kMatchAndMoveCheckNull,
     kMatchAndMoveLoadField,
     kMoveDebugStepChecks,
+    kMatchAndMoveRecordCoverage,
     kMatchAndMoveClosureCall,
     kMoveDebugStepChecks,
     kMatchReturn,

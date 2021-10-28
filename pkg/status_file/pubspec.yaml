@@ -5,7 +5,8 @@ environment:
   sdk: "^2.12.0"
 dependencies:
   path: "^1.4.0"
-  args: "^1.4.4"
+  args: ^2.0.0
+
 dev_dependencies:
   expect:
     path: ../expect

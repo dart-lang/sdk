@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/completion/dart/library_prefix_cont
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/redirecting_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
@@ -44,6 +45,19 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
+/// Class that tracks how much time budget we have left.
+class CompletionBudget {
+  final Duration _budget;
+  final Stopwatch _timer = Stopwatch()..start();
+
+  CompletionBudget(this._budget);
+
+  Duration get left {
+    var result = _budget - _timer.elapsed;
+    return result.isNegative ? Duration.zero : result;
+  }
+}
+
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager {
@@ -67,16 +81,22 @@ class DartCompletionManager {
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
 
+  /// If specified, will be filled with URIs of libraries that are not yet
+  /// imported, but could be imported into the requested target. Corresponding
+  /// [CompletionSuggestion] will have the import index into this list.
+  final List<Uri>? librariesToImport;
+
   /// Initialize a newly created completion manager. The parameters
   /// [includedElementKinds], [includedElementNames], and
   /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
   /// non-`null`.
-  DartCompletionManager(
-      {this.includedElementKinds,
-      this.includedElementNames,
-      this.includedSuggestionRelevanceTags,
-      this.listener})
-      : assert((includedElementKinds != null &&
+  DartCompletionManager({
+    this.includedElementKinds,
+    this.includedElementNames,
+    this.includedSuggestionRelevanceTags,
+    this.listener,
+    this.librariesToImport,
+  }) : assert((includedElementKinds != null &&
                 includedElementNames != null &&
                 includedSuggestionRelevanceTags != null) ||
             (includedElementKinds == null &&
@@ -130,6 +150,13 @@ class DartCompletionManager {
     } else {
       contributors.add(
         ImportedReferenceContributor(request, builder),
+      );
+    }
+
+    final librariesToImport = this.librariesToImport;
+    if (librariesToImport != null) {
+      contributors.add(
+        NotImportedContributor(request, builder, librariesToImport),
       );
     }
 
@@ -283,6 +310,47 @@ class DartCompletionRequest {
 
   bool _aborted = false;
 
+  factory DartCompletionRequest({
+    required ResolvedUnitResult resolvedUnit,
+    required int offset,
+    DartdocDirectiveInfo? dartdocDirectiveInfo,
+    CompletionPreference completionPreference = CompletionPreference.insert,
+    DocumentationCache? documentationCache,
+  }) {
+    var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
+    var dotTarget = _dotTarget(target);
+
+    var featureComputer = FeatureComputer(
+      resolvedUnit.typeSystem,
+      resolvedUnit.typeProvider,
+    );
+
+    var contextType = featureComputer.computeContextType(
+      target.containingNode,
+      offset,
+    );
+
+    var opType = OpType.forCompletion(target, offset);
+    if (contextType != null && contextType.isVoid) {
+      opType.includeVoidReturnSuggestions = true;
+    }
+
+    return DartCompletionRequest._(
+      completionPreference: completionPreference,
+      contextType: contextType,
+      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      documentationCache: documentationCache,
+      dotTarget: dotTarget,
+      featureComputer: featureComputer,
+      offset: offset,
+      opType: opType,
+      replacementRange: target.computeReplacementRange(offset),
+      result: resolvedUnit,
+      source: resolvedUnit.unit.declaredElement!.source,
+      target: target,
+    );
+  }
+
   DartCompletionRequest._({
     required this.completionPreference,
     required this.contextType,
@@ -387,48 +455,6 @@ class DartCompletionRequest {
     if (_aborted) {
       throw AbortCompletion();
     }
-  }
-
-  /// Return a newly created completion request in [resolvedUnit] at [offset].
-  static DartCompletionRequest from({
-    required ResolvedUnitResult resolvedUnit,
-    required int offset,
-    DartdocDirectiveInfo? dartdocDirectiveInfo,
-    CompletionPreference completionPreference = CompletionPreference.insert,
-    DocumentationCache? documentationCache,
-  }) {
-    var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
-    var dotTarget = _dotTarget(target);
-
-    var featureComputer = FeatureComputer(
-      resolvedUnit.typeSystem,
-      resolvedUnit.typeProvider,
-    );
-
-    var contextType = featureComputer.computeContextType(
-      target.containingNode,
-      offset,
-    );
-
-    var opType = OpType.forCompletion(target, offset);
-    if (contextType != null && contextType.isVoid) {
-      opType.includeVoidReturnSuggestions = true;
-    }
-
-    return DartCompletionRequest._(
-      completionPreference: completionPreference,
-      contextType: contextType,
-      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
-      documentationCache: documentationCache,
-      dotTarget: dotTarget,
-      featureComputer: featureComputer,
-      offset: offset,
-      opType: opType,
-      replacementRange: target.computeReplacementRange(offset),
-      result: resolvedUnit,
-      source: resolvedUnit.unit.declaredElement!.source,
-      target: target,
-    );
   }
 
   /// TODO(scheglov) Should this be a property of [CompletionTarget]?

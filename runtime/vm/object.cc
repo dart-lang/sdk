@@ -9937,25 +9937,37 @@ int32_t Function::SourceFingerprint() const {
 
 void Function::SaveICDataMap(
     const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
-    const Array& edge_counters_array) const {
+    const Array& edge_counters_array,
+    const Array& coverage_array) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Already installed nothing to do.
+  if (ic_data_array() != Array::null()) {
+    ASSERT(coverage_array.ptr() == GetCoverageArray());
+    return;
+  }
+
   // Compute number of ICData objects to save.
-  // Store edge counter array in the first slot.
-  intptr_t count = 1;
+  intptr_t count = 0;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
       count++;
     }
   }
-  const Array& array = Array::Handle(Array::New(count, Heap::kOld));
-  count = 1;
-  for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
+
+  // Compress sparse deopt_id_to_ic_data mapping into a linear sequence of
+  // ICData objects.
+  const Array& array = Array::Handle(
+      Array::New(ICDataArrayIndices::kFirstICData + count, Heap::kOld));
+  for (intptr_t i = 0, pos = ICDataArrayIndices::kFirstICData;
+       i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
       ASSERT(i == deopt_id_to_ic_data[i]->deopt_id());
-      array.SetAt(count++, *deopt_id_to_ic_data[i]);
+      array.SetAt(pos++, *deopt_id_to_ic_data[i]);
     }
   }
-  array.SetAt(0, edge_counters_array);
+  array.SetAt(ICDataArrayIndices::kEdgeCounters, edge_counters_array);
+  // Preserve coverage_array which is stored early after graph construction.
+  array.SetAt(ICDataArrayIndices::kCoverageData, coverage_array);
   set_ic_data_array(array);
 #else   // DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
@@ -9979,7 +9991,7 @@ void Function::RestoreICDataMap(
   }
   const intptr_t saved_length = saved_ic_data.Length();
   ASSERT(saved_length > 0);
-  if (saved_length > 1) {
+  if (saved_length > ICDataArrayIndices::kFirstICData) {
     const intptr_t restored_length =
         ICData::Cast(Object::Handle(zone, saved_ic_data.At(saved_length - 1)))
             .deopt_id() +
@@ -9988,7 +10000,7 @@ void Function::RestoreICDataMap(
     for (intptr_t i = 0; i < restored_length; i++) {
       (*deopt_id_to_ic_data)[i] = NULL;
     }
-    for (intptr_t i = 1; i < saved_length; i++) {
+    for (intptr_t i = ICDataArrayIndices::kFirstICData; i < saved_length; i++) {
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
       if (clone_ic_data) {
@@ -10003,6 +10015,14 @@ void Function::RestoreICDataMap(
 #else   // DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
 #endif  // DART_PRECOMPILED_RUNTIME
+}
+
+ArrayPtr Function::GetCoverageArray() const {
+  const Array& arr = Array::Handle(ic_data_array());
+  if (arr.IsNull()) {
+    return Array::null();
+  }
+  return Array::RawCast(arr.At(ICDataArrayIndices::kCoverageData));
 }
 
 void Function::set_ic_data_array(const Array& value) const {
@@ -10020,7 +10040,7 @@ void Function::ClearICDataArray() const {
 ICDataPtr Function::FindICData(intptr_t deopt_id) const {
   const Array& array = Array::Handle(ic_data_array());
   ICData& ic_data = ICData::Handle();
-  for (intptr_t i = 1; i < array.Length(); i++) {
+  for (intptr_t i = ICDataArrayIndices::kFirstICData; i < array.Length(); i++) {
     ic_data ^= array.At(i);
     if (ic_data.deopt_id() == deopt_id) {
       return ic_data.ptr();
@@ -10033,7 +10053,7 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
                                     ICData::DeoptReasonId reason) {
   const Array& array = Array::Handle(ic_data_array());
   ICData& ic_data = ICData::Handle();
-  for (intptr_t i = 1; i < array.Length(); i++) {
+  for (intptr_t i = ICDataArrayIndices::kFirstICData; i < array.Length(); i++) {
     ic_data ^= array.At(i);
     if (ic_data.deopt_id() == deopt_id) {
       ic_data.AddDeoptReason(reason);

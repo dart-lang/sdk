@@ -3675,15 +3675,30 @@ class Function : public Object {
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
-      const Array& edge_counters_array) const;
+      const Array& edge_counters_array,
+      const Array& coverage_array) const;
   // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
   // ic_data (array and descriptor) if 'clone_ic_data' is true.
   void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
                         bool clone_ic_data) const;
 
+  // ic_data_array attached to the function stores edge counters in the
+  // first element, coverage data array in the second element and the rest
+  // are ICData objects.
+  struct ICDataArrayIndices {
+    static constexpr intptr_t kEdgeCounters = 0;
+    static constexpr intptr_t kCoverageData = 1;
+    static constexpr intptr_t kFirstICData = 2;
+  };
+
   ArrayPtr ic_data_array() const;
   void ClearICDataArray() const;
   ICDataPtr FindICData(intptr_t deopt_id) const;
+
+  // Coverage data array is a list of pairs:
+  //   element 2 * i + 0 is token position
+  //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
+  ArrayPtr GetCoverageArray() const;
 
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);

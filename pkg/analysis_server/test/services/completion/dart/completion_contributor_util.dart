@@ -533,7 +533,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return await CompletionPerformance().runRequestOperation(
       (performance) async {
         // Build the request
-        var request = DartCompletionRequest.from(
+        var request = DartCompletionRequest(
           resolvedUnit: result,
           offset: completionOffset,
           dartdocDirectiveInfo: dartdocInfo,

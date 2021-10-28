@@ -120,7 +120,7 @@ class TestCompiler {
     var component = await compiler.computeDelta();
     component.computeCanonicalNames();
     // Initialize DDC.
-    var moduleName = '${p.basenameWithoutExtension(output.toFilePath())}';
+    var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
     var classHierarchy = compiler.getClassHierarchy();
     var compilerOptions = SharedCompilerOptions(
@@ -157,7 +157,7 @@ class TestCompiler {
     var codeBytes = utf8.encode(code.code);
     var sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
 
-    File('${output.toFilePath()}').writeAsBytesSync(codeBytes);
+    File(output.toFilePath()).writeAsBytesSync(codeBytes);
     File('${output.toFilePath()}.map').writeAsBytesSync(sourceMapBytes);
 
     // Save the expression evaluator for future evaluations.
@@ -438,7 +438,7 @@ class TestDriver {
 
     final scriptController = StreamController<wip.ScriptParsedEvent>();
     var scriptSub = debugger.onScriptParsed.listen((event) {
-      if ('${event.script.url}' == '$output') {
+      if (event.script.url == '$output') {
         scriptController.add(event);
       }
     });
@@ -569,7 +569,7 @@ class TestDriver {
       var response = await connection.runtime
           .getProperties(scope.object, ownProperties: true);
       for (var prop in response) {
-        var propKey = '${prop.name}';
+        var propKey = prop.name;
         var propValue = '${prop.value.value}';
         if (prop.value.type == 'string') {
           propValue = "'$propValue'";

@@ -520,7 +520,7 @@ void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Undefined name \'typo\'");
+          expectedError: "Undefined name 'typo'");
     });
 
     test('local', () async {

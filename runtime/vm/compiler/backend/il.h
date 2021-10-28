@@ -426,6 +426,7 @@ struct InstrAttrs {
   M(RelationalOp, kNoGC)                                                       \
   M(NativeCall, _)                                                             \
   M(DebugStepCheck, _)                                                         \
+  M(RecordCoverage, kNoGC)                                                     \
   M(LoadIndexed, kNoGC)                                                        \
   M(LoadCodeUnits, kNoGC)                                                      \
   M(StoreIndexed, kNoGC)                                                       \
@@ -6017,6 +6018,31 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
 
+class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  RecordCoverageInstr(const Array& coverage_array,
+                      intptr_t coverage_index,
+                      const InstructionSource& source)
+      : TemplateInstruction(source),
+        coverage_array_(coverage_array),
+        coverage_index_(coverage_index),
+        token_pos_(source.token_pos) {}
+
+  DECLARE_INSTRUCTION(RecordCoverage)
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  const Array& coverage_array_;
+  const intptr_t coverage_index_;
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(RecordCoverageInstr);
+};
+
 // Note overrideable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -6164,6 +6190,7 @@ class TemplateAllocation : public AllocationInstr {
  private:
   friend class BranchInstr;
   friend class IfThenElseInstr;
+  friend class RecordCoverageInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };

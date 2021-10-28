@@ -74,10 +74,10 @@ general/error_recovery/issue_39958_04: RuntimeError
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
+general/implement_semi_stub: TypeCheckError
+general/implicit_super_call: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
-general/implicit_super_call: TypeCheckError
-general/implement_semi_stub: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
 general/invocations: RuntimeError
@@ -135,6 +135,7 @@ inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
+named_arguments_anywhere/redirecting_constructor_initializers: Crash # Issue 47524.
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
