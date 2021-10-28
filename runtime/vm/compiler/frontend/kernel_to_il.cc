@@ -772,7 +772,12 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, kernel_data, kernel_data_program_offset);
-  return streaming_flow_graph_builder.BuildGraph();
+  auto result = streaming_flow_graph_builder.BuildGraph();
+
+  FinalizeCoverageArray();
+  result->set_coverage_array(coverage_array());
+
+  return result;
 }
 
 Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
