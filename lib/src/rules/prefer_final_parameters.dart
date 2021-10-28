@@ -72,7 +72,8 @@ class PreferFinalParameters extends LintRule {
             group: Group.style);
 
   @override
-  List<String> get incompatibleRules => const ['unnecessary_final'];
+  List<String> get incompatibleRules =>
+      const ['unnecessary_final', 'avoid_final_parameters'];
 
   @override
   void registerNodeProcessors(

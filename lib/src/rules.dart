@@ -22,6 +22,7 @@ import 'rules/avoid_empty_else.dart';
 import 'rules/avoid_equals_and_hash_code_on_mutable_classes.dart';
 import 'rules/avoid_escaping_inner_quotes.dart';
 import 'rules/avoid_field_initializers_in_const_classes.dart';
+import 'rules/avoid_final_parameters.dart';
 import 'rules/avoid_function_literals_in_foreach_calls.dart';
 import 'rules/avoid_implementing_value_types.dart';
 import 'rules/avoid_init_to_null.dart';
@@ -220,6 +221,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(AvoidEmptyElse())
     ..register(AvoidEscapingInnerQuotes())
     ..register(AvoidFieldInitializersInConstClasses())
+    ..register(AvoidFinalParameters())
     ..register(AvoidFunctionLiteralInForeachMethod())
     ..register(AvoidImplementingValueTypes())
     ..register(AvoidInitToNull())
