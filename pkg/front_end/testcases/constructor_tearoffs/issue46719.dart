@@ -21,7 +21,7 @@ extension FunctionApplier on Function {
 }
 
 test() {
-  A.named<int>.toString();
+  A.named<int>.toString(); // error
 }
 
 void main() {

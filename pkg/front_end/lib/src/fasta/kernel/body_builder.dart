@@ -4948,6 +4948,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (enableConstructorTearOffsInLibrary && inImplicitCreationContext) {
       Expression receiver = receiverFunction();
       if (typeArguments != null) {
+        if (receiver is StaticTearOff &&
+                (receiver.target.isFactory ||
+                    isTearOffLowering(receiver.target)) ||
+            receiver is ConstructorTearOff ||
+            receiver is RedirectingFactoryTearOff) {
+          return buildProblem(fasta.messageConstructorTearOffWithTypeArguments,
+              instantiationOffset, noLength);
+        }
         receiver = forest.createInstantiation(
             instantiationOffset,
             receiver,
@@ -4974,10 +4982,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     debugEvent("ImplicitCreationExpression");
     _buildConstructorReferenceInvocation(
-        token.next!, token.offset, Constness.implicit,
+        token, openAngleBracket.offset, Constness.implicit,
         inMetadata: false, inImplicitCreationContext: true);
   }
 

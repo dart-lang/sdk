@@ -1664,7 +1664,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     debugEvent("ImplicitCreationExpression");
 
     _handleInstanceCreation(null);

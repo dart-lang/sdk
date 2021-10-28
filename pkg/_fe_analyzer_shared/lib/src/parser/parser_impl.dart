@@ -5404,7 +5404,8 @@ class Parser {
               Token afterPeriod = afterTypeArguments.next!;
               if (_isNewOrIdentifier(afterPeriod) &&
                   optional('(', afterPeriod.next!)) {
-                return parseImplicitCreationExpression(token, typeArg);
+                return parseImplicitCreationExpression(
+                    token, identifier.next!, typeArg);
               }
             }
           }
@@ -6057,13 +6058,13 @@ class Parser {
   }
 
   Token parseImplicitCreationExpression(
-      Token token, TypeParamOrArgInfo typeArg) {
-    Token begin = token;
-    listener.beginImplicitCreationExpression(token);
+      Token token, Token openAngleBracket, TypeParamOrArgInfo typeArg) {
+    Token begin = token.next!; // This is the class name.
+    listener.beginImplicitCreationExpression(begin);
     token = parseConstructorReference(
         token, ConstructorReferenceContext.Implicit, typeArg);
     token = parseConstructorInvocationArguments(token);
-    listener.endImplicitCreationExpression(begin);
+    listener.endImplicitCreationExpression(begin, openAngleBracket);
     return token;
   }
 
