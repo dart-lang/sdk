@@ -8,17 +8,21 @@ environment:
   sdk: "^2.7.0"
 
 dependencies:
-  analyzer:
-    path: ../analyzer
-  args: '>=0.13.0 <2.0.0'
-  linter: ^0.1.16
-  meta:
-    path: ../meta
+  analyzer: any
+  args: any
+  linter: ^1.0.0
+  meta: any
   path: any
-  pub_semver: ^1.4.2
+  pub_semver: ^2.0.0
   yaml: any
 
 dev_dependencies:
   lints: any
-  test_reflective_loader: ^0.1.8
+  test_reflective_loader: ^0.2.0
   test: ^1.0.0
+
+dependency_overrides:
+  analyzer:
+    path: ../analyzer
+  meta:
+    path: ../meta

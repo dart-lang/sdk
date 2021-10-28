@@ -55,7 +55,7 @@ void main(List<String> args) async {
 
   var hadErrors = false;
   for (final dir in coreLibraries) {
-    hadErrors |= await validateLibrary(dir);
+    hadErrors |= !(await validateLibrary(dir));
   }
 
   exitCode = hadErrors ? 1 : 0;
@@ -69,16 +69,16 @@ Future<bool> validateLibrary(Directory dir) async {
   print('## dart:$libName');
   print('');
 
-  var hadErrors = false;
+  var validDocs = true;
 
   for (final file in dir
       .listSync(recursive: true)
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))) {
-    hadErrors |= await verifyFile(analysisHelper, libName, file, dir);
+    validDocs &= await verifyFile(analysisHelper, libName, file, dir);
   }
 
-  return hadErrors;
+  return validDocs;
 }
 
 Future<bool> verifyFile(
@@ -113,12 +113,7 @@ Future<bool> verifyFile(
     sampleAssumptions,
   );
   await visitor.process(parseResult);
-  if (visitor.errors.isNotEmpty) {
-    print('${path.relative(file.path, from: parent.parent.path)}');
-    print('${visitor.errors.toString()}');
-  }
-
-  return visitor.errors.isEmpty;
+  return !visitor.hadErrors;
 }
 
 /// Visit a compilation unit and validate the code samples found in dartdoc
@@ -131,7 +126,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   final String? sampleAssumptions;
 
   final List<CodeSample> samples = [];
-  final StringBuffer errors = StringBuffer();
+  bool hadErrors = false;
 
   ValidateCommentCodeSamplesVisitor(
     this.analysisHelper,
@@ -283,6 +278,8 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       if (errors.isNotEmpty) {
         print('$filePath:${sample.lineStartOffset}: ${errors.length} errors');
 
+        hadErrors = true;
+
         errors = errors.toList()
           ..sort(
             (a, b) => a.offset - b.offset,
@@ -381,18 +378,23 @@ class AnalysisHelper {
   final String libraryName;
   final resourceProvider =
       OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+  final pathRoot = Platform.isWindows ? r'c:\' : '/';
   late AnalysisContextCollection collection;
   int index = 0;
 
   AnalysisHelper(this.libraryName) {
+    resourceProvider.pathContext;
+
     collection = AnalysisContextCollection(
-      includedPaths: ['/$libraryName'],
+      includedPaths: ['$pathRoot$libraryName'],
       resourceProvider: resourceProvider,
     );
   }
 
   Future<SomeResolvedUnitResult> resolveFile(String contents) async {
-    final samplePath = '/$libraryName/sample_${index++}.dart';
+    final samplePath =
+        '$pathRoot$libraryName${resourceProvider.pathContext.separator}'
+        'sample_${index++}.dart';
     resourceProvider.setOverlay(
       samplePath,
       content: contents,

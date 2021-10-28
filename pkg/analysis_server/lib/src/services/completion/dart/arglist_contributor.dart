@@ -63,8 +63,8 @@ class ArgListContributor extends DartCompletionContributor {
     // suppress inserting colons/commas. We check only replacing _after_ the
     // caret as some replacements (before) will still want colons, for example:
     //     foo(mySt^'bar');
-    var replacementEnd = request.replacementRange.offset +
-        (replacementLength ?? request.replacementRange.length);
+    var replacementEnd = request.replacementOffset +
+        (replacementLength ?? request.replacementLength);
     var willReplace =
         request.completionPreference == CompletionPreference.replace &&
             replacementEnd > request.offset;
@@ -106,7 +106,7 @@ class ArgListContributor extends DartCompletionContributor {
         // not be replaced.
         var replacementLength =
             request.offset == request.target.entity?.offset &&
-                    request.replacementRange.length != 0
+                    request.replacementLength != 0
                 ? 0
                 : null;
 

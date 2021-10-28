@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
@@ -38,19 +37,18 @@ mixin RequestHandlerMixin<T extends AbstractAnalysisServer> {
   /// restarted. The [timeout] is the maximum amount of time that will be spent
   /// waiting for plugins to respond.
   Future<List<plugin.Response>> waitForResponses(
-      Map<PluginInfo, Future<plugin.Response>> futures,
-      {plugin.RequestParams? requestParameters,
-      int timeout = 500}) async {
+    Map<PluginInfo, Future<plugin.Response>> futures, {
+    plugin.RequestParams? requestParameters,
+    Duration timeout = const Duration(milliseconds: 500),
+  }) async {
     // TODO(brianwilkerson) requestParameters might need to be required.
-    var endTime = DateTime.now().millisecondsSinceEpoch + timeout;
+    var timer = Stopwatch()..start();
     var responses = <plugin.Response>[];
     for (var entry in futures.entries) {
       var pluginInfo = entry.key;
       var future = entry.value;
       try {
-        var startTime = DateTime.now().millisecondsSinceEpoch;
-        var response = await future
-            .timeout(Duration(milliseconds: math.max(endTime - startTime, 0)));
+        var response = await future.timeout(timeout - timer.elapsed);
         var error = response.error;
         if (error != null) {
           // TODO(brianwilkerson) Report the error to the plugin manager.
