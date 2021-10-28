@@ -40,7 +40,7 @@ class Utf8Codec extends Encoding {
   const Utf8Codec({bool allowMalformed = false})
       : _allowMalformed = allowMalformed;
 
-  /// The name of this codec, "utf-8".
+  /// The name of this codec is "utf-8".
   String get name => "utf-8";
 
   /// Decodes the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
@@ -49,7 +49,7 @@ class Utf8Codec extends Encoding {
   /// If the [codeUnits] start with the encoding of a
   /// [unicodeBomCharacterRune], that character is discarded.
   ///
-  /// If [allowMalformed] is `true` the decoder replaces invalid (or
+  /// If [allowMalformed] is `true`, the decoder replaces invalid (or
   /// unterminated) character sequences with the Unicode Replacement character
   /// `U+FFFD` (�). Otherwise it throws a [FormatException].
   ///
@@ -77,8 +77,8 @@ class Utf8Codec extends Encoding {
 ///
 /// Example:
 /// ```dart
-/// const String sample = '"Îñţérñåţîöñåļîžåţîờñ"';
 /// const Utf8Encoder utf8Encoder = Utf8Encoder();
+/// const String sample = 'Îñţérñåţîöñåļîžåţîờñ';
 /// final List<int> encodedSample = utf8Encoder.convert(sample);
 /// print(encodedSample);
 /// ```
@@ -156,10 +156,10 @@ class _Utf8Encoder {
   /// writes it to [_buffer].
   ///
   /// Returns true if the [nextCodeUnit] was combined with the
-  /// [leadingSurrogate]. If it wasn't then nextCodeUnit was not a trailing
+  /// [leadingSurrogate]. If it wasn't, then nextCodeUnit was not a trailing
   /// surrogate and has not been written yet.
   ///
-  /// It is safe to pass 0 for [nextCodeUnit] in which case a replacement
+  /// It is safe to pass 0 for [nextCodeUnit], in which case a replacement
   /// character is written to represent the unpaired lead surrogate.
   bool _writeSurrogate(int leadingSurrogate, int nextCodeUnit) {
     if (_isTailSurrogate(nextCodeUnit)) {
@@ -297,10 +297,10 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
 /// Example:
 /// ```dart
 /// const Utf8Decoder utf8Decoder = Utf8Decoder();
-/// const List<int> encodedBytes =
-/// [195, 142, 195, 177, 197, 163, 195, 169, 114, 195, 177, 195, 165, 197,
-///  163, 195, 174, 195, 182, 195, 177, 195, 165, 196, 188, 195, 174, 197,
-///  190, 195, 165, 197, 163, 195, 174, 225, 187, 157, 195, 177];
+/// const List<int> encodedBytes = [
+///   195, 142, 195, 177, 197, 163, 195, 169, 114, 195, 177, 195, 165, 197,
+///   163, 195, 174, 195, 182, 195, 177, 195, 165, 196, 188, 195, 174, 197,
+///   190, 195, 165, 197, 163, 195, 174, 225, 187, 157, 195, 177];
 ///
 /// final String decodedBytes = utf8Decoder.convert(encodedBytes);
 /// print(decodedBytes); // Îñţérñåţîöñåļîžåţîờñ
@@ -311,11 +311,10 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
 /// If `allowMalformed` is set to true,
 /// the decoder replaces the invalid bytes with the character `U+FFFD` �.
 ///
-/// Allow invalid byte value example:
+/// Example with `allowMalformed` set to true:
 /// ```dart
 /// const Utf8Decoder utf8Decoder = Utf8Decoder(allowMalformed: true);
 /// const List<int> encodedBytes = [0xFF];
-///
 /// final String decodedBytes = utf8Decoder.convert(encodedBytes);
 /// print(decodedBytes); // �
 /// ```
@@ -327,7 +326,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
   /// The optional [allowMalformed] argument defines how [convert] deals
   /// with invalid or unterminated character sequences.
   ///
-  /// If it is `true` [convert] replaces invalid (or unterminated) character
+  /// If it is `true`, [convert] replaces invalid (or unterminated) character
   /// sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
   /// it throws a [FormatException].
   const Utf8Decoder({bool allowMalformed = false})
@@ -336,7 +335,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
   /// Converts the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
   /// corresponding string.
   ///
-  /// Uses the code units from [start] to, but no including, [end].
+  /// Uses the code units from [start] to, but not including, [end].
   /// If [end] is omitted, it defaults to `codeUnits.length`.
   ///
   /// If the [codeUnits] start with the encoding of a
