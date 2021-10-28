@@ -57,7 +57,9 @@ class CompletionRunner {
     var collection = AnalysisContextCollection(
         includedPaths: <String>[analysisRoot],
         resourceProvider: resourceProvider);
-    var contributor = DartCompletionManager();
+    var contributor = DartCompletionManager(
+      budget: CompletionBudget(const Duration(seconds: 30)),
+    );
     var statistics = CompletionPerformance();
     var stamp = 1;
 

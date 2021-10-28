@@ -33,11 +33,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
 class CompletionDomainHandler extends AbstractRequestHandler {
-  /// The time budget for a completion request.
-  static const Duration _budgetDuration = Duration(milliseconds: 100);
-
   /// The maximum number of performance measurements to keep.
   static const int performanceListMaxLength = 50;
+
+  /// The time budget for a completion request.
+  Duration budgetDuration = CompletionBudget.defaultDuration;
 
   /// The completion services that the client is currently subscribed.
   final Set<CompletionService> subscriptions = <CompletionService>{};
@@ -90,6 +90,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var suggestions = <CompletionSuggestion>[];
     await performance.runAsync('computeSuggestions', (performance) async {
       var manager = DartCompletionManager(
+        budget: budget,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
@@ -213,7 +214,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Implement the 'completion.getSuggestions2' request.
   void getSuggestions2(Request request) async {
-    var budget = CompletionBudget(_budgetDuration);
+    var budget = CompletionBudget(budgetDuration);
 
     var params = CompletionGetSuggestions2Params.fromRequest(request);
     var file = params.file;
@@ -337,7 +338,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Process a `completion.getSuggestions` request.
   Future<void> processRequest(Request request) async {
-    var budget = CompletionBudget(_budgetDuration);
+    var budget = CompletionBudget(budgetDuration);
 
     final performance = this.performance = CompletionPerformance();
 

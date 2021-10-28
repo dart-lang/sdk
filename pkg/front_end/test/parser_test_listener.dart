@@ -1086,10 +1086,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     indent--;
     seen(token);
-    doPrint('endImplicitCreationExpression(' '$token)');
+    seen(openAngleBracket);
+    doPrint('endImplicitCreationExpression(' '$token, ' '$openAngleBracket)');
   }
 
   @override

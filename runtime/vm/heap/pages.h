@@ -536,11 +536,6 @@ class PageSpace {
     kResetFreeLists = 3,
     kSweepPages = 4,
     kSweepLargePages = 5,
-    // Data
-    kGarbageRatio = 0,
-    kGCTimeFraction = 1,
-    kPageGrowth = 2,
-    kAllowedGrowth = 3
   };
 
   uword TryAllocateInternal(intptr_t size,

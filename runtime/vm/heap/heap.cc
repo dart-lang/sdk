@@ -409,7 +409,7 @@ void Heap::NotifyIdle(int64_t deadline) {
       if (phase == PageSpace::kAwaitingFinalization) {
         CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
       } else if (phase == PageSpace::kDone) {
-        StartConcurrentMarking(thread);
+        StartConcurrentMarking(thread, GCReason::kIdle);
       }
     }
   }
@@ -617,13 +617,23 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
       CollectNewSpaceGarbage(thread, GCReason::kFull);
     }
 
-    StartConcurrentMarking(thread);
+    StartConcurrentMarking(thread, reason);
   }
 }
 
-void Heap::StartConcurrentMarking(Thread* thread) {
+void Heap::StartConcurrentMarking(Thread* thread, GCReason reason) {
+  GcSafepointOperationScope safepoint_operation(thread);
+  RecordBeforeGC(GCType::kStartConcurrentMark, reason);
+  VMTagScope tagScope(thread, reason == GCReason::kIdle
+                                  ? VMTag::kGCIdleTagId
+                                  : VMTag::kGCOldSpaceTagId);
   TIMELINE_FUNCTION_GC_DURATION(thread, "StartConcurrentMarking");
   old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
+  RecordAfterGC(GCType::kStartConcurrentMark);
+  PrintStats();
+#if defined(SUPPORT_TIMELINE)
+  PrintStatsToTimeline(&tbes, reason);
+#endif
 }
 
 void Heap::CheckFinishConcurrentMarking(Thread* thread) {
@@ -852,6 +862,8 @@ const char* Heap::GCTypeToString(GCType type) {
   switch (type) {
     case GCType::kScavenge:
       return "Scavenge";
+    case GCType::kStartConcurrentMark:
+      return "StartCMark";
     case GCType::kMarkSweep:
       return "MarkSweep";
     case GCType::kMarkCompact:
@@ -1018,8 +1030,6 @@ void Heap::RecordBeforeGC(GCType type, GCReason reason) {
   stats_.before_.old_ = old_space_.GetCurrentUsage();
   for (int i = 0; i < GCStats::kTimeEntries; i++)
     stats_.times_[i] = 0;
-  for (int i = 0; i < GCStats::kDataEntries; i++)
-    stats_.data_[i] = 0;
 }
 
 static double AvgCollectionPeriod(int64_t run_time, intptr_t collections) {
@@ -1119,34 +1129,33 @@ void Heap::PrintStats() {
   if ((FLAG_verbose_gc_hdr != 0) &&
       (((stats_.num_ - 1) % FLAG_verbose_gc_hdr) == 0)) {
     OS::PrintErr(
-        "[              |                      |     |       |      "
+        "[              |                          |     |       |      "
         "| new gen     | new gen     | new gen "
         "| old gen       | old gen       | old gen     "
-        "| sweep | safe- | roots/| stbuf/| tospc/| weaks/|               ]\n"
-        "[ GC isolate   | space (reason)       | GC# | start | time "
-        "| used (kB)   | capacity kB | external"
-        "| used (kB)     | capacity (kB) | external kB "
-        "| thread| point |marking| reset | sweep |swplrge| data          ]\n"
-        "[              |                      |     |  (s)  | (ms) "
+        "| sweep | safe- | roots/| stbuf/| tospc/| weaks/  ]\n"
+        "[ GC isolate   | space (reason)           | GC# | start | time "
+        "| used (MB)   | capacity MB | external"
+        "| used (MB)     | capacity (MB) | external MB "
+        "| thread| point |marking| reset | sweep |swplrge  ]\n"
+        "[              |                          |     |  (s)  | (ms) "
         "|before| after|before| after| b4 |aftr"
         "| before| after | before| after |before| after"
-        "| (ms)  | (ms)  | (ms)  | (ms)  | (ms)  | (ms)  |               ]\n");
+        "| (ms)  | (ms)  | (ms)  | (ms)  | (ms)  | (ms)    ]\n");
   }
 
   // clang-format off
   OS::PrintErr(
-    "[ %-13.13s, %10s(%9s), "  // GC(isolate-group), type(reason)
+    "[ %-13.13s, %11s(%12s), "  // GC(isolate-group), type(reason)
     "%4" Pd ", "  // count
     "%6.2f, "  // start time
     "%5.1f, "  // total time
-    "%5" Pd ", %5" Pd ", "  // new gen: in use before/after
-    "%5" Pd ", %5" Pd ", "  // new gen: capacity before/after
-    "%3" Pd ", %3" Pd ", "  // new gen: external before/after
-    "%6" Pd ", %6" Pd ", "  // old gen: in use before/after
-    "%6" Pd ", %6" Pd ", "  // old gen: capacity before/after
-    "%5" Pd ", %5" Pd ", "  // old gen: external before/after
+    "%5.1f, %5.1f, "  // new gen: in use before/after
+    "%5.1f, %5.1f, "   // new gen: capacity before/after
+    "%3.1f, %3.1f, "   // new gen: external before/after
+    "%6.1f, %6.1f, "   // old gen: in use before/after
+    "%6.1f, %6.1f, "   // old gen: capacity before/after
+    "%5.1f, %5.1f, "   // old gen: external before/after
     "%6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, "  // times
-    "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate_group()->source()->name,
     GCTypeToString(stats_.type_),
@@ -1155,28 +1164,24 @@ void Heap::PrintStats() {
     MicrosecondsToSeconds(isolate_group_->UptimeMicros()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                stats_.before_.micros_),
-    RoundWordsToKB(stats_.before_.new_.used_in_words),
-    RoundWordsToKB(stats_.after_.new_.used_in_words),
-    RoundWordsToKB(stats_.before_.new_.capacity_in_words),
-    RoundWordsToKB(stats_.after_.new_.capacity_in_words),
-    RoundWordsToKB(stats_.before_.new_.external_in_words),
-    RoundWordsToKB(stats_.after_.new_.external_in_words),
-    RoundWordsToKB(stats_.before_.old_.used_in_words),
-    RoundWordsToKB(stats_.after_.old_.used_in_words),
-    RoundWordsToKB(stats_.before_.old_.capacity_in_words),
-    RoundWordsToKB(stats_.after_.old_.capacity_in_words),
-    RoundWordsToKB(stats_.before_.old_.external_in_words),
-    RoundWordsToKB(stats_.after_.old_.external_in_words),
+    WordsToMB(stats_.before_.new_.used_in_words),
+    WordsToMB(stats_.after_.new_.used_in_words),
+    WordsToMB(stats_.before_.new_.capacity_in_words),
+    WordsToMB(stats_.after_.new_.capacity_in_words),
+    WordsToMB(stats_.before_.new_.external_in_words),
+    WordsToMB(stats_.after_.new_.external_in_words),
+    WordsToMB(stats_.before_.old_.used_in_words),
+    WordsToMB(stats_.after_.old_.used_in_words),
+    WordsToMB(stats_.before_.old_.capacity_in_words),
+    WordsToMB(stats_.after_.old_.capacity_in_words),
+    WordsToMB(stats_.before_.old_.external_in_words),
+    WordsToMB(stats_.after_.old_.external_in_words),
     MicrosecondsToMilliseconds(stats_.times_[0]),
     MicrosecondsToMilliseconds(stats_.times_[1]),
     MicrosecondsToMilliseconds(stats_.times_[2]),
     MicrosecondsToMilliseconds(stats_.times_[3]),
     MicrosecondsToMilliseconds(stats_.times_[4]),
-    MicrosecondsToMilliseconds(stats_.times_[5]),
-    stats_.data_[0],
-    stats_.data_[1],
-    stats_.data_[2],
-    stats_.data_[3]);
+    MicrosecondsToMilliseconds(stats_.times_[5]));
   // clang-format on
 #endif  // !defined(PRODUCT)
 }

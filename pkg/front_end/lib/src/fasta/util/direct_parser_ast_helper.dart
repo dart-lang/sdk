@@ -1172,11 +1172,12 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     DirectParserASTContentImplicitCreationExpressionEnd data =
         new DirectParserASTContentImplicitCreationExpressionEnd(
             DirectParserASTType.END,
-            token: token);
+            token: token,
+            openAngleBracket: openAngleBracket);
     seen(data);
   }
 
@@ -4782,14 +4783,16 @@ class DirectParserASTContentImplicitCreationExpressionBegin
 class DirectParserASTContentImplicitCreationExpressionEnd
     extends DirectParserASTContent {
   final Token token;
+  final Token openAngleBracket;
 
   DirectParserASTContentImplicitCreationExpressionEnd(DirectParserASTType type,
-      {required this.token})
+      {required this.token, required this.openAngleBracket})
       : super("ImplicitCreationExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "openAngleBracket": openAngleBracket,
       };
 }
 

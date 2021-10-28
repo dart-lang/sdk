@@ -158,13 +158,10 @@ class BackgroundCompiler {
 
   IsolateGroup* isolate_group_;
 
-  Monitor queue_monitor_;  // Controls access to the queue.
+  Monitor monitor_;  // Controls access to the queue and running state.
   BackgroundCompilationQueue* function_queue_;
-
-  Monitor done_monitor_;    // Notify/wait that the thread is done.
   bool running_;            // While true, will try to read queue and compile.
   bool done_;               // True if the thread is done.
-
   int16_t disabled_depth_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);

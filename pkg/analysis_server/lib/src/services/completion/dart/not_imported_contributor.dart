@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
@@ -17,11 +19,13 @@ import 'package:collection/collection.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
+  final CompletionBudget budget;
   final List<Uri> librariesToImport;
 
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
+    this.budget,
     this.librariesToImport,
   ) : super(request, builder);
 
@@ -37,10 +41,18 @@ class NotImportedContributor extends DartCompletionContributor {
     var fsState = analysisDriver.fsState;
     var filter = _buildFilter(fsState);
 
-    await analysisDriver.discoverAvailableFiles();
+    try {
+      await analysisDriver.discoverAvailableFiles().timeout(budget.left);
+    } on TimeoutException {
+      return;
+    }
 
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
+      if (budget.isEmpty) {
+        return;
+      }
+
       if (!filter.shouldInclude(file)) {
         continue;
       }

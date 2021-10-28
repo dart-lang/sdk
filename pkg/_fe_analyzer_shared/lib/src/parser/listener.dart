@@ -743,7 +743,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginImplicitCreationExpression(Token token) {}
 
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     logEvent("ImplicitCreationExpression");
   }
 

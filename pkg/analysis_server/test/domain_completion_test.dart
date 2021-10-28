@@ -91,6 +91,31 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
     );
+
+    completionDomain.budgetDuration = const Duration(seconds: 30);
+  }
+
+  Future<void> test_notImported_emptyBudget() async {
+    await _configureWithWorkspaceRoot();
+
+    // Empty budget, so no not yet imported libraries.
+    completionDomain.budgetDuration = const Duration(milliseconds: 0);
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  Rand^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4)
+      ..assertLibrariesToImport(includes: [], excludes: [
+        'dart:core',
+        'dart:math',
+      ]);
+
+    responseValidator.suggestions.withElementClass().assertEmpty();
   }
 
   Future<void> test_notImported_pub_dependencies_inLib() async {
@@ -185,7 +210,7 @@ class A04 {}
 
     await _configureWithWorkspaceRoot();
 
-    var test_path = '$testPackageTestPath/test.dart';
+    var test_path = convertPath('$testPackageTestPath/test.dart');
     var responseValidator = await _getCodeSuggestions(
       path: test_path,
       content: '''
@@ -450,7 +475,7 @@ class A02 {}
 
     await _configureWithWorkspaceRoot();
 
-    var test_path = '$testPackageTestPath/test.dart';
+    var test_path = convertPath('$testPackageTestPath/test.dart');
     var responseValidator = await _getCodeSuggestions(
       path: test_path,
       content: '''
@@ -497,7 +522,7 @@ class A02 {}
 
     await _configureWithWorkspaceRoot();
 
-    var test_path = '$testPackageTestPath/test.dart';
+    var test_path = convertPath('$testPackageTestPath/test.dart');
     var responseValidator = await _getCodeSuggestions(
       path: test_path,
       content: '''
@@ -981,7 +1006,7 @@ void f() {
     int maxResults = 1 << 10,
   }) async {
     return _getCodeSuggestions(
-      path: testFilePath,
+      path: convertPath(testFilePath),
       content: content,
       maxResults: maxResults,
     );

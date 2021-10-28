@@ -126,7 +126,7 @@ class Heap {
   void CollectAllGarbage(GCReason reason = GCReason::kFull);
 
   void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
-  void StartConcurrentMarking(Thread* thread);
+  void StartConcurrentMarking(Thread* thread, GCReason reason);
   void CheckFinishConcurrentMarking(Thread* thread);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
@@ -261,11 +261,6 @@ class Heap {
     stats_.times_[id] = micros;
   }
 
-  void RecordData(int id, intptr_t value) {
-    ASSERT((id >= 0) && (id < GCStats::kDataEntries));
-    stats_.data_[id] = value;
-  }
-
   void UpdateGlobalMaxUsed();
 
   static bool IsAllocatableInNewSpace(intptr_t size) {
@@ -327,12 +322,10 @@ class Heap {
     };
 
     enum { kTimeEntries = 6 };
-    enum { kDataEntries = 4 };
 
     Data before_;
     Data after_;
     int64_t times_[kTimeEntries];
-    intptr_t data_[kDataEntries];
 
    private:
     DISALLOW_COPY_AND_ASSIGN(GCStats);

@@ -233,6 +233,7 @@ class CompletionHandler
 
       try {
         var contributor = DartCompletionManager(
+          budget: CompletionBudget(CompletionBudget.defaultDuration),
           includedElementKinds: includedElementKinds,
           includedElementNames: includedElementNames,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,

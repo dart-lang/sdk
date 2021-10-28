@@ -810,8 +810,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
-    listener?.endImplicitCreationExpression(token);
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
+    listener?.endImplicitCreationExpression(token, openAngleBracket);
   }
 
   @override

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -11,36 +10,7 @@ import 'package:path/path.dart' as path;
 import '../benchmarks.dart';
 import 'memory_tests.dart';
 
-Future<int> _runProcess(
-  String command,
-  List<String> args, {
-  String? cwd,
-  bool failOnError = true,
-}) async {
-  print('\n$command ${args.join(' ')}');
-
-  var process = await Process.start(command, args, workingDirectory: cwd);
-
-  process.stdout
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) {
-    print('  $line');
-  });
-  process.stderr
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) => print('  $line'));
-
-  var exitCode = await process.exitCode;
-  if (exitCode != 0 && failOnError) {
-    throw '$command exited with $exitCode';
-  }
-
-  return exitCode;
-}
-
-class FlutterCompletionBenchmark extends Benchmark {
+class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
   static final das = FlutterCompletionBenchmark(
     'das',
     () => AnalysisServerBenchmarkTest(),
@@ -53,7 +23,7 @@ class FlutterCompletionBenchmark extends Benchmark {
 
   final AbstractBenchmarkTest Function() testConstructor;
 
-  late String flutterPath;
+  late final String flutterRepositoryPath;
 
   FlutterCompletionBenchmark(String protocolName, this.testConstructor)
       : super(
@@ -64,44 +34,6 @@ class FlutterCompletionBenchmark extends Benchmark {
 
   @override
   int get maxIterations => 2;
-
-  @override
-  bool get needsSetup => true;
-
-  @override
-  Future oneTimeCleanup() {
-    try {
-      Directory(flutterPath).deleteSync(recursive: true);
-    } on FileSystemException catch (e) {
-      print(e);
-    }
-
-    return Future.value();
-  }
-
-  @override
-  Future oneTimeSetup() async {
-    flutterPath = Directory.systemTemp.createTempSync('flutter').path;
-
-    // git clone https://github.com/flutter/flutter $flutterPath
-    await _runProcess('git', [
-      'clone',
-      'https://github.com/flutter/flutter',
-      path.canonicalize(flutterPath)
-    ]);
-
-    var flutterTool = path.join(flutterPath, 'bin', 'flutter');
-
-    // flutter --version
-    await _runProcess(flutterTool, ['--version'], cwd: flutterPath);
-
-    // flutter update-packages
-    await _runProcess(
-      flutterTool,
-      ['pub', 'get'],
-      cwd: path.join(flutterPath, 'packages', 'flutter'),
-    );
-  }
 
   @override
   Future<BenchMarkResult> run({
@@ -117,7 +49,8 @@ class FlutterCompletionBenchmark extends Benchmark {
       test.debugStdio();
     }
 
-    final flutterPkgPath = path.join(flutterPath, 'packages', 'flutter');
+    final flutterPkgPath =
+        path.join(flutterRepositoryPath, 'packages', 'flutter');
 
     // Open a small directory, but with the package config that allows us
     // to analyze any file in `package:flutter`, including tests.
@@ -300,7 +233,7 @@ class FlutterCompletionBenchmark extends Benchmark {
     // Perform warm-up.
     // The cold start does not matter.
     // The sustained performance is much more important.
-    const kWarmUpCount = 50;
+    const kWarmUpCount = 20;
     for (var i = 0; i < kWarmUpCount; i++) {
       await perform();
     }
