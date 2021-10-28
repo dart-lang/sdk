@@ -24,7 +24,12 @@ part of dart.collection;
 ///
 /// Most simple operations on `HashSet` are done in (potentially amortized)
 /// constant time: [add], [contains], [remove], and [length], provided the hash
-/// codes of objects are well distributed..
+/// codes of objects are well distributed.
+///
+/// The [forEach] iterates through all entries of a set.
+/// Manipulating item count in [forEach] is prohibited. Adding or
+/// deleting items during iteration causes an exception:
+/// _"Concurrent modification during iteration"_.
 ///
 /// Example:
 /// ```dart
@@ -33,21 +38,15 @@ part of dart.collection;
 /// linkedHashSet.isEmpty; // false
 /// linkedHashSet.length; // 4
 /// print(linkedHashSet); // {A, B, C, D}
-/// ```
-/// To check is there a value item on map, call [contains]:
-/// ```dart
+///
+/// // To check is there a value item on map, call contains
 /// linkedHashSet.contains('B'); // true
-///  ```
-/// To get element value using index, call [elementAt]:
-/// ```dart
+///
+/// // To get element value using index, call elementAt
 /// final String elementAt = linkedHashSet.elementAt(1);
 /// print(elementAt); // B
-/// ```
-/// The [forEach] iterates through all entries of a set.
-/// Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
-/// ```dart
+///
+/// // The forEach iterates through all entries of a set.
 /// linkedHashSet.forEach((element) {
 ///   print(element);
 ///   // A
@@ -55,62 +54,49 @@ part of dart.collection;
 ///   // C
 ///   // D
 /// });
-/// ```
-/// To convert set to list, call [toList]:
-/// ```dart
+///
+/// // To convert set to list, call toList
 /// final toList = linkedHashSet.toList();
 /// print(toList); // [A, B, C, D]
-/// ```
-/// To make a copy of set, call [toSet]:
-/// ```dart
+///
+/// // To make a copy of set, call toSet
 /// final copySet = linkedHashSet.toSet();
 /// print(copySet); // {A, B, C, D}
-/// ```
-/// To add item to set, call [add]
-/// ```dart
+///
+/// // To add item to set, call add
 /// linkedHashSet.add('E');
 /// print(linkedHashSet); // {A, B, C, D, E}
-/// ```
-/// To remove specific value, call [remove]:
-/// ```dart
+///
+/// // To remove specific value, call remove
 /// linkedHashSet.remove('A');
 /// print(linkedHashSet); // {B, C, D, E}
-/// ```
-/// To remove value(s) with a statement, call the [removeWhere]:
-/// ```dart
+///
+/// // To remove value(s) with a statement, call removeWhere
 /// linkedHashSet.removeWhere((element) => element.contains('B'));
 /// print(linkedHashSet); // {C, D, E}
-/// ```
-/// To remove other values than those which match statement
-/// ```dart
+///
+/// // To remove other values than those which match statement
 /// linkedHashSet.retainWhere((element) => element.contains('C'));
 /// print(linkedHashSet); // {C}
-/// ```
-/// To clean up data, call the [clear]:
-/// ```dart
+///
+/// // To clean up data, call clear
 /// linkedHashSet.clear();
 /// print(linkedHashSet); // {}
 /// ```
 ///
-/// ## Constructor options for initialization:
+/// ## Constructor options for initialization
 ///
-/// ```dart
-/// final LinkedHashSet<String> baseSet = LinkedHashSet();
-/// baseSet.addAll({'C', 'B', 'A'});
-/// ```
 /// [LinkedHashSet.from] example:
 /// ```dart
+/// final LinkedHashSet<String> baseSet = LinkedHashSet();
+/// baseSet.addAll({'A', 'B', 'C'});
 /// final LinkedHashSet<String> hashSetFrom = LinkedHashSet.from(baseSet);
-///
-/// // Notice! LinkedHashSet.from() causes runtime error if type not match
-/// final LinkedHashSet<int> hashSetFrom = LinkedHashSet.from(baseSet);
 /// ```
 /// [LinkedHashSet.of] example:
 /// ```dart
+/// final LinkedHashSet<String> baseSet = LinkedHashSet();
+/// baseSet.addAll({'A', 'B', 'C'});
 /// final LinkedHashSet setOf = LinkedHashSet.of(baseSet);
-///
-/// // LinkedHashSet.of causes build time error if type mismatch
-/// final LinkedHashSet<int> customSet = LinkedHashSet.of(baseSet);
 /// ```
 abstract class LinkedHashSet<E> implements Set<E> {
   /// Create an insertion-ordered hash set using the provided
