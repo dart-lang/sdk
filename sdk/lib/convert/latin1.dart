@@ -66,9 +66,9 @@ class Latin1Codec extends Encoding {
 ///
 /// Example:
 /// ```dart
-/// const String sample = 'àáâãäå';
-///
 /// const Latin1Encoder latin1Encoder = Latin1Encoder();
+///
+/// const String sample = 'àáâãäå';
 /// final List<int> encoded = latin1Encoder.convert(sample);
 /// print(encoded); // [224, 225, 226, 227, 228, 229]
 /// ```
@@ -82,6 +82,7 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 /// Example:
 /// ```dart
 /// const Latin1Decoder latin1Decoder = Latin1Decoder();
+///
 /// const List<int> encodedBytes = [224, 225, 226, 227, 228, 229];
 /// final String decoded = latin1Decoder.convert(encodedBytes);
 /// print(decoded); // àáâãäå
@@ -95,10 +96,8 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 /// If `bytes` contains values that are not in the range 0 .. 255, the decoder
 /// throws a [FormatException].
 ///
-///
 /// If `allowInvalid` is set to true,
 /// the decoder replaces the invalid bytes with the character `U+FFFD` �.
-///
 ///
 /// Example with `allowInvalid` set to true:
 /// ```dart
