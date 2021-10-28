@@ -85,6 +85,9 @@ class CiderCompletionComputer {
                 <IncludedSuggestionRelevanceTag>[];
 
             var manager = DartCompletionManager(
+              budget: CompletionBudget(
+                const Duration(milliseconds: 100),
+              ),
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
               includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,

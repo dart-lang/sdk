@@ -52,6 +52,10 @@ class CompletionBudget {
 
   CompletionBudget(this._budget);
 
+  bool get isEmpty {
+    return _timer.elapsed > _budget;
+  }
+
   Duration get left {
     var result = _budget - _timer.elapsed;
     return result.isNegative ? Duration.zero : result;
@@ -61,6 +65,9 @@ class CompletionBudget {
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager {
+  /// Time budget to computing suggestions.
+  final CompletionBudget budget;
+
   /// If not `null`, then instead of using [ImportedReferenceContributor],
   /// fill this set with kinds of elements that are applicable at the
   /// completion location, so should be suggested from available suggestion
@@ -91,6 +98,7 @@ class DartCompletionManager {
   /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
   /// non-`null`.
   DartCompletionManager({
+    required this.budget,
     this.includedElementKinds,
     this.includedElementNames,
     this.includedSuggestionRelevanceTags,
@@ -156,7 +164,7 @@ class DartCompletionManager {
     final librariesToImport = this.librariesToImport;
     if (librariesToImport != null) {
       contributors.add(
-        NotImportedContributor(request, builder, librariesToImport),
+        NotImportedContributor(request, builder, budget, librariesToImport),
       );
     }
 

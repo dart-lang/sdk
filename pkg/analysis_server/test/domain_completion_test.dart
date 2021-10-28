@@ -73,6 +73,7 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
   }
 
   void setUp() {
+    CompletionDomainHandler.budgetDuration = const Duration(seconds: 30);
     serverChannel = MockServerChannel();
 
     var sdkRoot = newFolder('/sdk');
@@ -91,6 +92,29 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
     );
+  }
+
+  Future<void> test_notImported_emptyBudget() async {
+    await _configureWithWorkspaceRoot();
+
+    // Empty budget, so no not yet imported libraries.
+    CompletionDomainHandler.budgetDuration = const Duration(milliseconds: 0);
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  Rand^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4)
+      ..assertLibrariesToImport(includes: [], excludes: [
+        'dart:core',
+        'dart:math',
+      ]);
+
+    responseValidator.suggestions.withElementClass().assertEmpty();
   }
 
   Future<void> test_notImported_pub_dependencies_inLib() async {
