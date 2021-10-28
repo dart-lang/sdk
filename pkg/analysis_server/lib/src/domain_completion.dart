@@ -571,8 +571,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var responses = await waitForResponses(
       requestToPlugins.futures,
       requestParameters: requestToPlugins.parameters,
-      // TODO(scheglov) pass Duration
-      timeout: budget.left.inMilliseconds,
+      timeout: budget.left,
     );
     for (var response in responses) {
       var result = plugin.CompletionGetSuggestionsResult.fromResponse(response);

@@ -179,8 +179,8 @@ class CompletionHandler
     int offset,
   ) async {
     final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
-    final pluginResponses =
-        await requestFromPlugins(path, requestParams, timeout: 100);
+    final pluginResponses = await requestFromPlugins(path, requestParams,
+        timeout: const Duration(milliseconds: 100));
 
     final pluginResults = pluginResponses
         .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
