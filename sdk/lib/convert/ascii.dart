@@ -35,7 +35,7 @@ class AsciiCodec extends Encoding {
   /// Encoders will not accept invalid (non ASCII) characters.
   const AsciiCodec({bool allowInvalid = false}) : _allowInvalid = allowInvalid;
 
-  /// The name of this codec, "us-ascii".
+  /// The name of this codec is "us-ascii".
   String get name => "us-ascii";
 
   Uint8List encode(String source) => encoder.convert(source);
@@ -106,12 +106,11 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 /// Converts strings of only ASCII characters to bytes.
 ///
 /// Example:
-/// ```dart
-///
-/// const String sample = 'Dart';
+/// ```dart import:typed_data
 /// const AsciiEncoder asciiEncoder = AsciiEncoder();
+/// const String sample = 'Dart';
 /// final Uint8List asciiValues = asciiEncoder.convert(sample);
-/// print(asciiValues); // [[68, 97, 114, 116]
+/// print(asciiValues); // [68, 97, 114, 116]
 /// ```
 class AsciiEncoder extends _UnicodeSubsetEncoder {
   const AsciiEncoder() : super(_asciiMask);
@@ -208,11 +207,10 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 ///
 /// Example:
 /// ```dart
-///
 /// const AsciiDecoder asciiDecoder = AsciiDecoder();
 /// final List<int> asciiValues = [68, 97, 114, 116];
-/// final string = asciiDecoder.convert(asciiValues);
-/// print(string); // Dart
+/// final String result = asciiDecoder.convert(asciiValues);
+/// print(result); // Dart
 /// ```
 ///
 /// If `bytes` contains values that are not in the range 0 .. 127, the decoder
@@ -221,13 +219,12 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// If `allowInvalid` is set to true,
 /// the decoder replaces the invalid bytes with the character `U+FFFD` �.
 ///
-/// Example:
+/// Example with `allowInvalid` set to true:
 /// ```dart
-///
 /// const AsciiDecoder asciiDecoder = AsciiDecoder(allowInvalid: true);
-///   final List<int> asciiValues = [68, 97, 114, 116, 20, 0xFF];
-/// final string = asciiDecoder.convert(asciiValues);
-/// print(string); // Dart �
+/// final List<int> asciiValues = [68, 97, 114, 116, 20, 0xFF];
+/// final String result = asciiDecoder.convert(asciiValues);
+/// print(result); // Dart �
 /// ```
 class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid = false})
