@@ -29,31 +29,28 @@ typedef _Hasher<K> = int Function(K object);
 /// The iteration order only changes when the map is modified.
 /// Values are iterated in the same order as their associated keys,
 /// so iterating the [keys] and [values] in parallel
-/// will give matching key and value pairs.
+/// will give matching key and value pairs. **Notice:** Manipulating item count
+/// in [forEach] is prohibited. Adding or deleting items during iteration
+/// causes an exception: _"Concurrent modification during iteration"_.
 ///
 /// Example:
 ///
-/// To add data to map, call [addAll] or [addEntries]:
 /// ```dart
 /// final HashMap<int, String> hashMap = HashMap();
+/// // To add data to map, call addAll or addEntries.
 /// hashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
+/// print(hashMap); // {1: A, 2: B, 3: C, 4: D}
 ///
 /// final HashMap<int, String> anotherHashMap = HashMap();
 /// anotherHashMap.addEntries(hashMap.entries);
 /// print(anotherHashMap); // {1: A, 2: B, 3: C, 4: D}
-/// ```
-/// To check is the map empty, use [isEmpty] or [isNotEmpty].
-/// To check length of map data, use [length]:
-/// ```dart
+///
+/// // To check is the map empty, use isEmpty or isNotEmpty
+/// // To check length of map data, use length
 /// final bool isEmpty = hashMap.isEmpty; // false
 /// final int length = hashMap.length; // 4
-/// print(hashMap); // {1: A, 2: B, 3: C, 4: D}
-/// ```
-/// The [forEach] iterates through all entries of a map.
-/// Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
-/// ```dart
+///
+/// // The forEach iterates through all entries of a map.
 /// hashMap.forEach((key, value) {
 ///   print('key: $key value: $value');
 ///   // key: 1 value: A
@@ -61,48 +58,41 @@ typedef _Hasher<K> = int Function(K object);
 ///   // key: 3 value: C
 ///   // key: 4 value: D
 /// });
-/// ```
-/// To check is there a defined key, call [containsKey]:
-/// ```dart
+///
+/// // To check is there a defined key, call containsKey
 /// final keyOneExists = hashMap.containsKey(1); // true
 /// final keyFiveExists = hashMap.containsKey(5); // false
-/// ```
-/// To check is there a value item on map, call [containsValue]:
-/// ```dart
+///
+/// // To check is there a value item on map, call containsValue
 /// final bExists = hashMap.containsValue('B'); // true
-/// final gExists =  hashMap.containsValue('G'); // false
-/// ```
-/// To remove specific key-pair using key, call [remove]:
-/// ```dart
+/// final gExists = hashMap.containsValue('G'); // false
+///
+/// // To remove specific key-pair using key, call remove
 /// hashMap.remove(1);
 /// print(hashMap); // {2: B, 3: C, 4: D}
-/// ```
-/// To remove item(s) with a statement, call the [removeWhere]:
-/// ```dart
+///
+/// // To remove item(s) with a statement, call the removeWhere
 /// hashMap.removeWhere((key, value) => key == 2);
 /// hashMap.removeWhere((key, value) => value == 'C');
 /// print(hashMap); // {4: D}
-/// ```
-/// To update or insert (adding new key-value pair if not exists) value,
-/// call [update] method with ifAbsent statement:
-/// ```dart
+///
+/// // To update or insert (adding new key-value pair if not exists) value,
+/// // call update method with ifAbsent statement
 /// hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
 /// print(hashMap); // {10: E, 4: D}
 /// hashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
 /// print(hashMap); // {10: E, 4: abc}
-/// ```
-/// To update all items, call [updateAll]:
-/// ```dart
+///
+/// // To update all items, call updateAll
 /// hashMap.updateAll((int key, String value) => 'X');
 /// print(hashMap); // {10: X, 4: X}
-/// ```
-/// To clean up data, call the [clear]:
-/// ```dart
+///
+/// // To clean up data, call the clear
 /// hashMap.clear();
 /// print(hashMap); // {}
 /// ```
 /// 
-/// ## Constructor options for initialization:
+/// ## Constructor options for initialization
 ///
 /// [HashMap.from] example:
 /// ```dart
@@ -128,10 +118,9 @@ typedef _Hasher<K> = int Function(K object);
 /// ```
 /// [HashMap.of] example:
 /// ```dart
-/// final Map mapIntString = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
+/// final Map mapIntString = {1: 'A', 2: 'B', 3: 'C'};
 /// final HashMap mapOf = HashMap.of(mapIntString);
 /// ```
-///
 abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered hash-table based [Map].
   ///
