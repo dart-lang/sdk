@@ -75,9 +75,7 @@ class RuntimeCompletionComputer {
     );
 
     var suggestions = await DartCompletionManager(
-      budget: CompletionBudget(
-        const Duration(milliseconds: 100),
-      ),
+      budget: CompletionBudget(CompletionBudget.defaultDuration),
     ).computeSuggestions(
       dartRequest,
       OperationPerformanceImpl('<root>'),

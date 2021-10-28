@@ -73,7 +73,6 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
   }
 
   void setUp() {
-    CompletionDomainHandler.budgetDuration = const Duration(seconds: 30);
     serverChannel = MockServerChannel();
 
     var sdkRoot = newFolder('/sdk');
@@ -92,13 +91,15 @@ class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
     );
+
+    completionDomain.budgetDuration = const Duration(seconds: 30);
   }
 
   Future<void> test_notImported_emptyBudget() async {
     await _configureWithWorkspaceRoot();
 
     // Empty budget, so no not yet imported libraries.
-    CompletionDomainHandler.budgetDuration = const Duration(milliseconds: 0);
+    completionDomain.budgetDuration = const Duration(milliseconds: 0);
 
     var responseValidator = await _getTestCodeSuggestions('''
 void f() {

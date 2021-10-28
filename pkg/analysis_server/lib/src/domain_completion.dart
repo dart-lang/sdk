@@ -33,11 +33,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
 class CompletionDomainHandler extends AbstractRequestHandler {
-  /// The time budget for a completion request.
-  static Duration budgetDuration = Duration(milliseconds: 100);
-
   /// The maximum number of performance measurements to keep.
   static const int performanceListMaxLength = 50;
+
+  /// The time budget for a completion request.
+  Duration budgetDuration = CompletionBudget.defaultDuration;
 
   /// The completion services that the client is currently subscribed.
   final Set<CompletionService> subscriptions = <CompletionService>{};

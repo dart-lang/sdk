@@ -1205,11 +1205,11 @@ class CompletionMetricsComputer {
           availableSuggestionsParams]) async {
     List<protocol.CompletionSuggestion> suggestions;
 
-    const budgetDuration = Duration(seconds: 30);
+    var budget = CompletionBudget(Duration(seconds: 30));
     if (declarationsTracker == null) {
       // available suggestions == false
       suggestions = await DartCompletionManager(
-        budget: CompletionBudget(budgetDuration),
+        budget: budget,
         listener: listener,
       ).computeSuggestions(dartRequest, performance);
     } else {
@@ -1220,7 +1220,7 @@ class CompletionMetricsComputer {
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
-        budget: CompletionBudget(budgetDuration),
+        budget: budget,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,

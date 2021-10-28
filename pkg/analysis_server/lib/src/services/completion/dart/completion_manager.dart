@@ -47,6 +47,8 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /// Class that tracks how much time budget we have left.
 class CompletionBudget {
+  static const Duration defaultDuration = Duration(milliseconds: 100);
+
   final Duration _budget;
   final Stopwatch _timer = Stopwatch()..start();
 
