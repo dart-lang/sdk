@@ -118,7 +118,7 @@ abstract class HashSet<E> implements Set<E> {
   /// [E] instance. That means that:
   /// ```dart
   /// HashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
-  ///              hashCode: (int e) => e % 5)
+  ///              hashCode: (int e) => e % 5);
   /// ```
   /// does not need an `isValidKey` argument, because it defaults to only
   /// accepting `int` values which are accepted by both `equals` and `hashCode`.
@@ -140,7 +140,7 @@ abstract class HashSet<E> implements Set<E> {
   /// Creates an unordered identity-based set.
   ///
   /// Effectively a shorthand for:
-  /// ```dart
+  /// ```
   /// HashSet<E>(equals: identical,
   ///                hashCode: identityHashCode)
   /// ```
@@ -156,7 +156,7 @@ abstract class HashSet<E> implements Set<E> {
   /// All the [elements] should be instances of [E].
   /// The `elements` iterable itself may have any element type, so this
   /// constructor can be used to down-cast a `Set`, for example as:
-  /// ```dart
+  /// ```
   /// Set<SuperType> superSet = ...;
   /// Set<SubType> subSet =
   ///     HashSet<SubType>.from(superSet.whereType<SubType>());
