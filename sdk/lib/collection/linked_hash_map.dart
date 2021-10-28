@@ -13,6 +13,9 @@ part of dart.collection;
 /// does not change the iteration order,
 /// but removing the key and adding it again
 /// will make it be last in the iteration order.
+/// **Notice:** Manipulating item count in [forEach] is prohibited. Adding or
+/// deleting items during iteration causes an exception:
+/// _"Concurrent modification during iteration"_.
 ///
 /// The keys of a `LinkedHashMap` must have consistent [Object.==]
 /// and [Object.hashCode] implementations. This means that the `==` operator
@@ -22,24 +25,20 @@ part of dart.collection;
 ///
 /// Example:
 ///
-/// To add data to map, call [addAll] or [addEntries]
 /// ```dart
 /// final LinkedHashMap<int, String> linkedHashMap =
 ///   LinkedHashMap<int, String>();
+///
+/// // To add data to map, call addAll or addEntries
 /// linkedHashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
-/// ```
-/// To check is the map empty, use [isEmpty] or [isNotEmpty].
-/// To check length of map data, use [length]:
-/// ```dart
+///
+/// // To check is the map empty, use isEmpty or isNotEmpty.
+/// // To check length of map data, use length
 /// linkedHashMap.isEmpty; // false
 /// linkedHashMap.length; // 4
 /// print(linkedHashMap); // {1: A, 4: D, 2: B, 3: C}
-/// ```
-/// The [forEach] iterates through all entries of a map.
-/// Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
-/// ```dart
+///
+/// // The forEach iterates through all entries of a map.
 /// linkedHashMap.forEach((key, value) {
 ///   print('key: $key value: $value');
 ///   // key: 1 value: A
@@ -47,48 +46,41 @@ part of dart.collection;
 ///   // key: 2 value: B
 ///   // key: 3 value: C
 /// });
-/// ```
-/// To check is there a defined key, call [containsKey]:
-/// ```dart
+///
+/// // To check is there a defined key, call containsKey
 /// final keyOneExists = linkedHashMap.containsKey(1); // true
 /// final keyFiveExists = linkedHashMap.containsKey(5); // false
-/// ```
-/// To check is there a value item on map, call [containsValue]:
-/// ```dart
+///
+/// // To check is there a value item on map, call containsValue
 /// final bExists = linkedHashMap.containsValue('B'); // true
 /// final gExists =  linkedHashMap.containsValue('G'); // false
-/// ```
-/// To remove specific key-pair using key, call [remove]
-/// ```dart
+///
+/// // To remove specific key-pair using key, call remove
 /// linkedHashMap.remove(1);
 /// print(linkedHashMap); // {4: D, 2: B, 3: C}
-/// ```
-/// To remove item(s) with a statement, call the [removeWhere]:
-/// ```dart
-///  linkedHashMap.removeWhere((key, value) => key == 2);
-///  linkedHashMap.removeWhere((key, value) => value == 'C');
-///  print(linkedHashMap); // {4: D}
-/// ```
-/// To update or insert (adding new key-value pair if not exists) value,
-/// call [update] with ifAbsent statement or call [putIfAbsent]:
-/// ```dart
+///
+/// // To remove item(s) with a statement, call removeWhere
+/// linkedHashMap.removeWhere((key, value) => key == 2);
+/// linkedHashMap.removeWhere((key, value) => value == 'C');
+/// print(linkedHashMap); // {4: D}
+///
+/// // To update or insert (adding new key-value pair if not exists) value,
+/// // call update with ifAbsent statement or call putIfAbsent:
 /// linkedHashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
 /// print(linkedHashMap); // {4: D, 10: E}
 /// linkedHashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
 /// print(linkedHashMap); // {4: abc, 10: E}
-/// ```
-/// To update all items, call [updateAll]:
-/// ```dart
+///
+/// // To update all items, call updateAll
 /// linkedHashMap.updateAll((int key, String value) => 'X');
 /// print(linkedHashMap); // {4: X, 1: X}
-/// ```
-/// To clean up data, call the [clear]:
-/// ```dart
+///
+/// // To clean up data, call clear
 /// linkedHashMap.clear();
 /// print(linkedHashMap); // {}
 /// ```
 ///
-/// ## Constructor options for initialization:
+/// ## Constructor options for initialization
 ///
 /// [LinkedHashMap.from] example:
 /// ```dart
