@@ -185,7 +185,7 @@ class A04 {}
 
     await _configureWithWorkspaceRoot();
 
-    var test_path = '$testPackageTestPath/test.dart';
+    var test_path = convertPath('$testPackageTestPath/test.dart');
     var responseValidator = await _getCodeSuggestions(
       path: test_path,
       content: '''
@@ -450,7 +450,7 @@ class A02 {}
 
     await _configureWithWorkspaceRoot();
 
-    var test_path = '$testPackageTestPath/test.dart';
+    var test_path = convertPath('$testPackageTestPath/test.dart');
     var responseValidator = await _getCodeSuggestions(
       path: test_path,
       content: '''
@@ -497,7 +497,7 @@ class A02 {}
 
     await _configureWithWorkspaceRoot();
 
-    var test_path = '$testPackageTestPath/test.dart';
+    var test_path = convertPath('$testPackageTestPath/test.dart');
     var responseValidator = await _getCodeSuggestions(
       path: test_path,
       content: '''
@@ -981,7 +981,7 @@ void f() {
     int maxResults = 1 << 10,
   }) async {
     return _getCodeSuggestions(
-      path: testFilePath,
+      path: convertPath(testFilePath),
       content: content,
       maxResults: maxResults,
     );
