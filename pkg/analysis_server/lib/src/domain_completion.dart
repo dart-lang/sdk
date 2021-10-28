@@ -208,6 +208,63 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     );
   }
 
+  /// Process a `completion.getSuggestionDetails2` request.
+  void getSuggestionDetails2(Request request) async {
+    var params = CompletionGetSuggestionDetails2Params.fromRequest(request);
+
+    var file = params.file;
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
+    var libraryUri = Uri.tryParse(params.libraryUri);
+    if (libraryUri == null) {
+      server.sendResponse(
+        Response.invalidParameter(request, 'libraryUri', 'Cannot parse'),
+      );
+      return;
+    }
+
+    var budget = CompletionBudget(
+      const Duration(milliseconds: 1000),
+    );
+    var id = ++_latestGetSuggestionDetailsId;
+    while (id == _latestGetSuggestionDetailsId && !budget.isEmpty) {
+      try {
+        var analysisDriver = server.getAnalysisDriver(file);
+        if (analysisDriver == null) {
+          server.sendResponse(Response.fileNotAnalyzed(request, file));
+          return;
+        }
+        var session = analysisDriver.currentSession;
+
+        var completion = params.completion;
+        var builder = ChangeBuilder(session: session);
+        await builder.addDartFileEdit(file, (builder) {
+          var result = builder.importLibraryElement(libraryUri);
+          if (result.prefix != null) {
+            completion = '${result.prefix}.$completion';
+          }
+        });
+
+        server.sendResponse(
+          CompletionGetSuggestionDetails2Result(
+            completion,
+            builder.sourceChange,
+          ).toResponse(request.id),
+        );
+        return;
+      } on InconsistentAnalysisException {
+        // Loop around to try again.
+      }
+    }
+
+    // Timeout or abort, send the empty response.
+    server.sendResponse(
+      CompletionGetSuggestionDetailsResult('').toResponse(request.id),
+    );
+  }
+
   /// Implement the 'completion.getSuggestions2' request.
   void getSuggestions2(Request request) async {
     var budget = CompletionBudget(budgetDuration);
@@ -320,6 +377,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS) {
         getSuggestionDetails(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2) {
+        getSuggestionDetails2(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
