@@ -22,28 +22,28 @@ part of dart.collection;
 /// multiple iterations over the same set produce the same order, as long as
 /// the set is not modified.
 ///
+/// The [forEach] iterates through all entries of a set.
+/// Manipulating item count in [forEach] is prohibited. Adding or
+/// deleting items during iteration causes an exception:
+/// _"Concurrent modification during iteration"_.
+///
 /// Example:
+///
 /// ```dart
 /// final HashSet hashSet = HashSet();
 /// hashSet.addAll({'A', 'B', 'C', 'D'});
 /// hashSet.isEmpty; // false
 /// hashSet.length; // 4
 /// print(hashSet); // {A, D, C, B}
-/// ```
-/// To check is there a value item on map, call [contains]:
-/// ```dart
+///
+/// // To check is there a value item on map, call contains
 /// final bool bExists = hashSet.contains('B'); // true
-///  ```
-/// To get element value using index, call [elementAt]:
-/// ```dart
+///
+/// // To get element value using index, call elementAt
 /// final String elementAt = hashSet.elementAt(1);
 /// print(elementAt); // D
-///  ```
-/// The [forEach] iterates through all entries of a set.
-/// Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
-/// ```dart
+///
+/// // The forEach iterates through all entries of a set.
 /// hashSet.forEach((element) {
 ///   print(element);
 ///   // A
@@ -51,60 +51,46 @@ part of dart.collection;
 ///   // C
 ///   // B
 /// });
-/// ```
-/// To convert set to list, call [toList]:
-/// ```dart
+///
+/// // To convert set to list, call toList
 /// final toList = hashSet.toList();
 /// print(toList); // [A, D, C, B]
-/// ```
-/// To make a copy of set, call [toSet]:
-/// ```dart
+///
+/// // To make a copy of set, call toSet
 /// final copyOfOriginal = hashSet.toSet();
 /// print(copyOfOriginal); // {A, C, D, B}
-/// ```
-/// To add item to set, call [add]
-/// ```dart
+///
+/// // To add item to set, call [add]
 /// hashSet.add('E');
 /// print(hashSet); // {A, D, C, E, B}
-/// ```
-/// To remove specific value, call [remove]:
-/// ```dart
+///
+/// // To remove specific value, call remove
 /// hashSet.remove('A');
 /// print(hashSet); // // {D, C, E, B}
-/// ```
-/// To remove value(s) with a statement, call the [removeWhere]:
-/// ```dart
+///
+/// // To remove value(s) with a statement, call the removeWhere
 /// hashSet.removeWhere((element) => element.contains('B'));
 /// print(hashSet); // {D, C, E}
-/// ```
-/// To remove other values than those which match statement
-/// ```dart
+///
+/// // To remove other values than those which match statement
 /// hashSet.retainWhere((element) => element.contains('C'));
 /// print(hashSet); // {C}
-/// ```
-/// To clean up data, call the [clear]:
-/// ```dart
+///
+/// // To clean up data, call the clear
 /// hashSet.clear();
 /// print(hashSet); // {}
 /// ```
-/// ## Constructor options for initialization:
+/// ## Constructor options for initialization
 ///
-/// ```dart
-/// final HashSet<String> baseSet = HashSet()..addAll({'C', 'B', 'A'});
-/// ```
 /// [HashSet.from()] example:
 /// ```dart
+/// final HashSet<String> baseSet = HashSet()..addAll({'A', 'B', 'C'});
 /// final HashSet<String> hashSetFrom = HashSet.from(baseSet);
-///
-/// // Notice! From causes runtime error if type not match
-/// final HashSet<int> hashSetFrom = HashSet.from(baseSet);
 /// ```
 /// [HashSet.of()] example:
 /// ```dart
+/// final HashSet<String> baseSet = HashSet()..addAll({'A', 'B', 'C'});
 /// final HashSet hashSetOf = HashSet.of(baseSet);
-///
-/// // Of causes build time error if type mismatch
-/// final HashSet<int> customSet = HashSet.of(baseSet);
 /// ```
 abstract class HashSet<E> implements Set<E> {
   /// Create a hash set using the provided [equals] as equality.
