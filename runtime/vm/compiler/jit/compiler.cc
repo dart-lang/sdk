@@ -1109,9 +1109,8 @@ class BackgroundCompilerTask : public ThreadPool::Task {
 
 BackgroundCompiler::BackgroundCompiler(IsolateGroup* isolate_group)
     : isolate_group_(isolate_group),
-      queue_monitor_(),
+      monitor_(),
       function_queue_(new BackgroundCompilationQueue()),
-      done_monitor_(),
       running_(false),
       done_(true),
       disabled_depth_(0) {}
@@ -1122,71 +1121,56 @@ BackgroundCompiler::~BackgroundCompiler() {
 }
 
 void BackgroundCompiler::Run() {
-  while (true) {
-    // Maybe something is already in the queue, check first before waiting
-    // to be notified.
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kCompilerTask, /*bypass_safepoint=*/false);
-    ASSERT(result);
+  bool result = Thread::EnterIsolateGroupAsHelper(
+      isolate_group_, Thread::kCompilerTask, /*bypass_safepoint=*/false);
+  ASSERT(result);
+  {
+    Thread* thread = Thread::Current();
+    StackZone stack_zone(thread);
+    Zone* zone = stack_zone.GetZone();
+    HANDLESCOPE(thread);
+    Function& function = Function::Handle(zone);
+    QueueElement* element = nullptr;
     {
-      Thread* thread = Thread::Current();
-      StackZone stack_zone(thread);
-      Zone* zone = stack_zone.GetZone();
-      Function& function = Function::Handle(zone);
-      {
-        SafepointMonitorLocker ml(&queue_monitor_);
-        if (running_) {
-          function = function_queue()->PeekFunction();
-        }
+      SafepointMonitorLocker ml(&monitor_);
+      if (running_ && !function_queue()->IsEmpty()) {
+        element = function_queue()->Remove();
+        function ^= element->function();
       }
-      while (!function.IsNull()) {
-        Compiler::CompileOptimizedFunction(thread, function,
-                                           Compiler::kNoOSRDeoptId);
+    }
+    if (element != nullptr) {
+      delete element;
+      Compiler::CompileOptimizedFunction(thread, function,
+                                         Compiler::kNoOSRDeoptId);
 
-        QueueElement* qelem = NULL;
-        {
-          SafepointMonitorLocker ml(&queue_monitor_);
-          if (!running_ || function_queue()->IsEmpty()) {
-            // We are shutting down, queue was cleared.
-            function = Function::null();
-          } else {
-            qelem = function_queue()->Remove();
-            const Function& old = Function::Handle(qelem->Function());
-            // If an optimizable method is not optimized, put it back on
-            // the background queue (unless it was passed to foreground).
-            if ((!old.HasOptimizedCode() && old.IsOptimizable()) ||
-                FLAG_stress_test_background_compilation) {
-              if (Compiler::CanOptimizeFunction(thread, old)) {
-                QueueElement* repeat_qelem = new QueueElement(old);
-                function_queue()->Add(repeat_qelem);
-              }
-            }
-            function = function_queue()->PeekFunction();
+      // If an optimizable method is not optimized, put it back on
+      // the background queue (unless it was passed to foreground).
+      if ((!function.HasOptimizedCode() && function.IsOptimizable()) ||
+          FLAG_stress_test_background_compilation) {
+        if (Compiler::CanOptimizeFunction(thread, function)) {
+          SafepointMonitorLocker ml(&monitor_);
+          if (running_) {
+            QueueElement* repeat_qelem = new QueueElement(function);
+            function_queue()->Add(repeat_qelem);
           }
         }
-        if (qelem != NULL) {
-          delete qelem;
-        }
       }
     }
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
-    {
-      // Wait to be notified when the work queue is not empty.
-      MonitorLocker ml(&queue_monitor_);
-      while (function_queue()->IsEmpty() && running_) {
-        ml.Wait();
-      }
-      if (!running_) {
-        break;
-      }
-    }
-  }  // while running
-
+  }
+  Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
   {
-    // Notify that the thread is done.
-    MonitorLocker ml_done(&done_monitor_);
-    done_ = true;
-    ml_done.NotifyAll();
+    MonitorLocker ml(&monitor_);
+    if (running_ && !function_queue()->IsEmpty() &&
+        Dart::thread_pool()->Run<BackgroundCompilerTask>(this)) {
+      // Successfully scheduled a new task.
+    } else {
+      // Background compiler done. This notification must happen after the
+      // thread leaves to group to avoid a shutdown race with the thread
+      // registry.
+      running_ = false;
+      done_ = true;
+      ml.NotifyAll();
+    }
   }
 }
 
@@ -1195,7 +1179,7 @@ bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
-  SafepointMonitorLocker ml_done(&done_monitor_);
+  SafepointMonitorLocker ml(&monitor_);
   if (disabled_depth_ > 0) return false;
   if (!running_ && done_) {
     running_ = true;
@@ -1211,7 +1195,6 @@ bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
     }
   }
 
-  SafepointMonitorLocker ml(&queue_monitor_);
   ASSERT(running_);
   if (function_queue()->ContainsObj(function)) {
     return true;
@@ -1231,21 +1214,16 @@ void BackgroundCompiler::Stop() {
   ASSERT(thread->isolate() == nullptr || thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
-  SafepointMonitorLocker ml_done(&done_monitor_);
-  StopLocked(thread, &ml_done);
+  SafepointMonitorLocker ml(&monitor_);
+  StopLocked(thread, &ml);
 }
 
 void BackgroundCompiler::StopLocked(Thread* thread,
-                                    SafepointMonitorLocker* done_locker) {
-  {
-    SafepointMonitorLocker ml(&queue_monitor_);
-    running_ = false;
-    function_queue_->Clear();
-    ml.NotifyAll();  // Stop waiting for the queue.
-  }
-
+                                    SafepointMonitorLocker* locker) {
+  running_ = false;
+  function_queue_->Clear();
   while (!done_) {
-    done_locker->Wait();
+    locker->Wait();
   }
 }
 
@@ -1254,7 +1232,7 @@ void BackgroundCompiler::Enable() {
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
-  SafepointMonitorLocker ml_done(&done_monitor_);
+  SafepointMonitorLocker ml(&monitor_);
   disabled_depth_--;
   if (disabled_depth_ < 0) {
     FATAL("Mismatched number of calls to BackgroundCompiler::Enable/Disable.");
@@ -1266,10 +1244,10 @@ void BackgroundCompiler::Disable() {
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
-  SafepointMonitorLocker ml_done(&done_monitor_);
+  SafepointMonitorLocker ml(&monitor_);
   disabled_depth_++;
   if (done_) return;
-  StopLocked(thread, &ml_done);
+  StopLocked(thread, &ml);
 }
 
 #else  // DART_PRECOMPILED_RUNTIME
