@@ -97,13 +97,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         librariesToImport: librariesToImport,
       );
 
-      try {
-        suggestions.addAll(
-          await manager.computeSuggestions(request, performance),
-        );
-      } on AbortCompletion {
-        suggestions.clear();
-      }
+      suggestions.addAll(
+        await manager.computeSuggestions(request, performance),
+      );
     });
     // TODO (danrubel) if request is obsolete (processAnalysisRequest returns
     // false) then send empty results
@@ -261,14 +257,28 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         ),
         documentationCache: server.getDocumentationCacheFor(resolvedUnit),
       );
+      setNewRequest(completionRequest);
 
       var librariesToImport = <Uri>[];
-      var suggestions = await computeSuggestions(
-        budget: budget,
-        performance: performance,
-        request: completionRequest,
-        librariesToImport: librariesToImport,
-      );
+      var suggestions = <CompletionSuggestion>[];
+      try {
+        suggestions = await computeSuggestions(
+          budget: budget,
+          performance: performance,
+          request: completionRequest,
+          librariesToImport: librariesToImport,
+        );
+      } on AbortCompletion {
+        return server.sendResponse(
+          CompletionGetSuggestions2Result(
+            completionRequest.replacementOffset,
+            completionRequest.replacementLength,
+            [],
+            [],
+            true,
+          ).toResponse(request.id),
+        );
+      }
 
       performance.run('filter', (performance) {
         performance.getDataInt('count').add(suggestions.length);
@@ -436,14 +446,19 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       // Compute suggestions in the background
       try {
-        var suggestions = await computeSuggestions(
-          budget: budget,
-          performance: perf,
-          request: completionRequest,
-          includedElementKinds: includedElementKinds,
-          includedElementNames: includedElementNames,
-          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-        );
+        var suggestions = <CompletionSuggestion>[];
+        try {
+          suggestions = await computeSuggestions(
+            budget: budget,
+            performance: perf,
+            request: completionRequest,
+            includedElementKinds: includedElementKinds,
+            includedElementNames: includedElementNames,
+            includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+          );
+        } on AbortCompletion {
+          // Continue with empty suggestions list.
+        }
         String? libraryFile;
         var includedSuggestionSets = <IncludedSuggestionSet>[];
         if (includedElementKinds != null && includedElementNames != null) {
