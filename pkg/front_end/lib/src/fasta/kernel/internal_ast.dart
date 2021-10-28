@@ -891,7 +891,7 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
       : super(variable);
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitInvalidSuperInitializerJudgment(this);
   }
 
@@ -982,7 +982,7 @@ class IfNullExpression extends InternalExpression {
 abstract class InitializerJudgment implements Initializer {
   /// Performs type inference for whatever concrete type of
   /// [InitializerJudgment] this is.
-  void acceptInference(InferenceVisitor visitor);
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor);
 }
 
 Expression? checkWebIntLiteralsErrorIfUnexact(
@@ -1089,7 +1089,7 @@ class ShadowInvalidInitializer extends LocalInitializer
   ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidInitializer(this);
   }
 
@@ -1114,7 +1114,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidFieldInitializer(this);
   }
 

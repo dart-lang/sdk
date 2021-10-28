@@ -37,6 +37,7 @@ import '../messages.dart'
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_schema.dart';
+import '../type_inference/type_inferrer.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
@@ -68,8 +69,8 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   void injectInvalidInitializer(Message message, int charOffset, int length,
       ExpressionGeneratorHelper helper);
 
-  void addInitializer(
-      Initializer initializer, ExpressionGeneratorHelper helper);
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult});
 
   void prepareInitializers();
 
@@ -328,8 +329,8 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   }
 
   @override
-  void addInitializer(
-      Initializer initializer, ExpressionGeneratorHelper helper) {
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult}) {
     List<Initializer> initializers = _constructor.initializers;
     if (initializer is SuperInitializer) {
       if (superInitializer != null) {
@@ -342,6 +343,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
             "super".length,
             helper);
       } else {
+        inferenceResult?.applyResult(initializers, _constructor);
         initializers.add(initializer..parent = _constructor);
         superInitializer = initializer;
       }
@@ -373,9 +375,11 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
           error.parent = _constructor;
           initializers[i] = error;
         }
+        inferenceResult?.applyResult(initializers, _constructor);
         initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
       } else {
+        inferenceResult?.applyResult(initializers, _constructor);
         initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
       }
@@ -391,6 +395,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
       injectInvalidInitializer(messageSuperInitializerNotLast,
           initializer.fileOffset, noLength, helper);
     } else {
+      inferenceResult?.applyResult(initializers, _constructor);
       initializers.add(initializer..parent = _constructor);
     }
   }

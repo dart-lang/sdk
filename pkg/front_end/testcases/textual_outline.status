@@ -134,6 +134,7 @@ late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
+named_arguments_anywhere/redirecting_constructor_initializers: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
 nnbd/duplicates_instance: FormatterCrash

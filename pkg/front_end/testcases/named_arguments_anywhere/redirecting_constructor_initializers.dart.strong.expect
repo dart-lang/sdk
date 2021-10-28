@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •(core::int x, {required core::String y = #C2}) → self::A
+    : super core::Object::•()
+    ;
+  constructor foo() → self::A
+    : final core::String #t1 = "foo", this self::A::•(42, y: #t1)
+    ;
+  static factory bar(core::int x, {required core::String y = #C2}) → self::A
+    return new self::A::•(x, y: y);
+}
+class B extends self::A {
+  constructor •() → self::B
+    : final core::String #t2 = "foo", super self::A::•(42, y: #t2)
+    ;
+}
+static method test() → dynamic {
+  new self::A::•(42, y: "bar");
+  let final core::String #t3 = "bar" in new self::A::•(42, y: #t3);
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::bar
+  #C2 = null
+}
