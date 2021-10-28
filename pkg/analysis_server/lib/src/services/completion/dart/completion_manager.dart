@@ -393,7 +393,6 @@ class DartCompletionRequest {
   /// (that is, the number of characters in the existing identifier).
   /// This will be different than the [replacementOffset] - [offset]
   /// if the [offset] is in the middle of an existing identifier.
-  /// TODO(scheglov) Switch to [replacementRange].
   int get replacementLength => replacementRange.length;
 
   /// The offset of the start of the text to be replaced.
@@ -401,7 +400,6 @@ class DartCompletionRequest {
   /// suggestions if there was a portion of an identifier before the original
   /// [offset]. In particular, the [replacementOffset] will be the offset of the
   /// beginning of said identifier.
-  /// TODO(scheglov) Switch to [replacementRange].
   int get replacementOffset => replacementRange.offset;
 
   /// Return the resource provider associated with this request.
