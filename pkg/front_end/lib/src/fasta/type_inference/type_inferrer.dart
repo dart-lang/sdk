@@ -5038,8 +5038,7 @@ class SuccessfulInitializerInvocationInferenceResult
   void applyResult(List<Initializer> initializers, TreeNode? parent) {
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
-      for (int i = hoistedArguments.length - 1; i >= 0; i--) {
-        VariableDeclaration hoistedArgument = hoistedArguments[i];
+      for (VariableDeclaration hoistedArgument in hoistedArguments) {
         initializers.add(new LocalInitializer(hoistedArgument)
           ..parent = parent
           ..fileOffset = hoistedArgument.fileOffset);

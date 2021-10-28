@@ -1,10 +1,10 @@
 class A {
-  A(int x, {required String y});
-  A.foo() : this(y: "foo", 42);
-  factory A.bar(int x, {required String y}) = A;
+  A(int x, bool y, {required String z});
+  A.foo() : this(42, z: "foo", false);
+  factory A.bar(int x, bool y, {required String z}) = A;
 }
 class B extends A {
-  B() : super(y: "foo", 42);
+  B() : super(42, z: "foo", false);
 }
 test() {}
 main() {}

@@ -3,20 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  A(int x, {required String y});
+  A(int x, bool y, {required String z});
 
-  A.foo() : this(y: "foo", 42);
+  A.foo() : this(42, z: "foo", false);
 
-  factory A.bar(int x, {required String y}) = A;
+  factory A.bar(int x, bool y, {required String z}) = A;
 }
 
 class B extends A {
-  B() : super(y: "foo", 42);
+  B() : super(42, z: "foo", false);
 }
 
 test() {
-  new A.bar(42, y: "bar");
-  new A.bar(y: "bar", 42);
+  new A.bar(42, false, z: "bar");
+  new A.bar(42, z: "bar", false);
+  new A.bar(z: "bar", 42, false);
 }
 
 main() {}

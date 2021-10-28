@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class A extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::A::bar]/*isLegacy*/;
-  constructor •(core::int x, {required core::String y}) → self::A
+  constructor •(core::int x, core::bool y, {required core::String z}) → self::A
     ;
   constructor foo() → self::A
     ;
-  static factory bar(core::int x, {required core::String y}) → self::A
-    return new self::A::•(x, y: y);
+  static factory bar(core::int x, core::bool y, {required core::String z}) → self::A
+    return new self::A::•(x, y, z: z);
 }
 class B extends self::A {
   constructor •() → self::B
@@ -23,4 +23,4 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructor_initializers.dart:5:7 -> ConstructorTearOffConstant(A.bar)
-Extra constant evaluation: evaluated: 5, effectively constant: 1
+Extra constant evaluation: evaluated: 6, effectively constant: 1
