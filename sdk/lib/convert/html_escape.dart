@@ -41,7 +41,7 @@ const HtmlEscape htmlEscape = HtmlEscape();
 ///
 /// Example:
 /// ```dart
-///  const htmlEscapeMode = HtmlEscapeMode(
+/// const htmlEscapeMode = HtmlEscapeMode(
 ///   name: 'custom',
 ///   escapeLtGt: true,
 ///   escapeQuot: false,
