@@ -2863,6 +2863,44 @@ void f<T extends A, U extends B>(T a) {
     );
   }
 
+  test_namedArgument_anywhere() async {
+    await assertNoErrorsInCode('''
+void foo(int a, double b, {bool? c, bool? d}) {}
+
+void f() {
+  foo(0, c: true, 1.2, d: true);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0'),
+      findElement.topFunction('foo'),
+      'void Function(int, double, {bool? c, bool? d})',
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('0'),
+      findElement.parameter('a'),
+    );
+
+    assertParameterElement(
+      findNode.doubleLiteral('1.2'),
+      findElement.parameter('b'),
+    );
+
+    assertParameterElement(
+      findNode.namedExpression('c: true'),
+      findElement.parameter('c'),
+    );
+    assertNamedParameterRef('c: true', 'c');
+
+    assertParameterElement(
+      findNode.namedExpression('d: true'),
+      findElement.parameter('d'),
+    );
+    assertNamedParameterRef('d: true', 'd');
+  }
+
   test_nullShorting_cascade_firstMethodInvocation() async {
     await assertNoErrorsInCode(r'''
 class A {
