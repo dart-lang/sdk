@@ -1199,7 +1199,7 @@ abstract class HttpResponse implements IOSink {
 /// If a body is present, it must be read. Otherwise, it leads to resource
 /// leaks. Consider using [HttpClientResponse.drain] if the body is unused.
 ///
-/// ```dart
+/// ```dart import:convert
 /// var client = HttpClient();
 /// try {
 ///   HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
@@ -1673,7 +1673,8 @@ abstract class HttpClient {
 /// encoding used is determined from the "charset" parameter of
 /// the "Content-Type" header.
 ///
-/// ```dart
+/// ```dart import:convert
+/// var client = HttpClient();
 /// HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
 /// request.headers.contentType =
 ///     ContentType('application', 'json', charset: 'utf-8');
@@ -1683,6 +1684,7 @@ abstract class HttpClient {
 /// If no charset is provided the default of ISO-8859-1 (Latin 1) is used.
 ///
 /// ```dart
+/// var client = HttpClient();
 /// HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
 /// request.headers.add(HttpHeaders.contentTypeHeader, "text/plain");
 /// request.write('blåbærgrød'); // Strings written will be ISO-8859-1 encoded
@@ -1783,8 +1785,9 @@ abstract class HttpClientRequest implements IOSink {
   /// the request has been aborted
   ///
   /// ```dart import:async
-  /// HttpClientRequest request = ...
-  /// request.write();
+  /// var client = HttpClient();
+  /// HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
+  /// request.write('request content');
   /// Timer(Duration(seconds: 1), () {
   ///   request.abort();
   /// });
@@ -1804,7 +1807,7 @@ abstract class HttpClientRequest implements IOSink {
 /// server. Use [Stream] methods like [`transform`][Stream.transform] and
 /// [`join`][Stream.join] to access the data.
 ///
-/// ```dart
+/// ```dart import:convert
 /// var client = HttpClient();
 /// try {
 ///   HttpClientRequest request = await client.get('localhost', 80, '/file.txt');
