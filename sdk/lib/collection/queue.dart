@@ -15,6 +15,24 @@ part of dart.collection;
 /// iteration.
 /// This goes both for using the [iterator] directly, or for iterating an
 /// `Iterable` returned by a method like [map] or [where].
+///
+/// Example:
+/// ```dart
+/// final Queue queue = Queue();
+///
+/// // Queue() calls ListQueue() by default
+/// print(queue.runtimeType); // ListQueue
+/// // Adding items to queue
+/// queue.addAll([1, 2, 3]);
+/// queue.addFirst(0);
+/// queue.addLast(10);
+/// print(queue); // {0, 1, 2, 3, 10}
+///
+/// // Removing items from queue
+/// queue.removeFirst();
+/// queue.removeLast();
+/// print(queue); // {1, 2, 3}
+/// ```
 abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Creates a queue.
   factory Queue() = ListQueue<E>;
@@ -518,62 +536,39 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// queue.addLast(10);
 /// queue.addAll([1, 2, 3]);
 /// print(queue); // {0, 5, 10, 1, 2, 3}
-/// ```
-/// To check is queue empty, use [isEmpty] or [isNotEmpty].
-/// To check size of queue, use [length]:
-/// ```dart
+///
+/// // To check is queue empty, use isEmpty or isNotEmpty.
+/// // To check size of queue, use length
 /// final bool isEmpty = queue.isEmpty; // false
 /// final int queueSize = queue.length; // 6
-/// ```
-/// The [forEach] iterates through all entries of a queue.
-/// Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
-/// ```dart
-/// queue.forEach((element) {
-///   print(element);
-///   // 0
-///   // 5
-///   // 10
-///   // 1
-///   // 2
-///   // 3
-/// });
-/// ```
-/// To get first or last item from queue, use [first] or [last]:
-/// ```dart
+///
+/// // To get first or last item from queue, use first or last
 /// final first = queue.first; // 0
 /// final last = queue.last; // 3
-/// ```
-/// To get item using queue index, call [elementAt]:
-/// ```dart
+///
+/// // To get item using queue index, call elementAt
 /// final itemAt = queue.elementAt(2); // 10
-/// ```
-/// To convert queue to list type, call [toList]:
-/// ```dart
-/// final list = queue.toList();
-/// print(toList); // [0, 5, 10, 1, 2, 3]
-/// ```
-/// To remove items from queue, call [remove], [removeFirst], [removeLast]:
-/// ```dart
+///
+/// // To convert queue to list type, call toList
+/// final List asList = queue.toList();
+/// print(asList); // [0, 5, 10, 1, 2, 3]
+///
+/// // To remove items from queue, call remove, removeFirst or removeLast
 /// queue.remove(10);
 /// queue.removeFirst();
 /// queue.removeLast();
 /// print(queue); // {5, 1, 2}
-/// ```
-/// To remove item(s) with a statement, call the [removeWhere]:
-/// ```dart
+///
+/// // To remove item(s) with a statement, call the removeWhere
 /// queue.removeWhere((element) => element == 1);
 /// print(queue); // {5, 2}
-/// ```
-/// To remove other values than those which match statement,
-/// call the [retainWhere]:
-/// ```dart
+///
+/// // To remove other values than those which match statement,
+/// // call the retainWhere
 /// queue.retainWhere((element) => element == 2);
 /// print(queue); // {2}
-/// ```
-/// To clean up data, call the [clear]:
-/// ```dart
+///
+/// // To clean up data, call the clear
 /// queue.clear();
 /// print(queue); // {}
 /// ```
