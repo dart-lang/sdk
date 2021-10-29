@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
@@ -9,6 +11,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -27,72 +30,235 @@ import 'src/plugin/plugin_manager_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CompletionDomainHandlerGetSuggestionDetails2Test);
     defineReflectiveTests(CompletionDomainHandlerGetSuggestions2Test);
     defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
   });
 }
 
 @reflectiveTest
-class CompletionDomainHandlerGetSuggestions2Test with ResourceProviderMixin {
-  late final MockServerChannel serverChannel;
-  late final AnalysisServer server;
+class CompletionDomainHandlerGetSuggestionDetails2Test
+    extends PubPackageAnalysisServerTest {
+  Future<void> test_alreadyImported() async {
+    await _configureWithWorkspaceRoot();
 
-  AnalysisDomainHandler get analysisDomain {
-    return server.handlers.whereType<AnalysisDomainHandler>().single;
+    var validator = await _getTestCodeDetails('''
+import 'dart:math';
+void f() {
+  Rand^
+}
+''', completion: 'Random', libraryUri: 'dart:math');
+    validator
+      ..hasCompletion('Random')
+      ..hasChange().assertNoFileEdits();
   }
 
-  CompletionDomainHandler get completionDomain {
-    return server.handlers.whereType<CompletionDomainHandler>().single;
+  Future<void> test_import_dart() async {
+    await _configureWithWorkspaceRoot();
+
+    var validator = await _getTestCodeDetails('''
+void f() {
+  R^
+}
+''', completion: 'Random', libraryUri: 'dart:math');
+    validator
+      ..hasCompletion('Random')
+      ..hasChange()
+          .hasFileEdit(testFilePathPlatform)
+          .whenApplied(testFileContent, r'''
+import 'dart:math';
+
+void f() {
+  R
+}
+''');
   }
 
-  String get testFilePath => '$testPackageLibPath/test.dart';
+  Future<void> test_import_package_dependencies() async {
+    // TODO(scheglov) Switch to PubspecYamlFileConfig
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+dependencies:
+  aaa: any
+''');
 
-  String get testPackageLibPath => '$testPackageRootPath/lib';
+    var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
+    newFile('${aaaRoot.path}/lib/f.dart', content: '''
+class Test {}
+''');
 
-  Folder get testPackageRoot => getFolder(testPackageRootPath);
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
+    );
 
-  String get testPackageRootPath => '$workspaceRootPath/test';
+    await _configureWithWorkspaceRoot();
 
-  String get testPackageTestPath => '$testPackageRootPath/test';
+    var validator = await _getTestCodeDetails('''
+void f() {
+  T^
+}
+''', completion: 'Test', libraryUri: 'package:aaa/a.dart');
+    validator
+      ..hasCompletion('Test')
+      ..hasChange()
+          .hasFileEdit(testFilePathPlatform)
+          .whenApplied(testFileContent, r'''
+import 'package:aaa/a.dart';
 
-  String get workspaceRootPath => '/home';
+void f() {
+  T
+}
+''');
+  }
 
-  Future<void> setRoots({
-    required List<String> included,
-    required List<String> excluded,
+  Future<void> test_import_package_this() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class Test {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var validator = await _getTestCodeDetails('''
+void f() {
+  T^
+}
+''', completion: 'Test', libraryUri: 'package:test/a.dart');
+    validator
+      ..hasCompletion('Test')
+      ..hasChange()
+          .hasFileEdit(testFilePathPlatform)
+          .whenApplied(testFileContent, r'''
+import 'package:test/a.dart';
+
+void f() {
+  T
+}
+''');
+  }
+
+  Future<void> test_invalidLibraryUri() async {
+    await _configureWithWorkspaceRoot();
+
+    var request = CompletionGetSuggestionDetails2Params(
+            testFilePathPlatform, 0, 'Random', '[foo]:bar')
+        .toRequest('0');
+
+    var response = await _handleRequest(request);
+    expect(response.error?.code, RequestErrorCode.INVALID_PARAMETER);
+    // TODO(scheglov) Check that says "libraryUri".
+  }
+
+  Future<void> test_invalidPath() async {
+    await _configureWithWorkspaceRoot();
+
+    var request =
+        CompletionGetSuggestionDetails2Params('foo', 0, 'Random', 'dart:math')
+            .toRequest('0');
+
+    var response = await _handleRequest(request);
+    expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
+  }
+
+  Future<GetSuggestionDetails2Validator> _getCodeDetails({
+    required String path,
+    required String content,
+    required String completion,
+    required String libraryUri,
   }) async {
-    var includedConverted = included.map(convertPath).toList();
-    var excludedConverted = excluded.map(convertPath).toList();
-    await _handleSuccessfulRequest(
-      AnalysisSetAnalysisRootsParams(
-        includedConverted,
-        excludedConverted,
-        packageRoots: {},
-      ).toRequest('0'),
+    var completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+
+    var nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+
+    newFile(path,
+        content: content.substring(0, completionOffset) +
+            content.substring(completionOffset + 1));
+
+    return await _getDetails(
+      path: path,
+      completionOffset: completionOffset,
+      completion: completion,
+      libraryUri: libraryUri,
     );
   }
 
+  Future<GetSuggestionDetails2Validator> _getDetails({
+    required String path,
+    required int completionOffset,
+    required String completion,
+    required String libraryUri,
+  }) async {
+    var request = CompletionGetSuggestionDetails2Params(
+      path,
+      completionOffset,
+      completion,
+      libraryUri,
+    ).toRequest('0');
+
+    var response = await _handleSuccessfulRequest(request);
+    var result = CompletionGetSuggestionDetails2Result.fromResponse(response);
+    return GetSuggestionDetails2Validator(result);
+  }
+
+  Future<GetSuggestionDetails2Validator> _getTestCodeDetails(
+    String content, {
+    required String completion,
+    required String libraryUri,
+  }) async {
+    return _getCodeDetails(
+      path: convertPath(testFilePath),
+      content: content,
+      completion: completion,
+      libraryUri: libraryUri,
+    );
+  }
+}
+
+@reflectiveTest
+class CompletionDomainHandlerGetSuggestions2Test
+    extends PubPackageAnalysisServerTest {
+  @override
   void setUp() {
-    serverChannel = MockServerChannel();
-
-    var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
-
-    writeTestPackageConfig();
-
-    server = AnalysisServer(
-      serverChannel,
-      resourceProvider,
-      AnalysisServerOptions(),
-      DartSdkManager(sdkRoot.path),
-      CrashReportingAttachmentsBuilder.empty,
-      InstrumentationService.NULL_SERVICE,
-    );
-
+    super.setUp();
     completionDomain.budgetDuration = const Duration(seconds: 30);
+  }
+
+  void tearDown() {
+    NotImportedContributor.onFile = null;
+  }
+
+  Future<void> test_notImported_abort() async {
+    await _configureWithWorkspaceRoot();
+
+    NotImportedContributor.onFile = (file) {
+      if (file.uriStr == 'dart:math') {
+        unawaited(
+          _getSuggestions(
+            path: convertPath(testFilePath),
+            completionOffset: 0,
+            maxResults: 100,
+          ),
+        );
+      }
+    };
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  Rand^
+}
+''');
+
+    responseValidator
+      ..assertIncomplete()
+      ..assertReplacementBack(4)
+      ..assertLibrariesToImport(includes: [], excludes: [
+        'dart:core',
+        'dart:math',
+      ]);
+
+    responseValidator.suggestions.assertEmpty();
   }
 
   Future<void> test_notImported_emptyBudget() async {
@@ -932,37 +1098,6 @@ void f() {
     suggestionsValidator.assertCompletions(['foo02', 'foo01']);
   }
 
-  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
-    newPackageConfigJsonFile(
-      root.path,
-      content: config.toContent(toUriStr: toUriStr),
-    );
-  }
-
-  void writeTestPackageConfig({
-    PackageConfigFileBuilder? config,
-    String? languageVersion,
-  }) {
-    if (config == null) {
-      config = PackageConfigFileBuilder();
-    } else {
-      config = config.copy();
-    }
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
-      languageVersion: languageVersion,
-    );
-
-    writePackageConfig(testPackageRoot, config);
-  }
-
-  Future<void> _configureWithWorkspaceRoot() async {
-    await setRoots(included: [workspaceRootPath], excluded: []);
-    await server.onAnalysisComplete;
-  }
-
   Future<CompletionGetSuggestions2ResponseValidator> _getCodeSuggestions({
     required String path,
     required String content,
@@ -1010,13 +1145,6 @@ void f() {
       content: content,
       maxResults: maxResults,
     );
-  }
-
-  /// Validates that the given [request] is handled successfully.
-  Future<Response> _handleSuccessfulRequest(Request request) async {
-    var response = await serverChannel.sendRequest(request);
-    expect(response, isResponseSuccess(request.id));
-    return response;
   }
 }
 
@@ -1959,6 +2087,129 @@ class CompletionGetSuggestions2ResponseValidator {
   }
 }
 
+class GetSuggestionDetails2Validator {
+  final CompletionGetSuggestionDetails2Result result;
+
+  GetSuggestionDetails2Validator(this.result);
+
+  SourceChangeValidator hasChange() {
+    return SourceChangeValidator(result.change);
+  }
+
+  void hasCompletion(Object completion) {
+    expect(result.completion, completion);
+  }
+}
+
+class PubPackageAnalysisServerTest with ResourceProviderMixin {
+  late final MockServerChannel serverChannel;
+  late final AnalysisServer server;
+
+  AnalysisDomainHandler get analysisDomain {
+    return server.handlers.whereType<AnalysisDomainHandler>().single;
+  }
+
+  CompletionDomainHandler get completionDomain {
+    return server.handlers.whereType<CompletionDomainHandler>().single;
+  }
+
+  String get testFileContent => getFile(testFilePath).readAsStringSync();
+
+  String get testFilePath => '$testPackageLibPath/test.dart';
+
+  String get testFilePathPlatform => convertPath(testFilePath);
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  Folder get testPackageRoot => getFolder(testPackageRootPath);
+
+  String get testPackageRootPath => '$workspaceRootPath/test';
+
+  String get testPackageTestPath => '$testPackageRootPath/test';
+
+  String get workspaceRootPath => '/home';
+
+  Future<void> setRoots({
+    required List<String> included,
+    required List<String> excluded,
+  }) async {
+    var includedConverted = included.map(convertPath).toList();
+    var excludedConverted = excluded.map(convertPath).toList();
+    await _handleSuccessfulRequest(
+      AnalysisSetAnalysisRootsParams(
+        includedConverted,
+        excludedConverted,
+        packageRoots: {},
+      ).toRequest('0'),
+    );
+  }
+
+  void setUp() {
+    serverChannel = MockServerChannel();
+
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
+    writeTestPackageConfig();
+
+    server = AnalysisServer(
+      serverChannel,
+      resourceProvider,
+      AnalysisServerOptions(),
+      DartSdkManager(sdkRoot.path),
+      CrashReportingAttachmentsBuilder.empty,
+      InstrumentationService.NULL_SERVICE,
+    );
+
+    completionDomain.budgetDuration = const Duration(seconds: 30);
+  }
+
+  void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
+    newPackageConfigJsonFile(
+      root.path,
+      content: config.toContent(toUriStr: toUriStr),
+    );
+  }
+
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootPath: testPackageRootPath,
+      languageVersion: languageVersion,
+    );
+
+    writePackageConfig(testPackageRoot, config);
+  }
+
+  Future<void> _configureWithWorkspaceRoot() async {
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+  }
+
+  Future<Response> _handleRequest(Request request) async {
+    return await serverChannel.sendRequest(request);
+  }
+
+  /// Validates that the given [request] is handled successfully.
+  Future<Response> _handleSuccessfulRequest(Request request) async {
+    var response = await _handleRequest(request);
+    expect(response, isResponseSuccess(request.id));
+    return response;
+  }
+}
+
 class SingleSuggestionValidator {
   final CompletionSuggestion suggestion;
   final List<String>? libraryUrisToImport;
@@ -2000,6 +2251,32 @@ class SingleSuggestionValidator {
   void assertTopLevelVariable() {
     expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
     expect(suggestion.element?.kind, ElementKind.TOP_LEVEL_VARIABLE);
+  }
+}
+
+class SourceChangeValidator {
+  final SourceChange change;
+
+  SourceChangeValidator(this.change);
+
+  void assertNoFileEdits() {
+    expect(change.edits, isEmpty);
+  }
+
+  SourceFileEditValidator hasFileEdit(String path) {
+    var edit = change.edits.singleWhere((e) => e.file == path);
+    return SourceFileEditValidator(edit);
+  }
+}
+
+class SourceFileEditValidator {
+  final SourceFileEdit edit;
+
+  SourceFileEditValidator(this.edit);
+
+  void whenApplied(String applyTo, Object expected) {
+    var actual = SourceEdit.applySequence(applyTo, edit.edits);
+    expect(actual, expected);
   }
 }
 

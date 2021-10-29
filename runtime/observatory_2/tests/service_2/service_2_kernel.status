@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 complex_reload_test: Skip # http://dartbug.com/47130
+coverage_closure_call_test: Skip # https://github.com/dart-lang/sdk/issues/47568
 valid_source_locations_test: Pass, Slow
 
 [ $compiler == app_jitk ]

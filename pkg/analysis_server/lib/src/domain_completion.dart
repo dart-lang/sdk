@@ -97,13 +97,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         librariesToImport: librariesToImport,
       );
 
-      try {
-        suggestions.addAll(
-          await manager.computeSuggestions(request, performance),
-        );
-      } on AbortCompletion {
-        suggestions.clear();
-      }
+      suggestions.addAll(
+        await manager.computeSuggestions(request, performance),
+      );
     });
     // TODO (danrubel) if request is obsolete (processAnalysisRequest returns
     // false) then send empty results
@@ -212,6 +208,63 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     );
   }
 
+  /// Process a `completion.getSuggestionDetails2` request.
+  void getSuggestionDetails2(Request request) async {
+    var params = CompletionGetSuggestionDetails2Params.fromRequest(request);
+
+    var file = params.file;
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
+    var libraryUri = Uri.tryParse(params.libraryUri);
+    if (libraryUri == null) {
+      server.sendResponse(
+        Response.invalidParameter(request, 'libraryUri', 'Cannot parse'),
+      );
+      return;
+    }
+
+    var budget = CompletionBudget(
+      const Duration(milliseconds: 1000),
+    );
+    var id = ++_latestGetSuggestionDetailsId;
+    while (id == _latestGetSuggestionDetailsId && !budget.isEmpty) {
+      try {
+        var analysisDriver = server.getAnalysisDriver(file);
+        if (analysisDriver == null) {
+          server.sendResponse(Response.fileNotAnalyzed(request, file));
+          return;
+        }
+        var session = analysisDriver.currentSession;
+
+        var completion = params.completion;
+        var builder = ChangeBuilder(session: session);
+        await builder.addDartFileEdit(file, (builder) {
+          var result = builder.importLibraryElement(libraryUri);
+          if (result.prefix != null) {
+            completion = '${result.prefix}.$completion';
+          }
+        });
+
+        server.sendResponse(
+          CompletionGetSuggestionDetails2Result(
+            completion,
+            builder.sourceChange,
+          ).toResponse(request.id),
+        );
+        return;
+      } on InconsistentAnalysisException {
+        // Loop around to try again.
+      }
+    }
+
+    // Timeout or abort, send the empty response.
+    server.sendResponse(
+      CompletionGetSuggestionDetailsResult('').toResponse(request.id),
+    );
+  }
+
   /// Implement the 'completion.getSuggestions2' request.
   void getSuggestions2(Request request) async {
     var budget = CompletionBudget(budgetDuration);
@@ -261,14 +314,28 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         ),
         documentationCache: server.getDocumentationCacheFor(resolvedUnit),
       );
+      setNewRequest(completionRequest);
 
       var librariesToImport = <Uri>[];
-      var suggestions = await computeSuggestions(
-        budget: budget,
-        performance: performance,
-        request: completionRequest,
-        librariesToImport: librariesToImport,
-      );
+      var suggestions = <CompletionSuggestion>[];
+      try {
+        suggestions = await computeSuggestions(
+          budget: budget,
+          performance: performance,
+          request: completionRequest,
+          librariesToImport: librariesToImport,
+        );
+      } on AbortCompletion {
+        return server.sendResponse(
+          CompletionGetSuggestions2Result(
+            completionRequest.replacementOffset,
+            completionRequest.replacementLength,
+            [],
+            [],
+            true,
+          ).toResponse(request.id),
+        );
+      }
 
       performance.run('filter', (performance) {
         performance.getDataInt('count').add(suggestions.length);
@@ -310,6 +377,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS) {
         getSuggestionDetails(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2) {
+        getSuggestionDetails2(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
@@ -436,14 +506,19 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       // Compute suggestions in the background
       try {
-        var suggestions = await computeSuggestions(
-          budget: budget,
-          performance: perf,
-          request: completionRequest,
-          includedElementKinds: includedElementKinds,
-          includedElementNames: includedElementNames,
-          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-        );
+        var suggestions = <CompletionSuggestion>[];
+        try {
+          suggestions = await computeSuggestions(
+            budget: budget,
+            performance: perf,
+            request: completionRequest,
+            includedElementKinds: includedElementKinds,
+            includedElementNames: includedElementNames,
+            includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+          );
+        } on AbortCompletion {
+          // Continue with empty suggestions list.
+        }
         String? libraryFile;
         var includedSuggestionSets = <IncludedSuggestionSet>[];
         if (includedElementKinds != null && includedElementNames != null) {

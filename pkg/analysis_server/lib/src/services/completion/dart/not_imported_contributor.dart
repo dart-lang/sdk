@@ -16,9 +16,14 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
+  /// Tests set this function to abort the current request.
+  @visibleForTesting
+  static void Function(FileState)? onFile;
+
   final CompletionBudget budget;
   final List<Uri> librariesToImport;
 
@@ -49,6 +54,9 @@ class NotImportedContributor extends DartCompletionContributor {
 
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
+      onFile?.call(file);
+      request.checkAborted();
+
       if (budget.isEmpty) {
         return;
       }
