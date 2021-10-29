@@ -2467,7 +2467,7 @@
             "pkg//compiler/"
           ],
           "shards": 3,
-          "fileset": "web_platform"
+          "fileset": "web_platform_nnbd"
         }
       ]
     },
