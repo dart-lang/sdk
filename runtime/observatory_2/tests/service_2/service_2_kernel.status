@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 complex_reload_test: Skip # http://dartbug.com/47130
-coverage_closure_call_test: Skip # https://github.com/dart-lang/sdk/issues/47568
 valid_source_locations_test: Pass, Slow
 
 [ $compiler == app_jitk ]
@@ -76,6 +75,7 @@ client_resume_approvals_reload_test: SkipByDesign # Debugger is disabled in AOT 
 code_test: SkipByDesign # Debugger is disabled in AOT mode.
 column_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
 complex_reload_test: SkipByDesign # Debugger is disabled in AOT mode.
+coverage_closure_call_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 coverage_const_field_async_closure_test: SkipByDesign # Debugger is disabled in AOT mode.
 coverage_leaf_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 coverage_optimized_function_test: SkipByDesign # Debugger is disabled in AOT mode.
