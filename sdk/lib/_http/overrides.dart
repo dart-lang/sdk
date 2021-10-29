@@ -13,20 +13,22 @@ const _asyncRunZoned = runZoned;
 /// that construct a mock implementation. The implementation in this base class
 /// defaults to the actual [HttpClient] implementation. For example:
 ///
-/// ```dart
+/// ```dart import:io
+/// // An implementation of the HttpClient interface
 /// class MyHttpClient implements HttpClient {
-///   ...
-///   // An implementation of the HttpClient interface
-///   ...
+///   MyHttpClient(SecurityContext? c);
+///
+///   @override
+///   noSuchMethod(Invocation invocation) {
+///     // your implementation here
+///   }
 /// }
 ///
-/// main() {
+/// void main() {
 ///   HttpOverrides.runZoned(() {
-///     ...
 ///     // Operations will use MyHttpClient instead of the real HttpClient
 ///     // implementation whenever HttpClient is used.
-///     ...
-///   }, createHttpClient: (SecurityContext c) => MyHttpClient(c));
+///   }, createHttpClient: (SecurityContext? c) => MyHttpClient(c));
 /// }
 /// ```
 abstract class HttpOverrides {

@@ -246,6 +246,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
+    final entity = this.entity;
     var parent = node.parent;
     List<ParameterElement>? parameters;
     if (parent is InstanceCreationExpression) {
@@ -303,8 +304,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         } else {
           index = node.arguments.length - 1;
         }
+      } else if (entity is Expression) {
+        index = node.arguments.indexOf(entity);
       } else {
-        index = node.arguments.indexOf(entity as Expression);
+        return;
       }
       if (0 <= index && index < parameters.length) {
         var param = parameters[index];

@@ -892,7 +892,7 @@ void f() {
     suggestions.withCompletion('foo02').assertSingle().assertMethod();
   }
 
-  Future<void> test_prefixed_extensionGetters() async {
+  Future<void> test_prefixed_expression_extensionGetters() async {
     await _configureWithWorkspaceRoot();
 
     var responseValidator = await _getTestCodeSuggestions(r'''
@@ -922,7 +922,255 @@ void f() {
     suggestionsValidator.withCompletion('foo02').assertSingle().assertGetter();
   }
 
-  /// TODO(scheglov) Also not imported, with type checks.
+  Future<void> test_prefixed_expression_extensionGetters_notImported() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  int get foo01 => 0;
+  int get bar => 0;
+}
+
+extension E2 on int {
+  int get foo02 => 0;
+}
+
+extension E3 on double {
+  int get foo03 => 0;
+}
+''');
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+void f() {
+  0.foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
+
+    suggestionsValidator.withCompletion('foo01').assertSingle()
+      ..assertGetter()
+      ..assertLibraryToImport('package:test/a.dart');
+    suggestionsValidator.withCompletion('foo02').assertSingle()
+      ..assertGetter()
+      ..assertLibraryToImport('package:test/a.dart');
+  }
+
+  Future<void>
+      test_prefixed_expression_extensionGetters_notImported_private() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  int get foo01 => 0;
+}
+
+extension _E2 on int {
+  int get foo02 => 0;
+}
+
+extension on int {
+  int get foo03 => 0;
+}
+''');
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+void f() {
+  0.foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01']);
+
+    suggestionsValidator.withCompletion('foo01').assertSingle()
+      ..assertGetter()
+      ..assertLibraryToImport('package:test/a.dart');
+  }
+
+  Future<void> test_prefixed_expression_extensionMethods() async {
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+extension E1 on int {
+  void foo01() {}
+  void foo02() {}
+  void bar() {}
+}
+
+extension E2 on double {
+  void foo03() {}
+}
+
+void f() {
+  0.foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
+
+    suggestionsValidator.withCompletion('foo01').assertSingle().assertMethod();
+    suggestionsValidator.withCompletion('foo02').assertSingle().assertMethod();
+  }
+
+  Future<void> test_prefixed_expression_extensionMethods_notImported() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  void foo01() {}
+  void bar() {}
+}
+
+extension E2 on int {
+  void foo02() {}
+}
+
+extension E3 on double {
+  void foo03() {}
+}
+''');
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+void f() {
+  0.foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
+
+    suggestionsValidator.withCompletion('foo01').assertSingle()
+      ..assertMethod()
+      ..assertLibraryToImport('package:test/a.dart');
+    suggestionsValidator.withCompletion('foo02').assertSingle()
+      ..assertMethod()
+      ..assertLibraryToImport('package:test/a.dart');
+  }
+
+  Future<void> test_prefixed_expression_extensionSetters() async {
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+extension E1 on int {
+  set foo01(int _) {}
+  set foo02(int _) {}
+  set bar(int _) {}
+}
+
+extension E2 on double {
+  set foo03(int _) {}
+}
+
+void f() {
+  0.foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
+
+    suggestionsValidator.withCompletion('foo01').assertSingle().assertSetter();
+    suggestionsValidator.withCompletion('foo02').assertSingle().assertSetter();
+  }
+
+  Future<void> test_prefixed_expression_extensionSetters_notImported() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  set foo01(int _) {}
+  set bar(int _) {}
+}
+
+extension E2 on int {
+  set foo02(int _) {}
+}
+
+extension E3 on double {
+  set foo03(int _) {}
+}
+''');
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+void f() {
+  0.foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
+
+    suggestionsValidator.withCompletion('foo01').assertSingle()
+      ..assertSetter()
+      ..assertLibraryToImport('package:test/a.dart');
+    suggestionsValidator.withCompletion('foo02').assertSingle()
+      ..assertSetter()
+      ..assertLibraryToImport('package:test/a.dart');
+  }
+
+  Future<void>
+      test_prefixed_expression_extensionSetters_notImported_private() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  set foo01(int _) {}
+}
+
+extension _E2 on int {
+  set foo02(int _) {}
+}
+
+extension on int {
+  set foo03(int _) {}
+}
+''');
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+void f() {
+  0.foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01']);
+
+    suggestionsValidator.withCompletion('foo01').assertSingle()
+      ..assertSetter()
+      ..assertLibraryToImport('package:test/a.dart');
+  }
+
   Future<void> test_prefixed_extensionGetters_imported() async {
     await _configureWithWorkspaceRoot();
 
@@ -955,6 +1203,58 @@ void f() {
 
     suggestionsValidator.withCompletion('foo01').assertSingle().assertGetter();
     suggestionsValidator.withCompletion('foo02').assertSingle().assertGetter();
+  }
+
+  Future<void> test_prefixed_extensionOverride_extensionGetters() async {
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+extension E1 on int {
+  int get foo01 => 0;
+}
+
+extension E2 on int {
+  int get foo02 => 0;
+}
+
+void f() {
+  E1(0).foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01']);
+    suggestionsValidator.withCompletion('foo01').assertSingle().assertGetter();
+  }
+
+  Future<void> test_prefixed_extensionOverride_extensionMethods() async {
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions(r'''
+extension E1 on int {
+  void foo01() {}
+}
+
+extension E2 on int {
+  void foo01() {}
+}
+
+void f() {
+  E1(0).foo0^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4);
+
+    var suggestionsValidator = responseValidator.suggestions;
+    suggestionsValidator.assertCompletions(['foo01']);
+    suggestionsValidator.withCompletion('foo01').assertSingle().assertMethod();
   }
 
   Future<void> test_unprefixed_filters() async {
@@ -2248,6 +2548,11 @@ class SingleSuggestionValidator {
     expect(suggestion.element?.kind, ElementKind.METHOD);
   }
 
+  void assertSetter() {
+    expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
+    expect(suggestion.element?.kind, ElementKind.SETTER);
+  }
+
   void assertTopLevelVariable() {
     expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
     expect(suggestion.element?.kind, ElementKind.TOP_LEVEL_VARIABLE);
@@ -2331,6 +2636,10 @@ class SuggestionsValidator {
 
   SuggestionsValidator withElementConstructor() {
     return withElementKind(ElementKind.CONSTRUCTOR);
+  }
+
+  SuggestionsValidator withElementGetter() {
+    return withElementKind(ElementKind.GETTER);
   }
 
   SuggestionsValidator withElementKind(ElementKind kind) {

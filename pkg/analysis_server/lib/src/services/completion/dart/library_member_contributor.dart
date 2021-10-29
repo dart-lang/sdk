@@ -23,7 +23,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
   @override
   Future<void> computeSuggestions() async {
     // Determine if the target looks like a library prefix.
-    var targetId = request.dotTarget;
+    var targetId = request.target.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       var elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {

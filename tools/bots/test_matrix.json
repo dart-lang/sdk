@@ -2467,7 +2467,7 @@
             "pkg//compiler/"
           ],
           "shards": 3,
-          "fileset": "web_platform"
+          "fileset": "web_platform_nnbd"
         }
       ]
     },
@@ -3474,6 +3474,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "tools/verify_docs/bin/verify_docs.dart",
+            "sdk/lib/_http",
             "sdk/lib/_internal",
             "sdk/lib/cli",
             "sdk/lib/convert",

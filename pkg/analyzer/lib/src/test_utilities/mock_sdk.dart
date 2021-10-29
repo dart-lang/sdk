@@ -256,7 +256,7 @@ final MockSdkLibrary _LIB_CORE = MockSdkLibrary(
       '''
 library dart.core;
 
-import 'dart:async'; // ignore: unused_import
+import "dart:_internal" hide Symbol;
 
 export 'dart:async' show Future, Stream;
 
@@ -409,7 +409,7 @@ abstract class Iterable<E> {
 
   const Iterable();
 
-  const factory Iterable.empty() => EmptyIterable<E>();
+  const factory Iterable.empty() = EmptyIterable<E>;
 
   bool contains(Object? element);
 

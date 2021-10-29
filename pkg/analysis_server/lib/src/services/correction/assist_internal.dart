@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
@@ -168,46 +167,6 @@ class AssistProcessor extends BaseProcessor {
 
   Future<List<Assist>> compute() async {
     await _addFromProducers();
-    return assists;
-  }
-
-  Future<List<Assist>> computeAssist(AssistKind assistKind) async {
-    var context = CorrectionProducerContext.create(
-      selectionOffset: selectionOffset,
-      selectionLength: selectionLength,
-      resolvedResult: resolvedResult,
-      workspace: workspace,
-    );
-    if (context == null) {
-      return assists;
-    }
-
-    Future<void> compute(CorrectionProducer producer) async {
-      producer.configure(context);
-
-      var builder = ChangeBuilder(
-          workspace: context.workspace, eol: context.utils.endOfLine);
-      await producer.compute(builder);
-
-      var assistKind = producer.assistKind;
-      if (assistKind != null) {
-        _addAssistFromBuilder(builder, assistKind,
-            args: producer.assistArguments);
-      }
-    }
-
-    // Calculate only specific assists for edit.dartFix
-    if (assistKind == DartAssistKind.CONVERT_CLASS_TO_MIXIN) {
-      await compute(ConvertClassToMixin());
-    } else if (assistKind == DartAssistKind.CONVERT_TO_INT_LITERAL) {
-      await compute(ConvertToIntLiteral());
-    } else if (assistKind == DartAssistKind.CONVERT_TO_SPREAD) {
-      await compute(ConvertAddAllToSpread());
-    } else if (assistKind == DartAssistKind.CONVERT_TO_FOR_ELEMENT) {
-      await compute(ConvertMapFromIterableToForLiteral());
-    } else if (assistKind == DartAssistKind.CONVERT_TO_IF_ELEMENT) {
-      await compute(ConvertConditionalExpressionToIfElement());
-    }
     return assists;
   }
 

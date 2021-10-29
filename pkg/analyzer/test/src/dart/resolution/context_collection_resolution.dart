@@ -255,6 +255,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   List<String> get experiments => [
         EnableString.constructor_tearoffs,
+        EnableString.named_arguments_anywhere,
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.

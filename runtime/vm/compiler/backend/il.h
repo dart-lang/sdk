@@ -6692,6 +6692,9 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
     return calls_initializer() && !throw_exception_on_initialization();
   }
 
+  virtual bool CanCallDart() const {
+    return calls_initializer() && !throw_exception_on_initialization();
+  }
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
 

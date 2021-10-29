@@ -15,24 +15,22 @@ import 'package:analyzer/dart/element/type.dart';
 /// A contributor that produces suggestions based on the members of an
 /// extension.
 class ExtensionMemberContributor extends DartCompletionContributor {
-  late MemberSuggestionBuilder memberBuilder;
+  late final memberBuilder = MemberSuggestionBuilder(request, builder);
 
   ExtensionMemberContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
   ) : super(request, builder);
 
-  @override
-  Future<void> computeSuggestions() async {
+  void addExtensions(List<ExtensionElement> extensions) {
     var containingLibrary = request.libraryElement;
-    memberBuilder = MemberSuggestionBuilder(request, builder);
 
     var defaultKind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
         : request.opType.suggestKind;
 
     // Recompute the target because resolution might have changed it.
-    var expression = request.dotTarget;
+    var expression = request.target.dotTarget;
 
     if (expression == null) {
       if (!request.includeIdentifiers) {
@@ -44,7 +42,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       if (classOrMixin != null) {
         var type = classOrMixin.declaredElement?.thisType;
         if (type != null) {
-          _addExtensionMembers(containingLibrary, defaultKind, type);
+          _addExtensionMembers(extensions, defaultKind, type);
         }
       } else {
         var extension = request.target.containingNode
@@ -59,7 +57,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
                       extendedType.element, type.element);
               _addTypeMembers(type, defaultKind, inheritanceDistance);
             }
-            _addExtensionMembers(containingLibrary, defaultKind, extendedType);
+            _addExtensionMembers(extensions, defaultKind, extendedType);
           }
         }
       }
@@ -103,15 +101,23 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         // invoked on a non-null value.
         type = containingLibrary.typeSystem.promoteToNonNull(type);
       }
-      _addExtensionMembers(containingLibrary, defaultKind, type);
+      _addExtensionMembers(extensions, defaultKind, type);
       expression.staticType;
     }
   }
 
-  void _addExtensionMembers(LibraryElement containingLibrary,
+  @override
+  Future<void> computeSuggestions() async {
+    addExtensions(
+      request.libraryElement.accessibleExtensions,
+    );
+  }
+
+  void _addExtensionMembers(List<ExtensionElement> extensions,
       CompletionSuggestionKind? kind, DartType type) {
+    var containingLibrary = request.libraryElement;
     var typeSystem = containingLibrary.typeSystem;
-    for (var extension in containingLibrary.accessibleExtensions) {
+    for (var extension in extensions) {
       var extendedType =
           extension.resolvedExtendedType(containingLibrary, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {

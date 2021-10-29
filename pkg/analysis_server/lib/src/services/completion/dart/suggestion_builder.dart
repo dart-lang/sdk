@@ -250,7 +250,7 @@ class SuggestionBuilder {
   String? get _containingMemberName {
     if (!_hasContainingMemberName) {
       _hasContainingMemberName = true;
-      if (request.dotTarget is SuperExpression) {
+      if (request.target.dotTarget is SuperExpression) {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {

@@ -6,13 +6,13 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
-    show SuggestionBuilder;
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
@@ -36,10 +36,6 @@ class NotImportedContributor extends DartCompletionContributor {
 
   @override
   Future<void> computeSuggestions() async {
-    if (!request.includeIdentifiers) {
-      return;
-    }
-
     var session = request.result.session as AnalysisSessionImpl;
     var analysisDriver = session.getDriver(); // ignore: deprecated_member_use
 
@@ -51,6 +47,9 @@ class NotImportedContributor extends DartCompletionContributor {
     } on TimeoutException {
       return;
     }
+
+    // Use single instance to track getter / setter pairs.
+    var extensionContributor = ExtensionMemberContributor(request, builder);
 
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
@@ -70,10 +69,17 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
+      var exportNamespace = elementResult.element.exportNamespace;
+      var exportElements = exportNamespace.definedNames.values.toList();
+
       var newSuggestions = builder.markSuggestions();
 
-      _buildSuggestions(
-        elementResult.element.exportNamespace,
+      if (request.includeIdentifiers) {
+        _buildSuggestions(exportElements);
+      }
+
+      extensionContributor.addExtensions(
+        exportElements.whereType<ExtensionElement>().toList(),
       );
 
       newSuggestions.setLibraryUriToImportIndex(() {
@@ -93,9 +99,9 @@ class NotImportedContributor extends DartCompletionContributor {
     }
   }
 
-  void _buildSuggestions(Namespace namespace) {
+  void _buildSuggestions(List<Element> elements) {
     var visitor = LibraryElementSuggestionBuilder(request, builder);
-    for (var element in namespace.definedNames.values) {
+    for (var element in elements) {
       element.accept(visitor);
     }
   }

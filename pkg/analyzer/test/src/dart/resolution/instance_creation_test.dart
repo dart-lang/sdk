@@ -303,6 +303,46 @@ main() {
     );
   }
 
+  test_namedArgument_anywhere() async {
+    await assertNoErrorsInCode('''
+class A {
+  A(int a, double b, {bool? c, bool? d});
+}
+
+void f() {
+  A(0, c: true, 1.2, d: true);
+}
+''');
+
+    assertInstanceCreation(
+      findNode.instanceCreation('A(0'),
+      findElement.class_('A'),
+      'A',
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('0'),
+      findElement.parameter('a'),
+    );
+
+    assertParameterElement(
+      findNode.doubleLiteral('1.2'),
+      findElement.parameter('b'),
+    );
+
+    assertParameterElement(
+      findNode.namedExpression('c: true'),
+      findElement.parameter('c'),
+    );
+    assertNamedParameterRef('c: true', 'c');
+
+    assertParameterElement(
+      findNode.namedExpression('d: true'),
+      findElement.parameter('d'),
+    );
+    assertNamedParameterRef('d: true', 'd');
+  }
+
   test_typeAlias_generic_class_generic_named_infer_all() async {
     await assertNoErrorsInCode(r'''
 class A<T> {

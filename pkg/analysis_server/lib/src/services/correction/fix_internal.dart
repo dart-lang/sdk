@@ -229,15 +229,15 @@ class FixInFileProcessor {
       dartFixContext: context,
       diagnostic: error,
       resolvedResult: resolveResult,
-      selectionOffset: context.error.offset,
-      selectionLength: context.error.length,
+      selectionOffset: error.offset,
+      selectionLength: error.length,
       workspace: workspace,
     );
     if (correctionContext == null) {
       return const <Fix>[];
     }
 
-    var generators = _getGenerators(error.errorCode, correctionContext);
+    var generators = _getGenerators(error.errorCode);
 
     var fixes = <Fix>[];
     for (var generator in generators) {
@@ -309,8 +309,7 @@ class FixInFileProcessor {
     }
   }
 
-  List<ProducerGenerator> _getGenerators(
-      ErrorCode errorCode, CorrectionProducerContext context) {
+  List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
     if (errorCode is LintCode) {
       return FixProcessor.lintProducerMap[errorCode.name] ?? [];
     } else {

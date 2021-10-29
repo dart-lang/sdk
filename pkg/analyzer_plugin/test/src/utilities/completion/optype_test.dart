@@ -240,6 +240,27 @@ class A {
         completionLocation: 'ArgumentList_constructor_named', namedArgs: true);
   }
 
+  Future<void> test_argumentList_inLineComment() async {
+    addTestSource('''
+void f() {
+  g(0, // ^
+  );
+}
+void g() {}
+''');
+    await assertOpType(/* No valid completions */);
+  }
+
+  Future<void> test_argumentList_inStarComment() async {
+    addTestSource('''
+void f() {
+  g(0, /*^*/);
+}
+void g() {}
+''');
+    await assertOpType(/* No valid completions */);
+  }
+
   Future<void> test_argumentList_method_resolved_1_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('main() { foo(^);} foo({one, two}) {}');

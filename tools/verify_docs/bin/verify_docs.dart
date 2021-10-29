@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -15,7 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:path/path.dart' as path;
 
@@ -253,37 +254,52 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     final result = await analysisHelper.resolveFile(text);
 
     if (result is ResolvedUnitResult) {
+      var errors = SplayTreeSet<AnalysisError>.from(
+        result.errors,
+        (a, b) {
+          var value = a.offset.compareTo(b.offset);
+          if (value == 0) {
+            value = a.message.compareTo(b.message);
+          }
+          return value;
+        },
+      );
+
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
-      var errors = result.errors.where(
-        (e) => e.errorCode != HintCode.UNUSED_IMPORT,
+      errors.removeWhere(
+        (e) => e.errorCode == HintCode.UNUSED_IMPORT,
       );
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
-      errors = errors.where(
+      errors.removeWhere(
         (e) =>
-            e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
-            e.errorCode != HintCode.UNUSED_ELEMENT,
+            e.errorCode == HintCode.UNUSED_LOCAL_VARIABLE ||
+            e.errorCode == HintCode.UNUSED_ELEMENT,
       );
 
       // Remove warnings about deprecated member use from the same library.
-      errors = errors.where(
+      errors.removeWhere(
         (e) =>
-            e.errorCode != HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE &&
-            e.errorCode !=
+            e.errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE ||
+            e.errorCode ==
                 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
       );
+
+      // Handle edge case around dart:_http
+      errors.removeWhere((e) {
+        if (e.message.contains("'dart:_http'")) {
+          return e.errorCode == HintCode.UNNECESSARY_IMPORT ||
+              e.errorCode == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY;
+        }
+        return false;
+      });
 
       if (errors.isNotEmpty) {
         print('$filePath:${sample.lineStartOffset}: ${errors.length} errors');
 
         hadErrors = true;
-
-        errors = errors.toList()
-          ..sort(
-            (a, b) => a.offset - b.offset,
-          );
 
         for (final error in errors) {
           final location = result.lineInfo.getLocation(error.offset);
