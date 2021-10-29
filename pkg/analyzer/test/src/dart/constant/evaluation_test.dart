@@ -1954,6 +1954,29 @@ const a = const A<int?>();
     );
   }
 
+  test_fieldInitializer_functionReference_withTypeParameter() async {
+    await resolveTestCode('''
+void g<U>(U a) {}
+class A<T> {
+  final void Function(T) f;
+  const A(): f = g;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+
+    var fField = result.fields!['f']!;
+    var gElement = findElement.topFunction('g');
+    var expectedFunctionType =
+        gElement.type.instantiate([typeProvider.intType]);
+    expect(fField.type, expectedFunctionType);
+  }
+
   test_fieldInitializer_typeParameter() async {
     await resolveTestCode('''
 class A<T> {

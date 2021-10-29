@@ -447,7 +447,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   final Map<String, DartObjectImpl>? _lexicalEnvironment;
 
   /// A mapping of type parameter names to runtime values (types).
-  final Map<String, DartType>? _lexicalTypeEnvironment;
+  final Map<TypeParameterElement, DartType>? _lexicalTypeEnvironment;
 
   final Substitution? _substitution;
 
@@ -471,7 +471,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     this._library,
     this._errorReporter, {
     Map<String, DartObjectImpl>? lexicalEnvironment,
-    Map<String, DartType>? lexicalTypeEnvironment,
+    Map<TypeParameterElement, DartType>? lexicalTypeEnvironment,
     Substitution? substitution,
   })  : _lexicalEnvironment = lexicalEnvironment,
         _lexicalTypeEnvironment = lexicalTypeEnvironment,
@@ -687,9 +687,20 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // type parameter. If, however, `node.typeArguments` is not `null`, then
     // any type parameters contained therein are reported as non-constant in
     // [ConstantVerifier].
-    if (node.typeArguments == null &&
-        (node.typeArgumentTypes?.any(hasTypeParameterReference) ?? false)) {
-      _error(node, null);
+    if (node.typeArguments == null) {
+      var typeArgumentTypes = node.typeArgumentTypes;
+      if (typeArgumentTypes != null) {
+        var instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
+          if (type is TypeParameterType) {
+            return _lexicalTypeEnvironment?[type.element] ?? type;
+          } else {
+            return type;
+          }
+        });
+        if (instantiatedTypeArgumentTypes.any(hasTypeParameterReference)) {
+          _error(node, null);
+        }
+      }
     }
 
     var typeArgumentList = node.typeArguments;
@@ -1300,7 +1311,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       // Constants may refer to type parameters only if the constructor-tearoffs
       // feature is enabled.
       if (_library.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-        var typeArgument = _lexicalTypeEnvironment?[identifier.name];
+        var typeArgument = _lexicalTypeEnvironment?[identifier.staticElement];
         if (typeArgument != null) {
           return DartObjectImpl(
             typeSystem,
@@ -2029,7 +2040,7 @@ class _InstanceCreationEvaluator {
 
   final List<DartObjectImpl> _argumentValues;
 
-  final Map<String, DartType> _typeParameterMap = HashMap();
+  final Map<TypeParameterElement, DartType> _typeParameterMap = HashMap();
 
   final Map<String, DartObjectImpl> _parameterMap = HashMap();
 
@@ -2435,7 +2446,7 @@ class _InstanceCreationEvaluator {
       for (int i = 0; i < typeParameters.length; i++) {
         var typeParameter = typeParameters[i];
         var typeArgument = typeArguments[i];
-        _typeParameterMap[typeParameter.name] = typeArgument;
+        _typeParameterMap[typeParameter] = typeArgument;
       }
     }
   }
