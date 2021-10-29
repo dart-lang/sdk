@@ -40,18 +40,20 @@ class RemoveDeprecatedNewInCommentReference extends CorrectionProducer {
       builder.addDeletion(range.startStart(newToken, newToken.next!));
     });
 
-    final identifier = comment.identifier;
-    final classElement = identifier.staticElement;
-    if (identifier is SimpleIdentifier && classElement is ConstructorElement) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(identifier.end, '.new');
-      });
-    } else {
-      if (classElement is ClassElement) {
-        if (classElement.unnamedConstructor != null) {
-          await builder.addDartFileEdit(file, (builder) {
-            builder.addSimpleInsertion(identifier.end, '.new');
-          });
+    final identifier = comment.expression;
+    if (identifier is Identifier) {
+      final element = identifier.staticElement;
+      if (identifier is SimpleIdentifier && element is ConstructorElement) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleInsertion(identifier.end, '.new');
+        });
+      } else {
+        if (element is ClassElement) {
+          if (element.unnamedConstructor != null) {
+            await builder.addDartFileEdit(file, (builder) {
+              builder.addSimpleInsertion(identifier.end, '.new');
+            });
+          }
         }
       }
     }

@@ -206,8 +206,9 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   CommentReferenceImpl commentReference(
-          Token? newKeyword, Identifier identifier) =>
-      CommentReferenceImpl(newKeyword, identifier as IdentifierImpl);
+          Token? newKeyword, CommentReferableExpression expression) =>
+      CommentReferenceImpl(
+          newKeyword, expression as CommentReferableExpressionImpl);
 
   @override
   CompilationUnitImpl compilationUnit(

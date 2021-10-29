@@ -272,7 +272,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitCommentReference(CommentReference node) {
     CommentReference other = _other as CommentReference;
     return isEqualTokens(node.newKeyword, other.newKeyword) &&
-        isEqualNodes(node.identifier, other.identifier);
+        isEqualNodes(node.expression, other.expression);
   }
 
   @override
@@ -1796,8 +1796,8 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitCommentReference(covariant CommentReferenceImpl node) {
-    if (identical(node.identifier, _oldNode)) {
-      node.identifier = _newNode as Identifier;
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Identifier;
       return true;
     }
     return visitNode(node);

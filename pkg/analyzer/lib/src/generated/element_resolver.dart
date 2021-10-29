@@ -125,31 +125,31 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(covariant CommentReferenceImpl node) {
-    var identifier = node.identifier;
-    if (identifier is SimpleIdentifierImpl) {
-      var element = _resolveSimpleIdentifier(identifier);
+    var expression = node.expression;
+    if (expression is SimpleIdentifierImpl) {
+      var element = _resolveSimpleIdentifier(expression);
       if (element == null) {
         return;
       }
-      identifier.staticElement = element;
+      expression.staticElement = element;
       if (node.newKeyword != null) {
         if (element is ClassElement) {
           var constructor = element.unnamedConstructor;
           if (constructor == null) {
             // TODO(brianwilkerson) Report this error.
           } else {
-            identifier.staticElement = constructor;
+            expression.staticElement = constructor;
           }
         } else {
           // TODO(brianwilkerson) Report this error.
         }
       }
-    } else if (identifier is PrefixedIdentifierImpl) {
-      var prefix = identifier.prefix;
+    } else if (expression is PrefixedIdentifierImpl) {
+      var prefix = expression.prefix;
       var prefixElement = _resolveSimpleIdentifier(prefix);
       prefix.staticElement = prefixElement;
 
-      var name = identifier.identifier;
+      var name = expression.identifier;
 
       if (prefixElement == null) {
         return;

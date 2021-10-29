@@ -979,14 +979,33 @@ abstract class Comment implements AstNode {
   List<Token> get tokens;
 }
 
+/// An interface for an [Expression] which can make up a [CommentReference].
+///
+///    commentReferableExpression ::=
+///        [ConstructorReference]
+///      | [FunctionReference]
+///      | [PrefixedIdentifier]
+///      | [PropertyAccess]
+///      | [SimpleIdentifier]
+///      | [TypeLiteral]
+///
+/// This interface should align closely with dartdoc's notion of
+/// comment-referable expressions at:
+/// https://github.com/dart-lang/dartdoc/blob/master/lib/src/comment_references/parser.dart
+abstract class CommentReferableExpression implements Expression {}
+
 /// A reference to a Dart element that is found within a documentation comment.
 ///
 ///    commentReference ::=
-///        '[' 'new'? [Identifier] ']'
+///        '[' 'new'? [CommentReferableExpression] ']'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CommentReference implements AstNode {
+  /// The comment-referable expression being referenced.
+  CommentReferableExpression get expression;
+
   /// Return the identifier being referenced.
+  @Deprecated('Use expression instead')
   Identifier get identifier;
 
   /// Return the token representing the 'new' keyword, or `null` if there was no
@@ -1331,7 +1350,8 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
 /// produced at resolution time.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorReference implements Expression {
+abstract class ConstructorReference
+    implements Expression, CommentReferableExpression {
   /// The constructor being referenced.
   ConstructorName get constructorName;
 }
@@ -2319,7 +2339,8 @@ abstract class FunctionExpressionInvocation
 /// arguments applied to it, e.g. the expression `print` in `var x = print;`.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionReference implements Expression {
+abstract class FunctionReference
+    implements Expression, CommentReferableExpression {
   /// The function being referenced.
   ///
   /// In error-free code, this will be either a SimpleIdentifier (indicating a
@@ -2503,7 +2524,7 @@ abstract class HideCombinator implements Combinator {
 ///      | [PrefixedIdentifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class Identifier implements Expression {
+abstract class Identifier implements Expression, CommentReferableExpression {
   /// Return the lexical representation of the identifier.
   String get name;
 
@@ -3588,7 +3609,8 @@ abstract class PrefixExpression
 ///        [Expression] '.' [SimpleIdentifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PropertyAccess implements NullShortableExpression {
+abstract class PropertyAccess
+    implements NullShortableExpression, CommentReferableExpression {
   /// Return `true` if this expression is cascaded.
   ///
   /// If it is, then the target of this expression is not stored locally but is
@@ -4289,7 +4311,7 @@ abstract class TypedLiteral implements Literal {
 /// use `.typeName.type`.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeLiteral implements Expression {
+abstract class TypeLiteral implements Expression, CommentReferableExpression {
   /// The type represented by this literal.
   NamedType get type;
 

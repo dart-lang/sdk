@@ -579,21 +579,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitCommentReference(CommentReference node) {
-    var identifier = node.identifier;
-    var element = identifier.staticElement;
-    if (element is ConstructorElement) {
-      if (identifier is PrefixedIdentifier) {
-        var offset = identifier.prefix.end;
-        var length = identifier.end - offset;
-        recordRelationOffset(
-            element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
-        return;
-      } else {
-        var offset = identifier.end;
-        recordRelationOffset(
-            element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
-        return;
+    var expression = node.expression;
+    if (expression is Identifier) {
+      var element = expression.staticElement;
+      if (element is ConstructorElement) {
+        if (expression is PrefixedIdentifier) {
+          var offset = expression.prefix.end;
+          var length = expression.end - offset;
+          recordRelationOffset(element, IndexRelationKind.IS_REFERENCED_BY,
+              offset, length, true);
+          return;
+        } else {
+          var offset = expression.end;
+          recordRelationOffset(
+              element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+          return;
+        }
       }
+    } else {
+      throw UnimplementedError('Unhandled CommentReference expression type: '
+          '${expression.runtimeType}');
     }
 
     return super.visitCommentReference(node);

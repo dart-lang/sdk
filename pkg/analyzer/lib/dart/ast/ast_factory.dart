@@ -158,7 +158,8 @@ abstract class AstFactory {
 
   /// Returns a newly created reference to a Dart element. The [newKeyword]
   /// can be `null` if the reference is not to a constructor.
-  CommentReference commentReference(Token? newKeyword, Identifier identifier);
+  CommentReference commentReference(
+      Token? newKeyword, CommentReferableExpression expression);
 
   /// Returns a newly created compilation unit to have the given directives and
   /// declarations.  The [scriptTag] can be `null` (or omitted) if there is no

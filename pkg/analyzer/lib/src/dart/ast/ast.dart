@@ -1856,6 +1856,9 @@ class CommentImpl extends AstNodeImpl implements Comment {
       CommentImpl(tokens, CommentType.END_OF_LINE, const <CommentReference>[]);
 }
 
+abstract class CommentReferableExpressionImpl extends ExpressionImpl
+    implements CommentReferableExpression {}
+
 /// A reference to a Dart element that is found within a documentation comment.
 ///
 ///    commentReference ::=
@@ -1866,31 +1869,40 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   @override
   Token? newKeyword;
 
-  /// The identifier being referenced.
-  IdentifierImpl _identifier;
+  /// The expression being referenced.
+  CommentReferableExpressionImpl _expression;
 
   /// Initialize a newly created reference to a Dart element. The [newKeyword]
   /// can be `null` if the reference is not to a constructor.
-  CommentReferenceImpl(this.newKeyword, this._identifier) {
-    _becomeParentOf(_identifier);
+  CommentReferenceImpl(this.newKeyword, this._expression) {
+    _becomeParentOf(_expression);
   }
 
   @override
-  Token get beginToken => newKeyword ?? _identifier.beginToken;
+  Token get beginToken => newKeyword ?? _expression.beginToken;
 
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(newKeyword)
-    ..add(_identifier);
+    ..add(_expression);
 
   @override
-  Token get endToken => _identifier.endToken;
+  Token get endToken => _expression.endToken;
 
   @override
-  IdentifierImpl get identifier => _identifier;
+  CommentReferableExpression get expression => _expression;
 
+  set expression(CommentReferableExpression expression) {
+    _expression = _becomeParentOf(expression as CommentReferableExpressionImpl);
+  }
+
+  @override
+  @Deprecated('Use expression instead')
+  IdentifierImpl get identifier => _expression as IdentifierImpl;
+
+  @Deprecated('Use expression= instead')
   set identifier(Identifier identifier) {
-    _identifier = _becomeParentOf(identifier as IdentifierImpl);
+    _expression = _becomeParentOf(identifier as CommentReferableExpressionImpl);
   }
 
   @override
@@ -1898,7 +1910,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _identifier.accept(visitor);
+    _expression.accept(visitor);
   }
 }
 
@@ -2669,7 +2681,7 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 /// Objects of this type are not produced directly by the parser (because the
 /// parser cannot tell whether an identifier refers to a type); they are
 /// produced at resolution time.
-class ConstructorReferenceImpl extends ExpressionImpl
+class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
   ConstructorNameImpl _constructorName;
 
@@ -5038,7 +5050,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
 /// An expression representing a reference to a function, possibly with type
 /// arguments applied to it, e.g. the expression `print` in `var x = print;`.
-class FunctionReferenceImpl extends ExpressionImpl
+class FunctionReferenceImpl extends CommentReferableExpressionImpl
     implements FunctionReference {
   ExpressionImpl _function;
 
@@ -5573,7 +5585,8 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
 ///    identifier ::=
 ///        [SimpleIdentifier]
 ///      | [PrefixedIdentifier]
-abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
+abstract class IdentifierImpl extends CommentReferableExpressionImpl
+    implements Identifier {
   @override
   bool get isAssignable => true;
 }
@@ -8449,7 +8462,7 @@ class PrefixExpressionImpl extends ExpressionImpl
 ///
 ///    propertyAccess ::=
 ///        [Expression] '.' [SimpleIdentifier]
-class PropertyAccessImpl extends ExpressionImpl
+class PropertyAccessImpl extends CommentReferableExpressionImpl
     with NullShortableExpressionImpl
     implements PropertyAccess {
   /// The expression computing the object defining the property being accessed.
@@ -10353,7 +10366,8 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
 /// The `.staticType` getter returns the type of the expression (which will
 /// always be the type `Type`).  To see the type represented by the type literal
 /// use `.typeName.type`.
-class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
+class TypeLiteralImpl extends CommentReferableExpressionImpl
+    implements TypeLiteral {
   NamedTypeImpl _typeName;
 
   TypeLiteralImpl(this._typeName) {
