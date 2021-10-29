@@ -495,7 +495,7 @@
 #### Linter
 
 Updated the Linter to `1.14.0`, which includes changes that
-- fix `omit_local_variable_types` to not flag a local type that is 
+- fix `omit_local_variable_types` to not flag a local type that is
   required for inference.
 - allow `while (true) { ... }` in `literal_only_boolean_expressions`.
 - fix `file_names` to report at the start of the file (not the entire
@@ -538,7 +538,11 @@ Updated the Linter to `1.14.0`, which includes changes that
 
 ### Pub
 
-- Adds support for token-based authorization to third party package-repositories
+- If you have analytics enabled `dart pub get` will send
+  [usage metrics](https://github.com/dart-lang/pub/blob/0035a40f25d027130c0314571da53ffafc6d973b/lib/src/solver/result.dart#L131-L175)
+  for packages from pub.dev, intended for popularity analysis.
+
+- Adds support for token-based authorization to third-party package-repositories
   with the new command `dart pub token`.
 - Credentials are no longer stored in the pub-cache, but in a platform dependent
   config directory:
@@ -546,6 +550,35 @@ Updated the Linter to `1.14.0`, which includes changes that
     is defined, otherwise `$HOME/.config/dart/pub-credentials.json`
   * On Mac OS: `$HOME/Library/Application Support/dart/pub-credentials.json`
   * On Windows: `%APPDATA%/dart/pub-credentials.json`
+- The syntax for dependencies hosted at a third-party package repository has
+  been simplified. Before you would need to write:
+
+```
+dependencies:
+  colorizer:
+    hosted:
+      name: colorizer
+      url: 'https://custom-pub-server.com'
+    version: ^1.2.3
+environment:
+  sdk: '>=2.14.0 < 3.0.0'
+```
+
+Now you can write:
+
+```
+dependencies:
+  colorizer:
+    hosted: 'https://custom-pub-server.com'
+    version: ^1.2.3
+environment:
+  sdk: '>=2.15.0 < 3.0.0'
+```
+
+This feature requires
+[language-version](https://dart.dev/guides/language/evolution#language-versioning)
+2.15 or later, e.g. the `pubspec.yaml` should have an SDK constraint of
+`>=2.15 <3.0.0`.
 
 - Detect potential leaks in `dart pub publish`.
   When publishing, pub will examine your files for potential secret keys, and
