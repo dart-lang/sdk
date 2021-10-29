@@ -285,10 +285,6 @@ class DartCompletionRequest {
 
   final DocumentationCache? documentationCache;
 
-  /// Return the expression to the right of the "dot" or "dot dot",
-  /// or `null` if this is not a "dot" completion (e.g. `foo.b`).
-  final Expression? dotTarget;
-
   /// Return the object used to compute the values of the features used to
   /// compute relevance scores for suggestions.
   final FeatureComputer featureComputer;
@@ -328,7 +324,6 @@ class DartCompletionRequest {
     DocumentationCache? documentationCache,
   }) {
     var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
-    var dotTarget = _dotTarget(target);
 
     var featureComputer = FeatureComputer(
       resolvedUnit.typeSystem,
@@ -350,7 +345,6 @@ class DartCompletionRequest {
       contextType: contextType,
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
       documentationCache: documentationCache,
-      dotTarget: dotTarget,
       featureComputer: featureComputer,
       offset: offset,
       opType: opType,
@@ -366,7 +360,6 @@ class DartCompletionRequest {
     required this.contextType,
     required this.dartdocDirectiveInfo,
     required this.documentationCache,
-    required this.dotTarget,
     required this.featureComputer,
     required this.offset,
     required this.opType,
@@ -462,31 +455,6 @@ class DartCompletionRequest {
   void checkAborted() {
     if (_aborted) {
       throw AbortCompletion();
-    }
-  }
-
-  /// TODO(scheglov) Should this be a property of [CompletionTarget]?
-  static Expression? _dotTarget(CompletionTarget target) {
-    var node = target.containingNode;
-    var offset = target.offset;
-    if (node is MethodInvocation) {
-      if (identical(node.methodName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded && node.operator!.offset + 1 == offset) {
-        return node.realTarget;
-      }
-    }
-    if (node is PropertyAccess) {
-      if (identical(node.propertyName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == offset) {
-        return node.realTarget;
-      }
-    }
-    if (node is PrefixedIdentifier) {
-      if (identical(node.identifier, target.entity)) {
-        return node.prefix;
-      }
     }
   }
 }

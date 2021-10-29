@@ -32,7 +32,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         : request.opType.suggestKind;
 
     // Recompute the target because resolution might have changed it.
-    var expression = request.dotTarget;
+    var expression = request.target.dotTarget;
 
     if (expression == null) {
       if (!request.includeIdentifiers) {

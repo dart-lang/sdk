@@ -26,7 +26,7 @@ class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<void> computeSuggestions() async {
     // Recompute the target because resolution might have changed it.
-    var expression = request.dotTarget;
+    var expression = request.target.dotTarget;
     if (expression == null ||
         expression.isSynthetic ||
         expression is ExtensionOverride) {
