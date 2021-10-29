@@ -42,7 +42,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     expect(context.name, convertPath('/project'));
     expect(context.explicitFileCount, 1); /* test.dart */
 
-    expect(context.implicitFileCount, 4);
+    expect(context.implicitFileCount, 5);
 
     expect(context.workItemQueueLength, isNotNull);
   }

@@ -202,6 +202,7 @@ import 'a.dart';
 
     if (withSdk) {
       expectedPlusSdk
+        ..add(convertPath('/sdk/lib/_internal/internal.dart'))
         ..add(convertPath('/sdk/lib/async/async.dart'))
         ..add(convertPath('/sdk/lib/async/stream.dart'))
         ..add(convertPath('/sdk/lib/core/core.dart'))
