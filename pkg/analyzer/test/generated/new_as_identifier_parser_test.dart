@@ -259,7 +259,7 @@ class C {
   void test_constructor_tearoff_in_comment_reference() {
     createParser('');
     var commentReference = parseCommentReference('C.new', 5)!;
-    var identifier = commentReference.identifier as PrefixedIdentifier;
+    var identifier = commentReference.expression as PrefixedIdentifier;
     expect(identifier.prefix.name, 'C');
     expect(identifier.identifier.name, 'new');
   }

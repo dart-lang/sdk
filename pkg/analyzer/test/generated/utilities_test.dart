@@ -294,9 +294,10 @@ class Getter_NodeReplacerTest_test_classTypeAlias_5
 }
 
 class Getter_NodeReplacerTest_test_commentReference
-    implements NodeReplacerTest_Getter<CommentReference, Identifier> {
+    implements
+        NodeReplacerTest_Getter<CommentReference, CommentReferableExpression> {
   @override
-  Identifier get(CommentReference node) => node.identifier;
+  CommentReferableExpression get(CommentReference node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_compilationUnit
