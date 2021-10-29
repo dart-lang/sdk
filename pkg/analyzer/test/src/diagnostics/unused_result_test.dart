@@ -627,6 +627,20 @@ String f(bool b) {
 ''');
   }
 
+  test_topLevelFunction_result_awaited_future_passed() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+Future<List<String>> load() async => [];
+
+void f() async {
+  var l = [];
+  l.add(await load());
+}
+''');
+  }
+
   test_topLevelFunction_result_optionNamedParam_unassigned_parameterDefined() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

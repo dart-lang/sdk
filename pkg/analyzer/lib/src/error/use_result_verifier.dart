@@ -149,7 +149,9 @@ class UseResultVerifier {
       return parent.target == node;
     }
 
-    if (parent is ParenthesizedExpression || parent is ConditionalExpression) {
+    if (parent is ParenthesizedExpression ||
+        parent is ConditionalExpression ||
+        parent is AwaitExpression) {
       return _isUsed(parent);
     }
 
