@@ -1340,7 +1340,7 @@ Future<void> getDataTypes(Set<InterfaceType> allTypes, String? dartTop) async {
 Future<void> visitLibraryAtUri(
     AnalysisSession session, String uri, Set<InterfaceType> allTypes) async {
   var libPath = session.uriConverter.uriToPath(Uri.parse(uri));
-  var result = await session.getResolvedLibrary2(libPath!);
+  var result = await session.getResolvedLibrary(libPath!);
   if (result is ResolvedLibraryResult) {
     visitLibrary(result.element, allTypes);
   } else {
