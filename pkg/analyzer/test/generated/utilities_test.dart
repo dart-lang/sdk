@@ -1399,7 +1399,7 @@ class NodeReplacerTest {
         AstTestFactory.identifier3("c"),
         AstTestFactory.argumentList([AstTestFactory.integer(0)]),
         typeArguments:
-            AstTestFactory.typeArgumentList2([AstTestFactory.typeName4('T')]));
+            AstTestFactory.typeArgumentList2([AstTestFactory.namedType4('T')]));
     _assertReplace(node, Getter_NodeReplacerTest_test_annotation());
     _assertReplace(node, Getter_NodeReplacerTest_test_annotation_3());
     _assertReplace(node, Getter_NodeReplacerTest_test_annotation_2());
@@ -1414,8 +1414,8 @@ class NodeReplacerTest {
   void test_asExpression() {
     AsExpression node = AstTestFactory.asExpression(
         AstTestFactory.integer(0),
-        AstTestFactory.typeName3(
-            AstTestFactory.identifier3("a"), [AstTestFactory.typeName4("C")]));
+        AstTestFactory.namedType3(
+            AstTestFactory.identifier3("a"), [AstTestFactory.namedType4("C")]));
     _assertReplace(node, Getter_NodeReplacerTest_test_asExpression_2());
     _assertReplace(node, Getter_NodeReplacerTest_test_asExpression());
   }
@@ -1476,7 +1476,7 @@ class NodeReplacerTest {
 
   void test_catchClause() {
     CatchClause node = AstTestFactory.catchClause5(
-        AstTestFactory.typeName4("E"),
+        AstTestFactory.namedType4("E"),
         "e",
         "s",
         [AstTestFactory.emptyStatement()]);
@@ -1490,9 +1490,9 @@ class NodeReplacerTest {
         null,
         "A",
         AstTestFactory.typeParameterList(["E"]),
-        AstTestFactory.extendsClause(AstTestFactory.typeName4("B")),
-        AstTestFactory.withClause([AstTestFactory.typeName4("C")]),
-        AstTestFactory.implementsClause([AstTestFactory.typeName4("D")]), [
+        AstTestFactory.extendsClause(AstTestFactory.namedType4("B")),
+        AstTestFactory.withClause([AstTestFactory.namedType4("C")]),
+        AstTestFactory.implementsClause([AstTestFactory.namedType4("D")]), [
       AstTestFactory.fieldDeclaration2(
           false, null, [AstTestFactory.variableDeclaration("f")])
     ]);
@@ -1515,9 +1515,9 @@ class NodeReplacerTest {
         "A",
         AstTestFactory.typeParameterList(["E"]),
         null,
-        AstTestFactory.typeName4("B"),
-        AstTestFactory.withClause([AstTestFactory.typeName4("C")]),
-        AstTestFactory.implementsClause([AstTestFactory.typeName4("D")]));
+        AstTestFactory.namedType4("B"),
+        AstTestFactory.withClause([AstTestFactory.namedType4("C")]),
+        AstTestFactory.implementsClause([AstTestFactory.namedType4("D")]));
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -1582,7 +1582,7 @@ class NodeReplacerTest {
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     node.redirectedConstructor =
-        AstTestFactory.constructorName(AstTestFactory.typeName4("B"), "a");
+        AstTestFactory.constructorName(AstTestFactory.namedType4("B"), "a");
     _assertReplace(
         node, Getter_NodeReplacerTest_test_constructorDeclaration_3());
     _assertReplace(
@@ -1609,7 +1609,7 @@ class NodeReplacerTest {
 
   void test_constructorName() {
     ConstructorName node =
-        AstTestFactory.constructorName(AstTestFactory.typeName4("C"), "n");
+        AstTestFactory.constructorName(AstTestFactory.namedType4("C"), "n");
     _assertReplace(node, Getter_NodeReplacerTest_test_constructorName());
     _assertReplace(node, Getter_NodeReplacerTest_test_constructorName_2());
   }
@@ -1621,7 +1621,7 @@ class NodeReplacerTest {
 
   void test_declaredIdentifier() {
     var node =
-        AstTestFactory.declaredIdentifier4(AstTestFactory.typeName4("C"), "i");
+        AstTestFactory.declaredIdentifier4(AstTestFactory.namedType4("C"), "i");
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -1688,7 +1688,7 @@ class NodeReplacerTest {
 
   void test_extendsClause() {
     ExtendsClause node =
-        AstTestFactory.extendsClause(AstTestFactory.typeName4("S"));
+        AstTestFactory.extendsClause(AstTestFactory.namedType4("S"));
     _assertReplace(node, Getter_NodeReplacerTest_test_extendsClause());
   }
 
@@ -1696,7 +1696,7 @@ class NodeReplacerTest {
     var node = AstTestFactory.fieldDeclaration(
         false,
         null,
-        AstTestFactory.typeName4("C"),
+        AstTestFactory.namedType4("C"),
         [AstTestFactory.variableDeclaration("c")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
@@ -1708,7 +1708,7 @@ class NodeReplacerTest {
   void test_fieldFormalParameter() {
     var node = AstTestFactory.fieldFormalParameter(
         null,
-        AstTestFactory.typeName4("C"),
+        AstTestFactory.namedType4("C"),
         "f",
         AstTestFactory.formalParameterList());
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
@@ -1789,7 +1789,7 @@ class NodeReplacerTest {
 
   void test_functionDeclaration() {
     var node = AstTestFactory.functionDeclaration(
-        AstTestFactory.typeName4("R"),
+        AstTestFactory.namedType4("R"),
         null,
         "f",
         AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
@@ -1806,7 +1806,7 @@ class NodeReplacerTest {
   void test_functionDeclarationStatement() {
     FunctionDeclarationStatement node =
         AstTestFactory.functionDeclarationStatement(
-            AstTestFactory.typeName4("R"),
+            AstTestFactory.namedType4("R"),
             null,
             "f",
             AstTestFactory.functionExpression2(
@@ -1836,7 +1836,7 @@ class NodeReplacerTest {
 
   void test_functionTypeAlias() {
     var node = AstTestFactory.typeAlias(
-        AstTestFactory.typeName4("R"),
+        AstTestFactory.namedType4("R"),
         "F",
         AstTestFactory.typeParameterList(["E"]),
         AstTestFactory.formalParameterList());
@@ -1852,7 +1852,7 @@ class NodeReplacerTest {
 
   void test_functionTypedFormalParameter() {
     var node = AstTestFactory.functionTypedFormalParameter(
-        AstTestFactory.typeName4("R"),
+        AstTestFactory.namedType4("R"),
         "f",
         [AstTestFactory.simpleFormalParameter3("p")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
@@ -1883,7 +1883,7 @@ class NodeReplacerTest {
 
   void test_implementsClause() {
     ImplementsClause node = AstTestFactory.implementsClause(
-        [AstTestFactory.typeName4("I"), AstTestFactory.typeName4("J")]);
+        [AstTestFactory.namedType4("I"), AstTestFactory.namedType4("J")]);
     _assertReplace(node, ListGetter_NodeReplacerTest_test_implementsClause(0));
   }
 
@@ -1911,7 +1911,7 @@ class NodeReplacerTest {
   void test_instanceCreationExpression() {
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression3(null,
-            AstTestFactory.typeName4("C"), "c", [AstTestFactory.integer(2)]);
+            AstTestFactory.namedType4("C"), "c", [AstTestFactory.integer(2)]);
     _assertReplace(
         node, Getter_NodeReplacerTest_test_instanceCreationExpression_2());
     _assertReplace(
@@ -1926,7 +1926,7 @@ class NodeReplacerTest {
 
   void test_isExpression() {
     IsExpression node = AstTestFactory.isExpression(
-        AstTestFactory.identifier3("v"), false, AstTestFactory.typeName4("T"));
+        AstTestFactory.identifier3("v"), false, AstTestFactory.namedType4("T"));
     _assertReplace(node, Getter_NodeReplacerTest_test_isExpression());
     _assertReplace(node, Getter_NodeReplacerTest_test_isExpression_2());
   }
@@ -1960,7 +1960,7 @@ class NodeReplacerTest {
   void test_listLiteral() {
     ListLiteral node = AstTestFactory.listLiteral2(
         null,
-        AstTestFactory.typeArgumentList([AstTestFactory.typeName4("E")]),
+        AstTestFactory.typeArgumentList([AstTestFactory.namedType4("E")]),
         [AstTestFactory.identifier3("e")]);
     _assertReplace(node, ListGetter_NodeReplacerTest_test_listLiteral(0));
     _testTypedLiteral(node);
@@ -1969,7 +1969,7 @@ class NodeReplacerTest {
   void test_mapLiteral() {
     SetOrMapLiteral node = AstTestFactory.setOrMapLiteral(
         null,
-        AstTestFactory.typeArgumentList([AstTestFactory.typeName4("E")]),
+        AstTestFactory.typeArgumentList([AstTestFactory.namedType4("E")]),
         [AstTestFactory.mapLiteralEntry("k", AstTestFactory.identifier3("v"))]);
     _assertReplace(node, ListGetter_NodeReplacerTest_test_mapLiteral(0));
     _testTypedLiteral(node);
@@ -1985,7 +1985,7 @@ class NodeReplacerTest {
   void test_methodDeclaration() {
     var node = AstTestFactory.methodDeclaration2(
         null,
-        AstTestFactory.typeName4("A"),
+        AstTestFactory.namedType4("A"),
         null,
         null,
         AstTestFactory.identifier3("m"),
@@ -2099,7 +2099,7 @@ class NodeReplacerTest {
 
   void test_simpleFormalParameter() {
     var node = AstTestFactory.simpleFormalParameter4(
-        AstTestFactory.typeName4("T"), "p");
+        AstTestFactory.namedType4("T"), "p");
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
       AstTestFactory.annotation(AstTestFactory.identifier3("a"))
@@ -2161,7 +2161,7 @@ class NodeReplacerTest {
   void test_topLevelVariableDeclaration() {
     var node = AstTestFactory.topLevelVariableDeclaration(
         null,
-        AstTestFactory.typeName4("T"),
+        AstTestFactory.namedType4("T"),
         [AstTestFactory.variableDeclaration("t")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
@@ -2185,20 +2185,20 @@ class NodeReplacerTest {
 
   void test_typeArgumentList() {
     TypeArgumentList node =
-        AstTestFactory.typeArgumentList2([AstTestFactory.typeName4("A")]);
+        AstTestFactory.typeArgumentList2([AstTestFactory.namedType4("A")]);
     _assertReplace(node, ListGetter_NodeReplacerTest_test_typeArgumentList(0));
   }
 
   void test_typeName() {
-    NamedType node = AstTestFactory.typeName4(
-        "T", [AstTestFactory.typeName4("E"), AstTestFactory.typeName4("F")]);
+    NamedType node = AstTestFactory.namedType4(
+        "T", [AstTestFactory.namedType4("E"), AstTestFactory.namedType4("F")]);
     _assertReplace(node, Getter_NodeReplacerTest_test_typeName_2());
     _assertReplace(node, Getter_NodeReplacerTest_test_typeName());
   }
 
   void test_typeParameter() {
     TypeParameter node =
-        AstTestFactory.typeParameter2("E", AstTestFactory.typeName4("B"));
+        AstTestFactory.typeParameter2("E", AstTestFactory.namedType4("B"));
     _assertReplace(node, Getter_NodeReplacerTest_test_typeParameter_2());
     _assertReplace(node, Getter_NodeReplacerTest_test_typeParameter());
   }
@@ -2222,7 +2222,7 @@ class NodeReplacerTest {
   void test_variableDeclarationList() {
     var node = AstTestFactory.variableDeclarationList(
         null,
-        AstTestFactory.typeName4("T"),
+        AstTestFactory.namedType4("T"),
         [AstTestFactory.variableDeclaration("a")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
@@ -2238,7 +2238,7 @@ class NodeReplacerTest {
     VariableDeclarationStatement node =
         AstTestFactory.variableDeclarationStatement(
             null,
-            AstTestFactory.typeName4("T"),
+            AstTestFactory.namedType4("T"),
             [AstTestFactory.variableDeclaration("a")]);
     _assertReplace(
         node, Getter_NodeReplacerTest_test_variableDeclarationStatement());
@@ -2253,7 +2253,7 @@ class NodeReplacerTest {
 
   void test_withClause() {
     WithClause node =
-        AstTestFactory.withClause([AstTestFactory.typeName4("M")]);
+        AstTestFactory.withClause([AstTestFactory.namedType4("M")]);
     _assertReplace(node, ListGetter_NodeReplacerTest_test_withClause(0));
   }
 

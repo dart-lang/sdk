@@ -444,7 +444,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     ConstructorName name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -458,7 +458,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     ConstructorName name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -573,7 +573,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
@@ -588,7 +588,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
@@ -607,7 +607,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     constructor.parameters = <ParameterElement>[parameter];
     classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name, [

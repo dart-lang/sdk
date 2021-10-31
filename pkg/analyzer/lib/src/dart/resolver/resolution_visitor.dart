@@ -63,7 +63,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final bool _isNonNullableByDefault;
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
-  final NamedTypeResolver _typeNameResolver;
+  final NamedTypeResolver _namedTypeResolver;
 
   /// This index is incremented every time we visit a [LibraryDirective].
   /// There is just one [LibraryElement], so we can support only one node.
@@ -103,7 +103,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       isNonNullableByDefault: isNonNullableByDefault,
     );
 
-    var typeNameResolver = NamedTypeResolver(
+    var namedTypeResolver = NamedTypeResolver(
       libraryElement,
       typeProvider,
       isNonNullableByDefault,
@@ -117,7 +117,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       isNonNullableByDefault,
       errorReporter,
       AstRewriter(errorReporter, typeProvider),
-      typeNameResolver,
+      namedTypeResolver,
       nameScope,
       elementWalker,
       ElementHolder(unitElement),
@@ -131,7 +131,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._isNonNullableByDefault,
     this._errorReporter,
     this._astRewriter,
-    this._typeNameResolver,
+    this._namedTypeResolver,
     this._nameScope,
     this._elementWalker,
     this._elementHolder,
@@ -218,7 +218,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
     node.name.staticElement = element;
-    _typeNameResolver.enclosingClass = element;
+    _namedTypeResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -247,14 +247,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       });
     });
 
-    _typeNameResolver.enclosingClass = null;
+    _namedTypeResolver.enclosingClass = null;
   }
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
     node.name.staticElement = element;
-    _typeNameResolver.enclosingClass = element;
+    _namedTypeResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -275,7 +275,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       });
     });
 
-    _typeNameResolver.enclosingClass = null;
+    _namedTypeResolver.enclosingClass = null;
   }
 
   @override
@@ -885,11 +885,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(covariant NamedTypeImpl node) {
     node.typeArguments?.accept(this);
 
-    _typeNameResolver.nameScope = _nameScope;
-    _typeNameResolver.resolve(node);
+    _namedTypeResolver.nameScope = _nameScope;
+    _namedTypeResolver.resolve(node);
 
-    if (_typeNameResolver.rewriteResult != null) {
-      _typeNameResolver.rewriteResult!.accept(this);
+    if (_namedTypeResolver.rewriteResult != null) {
+      _namedTypeResolver.rewriteResult!.accept(this);
     }
   }
 
@@ -1242,11 +1242,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (redirectedConstructor == null) return;
 
     var namedType = redirectedConstructor.type2;
-    _typeNameResolver.redirectedConstructor_namedType = namedType;
+    _namedTypeResolver.redirectedConstructor_namedType = namedType;
 
     redirectedConstructor.accept(this);
 
-    _typeNameResolver.redirectedConstructor_namedType = null;
+    _namedTypeResolver.redirectedConstructor_namedType = null;
   }
 
   /// Return the [InterfaceType] of the given [namedType].
@@ -1258,11 +1258,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// classes).
   void _resolveType(NamedTypeImpl namedType, ErrorCode errorCode,
       {bool asClass = false}) {
-    _typeNameResolver.classHierarchy_namedType = namedType;
+    _namedTypeResolver.classHierarchy_namedType = namedType;
     visitNamedType(namedType);
-    _typeNameResolver.classHierarchy_namedType = null;
+    _namedTypeResolver.classHierarchy_namedType = null;
 
-    if (_typeNameResolver.hasErrorReported) {
+    if (_namedTypeResolver.hasErrorReported) {
       return;
     }
 
@@ -1303,12 +1303,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (clause == null) return;
 
     for (var namedType in clause.mixinTypes2) {
-      _typeNameResolver.withClause_namedType = namedType;
+      _namedTypeResolver.withClause_namedType = namedType;
       _resolveType(
         namedType as NamedTypeImpl,
         CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
       );
-      _typeNameResolver.withClause_namedType = null;
+      _namedTypeResolver.withClause_namedType = null;
     }
   }
 

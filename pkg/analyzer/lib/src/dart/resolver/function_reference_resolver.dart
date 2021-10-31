@@ -40,7 +40,7 @@ class FunctionReferenceResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  NullabilitySuffix get _nullabilitySuffixForTypeNames =>
+  NullabilitySuffix get _nullabilitySuffix =>
       _isNonNullableByDefault ? NullabilitySuffix.none : NullabilitySuffix.star;
 
   void resolve(FunctionReferenceImpl node) {
@@ -310,7 +310,7 @@ class FunctionReferenceResolver {
     );
     var type = element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _nullabilitySuffixForTypeNames,
+      nullabilitySuffix: _nullabilitySuffix,
     );
     _resolveTypeLiteral(node: node, instantiatedType: type, name: name);
   }
@@ -783,8 +783,9 @@ class FunctionReferenceResolver {
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );
     var type = element.instantiate(
-        typeArguments: typeArguments,
-        nullabilitySuffix: _nullabilitySuffixForTypeNames);
+      typeArguments: typeArguments,
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     _resolveTypeLiteral(node: node, instantiatedType: type, name: typeAlias);
   }
 
