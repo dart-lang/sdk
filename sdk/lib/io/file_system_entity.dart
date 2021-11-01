@@ -93,6 +93,9 @@ class FileStat {
 
   /// Calls the operating system's `stat()` function (or equivalent) on [path].
   ///
+  /// If [path] is a symbolic link then it is resolved and results for the
+  /// resulting file are returned.
+  ///
   /// Returns a [FileStat] object containing the data returned by `stat()`.
   /// If the call fails, returns a [FileStat] object with [FileStat.type] set to
   /// [FileSystemEntityType.notFound] and the other fields invalid.
@@ -122,6 +125,9 @@ class FileStat {
 
   /// Asynchronously calls the operating system's `stat()` function (or
   /// equivalent) on [path].
+  ///
+  /// If [path] is a symbolic link then it is resolved and results for the
+  /// resulting file are returned.
   ///
   /// Returns a [Future] which completes with the same results as [statSync].
   static Future<FileStat> stat(String path) {
@@ -356,6 +362,9 @@ abstract class FileSystemEntity {
   /// Returns a `Future<FileStat>` object containing the data returned by
   /// `stat()`.
   ///
+  /// If [path] is a symbolic link then it is resolved and results for the
+  /// resulting file are returned.
+  ///
   /// If the call fails, completes the future with a [FileStat] object
   /// with `.type` set to [FileSystemEntityType.notFound] and the other fields
   /// invalid.
@@ -366,6 +375,9 @@ abstract class FileSystemEntity {
   /// Identical to `FileStat.statSync(this.path)`.
   ///
   /// Returns a [FileStat] object containing the data returned by `stat()`.
+  ///
+  /// If [path] is a symbolic link then it is resolved and results for the
+  /// resulting file are returned.
   ///
   /// If the call fails, returns a [FileStat] object with `.type` set to
   /// [FileSystemEntityType.notFound] and the other fields invalid.

@@ -896,7 +896,7 @@ const char* File::LinkTarget(Namespace* namespc,
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   const char* prefixed_name = PrefixLongFilePath(name);
-  File::Type type = GetType(namespc, prefixed_name, false);
+  File::Type type = GetType(namespc, prefixed_name, true);
   data[kType] = type;
   if (type != kDoesNotExist) {
     struct _stat64 st;
