@@ -240,7 +240,7 @@ class PropertyElementResolver {
         node: node,
         requested: writeElementRequested,
         recovery: writeElementRecovery,
-        receiverTypeObject: null,
+        receiverType: null,
       );
     }
 
@@ -469,7 +469,7 @@ class PropertyElementResolver {
           node: propertyName,
           requested: null,
           recovery: result.getter,
-          receiverTypeObject: targetType,
+          receiverType: targetType,
         );
       }
     }
@@ -543,7 +543,7 @@ class PropertyElementResolver {
           node: propertyName,
           requested: null,
           recovery: writeElementRecovery,
-          receiverTypeObject: typeReference.displayName,
+          receiverType: typeReference.thisType,
         );
       }
     }
