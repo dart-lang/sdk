@@ -66,7 +66,7 @@ part of dart.collection;
 ///
 /// // To remove specific value, call remove
 /// hashSet.remove('A');
-/// print(hashSet); // // {D, C, E, B}
+/// print(hashSet); // {D, C, E, B}
 ///
 /// // To remove value(s) with a statement, call the removeWhere
 /// hashSet.removeWhere((element) => element.contains('B'));
