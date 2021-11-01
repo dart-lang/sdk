@@ -920,11 +920,14 @@ class DartObjectImpl implements DartObject {
     List<DartType> typeArguments,
   ) {
     var functionState = _state as FunctionState;
-    var element = functionState._element;
     return DartObjectImpl(
       typeSystem,
       type,
-      FunctionState(element, typeArguments: typeArguments),
+      FunctionState(
+        functionState._element,
+        typeArguments: typeArguments,
+        viaTypeAlias: functionState._viaTypeAlias,
+      ),
     );
   }
 
@@ -1245,10 +1248,22 @@ class FunctionState extends InstanceState {
 
   final List<DartType>? _typeArguments;
 
+  /// The type alias which was referenced when tearing off a constructor,
+  /// if this function is a constructor tear-off, referenced via a type alias,
+  /// and the type alias is not a proper rename for the class, and the
+  /// constructor tear-off is generic, so the tear-off cannot be considered
+  /// equivalent to tearing off the associated constructor function of the
+  /// aliased class.
+  ///
+  /// Otherwise null.
+  final TypeDefiningElement? _viaTypeAlias;
+
   /// Initialize a newly created state to represent the function with the given
   /// [element].
-  FunctionState(this._element, {List<DartType>? typeArguments})
-      : _typeArguments = typeArguments;
+  FunctionState(this._element,
+      {List<DartType>? typeArguments, TypeDefiningElement? viaTypeAlias})
+      : _typeArguments = typeArguments,
+        _viaTypeAlias = viaTypeAlias;
 
   @override
   int get hashCode => _element == null ? 0 : _element.hashCode;
@@ -1270,6 +1285,9 @@ class FunctionState extends InstanceState {
       return typeArguments == null && otherTypeArguments == null;
     }
     if (typeArguments.length != otherTypeArguments.length) {
+      return false;
+    }
+    if (_viaTypeAlias != object._viaTypeAlias) {
       return false;
     }
     for (var i = 0; i < typeArguments.length; i++) {
@@ -1307,6 +1325,9 @@ class FunctionState extends InstanceState {
       var element = _element;
       var otherElement = rightOperand._element;
       if (element?.declaration != otherElement?.declaration) {
+        return BoolState.FALSE_STATE;
+      }
+      if (_viaTypeAlias != rightOperand._viaTypeAlias) {
         return BoolState.FALSE_STATE;
       }
       var typeArguments = _typeArguments;
