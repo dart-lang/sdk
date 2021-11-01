@@ -28,6 +28,30 @@ part of dart.collection;
 ///
 /// A `LinkedList` also allows constant time adding and removing at either end,
 /// and a constant time length getter.
+///
+/// Example:
+/// ```dart:expression
+/// class EntryItem extends LinkedListEntry<EntryItem> {
+///   final int id;
+///   final String text;
+///
+///   EntryItem(this.id, this.text);
+///
+///   @override
+///   String toString() {
+///     return '$id $text';
+///   }
+/// }
+///
+/// void main(){
+///   final LinkedList linkedList = LinkedList<EntryItem>();
+///   linkedList.add(EntryItem(1, 'A'));
+///   linkedList.add(EntryItem(2, 'B'));
+///   linkedList.add(EntryItem(3, 'C'));
+///   print(linkedList.first); // 1 A
+///   print(linkedList.last); // 3 C
+/// }
+/// ```
 class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   int _modificationCount = 0;
   int _length = 0;
