@@ -25,6 +25,16 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+/// Wrapper around a potentially nullable value.
+///
+/// When the wrapper instance is provided for a property, the property
+/// value is replaced, even if the value to set is `null` itself.
+class CopyWithValue<T> {
+  final T value;
+
+  CopyWithValue(this.value);
+}
+
 /// This class provides suggestions based upon the visible instance members in
 /// an interface type.
 class MemberSuggestionBuilder {
@@ -154,32 +164,8 @@ class NewSuggestionsProcessor {
       var suggestion = entry.value;
       if (!_current.contains(suggestion)) {
         libraryUriToImportIndex ??= produce();
-        suggestionMap[entry.key] = protocol.CompletionSuggestion(
-          suggestion.kind,
-          suggestion.relevance,
-          suggestion.completion,
-          suggestion.selectionOffset,
-          suggestion.selectionLength,
-          suggestion.isDeprecated,
-          suggestion.isPotential,
-          displayText: suggestion.displayText,
-          replacementOffset: suggestion.replacementOffset,
-          replacementLength: suggestion.replacementLength,
-          docSummary: suggestion.docSummary,
-          docComplete: suggestion.docComplete,
-          declaringType: suggestion.declaringType,
-          defaultArgumentListString: suggestion.defaultArgumentListString,
-          defaultArgumentListTextRanges:
-              suggestion.defaultArgumentListTextRanges,
-          element: suggestion.element,
-          returnType: suggestion.returnType,
-          parameterNames: suggestion.parameterNames,
-          parameterTypes: suggestion.parameterTypes,
-          requiredParameterCount: suggestion.requiredParameterCount,
-          hasNamedParameters: suggestion.hasNamedParameters,
-          parameterName: suggestion.parameterName,
-          parameterType: suggestion.parameterType,
-          libraryUriToImportIndex: libraryUriToImportIndex,
+        suggestionMap[entry.key] = suggestion.copyWith(
+          libraryUriToImportIndex: CopyWithValue(libraryUriToImportIndex),
         );
       }
     }
@@ -1312,5 +1298,47 @@ class _CompletionSuggestionInputs {
         other.elementKind == elementKind &&
         other.kind == kind &&
         other.prefix == prefix;
+  }
+}
+
+extension CompletionSuggestionExtension on CompletionSuggestion {
+  CompletionSuggestion copyWith({
+    CopyWithValue<int?>? libraryUriToImportIndex,
+  }) {
+    return protocol.CompletionSuggestion(
+      kind,
+      relevance,
+      completion,
+      selectionOffset,
+      selectionLength,
+      isDeprecated,
+      isPotential,
+      displayText: displayText,
+      replacementOffset: replacementOffset,
+      replacementLength: replacementLength,
+      docSummary: docSummary,
+      docComplete: docComplete,
+      declaringType: declaringType,
+      defaultArgumentListString: defaultArgumentListString,
+      defaultArgumentListTextRanges: defaultArgumentListTextRanges,
+      element: element,
+      returnType: returnType,
+      parameterNames: parameterNames,
+      parameterTypes: parameterTypes,
+      requiredParameterCount: requiredParameterCount,
+      hasNamedParameters: hasNamedParameters,
+      parameterName: parameterName,
+      parameterType: parameterType,
+      libraryUriToImportIndex: libraryUriToImportIndex.orElse(
+        this.libraryUriToImportIndex,
+      ),
+    );
+  }
+}
+
+extension _CopyWithValueExtension<T> on CopyWithValue<T>? {
+  T orElse(T defaultValue) {
+    final self = this;
+    return self != null ? self.value : defaultValue;
   }
 }
