@@ -929,7 +929,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     String summary;
     switch (readStrategy) {
       case ReadStrategy.fromDart:
-        inputName = 'characters Dart';
+        inputName = inputDillUri != null ? 'kernel bytes' : 'characters Dart';
         inputSize = inputProvider.dartCharactersRead;
         summary = 'Dart file $input ';
         break;
