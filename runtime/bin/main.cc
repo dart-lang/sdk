@@ -1213,9 +1213,6 @@ void main(int argc, char** argv) {
     try_load_snapshots_lambda();
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT) {
-    vm_options.AddArgument("--fields_may_be_reset");
-  }
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif

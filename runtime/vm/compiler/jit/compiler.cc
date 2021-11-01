@@ -94,7 +94,6 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_background_compilation = false;
     FLAG_enable_mirrors = false;
-    FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
     FLAG_link_natives_lazily = true;
