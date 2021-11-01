@@ -62,12 +62,15 @@ part of dart.collection;
 ///     // 10 D
 ///     // 3 C
 ///   });
-///   // Remove first item from list
-///   linkedList.elementAt(0).unlink();
+///   // Remove item using index from list
+///   linkedList.elementAt(2).unlink();
 ///   print(linkedList); // (1 A, 15 E, 10 D, 3 C)
+///   // Remove first item
+///   linkedList.first.unlink();
+///   print(linkedList); // (15 E, 10 D, 3 C)
 ///   // Remove last item from list
 ///   linkedList.remove(linkedList.last);
-///   print(linkedList); // (1 A, 15 E, 10 D)
+///   print(linkedList); // (15 E, 10 D)
 ///   // Remove all items
 ///   linkedList.clear();
 ///   print(linkedList.length); // 0
