@@ -28,6 +28,126 @@ main() {
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
+  test_identical_constructorReference_aliasIsNotGeneric() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC = C<int>;
+const a = identical(MyC.new, C<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsNotProperRename_differentBound() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC<T extends num> = C<T>;
+const a = identical(MyC.new, C.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsNotProperRename_differentCount() async {
+    await resolveTestCode('''
+class C<T, U> {}
+typedef MyC<T> = C<T, int>;
+const a = identical(MyC.new, C.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsNotProperRename_differentOrder() async {
+    await resolveTestCode('''
+class C<T, U> {}
+typedef MyC<T, U> = C<U, T>;
+const a = identical(MyC.new, C.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsNotProperRename_instantiated() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC<T extends num> = C<T>;
+const a = identical(MyC<int>.new, C<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsNotProperRename_mixedInstantiations() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC<T extends num> = C<T>;
+const a = identical(MyC<int>.new, (MyC.new)<int>);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsProperRename_instantiated() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC<T> = C<T>;
+const a = identical(MyC<int>.new, MyC<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsProperRename_mixedInstantiations() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC<T> = C<T>;
+const a = identical(MyC<int>.new, (MyC.new)<int>);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsProperRename_mutualSubtypes() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC<T extends Object?> = C<T>;
+const a = identical(MyC<int>.new, MyC<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsProperRename_uninstantiated() async {
+    await resolveTestCode('''
+class C<T> {}
+typedef MyC<T> = C<T>;
+const a = identical(MyC.new, MyC.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
   test_identical_constructorReference_explicitTypeArgs_differentClasses() async {
     await resolveTestCode('''
 class C<T> {}
@@ -69,6 +189,19 @@ const a = identical(C<int>.new, C<String>.new);
     await resolveTestCode('''
 class C<T> {}
 const a = identical(C<int>.new, C<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_inferredTypeArgs_sameElement() async {
+    await resolveTestCode('''
+class C<T> {}
+const C<int> Function() c1 = C.new;
+const c2 = C<int>.new;
+const a = identical(c1, c2);
 ''');
     expect(
       _evaluateConstant('a'),

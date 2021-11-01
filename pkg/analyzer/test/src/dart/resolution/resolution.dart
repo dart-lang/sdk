@@ -150,13 +150,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertConstructorElement(
-      ConstructorElement? expected, ConstructorElement? actual) {
-    if (expected is ConstructorMember && actual is ConstructorMember) {
-      expect(expected.declaration, same(actual.declaration));
+  void assertConstructorElement(ConstructorElement? actual, Object? expected) {
+    if (actual is ConstructorMember && expected is ConstructorMember) {
+      expect(actual.declaration, same(expected.declaration));
       // TODO(brianwilkerson) Compare the type arguments of the two members.
     } else {
-      expect(expected, same(actual));
+      assertElement(actual, expected);
     }
   }
 
@@ -168,12 +167,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     PrefixElement? expectedPrefix,
     Element? expectedTypeNameElement,
   }) {
-    var actualConstructorElement = getNodeElement(node) as ConstructorElement?;
     var actualConstructorName = node.constructorName.name;
     if (actualConstructorName != null) {
       assertConstructorElement(
         actualConstructorName.staticElement as ConstructorElement?,
-        actualConstructorElement,
+        expectedConstructorElement,
       );
     }
 
@@ -182,8 +180,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var namedType = node.constructorName.type2;
     expectedTypeNameElement ??= expectedClassElement;
-    assertNamedType(namedType, expectedTypeNameElement, null,
-        expectedPrefix: expectedPrefix);
+    assertNamedType(
+      namedType, expectedTypeNameElement,
+      // The [NamedType] child node of the [ConstructorName] should not have a
+      // static type.
+      null,
+      expectedPrefix: expectedPrefix,
+    );
   }
 
   void assertConstructors(ClassElement class_, List<String> expected) {
