@@ -275,7 +275,20 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var provider = server.resourceProvider;
     var pathContext = provider.pathContext;
 
-    // TODO(scheglov) Support non-Dart files.
+    if (file.endsWith('.yaml')) {
+      final suggestions = computeYamlSuggestions(file, offset);
+      server.sendResponse(
+        CompletionGetSuggestions2Result(
+          suggestions.replacementOffset,
+          suggestions.replacementLength,
+          suggestions.suggestions,
+          [],
+          false,
+        ).toResponse(request.id),
+      );
+      return;
+    }
+
     if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(
         CompletionGetSuggestions2Result(offset, 0, [], [], false)
