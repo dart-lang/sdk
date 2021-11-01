@@ -75,8 +75,7 @@ void f() {
   }
 
   Future<void> test_import_package_dependencies() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -312,8 +311,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_dependencies_inLib() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -370,8 +368,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_dependencies_inTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -434,8 +431,6 @@ void f() {
       ..assertLibraryToImport('package:bbb/f.dart');
   }
 
-  /// TODO(scheglov) Only lib/ libraries in lib/, no test/.
-  /// TODO(scheglov) Suggestions from available Pub packages.
   Future<void> test_notImported_pub_this() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A01 {}
@@ -569,8 +564,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inLib_excludesTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -609,8 +603,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inLib_includesThisSrc() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -652,8 +645,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inTest_includesTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -700,8 +692,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inTest_includesThisSrc() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -2518,6 +2509,10 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     );
 
     writePackageConfig(testPackageRoot, config);
+  }
+
+  void writeTestPackagePubspecYamlFile(String content) {
+    newPubspecYamlFile(testPackageRootPath, content);
   }
 
   Future<void> _configureWithWorkspaceRoot() async {
