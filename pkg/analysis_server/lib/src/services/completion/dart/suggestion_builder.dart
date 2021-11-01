@@ -148,30 +148,6 @@ class MemberSuggestionBuilder {
   }
 }
 
-class NewSuggestionsProcessor {
-  final SuggestionBuilder _builder;
-  final Set<protocol.CompletionSuggestion> _current = Set.identity();
-
-  NewSuggestionsProcessor._(this._builder) {
-    _current.addAll(_builder._suggestionMap.values);
-  }
-
-  /// Update suggestions added since this marker was created.
-  void setLibraryUriToImportIndex(int Function() produce) {
-    int? libraryUriToImportIndex;
-    var suggestionMap = _builder._suggestionMap;
-    for (var entry in suggestionMap.entries.toList()) {
-      var suggestion = entry.value;
-      if (!_current.contains(suggestion)) {
-        libraryUriToImportIndex ??= produce();
-        suggestionMap[entry.key] = suggestion.copyWith(
-          libraryUriToImportIndex: CopyWithValue(libraryUriToImportIndex),
-        );
-      }
-    }
-  }
-}
-
 /// An object used to build a list of suggestions in response to a single
 /// completion request.
 class SuggestionBuilder {
@@ -197,6 +173,9 @@ class SuggestionBuilder {
   /// The listener to be notified at certain points in the process of building
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
+
+  /// The function to be invoked when a new suggestion is added.
+  void Function(protocol.CompletionSuggestion)? suggestionAdded;
 
   /// A map from a completion identifier to a completion suggestion.
   final Map<String, CompletionSuggestion> _suggestionMap =
@@ -249,11 +228,6 @@ class SuggestionBuilder {
 
   bool get _isNonNullableByDefault =>
       request.libraryElement.isNonNullableByDefault;
-
-  /// Return an object that knows which suggestions exist, and which are new.
-  NewSuggestionsProcessor markSuggestions() {
-    return NewSuggestionsProcessor._(this);
-  }
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
@@ -965,10 +939,9 @@ class SuggestionBuilder {
         key = '$key()';
       }
       listener?.builtSuggestion(suggestion);
-      if (laterReplacesEarlier) {
+      if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
         _suggestionMap[key] = suggestion;
-      } else {
-        _suggestionMap.putIfAbsent(key, () => suggestion);
+        suggestionAdded?.call(suggestion);
       }
     }
   }

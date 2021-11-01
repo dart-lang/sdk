@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -16,6 +17,7 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
@@ -72,7 +74,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
-    List<Uri>? librariesToImport,
+    Map<CompletionSuggestion, Uri>? notImportedSuggestions,
   }) async {
     //
     // Allow plugins to start computing fixes.
@@ -91,7 +93,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-        librariesToImport: librariesToImport,
+        notImportedSuggestions: notImportedSuggestions,
       );
 
       suggestions.addAll(
@@ -324,14 +326,15 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         );
         setNewRequest(completionRequest);
 
-        var librariesToImport = <Uri>[];
+        var notImportedSuggestions =
+            HashMap<CompletionSuggestion, Uri>.identity();
         var suggestions = <CompletionSuggestion>[];
         try {
           suggestions = await computeSuggestions(
             budget: budget,
             performance: performance,
             request: completionRequest,
-            librariesToImport: librariesToImport,
+            notImportedSuggestions: notImportedSuggestions,
           );
         } on AbortCompletion {
           return server.sendResponse(
@@ -358,12 +361,29 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         var isIncomplete = lengthRestricted.length < suggestions.length;
         completionPerformance.suggestionCount = lengthRestricted.length;
 
+        // Update `libraryUriToImportIndex` for not yet imported.
+        // Gather referenced unique libraries to import.
+        var librariesToImport = <Uri, int>{};
+        for (var i = 0; i < lengthRestricted.length; i++) {
+          var suggestion = lengthRestricted[i];
+          var libraryToImport = notImportedSuggestions[suggestion];
+          if (libraryToImport != null) {
+            var index = librariesToImport.putIfAbsent(
+              libraryToImport,
+              () => librariesToImport.length,
+            );
+            lengthRestricted[i] = suggestion.copyWith(
+              libraryUriToImportIndex: CopyWithValue(index),
+            );
+          }
+        }
+
         server.sendResponse(
           CompletionGetSuggestions2Result(
             completionRequest.replacementOffset,
             completionRequest.replacementLength,
             lengthRestricted,
-            librariesToImport.map((e) => '$e').toList(),
+            librariesToImport.keys.map((e) => '$e').toList(),
             isIncomplete,
           ).toResponse(request.id),
         );

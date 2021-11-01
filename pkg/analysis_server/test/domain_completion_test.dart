@@ -261,6 +261,33 @@ void f() {
     responseValidator.suggestions.assertEmpty();
   }
 
+  Future<void> test_notImported_dart() async {
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  Rand^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4)
+      ..assertLibrariesToImport(includes: [
+        'dart:math',
+      ], excludes: [
+        'dart:async',
+        'dart:core',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['Random']);
+    classes.withCompletion('Random').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('dart:math');
+  }
+
   Future<void> test_notImported_emptyBudget() async {
     await _configureWithWorkspaceRoot();
 
@@ -430,12 +457,12 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/a.dart',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/test.dart',
       ]);
 
@@ -473,11 +500,11 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/a.dart',
         'package:test/test.dart',
       ]);
@@ -519,12 +546,12 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/a.dart',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/test.dart',
       ]);
 

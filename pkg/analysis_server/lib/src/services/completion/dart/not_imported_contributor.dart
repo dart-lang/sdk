@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
@@ -25,13 +26,13 @@ class NotImportedContributor extends DartCompletionContributor {
   static void Function(FileState)? onFile;
 
   final CompletionBudget budget;
-  final List<Uri> librariesToImport;
+  final Map<protocol.CompletionSuggestion, Uri> notImportedSuggestions;
 
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
     this.budget,
-    this.librariesToImport,
+    this.notImportedSuggestions,
   ) : super(request, builder);
 
   @override
@@ -72,7 +73,10 @@ class NotImportedContributor extends DartCompletionContributor {
       var exportNamespace = elementResult.element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
-      var newSuggestions = builder.markSuggestions();
+      builder.laterReplacesEarlier = false;
+      builder.suggestionAdded = (suggestion) {
+        notImportedSuggestions[suggestion] = file.uri;
+      };
 
       if (request.includeIdentifiers) {
         _buildSuggestions(exportElements);
@@ -81,12 +85,10 @@ class NotImportedContributor extends DartCompletionContributor {
       extensionContributor.addExtensions(
         exportElements.whereType<ExtensionElement>().toList(),
       );
-
-      newSuggestions.setLibraryUriToImportIndex(() {
-        librariesToImport.add(file.uri);
-        return librariesToImport.length - 1;
-      });
     }
+
+    builder.laterReplacesEarlier = true;
+    builder.suggestionAdded = null;
   }
 
   _Filter _buildFilter(FileSystemState fsState) {
