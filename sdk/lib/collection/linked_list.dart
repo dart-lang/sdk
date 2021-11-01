@@ -45,18 +45,29 @@ part of dart.collection;
 ///
 /// void main(){
 ///   final LinkedList linkedList = LinkedList<EntryItem>();
-///   linkedList.add(EntryItem(1, 'A'));
-///   linkedList.add(EntryItem(2, 'B'));
-///   linkedList.add(EntryItem(3, 'C'));
+///   linkedList.addAll(
+///       [EntryItem(1, 'A'), EntryItem(2, 'B'), EntryItem(3, 'C')].toList());
 ///   print(linkedList.first); // 1 A
 ///   print(linkedList.last); // 3 C
+///   // Add insert before last item
+///   linkedList.last.insertBefore(EntryItem(4, 'D'));
+///   // Add item after first item
+///   linkedList.first.insertAfter(EntryItem(5, 'E'));
+///   // Iterate items using forEach
+///   linkedList.forEach((entry) {
+///     print(entry.toString()); // 3 C
+///     // 1 A
+///     // 15 E
+///     // 2 B
+///     // 10 D
+///     // 3 C
+///   });
 ///   // Remove first item from list
 ///   linkedList.elementAt(0).unlink();
-///   print(linkedList.first); // 2 B
-///   print(linkedList.last); // 3 C
-///   linkedList.remove(linkedList.elementAt(0));
-///   print(linkedList.first); // 3 C
-///   print(linkedList.last); // 3 C
+///   print(linkedList); // (15 E, 2 B, 10 D, 3 C)
+///   // Remove last item from list
+///   linkedList.remove(linkedList.last);
+///   print(linkedList); // (15 E, 2 B, 10 D)
 ///   // Remove all items
 ///   linkedList.clear();
 ///   print(linkedList.length); // 0
