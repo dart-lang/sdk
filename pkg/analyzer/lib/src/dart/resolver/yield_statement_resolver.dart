@@ -70,9 +70,9 @@ class YieldStatementResolver {
   /// This method should only be called in generator functions.
   void _checkForYieldOfInvalidType(
     BodyInferenceContext bodyContext,
-    YieldStatement node,
-    bool isYieldEach,
-  ) {
+    YieldStatement node, {
+    required bool isYieldEach,
+  }) {
     var expression = node.expression;
     var expressionType = expression.typeOrThrow;
 
@@ -88,11 +88,25 @@ class YieldStatementResolver {
     var imposedReturnType = bodyContext.imposedType;
     if (imposedReturnType != null &&
         !_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
-        expression,
-        [impliedReturnType, imposedReturnType],
-      );
+      if (isYieldEach) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+          expression,
+          [impliedReturnType, imposedReturnType],
+        );
+        return;
+      }
+      var imposedTypeAsInstanceOf = bodyContext.isSynchronous
+          ? imposedReturnType.asInstanceOf(_typeProvider.iterableElement)
+          : imposedReturnType.asInstanceOf(_typeProvider.streamElement);
+      var imposedValueType = imposedTypeAsInstanceOf?.typeArguments[0];
+      if (imposedValueType != null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+          expression,
+          [expressionType, imposedValueType],
+        );
+      }
       return;
     }
 
@@ -109,7 +123,7 @@ class YieldStatementResolver {
 
       if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType)) {
         _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
           expression,
           [impliedReturnType, requiredReturnType],
         );
@@ -134,7 +148,8 @@ class YieldStatementResolver {
 
     bodyContext.addYield(node);
 
-    _checkForYieldOfInvalidType(bodyContext, node, node.star != null);
+    _checkForYieldOfInvalidType(bodyContext, node,
+        isYieldEach: node.star != null);
     _checkForUseOfVoidResult(node.expression);
   }
 

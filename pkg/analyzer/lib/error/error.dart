@@ -475,6 +475,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
   CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
+  CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
   FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,

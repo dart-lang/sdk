@@ -1651,7 +1651,7 @@ m() sync* {
   yield* x;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 37, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 37, 1),
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
           37, 1),
     ]);
