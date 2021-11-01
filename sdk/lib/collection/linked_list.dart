@@ -50,6 +50,16 @@ part of dart.collection;
 ///   linkedList.add(EntryItem(3, 'C'));
 ///   print(linkedList.first); // 1 A
 ///   print(linkedList.last); // 3 C
+///   // Remove first item from list
+///   linkedList.elementAt(0).unlink();
+///   print(linkedList.first); // 2 B
+///   print(linkedList.last); // 3 C
+///   linkedList.remove(linkedList.elementAt(0));
+///   print(linkedList.first); // 3 C
+///   print(linkedList.last); // 3 C
+///   // Remove all items
+///   linkedList.clear();
+///   print(linkedList.length); // 0
 /// }
 /// ```
 class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
