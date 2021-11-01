@@ -64,6 +64,18 @@ const a = identical(MyC.new, C.new);
     );
   }
 
+  test_identical_constructorReference_aliasIsNotProperRename_differentCount2() async {
+    await resolveTestCode('''
+class C<T, U> {}
+typedef MyC<T> = C;
+const a = identical(MyC.new, C.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+  }
+
   test_identical_constructorReference_aliasIsNotProperRename_differentOrder() async {
     await resolveTestCode('''
 class C<T, U> {}
@@ -124,10 +136,22 @@ const a = identical(MyC<int>.new, (MyC.new)<int>);
     );
   }
 
-  test_identical_constructorReference_aliasIsProperRename_mutualSubtypes() async {
+  test_identical_constructorReference_aliasIsProperRename_mutualSubtypes_dynamic() async {
     await resolveTestCode('''
 class C<T> {}
 typedef MyC<T extends Object?> = C<T>;
+const a = identical(MyC<int>.new, MyC<int>.new);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_constructorReference_aliasIsProperRename_mutualSubtypes_futureOr() async {
+    await resolveTestCode('''
+class C<T extends num> {}
+typedef MyC<T extends FutureOr<num>> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
 ''');
     expect(
