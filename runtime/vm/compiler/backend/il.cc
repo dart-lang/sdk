@@ -1077,45 +1077,6 @@ bool LoadStaticFieldInstr::AttributesEqual(const Instruction& other) const {
   return field().ptr() == other.AsLoadStaticField()->field().ptr();
 }
 
-bool LoadStaticFieldInstr::IsFieldInitialized(Object* field_value) const {
-  if (FLAG_fields_may_be_reset) {
-    return false;
-  }
-
-  // Since new isolates will be spawned, the JITed code cannot depend on whether
-  // global field was initialized when running with --enable-isolate-groups.
-  if (FLAG_enable_isolate_groups) return false;
-
-  const Field& field = this->field();
-  Isolate* only_isolate = IsolateGroup::Current()->FirstIsolate();
-  if (only_isolate == nullptr) {
-    // This can happen if background compiler executes this code but the mutator
-    // is being shutdown and the isolate was already unregistered from the group
-    // (and is trying to stop this BG compiler).
-    if (field_value != nullptr) {
-      *field_value = Object::sentinel().ptr();
-    }
-    return false;
-  }
-  if (field_value == nullptr) {
-    field_value = &Object::Handle();
-  }
-  *field_value = only_isolate->field_table()->At(field.field_id());
-  return (field_value->ptr() != Object::sentinel().ptr()) &&
-         (field_value->ptr() != Object::transition_sentinel().ptr());
-}
-
-Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  // When precompiling, the fact that a field is currently initialized does not
-  // make it safe to omit code that checks if the field needs initialization
-  // because the field will be reset so it starts uninitialized in the process
-  // running the precompiled code. We must be prepared to reinitialize fields.
-  if (calls_initializer() && IsFieldInitialized()) {
-    set_calls_initializer(false);
-  }
-  return this;
-}
-
 ConstantInstr::ConstantInstr(const Object& value,
                              const InstructionSource& source)
     : TemplateDefinition(source), value_(value), token_pos_(source.token_pos) {

@@ -15614,6 +15614,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the type of the expression after `yield*`
+   * 1: the return type of the function containing the `yield*`
+   */
+  static const CompileTimeErrorCode YIELD_EACH_OF_INVALID_TYPE =
+      CompileTimeErrorCode(
+    'YIELD_OF_INVALID_TYPE',
+    "The type '{0}' implied by the 'yield*' expression must be assignable to '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'YIELD_EACH_OF_INVALID_TYPE',
+  );
+
+  /**
    * ?? Yield: It is a compile-time error if a yield statement appears in a
    * function that is not a generator function.
    *
@@ -15635,10 +15648,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when the type of object produced by a
-  // `yield` expression doesn't match the type of objects that are to be
-  // returned from the `Iterable` or `Stream` types that are returned from a
-  // generator (a function or method marked with either `sync*` or `async*`).
+  // The analyzer produces this diagnostic when the type of object produced by
+  // a `yield` or `yield*` expression doesn't match the type of objects that
+  // are to be returned from the `Iterable` or `Stream` types that are returned
+  // from a generator (a function or method marked with either `sync*` or
+  // `async*`).
   //
   // #### Example
   //
@@ -15674,7 +15688,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode YIELD_OF_INVALID_TYPE =
       CompileTimeErrorCode(
     'YIELD_OF_INVALID_TYPE',
-    "The type '{0}' implied by the 'yield' expression must be assignable to '{1}'.",
+    "A yielded value of type '{0}' must be assignable to '{1}'.",
     hasPublishedDocs: true,
   );
 

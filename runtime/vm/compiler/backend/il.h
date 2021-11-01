@@ -5577,7 +5577,6 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
-  bool IsFieldInitialized(Object* field_value = nullptr) const;
 
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
@@ -5600,8 +5599,6 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(const Instruction& other) const;
 

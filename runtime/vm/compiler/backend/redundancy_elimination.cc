@@ -432,8 +432,6 @@ class Place : public ValueObject {
     switch (kind()) {
       case kInstanceField:
         return instance_field().is_immutable();
-      case kStaticField:
-        return static_field().is_final() && !FLAG_fields_may_be_reset;
       default:
         return false;
     }
@@ -1542,7 +1540,7 @@ void LICM::Optimize() {
         // we should not move them around unless the field is initialized.
         // Otherwise we might move load past the initialization.
         if (LoadStaticFieldInstr* load = current->AsLoadStaticField()) {
-          if (load->AllowsCSE() && !load->IsFieldInitialized()) {
+          if (load->AllowsCSE()) {
             seen_visible_effect = true;
             continue;
           }

@@ -5482,6 +5482,34 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
 
+  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
+  /// defined in the constructor-tearoffs specification.
+  bool get isProperRename {
+    var aliasedType_ = aliasedType;
+    if (aliasedType_ is! InterfaceType) {
+      return false;
+    }
+    var aliasedClass = aliasedType_.element;
+    var typeArguments = aliasedType_.typeArguments;
+    var typeParameterCount = typeParameters.length;
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
+      return false;
+    }
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
+      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+          library.typeProvider.dynamicType;
+      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+        return false;
+      }
+      if (typeParameters[i] != typeArguments[i].element) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @override
   ElementKind get kind {
     if (isNonFunctionTypeAliasesEnabled) {
@@ -5580,37 +5608,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     } else {
       return (type as TypeImpl).withNullability(resultNullability);
     }
-  }
-
-  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
-  /// defined in the constructor-tearoffs specification.
-  bool isProperRename() {
-    var aliasedType_ = aliasedType;
-    if (aliasedType_ is! InterfaceType) {
-      return false;
-    }
-    var aliasedClass = aliasedType_.element;
-    var typeArguments = aliasedType_.typeArguments;
-    var typeParameterCount = typeParameters.length;
-    if (typeParameterCount != aliasedClass.typeParameters.length) {
-      return false;
-    }
-    if (typeParameterCount != typeArguments.length) {
-      return false;
-    }
-    for (var i = 0; i < typeParameterCount; i++) {
-      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
-      var aliasedBound = aliasedClass.typeParameters[i].bound ??
-          library.typeProvider.dynamicType;
-      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
-          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
-        return false;
-      }
-      if (typeParameters[i] != typeArguments[i].element) {
-        return false;
-      }
-    }
-    return true;
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {

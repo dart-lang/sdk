@@ -845,17 +845,9 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
 }
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
-  if (!FLAG_fields_may_be_reset) {
-    const Field& field = instr->field();
-    ASSERT(field.is_static());
-    auto& obj = Object::Handle(Z);
-    if (field.is_final() && instr->IsFieldInitialized(&obj)) {
-      if (obj.IsSmi() || (obj.IsOld() && obj.IsCanonical())) {
-        SetValue(instr, obj);
-        return;
-      }
-    }
-  }
+  // Cannot treat an initialized field as constant because the same code will be
+  // used when the AppAOT or AppJIT starts over with everything uninitialized or
+  // another isolate in the isolate group starts with everything uninitialized.
   SetValue(instr, non_constant_);
 }
 
