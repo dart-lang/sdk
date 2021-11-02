@@ -108,11 +108,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       if (typename.ffiClass != null) {
-        _errorReporter.reportErrorForNode(
-            subtypeOfFfiCode, typename, [node.name, typename.name]);
+        _errorReporter.reportErrorForNode(subtypeOfFfiCode, typename,
+            [node.name.name, typename.name.toSource()]);
       } else if (typename.isCompoundSubtype) {
-        _errorReporter.reportErrorForNode(
-            subtypeOfStructCode, typename, [node.name, typename.name]);
+        _errorReporter.reportErrorForNode(subtypeOfStructCode, typename,
+            [node.name.name, typename.name.toSource()]);
       }
     }
 
@@ -133,7 +133,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (inCompound && node.declaredElement!.typeParameters.isNotEmpty) {
       _errorReporter.reportErrorForNode(
-          FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name]);
+          FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.name]);
     }
     super.visitClassDeclaration(node);
   }

@@ -482,9 +482,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           // always named, so we can safely assume
           // `overriddenElement.enclosingElement.name` is non-`null`.
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
-              field.name,
-              [field.name, overriddenElement.enclosingElement.name!]);
+              HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name, [
+            field.name.name,
+            overriddenElement.enclosingElement.displayName
+          ]);
         }
         if (!_invalidAccessVerifier._inTestDirectory) {
           _checkForAssignmentOfDoNotStore(field.initializer);
@@ -671,7 +672,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             node.name,
-            [node.name, overriddenElement.enclosingElement.name!]);
+            [node.name.name, overriddenElement.enclosingElement.displayName]);
       }
 
       super.visitMethodDeclaration(node);

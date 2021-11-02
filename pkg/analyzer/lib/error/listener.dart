@@ -165,6 +165,12 @@ class ErrorReporter {
         arguments[i] = argument.getDisplayString(
           withNullability: isNonNullableByDefault,
         );
+      } else if (!(argument is String ||
+          argument is DartType ||
+          argument is int ||
+          argument is Uri)) {
+        throw ArgumentError(
+            'Tried to format an error using ${argument.runtimeType}');
       }
     }
   }

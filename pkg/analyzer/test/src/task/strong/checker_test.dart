@@ -1906,13 +1906,18 @@ void ftf1(dynamic f(int x)) {}
 var fe0 = (int x) => x as dynamic;
 var fe1 = (int x) => x;
 ''', [
-      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 12, 2),
-      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 96, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 12, 2,
+          messageContains: ["'f0'"]),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 96, 2,
+          messageContains: ["'g0'"]),
       error(HintCode.UNUSED_ELEMENT, 96, 2),
       error(HintCode.UNUSED_ELEMENT, 126, 2),
-      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 212, 12),
-      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 304, 2),
-      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 373, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 212, 12,
+          messageContains: ["'m0'"]),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 304, 2,
+          messageContains: ["'y0'"]),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 373, 1,
+          messageContains: ["'f'"]),
     ]);
   }
 
