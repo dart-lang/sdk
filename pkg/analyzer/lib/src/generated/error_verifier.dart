@@ -4750,10 +4750,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkUseOfCovariantInParameters(FormalParameterList node) {
     var parent = node.parent;
-    if (_enclosingClass != null &&
-        parent is MethodDeclaration &&
-        !parent.isStatic) {
+    if (_enclosingClass != null && parent is MethodDeclaration) {
+      // Either [parent] is a static method, in which case `EXTRANEOUS_MODIFIER`
+      // is reported by the parser, or [parent] is an instance method, in which
+      // case any use of `covariant` is legal.
       return;
+    }
+
+    if (_enclosingExtension != null) {
+      // `INVALID_USE_OF_COVARIANT_IN_EXTENSION` is reported by the parser.
+      return;
+    }
+
+    if (parent is FunctionExpression) {
+      var parent2 = parent.parent;
+      if (parent2 is FunctionDeclaration && parent2.parent is CompilationUnit) {
+        // `EXTRANEOUS_MODIFIER` is reported by the parser, for library-level
+        // functions.
+        return;
+      }
     }
 
     NodeList<FormalParameter> parameters = node.parameters;
@@ -4765,14 +4780,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       var keyword = parameter.covariantKeyword;
       if (keyword != null) {
-        if (_enclosingExtension != null) {
-          // Reported by the parser.
-        } else {
-          errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
-            keyword,
-          );
-        }
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
+          keyword,
+        );
       }
     }
   }

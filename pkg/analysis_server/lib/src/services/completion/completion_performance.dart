@@ -35,38 +35,24 @@ String _computeCompletionSnippet(String contents, int offset) {
 
 /// Overall performance of a code completion operation.
 class CompletionPerformance {
-  String? path;
-  String snippet = '';
+  final OperationPerformance operation;
+  final String path;
+  final String snippet;
   int suggestionCount = -1;
-  OperationPerformance? _operation;
+
+  CompletionPerformance({
+    required this.operation,
+    required this.path,
+    required String content,
+    required int offset,
+  }) : snippet = _computeCompletionSnippet(content, offset);
 
   int get elapsedInMilliseconds {
-    var operation = _operation;
-    if (operation == null) {
-      throw StateError('Access of elapsed time before the operation is run');
-    }
     return operation.elapsed.inMilliseconds;
   }
 
   String get suggestionCountStr {
     if (suggestionCount < 1) return '';
     return '$suggestionCount';
-  }
-
-  Future<T> runRequestOperation<T>(
-    Future<T> Function(OperationPerformanceImpl) operation,
-  ) async {
-    var rootOperation = OperationPerformanceImpl('<root>');
-    try {
-      return rootOperation.runAsync('<request>', (performance) async {
-        return await operation(performance);
-      });
-    } finally {
-      _operation = rootOperation.children.first;
-    }
-  }
-
-  void setContentsAndOffset(String contents, int offset) {
-    snippet = _computeCompletionSnippet(contents, offset);
   }
 }
