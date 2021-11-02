@@ -96,11 +96,13 @@ class YieldStatementResolver {
         );
         return;
       }
-      var imposedTypeAsInstanceOf = bodyContext.isSynchronous
-          ? imposedReturnType.asInstanceOf(_typeProvider.iterableElement)
-          : imposedReturnType.asInstanceOf(_typeProvider.streamElement);
-      var imposedValueType = imposedTypeAsInstanceOf?.typeArguments[0];
-      if (imposedValueType != null) {
+      var imposedSequenceType = imposedReturnType.asInstanceOf(
+        bodyContext.isSynchronous
+            ? _typeProvider.iterableElement
+            : _typeProvider.streamElement,
+      );
+      if (imposedSequenceType != null) {
+        var imposedValueType = imposedSequenceType.typeArguments[0];
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
           expression,

@@ -54,13 +54,16 @@ class KernelLoaderTask extends CompilerTask {
 
   @override
   String get name => 'kernel loader';
-
-  ir.Reference findMainMethod(Component component, Uri entryUri) {
+  Library findEntryLibrary(Component component, Uri entryUri) {
     var entryLibrary = component.libraries
         .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
     if (entryLibrary == null) {
       throw ArgumentError('Entry uri $entryUri not found in dill.');
     }
+    return entryLibrary;
+  }
+
+  ir.Reference findMainMethod(Library entryLibrary) {
     var mainMethod = entryLibrary.procedures
         .firstWhere((p) => p.name.text == 'main', orElse: () => null);
 
@@ -76,9 +79,25 @@ class KernelLoaderTask extends CompilerTask {
       mainMethodReference = mainMethod.reference;
     }
     if (mainMethodReference == null) {
-      throw ArgumentError('Entry uri $entryUri has no main method.');
+      throw ArgumentError(
+          'Entry uri ${entryLibrary.fileUri} has no main method.');
     }
     return mainMethodReference;
+  }
+
+  Set<Library> computeRequiredLibraries(Library entryLibrary) {
+    var toVisit = [entryLibrary];
+    var visited = <Library>{entryLibrary};
+    while (toVisit.isNotEmpty) {
+      var library = toVisit.removeLast();
+      for (var dependency in library.dependencies) {
+        var target = dependency.targetLibrary;
+        if (visited.add(target)) {
+          toVisit.add(target);
+        }
+      }
+    }
+    return visited;
   }
 
   /// Loads an entire Kernel [Component] from a file on disk.
@@ -124,8 +143,10 @@ class KernelLoaderTask extends CompilerTask {
 
         // If an entryUri is supplied, we use it to manually select the main
         // method.
+        Library entryLibrary;
         if (_options.entryUri != null) {
-          var mainMethod = findMainMethod(component, _options.entryUri);
+          entryLibrary = findEntryLibrary(component, _options.entryUri);
+          var mainMethod = findMainMethod(entryLibrary);
           component.setMainMethodAndMode(mainMethod, true, component.mode);
         }
 
@@ -161,13 +182,26 @@ class KernelLoaderTask extends CompilerTask {
           if (platformUri != resolvedUri) await read(platformUri);
         }
 
-        // Concatenate dills and then reset main method.
+        // Concatenate dills, trim the resulting monolithic dill, and then
+        // reset the main method.
         var mainMethod = component.mainMethodName;
         var mainMode = component.mode;
         if (_options.dillDependencies != null) {
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
           }
+        }
+        if (entryLibrary != null) {
+          var requiredLibraries = computeRequiredLibraries(entryLibrary);
+          for (var library in component.libraries) {
+            if (library.importUri.scheme == 'dart') {
+              requiredLibraries.add(library);
+            }
+          }
+          component = ir.Component(
+              libraries: requiredLibraries.toList(),
+              uriToSource: component.uriToSource,
+              nameRoot: component.root);
         }
         component.setMainMethodAndMode(mainMethod, true, mainMode);
 

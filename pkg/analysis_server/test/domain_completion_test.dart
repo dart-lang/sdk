@@ -75,8 +75,7 @@ void f() {
   }
 
   Future<void> test_import_package_dependencies() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -261,6 +260,33 @@ void f() {
     responseValidator.suggestions.assertEmpty();
   }
 
+  Future<void> test_notImported_dart() async {
+    await _configureWithWorkspaceRoot();
+
+    var responseValidator = await _getTestCodeSuggestions('''
+void f() {
+  Rand^
+}
+''');
+
+    responseValidator
+      ..assertComplete()
+      ..assertReplacementBack(4)
+      ..assertLibrariesToImport(includes: [
+        'dart:math',
+      ], excludes: [
+        'dart:async',
+        'dart:core',
+        'package:test/test.dart',
+      ]);
+
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['Random']);
+    classes.withCompletion('Random').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('dart:math');
+  }
+
   Future<void> test_notImported_emptyBudget() async {
     await _configureWithWorkspaceRoot();
 
@@ -285,8 +311,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_dependencies_inLib() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -343,8 +368,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_dependencies_inTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -407,8 +431,6 @@ void f() {
       ..assertLibraryToImport('package:bbb/f.dart');
   }
 
-  /// TODO(scheglov) Only lib/ libraries in lib/, no test/.
-  /// TODO(scheglov) Suggestions from available Pub packages.
   Future<void> test_notImported_pub_this() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A01 {}
@@ -430,12 +452,12 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/a.dart',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/test.dart',
       ]);
 
@@ -473,11 +495,11 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/a.dart',
         'package:test/test.dart',
       ]);
@@ -519,12 +541,12 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/a.dart',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/test.dart',
       ]);
 
@@ -542,8 +564,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inLib_excludesTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -582,8 +603,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inLib_includesThisSrc() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -625,8 +645,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inTest_includesTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -673,8 +692,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inTest_includesThisSrc() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -1396,6 +1414,71 @@ void f() {
     var suggestionsValidator = responseValidator.suggestions;
     // `foo02` has better relevance, its type matches the context type
     suggestionsValidator.assertCompletions(['foo02', 'foo01']);
+  }
+
+  Future<void> test_yaml_analysisOptions_root() async {
+    await _configureWithWorkspaceRoot();
+
+    var path = convertPath('$testPackageRootPath/analysis_options.yaml');
+    var responseValidator = await _getCodeSuggestions(
+      path: path,
+      content: '^',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertEmptyReplacement();
+
+    responseValidator.suggestions
+        .withKindIdentifier()
+        .assertCompletionsContainsAll([
+      'analyzer: ',
+      'include: ',
+      'linter: ',
+    ]);
+  }
+
+  Future<void> test_yaml_fixData_root() async {
+    await _configureWithWorkspaceRoot();
+
+    var path = convertPath('$testPackageRootPath/fix_data.yaml');
+    var responseValidator = await _getCodeSuggestions(
+      path: path,
+      content: '^',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertEmptyReplacement();
+
+    responseValidator.suggestions
+        .withKindIdentifier()
+        .assertCompletionsContainsAll([
+      'version: ',
+      'transforms:',
+    ]);
+  }
+
+  Future<void> test_yaml_pubspec_root() async {
+    await _configureWithWorkspaceRoot();
+
+    var path = convertPath('$testPackageRootPath/pubspec.yaml');
+    var responseValidator = await _getCodeSuggestions(
+      path: path,
+      content: '^',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertEmptyReplacement();
+
+    responseValidator.suggestions
+        .withKindIdentifier()
+        .assertCompletionsContainsAll([
+      'name: ',
+      'dependencies: ',
+      'dev_dependencies: ',
+    ]);
   }
 
   Future<CompletionGetSuggestions2ResponseValidator> _getCodeSuggestions({
@@ -2493,6 +2576,10 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     writePackageConfig(testPackageRoot, config);
   }
 
+  void writeTestPackagePubspecYamlFile(String content) {
+    newPubspecYamlFile(testPackageRootPath, content);
+  }
+
   Future<void> _configureWithWorkspaceRoot() async {
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -2605,6 +2692,15 @@ class SuggestionsValidator {
     expect(actual, completions);
   }
 
+  /// Assert that this has suggestions with all [expected] completions.
+  /// There might be more suggestions, with other completions.
+  ///
+  /// Does not check the order, kinds, elements, etc.
+  void assertCompletionsContainsAll(Iterable<String> expected) {
+    var actual = suggestions.map((e) => e.completion).toSet();
+    expect(actual, containsAll(expected));
+  }
+
   void assertEmpty() {
     expect(suggestions, isEmpty);
   }
@@ -2649,5 +2745,18 @@ class SuggestionsValidator {
       }).toList(),
       libraryUrisToImport: libraryUrisToImport,
     );
+  }
+
+  SuggestionsValidator withKind(CompletionSuggestionKind kind) {
+    return SuggestionsValidator(
+      suggestions.where((suggestion) {
+        return suggestion.kind == kind;
+      }).toList(),
+      libraryUrisToImport: libraryUrisToImport,
+    );
+  }
+
+  SuggestionsValidator withKindIdentifier() {
+    return withKind(CompletionSuggestionKind.IDENTIFIER);
   }
 }

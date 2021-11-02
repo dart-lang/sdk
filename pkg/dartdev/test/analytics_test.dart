@@ -75,7 +75,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'help'}
+          'message': {'viewName': 'help', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -104,7 +104,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'create'}
+          'message': {'viewName': 'create', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -139,7 +139,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'pub/get'}
+          'message': {'viewName': 'pub/get', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -174,7 +174,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'pub/get'}
+          'message': {'viewName': 'pub/get', 'sc': 'start'},
         },
         {
           'hitType': 'event',
@@ -224,7 +224,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'format'}
+          'message': {'viewName': 'format', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -263,7 +263,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'run'}
+          'message': {'viewName': 'run', 'sc': 'start'},
         },
         {
           'hitType': 'event',
@@ -301,7 +301,7 @@ Future<void> main() async {
               expect(extractAnalytics(result), [
                 {
                   'hitType': 'screenView',
-                  'message': {'viewName': 'run'}
+                  'message': {'viewName': 'run', 'sc': 'start'},
                 },
                 {
                   'hitType': 'event',
@@ -339,7 +339,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'compile/kernel'}
+          'message': {'viewName': 'compile/kernel', 'sc': 'start'},
         },
         {
           'hitType': 'event',

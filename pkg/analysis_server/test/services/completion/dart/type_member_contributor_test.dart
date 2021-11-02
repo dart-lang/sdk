@@ -338,7 +338,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_AsExpression() async {
-    // SimpleIdentifier  TypeName  AsExpression
+    // SimpleIdentifier  NamedType  AsExpression
     addTestSource('''
         class A {var b; X _c; foo() {var a; (a as ^).foo();}''');
     await computeSuggestions();
@@ -373,7 +373,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_AssignmentExpression_type() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
         class A {} void f() {
@@ -395,7 +395,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_AssignmentExpression_type_newline() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
         class A {} void f() {
@@ -416,7 +416,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_AssignmentExpression_type_partial() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
         class A {} void f() {
@@ -438,7 +438,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_AssignmentExpression_type_partial_newline() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
         class A {} void f() {
@@ -1203,7 +1203,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_CatchClause_onType() async {
-    // TypeName  CatchClause  TryStatement
+    // NamedType  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^ {}}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -1215,7 +1215,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_CatchClause_onType_noBrackets() async {
-    // TypeName  CatchClause  TryStatement
+    // NamedType  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -1520,7 +1520,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_ConstructorName_importedClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -1544,7 +1544,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_ConstructorName_importedFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -1568,7 +1568,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_ConstructorName_importedFactory2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         void f() {new String.fr^omCharCodes([]);}''');
@@ -1585,7 +1585,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_ConstructorName_localClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         int T1;
@@ -1605,7 +1605,7 @@ void f() {new A().f^}''');
   }
 
   Future<void> test_ConstructorName_localFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         int T1;
@@ -2217,7 +2217,7 @@ g(F.^
   }
 
   Future<void> test_InstanceCreationExpression_imported() async {
-    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    // SimpleIdentifier  NamedType  ConstructorName  InstanceCreationExpression
     addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
@@ -2247,7 +2247,7 @@ g(F.^
   }
 
   Future<void> test_InstanceCreationExpression_unimported() async {
-    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    // SimpleIdentifier  NamedType  ConstructorName  InstanceCreationExpression
     addSource('/testAB.dart', 'class Foo { }');
     addTestSource('class C {foo(){new F^}}');
     await computeSuggestions();
@@ -2398,7 +2398,7 @@ void f() {
   }
 
   Future<void> test_IsExpression() async {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addSource('/home/test/lib/b.dart', '''
         lib B;
         foo() { }
@@ -2436,7 +2436,7 @@ void f() {
   }
 
   Future<void> test_IsExpression_type() async {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addTestSource('''
         class A {int x; int y() => 0;}
         void f(){var a; if (a is ^)}''');
@@ -2450,7 +2450,7 @@ void f() {
   }
 
   Future<void> test_IsExpression_type_partial() async {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addTestSource('''
         class A {int x; int y() => 0;}
         void f(){var a; if (a is Obj^)}''');
@@ -3267,7 +3267,7 @@ void f() {C.^ print("something");}''');
   }
 
   Future<void> test_partFile_TypeName() async {
-    // SimpleIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  NamedType  ConstructorName
     addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
@@ -3299,7 +3299,7 @@ void f() {C.^ print("something");}''');
   }
 
   Future<void> test_partFile_TypeName2() async {
-    // SimpleIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  NamedType  ConstructorName
     addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
@@ -3479,7 +3479,7 @@ void f() {C.^ print("something");}''');
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
@@ -3505,7 +3505,7 @@ void f() {C.^ print("something");}''');
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
@@ -4173,7 +4173,7 @@ class C with M {
   }
 
   Future<void> test_TypeArgumentList2() async {
-    // TypeName  TypeArgumentList  TypeName
+    // NamedType  TypeArgumentList  NamedType
     addSource('/home/test/lib/a.dart', '''
         class C1 {int x;}
         F1() => 0;

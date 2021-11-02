@@ -929,7 +929,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     String summary;
     switch (readStrategy) {
       case ReadStrategy.fromDart:
-        inputName = 'characters Dart';
+        inputName = inputDillUri != null ? 'kernel bytes' : 'characters Dart';
         inputSize = inputProvider.dartCharactersRead;
         summary = 'Dart file $input ';
         break;
@@ -1378,7 +1378,7 @@ void helpAndFail(String message) {
   fail(message);
 }
 
-void main(List<String> arguments) {
+Future<void> main(List<String> arguments) async {
   // Expand `@path/to/file`
   // When running from bazel, argument of the form `@path/to/file` might be
   // provided. It needs to be replaced by reading all the contents of the
@@ -1396,7 +1396,7 @@ void main(List<String> arguments) {
     batchMain(arguments.sublist(0, arguments.length - 1));
     return;
   }
-  internalMain(arguments);
+  await internalMain(arguments);
 }
 
 /// Return all non-empty lines in a file found at [path].
