@@ -53,7 +53,8 @@ vars = {
   "checkout_benchmarks_internal": False,
 
   # Checkout Android dependencies only on Mac and Linux.
-  "download_android_deps": 'host_os == "mac" or host_os == "linux"',
+  "download_android_deps":
+    "(host_os == mac or host_os == linux) and host_cpu == x64",
 
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.

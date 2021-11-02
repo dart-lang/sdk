@@ -195,6 +195,17 @@ class BlockWorkList : public ValueObject {
     local_output_->Push(raw_obj);
   }
 
+  void Flush() {
+    if (!local_output_->IsEmpty()) {
+      stack_->PushBlock(local_output_);
+      local_output_ = stack_->PopEmptyBlock();
+    }
+    if (!local_input_->IsEmpty()) {
+      stack_->PushBlock(local_input_);
+      local_input_ = stack_->PopEmptyBlock();
+    }
+  }
+
   bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
     ASSERT(local_input_->IsEmpty());
     Block* new_work = stack_->WaitForWork(num_busy);

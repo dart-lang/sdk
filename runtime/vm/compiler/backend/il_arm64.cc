@@ -2705,10 +2705,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R6: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(UntaggedArray);
-    __ LoadObject(R6, Object::null_object());
     __ AddImmediate(R8, AllocateArrayABI::kResultReg,
                     sizeof(UntaggedArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kCompressedWordSize)) {
@@ -2718,7 +2716,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
             AllocateArrayABI::kResultReg,
             compiler::Address(R8, current_offset, compiler::Address::Offset,
                               compiler::kObjectBytes),
-            R6);
+            NULL_REG);
         current_offset += kCompressedWordSize;
       }
     } else {
@@ -2730,7 +2728,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
           AllocateArrayABI::kResultReg,
           compiler::Address(R8, 0, compiler::Address::Offset,
                             compiler::kObjectBytes),
-          R6);
+          NULL_REG);
       __ AddImmediate(R8, kCompressedWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);

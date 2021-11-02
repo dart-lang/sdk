@@ -276,10 +276,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void Finalize() {
-    if (scavenger_->abort_) {
-      promoted_list_.AbandonWork();
-      delayed_weak_properties_ = WeakProperty::null();
-    } else {
+    if (!scavenger_->abort_) {
       ASSERT(!HasWork());
 
       for (NewPage* page = head_; page != nullptr; page = page->next()) {
@@ -287,12 +284,17 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         page->RecordSurvivors();
       }
 
-      promoted_list_.Finalize();
-
       MournWeakProperties();
     }
     page_space_->ReleaseLock(freelist_);
     thread_ = nullptr;
+  }
+
+  void FinalizePromotion() { promoted_list_.Finalize(); }
+
+  void AbandonWork() {
+    promoted_list_.AbandonWork();
+    delayed_weak_properties_ = WeakProperty::null();
   }
 
   NewPage* head() const { return head_; }
@@ -557,6 +559,11 @@ class ParallelScavengerTask : public ThreadPool::Task {
         num_busy_(num_busy) {}
 
   virtual void Run() {
+    if (!barrier_->TryEnter()) {
+      barrier_->Release();
+      return;
+    }
+
     bool result = Thread::EnterIsolateGroupAsHelper(
         isolate_group_, Thread::kScavengerTask, /*bypass_safepoint=*/true);
     ASSERT(result);
@@ -565,13 +572,14 @@ class ParallelScavengerTask : public ThreadPool::Task {
 
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
 
-    // This task is done. Notify the original thread.
-    barrier_->Exit();
+    barrier_->Sync();
+    barrier_->Release();
   }
 
   void RunEnteredIsolateGroup() {
     TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ParallelScavenge");
 
+    num_busy_->fetch_add(1u);
     visitor_->ProcessRoots();
 
     // Phase 1: Copying.
@@ -612,9 +620,10 @@ class ParallelScavengerTask : public ThreadPool::Task {
       barrier_->Sync();
     } while (more_to_scavenge);
 
+    ASSERT(!visitor_->HasWork());
+
     // Phase 2: Weak processing, statistics.
     visitor_->Finalize();
-    barrier_->Sync();
   }
 
  private:
@@ -1671,6 +1680,7 @@ intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
   }
   visitor.Finalize();
 
+  visitor.FinalizePromotion();
   to_->AddList(visitor.head(), visitor.tail());
   return visitor.bytes_promoted();
 }
@@ -1680,8 +1690,8 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   const intptr_t num_tasks = FLAG_scavenger_tasks;
   ASSERT(num_tasks > 0);
 
-  ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
-  RelaxedAtomic<uintptr_t> num_busy = num_tasks;
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+  RelaxedAtomic<uintptr_t> num_busy = 0;
 
   ParallelScavengerVisitor** visitors =
       new ParallelScavengerVisitor*[num_tasks];
@@ -1692,21 +1702,28 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
     if (i < (num_tasks - 1)) {
       // Begin scavenging on a helper thread.
       bool result = Dart::thread_pool()->Run<ParallelScavengerTask>(
-          heap_->isolate_group(), &barrier, visitors[i], &num_busy);
+          heap_->isolate_group(), barrier, visitors[i], &num_busy);
       ASSERT(result);
     } else {
       // Last worker is the main thread.
-      ParallelScavengerTask task(heap_->isolate_group(), &barrier, visitors[i],
+      ParallelScavengerTask task(heap_->isolate_group(), barrier, visitors[i],
                                  &num_busy);
       task.RunEnteredIsolateGroup();
-      barrier.Exit();
+      barrier->Sync();
+      barrier->Release();
     }
   }
 
   for (intptr_t i = 0; i < num_tasks; i++) {
-    to_->AddList(visitors[i]->head(), visitors[i]->tail());
-    bytes_promoted += visitors[i]->bytes_promoted();
-    delete visitors[i];
+    ParallelScavengerVisitor* visitor = visitors[i];
+    if (abort_) {
+      visitor->AbandonWork();
+    } else {
+      visitor->FinalizePromotion();
+    }
+    to_->AddList(visitor->head(), visitor->tail());
+    bytes_promoted += visitor->bytes_promoted();
+    delete visitor;
   }
 
   delete[] visitors;
