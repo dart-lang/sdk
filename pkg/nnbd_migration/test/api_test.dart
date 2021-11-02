@@ -639,6 +639,20 @@ abstract class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_await_null() async {
+    var content = '''
+Future<int> test() async {
+  return await null;
+}
+''';
+    var expected = '''
+Future<int?> test() async {
+  return await null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''

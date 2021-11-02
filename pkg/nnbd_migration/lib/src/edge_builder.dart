@@ -490,7 +490,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitAwaitExpression(AwaitExpression node) {
     var expressionType = _dispatch(node.expression)!;
     var type = expressionType.type!;
-    if (_typeSystem.isSubtypeOf(type, typeProvider.futureDynamicType)) {
+    if (type.isDartCoreNull) {
+      // Nothing to do; awaiting `null` produces `null`.
+    } else if (_typeSystem.isSubtypeOf(type, typeProvider.futureDynamicType)) {
       expressionType = _decoratedClassHierarchy!
           .asInstanceOf(expressionType, typeProvider.futureElement)
           .typeArguments[0]!;
