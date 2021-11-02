@@ -39,7 +39,7 @@ part of dart.collection;
 ///
 ///   @override
 ///   String toString() {
-///     return 'id: $id text: $text';
+///     return '$id : $text';
 ///   }
 /// }
 ///
