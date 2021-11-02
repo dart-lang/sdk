@@ -53,7 +53,8 @@ to a change being released in a dev channel release.
 
 ### Step 1: Announcement
 
-* Create an issue in the Dart SDK issue tracker labelled
+* Create an issue in the
+  [Dart SDK issue tracker](https://github.com/dart-lang/sdk/issues) labelled
   `breaking-change-request` containing the following:
 
   * The intended change in behavior.
