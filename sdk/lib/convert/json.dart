@@ -80,9 +80,33 @@ const JsonCodec json = JsonCodec();
 /// Example:
 /// ```dart
 /// const data = {'text': 'foo', 'value': 2, 'status': false, 'extra': null};
-///
 /// final String jsonString = jsonEncode(data);
 /// print(jsonString); // {"text":"foo","value":2,"status":false,"extra":null}
+/// ```
+///
+/// Example of converting an object to JSON format:
+///
+/// ```dart:expression
+/// class CustomClass {
+///   final String text;
+///   final int value;
+///   CustomClass({required this.text, required this.value});
+///   CustomClass.fromJson(Map<String, dynamic> json)
+///       : text = json['text'],
+///         value = json['value'];
+///
+///   static Map<String, dynamic> toJson(CustomClass value) =>
+///       {'text': value.text, 'value': value.value};
+/// }
+///
+/// void main() {
+///   final CustomClass cc = CustomClass(text: 'Dart', value: 123);
+///   final jsonText = jsonEncode({'cc': cc},
+///       toEncodable: (Object? value) => value is CustomClass
+///           ? CustomClass.toJson(value)
+///           : throw UnsupportedError('Cannot convert to JSON: $value'));
+///   print(jsonText); // {"cc":{"text":"Dart","value":123}}
+/// }
 /// ```
 String jsonEncode(Object? object,
         {Object? toEncodable(Object? nonEncodable)?}) =>
