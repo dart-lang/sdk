@@ -20,7 +20,7 @@ class FuzzTask : public ThreadPool::Task {
       RandomSleep();
       barrier_->Sync();
     }
-    barrier_->Exit();
+    barrier_->Release();
   }
 
  private:
@@ -40,21 +40,14 @@ VM_UNIT_TEST_CASE(ThreadBarrier) {
   static const intptr_t kNumTasks = 5;
   static const intptr_t kNumRounds = 500;
 
-  Monitor* monitor = new Monitor();
-  Monitor* monitor_done = new Monitor();
-  {
-    ThreadBarrier barrier(kNumTasks + 1, monitor, monitor_done);
-    for (intptr_t i = 0; i < kNumTasks; ++i) {
-      Dart::thread_pool()->Run<FuzzTask>(kNumRounds, &barrier, i + 1);
-    }
-    for (intptr_t i = 0; i < kNumRounds; ++i) {
-      barrier.Sync();
-    }
-    barrier.Exit();
+  ThreadBarrier* barrier = new ThreadBarrier(kNumTasks + 1, kNumTasks + 1);
+  for (intptr_t i = 0; i < kNumTasks; ++i) {
+    Dart::thread_pool()->Run<FuzzTask>(kNumRounds, barrier, i + 1);
   }
-
-  delete monitor_done;
-  delete monitor;
+  for (intptr_t i = 0; i < kNumRounds; ++i) {
+    barrier->Sync();
+  }
+  barrier->Release();
 }
 
 }  // namespace dart
