@@ -30,7 +30,7 @@ part of dart.collection;
 /// and a constant time length getter.
 ///
 /// Example:
-/// ```dart:expression
+/// ```dart
 /// class EntryItem extends LinkedListEntry<EntryItem> {
 ///   final int id;
 ///   final String text;
