@@ -64,7 +64,10 @@ class FunctionReferenceResolver {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
-          [function.constructorName.type2.name, function.constructorName.name!],
+          [
+            function.constructorName.type2.name.toSource(),
+            function.constructorName.name!.name
+          ],
         );
         _resolve(node: node, rawType: function.staticType);
       }

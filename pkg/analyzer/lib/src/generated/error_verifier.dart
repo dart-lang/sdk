@@ -795,7 +795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (parameterType is FunctionType &&
             parameterType.returnType.isDynamic) {
           errorReporter.reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
-              node.identifier, [node.identifier]);
+              node.identifier, [node.identifier.name]);
         }
       }
 
@@ -2089,12 +2089,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
           name,
-          [className, name]);
+          [className.toSource(), name.name]);
     } else {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
           constructorName,
-          [className]);
+          [className.toSource()]);
     }
   }
 
@@ -2593,7 +2593,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // Parameters associated with a variable always have a name, so we can
       // safely rely on [id] being non-`null`.
-      errorReporter.reportErrorForNode(errorCode, node, [id!]);
+      errorReporter.reportErrorForNode(errorCode, node, [id!.toSource()]);
     }
   }
 
@@ -2739,18 +2739,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
             initializer,
-            [fieldName]);
+            [fieldName.name]);
       } else if (staticElement.isStatic) {
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
             initializer,
-            [fieldName]);
+            [fieldName.name]);
       }
     } else {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
           initializer,
-          [fieldName]);
+          [fieldName.name]);
       return;
     }
   }
@@ -3328,12 +3328,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
           name,
-          [className, name]);
+          [className.toSource(), name.name]);
     } else {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
           constructorName,
-          [className]);
+          [className.toSource()]);
     }
   }
 
@@ -3651,8 +3651,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (treatedAsDouble) {
         // Suggest the nearest valid double (as a BigInt for printing reasons).
-        extraErrorArgs
-            .add(BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme)));
+        extraErrorArgs.add(
+            BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme))
+                .toString());
       }
 
       errorReporter.reportErrorForNode(
@@ -4063,7 +4064,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS,
           type,
-          [type.name]);
+          [type.name.toSource()]);
     }
   }
 

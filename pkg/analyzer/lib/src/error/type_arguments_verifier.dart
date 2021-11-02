@@ -499,7 +499,8 @@ class TypeArgumentsVerifier {
       NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
     for (TypeAnnotation type in arguments) {
       if (type is NamedType && type.type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
+        _errorReporter
+            .reportErrorForNode(errorCode, type, [type.name.toSource()]);
       }
     }
   }
