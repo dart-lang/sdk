@@ -161,9 +161,12 @@ class AnalysisServer extends AbstractAnalysisServer {
         performance = performanceAfterStartup = ServerPerformance();
       });
     });
-    var notification =
-        ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
-    channel.sendNotification(notification);
+    channel.sendNotification(
+      ServerConnectedParams(
+        options.reportProtocolVersion ?? PROTOCOL_VERSION,
+        io.pid,
+      ).toNotification(),
+    );
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
@@ -635,6 +638,9 @@ class AnalysisServerOptions {
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
+
+  /// If set, this string will be reported as the protocol version.
+  String? reportProtocolVersion;
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
