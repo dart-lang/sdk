@@ -134,6 +134,12 @@ class ReturnTypeVerifier {
       return;
     }
 
+    if (enclosingExecutable.isGenerator) {
+      // [CompileTimeErrorCode.RETURN_IN_GENERATOR] has already been reported;
+      // do not report a duplicate error.
+      return;
+    }
+
     if (_typeSystem.isNonNullableByDefault) {
       _checkReturnExpression_nullSafety(expression);
     } else {

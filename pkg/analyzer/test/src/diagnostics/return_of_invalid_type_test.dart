@@ -234,6 +234,15 @@ void f(void a) async {
 ''');
   }
 
+  test_function_asyncStar() async {
+    await assertErrorsInCode('''
+Stream<int> f() async* => 3;
+''', [
+      // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 23, 2),
+    ]);
+  }
+
   test_function_sync_block__to_dynamic() async {
     await assertNoErrorsInCode(r'''
 f() {
@@ -427,6 +436,15 @@ void f() => 42;
 int f() => '0';
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
+    ]);
+  }
+
+  test_function_syncStar() async {
+    await assertErrorsInCode('''
+Iterable<int> f() sync* => 3;
+''', [
+      // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
     ]);
   }
 
