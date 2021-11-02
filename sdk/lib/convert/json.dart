@@ -84,9 +84,10 @@ const JsonCodec json = JsonCodec();
 /// print(jsonString); // {"text":"foo","value":2,"status":false,"extra":null}
 /// ```
 ///
-/// Example of converting an object to JSON format:
+/// Example of converting an otherwise unsupported object to a
+/// custom JSON format:
 ///
-/// ```dart:expression
+/// ```dart
 /// class CustomClass {
 ///   final String text;
 ///   final int value;
