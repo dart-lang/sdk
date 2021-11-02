@@ -536,7 +536,7 @@ class PageState {
   }
 
   Future<void> test_AsExpression_type() async {
-    // SimpleIdentifier  TypeName  AsExpression
+    // SimpleIdentifier  NamedType  AsExpression
     addTestSource('''
         class A {var b; X _c; foo() {var a; (a as ^).foo();}''');
     await computeSuggestions();
@@ -556,7 +556,7 @@ class PageState {
     // suggesting types. We ought to do so because there's no reason to cast a
     // value to the type it already has.
 
-    // SimpleIdentifier  TypeName  AsExpression
+    // SimpleIdentifier  NamedType  AsExpression
     addTestSource('''
 class A {} class B extends A {} class C extends A {} class D {}
 f(A a){ (a as ^) }''');
@@ -577,7 +577,7 @@ f(A a){ (a as ^) }''');
     // suggesting types. We ought to do so because there's no reason to cast a
     // value to the type it already has.
 
-    // SimpleIdentifier  TypeName  AsExpression
+    // SimpleIdentifier  NamedType  AsExpression
     addTestSource('''
 class A {} class B implements A {} class C implements A {} class D {}
 f(A a){ (a as ^) }''');
@@ -593,7 +593,7 @@ f(A a){ (a as ^) }''');
   }
 
   Future<void> test_AsExpression_type_filter_undefined_type() async {
-    // SimpleIdentifier  TypeName  AsExpression
+    // SimpleIdentifier  NamedType  AsExpression
     addTestSource('''
 class A {}
 f(U u){ (u as ^) }''');
@@ -628,7 +628,7 @@ f(U u){ (u as ^) }''');
   }
 
   Future<void> test_AssignmentExpression_type() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
 class A {} void f() {
@@ -652,7 +652,7 @@ class A {} void f() {
   }
 
   Future<void> test_AssignmentExpression_type_newline() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
 class A {} void f() {
@@ -675,7 +675,7 @@ class A {} void f() {
   }
 
   Future<void> test_AssignmentExpression_type_partial() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
 class A {} void f() {
@@ -699,7 +699,7 @@ class A {} void f() {
   }
 
   Future<void> test_AssignmentExpression_type_partial_newline() async {
-    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // SimpleIdentifier  NamedType  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
 class A {} void f() {
@@ -1616,7 +1616,7 @@ void f() {A a; a^..b}''');
   }
 
   Future<void> test_CatchClause_onType() async {
-    // TypeName  CatchClause  TryStatement
+    // NamedType  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^ {}}}');
     await computeSuggestions();
 
@@ -1629,7 +1629,7 @@ void f() {A a; a^..b}''');
   }
 
   Future<void> test_CatchClause_onType_noBrackets() async {
-    // TypeName  CatchClause  TryStatement
+    // NamedType  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^}}');
     await computeSuggestions();
 
@@ -2066,7 +2066,7 @@ class A {
   }
 
   Future<void> test_ConstructorName_importedClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
 lib B;
@@ -2091,7 +2091,7 @@ void f() {new X.^}''');
   }
 
   Future<void> test_ConstructorName_importedFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
 lib B;
@@ -2116,7 +2116,7 @@ void f() {new X.^}''');
   }
 
   Future<void> test_ConstructorName_importedFactory2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         void f() {new String.fr^omCharCodes([]);}''');
@@ -2134,7 +2134,7 @@ void f() {new X.^}''');
   }
 
   Future<void> test_ConstructorName_localClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
 int T1;
@@ -2155,7 +2155,7 @@ void f() {new X.^}''');
   }
 
   Future<void> test_ConstructorName_localFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
 int T1;
@@ -3762,7 +3762,7 @@ void f() {
   }
 
   Future<void> test_InstanceCreationExpression_imported() async {
-    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    // SimpleIdentifier  NamedType  ConstructorName  InstanceCreationExpression
     addSource('/home/test/lib/a.dart', '''
 int T1;
 F1() { }
@@ -3822,7 +3822,7 @@ void f() {
   }
 
   Future<void> test_InstanceCreationExpression_unimported() async {
-    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    // SimpleIdentifier  NamedType  ConstructorName  InstanceCreationExpression
     addSource('/testAB.dart', 'class Foo { }');
     addTestSource('class C {foo(){new F^}}');
     await computeSuggestions();
@@ -3937,7 +3937,7 @@ void f() {String name; print("hello \${^}");}''');
   }
 
   Future<void> test_IsExpression() async {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addSource('/home/test/lib/b.dart', '''
 lib B;
 foo() { }
@@ -3977,7 +3977,7 @@ f(){var a; if (^ is A)}''');
   }
 
   Future<void> test_IsExpression_type() async {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addTestSource('''
 class A {int x; int y() => 0;}
 void f(){var a; if (a is ^)}''');
@@ -3997,7 +3997,7 @@ void f(){var a; if (a is ^)}''');
     // suggesting types. We ought to do so because there's no reason to cast a
     // value to the type it already has.
 
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addTestSource('''
 class A {} class B extends A {} class C extends A {} class D {}
 f(A a){ if (a is ^) {}}''');
@@ -4018,7 +4018,7 @@ f(A a){ if (a is ^) {}}''');
     // suggesting types. We ought to do so because there's no reason to cast a
     // value to the type it already has.
 
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addTestSource('''
 class A {} class B implements A {} class C implements A {} class D {}
 f(A a){ if (a is ^) {}}''');
@@ -4034,7 +4034,7 @@ f(A a){ if (a is ^) {}}''');
   }
 
   Future<void> test_IsExpression_type_filter_undefined_type() async {
-    // SimpleIdentifier  TypeName  AsExpression
+    // SimpleIdentifier  NamedType  AsExpression
     addTestSource('''
 class A {}
 f(U u){ (u as ^) }''');
@@ -4046,7 +4046,7 @@ f(U u){ (u as ^) }''');
   }
 
   Future<void> test_IsExpression_type_partial() async {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    // SimpleIdentifier  NamedType  IsExpression  IfStatement
     addTestSource('''
 class A {int x; int y() => 0;}
 void f(){var a; if (a is Obj^)}''');
@@ -5405,7 +5405,7 @@ void f() {b.^}''');
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     addSource('/home/test/lib/b.dart', '''
 lib B;
 var T1;
@@ -5432,7 +5432,7 @@ foo(b.^ f) {}''');
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     addSource('/home/test/lib/b.dart', '''
 lib B;
 var T1;
@@ -6133,7 +6133,7 @@ void f() { C<^> c; }''');
   }
 
   Future<void> test_TypeArgumentList2() async {
-    // TypeName  TypeArgumentList  TypeName
+    // NamedType  TypeArgumentList  NamedType
     addSource('/home/test/lib/a.dart', '''
 class C1 {int x;}
 F1() => 0;

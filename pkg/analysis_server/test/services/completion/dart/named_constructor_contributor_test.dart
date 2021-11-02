@@ -290,7 +290,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -318,7 +318,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedClass_unresolved() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -347,7 +347,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -375,7 +375,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedFactory2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         main() {new String.fr^omCharCodes([]);}''');
@@ -395,7 +395,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_localClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         int T1;
@@ -422,7 +422,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_localFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         int T1;

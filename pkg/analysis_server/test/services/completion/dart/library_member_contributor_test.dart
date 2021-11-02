@@ -224,7 +224,7 @@ main() {
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         var T1;
@@ -257,7 +257,7 @@ main() {
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         var T1;
