@@ -31,6 +31,9 @@ bool isExactWidget(ClassElement element) => _flutter.isExactWidget(element);
 bool isExactWidgetTypeContainer(DartType? type) =>
     _flutter.isExactWidgetTypeContainer(type);
 
+bool isExactWidgetTypeSizedBox(DartType? type) =>
+    _flutter.isExactWidgetTypeSizedBox(type);
+
 bool isKDebugMode(Element? element) => _flutter.isKDebugMode(element);
 
 bool isStatefulWidget(ClassElement? element) =>
@@ -56,16 +59,19 @@ class _Flutter {
   static const _nameStatefulWidget = 'StatefulWidget';
   static const _nameWidget = 'Widget';
   static const _nameContainer = 'Container';
+  static const _nameSizedBox = 'SizedBox';
 
   final String packageName;
   final String widgetsUri;
 
+  final Uri _uriBasic;
   final Uri _uriContainer;
   final Uri _uriFramework;
   final Uri _uriFoundation;
 
   _Flutter(this.packageName, String uriPrefix)
       : widgetsUri = '$uriPrefix/widgets.dart',
+        _uriBasic = Uri.parse('$uriPrefix/src/widgets/basic.dart'),
         _uriContainer = Uri.parse('$uriPrefix/src/widgets/container.dart'),
         _uriFramework = Uri.parse('$uriPrefix/src/widgets/framework.dart'),
         _uriFoundation = Uri.parse('$uriPrefix/src/foundation/constants.dart');
@@ -98,6 +104,10 @@ class _Flutter {
   bool isExactWidgetTypeContainer(DartType? type) =>
       type is InterfaceType &&
       _isExactWidget(type.element, _nameContainer, _uriContainer);
+
+  bool isExactWidgetTypeSizedBox(DartType? type) =>
+      type is InterfaceType &&
+      _isExactWidget(type.element, _nameSizedBox, _uriBasic);
 
   bool isKDebugMode(Element? element) =>
       element != null &&

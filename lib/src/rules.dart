@@ -151,6 +151,7 @@ import 'rules/public_member_api_docs.dart';
 import 'rules/recursive_getters.dart';
 import 'rules/require_trailing_commas.dart';
 import 'rules/sized_box_for_whitespace.dart';
+import 'rules/sized_box_shrink_expand.dart';
 import 'rules/slash_for_doc_comments.dart';
 import 'rules/sort_child_properties_last.dart';
 import 'rules/sort_constructors_first.dart';
@@ -350,6 +351,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(RecursiveGetters())
     ..register(RequireTrailingCommas())
     ..register(SizedBoxForWhitespace())
+    ..register(SizedBoxShrinkExpand())
     ..register(SlashForDocComments())
     ..register(SortChildPropertiesLast())
     ..register(SortConstructorsFirst())

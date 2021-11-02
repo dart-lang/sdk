@@ -74,40 +74,43 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    var visitor = _WidthOrHeightArgumentVisitor();
-    node.visitChildren(visitor);
-    if (visitor.seenIncompatibleParams) {
+    var data = _ArgumentData(node.argumentList);
+
+    if (data.incompatibleParamsFound || data.positionalArgumentFound) {
       return;
     }
-    if (visitor.seenChild && (visitor.seenWidth || visitor.seenHeight) ||
-        visitor.seenWidth && visitor.seenHeight) {
+    if (data.seenChild && (data.seenWidth || data.seenHeight) ||
+        data.seenWidth && data.seenHeight) {
       rule.reportLint(node.constructorName);
     }
   }
 }
 
-class _WidthOrHeightArgumentVisitor extends SimpleAstVisitor<void> {
-  var seenWidth = false;
-  var seenHeight = false;
-  var seenChild = false;
-  var seenIncompatibleParams = false;
-
-  @override
-  void visitArgumentList(ArgumentList node) {
-    for (var name in node.arguments
-        .cast<NamedExpression>()
-        .map((arg) => arg.name.label.name)) {
-      if (name == 'width') {
+class _ArgumentData {
+  _ArgumentData(ArgumentList node) {
+    for (var argument in node.arguments) {
+      if (argument is! NamedExpression) {
+        positionalArgumentFound = true;
+        return;
+      }
+      var label = argument.name.label;
+      if (label.name == 'width') {
         seenWidth = true;
-      } else if (name == 'height') {
+      } else if (label.name == 'height') {
         seenHeight = true;
-      } else if (name == 'child') {
+      } else if (label.name == 'child') {
         seenChild = true;
-      } else if (name == 'key') {
-        // key doesn't matter (both SiezdBox and Container have it)
+      } else if (label.name == 'key') {
+        // key doesn't matter (both SizedBox and Container have it)
       } else {
-        seenIncompatibleParams = true;
+        incompatibleParamsFound = true;
       }
     }
   }
+
+  var incompatibleParamsFound = false;
+  var positionalArgumentFound = false;
+  var seenWidth = false;
+  var seenHeight = false;
+  var seenChild = false;
 }

@@ -122,6 +122,14 @@ class Row extends Flex {
   });
 }
 
+class SizedBox extends SingleChildRenderObjectWidget {
+  const SizedBox({Key? key, double? width, double? height, Widget? child});
+  const SizedBox.expand({Key? key, Widget? child});
+  const SizedBox.shrink({Key? key, Widget? child});
+  SizedBox.fromSize({Key? key, Widget? child, Size? size});
+  const SizedBox.square({Key? key, Widget? child, double? dimension});
+}
+
 class Transform extends SingleChildRenderObjectWidget {
   const Transform({
     Key key,

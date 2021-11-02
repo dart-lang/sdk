@@ -147,6 +147,7 @@ linter:
     - recursive_getters
     - require_trailing_commas
     - sized_box_for_whitespace
+    - sized_box_shrink_expand
     - slash_for_doc_comments
     - sort_child_properties_last
     - sort_constructors_first
