@@ -1148,8 +1148,9 @@ class ObjectCopy : public Base {
       auto key_value_pairs = untagged_data->data();
       for (intptr_t i = 0; i < length; i += one_for_set_two_for_map) {
         ObjectPtr key = key_value_pairs[i].Decompress(Base::heap_base_);
+        const bool is_deleted_entry = key == data;
         if (key->IsHeapObject()) {
-          if (MightNeedReHashing(key)) {
+          if (!is_deleted_entry && MightNeedReHashing(key)) {
             needs_rehashing = true;
             break;
           }
@@ -1171,6 +1172,7 @@ class ObjectCopy : public Base {
     if (needs_rehashing) {
       to_untagged->hash_mask_ = Smi::New(0);
       to_untagged->index_ = TypedData::RawCast(Object::null());
+      to_untagged->deleted_keys_ = Smi::New(0);
       Base::EnqueueObjectToRehash(to);
     }
 
@@ -1185,15 +1187,15 @@ class ObjectCopy : public Base {
       Base::StoreCompressedPointersNoBarrier(
           from, to, OFFSET_OF(UntaggedLinkedHashBase, hash_mask_),
           OFFSET_OF(UntaggedLinkedHashBase, hash_mask_));
+      Base::StoreCompressedPointersNoBarrier(
+          from, to, OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_),
+          OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_));
     }
     Base::ForwardCompressedPointer(from, to,
                                    OFFSET_OF(UntaggedLinkedHashBase, data_));
     Base::StoreCompressedPointersNoBarrier(
         from, to, OFFSET_OF(UntaggedLinkedHashBase, used_data_),
         OFFSET_OF(UntaggedLinkedHashBase, used_data_));
-    Base::StoreCompressedPointersNoBarrier(
-        from, to, OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_),
-        OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_));
   }
 
   void CopyLinkedHashMap(typename Types::LinkedHashMap from,

@@ -372,6 +372,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     final int tmpUsed = _usedData;
     _usedData = 0;
+    _deletedKeys = 0;
     for (int i = 0; i < tmpUsed; i += 2) {
       final key = _data[i];
       if (!_HashBase._isDeleted(_data, key)) {
