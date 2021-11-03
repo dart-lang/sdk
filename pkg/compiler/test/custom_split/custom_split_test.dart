@@ -83,30 +83,17 @@ Future<String> constraintsToJson(
   return json;
 }
 
-Uri getFileInTestFolder(String test, String file) =>
-    Platform.script.resolve('data/$test/$file');
-
-Future<String> compileConstraintsToJson(String test, Compiler compiler) async {
-  var constraints = getFileInTestFolder(test, 'constraints.dart');
-  var component = compiler.componentForTesting;
-  return constraintsToJson(component, constraints);
-}
-
-File getConstraintsJsonFile(String test) {
-  var constraintsJsonUri = getFileInTestFolder(test, 'constraints.json');
-  return File(constraintsJsonUri.toFilePath());
-}
-
 /// Verifies the programmatic API produces the expected JSON.
 Future<void> verifyCompiler(String test, Compiler compiler) async {
-  var json = await compileConstraintsToJson(test, compiler);
-  Expect.equals(getConstraintsJsonFile(test).readAsStringSync(), json);
-}
-
-/// Generates constraint JSON.
-Future<void> generateJSON(String test, Compiler compiler) async {
-  var json = await compileConstraintsToJson(test, compiler);
-  getConstraintsJsonFile(test).writeAsStringSync(json);
+  var constraints = Platform.script.resolve('data/$test/constraints.dart');
+  var constraintsJsonUri =
+      Platform.script.resolve('data/$test/constraints.json');
+  var component = compiler.componentForTesting;
+  var json = await constraintsToJson(component, constraints);
+  var constraintsJson =
+      File(constraintsJsonUri.toFilePath()).readAsStringSync();
+  constraintsJson = constraintsJson.substring(0, constraintsJson.length - 1);
+  Expect.equals(json, constraintsJson);
 }
 
 /// Compute the [OutputUnit]s for all source files involved in the test, and
@@ -115,7 +102,6 @@ Future<void> generateJSON(String test, Compiler compiler) async {
 /// or all supporting libraries to be in the `libs` folder, starting with the
 /// same name as the original file in `data`.
 main(List<String> args) {
-  bool generateGoldens = args.contains('-g');
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const OutputUnitDataComputer(),
@@ -123,8 +109,6 @@ main(List<String> args) {
         perTestOptions: createPerTestOptions(),
         args: args, setUpFunction: () {
       importPrefixes.clear();
-    },
-        testedConfigs: allSpecConfigs,
-        verifyCompiler: generateGoldens ? generateJSON : verifyCompiler);
+    }, testedConfigs: allSpecConfigs, verifyCompiler: verifyCompiler);
   });
 }

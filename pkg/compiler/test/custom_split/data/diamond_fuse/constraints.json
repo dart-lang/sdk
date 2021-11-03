@@ -1,40 +1,40 @@
 [
   {
     "type": "reference",
-    "name": "memory:sdk/tests/web/native/main.dart#step1",
+    "name": "step1",
     "import": "memory:sdk/tests/web/native/main.dart#step1"
   },
   {
     "type": "reference",
-    "name": "memory:sdk/tests/web/native/main.dart#step2a",
+    "name": "step2a",
     "import": "memory:sdk/tests/web/native/main.dart#step2a"
   },
   {
     "type": "reference",
-    "name": "memory:sdk/tests/web/native/main.dart#step2b",
+    "name": "step2b",
     "import": "memory:sdk/tests/web/native/main.dart#step2b"
   },
   {
     "type": "reference",
-    "name": "memory:sdk/tests/web/native/main.dart#step3",
+    "name": "step3",
     "import": "memory:sdk/tests/web/native/main.dart#step3"
   },
   {
     "type": "fuse",
     "name": "step2",
     "nodes": [
-      "memory:sdk/tests/web/native/main.dart#step2a",
-      "memory:sdk/tests/web/native/main.dart#step2b"
+      "step2a",
+      "step2b"
     ]
   },
   {
     "type": "order",
-    "predecessor": "memory:sdk/tests/web/native/main.dart#step1",
+    "predecessor": "step1",
     "successor": "step2"
   },
   {
     "type": "order",
     "predecessor": "step2",
-    "successor": "memory:sdk/tests/web/native/main.dart#step3"
+    "successor": "step3"
   }
 ]
