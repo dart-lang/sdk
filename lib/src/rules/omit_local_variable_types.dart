@@ -14,35 +14,54 @@ const _desc = r'Omit type annotations for local variables.';
 
 const _details = r'''
 
-**CONSIDER** omitting type annotations for local variables.
+**DON’T** redundantly type annotate initialized local variables.
 
-Usually, the types of local variables can be easily inferred, so it isn't
-necessary to annotate them.
+Local variables, especially in modern code where functions tend to be small,
+have very little scope. Omitting the type focuses the reader's attention on the
+more important *name* of the variable and its initialized value.
 
 **BAD:**
 ```dart
-Map<int, List<Person>> groupByZip(Iterable<Person> people) {
-  Map<int, List<Person>> peopleByZip = <int, List<Person>>{};
-  for (Person person in people) {
-    peopleByZip.putIfAbsent(person.zip, () => <Person>[]);
-    peopleByZip[person.zip].add(person);
+List<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {
+  List<List<Ingredient>> desserts = <List<Ingredient>>[];
+  for (final List<Ingredient> recipe in cookbook) {
+    if (pantry.containsAll(recipe)) {
+      desserts.add(recipe);
+    }
   }
-  return peopleByZip;
+
+  return desserts;
 }
 ```
 
 **GOOD:**
 ```dart
-Map<int, List<Person>> groupByZip(Iterable<Person> people) {
-  var peopleByZip = <int, List<Person>>{};
-  for (var person in people) {
-    peopleByZip.putIfAbsent(person.zip, () => <Person>[]);
-    peopleByZip[person.zip].add(person);
+List<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {
+  var desserts = <List<Ingredient>>[];
+  for (final recipe in cookbook) {
+    if (pantry.containsAll(recipe)) {
+      desserts.add(recipe);
+    }
   }
-  return peopleByZip;
+
+  return desserts;
 }
 ```
 
+Sometimes the inferred type is not the type you want the variable to have. For
+example, you may intend to assign values of other types later. In that case,
+annotate the variable with the type you want.
+
+**GOOD:**
+```dart
+Widget build(BuildContext context) {
+  [!Widget!] result = Text('You won!');
+  if (applyPadding) {
+    result = Padding(padding: EdgeInsets.all(8.0), child: result);
+  }
+  return result;
+}
+```
 ''';
 
 class OmitLocalVariableTypes extends LintRule {
