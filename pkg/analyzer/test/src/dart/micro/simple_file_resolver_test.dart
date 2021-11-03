@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
@@ -392,8 +393,8 @@ void func() {
     await resolveFile(bPath);
     var result = fileResolver.findReferences(6, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [6]),
-      CiderSearchMatch(bPath, [42])
+      CiderSearchMatch(bPath, [CharacterLocation(4, 11)]),
+      CiderSearchMatch(aPath, [CharacterLocation(1, 7)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -413,7 +414,8 @@ class A {
     await resolveFile(aPath);
     var result = fileResolver.findReferences(16, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [16, 53])
+      CiderSearchMatch(
+          aPath, [CharacterLocation(2, 7), CharacterLocation(5, 5)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -431,7 +433,8 @@ foo(String str) {}
     await resolveFile(aPath);
     var result = fileResolver.findReferences(11, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [11, 28])
+      CiderSearchMatch(
+          aPath, [CharacterLocation(2, 3), CharacterLocation(5, 1)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -456,8 +459,8 @@ main() {
     await resolveFile(bPath);
     var result = fileResolver.findReferences(20, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [20]),
-      CiderSearchMatch(bPath, [56])
+      CiderSearchMatch(bPath, [CharacterLocation(5, 15)]),
+      CiderSearchMatch(aPath, [CharacterLocation(2, 11)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -475,7 +478,8 @@ class A {
     await resolveFile(aPath);
     var result = fileResolver.findReferences(39, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [39, 62])
+      CiderSearchMatch(
+          aPath, [CharacterLocation(3, 9), CharacterLocation(4, 11)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -507,8 +511,9 @@ main() {
     await resolveFile(bPath);
     var result = fileResolver.findReferences(17, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [17, 68]),
-      CiderSearchMatch(bPath, [46])
+      CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
+      CiderSearchMatch(
+          aPath, [CharacterLocation(2, 8), CharacterLocation(7, 4)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -533,8 +538,8 @@ main() {
     await resolveFile(bPath);
     var result = fileResolver.findReferences(21, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [21]),
-      CiderSearchMatch(bPath, [46])
+      CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
+      CiderSearchMatch(aPath, [CharacterLocation(2, 12)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -560,8 +565,8 @@ main() {
     await resolveFile(bPath);
     var result = fileResolver.findReferences(19, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [19]),
-      CiderSearchMatch(bPath, [39])
+      CiderSearchMatch(bPath, [CharacterLocation(4, 13)]),
+      CiderSearchMatch(aPath, [CharacterLocation(3, 9)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -587,8 +592,8 @@ main() {
     await resolveFile(bPath);
     var result = fileResolver.findReferences(20, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [20]),
-      CiderSearchMatch(bPath, [29])
+      CiderSearchMatch(bPath, [CharacterLocation(4, 3)]),
+      CiderSearchMatch(aPath, [CharacterLocation(3, 10)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -607,7 +612,8 @@ void func() {
     await resolveFile(aPath);
     var result = fileResolver.findReferences(10, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [10, 43])
+      CiderSearchMatch(
+          aPath, [CharacterLocation(1, 11), CharacterLocation(4, 11)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -624,12 +630,16 @@ class Foo<T> {
     await resolveFile(aPath);
     var result = fileResolver.findReferences(10, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [10, 22, 40])
+      CiderSearchMatch(aPath, [
+        CharacterLocation(1, 11),
+        CharacterLocation(2, 8),
+        CharacterLocation(4, 12)
+      ])
     ];
     expect(result.map((e) => e.path),
         unorderedEquals(expected.map((e) => e.path)));
-    expect(result.map((e) => e.offsets),
-        unorderedEquals(expected.map((e) => e.offsets)));
+    expect(result.map((e) => e.startPositions),
+        unorderedEquals(expected.map((e) => e.startPositions)));
   }
 
   test_findReferences_typedef() async {
@@ -648,8 +658,8 @@ void f(func o) {}
     await resolveFile(bPath);
     var result = fileResolver.findReferences(8, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [8]),
-      CiderSearchMatch(bPath, [25])
+      CiderSearchMatch(bPath, [CharacterLocation(3, 8)]),
+      CiderSearchMatch(aPath, [CharacterLocation(1, 9)])
     ];
     expect(result, unorderedEquals(expected));
   }

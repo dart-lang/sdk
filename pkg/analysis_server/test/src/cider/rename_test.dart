@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/cider/rename.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +30,6 @@ class A {
 }
 ''');
 
-    expect(refactor, isNotNull);
     expect(refactor!.refactoringElement.element.name, 'bar');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
@@ -40,7 +40,6 @@ void ^foo() {
 }
 ''');
 
-    expect(refactor, isNotNull);
     expect(refactor!.refactoringElement.element.name, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
@@ -68,7 +67,6 @@ void foo() {
 }
 ''');
 
-    expect(refactor, isNotNull);
     expect(refactor!.refactoringElement.element.name, 'a');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
@@ -80,7 +78,6 @@ extension E on int {
 }
 ''');
 
-    expect(refactor, isNotNull);
     expect(refactor!.refactoringElement.element.name, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
@@ -112,9 +109,8 @@ void foo(int ^bar) {
 int ^foo() => 2;
 ''', 'bar');
 
-    expect(result, isNotNull);
-    expect(result?.status.problems.length, 0);
-    expect(result?.oldName, 'foo');
+    expect(result!.status.problems.length, 0);
+    expect(result.oldName, 'foo');
   }
 
   void test_checkName_local() {
@@ -124,9 +120,8 @@ void foo() {
 }
 ''', 'bar');
 
-    expect(result, isNotNull);
-    expect(result?.status.problems.length, 0);
-    expect(result?.oldName, 'a');
+    expect(result!.status.problems.length, 0);
+    expect(result.oldName, 'a');
   }
 
   void test_checkName_local_invalid() {
@@ -136,9 +131,8 @@ void foo() {
 }
 ''', 'Aa');
 
-    expect(result, isNotNull);
-    expect(result?.status.problems.length, 1);
-    expect(result?.oldName, 'a');
+    expect(result!.status.problems.length, 1);
+    expect(result.oldName, 'a');
   }
 
   void test_checkName_parameter() {
@@ -148,9 +142,57 @@ void foo(String ^a) {
 }
 ''', 'bar');
 
-    expect(result, isNotNull);
-    expect(result?.status.problems.length, 0);
-    expect(result?.oldName, 'a');
+    expect(result!.status.problems.length, 0);
+    expect(result.oldName, 'a');
+  }
+
+  void test_rename_local() {
+    var result = _rename(r'''
+void foo() {
+  var ^a = 0; var b = a + 1;
+}
+''', 'bar');
+
+    expect(result!.matches.length, 1);
+    expect(
+        result.matches[0],
+        CiderSearchMatch('/workspace/dart/test/lib/test.dart',
+            [CharacterLocation(2, 7), CharacterLocation(2, 22)]));
+  }
+
+  void test_rename_method() {
+    var a = newFile('/workspace/dart/test/lib/a.dart', content: r'''
+void foo() {
+  a;
+}
+''');
+    fileResolver.resolve(path: a.path);
+
+    var result = _rename(r'''
+import 'a.dart';
+
+main() {
+^foo();
+}
+''', 'bar');
+
+    expect(result!.matches.length, 2);
+    expect(result.matches, [
+      CiderSearchMatch(
+          '/workspace/dart/test/lib/a.dart', [CharacterLocation(1, 6)]),
+      CiderSearchMatch(
+          '/workspace/dart/test/lib/test.dart', [CharacterLocation(4, 1)])
+    ]);
+  }
+
+  void test_rename_parameter() {
+    var result = _rename(r'''
+void foo(String ^a) {
+  var b = a + 1;
+}
+''', 'bar');
+    expect(result!.matches.length, 1);
+    expect(result.checkName.oldName, 'a');
   }
 
   CheckNameResponse? _checkName(String content, String newName) {
@@ -158,12 +200,13 @@ void foo(String ^a) {
 
     return CiderRenameComputer(
       fileResolver,
-    ).checkNewName(
-      convertPath(testPath),
-      _correctionContext.line,
-      _correctionContext.character,
-      newName,
-    );
+    )
+        .canRename(
+          convertPath(testPath),
+          _correctionContext.line,
+          _correctionContext.character,
+        )
+        ?.checkNewName(newName);
   }
 
   CanRenameResponse? _compute(String content) {
@@ -176,6 +219,21 @@ void foo(String ^a) {
       _correctionContext.line,
       _correctionContext.character,
     );
+  }
+
+  RenameResponse? _rename(String content, newName) {
+    _updateFile(content);
+
+    return CiderRenameComputer(
+      fileResolver,
+    )
+        .canRename(
+          convertPath(testPath),
+          _correctionContext.line,
+          _correctionContext.character,
+        )
+        ?.checkNewName(newName)
+        ?.computeRenameRanges();
   }
 
   void _updateFile(String content) {
