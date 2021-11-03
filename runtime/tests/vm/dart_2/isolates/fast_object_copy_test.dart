@@ -235,6 +235,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testMapRehash();
     await testMapRehash2();
     await testMapRehash3();
+    await testMapRehash4();
 
     await testSetRehash();
     await testSetRehash2();
@@ -532,6 +533,27 @@ class SendReceiveTest extends SendReceiveTestBase {
     await sendReceive(graph);
     final int after = HashIncrementer.counter;
     Expect.equals(before + 1, after);
+  }
+
+  Future testMapRehash4() async {
+    // This is a regression test for http://dartbug.com/47598
+    print('testMapRehash4');
+
+    // This map doesn't need rehashing
+    final graph = {'a': 1, 'b': 2, 'c': 3}..remove('b');
+    final graphCopy = (await sendReceive(graph) as Map);
+    Expect.equals(2, graphCopy.length);
+    Expect.equals(1, graphCopy['a']);
+    Expect.equals(3, graphCopy['c']);
+
+    // This map will need re-hashing due to usage of a key that has a
+    // user-defined get:hashCode.
+    final graph2 = {'a': 1, 'b': 2, const HashIncrementer(): 3}..remove('b');
+    final graph2Copy = (await sendReceive(graph2) as Map);
+    Expect.equals(2, graph2Copy.length);
+    Expect.equals(1, graph2Copy['a']);
+    --HashIncrementer.counter;
+    Expect.equals(3, graph2Copy[const HashIncrementer()]);
   }
 
   Future testSetRehash() async {
