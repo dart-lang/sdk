@@ -3242,7 +3242,6 @@ void FlowGraphCompiler::FrameStateClear() {
 #define __ compiler->assembler()->
 
 void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
-  RELEASE_ASSERT(try_index_ == compiler->CurrentTryIndex());
   if (compiler::Assembler::EmittingComments()) {
     __ Comment("slow path %s operation", name());
   }

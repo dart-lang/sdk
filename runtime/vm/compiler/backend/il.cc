@@ -4193,7 +4193,7 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
 
   if (throw_exception_on_initialization()) {
     ThrowErrorSlowPathCode* slow_path =
-        new LateInitializationErrorSlowPath(this, compiler->CurrentTryIndex());
+        new LateInitializationErrorSlowPath(this);
     compiler->AddSlowPathCode(slow_path);
 
     const Register result_reg = locs()->out(0).reg();
@@ -5482,8 +5482,7 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(representation() == RequiredInputRepresentation(kIndexPos));
   ASSERT(representation() == RequiredInputRepresentation(kLengthPos));
 
-  RangeErrorSlowPath* slow_path =
-      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
+  RangeErrorSlowPath* slow_path = new RangeErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
   Location length_loc = locs()->in(kLengthPos);
   Location index_loc = locs()->in(kIndexPos);
