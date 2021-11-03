@@ -5534,8 +5534,7 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ThrowErrorSlowPathCode* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = new NullErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   Register value_reg = locs()->in(0).reg();
@@ -5906,10 +5905,9 @@ static void EmitShiftUint32ByECX(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
+  explicit ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "int64 shift"; }
 
@@ -6005,8 +6003,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift count is > 63 or negative.
     ShiftInt64OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange()) {
-      slow_path =
-          new (Z) ShiftInt64OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftInt64OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
       __ testl(right_hi, right_hi);
       __ j(NOT_ZERO, slow_path->entry_label());
@@ -6069,10 +6066,9 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
+  explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "uint32 shift"; }
 
@@ -6140,8 +6136,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift count is > 31 or negative.
     ShiftUint32OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
-      slow_path =
-          new (Z) ShiftUint32OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftUint32OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ testl(right_hi, right_hi);
