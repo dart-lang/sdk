@@ -30,6 +30,35 @@ class HTracer extends HGraphVisitor with TracerUtil {
     });
   }
 
+  void traceJavaScriptText(String name, String data) {
+    DEBUG_MODE = true;
+    tag("cfg", () {
+      printProperty("name", name);
+      // Emit a fake basic block, with one 'instruction' per line of text.
+      tag("block", () {
+        printProperty("name", "B1");
+        printProperty("from_bci", -1);
+        printProperty("to_bci", -1);
+        printEmptyProperty("predecessors");
+        printEmptyProperty("successors");
+        printEmptyProperty("xhandlers");
+        printEmptyProperty("flags");
+        tag("states", () {
+          tag("locals", () {
+            printProperty("size", 0);
+            printProperty("method", "None");
+          });
+        });
+        tag("HIR", () {
+          for (final line in data.split('\n')) {
+            addIndent();
+            add("0 0 i0 js | $line<|@\n");
+          }
+        });
+      });
+    });
+  }
+
   void addPredecessors(HBasicBlock block) {
     if (block.predecessors.isEmpty) {
       printEmptyProperty("predecessors");
