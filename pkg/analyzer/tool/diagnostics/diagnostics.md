@@ -14435,6 +14435,8 @@ var x = min(0, 1);
 
 ### undefined_super_member
 
+<a id="undefined_super_method" aria-hidden="true"></a>_(Previously known as `UNDEFINED_SUPER_METHOD`)_
+
 _The getter '{0}' isn't defined in a superclass of '{1}'._
 
 _The method '{0}' isn't defined in a superclass of '{1}'._
@@ -15796,7 +15798,3 @@ Iterable<String> get zero sync* {
   yield '0';
 }
 {% endprettify %}
-
-### undefined_super_method
-
-See [undefined_super_member](#undefined_super_member).
