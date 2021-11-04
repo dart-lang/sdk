@@ -207,7 +207,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     var responses =
         await waitForResponses(pluginFutures, requestParameters: requestParams);
-    server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
     var converter = ResultConverter();
     var pluginChanges = <plugin.PrioritizedSourceChange>[];
     for (var response in responses) {
@@ -268,7 +267,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     var responses =
         await waitForResponses(pluginFutures, requestParameters: requestParams);
-    server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
     var converter = ResultConverter();
     for (var response in responses) {
       var result = plugin.EditGetFixesResult.fromResponse(response);
@@ -593,7 +591,6 @@ class EditDomainHandler extends AbstractRequestHandler {
       Request request, String file, int offset) async {
     var errorFixesList = <AnalysisErrorFixes>[];
     var result = await server.getResolvedUnit(file);
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (result != null) {
       var lineInfo = result.lineInfo;
       var requestLine = lineInfo.getLocation(offset).lineNumber;
@@ -644,7 +641,6 @@ error.errorCode: ${error.errorCode}
         }
       }
     }
-    server.requestStatistics?.addItemTimeNow(request, 'computedFixes');
     return errorFixesList;
   }
 
@@ -740,7 +736,6 @@ error.errorCode: ${error.errorCode}
     var changes = <SourceChange>[];
 
     var result = await server.getResolvedUnit(file);
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
 
     if (result != null) {
       var context = DartAssistContextImpl(
@@ -770,8 +765,6 @@ length: $length
           'parameters': parametersFile,
         });
       }
-
-      server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
     }
 
     return changes;

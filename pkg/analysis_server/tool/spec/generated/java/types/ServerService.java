@@ -15,8 +15,6 @@ package org.dartlang.analysis.server.protocol;
  */
 public class ServerService {
 
-  public static final String LOG = "LOG";
-
   public static final String STATUS = "STATUS";
 
 }
