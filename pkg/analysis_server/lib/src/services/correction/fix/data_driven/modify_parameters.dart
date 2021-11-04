@@ -59,6 +59,9 @@ class ModifyParameters extends Change<_Data> {
       // This should only happen if `validate` didn't check this case.
       return;
     }
+    if (!fix.acquireLockOnRange('ModifyParameters', range.node(argumentList))) {
+      return;
+    }
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
     var templateContext = TemplateContext(invocation, fix.utils);

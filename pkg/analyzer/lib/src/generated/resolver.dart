@@ -800,8 +800,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
     if (parent is CompilationUnit) {
       return node is ClassDeclaration ||
+          node is Directive ||
           node is ExtensionDeclaration ||
-          node is FunctionDeclaration;
+          node is FunctionDeclaration ||
+          node is TopLevelVariableDeclaration;
     }
 
     void forClassElement(ClassElement parentElement) {
@@ -810,6 +812,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
     if (parent is ClassDeclaration) {
       forClassElement(parent.declaredElement!);
+      return true;
+    }
+
+    if (parent is ExtensionDeclaration) {
+      enclosingExtension = parent.declaredElement!;
       return true;
     }
 

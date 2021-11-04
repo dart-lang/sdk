@@ -24,6 +24,7 @@ import 'fletcher16_test.dart' as fletcher16_test;
 import 'index_test.dart' as index;
 import 'mutex_test.dart' as mutex;
 import 'referenced_names_test.dart' as referenced_names;
+import 'resolve_for_completion_test.dart' as resolve_for_completion;
 import 'results/test_all.dart' as results;
 import 'search_test.dart' as search;
 import 'session_helper_test.dart' as session_helper;
@@ -53,6 +54,7 @@ main() {
     index.main();
     mutex.main();
     referenced_names.main();
+    resolve_for_completion.main();
     results.main();
     search.main();
     session.main();
