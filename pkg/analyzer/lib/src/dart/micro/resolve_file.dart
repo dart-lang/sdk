@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -46,19 +47,20 @@ const memoryCacheSize = 200 * M;
 
 class CiderSearchMatch {
   final String path;
-  final List<int> offsets;
+  final List<CharacterLocation?> startPositions;
 
-  CiderSearchMatch(this.path, this.offsets);
+  CiderSearchMatch(this.path, this.startPositions);
 
   @override
   bool operator ==(Object object) =>
       object is CiderSearchMatch &&
       path == object.path &&
-      const ListEquality<int>().equals(offsets, object.offsets);
+      const ListEquality<CharacterLocation?>()
+          .equals(startPositions, object.startPositions);
 
   @override
   String toString() {
-    return '($path, $offsets)';
+    return '($path, $startPositions)';
   }
 }
 
@@ -202,7 +204,9 @@ class FileResolver {
         resolved.unit.accept(collector);
         var offsets = collector.offsets;
         if (offsets.isNotEmpty) {
-          references.add(CiderSearchMatch(filePath, offsets));
+          var lineInfo = resolved.unit.lineInfo;
+          references.add(CiderSearchMatch(filePath,
+              offsets.map((offset) => lineInfo?.getLocation(offset)).toList()));
         }
       });
     }
