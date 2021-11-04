@@ -139,11 +139,10 @@ class JsUtilOptimizer extends Transformer {
           VariableGet(function.positionalParameters.first),
           StringLiteral(_getExtensionMemberName(node))
         ], types: [
-          DynamicType()
+          function.returnType
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(
-        AsExpression(getPropertyInvocation, function.returnType));
+    return ReturnStatement(getPropertyInvocation);
   }
 
   /// Returns a new function body for the given [node] external setter.
@@ -153,18 +152,18 @@ class JsUtilOptimizer extends Transformer {
   ReturnStatement _getExternalSetterBody(Procedure node) {
     var function = node.function;
     assert(function.positionalParameters.length == 2);
+    var value = function.positionalParameters.last;
     var setPropertyInvocation = StaticInvocation(
         _setPropertyTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
           StringLiteral(_getExtensionMemberName(node)),
-          VariableGet(function.positionalParameters.last)
+          VariableGet(value)
         ], types: [
-          DynamicType()
+          value.type
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(AsExpression(
-        _lowerSetProperty(setPropertyInvocation), function.returnType));
+    return ReturnStatement(_lowerSetProperty(setPropertyInvocation));
   }
 
   /// Returns a new function body for the given [node] external method.
@@ -183,11 +182,10 @@ class JsUtilOptimizer extends Transformer {
               .map((argument) => VariableGet(argument))
               .toList())
         ], types: [
-          DynamicType()
+          function.returnType
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(AsExpression(
-        _lowerCallMethod(callMethodInvocation), function.returnType));
+    return ReturnStatement(_lowerCallMethod(callMethodInvocation));
   }
 
   /// Returns the extension member name.
