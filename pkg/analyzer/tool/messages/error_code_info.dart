@@ -377,6 +377,10 @@ abstract class ErrorCodeInfo {
   /// codes.
   final String? sharedName;
 
+  /// If present, indicates that this error code has been renamed from
+  /// [previousName] to its current name (or [sharedName]).
+  final String? previousName;
+
   ErrorCodeInfo(
       {this.comment,
       this.documentation,
@@ -384,7 +388,8 @@ abstract class ErrorCodeInfo {
       this.isUnresolvedIdentifier = false,
       this.sharedName,
       required this.problemMessage,
-      this.correctionMessage});
+      this.correctionMessage,
+      this.previousName});
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
@@ -396,7 +401,8 @@ abstract class ErrorCodeInfo {
             isUnresolvedIdentifier:
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
             problemMessage: yaml['problemMessage'] as String,
-            sharedName: yaml['sharedName'] as String?);
+            sharedName: yaml['sharedName'] as String?,
+            previousName: yaml['previousName'] as String?);
 
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message strings to their corresponding indices.

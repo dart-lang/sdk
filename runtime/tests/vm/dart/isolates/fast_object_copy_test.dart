@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--no-enable-isolate-groups
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
+// VMOptions=--no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
+// VMOptions=--enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
 
 // The tests in this file are particularly for an implementation that tries to
 // allocate the entire graph in BFS order using a fast new space allocation

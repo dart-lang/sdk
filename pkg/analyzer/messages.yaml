@@ -12936,6 +12936,7 @@ CompileTimeErrorCode:
       1: the name of the enclosing type where the getter is being looked for
   UNDEFINED_SUPER_METHOD:
     sharedName: UNDEFINED_SUPER_MEMBER
+    previousName: UNDEFINED_SUPER_METHOD
     problemMessage: "The method '{0}' isn't defined in a superclass of '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '{0}' in a superclass."
     hasPublishedDocs: true

@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 /// Tests that Isolate.spanUri completes with an error when the given URI
 /// doesn't resolve to an existing resource.
 library test.isolate.spawn_uri_missing_test;

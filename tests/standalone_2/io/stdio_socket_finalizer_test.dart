@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // This test checks that stdin is *not* closed when an Isolate leaks it.
 
 import 'dart:async';

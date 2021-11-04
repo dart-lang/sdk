@@ -4,9 +4,8 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
 // VMOptions=--trace_shutdown
+
 import 'dart:io';
 import 'dart:isolate';
 
