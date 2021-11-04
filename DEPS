@@ -656,6 +656,15 @@ deps = {
       ],
           "dep_type": "cipd",
   },
+  Var("dart_root") + "/benchmarks/NativeCall/native/out/": {
+      "packages": [
+          {
+              "package": "dart/benchmarks/nativecall",
+              "version": "w1JKzCIHSfDNIjqnioMUPq0moCXKwX67aUfhyrvw4E0C",
+          },
+      ],
+          "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/browsers/chrome": {
       "packages": [
           {
