@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -42,6 +43,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
@@ -1279,6 +1281,62 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _fileTracker.removeFile(path);
       _scheduler.notify(this);
     }
+  }
+
+  ResolvedForCompletionResultImpl? resolveForCompletion({
+    required String path,
+    required int offset,
+    required OperationPerformanceImpl performance,
+  }) {
+    if (!_isAbsolutePath(path)) {
+      return null;
+    }
+
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
+
+    // Process pending changes.
+    while (_fileTracker.verifyChangedFilesIfNeeded()) {}
+
+    var file = _fsState.getFileForPath(path);
+
+    var library = file.isPart ? file.library : file;
+    if (library == null) {
+      return null;
+    }
+
+    libraryContext.load2(library);
+    var unitElement = libraryContext.computeUnitElement(library, file)
+        as CompilationUnitElementImpl;
+
+    var analyzer = LibraryAnalyzer(
+        analysisOptions as AnalysisOptionsImpl,
+        declaredVariables,
+        sourceFactory,
+        libraryContext.analysisContext,
+        libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+        libraryContext.analysisSession.inheritanceManager,
+        library,
+        testingData: testingData);
+
+    var analysisResult = analyzer.analyzeForCompletion(
+      file: file,
+      offset: offset,
+      unitElement: unitElement,
+      performance: performance,
+    );
+
+    return ResolvedForCompletionResultImpl(
+      path: path,
+      uri: file.uri,
+      exists: file.exists,
+      content: file.content,
+      lineInfo: file.lineInfo,
+      parsedUnit: analysisResult.parsedUnit,
+      unitElement: unitElement,
+      resolvedNodes: analysisResult.resolvedNodes,
+    );
   }
 
   void _addDeclaredVariablesToSignature(ApiSignature buffer) {
