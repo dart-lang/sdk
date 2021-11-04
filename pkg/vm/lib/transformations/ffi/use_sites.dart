@@ -26,14 +26,9 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
+import 'abi.dart' show wordSize;
 import 'common.dart'
-    show
-        NativeType,
-        FfiTransformer,
-        nativeTypeSizes,
-        WORD_SIZE,
-        UNKNOWN,
-        wordSize;
+    show NativeType, FfiTransformer, nativeTypeSizes, WORD_SIZE, UNKNOWN;
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
 void transformLibraries(

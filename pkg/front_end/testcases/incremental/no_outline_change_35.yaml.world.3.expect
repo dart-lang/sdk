@@ -64,14 +64,14 @@ constants  {
   #C7 = dart.core::pragma {name:#C1, options:#C6}
   #C8 = dart.ffi::Double {}
   #C9 = 0
-  #C10 = <dart.core::int*>[#C9, #C9, #C9]
+  #C10 = <dart.core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = 8
-  #C12 = <dart.core::int*>[#C11, #C11, #C11]
+  #C12 = <dart.core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = 16
-  #C14 = <dart.core::int*>[#C13, #C13, #C13]
+  #C14 = <dart.core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = "vm:prefer-inline"
   #C16 = dart.core::pragma {name:#C15, options:#C5}
   #C17 = 24
   #C18 = 20
-  #C19 = <dart.core::int*>[#C17, #C18, #C17]
+  #C19 = <dart.core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17]
 }
