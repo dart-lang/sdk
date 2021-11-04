@@ -827,6 +827,20 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   ASSERT(flags != NULL);
   ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
   ASSERT(package_root == nullptr);
+
+  bool dontneed_safe = true;
+#if defined(DART_HOST_OS_LINUX)
+  // This would also be true in Linux, except that Google3 overrides the default
+  // ELF interpreter to one that apparently doesn't create proper mappings.
+  dontneed_safe = false;
+#elif defined(DEBUG)
+  // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
+  if (Options::force_load_elf_from_memory()) {
+    dontneed_safe = false;
+  }
+#endif
+  flags->snapshot_is_dontneed_safe = dontneed_safe;
+
   int exit_code = 0;
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
@@ -946,6 +960,18 @@ void RunMainIsolate(const char* script_name,
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
   flags.is_system_isolate = Options::mark_main_isolate_as_system_isolate();
+  bool dontneed_safe = true;
+#if defined(DART_HOST_OS_LINUX)
+  // This would also be true in Linux, except that Google3 overrides the default
+  // ELF interpreter to one that apparently doesn't create proper mappings.
+  dontneed_safe = false;
+#elif defined(DEBUG)
+  // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
+  if (Options::force_load_elf_from_memory()) {
+    dontneed_safe = false;
+  }
+#endif
+  flags.snapshot_is_dontneed_safe = dontneed_safe;
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, "main",
