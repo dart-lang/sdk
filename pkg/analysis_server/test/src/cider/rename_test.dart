@@ -156,7 +156,7 @@ void foo() {
     expect(result!.matches.length, 1);
     expect(
         result.matches[0],
-        CiderSearchMatch('/workspace/dart/test/lib/test.dart',
+        CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
             [CharacterLocation(2, 7), CharacterLocation(2, 22)]));
   }
 
@@ -178,10 +178,10 @@ main() {
 
     expect(result!.matches.length, 2);
     expect(result.matches, [
-      CiderSearchMatch(
-          '/workspace/dart/test/lib/a.dart', [CharacterLocation(1, 6)]),
-      CiderSearchMatch(
-          '/workspace/dart/test/lib/test.dart', [CharacterLocation(4, 1)])
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/a.dart'),
+          [CharacterLocation(1, 6)]),
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
+          [CharacterLocation(4, 1)])
     ]);
   }
 
