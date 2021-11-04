@@ -4,13 +4,11 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--no-enable-isolate-groups
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 // Dart test program for testing serialization of messages.
-// VMOptions=--enable_type_checks --enable_asserts --enable-isolate-groups
-// VMOptions=--enable_type_checks --enable_asserts --no-enable-isolate-groups
+// VMOptions=--enable_type_checks --enable_asserts
 
 library MessageTest;
 
@@ -22,9 +20,6 @@ import 'dart:isolate';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'dart:typed_data';
-
-final bool isolateGroupsEnabled =
-    Platform.executableArguments.contains('--enable-isolate-groups');
 
 void echoMain(msg) {
   SendPort replyTo = msg[0];
@@ -416,14 +411,10 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(42, x.fun()); //     //# fun: continued
   }); //                               //# fun: continued
 
-  if (isolateGroupsEnabled) {
-    ping.send(new E(new E(null).instanceFun));
-    checks.add((x) {
-      Expect.equals(1234, (x as E).fun());
-    });
-  } else {
-    Expect.throws(() => ping.send(new E(new E(null).instanceFun)));
-  }
+  ping.send(new E(new E(null).instanceFun));
+  checks.add((x) {
+    Expect.equals(1234, (x as E).fun());
+  });
 
   F nonConstF = new F();
   ping.send(nonConstF);

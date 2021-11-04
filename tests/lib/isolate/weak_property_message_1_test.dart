@@ -4,9 +4,6 @@
 
 // See https://github.com/dart-lang/sdk/issues/25559
 
-// VMOptions=--no-enable-isolate-groups
-// VMOptions=--enable-isolate-groups
-
 import "dart:isolate";
 
 import "package:async_helper/async_helper.dart";

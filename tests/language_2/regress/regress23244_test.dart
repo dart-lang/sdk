@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Regression test case for http://dartbug.com/23244
 import 'dart:async';
 import 'dart:isolate';

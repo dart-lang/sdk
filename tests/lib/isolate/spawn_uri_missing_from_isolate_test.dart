@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 /// Tests that Isolate.spawnUri completes with an error when the given URI
 /// doesn't resolve to an existing resource.
 ///
