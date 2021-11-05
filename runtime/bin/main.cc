@@ -222,7 +222,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     if (Dart_IsError(result)) goto failed;
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
-    if (Dart_IsError(result)) return result != nullptr;
+    if (Dart_IsError(result)) goto failed;
 
     if (isolate_group_data->kernel_buffer().get() != nullptr) {
       // Various core-library parts will send requests to the Loader to resolve

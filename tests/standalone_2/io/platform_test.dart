@@ -10,6 +10,18 @@ import "dart:isolate";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
+final executableSuffix = Platform.isWindows ? '.exe' : '';
+final jitExecutableName = 'dart$executableSuffix';
+final aotExecutableName = 'dart_precompiled_runtime$executableSuffix';
+
+bool hasJitOrAotExecutableName(String executable) =>
+    executable.endsWith(jitExecutableName) ||
+    executable.endsWith(aotExecutableName);
+
+bool isRunningFromSource() =>
+    Platform.executable.endsWith(jitExecutableName) &&
+    Platform.script.toFilePath().endsWith('.dart');
+
 test() {
   Expect.isTrue(Platform.numberOfProcessors > 0);
   var os = Platform.operatingSystem;
@@ -25,13 +37,10 @@ test() {
   Expect.isTrue(hostname is String && hostname != "");
   var environment = Platform.environment;
   Expect.isTrue(environment is Map<String, String>);
-  if (!Platform.isWindows) {
-    Expect.isTrue(Platform.executable.endsWith('dart'));
-    Expect.isTrue(Platform.resolvedExecutable.endsWith('dart'));
-  } else {
-    Expect.isTrue(Platform.executable.endsWith('dart.exe'));
-    Expect.isTrue(Platform.resolvedExecutable.endsWith('dart.exe'));
-  }
+
+  Expect.isTrue(hasJitOrAotExecutableName(Platform.executable));
+  Expect.isTrue(hasJitOrAotExecutableName(Platform.resolvedExecutable));
+
   if (!Platform.isWindows) {
     Expect.isTrue(Platform.resolvedExecutable.startsWith('/'));
   } else {
@@ -44,9 +53,11 @@ test() {
   // Move directory to be sure script is correct.
   var oldDir = Directory.current;
   Directory.current = Directory.current.parent;
-  Expect.isTrue(Platform.script.path
-      .endsWith('tests/standalone_2/io/platform_test.dart'));
-  Expect.isTrue(Platform.script.toFilePath().startsWith(oldDir.path));
+  if (isRunningFromSource()) {
+    Expect.isTrue(Platform.script.path
+        .endsWith('tests/standalone_2/io/platform_test.dart'));
+    Expect.isTrue(Platform.script.toFilePath().startsWith(oldDir.path));
+  }
 }
 
 void f(reply) {
@@ -60,7 +71,7 @@ void f(reply) {
 testIsolate() {
   asyncStart();
   ReceivePort port = new ReceivePort();
-  var remote = Isolate.spawn(f, port.sendPort);
+  Isolate.spawn(f, port.sendPort);
   port.first.then((results) {
     Expect.equals(Platform.executable, results["Platform.executable"]);
 
@@ -68,8 +79,10 @@ testIsolate() {
     // SpawnFunction retains the script url of the parent which in this
     // case was a relative path.
     Expect.equals("file", uri.scheme);
-    Expect.isTrue(
-        uri.path.endsWith('tests/standalone_2/io/platform_test.dart'));
+    if (isRunningFromSource()) {
+      Expect.isTrue(
+          uri.path.endsWith('tests/standalone_2/io/platform_test.dart'));
+    }
     Expect.listEquals(
         Platform.executableArguments, results["Platform.executableArguments"]);
     asyncEnd();

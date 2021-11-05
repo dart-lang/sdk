@@ -297,14 +297,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    server.completionRequestAborting.abort();
-    if (await server.completionRequestAborting.waitIfAborted(request)) {
-      return server.sendResponse(
-        CompletionGetSuggestions2Result(offset, 0, [], [], true)
-            .toResponse(request.id),
-      );
-    }
-
     var performance = OperationPerformanceImpl('<root>');
     performance.runAsync(
       'request',
